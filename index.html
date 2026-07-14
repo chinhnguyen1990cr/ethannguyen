@@ -133,6 +133,9 @@
 
   .ipa-note{font-size:11.5px; color:var(--gold); background:rgba(255,201,74,0.08); border:1px solid rgba(255,201,74,0.25);
     padding:8px 10px; border-radius:10px; margin-bottom:10px;}
+  .task-remind-banner{font-size:11.5px; font-weight:700; padding:9px 11px; border-radius:10px; margin-bottom:10px; line-height:1.5;}
+  .task-remind-banner.upcoming{color:var(--gold); background:rgba(255,201,74,0.10); border:1px solid rgba(255,201,74,0.28);}
+  .task-remind-banner.late{color:var(--red); background:rgba(255,90,110,0.10); border:1px solid rgba(255,90,110,0.3);}
   .ipa-progress{font-size:10.5px; color:var(--dim); margin-bottom:8px; font-family:var(--mono);}
   .ipa-group-title{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--dim2); margin:8px 0 6px;}
   .ipa-grid{display:flex; flex-wrap:wrap; gap:6px;}
@@ -227,9 +230,24 @@
   .navitem .ic{font-size:18px;} .navitem .t{font-size:9.5px; font-weight:700;} .navitem.active{color:var(--gold);}
 
   /* ============ HUB HOME ============ */
-  .hub-hero{margin-bottom:4px;}
-  .hub-hero-title{font-size:19px; font-weight:800;}
-  .hub-hero-sub{font-size:12px; color:var(--dim); margin-top:2px;}
+  .hub-clock-card{display:flex; flex-direction:row; align-items:center; justify-content:center; gap:12px; padding:12px 16px; margin-top:12px;
+    background:linear-gradient(135deg, rgba(79,168,255,0.10), rgba(124,108,240,0.10)); border:1px solid var(--border);
+    border-radius:16px; box-shadow:0 8px 18px rgba(0,0,0,0.2); overflow:hidden; position:relative;}
+  .hub-clock-globe{position:relative; flex-shrink:0; width:60px; height:60px;}
+  .hub-clock-globe svg{display:block; width:100%; height:100%;}
+  .hub-clock-spin{animation:hubGlobeSpin 24s linear infinite; transform-origin:60px 60px;}
+  @keyframes hubGlobeSpin{ to{ transform:rotate(360deg); } }
+  .hub-clock-dot{animation:hubDotPulse 3.2s ease-in-out infinite;}
+  @keyframes hubDotPulse{ 0%,100%{opacity:.45;} 50%{opacity:1;} }
+  .hub-clock-time{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;}
+  .hub-clock-hm{font-family:var(--mono); font-size:13px; font-weight:800; color:#fff; letter-spacing:.01em; text-shadow:0 2px 6px rgba(0,0,0,0.5);}
+  .hub-clock-sec{font-size:6.5px; font-weight:700; color:rgba(255,255,255,0.55); margin-top:0; letter-spacing:.05em;}
+  .hub-clock-divider{width:1px; align-self:stretch; background:var(--border); flex-shrink:0;}
+  .hub-clock-info{min-width:0; display:flex; flex-direction:column; align-items:flex-start; text-align:left;}
+  .hub-clock-weekday-badge{display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--dim);}
+  .hub-clock-daynum{font-family:var(--sans); font-size:18px; font-weight:800; line-height:1.2; color:var(--text); margin-top:1px;}
+  .hub-clock-my{font-size:10.5px; font-weight:600; color:var(--dim); margin-top:1px;}
   .hub-grid{margin-top:18px;}
   .menu-card{background:var(--panel); border:1px solid var(--border); border-radius:22px; overflow:hidden;
     box-shadow:0 10px 24px rgba(0,0,0,0.22);}
@@ -250,8 +268,50 @@
   .hub-profile-link{display:flex; align-items:center; justify-content:space-between; margin-top:18px; padding:14px 16px;
     background:var(--panel); border:1px solid var(--border); border-radius:14px; font-size:12.5px; font-weight:700; color:var(--text); cursor:pointer;}
   .hub-profile-link span{color:var(--dim); font-weight:600;}
-  .hub-hero{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
-  .hub-hero-text{min-width:0;}
+  .menu-item-photo-add{width:60px; height:60px; border-radius:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    border:1.5px dashed var(--gold); color:var(--gold); font-size:24px; font-weight:700;}
+  .menu-item-photo-letter{width:60px; height:60px; border-radius:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; font-weight:800; box-shadow:0 6px 14px rgba(0,0,0,0.3);}
+  .menu-item-actions{display:flex; gap:6px; flex-shrink:0;}
+  .menu-item-iconbtn{width:28px; height:28px; border-radius:9px; background:var(--panel2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--dim); cursor:pointer;}
+  .menu-item-iconbtn svg{width:13px; height:13px;}
+  .menu-item-iconbtn.danger{color:var(--red);}
+  .customcat-hero{display:flex; flex-direction:column; align-items:center; text-align:center; padding:36px 20px;}
+  .customcat-hero .badge{width:64px; height:64px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:26px; font-weight:800; box-shadow:0 10px 22px rgba(0,0,0,0.3); margin-bottom:14px;}
+  .customcat-hero .name{font-size:17px; font-weight:800;}
+  .customcat-hero .note{font-size:12px; color:var(--dim); margin-top:8px; line-height:1.6; max-width:280px;}
+  .customcat-hero .actions{display:flex; gap:10px; margin-top:22px;}
+  .ent-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:6px;}
+  .ent-tile{display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px 6px; background:var(--panel);
+    border:1px solid var(--border); border-radius:18px; cursor:pointer; transition:transform .12s ease;
+    box-shadow:0 8px 18px rgba(0,0,0,0.22);}
+  .ent-tile:active{transform:scale(0.96);}
+  .ent-tile-icon{width:52px; height:52px; border-radius:15px; overflow:hidden; box-shadow:0 6px 14px rgba(0,0,0,0.3);}
+  .ent-tile-icon svg{display:block; width:100%; height:100%;}
+  .ent-tile-label{font-size:11px; font-weight:700; text-align:center; color:var(--text); line-height:1.3;}
+  .ent-tile-add{width:52px; height:52px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+    border:1.5px dashed var(--border); color:var(--dim2); font-size:22px; font-weight:700;}
+  .cat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .cat-card{position:relative; border-radius:22px; padding:16px; min-height:112px; display:flex; flex-direction:column;
+    justify-content:space-between; cursor:pointer; overflow:hidden; box-shadow:0 10px 22px rgba(0,0,0,0.28);
+    transition:transform .12s ease;}
+  .cat-card:active{transform:scale(0.97);}
+  .cat-card .ic{width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,0.22); display:flex;
+    align-items:center; justify-content:center; flex-shrink:0;}
+  .cat-card .ic svg{width:20px; height:20px; display:block;}
+  .cat-card .name{font-size:13.5px; font-weight:800; color:#fff; margin-top:10px; line-height:1.25;}
+  .cat-card .stat{font-size:10px; font-weight:700; color:rgba(255,255,255,0.85); margin-top:3px;}
+  .cat-card .deco{position:absolute; right:-12px; bottom:-14px; font-size:70px; opacity:0.16; line-height:1;}
+  .cat-card-actions{position:absolute; top:10px; right:10px; display:flex; gap:5px;}
+  .cat-card-iconbtn{width:24px; height:24px; border-radius:8px; background:rgba(0,0,0,0.22); display:flex;
+    align-items:center; justify-content:center; color:#fff; cursor:pointer;}
+  .cat-card-iconbtn svg{width:11px; height:11px;}
+  .cat-card-add{border:1.5px dashed var(--border); background:var(--panel); box-shadow:none; align-items:center;
+    justify-content:center; flex-direction:row; gap:8px;}
+  .cat-card-add .plus{font-size:22px; font-weight:700; color:var(--gold);}
+  .cat-card-add .name{color:var(--dim); margin-top:0; font-size:12.5px;}
   .top-banner{width:calc(100% + 32px); margin:-16px -16px 16px; background:var(--panel); overflow:hidden;
     border-radius:0 0 22px 22px; box-shadow:0 6px 18px rgba(0,0,0,0.22);}
   .banner-wrap{position:relative; width:100%; height:140px; background-size:cover; background-position:center;
@@ -275,14 +335,14 @@
   .avatar-dropdown-item.danger{color:var(--red);}
   .icon-svg{display:inline-flex; align-items:center; justify-content:center; vertical-align:-5px;}
   .icon-svg svg{width:19px; height:19px; display:block;}
-  .kh-backrow .title{display:flex; align-items:center; gap:8px;}
 
   /* ============ AUTH GATE ============ */
   .authgate-wrap{min-height:calc(100vh - 20px); display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:32px 20px;}
   .authgate-logo{width:76px; height:76px; border-radius:24px; background:linear-gradient(135deg,#FFC94A,#FF8A3D);
-    display:flex; align-items:center; justify-content:center; box-shadow:0 10px 26px rgba(255,138,61,0.35); margin-bottom:18px;}
+    display:flex; align-items:center; justify-content:center; box-shadow:0 10px 26px rgba(255,138,61,0.35); margin-bottom:18px; overflow:hidden;}
   .authgate-logo svg{width:40px; height:40px; color:#fff;}
+  .authgate-logo img{width:100%; height:100%; object-fit:cover; display:block;}
   .authgate-title{font-size:21px; font-weight:800;}
   .authgate-sub{font-size:12.5px; color:var(--dim); margin-top:6px; line-height:1.6; max-width:280px;}
   .authgate-card{width:100%; max-width:320px; margin-top:26px;}
@@ -357,10 +417,19 @@
   .kh-cat-card .ic{width:100%; aspect-ratio:1.6/1; border-radius:12px; overflow:hidden;}
   .kh-cat-card .lbl{font-size:12.5px; font-weight:700;}
   .kh-cat-card .cnt{font-size:10.5px; color:var(--dim); font-family:var(--mono);}
-  .kh-backrow{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
-  .kh-backbtn{width:34px;height:34px;border-radius:10px; background:var(--panel2); border:1px solid var(--border);
-    display:flex;align-items:center;justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0;}
-  .kh-backrow .title{font-size:15px; font-weight:800; flex:1;}
+  .kh-backrow{position:relative; display:flex; align-items:center; justify-content:center; min-height:38px; margin-bottom:16px;}
+  .kh-backbtn{position:absolute; left:0; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    color:var(--text); cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .15s ease;}
+  .kh-backbtn:active{background:var(--panel2);}
+  .kh-backbtn svg{width:17px; height:17px; display:block;}
+  .kh-backrow .title{font-size:13.5px; font-weight:800; text-align:center; color:var(--text); background:var(--panel);
+    border:1px solid var(--border); padding:7px 20px 7px 10px; border-radius:16px; box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    max-width:78%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center;
+    justify-content:center; gap:9px;}
+  .title-icon-badge{display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:9px;
+    flex-shrink:0; color:#fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);}
+  .title-icon-badge svg{width:15px; height:15px; display:block;}
   .kh-refcard{background:linear-gradient(135deg, rgba(8,145,178,0.15), rgba(8,145,178,0.04));
     border:1px solid rgba(8,145,178,0.4); border-radius:14px; padding:14px; margin-bottom:14px;
     display:flex; align-items:center; justify-content:space-between; gap:10px; text-decoration:none; color:var(--text);}
@@ -473,9 +542,17 @@ const ICONS = {
   user: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c1-4 4-6 7.5-6s6.5 2 7.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   camera: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 8.5A2 2 0 0 1 6 6.5h1.2l.9-1.6a1.5 1.5 0 0 1 1.3-.9h5.2a1.5 1.5 0 0 1 1.3.9l.9 1.6H18a2 2 0 0 1 2 2v9A2 2 0 0 1 18 19.5H6a2 2 0 0 1-2-2v-9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" stroke="currentColor" stroke-width="1.7"/></svg>`,
   dots: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg>`,
+  back: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 5.5 8 12l7 6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  sparkle: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5l2.3 6.2 6.2 2.3-6.2 2.3L12 19.5l-2.3-6.2-6.2-2.3 6.2-2.3L12 2.5Z"/></svg>`,
+  folder: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 9v8A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V6.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+  pencil: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20h4L18.5 9.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
   google: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3.02h3.88c2.27-2.09 3.56-5.17 3.56-8.84Z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.28v3.11A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29V6.6H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.4l4.01-3.11Z"/><path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.28 6.6l4.01 3.11C6.23 6.86 8.88 4.75 12 4.75Z"/></svg>`,
 };
 function svgIcon(name, extraStyle){ return `<span class="icon-svg" style="${extraStyle||''}">${ICONS[name]||''}</span>`; }
+// Huy hiệu icon vuông-bo-tròn nhiều màu, kiểu icon app trên điện thoại — dùng cho tiêu đề các màn hình.
+function titleBadge(name, c1, c2){
+  return `<span class="title-icon-badge" style="background:linear-gradient(135deg,${c1},${c2||c1})">${ICONS[name]||''}</span>`;
+}
 
 // Ảnh minh họa (dạng illustration nhiều màu, giống ảnh sản phẩm) cho các dòng hàng Kinh nghiệm kiểm hàng.
 // Ghi chú: đây là hình minh họa tự thiết kế, chưa phải ảnh chụp thật — có thể thay bằng ảnh thật của bạn sau.
@@ -533,6 +610,28 @@ const HUB_PHOTOS = {
     <path d="M50 45V79" stroke="#FF7A50" stroke-width="3"/>
     <path d="M39 56l6 6 13-14" stroke="#FF5A6E" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     <defs><linearGradient id="hi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF5A6E"/><stop offset="1" stop-color="#FF8A3D"/></linearGradient></defs></svg>`,
+  music: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="url(#hm)"/>
+    <circle cx="34" cy="68" r="10" fill="#FFF6E8"/><circle cx="70" cy="60" r="10" fill="#FFF6E8"/>
+    <path d="M44 68V30l32-8v38" stroke="#FFF6E8" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <defs><linearGradient id="hm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B06CF0"/><stop offset="1" stop-color="#6C6CF0"/></linearGradient></defs></svg>`,
+  tuvi: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="url(#ht)"/>
+    <circle cx="50" cy="48" r="22" fill="#FFF6E8" opacity="0.92"/>
+    <path d="M50 26l4.4 9.6 10.5 1.4-7.6 7.4 1.8 10.4L50 49.6l-9.1 5.2 1.8-10.4-7.6-7.4 10.5-1.4L50 26Z" fill="#B06CF0"/>
+    <rect x="34" y="76" width="32" height="6" rx="3" fill="#FFF6E8" opacity="0.85"/>
+    <defs><linearGradient id="ht" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C6CF0"/><stop offset="1" stop-color="#B06CF0"/></linearGradient></defs></svg>`,
+  video: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="url(#hv)"/>
+    <rect x="30" y="16" width="40" height="68" rx="10" fill="#FFF6E8"/>
+    <path d="M44 40l16 10-16 10V40Z" fill="#2CDBA8"/>
+    <defs><linearGradient id="hv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2CDBA8"/><stop offset="1" stop-color="#1FA88A"/></linearGradient></defs></svg>`,
+  game: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="url(#hg)"/>
+    <rect x="18" y="38" width="64" height="34" rx="16" fill="#FFF6E8"/>
+    <path d="M32 48v14M25 55h14" stroke="#4FA8FF" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="64" cy="49" r="4" fill="#FF7A50"/><circle cx="72" cy="57" r="4" fill="#FFC94A"/>
+    <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FA8FF"/><stop offset="1" stop-color="#2CDBA8"/></linearGradient></defs></svg>`,
+  entertainment: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="url(#hen)"/>
+    <path d="M50 22l5.6 12.2 13.3 1.8-9.6 9.4 2.3 13.2L50 52.2l-11.6 6.4 2.3-13.2-9.6-9.4 13.3-1.8L50 22Z" fill="#FFF6E8"/>
+    <circle cx="26" cy="72" r="6" fill="#FFF6E8" opacity="0.9"/><circle cx="74" cy="70" r="4.5" fill="#FFF6E8" opacity="0.75"/>
+    <defs><linearGradient id="hen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6EA8"/><stop offset="1" stop-color="#B06CF0"/></linearGradient></defs></svg>`,
 };
 function hubPhoto(name){ return `<span class="menu-item-photo-img">${HUB_PHOTOS[name]||''}</span>`; }
 
@@ -703,7 +802,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[] };
 const KH_CATEGORIES = [
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
@@ -716,7 +815,7 @@ const KH_CATEGORIES = [
 let KIEMHANG = {}; // { catId: [ {id,title,content,updatedAt} ] }
 let KH_STATE = { view:'list', cat:null, editId:null };
 let activeCharts = [];
-let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, addingTask:false, acctMenuOpen:false };
+let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null };
 let lastKnownLevel = 1;
 const popupQueue = []; let popupShowing = false;
 
@@ -904,14 +1003,37 @@ function renderShadowSub(){
 function renderGenericSub(t){
   return `<ul class="sublist">${(t.sub||[]).map(s=>`<li>${s}</li>`).join('')}</ul>`;
 }
+// Trạng thái nhắc nhở (sắp tới giờ / trễ lịch) của MỘT việc — chỉ tính toán và hiển thị
+// khi người dùng bấm mở việc đó ra xem, gộp thành đúng 1 dòng thông tin duy nhất.
+function taskReminderBanner(t, dateObj){
+  if(t.kind==='sleep') return '';
+  const key = todayKey();
+  if(toKey(dateObj) !== key) return '';
+  const rec = dayRecord(key);
+  if(rec.tasks[t.id]) return '';
+  const [hh,mm] = t.time.split(':').map(Number);
+  const taskTime = new Date(dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate(),hh,mm,0);
+  const diffMin = (taskTime-dateObj)/60000;
+  if(diffMin>0 && diffMin<=15){
+    return `<div class="task-remind-banner upcoming">⏰ Sắp đến giờ — bắt đầu lúc ${t.time}, còn khoảng ${Math.round(diffMin)} phút nữa.</div>`;
+  }
+  if(diffMin<0){
+    const lateMin = Math.round(-diffMin);
+    return `<div class="task-remind-banner late">⚠️ Đã trễ lịch ${lateMin} phút — thực hiện ngay khi có thể nhé!</div>`;
+  }
+  return '';
+}
 function renderSubpanel(t, dateObj){
-  if(t.kind==='run_easy'||t.kind==='run_easy2'||t.kind==='run_interval'||t.kind==='run_long') return renderRunSub(t.kind, dateObj);
-  if(t.kind==='gym_a'||t.kind==='gym_b'||t.kind==='gym_c') return renderGymSub(t.kind);
-  if(t.kind==='ipa') return renderIPASub();
-  if(t.kind==='speaking') return renderSpeakingSub();
-  if(t.kind==='shadowing') return renderShadowSub();
-  if(t.kind==='custom') return renderCustomTaskSub(t);
-  return renderGenericSub(t);
+  const banner = taskReminderBanner(t, dateObj);
+  let body;
+  if(t.kind==='run_easy'||t.kind==='run_easy2'||t.kind==='run_interval'||t.kind==='run_long') body = renderRunSub(t.kind, dateObj);
+  else if(t.kind==='gym_a'||t.kind==='gym_b'||t.kind==='gym_c') body = renderGymSub(t.kind);
+  else if(t.kind==='ipa') body = renderIPASub();
+  else if(t.kind==='speaking') body = renderSpeakingSub();
+  else if(t.kind==='shadowing') body = renderShadowSub();
+  else if(t.kind==='custom') body = renderCustomTaskSub(t);
+  else body = renderGenericSub(t);
+  return banner + body;
 }
 function pickMethodForCategory(cat, dateObj){
   const catalog = METHODS[cat] || [];
@@ -1078,7 +1200,8 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[]}, loaded);
+    if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
   }catch(e){ /* keep defaults */ }
   if(!SETTINGS.programStart) SETTINGS.programStart = todayKey();
   if(!SETTINGS.ipaLearned) SETTINGS.ipaLearned = {};
@@ -1308,7 +1431,7 @@ function showNotifOnboarding(){
   const card = document.getElementById('popup-card');
   card.className = 'popup-card';
   card.innerHTML = `<div class="pic">🔔</div><div class="pt">Bật nhắc nhở?</div>
-    <div class="pm">App sẽ hiện pop-up nhắc trước 15 phút mỗi việc, và báo nếu bạn để trễ — chỉ hoạt động khi app đang mở, kể cả chạy nền.</div>
+    <div class="pm">App sẽ báo tổng kết cuối ngày. Trạng thái từng việc (sắp tới giờ / trễ lịch) sẽ hiện ngay khi bạn bấm mở việc đó — không làm phiền bằng nhiều pop-up.</div>
     <div style="display:flex; gap:8px;">
       <button style="background:var(--panel2); color:var(--dim); flex:1;" data-action="notif-later">Để sau</button>
       <button style="flex:1;" data-action="notif-enable">Bật ngay</button>
@@ -1395,7 +1518,7 @@ function renderHUD(){
   document.getElementById('xpwrap').innerHTML='';
 }
 function requestNotifPermission(){
-  const confirmPopup = ()=> enqueuePopup('🔔','Nhắc nhở trong app đã bật','App sẽ tự hiện pop-up trước 15 phút mỗi việc, và nhắc nếu bạn để trễ — miễn là bạn đang mở app này.');
+  const confirmPopup = ()=> enqueuePopup('🔔','Đã bật thông báo','App sẽ báo tổng kết cuối ngày. Trạng thái từng việc (sắp tới giờ / trễ lịch) sẽ hiện khi bạn bấm mở việc đó.');
   if(!('Notification' in window)){ confirmPopup(); return; }
   if(Notification.permission==='granted'){ confirmPopup(); return; }
   Notification.requestPermission().then(()=>{ confirmPopup(); renderHUD(); }).catch(()=>confirmPopup());
@@ -1450,14 +1573,23 @@ function handleBannerFile(file){
   reader.onload = (ev)=>{
     const img = new Image();
     img.onload = ()=>{
-      const w = 900, h = 320;
+      // Cắt đúng tỉ lệ khung banner ngay trên ảnh gốc (một lần duy nhất) rồi mới thu nhỏ,
+      // thay vì scale-rồi-crop như trước — giữ được độ nét cao nhất có thể so với ảnh gốc.
+      const targetRatio = 900/320;
+      const srcRatio = img.width/img.height;
+      let cropW, cropH;
+      if(srcRatio > targetRatio){ cropH = img.height; cropW = cropH*targetRatio; }
+      else { cropW = img.width; cropH = cropW/targetRatio; }
+      const sx = (img.width-cropW)/2, sy = (img.height-cropH)/2;
+      const maxW = 1600; // đủ nét cho màn hình retina, không tự phóng to ảnh gốc nhỏ hơn
+      const outW = Math.min(maxW, Math.round(cropW));
+      const outH = Math.round(outW/targetRatio);
       const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
+      canvas.width = outW; canvas.height = outH;
       const ctx = canvas.getContext('2d');
-      const scale = Math.max(w/img.width, h/img.height);
-      const dw = img.width*scale, dh = img.height*scale;
-      ctx.drawImage(img, (w-dw)/2, (h-dh)/2, dw, dh);
-      SETTINGS.bannerImage = canvas.toDataURL('image/jpeg', 0.82);
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, outW, outH);
+      SETTINGS.bannerImage = canvas.toDataURL('image/jpeg', 0.94);
       saveSettings(); renderContent();
     };
     img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
@@ -1522,7 +1654,7 @@ function renderKhCategories(){
     </div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('box')+' Kinh nghiệm kiểm hàng')}
+    ${renderSectionBack(titleBadge('box','#FF5A6E','#FF8A3D')+' Kinh nghiệm kiểm hàng')}
     <div style="font-size:11.5px; color:var(--dim); margin-bottom:16px; line-height:1.5;">Ghi lại kinh nghiệm, tiêu chuẩn và lỗi thường gặp cho từng dòng hàng. Dữ liệu tự động đồng bộ qua Google Drive.</div>
     <div class="kh-grid">${cards}</div>`;
 }
@@ -1542,8 +1674,8 @@ function renderKhCatList(){
     </div>`).join('') : `<div class="kh-empty">Chưa có ghi chú nào cho dòng hàng này.<br>Bấm "+ Thêm ghi chú" để bắt đầu.</div>`;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="kh-back-categories">←</div>
-      <div class="title">${svgIcon(cat.icon)} ${cat.label}</div>
+      <div class="kh-backbtn" data-action="kh-back-categories">${svgIcon('back')}</div>
+      <div class="title">${titleBadge(cat.icon, cat.hex, cat.hex)} ${cat.label}</div>
     </div>
     ${refCard}
     <button class="kh-add-btn" data-action="kh-new-note">+ Thêm ghi chú</button>
@@ -1552,8 +1684,8 @@ function renderKhCatList(){
 function renderNhuaEmbed(){
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="hub-open" data-target="kiemhang">←</div>
-      <div class="title">${svgIcon('plastic')} Bách Khoa Nhựa</div>
+      <div class="kh-backbtn" data-action="hub-open" data-target="kiemhang">${svgIcon('back')}</div>
+      <div class="title">${titleBadge('plastic','#0891B2','#0EA5C4')} Bách Khoa Nhựa</div>
     </div>
     <div style="margin:-4px -16px 0; height:calc(100vh - 90px); border-radius:0; overflow:hidden;">
       <iframe src="nhua.html" title="Bách Khoa Nhựa" style="width:100%; height:100%; border:none; display:block; background:#fff;"></iframe>
@@ -1565,7 +1697,7 @@ function renderKhEditForm(){
   const editing = KH_STATE.editId ? khNotes(cat.id).find(n=>n.id===KH_STATE.editId) : null;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="kh-back-catlist">←</div>
+      <div class="kh-backbtn" data-action="kh-back-catlist">${svgIcon('back')}</div>
       <div class="title">${editing? 'Sửa ghi chú':'Ghi chú mới'} · ${cat.label}</div>
     </div>
     <div class="card">
@@ -1607,6 +1739,77 @@ function renderRingsSVG(key, size){
   svg += `<g class="ring-center" text-anchor="middle"><text x="${cx}" y="${cy-2}" class="big">${pctTotal}%</text><text x="${cx}" y="${cy+16}" class="small">HOÀN THÀNH</text></g></svg>`;
   return svg;
 }
+// ============ VÒNG TRÒN THỐNG KÊ NGÀY (day wheel) — mỗi múi là 1 việc theo giờ thực tế,
+// tô đậm nếu đã hoàn thành / mờ nếu chưa, có kim chỉ giờ hiện tại. Có thể lọc theo 1 nhóm (vd tiếng_anh).
+function polarPt(cx,cy,r,angleDeg){
+  const rad = (angleDeg-90)*Math.PI/180;
+  return [cx+r*Math.cos(rad), cy+r*Math.sin(rad)];
+}
+function annulusSectorPath(cx,cy,r0,r1,a1,a2){
+  if(a2<=a1) a2 = a1+0.01;
+  const large = (a2-a1)>180 ? 1 : 0;
+  const [x1,y1] = polarPt(cx,cy,r1,a1);
+  const [x2,y2] = polarPt(cx,cy,r1,a2);
+  const [x3,y3] = polarPt(cx,cy,r0,a2);
+  const [x4,y4] = polarPt(cx,cy,r0,a1);
+  return `M${x1.toFixed(1)},${y1.toFixed(1)} A${r1},${r1} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${r0},${r0} 0 ${large} 0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`;
+}
+function timeToAngleDeg(hhmm){
+  const [h,m] = hhmm.split(':').map(Number);
+  return ((h*60+m)/1440)*360;
+}
+function renderDayWheel(key, filterCat, size){
+  const {plan, rec, done: doneAll, total: totalAll} = dayPlanInfo(key);
+  const scoped = filterCat ? plan.filter(t=>t.cat===filterCat) : plan;
+  const tasks = scoped.filter(t=>t.time).slice().sort((a,b)=> timeToAngleDeg(a.time)-timeToAngleDeg(b.time));
+  const done = scoped.filter(t=>rec.tasks[t.id]).length;
+  const total = scoped.length;
+  const cx=size/2, cy=size/2, r1=size/2-15, r0=r1-size*0.2;
+  let wedges = '';
+  if(tasks.length===0){
+    wedges = `<circle cx="${cx}" cy="${cy}" r="${(r0+r1)/2}" fill="none" stroke="var(--border)" stroke-width="${(r1-r0).toFixed(1)}"/>`;
+  } else if(tasks.length===1){
+    const t = tasks[0]; const isDone = !!rec.tasks[t.id];
+    wedges = `<circle cx="${cx}" cy="${cy}" r="${(r0+r1)/2}" fill="none" stroke="${CATS[t.cat].hex}" stroke-opacity="${isDone?1:0.35}" stroke-width="${(r1-r0).toFixed(1)}"/>
+      <text x="${cx}" y="${(cy-r1+(r1-r0)/2+4).toFixed(1)}" text-anchor="middle" font-size="13">${CATS[t.cat].icon}</text>`;
+  } else {
+    tasks.forEach((t,i)=>{
+      const a1 = timeToAngleDeg(t.time);
+      let a2 = i+1<tasks.length ? timeToAngleDeg(tasks[i+1].time) : timeToAngleDeg(tasks[0].time)+360;
+      if(a2<=a1) a2 += 360;
+      const isDone = !!rec.tasks[t.id];
+      wedges += `<path d="${annulusSectorPath(cx,cy,r0,r1,a1,a2)}" fill="${CATS[t.cat].hex}" opacity="${isDone?1:0.35}"/>`;
+      if((a2-a1) > 14){
+        const midA = (a1+a2)/2;
+        const [ix,iy] = polarPt(cx,cy,(r0+r1)/2, midA);
+        wedges += `<text x="${ix.toFixed(1)}" y="${(iy+4).toFixed(1)}" text-anchor="middle" font-size="12">${CATS[t.cat].icon}</text>`;
+      }
+    });
+  }
+  const now = new Date();
+  const isToday = key===todayKey();
+  let pointer = '';
+  if(isToday){
+    const nowAngle = ((now.getHours()*60+now.getMinutes())/1440)*360;
+    const [px,py] = polarPt(cx,cy,r1+9,nowAngle);
+    pointer = `<polygon points="0,-6 -5,4 5,4" fill="var(--gold)" transform="translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${nowAngle.toFixed(1)})"/>`;
+  }
+  const pct = total>0 ? Math.round(done/total*100) : 0;
+  const timeLabel = isToday ? pad(now.getHours())+':'+pad(now.getMinutes()) : '';
+  const gid = 'dwc'+Math.random().toString(36).slice(2,8);
+  return `<div class="daywheel-wrap">
+    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+      <text x="${cx}" y="13" text-anchor="middle" font-size="13">☀️</text>
+      <text x="${cx}" y="${size-3}" text-anchor="middle" font-size="12">🌙</text>
+      ${wedges}
+      ${pointer}
+      <circle cx="${cx}" cy="${cy}" r="${(r0-4).toFixed(1)}" fill="url(#${gid})"/>
+      <text x="${cx}" y="${cy-3}" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="19" fill="#fff">${pct}%</text>
+      <text x="${cx}" y="${cy+16}" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" fill="rgba(255,255,255,0.75)">${done}/${total}${timeLabel?' · '+timeLabel:''}</text>
+      <defs><radialGradient id="${gid}" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#2A3648"/><stop offset="1" stop-color="#12161e"/></radialGradient></defs>
+    </svg>
+  </div>`;
+}
 function renderAddTaskForm(){
   return `<div class="card" id="add-task-card">
     <h3 style="margin-bottom:10px;">Thêm việc của riêng bạn</h3>
@@ -1636,7 +1839,7 @@ function renderAuthGate(){
   const connected = !!driveAccessToken;
   document.getElementById('content').innerHTML = `
     <div class="authgate-wrap">
-      <div class="authgate-logo">${ICONS.calendar.replace('currentColor','#fff')}</div>
+      <div class="authgate-logo"><img src="icon-192.png" alt="Ethan Nguyễn"></div>
       <div class="authgate-title">Ethan Nguyễn</div>
       <div class="authgate-sub">Đăng nhập Google để đồng bộ tiến độ, cấp độ và huy hiệu của bạn trên mọi thiết bị.</div>
       <div class="authgate-card">${
@@ -1675,10 +1878,8 @@ function renderHub(){
     <div class="acct-menu-backdrop" data-action="toggle-acct-menu"></div>
     <div class="acct-menu-dropdown">
       <div class="avatar-dropdown-item" data-action="hub-open" data-target="profile">${svgIcon('user')} Thông tin cá nhân &amp; chỉ số cơ thể</div>
-      ${connected ? `<div class="avatar-dropdown-item" data-action="drive-resync">🔄 Tải lại từ Drive</div>` : ''}
-      ${connected
-        ? `<div class="avatar-dropdown-item danger" data-action="drive-signout">⎋ Đăng xuất</div>`
-        : `<div class="avatar-dropdown-item" data-action="drive-signin">${svgIcon('google')} Đăng nhập bằng Google</div>`}
+      ${connected ? `<div class="avatar-dropdown-item" data-action="drive-resync">🔄 Tải lại từ Drive</div>` : `<div class="avatar-dropdown-item" data-action="drive-signin">${svgIcon('google')} Đăng nhập bằng Google</div>`}
+      <div class="avatar-dropdown-item danger" data-action="drive-signout">⎋ Đăng xuất</div>
     </div>`;
   const menuHtml = `
     <div class="top-banner">
@@ -1693,41 +1894,151 @@ function renderHub(){
         ${acctMenuHtml}
       </div>
     </div>`;
+  const now = new Date();
+  // Các chấm nhỏ mô phỏng lục địa trên "bản đồ thế giới" — chỉ mang tính trang trí, không phải bản đồ thật.
+  const WORLD_DOTS = [
+    [30,34,'#4FA8FF'],[38,30,'#4FA8FF'],[46,32,'#2CDBA8'],[34,42,'#2CDBA8'],[42,40,'#4FA8FF'],
+    [60,30,'#2CDBA8'],[68,34,'#4FA8FF'],[74,30,'#FFC94A'],[64,40,'#2CDBA8'],
+    [28,58,'#FF8A3D'],[36,62,'#FF8A3D'],[32,68,'#FF8A3D'],
+    [58,62,'#4FA8FF'],[66,58,'#2CDBA8'],[72,64,'#4FA8FF'],[62,70,'#FFC94A'],
+    [50,50,'#B06CF0'],[80,48,'#4FA8FF'],[20,46,'#2CDBA8']
+  ];
+  const dots = WORLD_DOTS.map((d,i)=>`<circle class="hub-clock-dot" cx="${d[0]}" cy="${d[1]}" r="2.3" fill="${d[2]}" style="animation-delay:${(i%6)*0.4}s"/>`).join('');
+  const hr = now.getHours();
+  const dayPartIcon = hr<5 ? '🌙' : hr<11 ? '☀️' : hr<13 ? '🌞' : hr<18 ? '🌤️' : hr<22 ? '🌆' : '🌙';
+  const clockHtml = `
+    <div class="hub-clock-card">
+      <div class="hub-clock-globe">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <radialGradient id="hubGlobeBg" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#1E3A5F"/><stop offset="1" stop-color="#0B1520"/></radialGradient>
+            <linearGradient id="hubGlobeRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC94A"/><stop offset="0.5" stop-color="#FF8A3D"/><stop offset="1" stop-color="#B06CF0"/></linearGradient>
+          </defs>
+          <circle class="hub-clock-spin" cx="60" cy="60" r="57" fill="none" stroke="url(#hubGlobeRing)" stroke-width="2" stroke-dasharray="3 4"/>
+          <circle cx="60" cy="60" r="49" fill="url(#hubGlobeBg)"/>
+          <g transform="translate(10,10)">
+            <ellipse cx="50" cy="50" rx="49" ry="18" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+            <ellipse cx="50" cy="50" rx="26" ry="49" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+            <line x1="1" y1="50" x2="99" y2="50" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+            ${dots}
+          </g>
+        </svg>
+        <div class="hub-clock-time">
+          <div class="hub-clock-hm">${pad(now.getHours())}:${pad(now.getMinutes())}</div>
+          <div class="hub-clock-sec">${pad(now.getSeconds())}s</div>
+        </div>
+      </div>
+      <div class="hub-clock-divider"></div>
+      <div class="hub-clock-info">
+        <div class="hub-clock-weekday-badge">${dayPartIcon} ${WD[now.getDay()]}</div>
+        <div class="hub-clock-daynum">${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
+        <div class="hub-clock-my">Tháng ${now.getMonth()+1} · ${now.getFullYear()}</div>
+      </div>
+    </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
-    <div class="hub-hero">
-      <div class="hub-hero-text">
-        <div class="hub-hero-title">Xin chào${p.name? ', '+escapeHtml(p.name):''} 👋</div>
-        <div class="hub-hero-sub">${fmtDateVN(new Date())}</div>
+    ${clockHtml}
+    <div class="hub-grid">
+      <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
+      <div class="cat-grid">
+        <div class="cat-card" data-action="hub-open" data-target="today" style="background:linear-gradient(135deg,#FFC94A,#FF8A3D);">
+          <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
+          <div><div class="name">Lịch làm việc</div><div class="stat">${schedDone}/${schedTotal} hôm nay</div></div>
+          <div class="deco">📅</div>
+        </div>
+        <div class="cat-card" data-action="hub-open" data-target="english" style="background:linear-gradient(135deg,#4FA8FF,#7C6CF0);">
+          <div class="ic">${svgIcon('chat','color:#fff;')}</div>
+          <div><div class="name">Học tiếng Anh</div><div class="stat">${eng.done}/${eng.total} hôm nay</div></div>
+          <div class="deco">🗣️</div>
+        </div>
+        <div class="cat-card" data-action="hub-open" data-target="kiemhang" style="background:linear-gradient(135deg,#FF5A6E,#FF8A3D);">
+          <div class="ic">${svgIcon('box','color:#fff;')}</div>
+          <div><div class="name">Kiểm hàng</div><div class="stat">${khCount} ghi chú</div></div>
+          <div class="deco">📦</div>
+        </div>
+        <div class="cat-card" data-action="hub-open" data-target="entertainment" style="background:linear-gradient(135deg,#FF6EA8,#B06CF0);">
+          <div class="ic">${svgIcon('sparkle','color:#fff;')}</div>
+          <div><div class="name">Giải trí</div><div class="stat">Nhạc · Tử vi · Video</div></div>
+          <div class="deco">🎉</div>
+        </div>
+        ${customCategoryCards()}
+        <div class="cat-card cat-card-add" data-action="add-category">
+          <div class="plus">+</div>
+          <div class="name">Thêm danh mục</div>
+        </div>
       </div>
     </div>
-    <div class="hub-grid">
-      <div class="menu-card">
-        <div class="menu-card-heading">Danh mục</div>
-        <div class="menu-item" data-action="hub-open" data-target="today">
-          ${hubPhoto('schedule')}
-          <div class="menu-item-body">
-            <div class="menu-item-title">Lịch làm việc hàng ngày</div>
-            <div class="menu-item-sub">Thể lực · Chuyên môn · Kỷ luật · Giải trí</div>
-          </div>
-          <div class="menu-item-stat">${schedDone}/${schedTotal}<span>hôm nay</span></div>
-        </div>
-        <div class="menu-item" data-action="hub-open" data-target="english">
-          ${hubPhoto('english')}
-          <div class="menu-item-body">
-            <div class="menu-item-title">Học tiếng Anh</div>
-            <div class="menu-item-sub">IPA · Luyện nói · Shadowing · Phương pháp</div>
-          </div>
-          <div class="menu-item-stat">${eng.done}/${eng.total}<span>hôm nay</span></div>
-        </div>
-        <div class="menu-item" data-action="hub-open" data-target="kiemhang">
-          ${hubPhoto('inspection')}
-          <div class="menu-item-body">
-            <div class="menu-item-title">Kinh nghiệm kiểm hàng</div>
-            <div class="menu-item-sub">Gỗ · Xi măng · Nhựa · Lighting · Handicraft · Bamboo</div>
-          </div>
-          <div class="menu-item-stat">${khCount}<span>ghi chú</span></div>
-        </div>
+  `;
+}
+const CUSTOM_CAT_COLORS = ['#FF8A3D','#4FA8FF','#2CDBA8','#B06CF0','#FF5A6E','#FFC94A','#FF6EA8','#0891B2'];
+function customCategoryCards(){
+  const list = SETTINGS.customCategories || [];
+  return list.map(c=>`
+    <div class="cat-card" data-action="open-category" data-catid="${c.id}" style="background:linear-gradient(135deg,${c.color},${c.color}CC);">
+      <div class="cat-card-actions">
+        <div class="cat-card-iconbtn" data-action="edit-category" data-catid="${c.id}" title="Sửa tên">${svgIcon('pencil')}</div>
+        <div class="cat-card-iconbtn" data-action="delete-category" data-catid="${c.id}" title="Xóa">✕</div>
+      </div>
+      <div class="ic" style="font-weight:800; color:#fff; font-size:15px;">${escapeHtml((c.name||'?').trim().charAt(0).toUpperCase())}</div>
+      <div><div class="name">${escapeHtml(c.name)}</div><div class="stat">Danh mục tự tạo</div></div>
+    </div>`).join('');
+}
+function addCustomCategory(){
+  const name = (window.prompt('Tên danh mục mới:')||'').trim();
+  if(!name) return;
+  const color = CUSTOM_CAT_COLORS[(SETTINGS.customCategories||[]).length % CUSTOM_CAT_COLORS.length];
+  SETTINGS.customCategories = (SETTINGS.customCategories||[]).concat([{id:'cc_'+Date.now(), name, color}]);
+  saveSettings(); renderContent();
+}
+function editCustomCategory(id){
+  const cat = (SETTINGS.customCategories||[]).find(c=>c.id===id);
+  if(!cat) return;
+  const name = (window.prompt('Đổi tên danh mục:', cat.name)||'').trim();
+  if(!name) return;
+  cat.name = name;
+  saveSettings(); renderContent();
+}
+function deleteCustomCategory(id){
+  if(!window.confirm('Xóa danh mục này? Hành động này không thể hoàn tác.')) return;
+  SETTINGS.customCategories = (SETTINGS.customCategories||[]).filter(c=>c.id!==id);
+  saveSettings();
+  if(STATE.tab==='customcat' && STATE.activeCustomCat===id) STATE.tab='hub';
+  renderContent();
+}
+function renderCustomCat(){
+  const cat = (SETTINGS.customCategories||[]).find(c=>c.id===STATE.activeCustomCat);
+  if(!cat){ STATE.tab='hub'; renderHub(); return; }
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(escapeHtml(cat.name))}
+    <div class="customcat-hero">
+      <div class="badge" style="background:linear-gradient(135deg,${cat.color},${cat.color}CC);">${escapeHtml(cat.name.trim().charAt(0).toUpperCase())}</div>
+      <div class="name">${escapeHtml(cat.name)}</div>
+      <div class="note">Đây là danh mục do bạn tự tạo. Nội dung chi tiết cho danh mục này sẽ được phát triển thêm sau.</div>
+      <div class="actions">
+        <button class="form-btn cancel" data-action="edit-category" data-catid="${cat.id}">${svgIcon('pencil')} Sửa tên</button>
+        <button class="form-btn" style="background:var(--red); color:#fff;" data-action="delete-category" data-catid="${cat.id}">Xóa danh mục</button>
+      </div>
+    </div>
+  `;
+}
+function renderEntertainment(){
+  const tiles = [
+    {icon:'music', label:'Playlist nhạc', c1:'#B06CF0', c2:'#6C6CF0'},
+    {icon:'tuvi', label:'Tử vi & Bói toán', c1:'#7C6CF0', c2:'#B06CF0'},
+    {icon:'video', label:'Video ngắn', c1:'#2CDBA8', c2:'#1FA88A'},
+    {icon:'game', label:'Trò chơi', c1:'#4FA8FF', c2:'#2CDBA8'},
+  ].map(t=>`
+    <div class="ent-tile" data-action="coming-soon" data-label="${escapeHtml(t.label)}" style="background:linear-gradient(135deg,${t.c1},${t.c2}); border:none;">
+      <div class="ent-tile-icon">${HUB_PHOTOS[t.icon]}</div>
+      <div class="ent-tile-label" style="color:#fff;">${escapeHtml(t.label)}</div>
+    </div>`).join('');
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('sparkle','#FF6EA8','#B06CF0')+' Giải trí')}
+    <div class="ent-grid">
+      ${tiles}
+      <div class="ent-tile" data-action="coming-soon" data-label="Thêm mục mới">
+        <div class="ent-tile-add">+</div>
+        <div class="ent-tile-label">Thêm mục</div>
       </div>
     </div>
   `;
@@ -1743,9 +2054,13 @@ function renderEnglishBlankCard(){
   </div>`;
 }
 function renderEnglish(){
+  const key = todayKey();
+  const eng = catInfo(key,'tieng_anh');
+  const engLegend = `<div class="leg-item" style="background:${CATS.tieng_anh.hex}22; border:1px solid ${CATS.tieng_anh.hex}55; color:${CATS.tieng_anh.hex};"><span class="leg-dot" style="background:${CATS.tieng_anh.hex}"></span>${CATS.tieng_anh.icon} ${CATS.tieng_anh.label}: <b>${eng.done}/${eng.total}</b></div>`;
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('chat')+' Học tiếng Anh')}
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
+    <div class="ringcard">${renderDayWheel(key, 'tieng_anh', 180)}<div class="legend">${engLegend}</div></div>
     ${renderEnglishBlankCard()}
   `;
 }
@@ -1758,14 +2073,14 @@ function englishSubNav(){
 }
 function renderEnglishMethods(){
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('chat')+' Học tiếng Anh')}
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
     ${renderEnglishBlankCard()}
   `;
 }
 function renderEnglishStats(){
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('chat')+' Học tiếng Anh')}
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
     ${renderEnglishBlankCard()}
   `;
@@ -1780,7 +2095,7 @@ function renderToday(){
     </div>`;
 
   if(dayOff){
-    document.getElementById('content').innerHTML = renderSectionBack(svgIcon('calendar')+' Lịch làm việc hàng ngày') + scheduleSubNav() + renderTrackHUD('schedule') + toggleRow + `
+    document.getElementById('content').innerHTML = renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày') + scheduleSubNav() + renderTrackHUD('schedule') + toggleRow + `
       <div class="card rest-day-card" style="text-align:center; padding:36px 20px;">
         <div style="font-size:46px; margin-bottom:12px;">🌴</div>
         <div style="font-size:15px; font-weight:700; margin-bottom:8px;">Hôm nay là ngày nghỉ ngơi</div>
@@ -1825,12 +2140,12 @@ function renderToday(){
   const addTaskSection = STATE.addingTask ? renderAddTaskForm() : `<button class="add-task-btn" data-action="open-add-task">+ Thêm việc của riêng bạn</button>`;
 
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('calendar')+' Lịch làm việc hàng ngày')}
+    ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
     ${renderTrackHUD('schedule')}
     ${toggleRow}
     ${restBanner}
-    <div class="ringcard" id="ringcard">${renderRingsSVG(key, 180)}<div class="legend">${legend}</div></div>
+    <div class="ringcard" id="ringcard">${renderDayWheel(key, null, 180)}<div class="legend">${legend}</div></div>
     <div class="card" style="text-align:center;">
       <h3 style="margin-bottom:6px;">XP hôm nay</h3>
       <div style="font-family:var(--mono); font-weight:800; font-size:22px; color:var(--gold);">${xp} / ${maxXp}</div>
@@ -1861,7 +2176,7 @@ function methodsListHtml(catIds){
   }).join('');
 }
 function renderSectionBack(title){
-  return `<div class="kh-backrow" data-action="hub-back"><div class="kh-backbtn">←</div><div class="title">${title}</div></div>`;
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-back">${svgIcon('back')}</div><div class="title">${title}</div></div>`;
 }
 function scheduleSubNav(){
   return `<div class="seg" id="schedule-seg">
@@ -1918,7 +2233,7 @@ function renderScheduleMetrics(){
     `;
   }
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('calendar')+' Lịch làm việc hàng ngày')}
+    ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
     ${renderTrackHUD('schedule')}
     <div class="card" style="margin-bottom:12px;"><h3 style="margin-bottom:6px;">📊 Chỉ số cá nhân</h3>
@@ -1931,7 +2246,7 @@ function renderGeneral(){
   const catIds = ['the_luc','chuyen_mon','giai_tri'];
   const html = methodsListHtml(catIds);
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('calendar')+' Lịch làm việc hàng ngày')}
+    ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
     <div class="card" style="margin-bottom:12px;"><h3 style="margin-bottom:6px;">Thư viện phương pháp</h3>
       <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Tổng hợp các phương pháp phổ biến trên thế giới cho Thể lực, Chuyên môn &amp; Giải trí. Tick chọn phương pháp bạn đang áp dụng để dễ theo dõi — lịch trình hằng ngày hiện đang dùng các phương pháp đã tick sẵn.</div>
@@ -1968,7 +2283,7 @@ function renderProfile(){
     `;
   }
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon('user')+' Thông tin cá nhân')}
+    ${renderSectionBack(titleBadge('user','#2CDBA8','#1FA88A')+' Thông tin cá nhân')}
     <div class="card">
       <h3>Thông tin cá nhân</h3>
       <input class="form-input" id="p-name" placeholder="Họ tên" value="${p.name||''}">
@@ -2032,7 +2347,7 @@ function renderWeek(track){
   }
 
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon(track==='schedule'?'calendar':'chat')+' '+meta.title)}
+    ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
     ${statsSeg()}
@@ -2109,7 +2424,7 @@ function renderMonth(track){
   const advice = buildAdviceTrack(monthKeys, track);
   const useChart = hasChartJs();
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon(track==='schedule'?'calendar':'chat')+' '+meta.title)}
+    ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
     ${statsSeg()}
@@ -2171,7 +2486,7 @@ function renderYear(track){
     ? `<div style="height:170px;"><canvas id="year-bar-chart"></canvas></div>`
     : `<div class="yearbars">${monthAvgs.map((avg,m)=>`<div class="ybar-col"><div class="ybar-track"><div class="ybar-fill" style="height:${avg}%"></div></div><div class="ybar-lbl">${MONTH_NAMES[m]}</div></div>`).join('')}</div>`;
   document.getElementById('content').innerHTML = `
-    ${renderSectionBack(svgIcon(track==='schedule'?'calendar':'chat')+' '+meta.title)}
+    ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
     ${statsSeg()}
@@ -2251,6 +2566,8 @@ function renderContent(){
   else if(STATE.tab==='profile') renderProfile();
   else if(STATE.tab==='kiemhang') renderKiemHang();
   else if(STATE.tab==='nhua-embed') renderNhuaEmbed();
+  else if(STATE.tab==='entertainment') renderEntertainment();
+  else if(STATE.tab==='customcat') renderCustomCat();
   renderNav(); renderHUD();
 }
 
@@ -2263,6 +2580,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
 
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
   if(hubOpenEl){ STATE.acctMenuOpen = false; STATE.tab = hubOpenEl.getAttribute('data-target'); renderContent(); window.scrollTo(0,0); return; }
+  const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
+  if(comingSoonEl){ showToast('🔧', comingSoonEl.getAttribute('data-label')||'Sắp ra mắt', 'Tính năng đang được xây dựng, sẽ có sớm.'); return; }
+  const addCatEl = e.target.closest('[data-action="add-category"]');
+  if(addCatEl){ addCustomCategory(); return; }
+  const editCatEl = e.target.closest('[data-action="edit-category"]');
+  if(editCatEl){ editCustomCategory(editCatEl.getAttribute('data-catid')); return; }
+  const delCatEl = e.target.closest('[data-action="delete-category"]');
+  if(delCatEl){ deleteCustomCategory(delCatEl.getAttribute('data-catid')); return; }
+  const openCatEl = e.target.closest('[data-action="open-category"]');
+  if(openCatEl){ STATE.activeCustomCat = openCatEl.getAttribute('data-catid'); STATE.tab = 'customcat'; renderContent(); window.scrollTo(0,0); return; }
   const hubBackEl = e.target.closest('[data-action="hub-back"]');
   if(hubBackEl){ STATE.tab = 'hub'; renderContent(); window.scrollTo(0,0); return; }
 
@@ -2377,25 +2704,8 @@ function checkReminders(){
   if(isDayOff(key)) return;
   const {plan, rec} = dayPlanInfo(key);
   const notifOk = ('Notification' in window) && Notification.permission==='granted';
-  plan.forEach(t=>{
-    if(rec.tasks[t.id]) return;
-    const [hh,mm] = t.time.split(':').map(Number);
-    const taskDate = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0);
-    const diffMin = (taskDate-now)/60000;
-    const remKey = 'rem_'+t.id;
-    if(diffMin<=15 && diffMin>13 && !alreadyNotified(key, remKey)){
-      markNotified(key, remKey);
-      enqueuePopup('⏰','Sắp đến giờ: '+t.label, 'Bắt đầu lúc '+t.time+' — còn khoảng 15 phút nữa.');
-      if(notifOk){ try{ new Notification('⏰ Sắp đến giờ: '+t.label, {body:'Bắt đầu lúc '+t.time, tag:key+'_'+remKey, vibrate:[200,100,200], icon:'icon-192.png'}); }catch(e){} }
-    }
-    const lateKey = 'late_'+t.id;
-    if(t.kind!=='sleep' && diffMin<=-10 && !alreadyNotified(key, lateKey)){
-      markNotified(key, lateKey);
-      const lateMin = Math.round(-diffMin);
-      enqueuePopup('⚠️','Trễ lịch: '+t.label, 'Đã quá giờ '+lateMin+' phút — thực hiện ngay khi có thể nhé!', true);
-      if(notifOk){ try{ new Notification('⚠️ Trễ lịch: '+t.label, {body:'Đã quá giờ '+lateMin+' phút', tag:key+'_'+lateKey, vibrate:[300,100,300,100,300], requireInteraction:true, icon:'icon-192.png'}); }catch(e){} }
-    }
-  });
+  // Nhắc nhở từng việc (sắp tới giờ / trễ lịch) không còn tự động hiện pop-up nữa —
+  // trạng thái này giờ chỉ hiện khi người dùng bấm mở chi tiết việc đó (xem taskReminderBanner()).
   if(now.getHours()===21 && now.getMinutes()>=45 && now.getMinutes()<48){
     const sumKey = 'summary';
     if(!alreadyNotified(key, sumKey)){
@@ -2434,8 +2744,7 @@ if('serviceWorker' in navigator){
   renderContent();
   initDriveSync();
   setInterval(checkReminders, 20000);
-  if(STORAGE_MODE==='local'){ showToast('💾','Đang lưu trên trình duyệt này','Mở app ở trình duyệt/thiết bị khác sẽ không thấy dữ liệu này.'); }
-  else if(STORAGE_MODE==='memory'){ showToast('⚠️','Không thể lưu dữ liệu','Trình duyệt chặn lưu trữ — tiến độ sẽ mất khi đóng tab.'); }
+  if(STORAGE_MODE==='memory'){ showToast('⚠️','Không thể lưu dữ liệu','Trình duyệt chặn lưu trữ — tiến độ sẽ mất khi đóng tab.'); }
   if(!SETTINGS.notifPrompted && ('Notification' in window) && Notification.permission==='default'){
     setTimeout(()=>{ showNotifOnboarding(); }, 1200);
   }
