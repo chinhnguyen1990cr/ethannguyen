@@ -165,16 +165,18 @@
   .rowbtns .navbtn{background:var(--panel2); border:1px solid var(--border); color:var(--text); width:30px;height:30px;border-radius:9px; font-size:14px; cursor:pointer;}
   .rowbtns .lbl{font-family:var(--mono); font-weight:700; font-size:13.5px;}
 
-  .weekbars{display:flex; align-items:flex-end; gap:8px; height:130px; padding:0 4px;}
+  .weekbars{display:flex; align-items:flex-end; gap:8px; height:170px; padding:0 4px;}
   .wbar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;}
-  .wbar-track{width:100%; max-width:26px; height:100px; background:var(--panel2); border-radius:8px; display:flex; align-items:flex-end; overflow:hidden;}
-  .wbar-fill{width:100%; border-radius:8px 8px 0 0; background:linear-gradient(180deg,var(--teal),#1a8f6f); transition:height .5s cubic-bezier(.2,.9,.3,1);}
-  .wbar-fill.today{background:linear-gradient(180deg,var(--gold),#c99a2e);}
-  .wbar-fill.rest{background:linear-gradient(180deg,var(--teal),#1a8f6f);}
+  .wbar-pct{font-size:11px; font-weight:800;}
+  .wbar-track{position:relative; width:100%; max-width:28px; height:110px; border-radius:999px; display:flex; align-items:flex-end; overflow:hidden;}
+  .wbar-fill{width:100%; border-radius:999px; position:relative; transition:height .5s cubic-bezier(.2,.9,.3,1); min-height:8px;}
+  .wbar-fill::after{content:''; position:absolute; top:3px; left:50%; transform:translateX(-50%); width:58%; height:5px; border-radius:999px; background:rgba(255,255,255,0.85);}
   .wbar-day{font-size:9.5px; color:var(--dim); font-family:var(--mono);} .wbar-date{font-size:9px; color:var(--dim2);}
 
   .catbar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;} .catbar-row:last-child{margin-bottom:0;}
   .catbar-ic{width:20px; text-align:center; font-size:13px;}
+  .cat-icon-sm{display:inline-flex; align-items:center; justify-content:center; vertical-align:-2px;}
+  .cat-icon-sm svg{width:13px; height:13px; display:block;}
   .catbar-name{font-size:11.5px; color:var(--dim); width:74px; flex-shrink:0;}
   .catbar-track{flex:1; height:9px; border-radius:6px; background:var(--panel2); overflow:hidden;}
   .catbar-fill{height:100%; border-radius:6px; transition:width .5s;}
@@ -183,13 +185,18 @@
   .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
   .calhead{font-size:9.5px; color:var(--dim2); text-align:center; font-family:var(--mono); padding-bottom:2px;}
   .calcell{aspect-ratio:1; border-radius:7px; display:flex; align-items:center; justify-content:center;
-    font-size:10px; font-family:var(--mono); color:var(--dim); position:relative; background:var(--panel2); border:1px solid transparent;}
+    font-size:10px; font-family:var(--mono); color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.55); position:relative; background:var(--panel2); border:1px solid transparent;}
   .calcell.today{border-color:var(--gold); color:var(--text); font-weight:800;} .calcell.empty{background:transparent;}
+  .calendar-legend{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border);}
+  .cal-leg-chip{display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; color:var(--dim);}
+  .cal-leg-chip .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
 
-  .yearbars{display:flex; align-items:flex-end; gap:5px; height:120px;}
-  .ybar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end;}
-  .ybar-track{width:100%; height:88px; background:var(--panel2); border-radius:5px; display:flex; align-items:flex-end; overflow:hidden;}
-  .ybar-fill{width:100%; border-radius:5px 5px 0 0; background:linear-gradient(180deg,var(--blue),#2568b0);}
+  .yearbars{display:flex; align-items:flex-end; gap:5px; height:150px;}
+  .ybar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;}
+  .ybar-pct{font-size:8.5px; font-weight:800;}
+  .ybar-track{position:relative; width:100%; max-width:16px; height:98px; border-radius:999px; display:flex; align-items:flex-end; overflow:hidden;}
+  .ybar-fill{width:100%; border-radius:999px; position:relative; min-height:6px;}
+  .ybar-fill::after{content:''; position:absolute; top:2px; left:50%; transform:translateX(-50%); width:55%; height:4px; border-radius:999px; background:rgba(255,255,255,0.85);}
   .ybar-lbl{font-size:8px; color:var(--dim2); font-family:var(--mono);}
 
   .statgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
@@ -304,13 +311,20 @@
   .cat-card .name{font-size:13.5px; font-weight:800; color:#fff; margin-top:10px; line-height:1.25;}
   .cat-card .stat{font-size:10px; font-weight:700; color:rgba(255,255,255,0.85); margin-top:3px;}
   .cat-card .deco{position:absolute; right:-12px; bottom:-14px; font-size:70px; opacity:0.16; line-height:1;}
-  .cat-card-actions{position:absolute; top:10px; right:10px; display:flex; gap:5px;}
+  .cat-card-scrim{position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.62)); border-radius:22px;}
+  .cat-card-fg{position:relative; display:flex; flex-direction:column; justify-content:space-between; flex:1;}
+  .cat-card-actions{position:absolute; top:10px; right:10px; display:flex; gap:5px; z-index:2;}
   .cat-card-iconbtn{width:24px; height:24px; border-radius:8px; background:rgba(0,0,0,0.22); display:flex;
     align-items:center; justify-content:center; color:#fff; cursor:pointer;}
   .cat-card-iconbtn svg{width:11px; height:11px;}
   .cat-card-add{border:1.5px dashed var(--border); background:var(--panel); box-shadow:none; align-items:center;
     justify-content:center; flex-direction:row; gap:8px;}
   .cat-card-add .plus{font-size:22px; font-weight:700; color:var(--gold);}
+  .add-cat-pill{display:flex; align-items:center; justify-content:center; gap:6px; width:max-content; margin:14px auto 0;
+    padding:9px 18px; border-radius:999px; background:var(--panel); border:1px dashed var(--border); color:var(--dim);
+    font-size:12px; font-weight:700; cursor:pointer;}
+  .add-cat-pill:active{background:var(--panel2);}
+  .add-cat-pill .plus{color:var(--gold); font-size:14px; font-weight:800;}
   .cat-card-add .name{color:var(--dim); margin-top:0; font-size:12.5px;}
   .top-banner{width:calc(100% + 32px); margin:-16px -16px 16px; background:var(--panel); overflow:hidden;
     border-radius:0 0 22px 22px; box-shadow:0 6px 18px rgba(0,0,0,0.22);}
@@ -396,6 +410,13 @@
 
   #avatar-modal{position:fixed; inset:0; z-index:1001; display:none; align-items:flex-end; justify-content:center;}
   #avatar-modal.show{display:flex;}
+  #day-detail-modal{position:fixed; inset:0; z-index:1001; display:none; align-items:flex-end; justify-content:center;}
+  #day-detail-modal.show{display:flex;}
+  .day-detail-summary{font-size:12px; font-weight:700; color:var(--dim); margin-bottom:12px; text-align:center;}
+  .day-detail-empty{font-size:12.5px; color:var(--dim); text-align:center; padding:24px 10px; line-height:1.6;}
+  #day-detail-card .task-wrap{margin-bottom:8px;}
+  #day-detail-card .task{cursor:default;}
+  .calcell.clickable, .wbar-col.clickable, .ybar-col.clickable{cursor:pointer;}
   .avatar-modal-backdrop{position:absolute; inset:0; background:rgba(6,8,12,0.72); backdrop-filter:blur(3px);}
   .avatar-modal-card{position:relative; width:100%; max-width:460px; background:linear-gradient(160deg,#1c2536,#141a22);
     border:1px solid var(--border); border-top-left-radius:24px; border-top-right-radius:24px; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
@@ -462,8 +483,14 @@
   <div class="avatar-modal-backdrop" data-action="avatar-close"></div>
   <div class="avatar-modal-card" id="avatar-modal-card"></div>
 </div>
+<div id="day-detail-modal">
+  <div class="avatar-modal-backdrop" data-action="day-detail-close"></div>
+  <div class="avatar-modal-card" id="day-detail-card"></div>
+</div>
 <input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
 <input type="file" id="banner-file-input" accept="image/*" style="display:none;">
+<input type="file" id="bg-file-input" accept="image/*" style="display:none;">
+<input type="file" id="cat-image-file-input" accept="image/*" style="display:none;">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -546,6 +573,10 @@ const ICONS = {
   sparkle: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5l2.3 6.2 6.2 2.3-6.2 2.3L12 19.5l-2.3-6.2-6.2-2.3 6.2-2.3L12 2.5Z"/></svg>`,
   folder: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 9v8A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V6.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
   pencil: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20h4L18.5 9.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+  run: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14.5" cy="4.5" r="1.8" fill="currentColor"/><path d="M9 21l2.4-4.6-2-2.2 1.6-4.6 3 2.4 3.4-1.3M6.5 15.5l2.7-1.4 2.2 1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  book: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 5.2C6 4 9 3.8 12 5v14c-3-1.2-6-1-8 0V5.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M20 5.2C18 4 15 3.8 12 5v14c3-1.2 6-1 8 0V5.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+  moon: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>`,
+  gamepad: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="8" width="19" height="9.5" rx="4.5" stroke="currentColor" stroke-width="1.7"/><path d="M7 10.5v4.5M4.7 12.75h4.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18.3" cy="13.8" r="1" fill="currentColor"/></svg>`,
   google: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3.02h3.88c2.27-2.09 3.56-5.17 3.56-8.84Z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3.02c-1.08.72-2.46 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.28v3.11A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29V6.6H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.4l4.01-3.11Z"/><path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.28 6.6l4.01 3.11C6.23 6.86 8.88 4.75 12 4.75Z"/></svg>`,
 };
 function svgIcon(name, extraStyle){ return `<span class="icon-svg" style="${extraStyle||''}">${ICONS[name]||''}</span>`; }
@@ -643,14 +674,26 @@ const CATS = {
   ky_luat:    {label:'Kỷ luật',    hex:'#FFC94A', icon:'🌙'},
   giai_tri:   {label:'Giải trí',   hex:'#FF6FA5', icon:'🎮'},
 };
-const RUN_PROGRAM = [
-  {w1:1,w2:2,label:'5 - 5.5km'}, {w1:3,w2:4,label:'6 - 6.5km'}, {w1:5,w2:6,label:'7 - 7.5km'},
-  {w1:7,w2:8,label:'8 - 9km'}, {w1:9,w2:10,label:'9.5 - 10km'}, {w1:11,w2:12,label:'Duy trì 10km'},
+// Icon SVG hiện đại kiểu iPhone thay cho emoji CATS[cat].icon ở các nơi hiển thị dạng badge (không dùng cho text/SVG <text> nội tuyến).
+const CAT_ICON_SVG = { the_luc:'run', tieng_anh:'chat', chuyen_mon:'book', ky_luat:'moon', giai_tri:'gamepad' };
+function catIconHtml(cat){ return `<span class="cat-icon-sm" style="color:${CATS[cat].hex}">${ICONS[CAT_ICON_SVG[cat]]||''}</span>`; }
+// Giáo án chạy bộ Run-Walk kiểu Couch-to-10K cho người mới bắt đầu: tăng khối lượng dần theo tuần (~10%/tuần),
+// chỉ chuyển sang chạy liên tục sau khi đã có nền tảng hiếu khí — an toàn hơn cho khớp gối/hông và giảm áp lực lên lưng dưới.
+const RUN_PHASES = [
+  {w1:1, w2:2,  desc:'Chạy 1 phút – Đi bộ 2 phút, lặp lại 8 vòng (~24 phút)', run:1, walk:2, reps:8},
+  {w1:3, w2:4,  desc:'Chạy 2 phút – Đi bộ 1 phút, lặp lại 8 vòng (~24 phút)', run:2, walk:1, reps:8},
+  {w1:5, w2:6,  desc:'Chạy 4 phút – Đi bộ 1 phút, lặp lại 5 vòng (~25 phút)', run:4, walk:1, reps:5},
+  {w1:7, w2:8,  desc:'Chạy 8 phút – Đi bộ 1 phút, lặp lại 3 vòng (~27 phút)', run:8, walk:1, reps:3},
+  {w1:9, w2:10, desc:'Chạy 15 phút – Đi bộ 2 phút, lặp lại 2 vòng (~34 phút)', run:15, walk:2, reps:2},
+  {w1:11,w2:12, desc:'Chạy liên tục 25-30 phút, tốc độ vẫn nói chuyện được', run:null, walk:null, reps:null},
 ];
+function runPhaseForWeek(w){
+  const capped = Math.min(w, 12);
+  return RUN_PHASES.find(p=>capped>=p.w1 && capped<=p.w2) || RUN_PHASES[RUN_PHASES.length-1];
+}
 function runTargetForWeek(w){
-  if(w>12) return 'Duy trì 10km, cải thiện tốc độ (pace)';
-  const f = RUN_PROGRAM.find(r=>w>=r.w1 && w<=r.w2);
-  return f ? f.label : '5 - 5.5km';
+  if(w>12) return 'Chạy liên tục 30-35 phút, có thể chèn 1 buổi fartlek nhẹ mỗi tuần khi đã sẵn sàng';
+  return runPhaseForWeek(w).desc;
 }
 const TIERS = [
   {min:1,max:4, icon:'🌱', name:'Người mới bắt đầu'}, {min:5,max:9, icon:'🔥', name:'Người kiên trì'},
@@ -802,7 +845,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[] };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{} };
 const KH_CATEGORIES = [
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
@@ -815,7 +858,7 @@ const KH_CATEGORIES = [
 let KIEMHANG = {}; // { catId: [ {id,title,content,updatedAt} ] }
 let KH_STATE = { view:'list', cat:null, editId:null };
 let activeCharts = [];
-let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null };
+let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null, editingCatImageKey:null };
 let lastKnownLevel = 1;
 const popupQueue = []; let popupShowing = false;
 
@@ -918,15 +961,26 @@ function timeRangeLabel(t, baseDate){
 
 // ================= SUBPANEL CONTENT BUILDERS =================
 function renderRunSub(kind, dateObj){
-  let steps, targetLine='';
-  if(kind==='run_easy' || kind==='run_easy2'){
-    steps = ['Khởi động 5-10 phút: đi bộ nhanh + xoay khớp cổ chân, gối, hông','Chạy với tốc độ vẫn nói chuyện được (quy tắc "huff and puff" — nếu thở hổn hển, chậm lại)','Giữ sải chân ngắn, thẳng lưng, hạn chế dồn lực gót chân','Giãn cơ 5-10 phút sau khi chạy (đùi trước/sau, bắp chân)'];
-  } else if(kind==='run_interval'){
-    steps = ['Khởi động 5-10 phút','Áp dụng Run-Walk Method: chạy 3 phút – đi bộ 1 phút, lặp lại trong 20-25 phút','Giữ nhịp thở đều, không dồn sức ở các đoạn chạy đầu','Giãn cơ sau buổi tập'];
+  const wk = programWeekFor(dateObj);
+  const phase = runPhaseForWeek(wk);
+  const warmup = 'Khởi động 5-10 phút: đi bộ nhanh + xoay khớp cổ chân, gối, hông trước khi chạy';
+  const cooldown = 'Giãn cơ 5-10 phút sau khi chạy (đùi trước/sau, bắp chân, hông)';
+  const formCue = 'Giữ sải chân ngắn, thẳng lưng, hạn chế dồn lực gót chân — bảo vệ khớp gối và lưng dưới';
+  let steps;
+  if(kind==='run_long'){
+    const longDesc = phase.run
+      ? `Chạy ${phase.run} phút – Đi bộ ${phase.walk} phút, lặp lại ${phase.reps+1} vòng (dài hơn buổi thường ~1 vòng)`
+      : (wk>12 ? 'Chạy liên tục 30-40 phút, tốc độ chậm rãi thoải mái' : 'Chạy liên tục 25-30 phút, tốc độ chậm rãi thoải mái');
+    steps = [warmup, 'Mục tiêu tuần '+Math.min(wk,12)+'/12 (buổi dài): <b>'+longDesc+'</b>',
+      'Long run không bao giờ là quá chậm — ưu tiên thời gian vận động hơn tốc độ (Jeff Galloway)',
+      'Bổ sung nước giữa chặng nếu vận động trên 30 phút', cooldown];
+  } else if(kind==='run_interval' && wk>=7){
+    // Chỉ đưa bài tốc độ/fartlek vào sau khi đã có nền tảng hiếu khí (từ tuần 7) — giảm nguy cơ chấn thương cho người mới.
+    steps = [warmup, 'Fartlek nhẹ: chạy nhanh vừa phải 1 phút – chạy chậm hồi phục 2 phút, lặp lại 5-6 lần',
+      'Không dồn hết sức — cảm nhận nhịp thở tăng nhưng vẫn kiểm soát được, dừng ngay nếu thấy đau nhói ở lưng/khớp', cooldown];
   } else {
-    const wk = programWeekFor(dateObj);
-    targetLine = 'Mục tiêu tuần '+Math.min(wk,12)+'/12: <b>'+runTargetForWeek(wk)+'</b>';
-    steps = ['Khởi động kỹ 10 phút trước khi bắt đầu', targetLine, 'Chạy chậm hơn bình thường — "long run không bao giờ là quá chậm" (Jeff Galloway)', 'Có thể áp dụng tỷ lệ chạy/đi bộ 3-4 phút chạy : 1 phút đi bộ nếu mệt', 'Bổ sung nước giữa chặng nếu chạy trên 45 phút', 'Giãn cơ kỹ + bổ sung nước/điện giải sau khi chạy'];
+    steps = [warmup, 'Mục tiêu tuần '+Math.min(wk,12)+'/12: <b>'+phase.desc+'</b>',
+      'Chạy với tốc độ vẫn nói chuyện được (quy tắc "huff and puff" — nếu thở hổn hển, chậm lại)', formCue, cooldown];
   }
   return `<ul class="sublist">${steps.map(s=>`<li>${s}</li>`).join('')}</ul>
     <a class="video-btn" href="${V_RUN}" target="_blank" rel="noopener">▶ Xem video Run-Walk Method</a>
@@ -936,22 +990,28 @@ function renderRunSub(kind, dateObj){
     </div>`;
 }
 function renderGymSub(kind){
+  // Giáo án dumbbell 3 buổi/tuần cho người mới bắt đầu, mục tiêu thể lực tổng quát — đã điều chỉnh để
+  // giảm áp lực lên lưng dưới/vai: đổi Overhead Press đứng (dễ ép vai) sang Floor/Bench Press, thêm ghi chú form
+  // cho các bài hinge/row/pullover, và chèn khởi động kích hoạt lưng-vai trước khi vào tạ.
   const banks = {
-    gym_a: [['squat','Goblet Squats','3×10 (còn 1-2 reps)',EV.goblet], ['row','Dumbbell Rows','3× tối đa số reps',EV.rows],
-      ['hinge','Romanian Deadlift','3×10 (còn 2-3 reps)',EV.rdl], ['pushup','Push-ups','3× tối đa số reps',EV.pushup],
-      ['curl','Dumbbell Curls','2×12',EV.curl], ['curl','Overhead Triceps Extension','2× tối đa',EV.tricep],
-      ['curl','Lateral Raises','2×12',EV.lateral]],
-    gym_b: [['squat','Goblet Squats','3×10',EV.goblet], ['row','Dumbbell Pullovers','3×10',EV.pullover],
-      ['press','1-Arm Overhead Press','3×10/tay',EV.ohp1arm], ['row','2-Point Dumbbell Rows','3×10/tay',EV.row2pt],
-      ['plankf','Front Plank','2×(5-10 nhịp thở)',EV.frontplank], ['planks','Side Plank','2×(5-10 nhịp thở)/bên',EV.sideplank],
-      ['carry','Farmer Carries','2×40 bước',EV.farmer]],
-    gym_c: [['squat','Goblet Squats','3×10',EV.goblet], ['row','Dumbbell Pullovers','3×10',EV.pullover],
-      ['hinge','Romanian Deadlift','3×10',EV.rdl], ['pushup','Push-ups','3× tối đa',EV.pushup2],
-      ['curl','Hammer Curls','2×12',EV.hammercurl], ['curl','Triceps Extension','2× tối đa',EV.tricep],
-      ['curl','Lateral Raises','2×12',EV.lateral]],
+    gym_a: [['squat','Goblet Squats','3×10 (còn 2-3 reps)',EV.goblet], ['hinge','Romanian Deadlift (lưng thẳng, tạ nhẹ)','3×8-10 (còn 2-3 reps)',EV.rdl],
+      ['row','Dumbbell Rows (chống 1 tay lên ghế, lưng song song sàn)','3×10/tay',EV.rows], ['pushup','Push-ups','3× tối đa số reps (form chuẩn)',EV.pushup],
+      ['curl','Dumbbell Curls','2×12',EV.curl], ['curl','Overhead Triceps Extension (dừng nếu vai khó chịu)','2×10-12',EV.tricep],
+      ['curl','Lateral Raises (tạ nhẹ, biên độ vừa)','2×12',EV.lateral]],
+    gym_b: [['squat','Goblet Squats','3×10',EV.goblet], ['row','2-Point Dumbbell Rows (lưng thẳng, bụng siết)','3×10/tay',EV.row2pt],
+      ['press','Dumbbell Floor/Bench Press (2 tay — thay cho overhead press để bảo vệ vai)','3×10 (còn 2-3 reps)',EV.bench],
+      ['row','Dumbbell Pullovers (biên độ vừa phải, dừng nếu đau vai)','2×10',EV.pullover],
+      ['plankf','Front Plank','2×(20-30 giây)',EV.frontplank], ['planks','Side Plank','2×(15-20 giây)/bên',EV.sideplank],
+      ['carry','Farmer Carries (lưng thẳng, vai kéo xuống)','2×30-40 bước',EV.farmer]],
+    gym_c: [['squat','Goblet Squats','3×10',EV.goblet], ['hinge','Romanian Deadlift (lưng thẳng, tạ nhẹ)','3×8-10 (còn 2-3 reps)',EV.rdl],
+      ['row','Dumbbell Pullovers (biên độ vừa phải, dừng nếu đau vai)','2×10',EV.pullover], ['pushup','Push-ups','3× tối đa (form chuẩn)',EV.pushup2],
+      ['curl','Hammer Curls','2×12',EV.hammercurl], ['curl','Triceps Extension (dừng nếu vai khó chịu)','2×10-12',EV.tricep],
+      ['curl','Lateral Raises (tạ nhẹ)','2×12',EV.lateral]],
   };
   const list = banks[kind]||[];
-  return list.map(([type,name,sr,video])=>exCard(type,name,sr,video)).join('') +
+  const warmup = `<div class="ipa-note" style="margin-bottom:10px;">🔥 Khởi động 5 phút trước khi tập: xoay khớp vai/hông/gối, Cat-Cow 8 nhịp, Bird-Dog 8 nhịp/bên, Glute Bridge 10 nhịp — kích hoạt lưng dưới và vai an toàn trước khi vào tạ.</div>`;
+  const progressionNote = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.6; padding:8px 4px 2px;">📈 Nguyên tắc tăng tải: tăng đủ số reps với form chuẩn ở 2 buổi liên tiếp trước, rồi mới tăng tạ (~1-2kg/lần). Với lưu ý về lưng/vai của bạn: luôn ưu tiên form đúng hơn mức tạ nặng, dừng ngay nếu thấy đau nhói (khác với mỏi cơ bình thường) và giảm biên độ/tạ ở các bài hinge, pullover, overhead khi cần.</div>`;
+  return warmup + list.map(([type,name,sr,video])=>exCard(type,name,sr,video)).join('') + progressionNote +
     `<div style="margin-top:6px;"><a class="link-chip" href="${L_B2B}" target="_blank" rel="noopener">📖 Xem toàn bộ giáo án + bảng theo dõi tạ</a></div>`;
 }
 function renderIPASub(){
@@ -1200,8 +1260,9 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[]}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
+    if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
   }catch(e){ /* keep defaults */ }
   if(!SETTINGS.programStart) SETTINGS.programStart = todayKey();
   if(!SETTINGS.ipaLearned) SETTINGS.ipaLearned = {};
@@ -1514,8 +1575,9 @@ function buildAdvice(dateKeys){
 // ================= RENDER: HUD =================
 function renderHUD(){
   // Thanh XP/HUD toàn cục đã bị bỏ khỏi màn hình chính theo yêu cầu — mỗi mục (Lịch làm việc, Học tiếng Anh) có thanh XP riêng.
-  document.getElementById('hud').innerHTML='';
-  document.getElementById('xpwrap').innerHTML='';
+  // Ẩn hẳn 2 khung này (thay vì chỉ xóa nội dung) để không để lại khoảng trống rỗng phía trên banner.
+  const hudEl = document.getElementById('hud'); hudEl.innerHTML=''; hudEl.style.display='none';
+  const xpEl = document.getElementById('xpwrap'); xpEl.innerHTML=''; xpEl.style.display='none';
 }
 function requestNotifPermission(){
   const confirmPopup = ()=> enqueuePopup('🔔','Đã bật thông báo','App sẽ báo tổng kết cuối ngày. Trạng thái từng việc (sắp tới giờ / trễ lịch) sẽ hiện khi bạn bấm mở việc đó.');
@@ -1523,6 +1585,47 @@ function requestNotifPermission(){
   if(Notification.permission==='granted'){ confirmPopup(); return; }
   Notification.requestPermission().then(()=>{ confirmPopup(); renderHUD(); }).catch(()=>confirmPopup());
 }
+
+// ================= DAY DETAIL (xem lại công việc đã làm 1 ngày cụ thể) =================
+function openDayDetail(key, track){
+  renderDayDetail(key, track||'schedule');
+  document.getElementById('day-detail-modal').classList.add('show');
+}
+function closeDayDetail(){ document.getElementById('day-detail-modal').classList.remove('show'); }
+function renderDayDetail(key, track){
+  const d = parseKey(key);
+  const off = isDayOff(key);
+  const dateLabel = `${WD[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  let bodyHtml;
+  if(off){
+    bodyHtml = `<div class="day-detail-empty">🌴 Đây là ngày nghỉ đã đánh dấu — không tính vào thống kê.</div>`;
+  } else {
+    const tasks = trackTasksForDay(key, track);
+    const rec = dayRecord(key);
+    if(!tasks.length){
+      bodyHtml = `<div class="day-detail-empty">Không có việc nào được lên lịch cho ngày này.</div>`;
+    } else {
+      const doneCount = tasks.filter(t=>rec.tasks[t.id]).length;
+      const pct = Math.round(doneCount/tasks.length*100);
+      const rows = tasks.map(t=>{
+        const isDone = !!rec.tasks[t.id];
+        return `<div class="task-wrap ${isDone?'done':''}">
+          <div class="task">
+            <div class="time">${t.time||''}</div>
+            <div class="catdot" style="background:${CATS[t.cat]?CATS[t.cat].hex:'#8B96A8'}"></div>
+            <div class="lbl">${escapeHtml(t.label||'')}</div>
+            <div class="chk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>`;
+      }).join('');
+      bodyHtml = `<div class="day-detail-summary">Hoàn thành ${doneCount}/${tasks.length} việc — ${pct}%</div>${rows}`;
+    }
+  }
+  document.getElementById('day-detail-card').innerHTML = `<div class="avatar-modal-title">${dateLabel}</div>${bodyHtml}`;
+}
+document.getElementById('day-detail-modal').addEventListener('click', (e)=>{
+  if(e.target.closest('[data-action="day-detail-close"]')){ closeDayDetail(); }
+});
 
 // ================= AVATAR PICKER =================
 const AVATAR_EMOJIS = ['🌱','🔥','⚔️','🛡️','🐉','👑','🌟','🦁','🐯','🚀','🎯','💪','🧠','🎨','🎮','⭐','🍀','🦄','🐨','🐼','🦊','🌈','☀️','🌙'];
@@ -1602,6 +1705,91 @@ document.getElementById('banner-file-input').addEventListener('change', (e)=>{
   handleBannerFile(file);
   e.target.value = '';
 });
+function applyAppBackground(){
+  const el = document.body;
+  if(SETTINGS.appBackground){
+    el.style.backgroundImage = `linear-gradient(180deg, rgba(14,18,24,0.72), rgba(14,18,24,0.88)), url('${SETTINGS.appBackground}')`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundAttachment = 'fixed';
+  } else {
+    el.style.backgroundImage = '';
+    el.style.backgroundSize = '';
+    el.style.backgroundPosition = '';
+    el.style.backgroundAttachment = '';
+  }
+}
+function handleBgFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxDim = 1600;
+      const scale = Math.min(1, maxDim/Math.max(img.width, img.height));
+      const outW = Math.round(img.width*scale), outH = Math.round(img.height*scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = outW; canvas.height = outH;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, outW, outH);
+      SETTINGS.appBackground = canvas.toDataURL('image/jpeg', 0.85);
+      saveSettings(); applyAppBackground(); renderContent();
+    };
+    img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+document.getElementById('bg-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  handleBgFile(file);
+  e.target.value = '';
+});
+function handleCatImageFile(file){
+  if(!file) return;
+  const key = STATE.editingCatImageKey;
+  if(!key) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const size = 400;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w = img.width*scale, h = img.height*scale;
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      if(!SETTINGS.categoryImages) SETTINGS.categoryImages = {};
+      SETTINGS.categoryImages[key] = canvas.toDataURL('image/jpeg', 0.85);
+      saveSettings(); renderContent();
+    };
+    img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+document.getElementById('cat-image-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  handleCatImageFile(file);
+  e.target.value = '';
+});
+function catImageStyle(key, gradientCss){
+  const img = (SETTINGS.categoryImages||{})[key];
+  return img ? `background-image:url('${img}'); background-size:cover; background-position:center;` : `background:${gradientCss};`;
+}
+function catImageActions(key, extra){
+  const img = (SETTINGS.categoryImages||{})[key];
+  return `<div class="cat-card-actions">
+    <div class="cat-card-iconbtn" data-action="edit-cat-image" data-catkey="${key}" title="Đổi ảnh">${svgIcon('camera')}</div>
+    ${img ? `<div class="cat-card-iconbtn" data-action="reset-cat-image" data-catkey="${key}" title="Bỏ ảnh">✕</div>` : ''}
+    ${extra||''}
+  </div>`;
+}
+function catScrim(key){ return (SETTINGS.categoryImages||{})[key] ? `<div class="cat-card-scrim"></div>` : ''; }
+function catDeco(key, emoji){ return (SETTINGS.categoryImages||{})[key] ? '' : `<div class="deco">${emoji}</div>`; }
 document.getElementById('avatar-modal').addEventListener('click', (e)=>{
   if(e.target.closest('[data-action="avatar-close"]')){ closeAvatarModal(); return; }
   const emojiEl = e.target.closest('[data-action="avatar-pick-emoji"]');
@@ -1941,47 +2129,60 @@ function renderHub(){
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
       <div class="cat-grid">
-        <div class="cat-card" data-action="hub-open" data-target="today" style="background:linear-gradient(135deg,#FFC94A,#FF8A3D);">
-          <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
-          <div><div class="name">Lịch làm việc</div><div class="stat">${schedDone}/${schedTotal} hôm nay</div></div>
-          <div class="deco">📅</div>
+        <div class="cat-card" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
+          ${catScrim('today')}${catImageActions('today')}
+          <div class="cat-card-fg">
+            <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
+            <div><div class="name">Lịch làm việc</div><div class="stat">${schedDone}/${schedTotal} hôm nay</div></div>
+          </div>
+          ${catDeco('today','📅')}
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="english" style="background:linear-gradient(135deg,#4FA8FF,#7C6CF0);">
-          <div class="ic">${svgIcon('chat','color:#fff;')}</div>
-          <div><div class="name">Học tiếng Anh</div><div class="stat">${eng.done}/${eng.total} hôm nay</div></div>
-          <div class="deco">🗣️</div>
+        <div class="cat-card" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
+          ${catScrim('english')}${catImageActions('english')}
+          <div class="cat-card-fg">
+            <div class="ic">${svgIcon('chat','color:#fff;')}</div>
+            <div><div class="name">Học tiếng Anh</div><div class="stat">${eng.done}/${eng.total} hôm nay</div></div>
+          </div>
+          ${catDeco('english','🗣️')}
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="kiemhang" style="background:linear-gradient(135deg,#FF5A6E,#FF8A3D);">
-          <div class="ic">${svgIcon('box','color:#fff;')}</div>
-          <div><div class="name">Kiểm hàng</div><div class="stat">${khCount} ghi chú</div></div>
-          <div class="deco">📦</div>
+        <div class="cat-card" data-action="hub-open" data-target="kiemhang" style="${catImageStyle('kiemhang','linear-gradient(135deg,#FF5A6E,#FF8A3D)')}">
+          ${catScrim('kiemhang')}${catImageActions('kiemhang')}
+          <div class="cat-card-fg">
+            <div class="ic">${svgIcon('box','color:#fff;')}</div>
+            <div><div class="name">Kiểm hàng</div><div class="stat">${khCount} ghi chú</div></div>
+          </div>
+          ${catDeco('kiemhang','📦')}
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="entertainment" style="background:linear-gradient(135deg,#FF6EA8,#B06CF0);">
-          <div class="ic">${svgIcon('sparkle','color:#fff;')}</div>
-          <div><div class="name">Giải trí</div><div class="stat">Nhạc · Tử vi · Video</div></div>
-          <div class="deco">🎉</div>
+        <div class="cat-card" data-action="hub-open" data-target="entertainment" style="${catImageStyle('entertainment','linear-gradient(135deg,#FF6EA8,#B06CF0)')}">
+          ${catScrim('entertainment')}${catImageActions('entertainment')}
+          <div class="cat-card-fg">
+            <div class="ic">${svgIcon('sparkle','color:#fff;')}</div>
+            <div><div class="name">Giải trí</div><div class="stat">Nhạc · Tử vi · Video</div></div>
+          </div>
+          ${catDeco('entertainment','🎉')}
         </div>
         ${customCategoryCards()}
-        <div class="cat-card cat-card-add" data-action="add-category">
-          <div class="plus">+</div>
-          <div class="name">Thêm danh mục</div>
-        </div>
       </div>
+      <div class="add-cat-pill" data-action="add-category"><span class="plus">+</span> <span>Thêm danh mục</span></div>
     </div>
   `;
 }
 const CUSTOM_CAT_COLORS = ['#FF8A3D','#4FA8FF','#2CDBA8','#B06CF0','#FF5A6E','#FFC94A','#FF6EA8','#0891B2'];
 function customCategoryCards(){
   const list = SETTINGS.customCategories || [];
-  return list.map(c=>`
-    <div class="cat-card" data-action="open-category" data-catid="${c.id}" style="background:linear-gradient(135deg,${c.color},${c.color}CC);">
-      <div class="cat-card-actions">
-        <div class="cat-card-iconbtn" data-action="edit-category" data-catid="${c.id}" title="Sửa tên">${svgIcon('pencil')}</div>
-        <div class="cat-card-iconbtn" data-action="delete-category" data-catid="${c.id}" title="Xóa">✕</div>
+  return list.map(c=>{
+    const key = c.id;
+    const extraBtns = `<div class="cat-card-iconbtn" data-action="edit-category" data-catid="${c.id}" title="Sửa tên">${svgIcon('pencil')}</div>
+      <div class="cat-card-iconbtn" data-action="delete-category" data-catid="${c.id}" title="Xóa">✕</div>`;
+    return `
+    <div class="cat-card" data-action="open-category" data-catid="${c.id}" style="${catImageStyle(key,`linear-gradient(135deg,${c.color},${c.color}CC)`)}">
+      ${catScrim(key)}${catImageActions(key, extraBtns)}
+      <div class="cat-card-fg">
+        <div class="ic" style="font-weight:800; color:#fff; font-size:15px;">${escapeHtml((c.name||'?').trim().charAt(0).toUpperCase())}</div>
+        <div><div class="name">${escapeHtml(c.name)}</div><div class="stat">Danh mục tự tạo</div></div>
       </div>
-      <div class="ic" style="font-weight:800; color:#fff; font-size:15px;">${escapeHtml((c.name||'?').trim().charAt(0).toUpperCase())}</div>
-      <div><div class="name">${escapeHtml(c.name)}</div><div class="stat">Danh mục tự tạo</div></div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function addCustomCategory(){
   const name = (window.prompt('Tên danh mục mới:')||'').trim();
@@ -2023,22 +2224,26 @@ function renderCustomCat(){
 }
 function renderEntertainment(){
   const tiles = [
-    {icon:'music', label:'Playlist nhạc', c1:'#B06CF0', c2:'#6C6CF0'},
-    {icon:'tuvi', label:'Tử vi & Bói toán', c1:'#7C6CF0', c2:'#B06CF0'},
-    {icon:'video', label:'Video ngắn', c1:'#2CDBA8', c2:'#1FA88A'},
-    {icon:'game', label:'Trò chơi', c1:'#4FA8FF', c2:'#2CDBA8'},
+    {key:'ent_music', icon:'music', label:'Playlist nhạc', c1:'#B06CF0', c2:'#6C6CF0', emoji:'🎵'},
+    {key:'ent_tuvi', icon:'tuvi', label:'Tử vi & Bói toán', c1:'#7C6CF0', c2:'#B06CF0', emoji:'🔮'},
+    {key:'ent_video', icon:'video', label:'Video ngắn', c1:'#2CDBA8', c2:'#1FA88A', emoji:'🎬'},
+    {key:'ent_game', icon:'game', label:'Trò chơi', c1:'#4FA8FF', c2:'#2CDBA8', emoji:'🎮'},
   ].map(t=>`
-    <div class="ent-tile" data-action="coming-soon" data-label="${escapeHtml(t.label)}" style="background:linear-gradient(135deg,${t.c1},${t.c2}); border:none;">
-      <div class="ent-tile-icon">${HUB_PHOTOS[t.icon]}</div>
-      <div class="ent-tile-label" style="color:#fff;">${escapeHtml(t.label)}</div>
+    <div class="cat-card" data-action="coming-soon" data-label="${escapeHtml(t.label)}" style="${catImageStyle(t.key,`linear-gradient(135deg,${t.c1},${t.c2})`)}">
+      ${catScrim(t.key)}${catImageActions(t.key)}
+      <div class="cat-card-fg">
+        <div class="ic">${HUB_PHOTOS[t.icon]}</div>
+        <div><div class="name">${escapeHtml(t.label)}</div></div>
+      </div>
+      ${catDeco(t.key, t.emoji)}
     </div>`).join('');
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('sparkle','#FF6EA8','#B06CF0')+' Giải trí')}
-    <div class="ent-grid">
+    <div class="cat-grid">
       ${tiles}
-      <div class="ent-tile" data-action="coming-soon" data-label="Thêm mục mới">
-        <div class="ent-tile-add">+</div>
-        <div class="ent-tile-label">Thêm mục</div>
+      <div class="cat-card cat-card-add" data-action="coming-soon" data-label="Thêm mục mới">
+        <div class="plus">+</div>
+        <div class="name">Thêm mục</div>
       </div>
     </div>
   `;
@@ -2056,7 +2261,7 @@ function renderEnglishBlankCard(){
 function renderEnglish(){
   const key = todayKey();
   const eng = catInfo(key,'tieng_anh');
-  const engLegend = `<div class="leg-item" style="background:${CATS.tieng_anh.hex}22; border:1px solid ${CATS.tieng_anh.hex}55; color:${CATS.tieng_anh.hex};"><span class="leg-dot" style="background:${CATS.tieng_anh.hex}"></span>${CATS.tieng_anh.icon} ${CATS.tieng_anh.label}: <b>${eng.done}/${eng.total}</b></div>`;
+  const engLegend = `<div class="leg-item" style="background:${CATS.tieng_anh.hex}22; border:1px solid ${CATS.tieng_anh.hex}55; color:${CATS.tieng_anh.hex};"><span class="leg-dot" style="background:${CATS.tieng_anh.hex}"></span>${catIconHtml('tieng_anh')} ${CATS.tieng_anh.label}: <b>${eng.done}/${eng.total}</b></div>`;
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
@@ -2109,7 +2314,7 @@ function renderToday(){
   const xp = dayXP(key); const maxXp = dayMaxXP(key);
   const catsPresent = Object.keys(CATS).filter(c=> plan.some(t=>t.cat===c));
   const legend = catsPresent.map(cat=>{ const ci=catInfo(key,cat); return `
-    <div class="leg-item" style="background:${CATS[cat].hex}22; border:1px solid ${CATS[cat].hex}55; color:${CATS[cat].hex};"><span class="leg-dot" style="background:${CATS[cat].hex}"></span>${CATS[cat].icon} ${CATS[cat].label}: <b>${ci.done}/${ci.total}</b></div>`; }).join('');
+    <div class="leg-item" style="background:${CATS[cat].hex}22; border:1px solid ${CATS[cat].hex}55; color:${CATS[cat].hex};"><span class="leg-dot" style="background:${CATS[cat].hex}"></span>${catIconHtml(cat)} ${CATS[cat].label}: <b>${ci.done}/${ci.total}</b></div>`; }).join('');
   const restBanner = isRestDay(now) ? `<div class="rest-banner">💤 Hôm nay là ngày nghỉ chạy/tập tạ theo lịch mặc định để phục hồi. Tập trung Tiếng Anh &amp; Chuyên môn nhé!</div>` : '';
 
   const tasksHtml = plan.map(t=>{
@@ -2182,8 +2387,8 @@ function scheduleSubNav(){
   return `<div class="seg" id="schedule-seg">
     <button class="${STATE.tab==='today'?'active':''}" data-action="hub-open" data-target="today">Hôm nay</button>
     <button class="${STATE.tab==='stats'?'active':''}" data-action="hub-open" data-target="stats">Thống kê</button>
-    <button class="${STATE.tab==='schedule-methods'?'active':''}" data-action="hub-open" data-target="schedule-methods">Phương pháp</button>
     <button class="${STATE.tab==='schedule-metrics'?'active':''}" data-action="hub-open" data-target="schedule-metrics">Chỉ số</button>
+    <button class="${STATE.tab==='schedule-methods'?'active':''}" data-action="hub-open" data-target="schedule-methods">Phương pháp</button>
   </div>`;
 }
 function renderScheduleMetrics(){
@@ -2303,7 +2508,16 @@ function renderProfile(){
       </select>
       <button class="form-btn submit" style="width:100%; margin-top:12px;" data-action="save-profile">💾 Lưu thông tin</button>
     </div>
+    <div class="card">
+      <h3>Hình nền ứng dụng</h3>
+      <div style="font-size:11px; color:var(--dim); margin-bottom:10px; line-height:1.5;">Tùy chỉnh hình nền hiển thị phía sau toàn bộ ứng dụng.</div>
+      <div style="display:flex; gap:8px;">
+        <button class="form-btn" style="flex:1; background:var(--panel2); border:1px solid var(--border); color:var(--text); padding:11px 8px;" data-action="bg-pick-photo">🖼️ ${SETTINGS.appBackground?'Đổi hình nền':'Chọn hình nền'}</button>
+        ${SETTINGS.appBackground ? `<button class="form-btn" style="flex:0 0 auto; padding:11px 14px; background:var(--panel2); border:1px solid var(--border); color:var(--red);" data-action="bg-reset">↺ Bỏ nền</button>` : ''}
+      </div>
+    </div>
     ${metricsHtml}
+    <button class="form-btn" style="width:100%; margin-top:4px; padding:11px; background:var(--panel2); border:1px solid var(--red); color:var(--red);" data-action="drive-signout">⎋ Đăng xuất</button>
   `;
 }
 
@@ -2322,29 +2536,26 @@ function renderWeek(track){
   const meta = TRACK_META[track];
   const catBreakdown = track==='schedule';
 
-  let chartsHtml;
-  if(useChart){
-    chartsHtml = `
-    <div class="card"><h3>7 ngày gần nhất</h3><div style="height:170px;"><canvas id="week-trend-chart"></canvas></div></div>
-    ${catBreakdown ? `<div class="card"><h3>Tỷ lệ theo nhóm</h3><div style="height:190px;"><canvas id="week-cat-chart"></canvas></div></div>` : ''}`;
-  } else {
-    const bars = days.map(k=>{
-      const d = parseKey(k); const off = isDayOff(k); const pct = LOG[k] ? dayPctTrack(k,track) : 0;
-      return `<div class="wbar-col"><div class="wbar-track"><div class="wbar-fill ${off?'rest':(k===today?'today':'')}" style="height:${pct}%"></div></div>
-        <div class="wbar-day">${off?'🌴':WD[d.getDay()]}</div><div class="wbar-date">${pad(d.getDate())}/${pad(d.getMonth()+1)}</div></div>`;
+  // Biểu đồ cột dạng viên nang (pill/capsule) nhiều màu, % hiển thị phía trên mỗi cột — theo mẫu ảnh người dùng gửi.
+  const bars = days.map((k,i)=>{
+    const d = parseKey(k); const off = isDayOff(k); const pct = LOG[k] ? dayPctTrack(k,track) : 0;
+    const color = off ? '#2CDBA8' : CUSTOM_CAT_COLORS[i % CUSTOM_CAT_COLORS.length];
+    return `<div class="wbar-col clickable" data-action="week-day-click" data-key="${k}" data-track="${track}">
+      <div class="wbar-pct" style="color:${color}">${off?'🌴':pct+'%'}</div>
+      <div class="wbar-track" style="background:${color}22;"><div class="wbar-fill" style="height:${Math.max(pct,4)}%; background:${color};"></div></div>
+      <div class="wbar-day">${off?'Nghỉ':WD[d.getDay()]}</div><div class="wbar-date">${pad(d.getDate())}/${pad(d.getMonth()+1)}</div></div>`;
+  }).join('');
+  let catRows = '';
+  if(catBreakdown){
+    catRows = TRACK_CATS[track].map(cat=>{
+      let done=0,total=0; days.forEach(k=>{ if(isDayOff(k)) return; const ci=catInfo(k,cat); done+=ci.done; total+=ci.total; });
+      const pct = total>0 ? Math.round(done/total*100) : 0;
+      return `<div class="catbar-row"><div class="catbar-ic">${catIconHtml(cat)}</div><div class="catbar-name">${CATS[cat].label}</div>
+        <div class="catbar-track"><div class="catbar-fill" style="width:${pct}%; background:${CATS[cat].hex}"></div></div><div class="catbar-pct">${pct}%</div></div>`;
     }).join('');
-    let catRows = '';
-    if(catBreakdown){
-      catRows = TRACK_CATS[track].map(cat=>{
-        let done=0,total=0; days.forEach(k=>{ if(isDayOff(k)) return; const ci=catInfo(k,cat); done+=ci.done; total+=ci.total; });
-        const pct = total>0 ? Math.round(done/total*100) : 0;
-        return `<div class="catbar-row"><div class="catbar-ic">${CATS[cat].icon}</div><div class="catbar-name">${CATS[cat].label}</div>
-          <div class="catbar-track"><div class="catbar-fill" style="width:${pct}%; background:${CATS[cat].hex}"></div></div><div class="catbar-pct">${pct}%</div></div>`;
-      }).join('');
-    }
-    chartsHtml = `<div class="card"><h3>7 ngày gần nhất</h3><div class="weekbars">${bars}</div></div>
-    ${catBreakdown ? `<div class="card"><h3>Tỷ lệ theo nhóm</h3>${catRows}</div>` : ''}`;
   }
+  const chartsHtml = `<div class="card"><h3>7 ngày gần nhất</h3><div class="weekbars">${bars}</div></div>
+    ${catBreakdown ? (useChart ? `<div class="card"><h3>Tỷ lệ theo nhóm</h3><div style="height:190px;"><canvas id="week-cat-chart"></canvas></div></div>` : `<div class="card"><h3>Tỷ lệ theo nhóm</h3>${catRows}</div>`) : ''}`;
 
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
@@ -2356,25 +2567,8 @@ function renderWeek(track){
   `;
   attachStatsSegEvents();
 
-  if(useChart){
+  if(useChart && catBreakdown){
     try{
-      const ctx1 = document.getElementById('week-trend-chart').getContext('2d');
-      const grad = ctx1.createLinearGradient(0,0,0,170);
-      grad.addColorStop(0, meta.hex+'73'); grad.addColorStop(1, meta.hex+'00');
-      const pts = days.map(k=> LOG[k] ? dayPctTrack(k,track) : 0);
-      const pointColors = days.map(k=> isDayOff(k) ? '#2CDBA8' : meta.hex);
-      activeCharts.push(new Chart(ctx1, {
-        type:'line',
-        data:{ labels: days.map(k=>{const d=parseKey(k); return isDayOff(k)?'🌴':WD[d.getDay()];}),
-          datasets:[{ data: pts, borderColor:meta.hex, backgroundColor:grad, fill:true, tension:0.35,
-            pointRadius:5, pointHoverRadius:7, pointBackgroundColor:pointColors, pointBorderColor:'#0E1218', pointBorderWidth:2, borderWidth:2.5 }] },
-        options:{ responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1D2531', borderColor:'#2A3341', borderWidth:1, padding:10, titleColor:'#EDF2F7', bodyColor:'#EDF2F7',
-            callbacks:{ label:(c)=> (isDayOff(days[c.dataIndex]) ? '🌴 Ngày nghỉ' : c.parsed.y+'% hoàn thành') } } },
-          scales:{ y:{min:0,max:100, ticks:{color:'#8B96A8', stepSize:25, font:{size:9.5}}, grid:{color:'#232C3A'}},
-                   x:{ ticks:{color:'#8B96A8', font:{size:10.5, weight:'600'}}, grid:{display:false} } } }
-      }));
-
       if(catBreakdown){
         const ctx2 = document.getElementById('week-cat-chart').getContext('2d');
         const catLabels=[], catData=[], catColors=[];
@@ -2406,15 +2600,42 @@ function heatColor(pct){
   if(pct<=0) return 'var(--panel2)'; if(pct<25) return '#4a3d1f'; if(pct<50) return '#7a611f';
   if(pct<75) return '#a8871f'; if(pct<100) return '#d1a824'; return '#FFC94A';
 }
+// Đổ màu ô ngày trong lịch tháng theo ĐÚNG nhóm việc đã làm hôm đó (thay vì 1 màu vàng đơn sắc theo %) —
+// nhiều màu hơn giúp nhìn sinh động và dễ phân biệt ngày nào làm nhóm việc gì.
+function alphaHex(pct){ const a = Math.round(76 + Math.max(0,Math.min(100,pct))/100*179); return a.toString(16).padStart(2,'0'); }
+function dayCellColor(key, track){
+  const cats = TRACK_CATS[track].map(cat=>({cat, ...catInfo(key,cat)})).filter(c=>c.total>0);
+  if(!cats.length) return 'var(--panel2)';
+  if(cats.length===1){
+    const c = cats[0]; const pct = Math.round(c.done/c.total*100);
+    return CATS[c.cat].hex + alphaHex(pct);
+  }
+  const n = cats.length;
+  const stops = cats.map((c,i)=>{
+    const pct = Math.round(c.done/c.total*100);
+    const color = CATS[c.cat].hex + alphaHex(pct);
+    const from = Math.round(i/n*100), to = Math.round((i+1)/n*100);
+    return `${color} ${from}%, ${color} ${to}%`;
+  }).join(', ');
+  return `linear-gradient(90deg, ${stops})`;
+}
+function dayCellTitle(key, track){
+  const cats = TRACK_CATS[track].map(cat=>({cat, ...catInfo(key,cat)})).filter(c=>c.total>0);
+  if(!cats.length) return 'Chưa có việc';
+  return cats.map(c=>`${CATS[c.cat].label}: ${c.done}/${c.total}`).join(' · ');
+}
 function renderMonth(track){
   const y=STATE.statsYear, m=STATE.statsMonth; const cells=getMonthMatrix(y,m); const today=todayKey();
   const meta = TRACK_META[track];
   const headRow = WD.slice(1).concat(WD[0]).map(w=>`<div class="calhead">${w}</div>`).join('');
   const cellsHtml = cells.map(d=>{
     if(d===null) return `<div class="calcell empty"></div>`;
-    const key = y+'-'+pad(m+1)+'-'+pad(d); const off = isDayOff(key); const pct = LOG[key] ? dayPctTrack(key,track) : 0; const isToday = key===today;
-    const bg = off ? 'rgba(44,219,168,0.25)' : heatColor(pct);
-    return `<div class="calcell ${isToday?'today':''}" style="background:${bg}" title="${off?'Ngày nghỉ':pct+'%'}">${off?'🌴':d}</div>`;
+    const key = y+'-'+pad(m+1)+'-'+pad(d); const off = isDayOff(key); const isToday = key===today;
+    // Ngày nghỉ/xả stress vẫn tính vào thống kê (dayPctTrack trả 100%) nhưng KHÔNG tô màu ô — để phân biệt trực quan
+    // với các ngày có làm việc thật sự, theo yêu cầu người dùng.
+    const bg = off ? 'var(--panel2)' : dayCellColor(key, track);
+    const title = off ? 'Ngày nghỉ' : dayCellTitle(key, track);
+    return `<div class="calcell clickable ${isToday?'today':''}" style="background:${bg}" title="${title}" data-action="cal-day-click" data-key="${key}" data-track="${track}">${off?'🌴':d}</div>`;
   }).join('');
   const monthKeys=[]; cells.forEach(d=>{ if(d!==null) monthKeys.push(y+'-'+pad(m+1)+'-'+pad(d)); });
   const trackedKeys = monthKeys.filter(k=>LOG[k]);
@@ -2429,7 +2650,9 @@ function renderMonth(track){
     ${renderTrackHUD(track)}
     ${statsSeg()}
     <div class="card"><div class="rowbtns"><button class="navbtn" data-action="month-prev">‹</button><div class="lbl">${MONTH_NAMES[m]} / ${y}</div><button class="navbtn" data-action="month-next">›</button></div>
-      <div class="calgrid">${headRow}${cellsHtml}</div></div>
+      <div class="calgrid">${headRow}${cellsHtml}</div>
+      <div class="calendar-legend">${TRACK_CATS[track].map(cat=>`<span class="cal-leg-chip"><span class="dot" style="background:${CATS[cat].hex}"></span>${CATS[cat].label}</span>`).join('')}</div>
+    </div>
     <div class="statgrid">
       <div class="stat"><div class="v">${avgPct}%</div><div class="l">Trung bình hoàn thành</div></div>
       <div class="stat"><div class="v">${totalXp}</div><div class="l">Tổng XP trong tháng</div></div>
@@ -2481,10 +2704,14 @@ function renderYear(track){
     return best>=0 && bestAvg>0 ?MONTH_NAMES[best]:'—'; })();
   const advice = buildAdviceTrack(yearTrackedKeys, track);
   const badges = computeBadgesTrack(track);
-  const useChart = hasChartJs();
-  const yearChartHtml = useChart
-    ? `<div style="height:170px;"><canvas id="year-bar-chart"></canvas></div>`
-    : `<div class="yearbars">${monthAvgs.map((avg,m)=>`<div class="ybar-col"><div class="ybar-track"><div class="ybar-fill" style="height:${avg}%"></div></div><div class="ybar-lbl">${MONTH_NAMES[m]}</div></div>`).join('')}</div>`;
+  // Biểu đồ cột dạng viên nang (pill/capsule) nhiều màu, % hiển thị phía trên mỗi cột — theo mẫu ảnh người dùng gửi.
+  const yearChartHtml = `<div class="yearbars">${monthAvgs.map((avg,m)=>{
+    const color = CUSTOM_CAT_COLORS[m % CUSTOM_CAT_COLORS.length];
+    return `<div class="ybar-col clickable" data-action="year-month-click" data-month="${m}">
+      <div class="ybar-pct" style="color:${color}">${avg}%</div>
+      <div class="ybar-track" style="background:${color}22;"><div class="ybar-fill" style="height:${Math.max(avg,4)}%; background:${color};"></div></div>
+      <div class="ybar-lbl">${MONTH_NAMES[m]}</div></div>`;
+  }).join('')}</div>`;
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
@@ -2505,22 +2732,6 @@ function renderYear(track){
   attachStatsSegEvents();
   document.querySelector('[data-action="year-prev"]').onclick=()=>{ STATE.statsYear--; renderContent(); };
   document.querySelector('[data-action="year-next"]').onclick=()=>{ STATE.statsYear++; renderContent(); };
-  if(useChart){
-    try{
-      const ctx = document.getElementById('year-bar-chart').getContext('2d');
-      const grad = ctx.createLinearGradient(0,0,0,170);
-      grad.addColorStop(0, meta.hex); grad.addColorStop(1, meta.hex2||meta.hex);
-      activeCharts.push(new Chart(ctx, {
-        type:'bar',
-        data:{ labels: MONTH_NAMES, datasets:[{ data: monthAvgs, backgroundColor: grad, borderRadius:6, maxBarThickness:26 }] },
-        options:{ responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1D2531', borderColor:'#2A3341', borderWidth:1, padding:10,
-            callbacks:{ label:(c)=> c.parsed.y+'% trung bình' } } },
-          scales:{ y:{min:0,max:100, ticks:{color:'#8B96A8', stepSize:25, font:{size:9.5}}, grid:{color:'#232C3A'}},
-                   x:{ ticks:{color:'#8B96A8', font:{size:10}}, grid:{display:false} } } }
-      }));
-    }catch(e){ console.error('Chart render error', e); }
-  }
 }
 function computeBadges(){
   const dates = allTrackedDates(); const streak = computeStreak();
@@ -2577,6 +2788,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(acctToggleEl){ STATE.acctMenuOpen = !STATE.acctMenuOpen; renderContent(); return; }
   const bannerPickEl = e.target.closest('[data-action="banner-pick-photo"]');
   if(bannerPickEl){ document.getElementById('banner-file-input').click(); return; }
+  // Các nút sửa/xóa ảnh danh mục nằm lồng bên trong thẻ có data-action="hub-open"/"open-category"/"coming-soon"
+  // nên phải kiểm tra TRƯỚC các action của thẻ cha, tránh bị điều hướng nhầm khi bấm icon máy ảnh/xóa.
+  const editCatImgEl = e.target.closest('[data-action="edit-cat-image"]');
+  if(editCatImgEl){ STATE.editingCatImageKey = editCatImgEl.getAttribute('data-catkey'); document.getElementById('cat-image-file-input').click(); return; }
+  const resetCatImgEl = e.target.closest('[data-action="reset-cat-image"]');
+  if(resetCatImgEl){ const k=resetCatImgEl.getAttribute('data-catkey'); if(SETTINGS.categoryImages) delete SETTINGS.categoryImages[k]; saveSettings(); renderContent(); return; }
+  const bgPickEl = e.target.closest('[data-action="bg-pick-photo"]');
+  if(bgPickEl){ document.getElementById('bg-file-input').click(); return; }
+  const bgResetEl = e.target.closest('[data-action="bg-reset"]');
+  if(bgResetEl){ SETTINGS.appBackground=null; saveSettings(); applyAppBackground(); renderContent(); return; }
 
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
   if(hubOpenEl){ STATE.acctMenuOpen = false; STATE.tab = hubOpenEl.getAttribute('data-target'); renderContent(); window.scrollTo(0,0); return; }
@@ -2592,6 +2813,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(openCatEl){ STATE.activeCustomCat = openCatEl.getAttribute('data-catid'); STATE.tab = 'customcat'; renderContent(); window.scrollTo(0,0); return; }
   const hubBackEl = e.target.closest('[data-action="hub-back"]');
   if(hubBackEl){ STATE.tab = 'hub'; renderContent(); window.scrollTo(0,0); return; }
+  const calDayEl = e.target.closest('[data-action="cal-day-click"]');
+  if(calDayEl){ openDayDetail(calDayEl.getAttribute('data-key'), calDayEl.getAttribute('data-track')); return; }
+  const weekDayEl = e.target.closest('[data-action="week-day-click"]');
+  if(weekDayEl){ openDayDetail(weekDayEl.getAttribute('data-key'), weekDayEl.getAttribute('data-track')); return; }
+  const yearMonthEl = e.target.closest('[data-action="year-month-click"]');
+  if(yearMonthEl){ STATE.statsMonth = parseInt(yearMonthEl.getAttribute('data-month'),10); STATE.statsView='month'; renderContent(); return; }
 
   const saveProfileEl = e.target.closest('[data-action="save-profile"]');
   if(saveProfileEl){ saveProfile(); return; }
@@ -2742,6 +2969,7 @@ if('serviceWorker' in navigator){
   // Luôn mở app ở màn hình đăng nhập trước. Chỉ chuyển sang màn hình chính SAU KHI xác nhận
   // đăng nhập Google thành công (xem onDriveTokenResponse) — kể cả khi trước đó đã từng đăng nhập.
   renderContent();
+  applyAppBackground();
   initDriveSync();
   setInterval(checkReminders, 20000);
   if(STORAGE_MODE==='memory'){ showToast('⚠️','Không thể lưu dữ liệu','Trình duyệt chặn lưu trữ — tiến độ sẽ mất khi đóng tab.'); }
