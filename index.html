@@ -446,6 +446,10 @@
   .drive-ctrl-play{width:38px; height:38px; background:linear-gradient(135deg,#B06CF0,#6C6CF0); font-size:15px;}
   .yt-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
   .yt-controls .drive-ctrl-btn{width:auto; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; gap:6px;}
+  .drive-mode-tabs{display:flex; gap:8px; margin-bottom:12px;}
+  .drive-mode-tab{flex:1; text-align:center; padding:8px 0; border-radius:10px; background:var(--panel2); font-size:12px; font-weight:700; color:var(--dim); cursor:pointer;}
+  .drive-mode-tab.active{background:linear-gradient(135deg,#B06CF0,#6C6CF0); color:#fff;}
+  .drive-mode-tab:active{opacity:0.8;}
   .avatar-modal-backdrop{position:absolute; inset:0; background:rgba(6,8,12,0.72); backdrop-filter:blur(3px);}
   .avatar-modal-card{position:relative; width:100%; max-width:460px; background:linear-gradient(160deg,#1c2536,#141a22);
     border:1px solid var(--border); border-top-left-radius:24px; border-top-right-radius:24px; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
@@ -877,7 +881,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[] };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[] };
 const KH_CATEGORIES = [
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
@@ -1292,10 +1296,11 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[]}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[]}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
+    if(!Array.isArray(SETTINGS.driveOfflineSongs)) SETTINGS.driveOfflineSongs = [];
   }catch(e){ /* keep defaults */ }
   if(!SETTINGS.programStart) SETTINGS.programStart = todayKey();
   if(!SETTINGS.ipaLearned) SETTINGS.ipaLearned = {};
@@ -2224,8 +2229,15 @@ const MUSIC_DRIVE_FOLDER_ID = '1PYfq51iwXii8EKpZmClge5_lWH51-HD_';
 const MUSIC_DRIVE_API_KEY = 'AIzaSyD5KqLrSx3vJHcY4lxsxFIxoDeXcb_sJzQ';
 const MUSIC_CACHE_NAME = 'drive-music-cache-v1';
 function driveFileStreamUrl(fileId){ return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${MUSIC_DRIVE_API_KEY}`; }
+// Vẽ lại giao diện nhưng giữ nguyên vị trí cuộn hiện tại — dùng cho các thao tác play/pause/tải
+// trong playlist để bài hát phát ngay tại chỗ, không bị nhảy lên đầu trang.
+function renderContentPreserveScroll(){
+  const y = window.scrollY || window.pageYOffset || 0;
+  renderContent();
+  window.scrollTo(0, y);
+}
 async function fetchDriveMusicList(){
-  STATE.driveMusicLoading = true; renderContent();
+  STATE.driveMusicLoading = true; renderContentPreserveScroll();
   try{
     const q = encodeURIComponent(`'${MUSIC_DRIVE_FOLDER_ID}' in parents and trashed=false`);
     const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType)&key=${MUSIC_DRIVE_API_KEY}`;
@@ -2241,20 +2253,23 @@ async function fetchDriveMusicList(){
         const cachedIds = [];
         for(const f of files){ if(await cache.match(driveFileStreamUrl(f.id))) cachedIds.push(f.id); }
         STATE.driveCachedIds = cachedIds;
+        // Đồng bộ danh sách offline đã lưu — loại các bài đã bị trình duyệt tự dọn cache.
+        SETTINGS.driveOfflineSongs = (SETTINGS.driveOfflineSongs||[]).filter(s=>cachedIds.includes(s.id));
+        saveSettings();
       }catch(e){}
     }
   }catch(e){
     STATE.driveMusicError = 'Không tải được danh sách từ Google Drive. Kiểm tra kết nối mạng rồi bấm làm mới.';
   }
   STATE.driveMusicLoading = false;
-  renderContent();
+  renderContentPreserveScroll();
 }
 async function playDriveSong(fileId, name){
   STATE.playingSongId = null;
   STATE.playingDriveId = fileId;
   STATE.playingDriveName = name;
   STATE.driveAudioPlaying = true;
-  renderContent();
+  renderContentPreserveScroll();
   const audio = document.getElementById('drive-audio-player');
   let src = driveFileStreamUrl(fileId);
   if('caches' in window){
@@ -2265,7 +2280,11 @@ async function playDriveSong(fileId, name){
     }catch(e){}
   }
   audio.src = src;
-  audio.play().catch(e=>{ console.error(e); STATE.driveAudioPlaying = false; renderContent(); });
+  audio.play().catch(e=>{ console.error(e); STATE.driveAudioPlaying = false; renderContentPreserveScroll(); });
+}
+function setDriveViewMode(mode){
+  STATE.driveViewMode = mode;
+  renderContentPreserveScroll();
 }
 async function downloadDriveSong(fileId, name){
   if(!('caches' in window)){ showToast('⚠️','Không hỗ trợ','Trình duyệt này không hỗ trợ lưu nhạc offline.'); return; }
@@ -2274,22 +2293,45 @@ async function downloadDriveSong(fileId, name){
     const cache = await caches.open(MUSIC_CACHE_NAME);
     await cache.add(driveFileStreamUrl(fileId));
     STATE.driveCachedIds = (STATE.driveCachedIds||[]).concat([fileId]);
+    SETTINGS.driveOfflineSongs = (SETTINGS.driveOfflineSongs||[]).filter(s=>s.id!==fileId).concat([{id:fileId, name}]);
+    saveSettings();
     showToast('✅','Đã tải xong', escapeHtml(name)+' giờ nghe offline được rồi.');
   }catch(e){
     showToast('⚠️','Lỗi tải','Không tải được bài này để nghe offline, thử lại sau.');
   }
-  renderContent();
+  renderContentPreserveScroll();
 }
 async function removeDriveSongCache(fileId){
   if('caches' in window){
     try{ const cache = await caches.open(MUSIC_CACHE_NAME); await cache.delete(driveFileStreamUrl(fileId)); }catch(e){}
   }
   STATE.driveCachedIds = (STATE.driveCachedIds||[]).filter(id=>id!==fileId);
-  renderContent();
+  SETTINGS.driveOfflineSongs = (SETTINGS.driveOfflineSongs||[]).filter(s=>s.id!==fileId);
+  saveSettings();
+  renderContentPreserveScroll();
 }
 function driveMusicSectionHtml(){
+  const mode = STATE.driveViewMode || 'online';
+  const offlineList = SETTINGS.driveOfflineSongs || [];
+  const tabsHtml = `<div class="drive-mode-tabs">
+    <div class="drive-mode-tab ${mode==='online'?'active':''}" data-action="drive-view-mode" data-mode="online">Online</div>
+    <div class="drive-mode-tab ${mode==='offline'?'active':''}" data-action="drive-view-mode" data-mode="offline">Offline${offlineList.length?` (${offlineList.length})`:''}</div>
+  </div>`;
   let inner;
-  if(STATE.driveMusicLoading){
+  if(mode==='offline'){
+    if(!offlineList.length){
+      inner = `<div class="day-detail-empty">Chưa có bài nào tải để nghe offline. Chuyển sang tab Online rồi bấm nút ⬇ ở bài hát để tải về.</div>`;
+    } else {
+      inner = offlineList.map(f=>{
+        const title = f.name.replace(/\.[^.]+$/,'');
+        return `<div class="song-row ${STATE.playingDriveId===f.id?'active':''}" data-action="play-drive-song" data-id="${f.id}" data-name="${escapeHtml(f.name)}">
+          <div class="song-thumb">${svgIcon('music')}</div>
+          <div class="song-info"><div class="song-title">${escapeHtml(title)}</div><div class="song-type">Đã tải offline</div></div>
+          <div class="song-dl done" data-action="toggle-drive-download" data-id="${f.id}" data-name="${escapeHtml(f.name)}">✓</div>
+        </div>`;
+      }).join('');
+    }
+  } else if(STATE.driveMusicLoading){
     inner = `<div class="day-detail-empty">Đang tải danh sách từ Google Drive...</div>`;
   } else if(STATE.driveMusicError){
     inner = `<div class="day-detail-empty">${escapeHtml(STATE.driveMusicError)}</div>`;
@@ -2297,7 +2339,7 @@ function driveMusicSectionHtml(){
     inner = `<div class="day-detail-empty">Chưa có bài hát nào trong thư mục Drive. Thêm file nhạc vào thư mục rồi bấm làm mới.</div>`;
   } else {
     inner = STATE.driveMusicList.map(f=>{
-      const cached = (STATE.driveCachedIds||[]).includes(f.id);
+      const cached = offlineList.some(o=>o.id===f.id);
       const title = f.name.replace(/\.[^.]+$/,'');
       return `<div class="song-row ${STATE.playingDriveId===f.id?'active':''}" data-action="play-drive-song" data-id="${f.id}" data-name="${escapeHtml(f.name)}">
         <div class="song-thumb">${svgIcon('music')}</div>
@@ -2311,6 +2353,7 @@ function driveMusicSectionHtml(){
       <div class="drive-section-title">Từ Google Drive</div>
       <div class="drive-refresh" data-action="refresh-drive-music">↻ Làm mới</div>
     </div>
+    ${tabsHtml}
     ${inner}
   </div>`;
 }
@@ -2319,8 +2362,8 @@ function driveMusicSectionHtml(){
 (function initDriveAudioEvents(){
   const audio = document.getElementById('drive-audio-player');
   if(!audio) return;
-  audio.addEventListener('play', ()=>{ STATE.driveAudioPlaying = true; if(STATE.tab==='ent-music') renderContent(); });
-  audio.addEventListener('pause', ()=>{ STATE.driveAudioPlaying = false; if(STATE.tab==='ent-music') renderContent(); });
+  audio.addEventListener('play', ()=>{ STATE.driveAudioPlaying = true; if(STATE.tab==='ent-music') renderContentPreserveScroll(); });
+  audio.addEventListener('pause', ()=>{ STATE.driveAudioPlaying = false; if(STATE.tab==='ent-music') renderContentPreserveScroll(); });
   audio.addEventListener('ended', ()=>{ STATE.driveAudioPlaying = false; driveNextSong(); });
 })();
 function parseYouTubeUrl(url){
@@ -2362,7 +2405,7 @@ function playMusicSong(id){
   if(audio){ audio.pause(); }
   STATE.playingDriveId = null; STATE.playingDriveName = null; STATE.driveAudioPlaying = false;
   STATE.playingSongId = id;
-  renderContent();
+  renderContentPreserveScroll();
 }
 function ytNextSong(){
   const list = SETTINGS.musicPlaylist||[];
@@ -3081,6 +3124,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ytPrevEl){ ytPrevSong(); return; }
   const ytNextEl = e.target.closest('[data-action="yt-next-song"]');
   if(ytNextEl){ ytNextSong(); return; }
+  const driveModeEl = e.target.closest('[data-action="drive-view-mode"]');
+  if(driveModeEl){ setDriveViewMode(driveModeEl.getAttribute('data-mode')); return; }
   const addCatEl = e.target.closest('[data-action="add-category"]');
   if(addCatEl){ addCustomCategory(); return; }
   const editCatEl = e.target.closest('[data-action="edit-category"]');
