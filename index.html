@@ -440,6 +440,12 @@
   .song-dl.done{color:#3ecf8e;}
   .song-dl:active{opacity:0.7;}
   .drive-now-playing{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; background:var(--panel2); margin-bottom:14px;}
+  .drive-controls{display:flex; align-items:center; gap:6px; flex-shrink:0;}
+  .drive-ctrl-btn{display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; background:rgba(176,108,240,0.16); color:#fff; font-size:14px; cursor:pointer; flex-shrink:0;}
+  .drive-ctrl-btn:active{opacity:0.65;}
+  .drive-ctrl-play{width:38px; height:38px; background:linear-gradient(135deg,#B06CF0,#6C6CF0); font-size:15px;}
+  .yt-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  .yt-controls .drive-ctrl-btn{width:auto; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; gap:6px;}
   .avatar-modal-backdrop{position:absolute; inset:0; background:rgba(6,8,12,0.72); backdrop-filter:blur(3px);}
   .avatar-modal-card{position:relative; width:100%; max-width:460px; background:linear-gradient(160deg,#1c2536,#141a22);
     border:1px solid var(--border); border-top-left-radius:24px; border-top-right-radius:24px; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
@@ -2247,6 +2253,7 @@ async function playDriveSong(fileId, name){
   STATE.playingSongId = null;
   STATE.playingDriveId = fileId;
   STATE.playingDriveName = name;
+  STATE.driveAudioPlaying = true;
   renderContent();
   const audio = document.getElementById('drive-audio-player');
   let src = driveFileStreamUrl(fileId);
@@ -2258,7 +2265,7 @@ async function playDriveSong(fileId, name){
     }catch(e){}
   }
   audio.src = src;
-  audio.play().catch(e=>console.error(e));
+  audio.play().catch(e=>{ console.error(e); STATE.driveAudioPlaying = false; renderContent(); });
 }
 async function downloadDriveSong(fileId, name){
   if(!('caches' in window)){ showToast('⚠️','Không hỗ trợ','Trình duyệt này không hỗ trợ lưu nhạc offline.'); return; }
@@ -2307,6 +2314,15 @@ function driveMusicSectionHtml(){
     ${inner}
   </div>`;
 }
+// Gắn sự kiện play/pause/ended một lần duy nhất cho audio player Drive (phần tử này tồn tại
+// ngoài #content nên không bị mất khi renderContent() vẽ lại giao diện).
+(function initDriveAudioEvents(){
+  const audio = document.getElementById('drive-audio-player');
+  if(!audio) return;
+  audio.addEventListener('play', ()=>{ STATE.driveAudioPlaying = true; if(STATE.tab==='ent-music') renderContent(); });
+  audio.addEventListener('pause', ()=>{ STATE.driveAudioPlaying = false; if(STATE.tab==='ent-music') renderContent(); });
+  audio.addEventListener('ended', ()=>{ STATE.driveAudioPlaying = false; driveNextSong(); });
+})();
 function parseYouTubeUrl(url){
   try{
     const u = new URL(url.trim());
@@ -2344,9 +2360,44 @@ function deleteMusicSong(id){
 function playMusicSong(id){
   const audio = document.getElementById('drive-audio-player');
   if(audio){ audio.pause(); }
-  STATE.playingDriveId = null; STATE.playingDriveName = null;
+  STATE.playingDriveId = null; STATE.playingDriveName = null; STATE.driveAudioPlaying = false;
   STATE.playingSongId = id;
   renderContent();
+}
+function ytNextSong(){
+  const list = SETTINGS.musicPlaylist||[];
+  if(!list.length) return;
+  const idx = list.findIndex(s=>s.id===STATE.playingSongId);
+  const nextIdx = idx>=0 ? (idx+1)%list.length : 0;
+  playMusicSong(list[nextIdx].id);
+}
+function ytPrevSong(){
+  const list = SETTINGS.musicPlaylist||[];
+  if(!list.length) return;
+  const idx = list.findIndex(s=>s.id===STATE.playingSongId);
+  const prevIdx = idx>0 ? idx-1 : list.length-1;
+  playMusicSong(list[prevIdx].id);
+}
+function driveNextSong(){
+  const list = STATE.driveMusicList||[];
+  if(!list.length) return;
+  const idx = list.findIndex(f=>f.id===STATE.playingDriveId);
+  const nextIdx = idx>=0 ? (idx+1)%list.length : 0;
+  const f = list[nextIdx];
+  playDriveSong(f.id, f.name);
+}
+function drivePrevSong(){
+  const list = STATE.driveMusicList||[];
+  if(!list.length) return;
+  const idx = list.findIndex(f=>f.id===STATE.playingDriveId);
+  const prevIdx = idx>0 ? idx-1 : list.length-1;
+  const f = list[prevIdx];
+  playDriveSong(f.id, f.name);
+}
+function toggleDriveAudioPlayPause(){
+  const audio = document.getElementById('drive-audio-player');
+  if(!audio || !audio.src) return;
+  if(audio.paused) audio.play().catch(e=>console.error(e)); else audio.pause();
 }
 function renderMusicPlaylist(){
   const list = SETTINGS.musicPlaylist||[];
@@ -2355,9 +2406,18 @@ function renderMusicPlaylist(){
     <div class="drive-now-playing">
       <div class="song-thumb">${svgIcon('music')}</div>
       <div class="song-info"><div class="song-title">${escapeHtml((STATE.playingDriveName||'').replace(/\.[^.]+$/,''))}</div><div class="song-type">Đang phát từ Google Drive</div></div>
+      <div class="drive-controls">
+        <div class="drive-ctrl-btn" data-action="drive-prev-song" title="Bài trước">⏮</div>
+        <div class="drive-ctrl-btn drive-ctrl-play" data-action="toggle-drive-playpause" title="Phát/Tạm dừng">${STATE.driveAudioPlaying?'⏸':'▶'}</div>
+        <div class="drive-ctrl-btn" data-action="drive-next-song" title="Bài sau">⏭</div>
+      </div>
     </div>` : '';
   const playerHtml = playing ? `
-    <div class="music-player-wrap"><iframe src="${escapeHtml(playing.embed)}" title="${escapeHtml(playing.title)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : drivePlayingHtml;
+    <div class="music-player-wrap"><iframe src="${escapeHtml(playing.embed)}" title="${escapeHtml(playing.title)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+    <div class="yt-controls">
+      <div class="drive-ctrl-btn" data-action="yt-prev-song">⏮ Bài trước</div>
+      <div class="drive-ctrl-btn" data-action="yt-next-song">Bài sau ⏭</div>
+    </div>` : drivePlayingHtml;
   const rowsHtml = list.length ? list.map(s=>`
     <div class="song-row ${STATE.playingSongId===s.id?'active':''}" data-action="play-music-song" data-id="${s.id}">
       <div class="song-thumb">${s.thumb?`<img src="${escapeHtml(s.thumb)}">`:svgIcon('music')}</div>
@@ -3011,6 +3071,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const playDriveEl = e.target.closest('[data-action="play-drive-song"]');
   if(playDriveEl){ playDriveSong(playDriveEl.getAttribute('data-id'), playDriveEl.getAttribute('data-name')); return; }
+  const toggleDrivePlayEl = e.target.closest('[data-action="toggle-drive-playpause"]');
+  if(toggleDrivePlayEl){ toggleDriveAudioPlayPause(); return; }
+  const drivePrevEl = e.target.closest('[data-action="drive-prev-song"]');
+  if(drivePrevEl){ drivePrevSong(); return; }
+  const driveNextEl = e.target.closest('[data-action="drive-next-song"]');
+  if(driveNextEl){ driveNextSong(); return; }
+  const ytPrevEl = e.target.closest('[data-action="yt-prev-song"]');
+  if(ytPrevEl){ ytPrevSong(); return; }
+  const ytNextEl = e.target.closest('[data-action="yt-next-song"]');
+  if(ytNextEl){ ytNextSong(); return; }
   const addCatEl = e.target.closest('[data-action="add-category"]');
   if(addCatEl){ addCustomCategory(); return; }
   const editCatEl = e.target.closest('[data-action="edit-category"]');
