@@ -1072,7 +1072,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'' };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null };
 const KH_CATEGORIES = [
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
@@ -1594,7 +1594,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:''}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
@@ -1769,7 +1769,7 @@ async function pullFromDrive(){
     if(data.progressLog){ try{ LOG = JSON.parse(data.progressLog); }catch(e){} }
     if(data.settings){
       try{
-        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:''}, JSON.parse(data.settings));
+        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null}, JSON.parse(data.settings));
       }catch(e){}
     }
     if(data.kiemhang){ try{ KIEMHANG = JSON.parse(data.kiemhang) || {}; }catch(e){} }
@@ -3543,6 +3543,29 @@ advanced:[
 const CLOUD_TTS_VOICE_A = 'en-US-Neural2-F';
 const CLOUD_TTS_VOICE_B = 'en-US-Neural2-D';
 const TTS_CACHE_NAME = 'cloud-tts-cache-v1';
+// Giọng Neural2 của Google Cloud TTS: miễn phí 1.000.000 ký tự/tháng, sau đó tính phí
+// (theo bảng giá chính thức cloud.google.com/text-to-speech/pricing — có thể thay đổi theo Google).
+const CLOUD_TTS_FREE_LIMIT = 1000000;
+function currentMonthKey(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function recordCloudTtsUsage(charCount){
+  const mk = currentMonthKey();
+  if(!SETTINGS.cloudTtsUsage || SETTINGS.cloudTtsUsage.month !== mk){
+    SETTINGS.cloudTtsUsage = {month:mk, chars:0, warned80:false, warned100:false};
+  }
+  SETTINGS.cloudTtsUsage.chars += charCount;
+  const used = SETTINGS.cloudTtsUsage.chars;
+  saveSettings(); pushToDrive();
+  if(used >= CLOUD_TTS_FREE_LIMIT && !SETTINGS.cloudTtsUsage.warned100){
+    SETTINGS.cloudTtsUsage.warned100 = true; saveSettings();
+    showToast('🚨','Đã vượt hạn mức miễn phí Cloud TTS', `Tháng này đã dùng ${used.toLocaleString('vi-VN')} ký tự, vượt mốc miễn phí ${CLOUD_TTS_FREE_LIMIT.toLocaleString('vi-VN')}. Các lượt phát tiếp theo có thể phát sinh phí (~16 USD/1 triệu ký tự).`);
+  } else if(used >= CLOUD_TTS_FREE_LIMIT*0.8 && !SETTINGS.cloudTtsUsage.warned80){
+    SETTINGS.cloudTtsUsage.warned80 = true; saveSettings();
+    showToast('⚠️','Sắp đạt hạn mức miễn phí Cloud TTS', `Tháng này đã dùng ${used.toLocaleString('vi-VN')}/${CLOUD_TTS_FREE_LIMIT.toLocaleString('vi-VN')} ký tự (80%). Hạn mức sẽ reset vào đầu tháng sau.`);
+  }
+}
 let listenAudioEl = null;
 let listenAudioQueue = [];
 let listenAudioQueueIdx = 0;
@@ -3587,6 +3610,7 @@ async function fetchCloudTtsAudioUrl(text, voiceName){
   if(!res.ok) throw new Error('Cloud TTS HTTP '+res.status);
   const data = await res.json();
   if(!data.audioContent) throw new Error('Cloud TTS: thiếu audioContent');
+  recordCloudTtsUsage(text.length);
   const byteChars = atob(data.audioContent);
   const byteNums = new Array(byteChars.length);
   for(let i=0;i<byteChars.length;i++) byteNums[i] = byteChars.charCodeAt(i);
@@ -3819,8 +3843,24 @@ function renderEnglishAV(item, mode){
     if(LISTENING_QUIZ===null && !listeningQuizLoading) fetchListeningQuizData();
     const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
     const voiceStatus = SETTINGS.cloudTtsApiKey
-      ? '🎙️ Đang dùng giọng đọc tự nhiên Google Cloud TTS'
+      ? '🎙️ Đang dùng giọng đọc tự nhiên Google Cloud TTS — bấm để đổi/xóa API key'
       : '🔈 Đang dùng giọng đọc mặc định của trình duyệt — bấm để cấu hình giọng đọc tự nhiên hơn';
+    let usageHtml = '';
+    if(SETTINGS.cloudTtsApiKey){
+      const mk = currentMonthKey();
+      const used = (SETTINGS.cloudTtsUsage && SETTINGS.cloudTtsUsage.month===mk) ? SETTINGS.cloudTtsUsage.chars : 0;
+      const pct = Math.min(100, Math.round(used/CLOUD_TTS_FREE_LIMIT*100));
+      const barColor = pct>=100 ? '#ff5c5c' : (pct>=80 ? '#ffb020' : '#2CDBA8');
+      usageHtml = `<div style="margin-bottom:10px; padding:10px 12px; background:var(--panel2); border:1px solid var(--border); border-radius:10px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-bottom:6px;">
+          <span>Đã dùng miễn phí tháng này (giọng Neural2)</span>
+          <span>${used.toLocaleString('vi-VN')} / ${CLOUD_TTS_FREE_LIMIT.toLocaleString('vi-VN')} ký tự (${pct}%)</span>
+        </div>
+        <div style="height:6px; border-radius:4px; background:rgba(255,255,255,0.08); overflow:hidden;">
+          <div style="height:100%; width:${pct}%; background:${barColor};"></div>
+        </div>
+      </div>`;
+    }
     if(LISTENING_QUIZ===null){
       listenTestHtml = `<div class="eng-av-src">
         <h4>🎧 Kiểm tra nghe hội thoại</h4>
@@ -3839,6 +3879,7 @@ function renderEnglishAV(item, mode){
         <h4>🎧 Kiểm tra nghe hội thoại (${totalQ} câu · mỗi lượt 25 câu)</h4>
         <div style="font-size:11.5px; color:var(--dim); line-height:1.6; margin-bottom:8px;">Nghe đoạn hội thoại tình huống giao tiếp hàng ngày rồi chọn đáp án đúng. Ngân hàng câu hỏi đang được tiếp tục mở rộng theo thời gian.</div>
         <div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-cloud-tts-key" style="width:100%; text-align:left; font-size:11.5px;">${voiceStatus}</button></div>
+        ${usageHtml}
         <div class="eng-level-grid">${testLevelCards}</div>
       </div>`;
     }
