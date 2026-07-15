@@ -1498,6 +1498,7 @@ let driveUserEmail=null, driveSyncing=false, driveSilentTimer=null;
 // driveSyncOk: null = chưa đồng bộ lần nào, true = lần gần nhất thành công, false = lần gần nhất lỗi
 // (ví dụ do ảnh nền/banner quá nặng khiến request bị từ chối) — hiển thị dưới tên trong banner.
 let driveSyncOk = null;
+let driveLastSyncAt = null; // timestamp lần đồng bộ gần nhất (thành công hoặc lỗi) — hiển thị để thấy trạng thái thực sự đang cập nhật.
 
 function hasGisSdk(){ return typeof google !== 'undefined' && google.accounts && google.accounts.oauth2; }
 function wasDriveConnected(){ try{ return localStorage.getItem('drive-connected')==='1'; }catch(e){ return false; } }
@@ -1529,7 +1530,15 @@ function driveSignOut(){
   window.scrollTo(0,0);
 }
 async function onDriveTokenResponse(resp){
-  if(!resp || resp.error){ if(wasDriveConnected()) markDriveConnected(false); renderContent(); return; }
+  if(!resp || resp.error){
+    // Làm mới token âm thầm (prompt:'') bị lỗi — thường do phiên đăng nhập Google đã hết hạn/bị thu hồi.
+    // Trước đây không có phản hồi gì nên người dùng tưởng vẫn "đã kết nối" trong khi thực ra không đồng bộ được.
+    const hadSession = wasDriveConnected();
+    if(hadSession){ markDriveConnected(false); driveSyncOk = false; }
+    renderContent();
+    if(hadSession) showToast('⚠️','Phiên Google đã hết hạn','Vui lòng đăng nhập lại để tiếp tục đồng bộ.');
+    return;
+  }
   const wasConnected = !!driveAccessToken;
   driveAccessToken = resp.access_token;
   driveTokenExpiry = Date.now() + ((resp.expires_in||3500)*1000);
@@ -1541,8 +1550,11 @@ async function onDriveTokenResponse(resp){
     try{
       await ensureDriveFile();
       await pullFromDrive();
-      driveSyncOk = true;
+      // KHÔNG ghi đè driveSyncOk ở đây — pullFromDrive() đã tự set true/false chính xác theo
+      // kết quả thật; ghi đè cứng thành true trước đây khiến banner luôn báo "Đã đồng bộ" dù
+      // lần đồng bộ đó thực ra bị lỗi (đây là nguyên nhân chính khiến trạng thái hiển thị sai).
     }catch(e){ console.error('Drive init error', e); driveSyncOk = false; }
+    driveLastSyncAt = Date.now();
     driveSyncing = false;
   }
   if(STATE.tab==='authgate') STATE.tab = 'hub';
@@ -1605,8 +1617,11 @@ function collectAllData(){
 async function pullFromDrive(){
   if(!driveAccessToken) return;
   await ensureDriveFile();
-  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
-  if(!res.ok){ driveSyncOk = false; return; }
+  let res;
+  try{
+    res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
+  }catch(e){ console.error('Drive pull error', e); driveSyncOk = false; driveLastSyncAt = Date.now(); return; }
+  if(!res.ok){ driveSyncOk = false; driveLastSyncAt = Date.now(); return; }
   let data = {};
   try{ data = await res.json(); }catch(e){ data = {}; }
   const hasRemoteData = data && (data.progressLog || data.settings || data.kiemhang);
@@ -1616,6 +1631,7 @@ async function pullFromDrive(){
     if(data.kiemhang){ try{ KIEMHANG = Object.assign({}, KIEMHANG, JSON.parse(data.kiemhang)); }catch(e){} }
     saveLog(); saveSettings(); saveKiemHang();
     driveSyncOk = true;
+    driveLastSyncAt = Date.now();
   } else {
     await pushToDriveNow();
   }
@@ -1631,7 +1647,12 @@ function pushToDrive(){
 // chọn ảnh gốc lớn — trước đây lỗi bị nuốt âm thầm (chỉ console.error) nên nhìn như "không đồng bộ"
 // mà không rõ lý do. Giờ theo dõi driveSyncOk + tự thử lại 1 lần để tăng khả năng thành công.
 async function pushToDriveNow(isRetry){
-  if(!driveAccessToken) return;
+  if(!driveAccessToken){
+    // Token đã mất hiệu lực giữa chừng (ví dụ hết hạn / bị thu hồi) khi một lượt đồng bộ đang chờ —
+    // trước đây thoát âm thầm ở đây khiến trạng thái hiển thị bị "kẹt" mãi mãi mà không rõ lý do.
+    if(wasDriveConnected()){ driveSyncOk = false; driveLastSyncAt = Date.now(); if(STATE.tab==='hub') renderContent(); }
+    return;
+  }
   try{
     await ensureDriveFile();
     const body = JSON.stringify(collectAllData());
@@ -1645,12 +1666,15 @@ async function pushToDriveNow(isRetry){
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     driveSyncOk = true;
+    driveLastSyncAt = Date.now();
     if(STATE.tab==='hub') renderContent();
   }catch(e){
     console.error('Drive push error', e);
     if(!isRetry){ setTimeout(()=>pushToDriveNow(true), 4000); return; }
     driveSyncOk = false;
+    driveLastSyncAt = Date.now();
     if(STATE.tab==='hub') renderContent();
+    showToast('⚠️','Đồng bộ thất bại','Không thể lưu lên Google Drive — kiểm tra kết nối mạng hoặc đăng nhập lại.');
   }
 }
 async function driveManualResync(){
@@ -2313,7 +2337,8 @@ function renderHub(){
   const p = SETTINGS.profile || {};
   const connected = !!driveAccessToken;
   const dotClass = driveSyncing ? 'dot syncing' : 'dot';
-  const menuHeader = driveSyncing ? '⏳ Đang đồng bộ...' : (connected ? (driveSyncOk===false ? '⚠️ Chưa đồng bộ' : '✓ Đã đồng bộ') : 'Chưa đăng nhập Google');
+  const syncTimeLabel = driveLastSyncAt ? ' · ' + pad(new Date(driveLastSyncAt).getHours()) + ':' + pad(new Date(driveLastSyncAt).getMinutes()) : '';
+  const menuHeader = driveSyncing ? '⏳ Đang đồng bộ...' : (connected ? (driveSyncOk===false ? '⚠️ Chưa đồng bộ'+syncTimeLabel : (driveSyncOk===true ? '✓ Đã đồng bộ'+syncTimeLabel : '✓ Đã kết nối')) : 'Chưa đăng nhập Google');
   const bannerStyle = SETTINGS.bannerImage
     ? `background-image:url('${SETTINGS.bannerImage}');`
     : `background-image:linear-gradient(135deg,#FFC94A,#FF8A3D);`;
