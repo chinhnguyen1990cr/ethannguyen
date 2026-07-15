@@ -3585,7 +3585,22 @@ setTimeout(()=>{
 }, 4000);
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('service-worker.js').catch(e=>console.error('SW reg failed', e)); });
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').then(reg=>{
+      // App dạng TWA thường không bị "đóng hẳn" khi người dùng chuyển sang app khác — chỉ chạy nền —
+      // nên có thể giữ nguyên bản JS cũ rất lâu dù server đã có bản vá lỗi mới. Chủ động kiểm tra
+      // bản mới mỗi khi quay lại app để không bị "đã sửa lỗi trên server nhưng máy vẫn chạy code cũ".
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') reg.update().catch(()=>{}); });
+      reg.update().catch(()=>{});
+    }).catch(e=>console.error('SW reg failed', e));
+  });
+  // Khi service worker mới giành quyền kiểm soát trang (nghĩa là vừa có bản cập nhật), tự tải lại
+  // trang đúng 1 lần để chắc chắn đang chạy phiên bản code mới nhất.
+  let swRefreshed = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(swRefreshed) return; swRefreshed = true;
+    window.location.reload();
+  });
 }
 
 (async function init(){
