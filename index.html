@@ -115,6 +115,20 @@
   .chk svg{width:13px;height:13px; opacity:0; transform:scale(.5); transition:all .15s;}
   .task-wrap.done .chk svg{opacity:1; transform:scale(1);}
   .task-wrap.failed .chk svg{opacity:1; transform:scale(1);}
+  /* Toggle switch xác nhận hoàn thành nhiệm vụ hàng ngày (thay cho ô vuông checkbox cũ) — kiểu iOS,
+     hiện chữ "Confirmed" khi đã xác nhận, kéo/bấm để bật-tắt. */
+  .task-toggle{position:relative; width:80px; height:30px; border-radius:15px; flex-shrink:0; cursor:pointer;
+    background:var(--panel2); border:1px solid var(--border); overflow:hidden; transition:background .25s ease, border-color .25s ease;}
+  .task-toggle .toggle-label{position:absolute; top:0; left:0; right:27px; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:800; letter-spacing:.2px; color:#fff; white-space:nowrap;
+    opacity:0; transition:opacity .2s ease .05s;}
+  .task-toggle .toggle-knob{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+    background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+  .task-toggle.on{background:linear-gradient(90deg,#22C55E,#16A34A); border-color:transparent;}
+  .task-toggle.on .toggle-knob{transform:translateX(50px);}
+  .task-toggle.on .toggle-label{opacity:1;}
+  .task-toggle.failed{background:linear-gradient(90deg,#FF6B6B,#E5484D); border-color:transparent;}
   .subpanel{max-height:0; overflow:hidden; transition:max-height .4s ease;}
   .subpanel.open{max-height:1400px;}
   .subinner{padding:2px 14px 16px 14px;}
@@ -1021,6 +1035,54 @@ const KH_CATEGORIES = [
 ];
 let KIEMHANG = {}; // { catId: [ {id,title,content,updatedAt} ] }
 let KH_STATE = { view:'list', cat:null, editId:null };
+
+// ================= ĐIỀU HƯỚNG BẰNG CỬ CHỈ VUỐT (History API) =================
+// Trước đây app chỉ đổi STATE.tab trong bộ nhớ, không tạo lịch sử trình duyệt thật nào — nên khi
+// người dùng vuốt từ cạnh trái sang phải (cử chỉ back của Android/TWA) để quay lại màn hình trước,
+// hệ thống không thấy có "trang trước" nào trong lịch sử nên THOÁT LUÔN ra ngoài app thay vì lùi lại
+// 1 màn hình trong app. Giải pháp: mỗi khi vào 1 màn hình/lớp mới (mở tab con, mở danh mục, mở modal…)
+// gọi navForward() để đẩy 1 mục vào lịch sử trình duyệt; mỗi khi có hành động "quay lại/đóng" trong
+// app, gọi navBack() để tiêu thụ đúng mục đó — nhờ vậy cử chỉ vuốt (kích hoạt sự kiện popstate) và nút
+// back trong app luôn đồng bộ với nhau, chỉ thực sự thoát app khi đã lùi hết về màn hình gốc (hub).
+let NAV_STACK = [];
+function snapshotNav(){
+  const am = document.getElementById('avatar-modal'), dm = document.getElementById('day-detail-modal');
+  return {
+    tab: STATE.tab,
+    khView: KH_STATE.view, khCat: KH_STATE.cat, khEditId: KH_STATE.editId,
+    activeCustomCat: STATE.activeCustomCat,
+    avatarOpen: !!(am && am.classList.contains('show')),
+    dayDetailOpen: !!(dm && dm.classList.contains('show'))
+  };
+}
+function restoreNav(snap){
+  STATE.tab = snap.tab;
+  KH_STATE.view = snap.khView; KH_STATE.cat = snap.khCat; KH_STATE.editId = snap.khEditId;
+  STATE.activeCustomCat = snap.activeCustomCat;
+  const am = document.getElementById('avatar-modal'), dm = document.getElementById('day-detail-modal');
+  if(am) am.classList.toggle('show', !!snap.avatarOpen);
+  if(dm) dm.classList.toggle('show', !!snap.dayDetailOpen);
+  renderContent();
+  window.scrollTo(0,0);
+}
+// Gọi TRƯỚC KHI chuyển sang 1 màn hình/lớp sâu hơn — lưu lại đúng trạng thái hiện tại để vuốt/back
+// sau này quay về chính xác chỗ này thay vì thoát app.
+function navForward(){
+  NAV_STACK.push(snapshotNav());
+  try{ history.pushState({navId: NAV_STACK.length}, ''); }catch(e){}
+}
+// Gọi khi có hành động "quay lại/đóng" trong app — tiêu thụ đúng 1 mục lịch sử tương ứng, giữ lịch sử
+// trình duyệt luôn khớp với độ sâu điều hướng thực tế của app.
+function navBack(){
+  if(NAV_STACK.length===0) return;
+  try{ history.back(); }catch(e){}
+}
+window.addEventListener('popstate', ()=>{
+  if(NAV_STACK.length){
+    const snap = NAV_STACK.pop();
+    restoreNav(snap);
+  }
+});
 let activeCharts = [];
 let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, expandedMethod:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null, editingCatImageKey:null };
 let lastKnownLevel = 1;
@@ -1903,10 +1965,11 @@ function requestNotifPermission(){
 
 // ================= DAY DETAIL (xem lại công việc đã làm 1 ngày cụ thể) =================
 function openDayDetail(key, track){
+  navForward();
   renderDayDetail(key, track||'schedule');
   document.getElementById('day-detail-modal').classList.add('show');
 }
-function closeDayDetail(){ document.getElementById('day-detail-modal').classList.remove('show'); }
+function closeDayDetail(){ document.getElementById('day-detail-modal').classList.remove('show'); navBack(); }
 function renderDayDetail(key, track){
   const d = parseKey(key);
   const off = isDayOff(key);
@@ -1959,8 +2022,8 @@ function renderAvatarModal(){
     <button class="avatar-reset-btn" data-action="avatar-reset">↺ Dùng biểu tượng theo cấp độ</button>
   `;
 }
-function openAvatarModal(){ renderAvatarModal(); document.getElementById('avatar-modal').classList.add('show'); }
-function closeAvatarModal(){ document.getElementById('avatar-modal').classList.remove('show'); }
+function openAvatarModal(){ navForward(); renderAvatarModal(); document.getElementById('avatar-modal').classList.add('show'); }
+function closeAvatarModal(){ document.getElementById('avatar-modal').classList.remove('show'); navBack(); }
 function handleAvatarFile(file){
   if(!file) return;
   const reader = new FileReader();
@@ -2193,7 +2256,7 @@ function renderKhCatList(){
 function renderNhuaEmbed(){
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="hub-open" data-target="kiemhang">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="nhua-back">${svgIcon('back')}</div>
       <div class="title">${titleBadge('plastic','#0891B2','#0EA5C4')} Bách Khoa Nhựa</div>
     </div>
     <div style="margin:-4px -16px 0; height:calc(100vh - 90px); border-radius:0; overflow:hidden;">
@@ -2909,10 +2972,9 @@ function renderToday(){
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
         <div class="lbl">${t.label}${isFailed?' <span class="fail-tag">Đã bỏ lỡ</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
-        <div class="chk" data-action="toggle" data-task="${t.id}">
-          ${isFailed
-            ? '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+        <div class="task-toggle ${isDone?'on':''} ${isFailed?'failed':''}" data-action="toggle" data-task="${t.id}">
+          <span class="toggle-label">${isDone ? 'Confirmed' : ''}</span>
+          <span class="toggle-knob"></span>
         </div>
         <div class="rm" data-action="remove-task" data-task="${t.id}" data-custom="${isCustom?'1':'0'}" title="${isCustom?'Xóa việc này':'Ẩn việc này hôm nay'}">✕</div>
       </div>
@@ -3415,7 +3477,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(bgResetEl){ SETTINGS.appBackground=null; saveSettings(); applyAppBackground(); renderContent(); return; }
 
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
-  if(hubOpenEl){ STATE.acctMenuOpen = false; STATE.tab = hubOpenEl.getAttribute('data-target'); renderContent(); window.scrollTo(0,0); return; }
+  if(hubOpenEl){ navForward(); STATE.acctMenuOpen = false; STATE.tab = hubOpenEl.getAttribute('data-target'); renderContent(); window.scrollTo(0,0); return; }
+  const nhuaBackEl = e.target.closest('[data-action="nhua-back"]');
+  if(nhuaBackEl){ STATE.tab = 'kiemhang'; renderContent(); window.scrollTo(0,0); navBack(); return; }
   const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
   if(comingSoonEl){ showToast('🔧', comingSoonEl.getAttribute('data-label')||'Sắp ra mắt', 'Tính năng đang được xây dựng, sẽ có sớm.'); return; }
   const addSongEl = e.target.closest('[data-action="add-music-song"]');
@@ -3453,9 +3517,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const delCatEl = e.target.closest('[data-action="delete-category"]');
   if(delCatEl){ deleteCustomCategory(delCatEl.getAttribute('data-catid')); return; }
   const openCatEl = e.target.closest('[data-action="open-category"]');
-  if(openCatEl){ STATE.activeCustomCat = openCatEl.getAttribute('data-catid'); STATE.tab = 'customcat'; renderContent(); window.scrollTo(0,0); return; }
+  if(openCatEl){ navForward(); STATE.activeCustomCat = openCatEl.getAttribute('data-catid'); STATE.tab = 'customcat'; renderContent(); window.scrollTo(0,0); return; }
   const hubBackEl = e.target.closest('[data-action="hub-back"]');
-  if(hubBackEl){ STATE.tab = 'hub'; renderContent(); window.scrollTo(0,0); return; }
+  if(hubBackEl){ STATE.tab = 'hub'; renderContent(); window.scrollTo(0,0); navBack(); return; }
   const calDayEl = e.target.closest('[data-action="cal-day-click"]');
   if(calDayEl){ openDayDetail(calDayEl.getAttribute('data-key'), calDayEl.getAttribute('data-track')); return; }
   const weekDayEl = e.target.closest('[data-action="week-day-click"]');
@@ -3479,17 +3543,17 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(driveResyncEl){ STATE.acctMenuOpen = false; driveManualResync(); return; }
 
   const khOpenCatEl = e.target.closest('[data-action="kh-open-cat"]');
-  if(khOpenCatEl){ KH_STATE.view='catlist'; KH_STATE.cat=khOpenCatEl.getAttribute('data-cat'); renderContent(); return; }
+  if(khOpenCatEl){ navForward(); KH_STATE.view='catlist'; KH_STATE.cat=khOpenCatEl.getAttribute('data-cat'); renderContent(); return; }
   const khBackCatsEl = e.target.closest('[data-action="kh-back-categories"]');
-  if(khBackCatsEl){ KH_STATE.view='categories'; renderContent(); return; }
+  if(khBackCatsEl){ KH_STATE.view='categories'; renderContent(); navBack(); return; }
   const khBackListEl = e.target.closest('[data-action="kh-back-catlist"]');
-  if(khBackListEl){ KH_STATE.view='catlist'; KH_STATE.editId=null; renderContent(); return; }
+  if(khBackListEl){ KH_STATE.view='catlist'; KH_STATE.editId=null; renderContent(); navBack(); return; }
   const khNewNoteEl = e.target.closest('[data-action="kh-new-note"]');
-  if(khNewNoteEl){ KH_STATE.view='edit'; KH_STATE.editId=null; renderContent(); return; }
+  if(khNewNoteEl){ navForward(); KH_STATE.view='edit'; KH_STATE.editId=null; renderContent(); return; }
   const khDeleteEl = e.target.closest('[data-action="kh-delete-note"]');
   if(khDeleteEl){ e.stopPropagation(); if(confirm('Xóa ghi chú này?')){ khDeleteNote(KH_STATE.cat, khDeleteEl.getAttribute('data-id')); renderContent(); } return; }
   const khEditEl = e.target.closest('[data-action="kh-edit-note"]');
-  if(khEditEl){ KH_STATE.view='edit'; KH_STATE.editId=khEditEl.getAttribute('data-id'); renderContent(); return; }
+  if(khEditEl){ navForward(); KH_STATE.view='edit'; KH_STATE.editId=khEditEl.getAttribute('data-id'); renderContent(); return; }
   const khSaveEl = e.target.closest('[data-action="kh-save-note"]');
   if(khSaveEl){
     const t = document.getElementById('kh-title-input');
@@ -3499,6 +3563,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     khSaveNote(KH_STATE.cat, KH_STATE.editId, title, c ? c.value.trim() : '');
     KH_STATE.view='catlist'; KH_STATE.editId=null;
     renderContent();
+    navBack();
     return;
   }
 
