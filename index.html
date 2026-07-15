@@ -1616,6 +1616,13 @@ function collectAllData(){
 }
 async function pullFromDrive(){
   if(!driveAccessToken) return;
+  // QUAN TRỌNG: nếu vừa đổi ảnh/cài đặt (ví dụ đổi ảnh banner) mà lượt lưu debounce 900ms chưa
+  // kịp đẩy lên Drive, rồi ngay sau đó có 1 lượt "pull" (khi đăng nhập hoặc bấm "Tải lại từ Drive")
+  // xảy ra trước — pull sẽ tải bản CŨ trên Drive về và ghi đè mất thay đổi vừa làm ở máy này, sau đó
+  // còn tự lưu/đẩy bản CŨ đó lên lại, khiến thay đổi mới bị mất vĩnh viễn trên cả 2 máy. Đây chính là
+  // nguyên nhân đổi ảnh banner xong đồng bộ lại vẫn thấy ảnh cũ. Luôn đẩy hết các thay đổi đang chờ
+  // lên Drive TRƯỚC KHI tải dữ liệu về, để không bao giờ ghi đè mất thay đổi chưa kịp lưu.
+  await flushPendingDrivePush();
   await ensureDriveFile();
   let res;
   try{
@@ -1640,7 +1647,16 @@ let driveSaveTimer=null;
 function pushToDrive(){
   if(!driveAccessToken) return;
   clearTimeout(driveSaveTimer);
-  driveSaveTimer = setTimeout(()=>{ pushToDriveNow(); }, 900);
+  driveSaveTimer = setTimeout(()=>{ driveSaveTimer=null; pushToDriveNow(); }, 900);
+}
+// Nếu đang có 1 lượt lưu đợi debounce (driveSaveTimer khác null), đẩy lên Drive NGAY LẬP TỨC thay vì
+// đợi hết 900ms — dùng trước mỗi lần "pull" để đảm bảo không có thay đổi cục bộ nào bị bỏ lỡ/ghi đè.
+async function flushPendingDrivePush(){
+  if(driveSaveTimer){
+    clearTimeout(driveSaveTimer);
+    driveSaveTimer = null;
+    await pushToDriveNow();
+  }
 }
 // Drive API "uploadType=media" (upload đơn giản, không resumable) giới hạn khoảng 5MB/request.
 // Ảnh nền/banner/danh mục lưu dạng base64 trong SETTINGS có thể vượt mức này nếu người dùng
