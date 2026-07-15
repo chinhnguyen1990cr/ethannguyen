@@ -97,6 +97,9 @@
   .task-wrap{background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden;}
   .task-wrap.done{border-color:#333f52;}
   .task-wrap.overdue{border-color:#5a2f38;}
+  .task-wrap.failed{border-color:#7a2b2b; background:rgba(122,43,43,0.08);}
+  .task-wrap.failed .lbl{color:#C97575;}
+  .fail-tag{font-size:9.5px; font-weight:700; color:#FF6B6B; background:rgba(255,107,107,0.14); border:1px solid rgba(255,107,107,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px;}
   .task{display:flex; align-items:center; gap:11px; padding:12px 12px; cursor:pointer; user-select:none;}
   .task .time{font-family:var(--mono); font-size:10.5px; color:var(--dim); width:52px; flex-shrink:0; line-height:1.3;}
   .task .time .end{color:var(--dim2); font-size:9.5px;}
@@ -108,8 +111,10 @@
   .chk{width:23px;height:23px;border-radius:8px; border:2px solid var(--dim2); flex-shrink:0;
     display:flex;align-items:center;justify-content:center; transition:all .2s;}
   .task-wrap.done .chk{background:var(--teal); border-color:var(--teal);}
+  .task-wrap.failed .chk{background:#FF6B6B; border-color:#FF6B6B;}
   .chk svg{width:13px;height:13px; opacity:0; transform:scale(.5); transition:all .15s;}
   .task-wrap.done .chk svg{opacity:1; transform:scale(1);}
+  .task-wrap.failed .chk svg{opacity:1; transform:scale(1);}
   .subpanel{max-height:0; overflow:hidden; transition:max-height .4s ease;}
   .subpanel.open{max-height:1400px;}
   .subinner{padding:2px 14px 16px 14px;}
@@ -220,11 +225,21 @@
   .method-chk svg{width:12px;height:12px; opacity:0;}
   .method-card.selected .method-chk svg{opacity:1;}
   .method-body{flex:1; min-width:0;}
+  .method-name-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .method-name{font-size:13px; font-weight:700; color:var(--text);}
   .method-desc{font-size:11.3px; color:var(--dim); margin-top:3px; line-height:1.4;}
   .method-link{font-size:10.5px; color:var(--gold); text-decoration:none; margin-top:5px; display:inline-block; font-weight:600;}
   .method-reason{font-size:10.5px; color:var(--teal); margin-top:6px; font-weight:600; display:flex; align-items:flex-start; gap:5px; line-height:1.4;}
   .method-reason .ic{flex-shrink:0;}
+  .method-detail-toggle{font-size:10px; font-weight:700; color:var(--gold); flex-shrink:0; padding:3px 8px; border-radius:8px;
+    border:1px solid var(--border); transition:transform .2s;}
+  .method-detail-toggle.open{transform:rotate(180deg);}
+  .method-detail{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+  .method-detail.open{max-height:1600px;}
+  .method-detail-inner{margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:11.5px; color:#C4CBD6; line-height:1.55;}
+  .method-detail-inner p{margin:0 0 8px;}
+  .method-detail-inner p b{color:var(--text);}
+  .method-detail-inner ol{margin:0 0 8px; padding-left:18px; display:flex; flex-direction:column; gap:4px;}
   .metrics-empty-card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:28px 20px; text-align:center;}
   .metrics-empty-card .ic{font-size:34px; margin-bottom:10px;}
   .metrics-empty-card .t{font-size:13.5px; font-weight:700; margin-bottom:6px;}
@@ -370,7 +385,12 @@
   /* ============ TRACK HUD (game-style XP per section) ============ */
   .track-hud{border:1px solid var(--border); border-radius:16px; padding:12px 14px; margin-bottom:14px;}
   .track-hud-top{display:flex; align-items:center; gap:10px;}
-  .track-hud-emblem{width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .track-hud-emblem{width:42px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    background:radial-gradient(circle at 32% 24%, #362a18, #120d07 78%); box-shadow:inset 0 0 7px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.04);}
+  .tier-shield-svg{width:29px; height:31px;}
+  .tier-shield-outer{fill:#171009; stroke:#caa25f; stroke-width:1;}
+  .tier-shield-inner{fill:none; stroke:currentColor; stroke-width:.7; opacity:.5;}
+  .tier-shield-rivet{fill:#caa25f;}
   .track-hud-info{flex:1; min-width:0;}
   .track-hud-name{font-size:13px; font-weight:800;}
   .track-hud-streak{font-size:10.5px; color:var(--dim); margin-top:2px;}
@@ -738,6 +758,22 @@ const TIERS = [
   {min:50,max:Infinity, icon:'🌟', name:'Huyền thoại'},
 ];
 function tierFor(level){ return TIERS.find(t=>level>=t.min && level<=t.max) || TIERS[0]; }
+function tierIdx(tier){ const i = TIERS.indexOf(tier); return i<0?0:i; }
+// Huy hiệu HUD kiểu khiên gia huy (heraldry) châu Âu thời cổ, thay cho emoji phẳng —
+// mỗi bậc (tier) có một biểu tượng vector riêng khắc trong lòng khiên.
+const TIER_SYMBOLS = [
+  `<path d="M12 19.5V11M8 8.6c0 0 4 .2 4 2.6 0-2.4 4-2.6 4-2.6 0 3.4-4 4.4-4 4.4-4 0-4-1-4-4.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>`,
+  `<path d="M12 5.2c-1.1 3-4.3 5.4-4.3 9A4.3 4.3 0 0 0 12 18.4a4.3 4.3 0 0 0 4.3-4.2c0-3.6-2-4.7-2-4.7.3 2.1-1 3.1-1 3.1-.5-3 .6-5-1.3-7.4Z" fill="currentColor"/>`,
+  `<g stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6.5 6.5l11 11M6.5 17.5l11-11" fill="none"/><path d="M6.5 6.5l1.8.5M17.5 6.5l-1.8.5M6.5 17.5l1.8-.5M17.5 17.5l-1.8-.5" fill="none"/><circle cx="6.2" cy="6.2" r=".9" fill="currentColor" stroke="none"/><circle cx="17.8" cy="6.2" r=".9" fill="currentColor" stroke="none"/><circle cx="6.2" cy="17.8" r=".9" fill="currentColor" stroke="none"/><circle cx="17.8" cy="17.8" r=".9" fill="currentColor" stroke="none"/></g>`,
+  `<path d="M12 5.3l5 1.7v4.4c0 3.6-2.5 5.9-5 6.9-2.5-1-5-3.3-5-6.9V7l5-1.7Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>`,
+  `<path d="M4.2 14.8c2.6-.6 3.7-3.3 3.7-3.3s1.1 3.6 3.9 3.6 5.6-2.7 7.4-6.4c-1.7 4.4-2.8 7.2-5.7 8.1-3.5 1.1-6.4-.6-9.3-2Z" fill="currentColor"/>`,
+  `<path d="M5.5 15.8l.9-6.4 2.8 2.8 2.8-4.6 2.8 4.6 2.8-2.8.9 6.4H5.5Z" fill="currentColor" stroke="currentColor" stroke-width=".6" stroke-linejoin="round"/>`,
+  `<path d="M12 4.6l1.9 5 5.3.3-4.1 3.4 1.4 5.1L12 15.5l-4.5 2.9 1.4-5.1-4.1-3.4 5.3-.3 1.9-5Z" fill="currentColor"/>`
+];
+function tierEmblemSvg(tier){
+  const sym = TIER_SYMBOLS[tierIdx(tier)] || TIER_SYMBOLS[0];
+  return `<svg viewBox="0 0 24 26" class="tier-shield-svg"><path class="tier-shield-outer" d="M12 1.2l9.2 3.1v7.9c0 6.6-4.6 10.7-9.2 13.1-4.6-2.4-9.2-6.5-9.2-13.1V4.3l9.2-3.1Z"/><path class="tier-shield-inner" d="M12 3.4l7.1 2.4v6.7c0 5.4-3.6 8.7-7.1 10.7-3.5-2-7.1-5.3-7.1-10.7V5.8l7.1-2.4Z"/><circle class="tier-shield-rivet" cx="12" cy="4.6" r=".9"/>${sym}</svg>`;
+}
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 const MONTH_NAMES = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
@@ -799,6 +835,98 @@ const METHODS = {
   ],
 };
 const DEFAULT_METHODS = {run_walk:true, full_body:true, shadowing:true, feynman:true};
+
+// Mô tả chi tiết đầy đủ cho các phương pháp Thể lực (chạy bộ + tập tạ) — nội dung tự viết,
+// hiện ra khi người dùng bấm "xổ xuống" xem chi tiết ở mỗi thẻ phương pháp.
+const METHOD_DETAILS = {
+  run_walk: {
+    overview:'Chạy xen kẽ đi bộ theo tỷ lệ thời gian cố định (ví dụ chạy 1 phút – đi bộ 1 phút), do vận động viên Jeff Galloway phát triển. Mục tiêu là kéo dài tổng thời gian/quãng đường vận động mà không làm cơ thể quá tải, giảm mạnh nguy cơ chấn thương so với chạy liên tục ngay từ đầu.',
+    steps:[
+      'Khởi động 5-10 phút đi bộ nhanh + xoay khớp cổ chân, gối, hông trước khi bắt đầu.',
+      'Chọn tỷ lệ chạy/đi phù hợp thể trạng: người mới bắt đầu 1 phút chạy – 2 phút đi bộ; người đã quen vận động 2 phút chạy – 1 phút đi bộ; người có nền tảng tốt 4 phút chạy – 1 phút đi bộ.',
+      'Giữ tốc độ chạy ở mức "có thể nói chuyện được" (không gắng sức tối đa) — đây là yếu tố quan trọng nhất để tránh kiệt sức giữa buổi.',
+      'Lặp lại chu kỳ chạy/đi liên tục trong 20-30 phút, tăng dần tổng thời gian mỗi tuần 5-10%.',
+      'Đi bộ chậm 5 phút để thả lỏng và hạ nhịp tim ở cuối buổi.'
+    ],
+    schedule:'Tuần 1-2: 20 phút, tỷ lệ 1:2. Tuần 3-4: 25 phút, tỷ lệ 1:1. Tuần 5-6: 30 phút, tỷ lệ 2:1. Từ tuần 7: tăng dần tỷ lệ chạy, giảm tỷ lệ đi bộ khi cảm thấy nhẹ nhàng hơn. Tập 3 buổi/tuần, cách ngày để cơ thể phục hồi.',
+    notes:'Không tăng cả quãng đường lẫn tốc độ cùng lúc trong cùng 1 tuần. Nếu đau nhói ở khớp (khác với mỏi cơ bình thường), nên dừng và nghỉ 2-3 ngày. Giày chạy bộ vừa chân, đế đủ đệm sẽ giảm đáng kể áp lực lên đầu gối.'
+  },
+  maf: {
+    overview:'MAF (Maximum Aerobic Function) — tập luyện ở vùng nhịp tim hiếu khí thấp, dưới ngưỡng "180 trừ tuổi" (điều chỉnh theo thể trạng). Mục tiêu là xây nền tảng sức bền hiếu khí, cải thiện khả năng đốt mỡ làm năng lượng thay vì đường, giúp chạy bền hơn mà tim ít bị áp lực.',
+    steps:[
+      'Tính nhịp tim mục tiêu: 180 − tuổi, sau đó điều chỉnh: trừ thêm 5 nếu đang hồi phục chấn thương/mới tập lại; trừ thêm 10 nếu thường xuyên ốm vặt hoặc mới tập thể thao dưới 2 năm; cộng thêm 5 nếu đã tập đều >2 năm không chấn thương.',
+      'Đeo đồng hồ đo nhịp tim hoặc theo dõi qua cảm giác thở (vẫn nói chuyện được thành câu ngắn, không hụt hơi).',
+      'Chạy/đi bộ nhanh sao cho nhịp tim luôn ở dưới ngưỡng mục tiêu — nếu vượt ngưỡng, chậm lại hoặc chuyển sang đi bộ ngay.',
+      'Ban đầu tốc độ có thể rất chậm (thậm chí phải đi bộ nhiều) — đây là bình thường, tốc độ sẽ tăng dần theo thời gian dù nhịp tim giữ nguyên (dấu hiệu nền tảng hiếu khí đang cải thiện).',
+      'Tập 30-45 phút mỗi buổi, theo dõi "MAF Test" định kỳ mỗi 4-6 tuần (chạy quãng cố định, so tốc độ trung bình ở cùng mức nhịp tim) để đánh giá tiến bộ.'
+    ],
+    schedule:'3-4 buổi/tuần, mỗi buổi 30-45 phút giữ đúng vùng nhịp tim mục tiêu. Kiên trì tối thiểu 6-12 tuần trước khi kỳ vọng thấy tốc độ cải thiện rõ rệt ở cùng mức nhịp tim.',
+    notes:'Giai đoạn đầu tốc độ chậm hơn bình thường khiến nhiều người nản — đây là quá trình tái xây nền tảng hiếu khí, không phải dấu hiệu tụt lùi. Tránh sốt ruột tăng tốc vượt ngưỡng nhịp tim vì sẽ làm mất tác dụng của phương pháp.'
+  },
+  fartlek: {
+    overview:'Fartlek (tiếng Thụy Điển nghĩa là "chơi tốc độ") là hình thức chạy xen kẽ đoạn nhanh và chậm một cách linh hoạt, không theo cấu trúc cứng nhắc như interval trên track. Giúp cải thiện tốc độ, sức chịu đựng và VO2max, đồng thời tạo cảm giác chạy thú vị hơn.',
+    steps:[
+      'Khởi động chạy nhẹ 10 phút để làm nóng cơ thể.',
+      'Chọn các mốc tự nhiên trên đường chạy (cột đèn, gốc cây, khúc cua) làm điểm bứt tốc.',
+      'Chạy nhanh (gần hết sức, khoảng 80-90% khả năng) từ mốc này đến mốc kia — thường 30 giây đến 3 phút tùy đoạn.',
+      'Chạy chậm/đi bộ phục hồi cho đến khi thấy sẵn sàng bứt tốc tiếp — không cố định thời gian nghỉ, lắng nghe cơ thể.',
+      'Lặp lại 6-10 lần bứt tốc trong buổi tập, sau đó chạy nhẹ 5-10 phút để thả lỏng.'
+    ],
+    schedule:'1-2 buổi/tuần, xen kẽ với các buổi chạy nhẹ/MAF khác — không nên tập fartlek liên tục nhiều ngày vì cường độ cao cần thời gian phục hồi.',
+    notes:'Phù hợp nhất khi đã có nền tảng chạy đều 4-6 tuần trở lên. Không tập fartlek khi đang mệt mỏi hoặc chưa ngủ đủ giấc vì dễ chấn thương do gắng sức cao.'
+  },
+  c25k: {
+    overview:'Couch to 5K/10K — lộ trình 8-9 tuần đưa người hoàn toàn chưa vận động về đích có thể chạy liên tục 5km, thông qua việc tăng dần thời gian chạy và giảm dần thời gian đi bộ mỗi tuần.',
+    steps:[
+      'Tuần 1: xen kẽ 60 giây chạy chậm – 90 giây đi bộ, lặp lại 8 lần (khoảng 20 phút).',
+      'Tuần 2-3: tăng đoạn chạy lên 90 giây – 3 phút, giảm đoạn đi bộ tương ứng.',
+      'Tuần 4-5: bắt đầu có các đoạn chạy liên tục 5-8 phút xen kẽ đi bộ ngắn 1-3 phút.',
+      'Tuần 6-7: kéo dài đoạn chạy liên tục lên 10-20 phút.',
+      'Tuần 8-9: chạy liên tục 25-30 phút không nghỉ, tương đương khoảng 5km với người mới.'
+    ],
+    schedule:'3 buổi/tuần, cách ngày (ví dụ Thứ 2 - Thứ 4 - Thứ 6) để có thời gian phục hồi giữa các buổi, theo đúng tiến độ tuần đã đề ra ở trên.',
+    notes:'Không bỏ qua tuần nào dù cảm thấy dễ — cơ, gân, khớp cần thời gian thích nghi chậm hơn tim phổi. Nếu một tuần cảm thấy quá sức, có thể lặp lại tuần đó thêm 1 lần trước khi sang tuần tiếp theo.'
+  },
+  full_body: {
+    overview:'Full-Body 3-day Split — mỗi buổi tập đều tác động toàn bộ các nhóm cơ chính (chân, lưng, ngực, vai, tay, bụng) thay vì chia riêng từng nhóm theo ngày. Phù hợp người mới tập tạ vì tần suất kích thích cơ cao, dễ theo dõi tiến bộ và tổng thời gian mỗi buổi không quá dài.',
+    steps:[
+      'Khởi động 5-10 phút: cardio nhẹ + xoay khớp + vài hiệp khởi động nhẹ tạ của bài đầu tiên.',
+      'Bài chân/toàn thân (compound): Squat hoặc Leg Press — 3 hiệp × 8-12 reps.',
+      'Bài đẩy trên (ngực/vai): Bench Press hoặc Push-up — 3 hiệp × 8-12 reps.',
+      'Bài kéo trên (lưng): Lat Pulldown hoặc Dumbbell Row — 3 hiệp × 8-12 reps.',
+      'Bài vai: Overhead Press hoặc Dumbbell Shoulder Press — 2-3 hiệp × 10-12 reps.',
+      'Bài tay (tùy chọn thêm): Bicep Curl + Tricep Extension — 2 hiệp × 12-15 reps mỗi bài.',
+      'Bài bụng/core: Plank hoặc Crunch — 2-3 hiệp, giữ 30-45 giây hoặc 15-20 reps.',
+      'Giãn cơ nhẹ 5 phút cuối buổi để giảm đau nhức và hỗ trợ phục hồi.'
+    ],
+    schedule:'3 buổi/tuần, cách ngày (ví dụ Thứ 2 - Thứ 4 - Thứ 6), để cơ có tối thiểu 48 giờ phục hồi giữa các buổi cho cùng nhóm cơ.',
+    notes:'Tăng tạ dần khi đã thực hiện đủ số reps ở mức dễ dàng (nguyên tắc "progressive overload") — mỗi lần tăng 2.5-5% mức tạ hiện tại. Ưu tiên đúng kỹ thuật hơn mức tạ nặng, đặc biệt với Squat/Deadlift để tránh chấn thương lưng.'
+  },
+  ppl: {
+    overview:'Push/Pull/Legs (PPL) — chia lịch tập theo 3 nhóm động tác: Đẩy (ngực, vai, tay sau), Kéo (lưng, tay trước) và Chân, thường lặp lại chu kỳ 2 lần/tuần (6 buổi) hoặc 1 lần/tuần (3 buổi) tùy thời gian. Phổ biến với người đã có nền tảng tập tạ vì cho phép tập trung sâu và nặng hơn vào từng nhóm cơ.',
+    steps:[
+      'Ngày Push: Bench Press, Overhead Press, Incline Dumbbell Press, Tricep Dips/Pushdown — mỗi bài 3-4 hiệp × 6-12 reps.',
+      'Ngày Pull: Deadlift hoặc Pull-up, Barbell Row, Lat Pulldown, Bicep Curl — mỗi bài 3-4 hiệp × 6-12 reps.',
+      'Ngày Legs: Squat, Romanian Deadlift, Leg Press, Calf Raise — mỗi bài 3-4 hiệp × 8-12 reps.',
+      'Mỗi buổi khởi động kỹ 10 phút, đặc biệt trước các bài compound nặng (Squat, Deadlift, Bench).',
+      'Nếu tập 6 buổi/tuần: lặp lại chu kỳ Push-Pull-Legs 2 lần, nghỉ 1 ngày cuối tuần.'
+    ],
+    schedule:'Người mới nên bắt đầu với PPL 3 buổi/tuần (mỗi nhóm 1 lần), sau 2-3 tháng có nền tảng ổn định mới cân nhắc tăng lên 6 buổi/tuần (PPL x2) nếu có đủ thời gian phục hồi và dinh dưỡng.',
+    notes:'PPL đòi hỏi khối lượng tập lớn hơn Full-Body — cần ngủ đủ 7-8 tiếng và ăn đủ protein (khoảng 1.6-2.2g/kg cân nặng/ngày) để phục hồi kịp, nếu không dễ rơi vào tập quá sức (overtraining).'
+  },
+  '5x5': {
+    overview:'StrongLifts 5×5 — chương trình tập sức mạnh (strength) đơn giản, tập trung vào các bài compound nặng: Squat, Bench Press, Barbell Row, Overhead Press, Deadlift. Mỗi bài 5 hiệp × 5 reps (riêng Deadlift 1 hiệp × 5 reps), tăng tạ đều đặn mỗi buổi tập.',
+    steps:[
+      'Buổi A: Squat 5×5, Bench Press 5×5, Barbell Row 5×5.',
+      'Buổi B: Squat 5×5, Overhead Press 5×5, Deadlift 1×5.',
+      'Luân phiên buổi A và B, 3 buổi/tuần cách ngày (A-B-A tuần này, B-A-B tuần sau).',
+      'Bắt đầu với mức tạ rất nhẹ (thậm chí chỉ thanh đòn không) để làm quen kỹ thuật đúng trước khi tăng tạ.',
+      'Mỗi buổi tập thành công (đủ 5×5 đúng kỹ thuật), tăng thêm 2.5kg (Squat/Deadlift có thể tăng nhanh hơn ban đầu, các bài trên thân trên tăng chậm hơn khi đã nặng).'
+    ],
+    schedule:'3 buổi/tuần cố định, cách ngày, nghỉ hoàn toàn giữa các buổi để hồi phục hệ thần kinh trung ương (rất quan trọng với tập sức mạnh nặng).',
+    notes:'Khi không còn tăng tạ được nữa sau 2-3 buổi liên tiếp thất bại ở cùng mức tạ, nên giảm tạ về khoảng 90% mức thất bại rồi tăng lại từ từ (deload) thay vì cố gắng ép tạ nặng hơn dễ dẫn đến chấn thương. Ưu tiên tuyệt đối vào kỹ thuật đúng, đặc biệt tư thế lưng khi Squat và Deadlift.'
+  }
+};
 
 // ================= BODY METRICS (WHO Asia-Pacific BMI + Mifflin-St Jeor BMR) =================
 const ACTIVITY_FACTORS = {sedentary:1.2, light:1.375, moderate:1.55, active:1.725, very_active:1.9};
@@ -894,7 +1022,7 @@ const KH_CATEGORIES = [
 let KIEMHANG = {}; // { catId: [ {id,title,content,updatedAt} ] }
 let KH_STATE = { view:'list', cat:null, editId:null };
 let activeCharts = [];
-let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null, editingCatImageKey:null };
+let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, expandedMethod:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null, editingCatImageKey:null };
 let lastKnownLevel = 1;
 const popupQueue = []; let popupShowing = false;
 
@@ -1173,9 +1301,39 @@ function dayPlanInfo(key){
   return {plan, rec, done, total:plan.length};
 }
 const REST_DAY_XP = 30;
+// Việc quá giờ hẹn 60 phút mà chưa tick hoàn thành sẽ tự động bị đánh dấu "không hoàn thành"
+// (rec.failed[taskId]=true) — trừ XP nhẹ (40% so với mức được cộng nếu hoàn thành) để tạo động lực,
+// nhưng không trừ nếu sau đó người dùng vẫn tick hoàn thành muộn (xem dayXP: chỉ phạt khi vẫn chưa xong).
+const FAIL_XP_PENALTY = Math.round(XP_PER_TASK*0.4);
+function failedCountForList(list, rec){ return list.filter(t=>rec.failed && rec.failed[t.id] && !rec.tasks[t.id]).length; }
 function dayPct(key){ if(isDayOff(key)) return 100; const {done,total} = dayPlanInfo(key); return total>0 ? Math.round(done/total*100) : 0; }
-function dayXP(key){ if(isDayOff(key)) return REST_DAY_XP; const {done,total} = dayPlanInfo(key); return total>0 ? done*XP_PER_TASK + (done===total?PERFECT_BONUS:0) : 0; }
+function dayXP(key){
+  if(isDayOff(key)) return REST_DAY_XP;
+  const {plan, rec, done, total} = dayPlanInfo(key);
+  if(total===0) return 0;
+  const base = done*XP_PER_TASK + (done===total?PERFECT_BONUS:0);
+  return Math.max(0, base - failedCountForList(plan, rec)*FAIL_XP_PENALTY);
+}
 function dayMaxXP(key){ if(isDayOff(key)) return REST_DAY_XP; const {total} = dayPlanInfo(key); return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0; }
+// Quét việc của HÔM NAY, tự đánh dấu "không hoàn thành" cho việc nào đã trễ quá 60 phút mà
+// vẫn chưa tick xong — ghi vào LOG của ngày đó để có dữ liệu lịch sử/thống kê lâu dài.
+function autoFailOverdueTasks(){
+  const now = new Date(); const key = todayKey();
+  if(isDayOff(key)) return;
+  const plan = getPlanForKey(key);
+  if(!LOG[key]) LOG[key] = {tasks:{}};
+  const rec = LOG[key];
+  if(!rec.failed) rec.failed = {};
+  let changed = false;
+  plan.forEach(t=>{
+    if(t.kind==='sleep' || !t.time) return;
+    if(rec.tasks[t.id] || rec.failed[t.id]) return;
+    const [hh,mm] = t.time.split(':').map(Number);
+    const taskTime = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0);
+    if((now-taskTime)/60000 >= 60){ rec.failed[t.id] = true; changed = true; }
+  });
+  if(changed){ saveLog(); if(STATE.tab==='today') renderContent(); }
+}
 function catInfo(key, cat){
   const {plan, rec} = dayPlanInfo(key); const list = plan.filter(t=>t.cat===cat);
   return {done:list.filter(t=>rec.tasks[t.id]).length, total:list.length};
@@ -1206,7 +1364,14 @@ function dayInfoTrack(key, track){
   return { total:list.length, done:list.filter(t=>rec.tasks[t.id]).length };
 }
 function dayPctTrack(key, track){ if(isDayOff(key)) return 100; const {done,total} = dayInfoTrack(key,track); return total>0 ? Math.round(done/total*100) : 0; }
-function dayXPTrack(key, track){ if(isDayOff(key)) return track==='schedule'?REST_DAY_XP:0; const {done,total} = dayInfoTrack(key,track); return total>0 ? done*XP_PER_TASK + (done===total?PERFECT_BONUS:0) : 0; }
+function dayXPTrack(key, track){
+  if(isDayOff(key)) return track==='schedule'?REST_DAY_XP:0;
+  const list = trackTasksForDay(key, track); const rec = dayRecord(key);
+  const done = list.filter(t=>rec.tasks[t.id]).length; const total = list.length;
+  if(total===0) return 0;
+  const base = done*XP_PER_TASK + (done===total?PERFECT_BONUS:0);
+  return Math.max(0, base - failedCountForList(list, rec)*FAIL_XP_PENALTY);
+}
 function dayMaxXPTrack(key, track){ if(isDayOff(key)) return track==='schedule'?REST_DAY_XP:0; const {total} = dayInfoTrack(key,track); return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0; }
 function totalXPTrack(track){ return Object.keys(LOG).reduce((s,k)=> s + dayXPTrack(k,track), 0); }
 function levelInfoTrack(track){ const xp = totalXPTrack(track); return {lvl:Math.floor(xp/500)+1, cur:xp%500, next:500, xp}; }
@@ -1235,6 +1400,9 @@ function computeBadgesTrack(track){
     {icon:'👑', label:'Đạt Level 5', earned: lvl>=5},
   ];
 }
+// Phân tích dựa hoàn toàn trên LOG thực tế (đọc lại mỗi lần render — không cache), gồm cả
+// các việc bị tự động đánh dấu "không hoàn thành" (rec.failed) để đánh giá đúng thực chất,
+// không chỉ dựa trên số việc đã tick.
 function buildAdviceTrack(dateKeys, track){
   const tracked = dateKeys.filter(k=>LOG[k] && dayInfoTrack(k,track).total>0);
   if(tracked.length===0) return ["Chưa có dữ liệu trong giai đoạn này. Bắt đầu đánh dấu hoàn thành để mình phân tích cho bạn nhé!"];
@@ -1251,6 +1419,14 @@ function buildAdviceTrack(dateKeys, track){
   const streak = computeStreakTrack(track);
   const restCount = track==='schedule' ? tracked.filter(k=>isDayOff(k)).length : 0;
   const msgs = [`Tỷ lệ hoàn thành trung bình: <b>${avgPct}%</b> trên ${tracked.length} ngày có dữ liệu${restCount>0?` (trong đó có <b>${restCount} ngày nghỉ chủ động</b>, được tính là hoàn thành)`:''}. ${trendMsg}`];
+  // Đếm số việc bị tự động đánh dấu "không hoàn thành" (trễ quá 60 phút) trong giai đoạn này —
+  // đây là dữ liệu thực tế nhất phản ánh việc có thực sự bỏ lỡ hay không.
+  let failedTotal = 0;
+  tracked.forEach(k=>{
+    const list = trackTasksForDay(k, track); const rec = dayRecord(k);
+    failedTotal += failedCountForList(list, rec);
+  });
+  if(failedTotal>0) msgs.push(`⚠️ Có <b>${failedTotal} việc bị tự động đánh dấu bỏ lỡ</b> (trễ hơn 60 phút mà chưa hoàn thành) trong giai đoạn này — đã bị trừ XP tương ứng. Thử đặt nhắc nhở sớm hơn hoặc dời giờ cho hợp lý hơn.`);
   if(streak>=3) msgs.push(`🔥 Đang giữ chuỗi <b>${streak} ngày liên tiếp</b> — đừng để đứt quãng nhé!`);
   else if(tracked.length>0) msgs.push(`Chuỗi ngày liên tiếp hiện tại là 0. Hoàn thành hôm nay để bắt đầu chuỗi mới!`);
   return msgs;
@@ -1259,7 +1435,7 @@ function renderTrackHUD(track){
   const li = levelInfoTrack(track); const tier = tierFor(li.lvl); const streak = computeStreakTrack(track); const meta = TRACK_META[track];
   return `<div class="track-hud" style="border-color:${meta.hex}44; background:linear-gradient(135deg,${meta.hex}14,${meta.hex2}0a);">
     <div class="track-hud-top">
-      <div class="track-hud-emblem" style="background:${meta.hex}22; color:${meta.hex};">${tier.icon}</div>
+      <div class="track-hud-emblem" style="color:${meta.hex};">${tierEmblemSvg(tier)}</div>
       <div class="track-hud-info">
         <div class="track-hud-name">${tier.name} · Lv${li.lvl}</div>
         <div class="track-hud-streak">🔥 ${streak} ngày liên tiếp</div>
@@ -1319,6 +1495,9 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_NAME = 'rlmn-hub-data.json';
 let driveTokenClient=null, driveAccessToken=null, driveTokenExpiry=0, driveFileId=null;
 let driveUserEmail=null, driveSyncing=false, driveSilentTimer=null;
+// driveSyncOk: null = chưa đồng bộ lần nào, true = lần gần nhất thành công, false = lần gần nhất lỗi
+// (ví dụ do ảnh nền/banner quá nặng khiến request bị từ chối) — hiển thị dưới tên trong banner.
+let driveSyncOk = null;
 
 function hasGisSdk(){ return typeof google !== 'undefined' && google.accounts && google.accounts.oauth2; }
 function wasDriveConnected(){ try{ return localStorage.getItem('drive-connected')==='1'; }catch(e){ return false; } }
@@ -1362,8 +1541,8 @@ async function onDriveTokenResponse(resp){
     try{
       await ensureDriveFile();
       await pullFromDrive();
-      showToast('☁️','Đã đồng bộ!', 'Dữ liệu của bạn đã được tải lên/xuống Google Drive.');
-    }catch(e){ console.error('Drive init error', e); showToast('⚠️','Lỗi đồng bộ','Không kết nối được Google Drive, thử lại sau.'); }
+      driveSyncOk = true;
+    }catch(e){ console.error('Drive init error', e); driveSyncOk = false; }
     driveSyncing = false;
   }
   if(STATE.tab==='authgate') STATE.tab = 'hub';
@@ -1387,23 +1566,38 @@ async function fetchDriveUserEmail(){
     if(res.ok){ const d = await res.json(); driveUserEmail = d.email || d.name || null; }
   }catch(e){}
 }
+// QUAN TRỌNG: nếu 2 lời gọi ensureDriveFile() chạy gần như đồng thời (ví dụ pullFromDrive() lúc
+// đăng nhập và pushToDrive() từ autosave xảy ra cùng lúc) mà chưa gán xong driveFileId, cả 2 sẽ
+// cùng tìm-không-thấy rồi cùng tạo file mới → sinh ra nhiều bản rlmn-hub-data.json trùng lặp trên
+// Drive (đây chính là nguyên nhân sâu xa khiến dữ liệu/hình ảnh có lúc không đồng bộ đúng giữa các
+// thiết bị — thiết bị này ghi vào file A, thiết bị kia đọc từ file B). Cache lại Promise đang chạy
+// để mọi lời gọi dùng chung 1 lần tìm/tạo duy nhất, tránh race condition này.
+let ensureDriveFilePromise = null;
 async function ensureDriveFile(){
   if(driveFileId) return driveFileId;
-  const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
-  const listRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name)`);
-  const listData = await listRes.json();
-  if(listData.files && listData.files.length){ driveFileId = listData.files[0].id; return driveFileId; }
-  const metadata = {name: DRIVE_FILE_NAME, mimeType:'application/json'};
-  const boundary = '-------rlmnhub' + Date.now();
-  const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n{}\r\n--${boundary}--`;
-  const createRes = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-    method:'POST',
-    headers:{'Content-Type': `multipart/related; boundary=${boundary}`},
-    body
-  });
-  const createData = await createRes.json();
-  driveFileId = createData.id;
-  return driveFileId;
+  if(ensureDriveFilePromise) return ensureDriveFilePromise;
+  ensureDriveFilePromise = (async () => {
+    try{
+      const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+      const listRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`);
+      const listData = await listRes.json();
+      if(listData.files && listData.files.length){ driveFileId = listData.files[0].id; return driveFileId; }
+      const metadata = {name: DRIVE_FILE_NAME, mimeType:'application/json'};
+      const boundary = '-------rlmnhub' + Date.now();
+      const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n{}\r\n--${boundary}--`;
+      const createRes = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+        method:'POST',
+        headers:{'Content-Type': `multipart/related; boundary=${boundary}`},
+        body
+      });
+      const createData = await createRes.json();
+      driveFileId = createData.id;
+      return driveFileId;
+    } finally {
+      ensureDriveFilePromise = null;
+    }
+  })();
+  return ensureDriveFilePromise;
 }
 function collectAllData(){
   return { progressLog: JSON.stringify(LOG), settings: JSON.stringify(SETTINGS), kiemhang: JSON.stringify(KIEMHANG), updatedAt: Date.now() };
@@ -1412,7 +1606,7 @@ async function pullFromDrive(){
   if(!driveAccessToken) return;
   await ensureDriveFile();
   const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
-  if(!res.ok) return;
+  if(!res.ok){ driveSyncOk = false; return; }
   let data = {};
   try{ data = await res.json(); }catch(e){ data = {}; }
   const hasRemoteData = data && (data.progressLog || data.settings || data.kiemhang);
@@ -1421,6 +1615,7 @@ async function pullFromDrive(){
     if(data.settings){ try{ SETTINGS = Object.assign(SETTINGS, JSON.parse(data.settings)); }catch(e){} }
     if(data.kiemhang){ try{ KIEMHANG = Object.assign({}, KIEMHANG, JSON.parse(data.kiemhang)); }catch(e){} }
     saveLog(); saveSettings(); saveKiemHang();
+    driveSyncOk = true;
   } else {
     await pushToDriveNow();
   }
@@ -1431,22 +1626,38 @@ function pushToDrive(){
   clearTimeout(driveSaveTimer);
   driveSaveTimer = setTimeout(()=>{ pushToDriveNow(); }, 900);
 }
-async function pushToDriveNow(){
+// Drive API "uploadType=media" (upload đơn giản, không resumable) giới hạn khoảng 5MB/request.
+// Ảnh nền/banner/danh mục lưu dạng base64 trong SETTINGS có thể vượt mức này nếu người dùng
+// chọn ảnh gốc lớn — trước đây lỗi bị nuốt âm thầm (chỉ console.error) nên nhìn như "không đồng bộ"
+// mà không rõ lý do. Giờ theo dõi driveSyncOk + tự thử lại 1 lần để tăng khả năng thành công.
+async function pushToDriveNow(isRetry){
   if(!driveAccessToken) return;
   try{
     await ensureDriveFile();
-    await driveFetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+    const body = JSON.stringify(collectAllData());
+    if(body.length > 4.5*1024*1024){
+      console.warn('Drive push: payload quá lớn ('+Math.round(body.length/1024)+'KB), có thể bị từ chối.');
+    }
+    const res = await driveFetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
       method:'PATCH',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(collectAllData())
+      body
     });
-  }catch(e){ console.error('Drive push error', e); }
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    driveSyncOk = true;
+    if(STATE.tab==='hub') renderContent();
+  }catch(e){
+    console.error('Drive push error', e);
+    if(!isRetry){ setTimeout(()=>pushToDriveNow(true), 4000); return; }
+    driveSyncOk = false;
+    if(STATE.tab==='hub') renderContent();
+  }
 }
 async function driveManualResync(){
   if(!driveAccessToken){ alert('Bạn chưa đăng nhập Google Drive.'); return; }
   driveSyncing = true; renderContent();
-  try{ await pullFromDrive(); showToast('☁️','Đã tải lại!','Dữ liệu mới nhất từ Google Drive đã được áp dụng.'); }
-  catch(e){ showToast('⚠️','Lỗi','Không tải được dữ liệu từ Drive.'); }
+  try{ await pullFromDrive(); }
+  catch(e){ driveSyncOk = false; }
   driveSyncing = false; renderContent();
 }
 function renderCloudSyncCard(){
@@ -1647,12 +1858,15 @@ function renderDayDetail(key, track){
       const pct = Math.round(doneCount/tasks.length*100);
       const rows = tasks.map(t=>{
         const isDone = !!rec.tasks[t.id];
-        return `<div class="task-wrap ${isDone?'done':''}">
+        const isFailed = !isDone && !!(rec.failed && rec.failed[t.id]);
+        return `<div class="task-wrap ${isDone?'done':''} ${isFailed?'failed':''}">
           <div class="task">
             <div class="time">${t.time||''}</div>
             <div class="catdot" style="background:${CATS[t.cat]?CATS[t.cat].hex:'#8B96A8'}"></div>
-            <div class="lbl">${escapeHtml(t.label||'')}</div>
-            <div class="chk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="lbl">${escapeHtml(t.label||'')}${isFailed?' <span class="fail-tag">Đã bỏ lỡ</span>':''}</div>
+            <div class="chk">${isFailed
+              ? '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</div>
           </div>
         </div>`;
       }).join('');
@@ -1722,7 +1936,9 @@ function handleBannerFile(file){
       if(srcRatio > targetRatio){ cropH = img.height; cropW = cropH*targetRatio; }
       else { cropW = img.width; cropH = cropW/targetRatio; }
       const sx = (img.width-cropW)/2, sy = (img.height-cropH)/2;
-      const maxW = 1600; // đủ nét cho màn hình retina, không tự phóng to ảnh gốc nhỏ hơn
+      // Giảm kích thước/chất lượng so với trước (1600px/0.94) để ảnh base64 nhẹ hơn nhiều —
+      // tránh vượt giới hạn ~5MB/request của Google Drive khiến ảnh không đồng bộ được giữa các máy.
+      const maxW = 1000;
       const outW = Math.min(maxW, Math.round(cropW));
       const outH = Math.round(outW/targetRatio);
       const canvas = document.createElement('canvas');
@@ -1730,7 +1946,7 @@ function handleBannerFile(file){
       const ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, outW, outH);
-      SETTINGS.bannerImage = canvas.toDataURL('image/jpeg', 0.94);
+      SETTINGS.bannerImage = canvas.toDataURL('image/jpeg', 0.8);
       saveSettings(); renderContent();
     };
     img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
@@ -1763,7 +1979,8 @@ function handleBgFile(file){
   reader.onload = (ev)=>{
     const img = new Image();
     img.onload = ()=>{
-      const maxDim = 1600;
+      // Giảm kích thước/chất lượng so với trước (1600px/0.85) — lý do tương tự ảnh banner ở trên.
+      const maxDim = 1200;
       const scale = Math.min(1, maxDim/Math.max(img.width, img.height));
       const outW = Math.round(img.width*scale), outH = Math.round(img.height*scale);
       const canvas = document.createElement('canvas');
@@ -1771,7 +1988,7 @@ function handleBgFile(file){
       const ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, outW, outH);
-      SETTINGS.appBackground = canvas.toDataURL('image/jpeg', 0.85);
+      SETTINGS.appBackground = canvas.toDataURL('image/jpeg', 0.72);
       saveSettings(); applyAppBackground(); renderContent();
     };
     img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
@@ -1801,7 +2018,7 @@ function handleCatImageFile(file){
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
       if(!SETTINGS.categoryImages) SETTINGS.categoryImages = {};
-      SETTINGS.categoryImages[key] = canvas.toDataURL('image/jpeg', 0.85);
+      SETTINGS.categoryImages[key] = canvas.toDataURL('image/jpeg', 0.75);
       saveSettings(); renderContent();
     };
     img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
@@ -2096,7 +2313,7 @@ function renderHub(){
   const p = SETTINGS.profile || {};
   const connected = !!driveAccessToken;
   const dotClass = driveSyncing ? 'dot syncing' : 'dot';
-  const menuHeader = driveSyncing ? 'Đang đồng bộ...' : (connected ? (driveUserEmail || 'Đã kết nối Google Drive') : 'Chưa đăng nhập Google');
+  const menuHeader = driveSyncing ? '⏳ Đang đồng bộ...' : (connected ? (driveSyncOk===false ? '⚠️ Chưa đồng bộ' : '✓ Đã đồng bộ') : 'Chưa đăng nhập Google');
   const bannerStyle = SETTINGS.bannerImage
     ? `background-image:url('${SETTINGS.bannerImage}');`
     : `background-image:linear-gradient(135deg,#FFC94A,#FF8A3D);`;
@@ -2616,16 +2833,19 @@ function renderToday(){
     const [hh,mm] = t.time.split(':').map(Number);
     const taskTime = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm);
     const overdue = !isDone && key===todayKey() && now > taskTime && t.kind!=='sleep';
+    const isFailed = !isDone && !!(rec.failed && rec.failed[t.id]);
     const isOpen = !!STATE.expanded[t.id];
     const isCustom = t.kind==='custom';
     return `
-    <div class="task-wrap ${isDone?'done':''} ${overdue?'overdue':''}">
+    <div class="task-wrap ${isDone?'done':''} ${overdue?'overdue':''} ${isFailed?'failed':''}">
       <div class="task" data-action="row" data-task="${t.id}">
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
-        <div class="lbl">${t.label}<span class="chev ${isOpen?'open':''}">▸</span></div>
+        <div class="lbl">${t.label}${isFailed?' <span class="fail-tag">Đã bỏ lỡ</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
         <div class="chk" data-action="toggle" data-task="${t.id}">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ${isFailed
+            ? '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
         </div>
         <div class="rm" data-action="remove-task" data-task="${t.id}" data-custom="${isCustom?'1':'0'}" title="${isCustom?'Xóa việc này':'Ẩn việc này hôm nay'}">✕</div>
       </div>
@@ -2661,15 +2881,42 @@ function renderToday(){
 
 // ================= RENDER: GENERAL (methods) =================
 const CAT_LABELS = {the_luc:'🏃 Thể lực', tieng_anh:'🗣️ Tiếng Anh', chuyen_mon:'📚 Chuyên môn', giai_tri:'🎮 Giải trí'};
+// Nội dung chi tiết đầy đủ của 1 phương pháp, hiện ra khi bấm mũi tên "xổ xuống".
+function methodDetailPanelHtml(mid){
+  const d = METHOD_DETAILS[mid];
+  if(!d) return '';
+  return `<div class="method-detail-inner">
+    <p><b>Tổng quan:</b> ${d.overview}</p>
+    <p><b>Cách thực hiện:</b></p>
+    <ol>${d.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+    <p><b>Lịch tập gợi ý:</b> ${d.schedule}</p>
+    <p><b>Lưu ý:</b> ${d.notes}</p>
+  </div>`;
+}
+// Thẻ phương pháp dùng chung — bấm vào thẻ để tick chọn áp dụng; bấm mũi tên riêng để xổ
+// xuống xem mô tả chi tiết (không ảnh hưởng trạng thái tick).
+function methodCardHtml(m, extraHtml){
+  const sel = !!(SETTINGS.methods && SETTINGS.methods[m.id]);
+  const hasDetail = !!METHOD_DETAILS[m.id];
+  const isOpen = !!STATE.expandedMethod[m.id];
+  return `<div class="method-card ${sel?'selected':''}" data-action="method-toggle" data-mid="${m.id}">
+    <div class="method-chk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="method-body">
+      <div class="method-name-row">
+        <div class="method-name">${m.name}</div>
+        ${hasDetail?`<div class="method-detail-toggle ${isOpen?'open':''}" data-action="method-detail-toggle" data-mid="${m.id}">Chi tiết ▾</div>`:''}
+      </div>
+      <div class="method-desc">${m.desc}</div>
+      ${extraHtml||''}
+      <a class="method-link" href="${m.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Tìm hiểu thêm</a>
+      ${hasDetail?`<div class="method-detail ${isOpen?'open':''}">${isOpen?methodDetailPanelHtml(m.id):''}</div>`:''}
+    </div>
+  </div>`;
+}
 function methodsListHtml(catIds){
   return catIds.map(catId=>{
     const items = METHODS[catId].map(m=>{
-      const sel = !!(SETTINGS.methods && SETTINGS.methods[m.id]);
-      return `<div class="method-card ${sel?'selected':''}" data-action="method-toggle" data-mid="${m.id}">
-        <div class="method-chk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="method-body"><div class="method-name">${m.name}</div><div class="method-desc">${m.desc}</div>
-          <a class="method-link" href="${m.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Tìm hiểu thêm</a></div>
-      </div>`;
+      return methodCardHtml(m);
     }).join('');
     return `<div class="method-cat-title">${CAT_LABELS[catId]}</div>${items}`;
   }).join('');
@@ -2705,15 +2952,19 @@ function renderScheduleMetrics(){
     const mafHr = mafHRValue(p.age);
     const ideal = idealWeightRange(p.height);
     const advice = profileAdvice(p, bmi, cat);
+    // Kết hợp thêm dữ liệu hành vi thực tế 7 ngày gần nhất (đọc trực tiếp từ LOG, luôn mới nhất
+    // mỗi lần mở trang) để đánh giá không chỉ dựa trên chỉ số cơ thể tĩnh mà còn dựa trên mức độ
+    // thực hiện thật sự — "chân thật" hơn thay vì chỉ suy ra từ BMI/tuổi.
+    const last7Keys = []; for(let i=6;i>=0;i--) last7Keys.push(toKey(addDays(new Date(),-i)));
+    const behaviorMsgs = buildAdviceTrack(last7Keys, 'schedule');
+    if(behaviorMsgs.length && behaviorMsgs[0].indexOf('Chưa có dữ liệu')===-1){
+      advice.push(`📈 <b>Dữ liệu thực tế 7 ngày gần nhất:</b>`);
+      advice.push(...behaviorMsgs);
+    }
     const recs = aiRecommendMethods(p, bmi, cat);
     const recsHtml = recs.length ? recs.map(m=>{
-      const sel = !!(SETTINGS.methods && SETTINGS.methods[m.id]);
-      return `<div class="method-card ${sel?'selected':''}" data-action="method-toggle" data-mid="${m.id}">
-        <div class="method-chk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="method-body"><div class="method-name">${m.name}</div><div class="method-desc">${m.desc}</div>
-          <div class="method-reason"><span class="ic">🤖</span><span>${AI_METHOD_REASONS[m.id]||''}</span></div>
-          <a class="method-link" href="${m.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Tìm hiểu thêm</a></div>
-      </div>`;
+      const reasonHtml = `<div class="method-reason"><span class="ic">🤖</span><span>${AI_METHOD_REASONS[m.id]||''}</span></div>`;
+      return methodCardHtml(m, reasonHtml);
     }).join('') : '';
     bodyHtml = `
       <div class="statgrid">
@@ -2741,6 +2992,7 @@ function renderScheduleMetrics(){
     ${bodyHtml}
   `;
 }
+const METHODS_DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1sI44VqQssSGDTtTlR9QhmO6fGsRXNGvx';
 function renderGeneral(){
   const catIds = ['the_luc','chuyen_mon','giai_tri'];
   const html = methodsListHtml(catIds);
@@ -2748,7 +3000,8 @@ function renderGeneral(){
     ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
     <div class="card" style="margin-bottom:12px;"><h3 style="margin-bottom:6px;">Thư viện phương pháp</h3>
-      <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Tổng hợp các phương pháp phổ biến trên thế giới cho Thể lực, Chuyên môn &amp; Giải trí. Tick chọn phương pháp bạn đang áp dụng để dễ theo dõi — lịch trình hằng ngày hiện đang dùng các phương pháp đã tick sẵn.</div>
+      <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Tổng hợp các phương pháp phổ biến trên thế giới cho Thể lực, Chuyên môn &amp; Giải trí. Tick chọn phương pháp bạn đang áp dụng để dễ theo dõi — lịch trình hằng ngày hiện đang dùng các phương pháp đã tick sẵn. Bấm "Chi tiết" trên mỗi thẻ để xem hướng dẫn đầy đủ.</div>
+      <a class="method-link" style="margin-top:8px;" href="${METHODS_DRIVE_FOLDER_URL}" target="_blank" rel="noopener">📁 Mở thư mục tài liệu &amp; hình ảnh trên Google Drive</a>
     </div>
     ${html}`;
 }
@@ -3226,6 +3479,13 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(levelBtn){ SETTINGS.speakingLevel = levelBtn.getAttribute('data-level'); saveSettings(); renderContent(); return; }
   const shadowBtn = e.target.closest('[data-action="set-shadow"]');
   if(shadowBtn){ SETTINGS.shadowTopic = shadowBtn.getAttribute('data-topic'); saveSettings(); renderContent(); return; }
+  const methodDetailToggle = e.target.closest('[data-action="method-detail-toggle"]');
+  if(methodDetailToggle){
+    const mid = methodDetailToggle.getAttribute('data-mid');
+    STATE.expandedMethod[mid] = !STATE.expandedMethod[mid];
+    renderContentPreserveScroll();
+    return;
+  }
   const methodCard = e.target.closest('[data-action="method-toggle"]');
   if(methodCard){
     const mid = methodCard.getAttribute('data-mid');
@@ -3250,6 +3510,7 @@ function markNotified(key, flagKey){
   saveLog();
 }
 function checkReminders(){
+  autoFailOverdueTasks();
   const now = new Date(); const key = todayKey();
   if(isDayOff(key)) return;
   const {plan, rec} = dayPlanInfo(key);
