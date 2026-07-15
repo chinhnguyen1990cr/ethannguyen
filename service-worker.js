@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ren-luyen-cache-v6';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './nhua.html'];
+const CACHE_NAME = 'ren-luyen-cache-v7';
+const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './nhua.html', './english-grammar.html'];
 // Giới hạn thời gian chờ mạng khi mở app (navigate). Nếu mạng chậm/treo lâu hơn mức này,
 // lập tức trả bản đã lưu trong cache để app luôn mở ra ngay — tránh kẹt ở màn hình splash
 // (đây là nguyên nhân khiến trước đây phải gỡ cài đặt rồi cài lại app mới mở được).
