@@ -246,8 +246,9 @@
   .method-reason{font-size:10.5px; color:var(--teal); margin-top:6px; font-weight:600; display:flex; align-items:flex-start; gap:5px; line-height:1.4;}
   .method-reason .ic{flex-shrink:0;}
   .method-detail-toggle{font-size:10px; font-weight:700; color:var(--gold); flex-shrink:0; padding:3px 8px; border-radius:8px;
-    border:1px solid var(--border); transition:transform .2s;}
-  .method-detail-toggle.open{transform:rotate(180deg);}
+    border:1px solid var(--border);}
+  .method-detail-toggle .mdt-arrow{display:inline-block; transition:transform .2s;}
+  .method-detail-toggle.open .mdt-arrow{transform:rotate(180deg);}
   .method-detail{max-height:0; overflow:hidden; transition:max-height .35s ease;}
   .method-detail.open{max-height:1600px;}
   .method-detail-inner{margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:11.5px; color:#C4CBD6; line-height:1.55;}
@@ -1083,6 +1084,17 @@ window.addEventListener('popstate', ()=>{
     restoreNav(snap);
   }
 });
+// Các tab con thuộc CÙNG một màn hình lớn (ví dụ "Hôm nay"/"Thống kê"/"Chỉ số"/"Phương pháp" đều nằm
+// trong "Lịch làm việc hàng ngày") — chuyển qua lại giữa các tab con này KHÔNG được tính là vào thêm
+// 1 lớp điều hướng mới, nếu không vuốt/back sẽ phải lùi từng tab con một thay vì về thẳng menu chính
+// chỉ với 1 lần vuốt. Chỉ lần đầu tiên bước vào nhóm màn hình (từ hub) mới thực sự đẩy 1 mục lịch sử.
+const NAV_TAB_FAMILIES = [
+  ['today','stats','schedule-metrics','schedule-methods'],
+  ['english','english-stats','english-methods']
+];
+function sameNavFamily(a, b){
+  return NAV_TAB_FAMILIES.some(fam => fam.includes(a) && fam.includes(b));
+}
 let activeCharts = [];
 let STATE = { tab:'authgate', statsView:'week', statsMonth:new Date().getMonth(), statsYear:new Date().getFullYear(), expanded:{}, expandedMethod:{}, addingTask:false, acctMenuOpen:false, activeCustomCat:null, editingCatImageKey:null };
 let lastKnownLevel = 1;
@@ -1992,7 +2004,7 @@ function renderDayDetail(key, track){
           <div class="task">
             <div class="time">${t.time||''}</div>
             <div class="catdot" style="background:${CATS[t.cat]?CATS[t.cat].hex:'#8B96A8'}"></div>
-            <div class="lbl">${escapeHtml(t.label||'')}${isFailed?' <span class="fail-tag">Đã bỏ lỡ</span>':''}</div>
+            <div class="lbl">${escapeHtml(t.label||'')}</div>
             <div class="chk">${isFailed
               ? '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
               : '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#0E1218" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</div>
@@ -2971,7 +2983,7 @@ function renderToday(){
       <div class="task" data-action="row" data-task="${t.id}">
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
-        <div class="lbl">${t.label}${isFailed?' <span class="fail-tag">Đã bỏ lỡ</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
+        <div class="lbl">${t.label}<span class="chev ${isOpen?'open':''}">▸</span></div>
         <div class="task-toggle ${isDone?'on':''} ${isFailed?'failed':''}" data-action="toggle" data-task="${t.id}">
           <span class="toggle-label">${isDone ? 'Confirmed' : ''}</span>
           <span class="toggle-knob"></span>
@@ -3033,7 +3045,7 @@ function methodCardHtml(m, extraHtml){
     <div class="method-body">
       <div class="method-name-row">
         <div class="method-name">${m.name}</div>
-        ${hasDetail?`<div class="method-detail-toggle ${isOpen?'open':''}" data-action="method-detail-toggle" data-mid="${m.id}">Chi tiết ▾</div>`:''}
+        ${hasDetail?`<div class="method-detail-toggle ${isOpen?'open':''}" data-action="method-detail-toggle" data-mid="${m.id}">Chi tiết <span class="mdt-arrow">▾</span></div>`:''}
       </div>
       <div class="method-desc">${m.desc}</div>
       ${extraHtml||''}
@@ -3477,7 +3489,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(bgResetEl){ SETTINGS.appBackground=null; saveSettings(); applyAppBackground(); renderContent(); return; }
 
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
-  if(hubOpenEl){ navForward(); STATE.acctMenuOpen = false; STATE.tab = hubOpenEl.getAttribute('data-target'); renderContent(); window.scrollTo(0,0); return; }
+  if(hubOpenEl){
+    const target = hubOpenEl.getAttribute('data-target');
+    if(!sameNavFamily(STATE.tab, target)) navForward();
+    STATE.acctMenuOpen = false; STATE.tab = target; renderContent(); window.scrollTo(0,0);
+    return;
+  }
   const nhuaBackEl = e.target.closest('[data-action="nhua-back"]');
   if(nhuaBackEl){ STATE.tab = 'kiemhang'; renderContent(); window.scrollTo(0,0); navBack(); return; }
   const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
