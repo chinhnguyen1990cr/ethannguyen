@@ -1574,8 +1574,7 @@ function buildAdviceTrack(dateKeys, track){
     Object.keys(topicAvg).forEach(tid=>{ const avg = topicAvg[tid].sum/topicAvg[tid].n; if(avg<weakestPct){ weakestPct=avg; weakestTopic=tid; } });
     let gmsg = `📝 Luyện ngữ pháp: điểm trung bình ${recent.length} lượt gần nhất là <b>${avgGrammar}%</b>.`;
     if(weakestTopic && weakestPct<70){
-      const wt = grammarTopicById(weakestTopic);
-      gmsg += ` Chủ đề yếu nhất: <b>${wt?wt.name:weakestTopic}</b> (${Math.round(weakestPct)}%) — nên luyện thêm chủ đề này.`;
+      gmsg += ` Chủ đề yếu nhất: <b>${quizTopicDisplayName(weakestTopic)}</b> (${Math.round(weakestPct)}%) — nên luyện thêm chủ đề này.`;
     } else if(avgGrammar>=85){
       gmsg += ' Rất tốt — thử chế độ "Trộn tất cả" để ôn tổng hợp nhiều chủ đề cùng lúc.';
     }
@@ -3142,10 +3141,20 @@ const GRAMMAR_TOPICS = [
   {id:'o_causative', group:'other', name:'Câu bị động đặc biệt (Causative)', desc:'have/get something done'}
 ];
 const GRAMMAR_TOPIC_GROUPS = [
-  {key:'tenses', label:'12 Thì'}, {key:'struct', label:'Cấu trúc câu'},
-  {key:'prep', label:'Giới từ'}, {key:'other', label:'Ngữ pháp khác'}
+  {key:'tenses', label:'12 Thì', desc:'Luyện lẫn cả 12 thì trong tiếng Anh'},
+  {key:'struct', label:'Cấu trúc câu', desc:'Điều kiện, bị động, tường thuật, quan hệ, so sánh...'},
+  {key:'prep', label:'Giới từ', desc:'Thời gian, nơi chốn, chuyển động, cố định'},
+  {key:'other', label:'Ngữ pháp khác', desc:'Mạo từ, khiếm khuyết, danh động từ, cụm động từ...'}
 ];
 function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
+function grammarGroupById(key){ return GRAMMAR_TOPIC_GROUPS.find(g=>g.key===key); }
+function quizTopicDisplayName(topicId){
+  if(topicId==='mixed') return 'Trộn tất cả';
+  const g = grammarGroupById(topicId);
+  if(g) return g.label;
+  const t = grammarTopicById(topicId);
+  return t ? t.name : topicId;
+}
 let GRAMMAR_QUIZ_BANK = null;
 let grammarQuizBankLoading = false;
 async function fetchGrammarQuizBank(){
@@ -3181,6 +3190,9 @@ function startEnglishQuiz(topicId){
   let order = [];
   if(topicId==='mixed'){
     GRAMMAR_TOPICS.forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
+    order = shuffleArr(order).slice(0, pace.count);
+  } else if(grammarGroupById(topicId)){
+    GRAMMAR_TOPICS.filter(t=>t.group===topicId).forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
     order = shuffleArr(order).slice(0, pace.count);
   } else {
     order = shuffleArr(grammarBankFor(topicId).map((_,i)=>[topicId,i])).slice(0, pace.count);
@@ -3244,18 +3256,15 @@ function renderEnglishQuiz(item){
       const paceHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
         <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn đang ở mức <b>${escapeHtml(pace.label)}</b>${pace.avg!==null?` (điểm gần đây ${pace.avg}%)`:''} — mỗi lượt luyện tập sẽ lấy khoảng <b>${pace.count} câu</b> cho vừa sức, tăng dần khi bạn tiến bộ.</div>
       </div>`;
-      const groupsHtml = GRAMMAR_TOPIC_GROUPS.map(g=>{
-        const rows = GRAMMAR_TOPICS.filter(t=>t.group===g.key).map(t=>{
-          const n = grammarBankFor(t.id).length;
-          const b = best[t.id];
-          const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : (n>pace.count ? `${pace.count}/${n} câu` : `${n} câu`));
-          return `<div class="eng-topic-row ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${t.id}"`:''}>
-            <div class="eng-topic-name">${escapeHtml(t.name)}</div>
-            <div class="eng-topic-desc">${escapeHtml(t.desc)}</div>
-            <div class="eng-topic-score">${scoreTxt}</div>
-          </div>`;
-        }).join('');
-        return `<div class="eng-topic-grouphead">${g.label}</div>${rows}`;
+      const groupRows = GRAMMAR_TOPIC_GROUPS.map(g=>{
+        const n = GRAMMAR_TOPICS.filter(t=>t.group===g.key).reduce((s,t)=>s+grammarBankFor(t.id).length,0);
+        const b = best[g.key];
+        const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : (n>pace.count ? `${pace.count}/${n} câu` : `${n} câu`));
+        return `<div class="eng-topic-row ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${g.key}"`:''}>
+          <div class="eng-topic-name">${escapeHtml(g.label)}</div>
+          <div class="eng-topic-desc">${escapeHtml(g.desc)}</div>
+          <div class="eng-topic-score">${scoreTxt}</div>
+        </div>`;
       }).join('');
       body = `${paceHtml}
       <div class="card" style="text-align:center; padding:18px 16px; margin-bottom:14px;">
@@ -3263,11 +3272,11 @@ function renderEnglishQuiz(item){
         <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên ${Math.min(pace.count,totalQ)} câu từ mọi chủ đề đang có (${totalQ} câu).</div>
         <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">Trộn tất cả ${mixedBest!==undefined?`· Tốt nhất: ${mixedBest}%`:''}</button>
       </div>
-      ${groupsHtml}`;
+      ${groupRows}`;
     }
   } else if(q.finished){
     const pct = Math.round((q.correct/q.order.length)*100);
-    const topicName = q.topicId==='mixed' ? 'Trộn tất cả' : (grammarTopicById(q.topicId)||{}).name || '';
+    const topicName = quizTopicDisplayName(q.topicId);
     body = `<div class="card eng-quiz-result">
       <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${escapeHtml(topicName)}</div>
       <div class="score">${q.correct}/${q.order.length}</div>
