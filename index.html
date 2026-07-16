@@ -3104,20 +3104,42 @@ const LEVEL_LABELS = {beginner:'Cơ bản', intermediate:'Trung cấp', advanced
 // Ngân hàng câu hỏi tải từ file ngoài grammar-quiz-data.json để đỡ nặng index.html, cùng cơ chế với Luyện nghe.
 // Định dạng mỗi câu: [câu hỏi có chỗ trống "___", [4 đáp án], chỉ số đáp án đúng, giải thích ngắn, câu dịch tiếng Việt, mẹo học AI]
 const GRAMMAR_TOPICS = [
-  {id:'t_present', group:'tenses', name:'Thì hiện tại', desc:'Hiện tại đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
-  {id:'t_past', group:'tenses', name:'Thì quá khứ', desc:'Quá khứ đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
-  {id:'t_future', group:'tenses', name:'Thì tương lai', desc:'Tương lai đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
-  {id:'s_conditional', group:'struct', name:'Câu điều kiện & giả định', desc:'If loại 0-3, hỗn hợp, wish, it\'s time'},
-  {id:'s_passive', group:'struct', name:'Câu bị động', desc:'Passive voice + causative (have/get sth done)'},
-  {id:'s_reported', group:'struct', name:'Câu tường thuật', desc:'Reported speech: câu kể, câu hỏi, mệnh lệnh'},
-  {id:'s_relative', group:'struct', name:'Mệnh đề quan hệ & rút gọn', desc:'Relative clauses + participle clauses'},
-  {id:'s_advanced', group:'struct', name:'So sánh, đảo ngữ, câu chẻ, câu hỏi đuôi', desc:'Comparison, inversion, cleft, question tags'},
-  {id:'p_timeplace', group:'prep', name:'Giới từ thời gian, nơi chốn, chuyển động', desc:'in/on/at + giới từ chuyển động'},
-  {id:'p_fixed', group:'prep', name:'Giới từ cố định', desc:'Đi với tính từ / động từ / danh từ'},
-  {id:'o_articles', group:'other', name:'Mạo từ & lượng từ', desc:'a/an/the, many/much/some/any...'},
-  {id:'o_modal', group:'other', name:'Động từ khiếm khuyết', desc:'Modal verbs + modal + have + V3'},
-  {id:'o_gerund', group:'other', name:'Danh động từ, động từ nguyên mẫu & cụm động từ', desc:'Gerund vs infinitive + phrasal verbs'},
-  {id:'o_adj', group:'other', name:'Tính từ, trạng từ & thứ tự tính từ', desc:'Adjective order, adverbs'}
+  {id:'t_pres_simple', group:'tenses', name:'Hiện tại đơn', desc:'Present Simple'},
+  {id:'t_pres_cont', group:'tenses', name:'Hiện tại tiếp diễn', desc:'Present Continuous'},
+  {id:'t_pres_perf', group:'tenses', name:'Hiện tại hoàn thành', desc:'Present Perfect'},
+  {id:'t_pres_perf_cont', group:'tenses', name:'Hiện tại hoàn thành tiếp diễn', desc:'Present Perfect Continuous'},
+  {id:'t_past_simple', group:'tenses', name:'Quá khứ đơn', desc:'Past Simple'},
+  {id:'t_past_cont', group:'tenses', name:'Quá khứ tiếp diễn', desc:'Past Continuous'},
+  {id:'t_past_perf', group:'tenses', name:'Quá khứ hoàn thành', desc:'Past Perfect'},
+  {id:'t_past_perf_cont', group:'tenses', name:'Quá khứ hoàn thành tiếp diễn', desc:'Past Perfect Continuous'},
+  {id:'t_fut_simple', group:'tenses', name:'Tương lai đơn', desc:'Future Simple'},
+  {id:'t_fut_cont', group:'tenses', name:'Tương lai tiếp diễn', desc:'Future Continuous'},
+  {id:'t_fut_perf', group:'tenses', name:'Tương lai hoàn thành', desc:'Future Perfect'},
+  {id:'t_fut_perf_cont', group:'tenses', name:'Tương lai hoàn thành tiếp diễn', desc:'Future Perfect Continuous'},
+  {id:'s_conditional', group:'struct', name:'Câu điều kiện', desc:'Conditional Sentences (loại 0-3, hỗn hợp)'},
+  {id:'s_passive', group:'struct', name:'Câu bị động', desc:'Passive Voice'},
+  {id:'s_reported', group:'struct', name:'Câu tường thuật', desc:'Reported Speech'},
+  {id:'s_relative', group:'struct', name:'Mệnh đề quan hệ', desc:'Relative Clauses'},
+  {id:'s_comparison', group:'struct', name:'Câu so sánh', desc:'Comparison'},
+  {id:'s_inversion', group:'struct', name:'Đảo ngữ', desc:'Inversion'},
+  {id:'s_wish', group:'struct', name:'Câu giả định / Ước muốn', desc:'Wish, Subjunctive'},
+  {id:'s_cleft', group:'struct', name:'Câu chẻ', desc:'Cleft Sentences'},
+  {id:'s_participle', group:'struct', name:'Mệnh đề rút gọn', desc:'Participle Clauses'},
+  {id:'s_qtag', group:'struct', name:'Câu hỏi đuôi', desc:'Question Tags'},
+  {id:'s_sequence', group:'struct', name:'Sự hòa hợp thì & liên từ', desc:'Sequence of Tenses & linking words'},
+  {id:'p_time', group:'prep', name:'Giới từ chỉ thời gian', desc:'in / on / at'},
+  {id:'p_place', group:'prep', name:'Giới từ chỉ nơi chốn', desc:'in / on / at'},
+  {id:'p_movement', group:'prep', name:'Giới từ chỉ sự chuyển động', desc:'into / onto / through...'},
+  {id:'p_adj', group:'prep', name:'Giới từ + tính từ cố định', desc:'Adjective + Preposition'},
+  {id:'p_verb', group:'prep', name:'Giới từ + động từ cố định', desc:'Verb + Preposition'},
+  {id:'p_noun', group:'prep', name:'Giới từ + danh từ cố định', desc:'Noun + Preposition'},
+  {id:'o_articles', group:'other', name:'Mạo từ', desc:'a / an / the'},
+  {id:'o_modal', group:'other', name:'Động từ khiếm khuyết', desc:'Modal Verbs'},
+  {id:'o_gerund', group:'other', name:'Danh động từ & động từ nguyên mẫu', desc:'Gerund vs Infinitive'},
+  {id:'o_phrasal', group:'other', name:'Cụm động từ thông dụng', desc:'Phrasal Verbs'},
+  {id:'o_quantifiers', group:'other', name:'Lượng từ', desc:'Quantifiers'},
+  {id:'o_adj_adv', group:'other', name:'Tính từ & Trạng từ', desc:'Adjective & Adverb order'},
+  {id:'o_causative', group:'other', name:'Câu bị động đặc biệt (Causative)', desc:'have/get something done'}
 ];
 const GRAMMAR_TOPIC_GROUPS = [
   {key:'tenses', label:'12 Thì'}, {key:'struct', label:'Cấu trúc câu'},
@@ -3130,7 +3152,7 @@ async function fetchGrammarQuizBank(){
   if(GRAMMAR_QUIZ_BANK || grammarQuizBankLoading) return;
   grammarQuizBankLoading = true;
   try{
-    const res = await fetch('./grammar-quiz-data.json?v=1');
+    const res = await fetch('./grammar-quiz-data.json?v=2');
     GRAMMAR_QUIZ_BANK = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng câu hỏi ngữ pháp', e);
@@ -3141,14 +3163,27 @@ async function fetchGrammarQuizBank(){
 }
 function grammarBankFor(topicId){ return (GRAMMAR_QUIZ_BANK && GRAMMAR_QUIZ_BANK[topicId]) || []; }
 function shuffleArr(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// ---- AI đề xuất số câu mỗi lượt luyện tập, dựa trên phong độ luyện ngữ pháp gần đây ----
+// (dùng cùng dữ liệu SETTINGS.grammarQuizLog mà buildAdviceTrack('english') đã phân tích, để nhất
+// quán với phần "AI đánh giá" ở Thống kê — coi đây là "phương pháp học" AI gợi ý cho từng lượt).
+function aiRecommendGrammarPace(){
+  const log = Array.isArray(SETTINGS.grammarQuizLog) ? SETTINGS.grammarQuizLog : [];
+  if(log.length===0) return {level:'new', label:'Mới bắt đầu', count:10, avg:null};
+  const recent = log.slice(-10);
+  const avg = Math.round(recent.reduce((s,r)=>s+r.pct,0)/recent.length);
+  if(avg < 60) return {level:'building', label:'Đang xây nền', count:12, avg};
+  if(avg < 85) return {level:'steady', label:'Ổn định', count:20, avg};
+  return {level:'advanced', label:'Nâng cao', count:30, avg};
+}
 function startEnglishQuiz(topicId){
   if(!GRAMMAR_QUIZ_BANK) return;
+  const pace = aiRecommendGrammarPace();
   let order = [];
   if(topicId==='mixed'){
     GRAMMAR_TOPICS.forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
-    order = shuffleArr(order).slice(0,30);
+    order = shuffleArr(order).slice(0, pace.count);
   } else {
-    order = shuffleArr(grammarBankFor(topicId).map((_,i)=>[topicId,i]));
+    order = shuffleArr(grammarBankFor(topicId).map((_,i)=>[topicId,i])).slice(0, pace.count);
   }
   if(order.length===0){ showToast('📭','Chưa có câu hỏi','Chủ đề này sẽ có bài luyện tập ở bản cập nhật sau.'); return; }
   STATE.quiz = {topicId, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
@@ -3205,11 +3240,15 @@ function renderEnglishQuiz(item){
     } else {
       const totalQ = GRAMMAR_TOPICS.reduce((s,t)=>s+grammarBankFor(t.id).length,0);
       const mixedBest = best.mixed;
+      const pace = aiRecommendGrammarPace();
+      const paceHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
+        <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn đang ở mức <b>${escapeHtml(pace.label)}</b>${pace.avg!==null?` (điểm gần đây ${pace.avg}%)`:''} — mỗi lượt luyện tập sẽ lấy khoảng <b>${pace.count} câu</b> cho vừa sức, tăng dần khi bạn tiến bộ.</div>
+      </div>`;
       const groupsHtml = GRAMMAR_TOPIC_GROUPS.map(g=>{
         const rows = GRAMMAR_TOPICS.filter(t=>t.group===g.key).map(t=>{
           const n = grammarBankFor(t.id).length;
           const b = best[t.id];
-          const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : `${n} câu`);
+          const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : (n>pace.count ? `${pace.count}/${n} câu` : `${n} câu`));
           return `<div class="eng-topic-row ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${t.id}"`:''}>
             <div class="eng-topic-name">${escapeHtml(t.name)}</div>
             <div class="eng-topic-desc">${escapeHtml(t.desc)}</div>
@@ -3218,9 +3257,10 @@ function renderEnglishQuiz(item){
         }).join('');
         return `<div class="eng-topic-grouphead">${g.label}</div>${rows}`;
       }).join('');
-      body = `<div class="card" style="text-align:center; padding:18px 16px; margin-bottom:14px;">
+      body = `${paceHtml}
+      <div class="card" style="text-align:center; padding:18px 16px; margin-bottom:14px;">
         <div style="font-size:28px; margin-bottom:6px;">🔀</div>
-        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên 30 câu từ mọi chủ đề đang có (${totalQ} câu).</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên ${Math.min(pace.count,totalQ)} câu từ mọi chủ đề đang có (${totalQ} câu).</div>
         <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">Trộn tất cả ${mixedBest!==undefined?`· Tốt nhất: ${mixedBest}%`:''}</button>
       </div>
       ${groupsHtml}`;
