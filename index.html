@@ -603,6 +603,29 @@
   .eng-topic-name{font-size:12.5px; font-weight:800; flex:1 1 100%;}
   .eng-topic-desc{font-size:10.5px; color:var(--dim); flex:1;}
   .eng-topic-score{font-size:10.5px; color:var(--gold); font-family:var(--mono); font-weight:700; flex:0 0 auto;}
+  .eng-section-label{font-size:11.5px; font-weight:800; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;
+    margin:18px 2px 10px;}
+  .eng-level-pick-row{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 6px; margin-bottom:4px; scrollbar-width:none;}
+  .eng-level-pick-row::-webkit-scrollbar{display:none;}
+  .eng-level-pick-card{flex:0 0 90px; background:var(--panel); border:1.5px solid var(--border); border-radius:16px;
+    padding:14px 8px; text-align:center; cursor:pointer;}
+  .eng-level-pick-card:active{transform:scale(0.96);}
+  .eng-level-pick-card.disabled{opacity:.4; cursor:default;}
+  .eng-level-pick-card .lvl-code{font-size:19px; font-weight:900; font-family:var(--mono);}
+  .eng-level-pick-card .lvl-label{font-size:10px; color:var(--dim); margin-top:3px; font-weight:700; line-height:1.3;}
+  .eng-level-pick-card .lvl-count{font-size:10px; color:var(--text); margin-top:8px; font-weight:800; font-family:var(--mono);}
+  .eng-level-pick-card .lvl-best{font-size:9.5px; color:var(--teal); margin-top:3px; font-weight:700;}
+  .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
+  .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
+    min-height:116px; background:var(--gcgrad); color:#fff; display:flex; flex-direction:column; justify-content:flex-end;
+    box-shadow:0 4px 14px rgba(0,0,0,.22);}
+  .eng-group-card:active{transform:scale(0.97);}
+  .eng-group-card.disabled{opacity:.4; cursor:default;}
+  .eng-group-card .gc-icon{font-size:25px; margin-bottom:8px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+  .eng-group-card .gc-name{font-size:13.5px; font-weight:800;}
+  .eng-group-card .gc-desc{font-size:10px; opacity:.85; margin-top:2px; line-height:1.4;}
+  .eng-group-card .gc-count{font-size:9.5px; font-weight:800; margin-top:9px; background:rgba(0,0,0,.25);
+    border-radius:8px; padding:3px 8px; display:inline-block; align-self:flex-start;}
   .eng-quiz-tip{font-size:11.5px; color:var(--teal); line-height:1.6; background:rgba(44,219,168,0.1);
     border:1px solid rgba(44,219,168,0.25); border-radius:10px; padding:9px 12px; margin-bottom:10px;}
   .eng-quiz-actions{display:flex; gap:8px; flex-wrap:wrap;}
@@ -611,7 +634,8 @@
   .eng-quiz-actions .btn-translate{background:linear-gradient(135deg, rgba(255,201,74,0.18), rgba(255,201,74,0.05));
     border:1px solid rgba(255,201,74,0.4); color:var(--gold); font-weight:700;}
   .eng-quiz-nextbtn{background:linear-gradient(135deg,var(--teal),var(--blue)); color:#0E1218; font-weight:800; border:none;}
-  .eng-quiz-translate{font-size:12.5px; color:var(--dim); line-height:1.6; margin-top:8px;}
+  .eng-quiz-translate{font-size:12.5px; color:#FFD98A; line-height:1.6; margin-top:8px; font-weight:600;
+    background:rgba(255,201,74,0.12); border:1px solid rgba(255,201,74,0.35); border-radius:10px; padding:9px 12px;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -3130,53 +3154,68 @@ const LEVEL_LABELS = {beginner:'Cơ bản', intermediate:'Trung cấp', advanced
 // Ngân hàng câu hỏi tải từ file ngoài grammar-quiz-data.json để đỡ nặng index.html, cùng cơ chế với Luyện nghe.
 // Định dạng mỗi câu: [câu hỏi có chỗ trống "___", [4 đáp án], chỉ số đáp án đúng, giải thích ngắn, câu dịch tiếng Việt, mẹo học AI]
 const GRAMMAR_TOPICS = [
-  {id:'t_pres_simple', group:'tenses', name:'Hiện tại đơn', desc:'Present Simple'},
-  {id:'t_pres_cont', group:'tenses', name:'Hiện tại tiếp diễn', desc:'Present Continuous'},
-  {id:'t_pres_perf', group:'tenses', name:'Hiện tại hoàn thành', desc:'Present Perfect'},
-  {id:'t_pres_perf_cont', group:'tenses', name:'Hiện tại hoàn thành tiếp diễn', desc:'Present Perfect Continuous'},
-  {id:'t_past_simple', group:'tenses', name:'Quá khứ đơn', desc:'Past Simple'},
-  {id:'t_past_cont', group:'tenses', name:'Quá khứ tiếp diễn', desc:'Past Continuous'},
-  {id:'t_past_perf', group:'tenses', name:'Quá khứ hoàn thành', desc:'Past Perfect'},
-  {id:'t_past_perf_cont', group:'tenses', name:'Quá khứ hoàn thành tiếp diễn', desc:'Past Perfect Continuous'},
-  {id:'t_fut_simple', group:'tenses', name:'Tương lai đơn', desc:'Future Simple'},
-  {id:'t_fut_cont', group:'tenses', name:'Tương lai tiếp diễn', desc:'Future Continuous'},
-  {id:'t_fut_perf', group:'tenses', name:'Tương lai hoàn thành', desc:'Future Perfect'},
-  {id:'t_fut_perf_cont', group:'tenses', name:'Tương lai hoàn thành tiếp diễn', desc:'Future Perfect Continuous'},
-  {id:'s_conditional', group:'struct', name:'Câu điều kiện', desc:'Conditional Sentences (loại 0-3, hỗn hợp)'},
-  {id:'s_passive', group:'struct', name:'Câu bị động', desc:'Passive Voice'},
-  {id:'s_reported', group:'struct', name:'Câu tường thuật', desc:'Reported Speech'},
-  {id:'s_relative', group:'struct', name:'Mệnh đề quan hệ', desc:'Relative Clauses'},
-  {id:'s_comparison', group:'struct', name:'Câu so sánh', desc:'Comparison'},
-  {id:'s_inversion', group:'struct', name:'Đảo ngữ', desc:'Inversion'},
-  {id:'s_wish', group:'struct', name:'Câu giả định / Ước muốn', desc:'Wish, Subjunctive'},
-  {id:'s_cleft', group:'struct', name:'Câu chẻ', desc:'Cleft Sentences'},
-  {id:'s_participle', group:'struct', name:'Mệnh đề rút gọn', desc:'Participle Clauses'},
-  {id:'s_qtag', group:'struct', name:'Câu hỏi đuôi', desc:'Question Tags'},
-  {id:'s_sequence', group:'struct', name:'Sự hòa hợp thì & liên từ', desc:'Sequence of Tenses & linking words'},
-  {id:'p_time', group:'prep', name:'Giới từ chỉ thời gian', desc:'in / on / at'},
-  {id:'p_place', group:'prep', name:'Giới từ chỉ nơi chốn', desc:'in / on / at'},
-  {id:'p_movement', group:'prep', name:'Giới từ chỉ sự chuyển động', desc:'into / onto / through...'},
-  {id:'p_adj', group:'prep', name:'Giới từ + tính từ cố định', desc:'Adjective + Preposition'},
-  {id:'p_verb', group:'prep', name:'Giới từ + động từ cố định', desc:'Verb + Preposition'},
-  {id:'p_noun', group:'prep', name:'Giới từ + danh từ cố định', desc:'Noun + Preposition'},
-  {id:'o_articles', group:'other', name:'Mạo từ', desc:'a / an / the'},
-  {id:'o_modal', group:'other', name:'Động từ khiếm khuyết', desc:'Modal Verbs'},
-  {id:'o_gerund', group:'other', name:'Danh động từ & động từ nguyên mẫu', desc:'Gerund vs Infinitive'},
-  {id:'o_phrasal', group:'other', name:'Cụm động từ thông dụng', desc:'Phrasal Verbs'},
-  {id:'o_quantifiers', group:'other', name:'Lượng từ', desc:'Quantifiers'},
-  {id:'o_adj_adv', group:'other', name:'Tính từ & Trạng từ', desc:'Adjective & Adverb order'},
-  {id:'o_causative', group:'other', name:'Câu bị động đặc biệt (Causative)', desc:'have/get something done'}
+  {id:'t_pres_simple', group:'tenses', name:'Hiện tại đơn', desc:'Present Simple', level:'A1'},
+  {id:'t_pres_cont', group:'tenses', name:'Hiện tại tiếp diễn', desc:'Present Continuous', level:'A1'},
+  {id:'t_pres_perf', group:'tenses', name:'Hiện tại hoàn thành', desc:'Present Perfect', level:'B1'},
+  {id:'t_pres_perf_cont', group:'tenses', name:'Hiện tại hoàn thành tiếp diễn', desc:'Present Perfect Continuous', level:'B2'},
+  {id:'t_past_simple', group:'tenses', name:'Quá khứ đơn', desc:'Past Simple', level:'A2'},
+  {id:'t_past_cont', group:'tenses', name:'Quá khứ tiếp diễn', desc:'Past Continuous', level:'A2'},
+  {id:'t_past_perf', group:'tenses', name:'Quá khứ hoàn thành', desc:'Past Perfect', level:'B1'},
+  {id:'t_past_perf_cont', group:'tenses', name:'Quá khứ hoàn thành tiếp diễn', desc:'Past Perfect Continuous', level:'B2'},
+  {id:'t_fut_simple', group:'tenses', name:'Tương lai đơn', desc:'Future Simple', level:'A2'},
+  {id:'t_fut_cont', group:'tenses', name:'Tương lai tiếp diễn', desc:'Future Continuous', level:'B1'},
+  {id:'t_fut_perf', group:'tenses', name:'Tương lai hoàn thành', desc:'Future Perfect', level:'B2'},
+  {id:'t_fut_perf_cont', group:'tenses', name:'Tương lai hoàn thành tiếp diễn', desc:'Future Perfect Continuous', level:'C1'},
+  {id:'s_conditional', group:'struct', name:'Câu điều kiện', desc:'Conditional Sentences (loại 0-3, hỗn hợp)', level:'B1'},
+  {id:'s_passive', group:'struct', name:'Câu bị động', desc:'Passive Voice', level:'B1'},
+  {id:'s_reported', group:'struct', name:'Câu tường thuật', desc:'Reported Speech', level:'B2'},
+  {id:'s_relative', group:'struct', name:'Mệnh đề quan hệ', desc:'Relative Clauses', level:'B1'},
+  {id:'s_comparison', group:'struct', name:'Câu so sánh', desc:'Comparison', level:'A2'},
+  {id:'s_inversion', group:'struct', name:'Đảo ngữ', desc:'Inversion', level:'C1'},
+  {id:'s_wish', group:'struct', name:'Câu giả định / Ước muốn', desc:'Wish, Subjunctive', level:'B2'},
+  {id:'s_cleft', group:'struct', name:'Câu chẻ', desc:'Cleft Sentences', level:'C1'},
+  {id:'s_participle', group:'struct', name:'Mệnh đề rút gọn', desc:'Participle Clauses', level:'C1'},
+  {id:'s_qtag', group:'struct', name:'Câu hỏi đuôi', desc:'Question Tags', level:'B1'},
+  {id:'s_sequence', group:'struct', name:'Sự hòa hợp thì & liên từ', desc:'Sequence of Tenses & linking words', level:'B2'},
+  {id:'p_time', group:'prep', name:'Giới từ chỉ thời gian', desc:'in / on / at', level:'A1'},
+  {id:'p_place', group:'prep', name:'Giới từ chỉ nơi chốn', desc:'in / on / at', level:'A1'},
+  {id:'p_movement', group:'prep', name:'Giới từ chỉ sự chuyển động', desc:'into / onto / through...', level:'A2'},
+  {id:'p_adj', group:'prep', name:'Giới từ + tính từ cố định', desc:'Adjective + Preposition', level:'B1'},
+  {id:'p_verb', group:'prep', name:'Giới từ + động từ cố định', desc:'Verb + Preposition', level:'B1'},
+  {id:'p_noun', group:'prep', name:'Giới từ + danh từ cố định', desc:'Noun + Preposition', level:'B1'},
+  {id:'o_articles', group:'other', name:'Mạo từ', desc:'a / an / the', level:'A1'},
+  {id:'o_modal', group:'other', name:'Động từ khiếm khuyết', desc:'Modal Verbs', level:'A2'},
+  {id:'o_gerund', group:'other', name:'Danh động từ & động từ nguyên mẫu', desc:'Gerund vs Infinitive', level:'B1'},
+  {id:'o_phrasal', group:'other', name:'Cụm động từ thông dụng', desc:'Phrasal Verbs', level:'B1'},
+  {id:'o_quantifiers', group:'other', name:'Lượng từ', desc:'Quantifiers', level:'A2'},
+  {id:'o_adj_adv', group:'other', name:'Tính từ & Trạng từ', desc:'Adjective & Adverb order', level:'B1'},
+  {id:'o_causative', group:'other', name:'Câu bị động đặc biệt (Causative)', desc:'have/get something done', level:'B2'},
+  {id:'o_correlative', group:'other', name:'Liên từ tương quan', desc:'Correlative Conjunctions', level:'B2'},
+  {id:'o_emphasis', group:'other', name:'Nhấn mạnh với trợ động từ', desc:'Emphatic do/does/did', level:'B2'}
 ];
 const GRAMMAR_TOPIC_GROUPS = [
-  {key:'tenses', label:'12 Thì', desc:'Luyện lẫn cả 12 thì trong tiếng Anh'},
-  {key:'struct', label:'Cấu trúc câu', desc:'Điều kiện, bị động, tường thuật, quan hệ, so sánh...'},
-  {key:'prep', label:'Giới từ', desc:'Thời gian, nơi chốn, chuyển động, cố định'},
-  {key:'other', label:'Ngữ pháp khác', desc:'Mạo từ, khiếm khuyết, danh động từ, cụm động từ...'}
+  {key:'tenses', label:'12 Thì', desc:'Luyện lẫn cả 12 thì trong tiếng Anh', icon:'⏰', grad:'linear-gradient(135deg,#FF8A3D,#FFC94A)'},
+  {key:'struct', label:'Cấu trúc câu', desc:'Điều kiện, bị động, tường thuật, quan hệ, so sánh...', icon:'🧩', grad:'linear-gradient(135deg,#4FA8FF,#7C6CF0)'},
+  {key:'prep', label:'Giới từ', desc:'Thời gian, nơi chốn, chuyển động, cố định', icon:'📍', grad:'linear-gradient(135deg,#2CDBA8,#4FA8FF)'},
+  {key:'other', label:'Ngữ pháp khác', desc:'Mạo từ, khiếm khuyết, danh động từ, cụm động từ...', icon:'📚', grad:'linear-gradient(135deg,#FF5A6E,#FF8A3D)'}
+];
+// Cấp độ CEFR ước lượng — dùng để lọc câu hỏi luyện tập theo trình độ thay vì chỉ "trộn tất cả".
+const CEFR_LEVELS = [
+  {key:'A1', label:'Mới bắt đầu', color:'var(--teal)'},
+  {key:'A2', label:'Sơ cấp', color:'var(--teal)'},
+  {key:'B1', label:'Trung cấp', color:'var(--blue)'},
+  {key:'B2', label:'Trung cấp cao', color:'var(--gold)'},
+  {key:'C1', label:'Nâng cao', color:'#B78CFF'}
 ];
 function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
 function grammarGroupById(key){ return GRAMMAR_TOPIC_GROUPS.find(g=>g.key===key); }
+function grammarLevelById(key){ return CEFR_LEVELS.find(l=>l.key===key); }
 function quizTopicDisplayName(topicId){
   if(topicId==='mixed') return 'Trộn tất cả';
+  if(typeof topicId==='string' && topicId.indexOf('level:')===0){
+    const lv = grammarLevelById(topicId.slice(6));
+    return lv ? `Cấp độ ${lv.key} · ${lv.label}` : topicId;
+  }
   const g = grammarGroupById(topicId);
   if(g) return g.label;
   const t = grammarTopicById(topicId);
@@ -3188,7 +3227,7 @@ async function fetchGrammarQuizBank(){
   if(GRAMMAR_QUIZ_BANK || grammarQuizBankLoading) return;
   grammarQuizBankLoading = true;
   try{
-    const res = await fetch('./grammar-quiz-data.json?v=2');
+    const res = await fetch('./grammar-quiz-data.json?v=3');
     GRAMMAR_QUIZ_BANK = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng câu hỏi ngữ pháp', e);
@@ -3211,19 +3250,36 @@ function aiRecommendGrammarPace(){
   if(avg < 85) return {level:'steady', label:'Ổn định', count:20, avg};
   return {level:'advanced', label:'Nâng cao', count:30, avg};
 }
+// Chọn ra bộ câu hỏi cho 1 lượt luyện tập, ưu tiên các câu CHƯA xuất hiện gần đây (SETTINGS.grammarRecentQ)
+// để tránh lặp lại y hệt giữa các lượt liên tiếp — chỉ khi đã dùng hết câu mới mới lấy lại câu cũ.
+function grammarPickOrder(candidates, count){
+  const recent = new Set(Array.isArray(SETTINGS.grammarRecentQ) ? SETTINGS.grammarRecentQ : []);
+  const fresh = candidates.filter(c => !recent.has(c[0]+'#'+c[1]));
+  const seen = candidates.filter(c => recent.has(c[0]+'#'+c[1]));
+  const order = shuffleArr(fresh).concat(shuffleArr(seen)).slice(0, count);
+  const usedKeys = order.map(o=>o[0]+'#'+o[1]);
+  let log = Array.isArray(SETTINGS.grammarRecentQ) ? SETTINGS.grammarRecentQ.slice() : [];
+  log = log.filter(k => usedKeys.indexOf(k)===-1).concat(usedKeys);
+  if(log.length > 220) log = log.slice(log.length-220);
+  SETTINGS.grammarRecentQ = log;
+  saveSettings();
+  return order;
+}
 function startEnglishQuiz(topicId){
   if(!GRAMMAR_QUIZ_BANK) return;
   const pace = aiRecommendGrammarPace();
-  let order = [];
+  let candidates = [];
   if(topicId==='mixed'){
-    GRAMMAR_TOPICS.forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
-    order = shuffleArr(order).slice(0, pace.count);
+    GRAMMAR_TOPICS.forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>candidates.push([t.id,i])); });
+  } else if(typeof topicId==='string' && topicId.indexOf('level:')===0){
+    const lvl = topicId.slice(6);
+    GRAMMAR_TOPICS.filter(t=>t.level===lvl).forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>candidates.push([t.id,i])); });
   } else if(grammarGroupById(topicId)){
-    GRAMMAR_TOPICS.filter(t=>t.group===topicId).forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
-    order = shuffleArr(order).slice(0, pace.count);
+    GRAMMAR_TOPICS.filter(t=>t.group===topicId).forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>candidates.push([t.id,i])); });
   } else {
-    order = shuffleArr(grammarBankFor(topicId).map((_,i)=>[topicId,i])).slice(0, pace.count);
+    grammarBankFor(topicId).forEach((_,i)=>candidates.push([topicId,i]));
   }
+  const order = grammarPickOrder(candidates, pace.count);
   if(order.length===0){ showToast('📭','Chưa có câu hỏi','Chủ đề này sẽ có bài luyện tập ở bản cập nhật sau.'); return; }
   STATE.quiz = {topicId, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   renderContent();
@@ -3283,23 +3339,39 @@ function renderEnglishQuiz(item){
       const paceHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
         <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn đang ở mức <b>${escapeHtml(pace.label)}</b>${pace.avg!==null?` (điểm gần đây ${pace.avg}%)`:''} — mỗi lượt luyện tập sẽ lấy khoảng <b>${pace.count} câu</b> cho vừa sức, tăng dần khi bạn tiến bộ.</div>
       </div>`;
-      const groupRows = GRAMMAR_TOPIC_GROUPS.map(g=>{
+      const levelCards = CEFR_LEVELS.map(lv=>{
+        const topicsAtLevel = GRAMMAR_TOPICS.filter(t=>t.level===lv.key);
+        const n = topicsAtLevel.reduce((s,t)=>s+grammarBankFor(t.id).length,0);
+        const b = best['level:'+lv.key];
+        const cnt = Math.min(pace.count, n);
+        return `<div class="eng-level-pick-card ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="level:${lv.key}"`:''}>
+          <div class="lvl-code" style="color:${lv.color};">${lv.key}</div>
+          <div class="lvl-label">${escapeHtml(lv.label)}</div>
+          <div class="lvl-count">${n===0?'Sắp có':`${cnt} câu`}</div>
+          ${b!==undefined?`<div class="lvl-best">★ ${b}%</div>`:''}
+        </div>`;
+      }).join('');
+      const groupCards = GRAMMAR_TOPIC_GROUPS.map(g=>{
         const n = GRAMMAR_TOPICS.filter(t=>t.group===g.key).reduce((s,t)=>s+grammarBankFor(t.id).length,0);
         const b = best[g.key];
-        const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : (n>pace.count ? `${pace.count}/${n} câu` : `${n} câu`));
-        return `<div class="eng-topic-row ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${g.key}"`:''}>
-          <div class="eng-topic-name">${escapeHtml(g.label)}</div>
-          <div class="eng-topic-desc">${escapeHtml(g.desc)}</div>
-          <div class="eng-topic-score">${scoreTxt}</div>
+        const cnt = Math.min(pace.count, n);
+        return `<div class="eng-group-card ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${g.key}"`:''} style="--gcgrad:${g.grad};">
+          <div class="gc-icon">${g.icon}</div>
+          <div class="gc-name">${escapeHtml(g.label)}</div>
+          <div class="gc-desc">${escapeHtml(g.desc)}</div>
+          <div class="gc-count">${n===0?'Sắp có':`${cnt}/${n} câu`}${b!==undefined?` · ★ ${b}%`:''}</div>
         </div>`;
       }).join('');
       body = `${paceHtml}
-      <div class="card" style="text-align:center; padding:18px 16px; margin-bottom:14px;">
-        <div style="font-size:28px; margin-bottom:6px;">🔀</div>
-        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên ${Math.min(pace.count,totalQ)} câu từ mọi chủ đề đang có (${totalQ} câu).</div>
+      <div class="card" style="text-align:center; padding:16px 16px; margin-bottom:16px;">
+        <div style="font-size:26px; margin-bottom:6px;">🔀</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên ${Math.min(pace.count,totalQ)} câu từ mọi chủ đề, mọi cấp độ (${totalQ} câu).</div>
         <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">Trộn tất cả ${mixedBest!==undefined?`· Tốt nhất: ${mixedBest}%`:''}</button>
       </div>
-      ${groupRows}`;
+      <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
+      <div class="eng-level-pick-row">${levelCards}</div>
+      <div class="eng-section-label">📂 Chọn theo chủ đề</div>
+      <div class="eng-group-grid">${groupCards}</div>`;
     }
   } else if(q.finished){
     const pct = Math.round((q.correct/q.order.length)*100);
@@ -3330,7 +3402,7 @@ function renderEnglishQuiz(item){
         <span class="opt-text">${escapeHtml(opt)}</span>
       </div>`;
     }).join('');
-    const translateHtml = qi[4] ? `<div class="eng-quiz-translate">${q.showTranslate ? '🇻🇳 '+escapeHtml(qi[4]) : ''}</div>` : '';
+    const translateHtml = (qi[4] && q.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(qi[4])}</div>` : '';
     const progressPct = Math.round((q.idx/q.order.length)*100);
     body = `<div class="eng-quiz-progress-wrap">
       <div class="eng-quiz-progress-top">

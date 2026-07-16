@@ -3,67 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0B1F3A">
+<meta name="theme-color" content="#0E1218">
 <title>Ngữ Pháp Tiếng Anh</title>
 <style>
 :root{
-  --ink:#0B1F3A; --ink2:#1E293B; --muted:#64748B; --line:#E2E8F0;
-  --bg:#F1F5F9; --card:#FFFFFF; --accent:#4FA8FF; --accentDark:#3457C4;
-  --shadow:0 2px 12px rgba(15,23,42,.08); --radius:16px;
+  --bg:#0E1218; --panel:#171E27; --panel2:#1D2531; --border:#2A3341;
+  --text:#EDF2F7; --dim:#8B96A8; --dim2:#5C6779;
+  --gold:#FFC94A; --orange:#FF8A3D; --blue:#4FA8FF; --teal:#2CDBA8; --red:#FF5A6E; --purple:#B78CFF;
+  --shadow:0 2px 14px rgba(0,0,0,.28); --radius:16px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Roboto,sans-serif;
-  background:var(--bg); color:var(--ink2); font-size:15px; line-height:1.55;
+  background:var(--bg); color:var(--text); font-size:15px; line-height:1.55;
   padding-bottom:calc(30px + env(safe-area-inset-bottom)); overscroll-behavior-y:contain;}
 a{color:inherit;}
 .appbar{position:sticky; top:0; z-index:40;
-  background:linear-gradient(135deg,var(--ink) 0%,#26418F 60%,var(--accent) 130%);
-  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 2px 10px rgba(11,31,58,.25);}
+  background:linear-gradient(135deg,#171E27 0%,#20304D 55%,#2C4A7A 130%);
+  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 2px 14px rgba(0,0,0,.35);
+  border-bottom:1px solid var(--border);}
 .appbar h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:9px;}
-.appbar .logo{width:30px;height:30px;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.4);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;}
-.appbar .sub{font-size:11.5px;opacity:.85;margin-top:2px;font-weight:500;}
+.appbar .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--teal));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;
+  box-shadow:0 3px 10px rgba(79,168,255,.35);}
+.appbar .sub{font-size:11.5px;opacity:.8;margin-top:3px;font-weight:500;}
 .searchwrap{padding:12px 16px 4px;}
-.searchbox{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--panel);border:1.5px solid var(--border);
   border-radius:14px;padding:11px 14px;box-shadow:var(--shadow);}
-.searchbox input{border:0;outline:0;flex:1;font-size:14.5px;background:transparent;color:var(--ink2);}
-.searchbox .ic{color:var(--muted);font-size:16px;}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none;}
+.searchbox input{border:0;outline:0;flex:1;font-size:14.5px;background:transparent;color:var(--text);}
+.searchbox input::placeholder{color:var(--dim2);}
+.searchbox .ic{color:var(--dim);font-size:16px;}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none; transition:opacity .2s;}
 .chips::-webkit-scrollbar{display:none;}
-.chip{flex:0 0 auto;padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);
-  font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer;}
-.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.chip{flex:0 0 auto;padding:8px 15px;border-radius:999px;background:var(--panel);border:1.5px solid var(--border);
+  font-size:12.5px;font-weight:700;color:var(--dim);white-space:nowrap;cursor:pointer;}
+.chip.active{background:linear-gradient(135deg,var(--blue),#2568b0);color:#fff;border-color:transparent;
+  box-shadow:0 3px 10px rgba(79,168,255,.3);}
+.globalempty{text-align:center; color:var(--dim); font-size:13px; padding:34px 16px; display:none;}
 .view{display:none;padding:6px 16px 24px;}
 .view.active{display:block;}
-.sectitle{font-size:12.5px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.5px;
+.search-grouptitle{display:none; align-items:center; gap:8px; font-size:12px; font-weight:800; color:var(--teal);
+  text-transform:uppercase; letter-spacing:.5px; margin:16px 2px 8px; padding-top:4px; border-top:1px dashed var(--border);}
+.search-grouptitle:first-child{border-top:none; padding-top:0;}
+.sectitle{font-size:12.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.5px;
   margin:18px 2px 9px;display:flex;align-items:center;gap:8px;}
-.sectitle .bar{width:4px;height:14px;background:var(--accent);border-radius:2px;}
-details.card{background:var(--card);border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow);
-  margin-bottom:10px; overflow:hidden;}
+.sectitle .bar{width:4px;height:14px;background:linear-gradient(180deg,var(--blue),var(--teal));border-radius:2px;}
+details.card{background:var(--panel);border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);
+  margin-bottom:10px; overflow:hidden; position:relative;}
+details.card[open]{border-color:rgba(79,168,255,.35);}
 details.card summary{list-style:none; cursor:pointer; padding:13px 14px; font-weight:800; font-size:13.5px;
-  color:var(--ink); display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  color:var(--text); display:flex; align-items:center; justify-content:space-between; gap:8px;}
 details.card summary::-webkit-details-marker{display:none;}
-details.card summary .arrow{color:var(--accent); font-size:13px; transition:transform .2s; flex-shrink:0;}
+details.card summary .arrow{color:var(--blue); font-size:13px; transition:transform .2s; flex-shrink:0;}
 details.card[open] summary .arrow{transform:rotate(90deg);}
-details.card summary .num{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
-  border-radius:7px; background:var(--accent); color:#fff; font-size:11px; font-weight:800; flex-shrink:0; margin-right:8px;}
+details.card summary .num{display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px;
+  border-radius:8px; background:linear-gradient(135deg,var(--blue),var(--teal)); color:#0E1218; font-size:11px;
+  font-weight:800; flex-shrink:0; margin-right:8px;}
+.lvchip{flex:0 0 auto; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:7px; margin-left:7px;
+  letter-spacing:.3px;}
+.lvchip.lv-A1,.lvchip.lv-A2{background:rgba(44,219,168,.15); color:var(--teal); border:1px solid rgba(44,219,168,.35);}
+.lvchip.lv-B1{background:rgba(79,168,255,.15); color:var(--blue); border:1px solid rgba(79,168,255,.35);}
+.lvchip.lv-B2{background:rgba(255,201,74,.15); color:var(--gold); border:1px solid rgba(255,201,74,.35);}
+.lvchip.lv-C1{background:rgba(183,140,255,.15); color:var(--purple); border:1px solid rgba(183,140,255,.35);}
 .card-body{padding:0 14px 15px;}
 .formrow{display:flex; gap:8px; margin-bottom:6px; align-items:flex-start; font-size:12.5px;}
-.formrow .tag{flex:0 0 58px; font-weight:800; font-size:10.5px; padding:3px 0; text-align:center; border-radius:7px; color:#fff;}
-.formrow .tag.pos{background:#15803D;} .formrow .tag.neg{background:#B91C1C;} .formrow .tag.q{background:#B45309;}
-.formrow code{background:#F1F5F9; border-radius:6px; padding:5px 8px; font-family:'SFMono-Regular',Consolas,monospace;
-  font-size:12px; color:var(--ink2); flex:1; line-height:1.5;}
-.subh{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--accentDark);
+.formrow .tag{flex:0 0 62px; font-weight:800; font-size:10.5px; padding:4px 0; text-align:center; border-radius:7px; color:#0E1218;}
+.formrow .tag.pos{background:var(--teal);} .formrow .tag.neg{background:var(--red); color:#fff;} .formrow .tag.q{background:var(--gold);}
+.formrow code{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:6px 9px;
+  font-family:'SFMono-Regular',Consolas,monospace; font-size:12px; color:var(--text); flex:1; line-height:1.5;}
+.subh{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--blue);
   margin:12px 0 5px;}
-.card-body ul{margin:0; padding-left:18px;} .card-body li{margin-bottom:4px; font-size:12.8px; line-height:1.55;}
-.exbox{background:#F8FAFC; border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:8px 10px; margin-top:4px;}
-.exbox div{font-size:12.5px; line-height:1.6; font-style:italic; color:var(--ink2);}
-.notebox{background:#FEF3C7; border-radius:10px; padding:9px 11px; margin-top:8px; font-size:12px; color:#7A4E00; line-height:1.55;}
+.card-body ul{margin:0; padding-left:18px; color:var(--text);} .card-body li{margin-bottom:4px; font-size:12.8px; line-height:1.55;}
+.exbox{background:var(--panel2); border-left:3px solid var(--teal); border-radius:0 10px 10px 0; padding:9px 11px; margin-top:4px; border-top:1px solid var(--border); border-right:1px solid var(--border); border-bottom:1px solid var(--border);}
+.exbox div{font-size:12.5px; line-height:1.6; font-style:italic; color:var(--text);}
+.exbox b{color:var(--teal); font-style:normal;}
+.notebox{background:rgba(255,201,74,.1); border:1px solid rgba(255,201,74,.3); border-radius:12px; padding:10px 12px; margin-top:8px; font-size:12px; color:#FFD98A; line-height:1.55;}
+.notebox b{color:var(--gold);}
 .prep-table{width:100%; border-collapse:collapse; font-size:12.3px; margin-top:4px;}
-.prep-table td{padding:5px 6px; border-bottom:1px solid #EEF2F6; vertical-align:top;}
-.prep-table td:first-child{font-weight:800; color:var(--accentDark); width:60px;}
-.emptyresult{text-align:center; color:var(--muted); font-size:13px; padding:30px 10px;}
+.prep-table td{padding:6px 6px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text);}
+.prep-table td:first-child{font-weight:800; color:var(--blue); width:62px;}
+.emptyresult{display:none;}
 .practice-btn{margin-top:12px; width:100%; padding:11px; border:none; border-radius:11px; cursor:pointer;
   background:linear-gradient(90deg,#4FA8FF,#7C6CF0); color:#fff; font-weight:800; font-size:12.5px;
   display:flex; align-items:center; justify-content:center; gap:6px;}
@@ -73,7 +92,7 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 <body>
 <div class="appbar">
   <h1><span class="logo">📖</span> Ngữ Pháp Tiếng Anh</h1>
-  <div class="sub">Tổng hợp thì, cấu trúc câu &amp; giới từ — tra cứu nhanh, bấm "Luyện tập" để làm bài riêng cho từng chủ đề</div>
+  <div class="sub">Tổng hợp thì, cấu trúc câu &amp; giới từ — tra cứu nhanh, gõ từ khoá để tìm trên toàn bộ nội dung</div>
 </div>
 <div class="searchwrap">
   <div class="searchbox"><span class="ic">🔎</span><input id="q" placeholder="Tìm thì, cấu trúc, giới từ..." oninput="doSearch()"></div>
@@ -84,30 +103,35 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
   <div class="chip" data-view="v-prep" onclick="showView('v-prep')">Giới từ</div>
   <div class="chip" data-view="v-other" onclick="showView('v-other')">Ngữ pháp khác</div>
 </div>
+<div class="globalempty" id="globalEmpty">🔍 Không tìm thấy kết quả phù hợp trong toàn bộ nội dung.</div>
 
 <div class="view active" id="v-tenses">
+  <div class="search-grouptitle">12 Thì</div>
   <div class="sectitle"><span class="bar"></span>Nhóm hiện tại</div>
   <div id="grp-present"></div>
   <div class="sectitle"><span class="bar"></span>Nhóm quá khứ</div>
   <div id="grp-past"></div>
   <div class="sectitle"><span class="bar"></span>Nhóm tương lai</div>
   <div id="grp-future"></div>
-  <div class="emptyresult" id="empty-tenses" style="display:none;">Không tìm thấy kết quả phù hợp.</div>
+  <div class="emptyresult" id="empty-tenses">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-struct">
+  <div class="search-grouptitle">Cấu trúc câu</div>
   <div id="grp-struct"></div>
-  <div class="emptyresult" id="empty-struct" style="display:none;">Không tìm thấy kết quả phù hợp.</div>
+  <div class="emptyresult" id="empty-struct">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-prep">
+  <div class="search-grouptitle">Giới từ</div>
   <div id="grp-prep"></div>
-  <div class="emptyresult" id="empty-prep" style="display:none;">Không tìm thấy kết quả phù hợp.</div>
+  <div class="emptyresult" id="empty-prep">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-other">
+  <div class="search-grouptitle">Ngữ pháp khác</div>
   <div id="grp-other"></div>
-  <div class="emptyresult" id="empty-other" style="display:none;">Không tìm thấy kết quả phù hợp.</div>
+  <div class="emptyresult" id="empty-other">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <script>
@@ -123,6 +147,22 @@ function practiceTopic(topicId, name){
 }
 function practiceBtn(topicId, label){
   return '';
+}
+// Gắn nhãn cấp độ CEFR ước lượng (A1–C1) cho từng chủ đề, dùng để hiện huy hiệu cấp độ trên mỗi thẻ tra cứu.
+// Danh sách này khớp với trường "level" trong GRAMMAR_TOPICS ở index.html.
+const LEVELS = {
+  t_pres_simple:'A1', t_pres_cont:'A1', t_pres_perf:'B1', t_pres_perf_cont:'B2',
+  t_past_simple:'A2', t_past_cont:'A2', t_past_perf:'B1', t_past_perf_cont:'B2',
+  t_fut_simple:'A2', t_fut_cont:'B1', t_fut_perf:'B2', t_fut_perf_cont:'C1',
+  s_conditional:'B1', s_passive:'B1', s_reported:'B2', s_relative:'B1', s_comparison:'A2',
+  s_inversion:'C1', s_wish:'B2', s_cleft:'C1', s_participle:'C1', s_qtag:'B1', s_sequence:'B2',
+  p_time:'A1', p_place:'A1', p_movement:'A2', p_adj:'B1', p_verb:'B1', p_noun:'B1',
+  o_articles:'A1', o_modal:'A2', o_gerund:'B1', o_phrasal:'B1', o_quantifiers:'A2', o_adj_adv:'B1',
+  o_causative:'B2', o_correlative:'B2', o_emphasis:'B2'
+};
+function levelChip(topicId){
+  const lv = LEVELS[topicId];
+  return lv ? `<span class="lvchip lv-${lv}">${lv}</span>` : '';
 }
 
 // ================= 12 THÌ =================
@@ -197,13 +237,13 @@ future:[
 };
 function tenseCard(t, num, groupKey){
   let h = `<details class="card" data-search="${esc((t.n+' '+t.en+' '+t.use.join(' ')+' '+t.ex.map(stripTags).join(' ')).toLowerCase())}">`;
-  h += `<summary><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--muted);font-size:11px;margin-left:6px;">(${t.en})</span></span><span class="arrow">▸</span></summary>`;
+  h += `<summary><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="arrow">▸</span></summary>`;
   h += `<div class="card-body">`;
   h += `<div class="formrow"><span class="tag pos">Khẳng định</span><code>${t.pos}</code></div>`;
   h += `<div class="formrow"><span class="tag neg">Phủ định</span><code>${t.neg}</code></div>`;
   h += `<div class="formrow"><span class="tag q">Nghi vấn</span><code>${t.q}</code></div>`;
   h += `<div class="subh">Cách dùng</div>${ul(t.use)}`;
-  h += `<div class="subh">Dấu hiệu nhận biết</div><div style="font-size:12.3px;color:var(--muted);">${t.signal.join(' · ')}</div>`;
+  h += `<div class="subh">Dấu hiệu nhận biết</div><div style="font-size:12.3px;color:var(--dim);">${t.signal.join(' · ')}</div>`;
   h += `<div class="subh">Ví dụ</div><div class="exbox">${t.ex.map(e=>'<div>· '+e+'</div>').join('')}</div>`;
   if(t.note) h += `<div class="notebox">💡 ${t.note}</div>`;
   h += practiceBtn(t.topic, t.n);
@@ -300,6 +340,12 @@ const STRUCT = [
    <div>· <b>Hardly had</b> I left the house <b>when</b> it started to rain.</div>
    <div>· <b>Little did</b> she know that she had won the prize.</div>
   </div>
+  <div class="subh">Đảo ngữ trong câu điều kiện (trang trọng)</div>
+  <div class="exbox">
+   <div>· <b>Were I</b> in your position, I would accept the offer. (= If I were...)</div>
+   <div>· <b>Had I known</b> about the traffic, I would have left earlier. (= If I had known...)</div>
+   <div>· <b>Should you need</b> any help, please call me. (= If you should need...)</div>
+  </div>
   <div class="notebox">💡 Công thức chung: Từ/cụm từ phủ định + trợ động từ + S + V.</div>`},
  {t:'Câu giả định / Ước muốn (Wish, Subjunctive)', topic:'s_wish', body:`
   <table class="prep-table">
@@ -339,7 +385,7 @@ const STRUCT = [
 ];
 const STRUCT_TOPIC_LABEL = {s_conditional:'Câu điều kiện', s_passive:'Câu bị động', s_reported:'Câu tường thuật', s_relative:'Mệnh đề quan hệ', s_comparison:'Câu so sánh', s_inversion:'Đảo ngữ', s_wish:'Câu giả định / Ước muốn', s_cleft:'Câu chẻ', s_participle:'Mệnh đề rút gọn', s_qtag:'Câu hỏi đuôi', s_sequence:'Sự hòa hợp thì & liên từ'};
 document.getElementById('grp-struct').innerHTML = STRUCT.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, STRUCT_TOPIC_LABEL[s.topic])}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}${levelChip(s.topic)}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, STRUCT_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 // ================= GIỚI TỪ =================
@@ -409,7 +455,7 @@ const PREP = [
 ];
 const PREP_TOPIC_LABEL = {p_time:'Giới từ chỉ thời gian', p_place:'Giới từ chỉ nơi chốn', p_movement:'Giới từ chỉ sự chuyển động', p_adj:'Giới từ + tính từ cố định', p_verb:'Giới từ + động từ cố định', p_noun:'Giới từ + danh từ cố định'};
 document.getElementById('grp-prep').innerHTML = PREP.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, PREP_TOPIC_LABEL[s.topic])}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}${levelChip(s.topic)}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, PREP_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 // ================= NGỮ PHÁP KHÁC =================
@@ -472,30 +518,56 @@ const OTHER = [
  {t:'Câu bị động đặc biệt: Causative (have/get something done)', topic:'o_causative', body:`
   <div class="formrow"><code>S + have/get + O (vật) + V3/ed</code></div>
   <div class="notebox">Diễn tả việc nhờ/thuê người khác làm gì đó cho mình, thay vì tự mình làm.</div>
-  <div class="exbox"><div>· I <b>had my hair cut</b> yesterday. (tôi đi cắt tóc, không tự cắt)</div><div>· We <b>are getting our house painted</b> this weekend.</div></div>`}
+  <div class="exbox"><div>· I <b>had my hair cut</b> yesterday. (tôi đi cắt tóc, không tự cắt)</div><div>· We <b>are getting our house painted</b> this weekend.</div></div>`},
+ {t:'Liên từ tương quan (Correlative Conjunctions)', topic:'o_correlative', body:`
+  <table class="prep-table">
+   <tr><td>both...and</td><td>cả...và... (động từ chia số nhiều)</td></tr>
+   <tr><td>either...or</td><td>hoặc...hoặc... (động từ chia theo chủ ngữ gần nhất)</td></tr>
+   <tr><td>neither...nor</td><td>không...cũng không... (động từ chia theo chủ ngữ gần nhất)</td></tr>
+   <tr><td>not only...but also</td><td>không những...mà còn... (động từ chia theo chủ ngữ gần nhất)</td></tr>
+   <tr><td>whether...or</td><td>dù...hay...</td></tr>
+  </table>
+  <div class="exbox"><div>· <b>Both</b> my sister <b>and</b> I <b>like</b> coffee.</div><div>· <b>Neither</b> the teacher <b>nor</b> the students <b>were</b> ready.</div><div>· <b>Not only did he apologize</b>, but he also brought flowers.</div></div>
+  <div class="notebox">💡 Với "not only" đứng đầu câu, mệnh đề theo sau phải đảo ngữ (xem thêm mục Đảo ngữ). Với either/or và neither/nor, động từ chia theo chủ ngữ đứng gần nó nhất.</div>`},
+ {t:'Nhấn mạnh với trợ động từ (Emphatic do/does/did)', topic:'o_emphasis', body:`
+  <div class="formrow"><code>S + do/does/did + V (nguyên mẫu)</code></div>
+  <div class="notebox">Dùng "do/does/did" trước động từ thường để nhấn mạnh tính xác thực của hành động, thường được nhấn giọng khi nói hoặc dùng để phản bác một ý kiến trái ngược.</div>
+  <div class="exbox"><div>· I <b>do</b> like your new haircut! (nhấn mạnh — thật sự thích)</div><div>· She <b>does</b> understand the problem, she's just shy.</div><div>· He <b>did</b> finish his homework, I saw him do it.</div></div>
+  <div class="subh">So sánh với câu khẳng định thường</div>
+  <div class="card-body" style="padding:0;">${ul(['Câu thường: I like coffee. (chỉ nêu sự thật)','Câu nhấn mạnh: I DO like coffee. (nhấn mạnh, thường để phản bác nghi ngờ)'])}</div>`}
 ];
-const OTHER_TOPIC_LABEL = {o_articles:'Mạo từ', o_modal:'Động từ khiếm khuyết', o_gerund:'Danh động từ & động từ nguyên mẫu', o_phrasal:'Cụm động từ thông dụng', o_quantifiers:'Lượng từ', o_adj_adv:'Tính từ & Trạng từ', o_causative:'Câu bị động đặc biệt (Causative)'};
+const OTHER_TOPIC_LABEL = {o_articles:'Mạo từ', o_modal:'Động từ khiếm khuyết', o_gerund:'Danh động từ & động từ nguyên mẫu', o_phrasal:'Cụm động từ thông dụng', o_quantifiers:'Lượng từ', o_adj_adv:'Tính từ & Trạng từ', o_causative:'Câu bị động đặc biệt (Causative)', o_correlative:'Liên từ tương quan', o_emphasis:'Nhấn mạnh với trợ động từ'};
 document.getElementById('grp-other').innerHTML = OTHER.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, OTHER_TOPIC_LABEL[s.topic])}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}${levelChip(s.topic)}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, OTHER_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 function showView(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id===id));
   document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.getAttribute('data-view')===id));
-  document.getElementById('q').value=''; doSearch();
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id===id));
+  document.getElementById('q').value='';
+  doSearch();
 }
+// Tìm kiếm trên TOÀN BỘ nội dung (cả 4 mục), không chỉ riêng tab đang mở — mỗi nhóm có kết quả
+// sẽ hiện kèm tiêu đề nhóm để người dùng biết đang xem chủ đề nào.
 function doSearch(){
   const q = document.getElementById('q').value.trim().toLowerCase();
+  const searching = !!q;
+  const chips = document.getElementById('chips');
+  chips.style.opacity = searching ? '0.45' : '1';
+  chips.style.pointerEvents = searching ? 'none' : '';
+  let totalVisible = 0;
   document.querySelectorAll('.view').forEach(view=>{
     let anyVisible = false;
     view.querySelectorAll('details.card').forEach(card=>{
       const match = !q || (card.getAttribute('data-search')||'').indexOf(q) !== -1;
       card.style.display = match ? '' : 'none';
-      if(match){ anyVisible = true; if(q) card.open = true; }
+      if(match){ anyVisible = true; totalVisible++; card.open = !!q; } else { card.open = false; }
     });
-    const empty = view.querySelector('.emptyresult');
-    if(empty) empty.style.display = anyVisible ? 'none' : 'block';
+    view.style.display = searching ? (anyVisible ? 'block' : 'none') : (view.classList.contains('active') ? 'block' : 'none');
+    const gt = view.querySelector('.search-grouptitle');
+    if(gt) gt.style.display = (searching && anyVisible) ? 'flex' : 'none';
   });
+  document.getElementById('globalEmpty').style.display = (searching && totalVisible===0) ? 'block' : 'none';
 }
 </script>
 </body>
