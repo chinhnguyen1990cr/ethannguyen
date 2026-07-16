@@ -571,6 +571,20 @@
     padding:10px 12px; margin:6px 0 12px;}
   .eng-quiz-result{text-align:center; padding:20px 10px;}
   .eng-quiz-result .score{font-size:34px; font-weight:800; color:var(--gold); font-family:var(--mono);}
+  .eng-topic-grouphead{font-size:11px; font-weight:800; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;
+    margin:16px 2px 8px;}
+  .eng-topic-grouphead:first-child{margin-top:0;}
+  .eng-topic-row{display:flex; flex-wrap:wrap; align-items:center; gap:2px 10px; background:var(--panel);
+    border:1px solid var(--border); border-radius:12px; padding:11px 13px; margin-bottom:8px; cursor:pointer;}
+  .eng-topic-row:active{transform:scale(0.98);}
+  .eng-topic-row.disabled{opacity:.5; cursor:default;}
+  .eng-topic-name{font-size:12.5px; font-weight:800; flex:1 1 100%;}
+  .eng-topic-desc{font-size:10.5px; color:var(--dim); flex:1;}
+  .eng-topic-score{font-size:10.5px; color:var(--gold); font-family:var(--mono); font-weight:700; flex:0 0 auto;}
+  .eng-quiz-tip{font-size:11.5px; color:var(--teal); line-height:1.6; background:rgba(44,219,168,0.1);
+    border:1px solid rgba(44,219,168,0.25); border-radius:10px; padding:9px 12px; margin-bottom:10px;}
+  .eng-quiz-actions{display:flex; gap:8px;}
+  .eng-quiz-translate{font-size:12.5px; color:var(--dim); line-height:1.6; margin-top:8px;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1072,7 +1086,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[] };
 const KH_CATEGORIES = [
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
@@ -1551,6 +1565,22 @@ function buildAdviceTrack(dateKeys, track){
   if(failedTotal>0) msgs.push(`⚠️ Có <b>${failedTotal} việc bị tự động đánh dấu bỏ lỡ</b> (trễ hơn 60 phút mà chưa hoàn thành) trong giai đoạn này — đã bị trừ XP tương ứng. Thử đặt nhắc nhở sớm hơn hoặc dời giờ cho hợp lý hơn.`);
   if(streak>=3) msgs.push(`🔥 Đang giữ chuỗi <b>${streak} ngày liên tiếp</b> — đừng để đứt quãng nhé!`);
   else if(tracked.length>0) msgs.push(`Chuỗi ngày liên tiếp hiện tại là 0. Hoàn thành hôm nay để bắt đầu chuỗi mới!`);
+  if(track==='english' && Array.isArray(SETTINGS.grammarQuizLog) && SETTINGS.grammarQuizLog.length>0){
+    const recent = SETTINGS.grammarQuizLog.slice(-10);
+    const avgGrammar = Math.round(recent.reduce((s,r)=>s+r.pct,0)/recent.length);
+    const topicAvg = {};
+    recent.forEach(r=>{ if(!topicAvg[r.topicId]) topicAvg[r.topicId] = {sum:0,n:0}; topicAvg[r.topicId].sum += r.pct; topicAvg[r.topicId].n++; });
+    let weakestTopic=null, weakestPct=101;
+    Object.keys(topicAvg).forEach(tid=>{ const avg = topicAvg[tid].sum/topicAvg[tid].n; if(avg<weakestPct){ weakestPct=avg; weakestTopic=tid; } });
+    let gmsg = `📝 Luyện ngữ pháp: điểm trung bình ${recent.length} lượt gần nhất là <b>${avgGrammar}%</b>.`;
+    if(weakestTopic && weakestPct<70){
+      const wt = grammarTopicById(weakestTopic);
+      gmsg += ` Chủ đề yếu nhất: <b>${wt?wt.name:weakestTopic}</b> (${Math.round(weakestPct)}%) — nên luyện thêm chủ đề này.`;
+    } else if(avgGrammar>=85){
+      gmsg += ' Rất tốt — thử chế độ "Trộn tất cả" để ôn tổng hợp nhiều chủ đề cùng lúc.';
+    }
+    msgs.push(gmsg);
+  }
   return msgs;
 }
 function renderTrackHUD(track){
@@ -1594,7 +1624,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
@@ -1769,7 +1799,7 @@ async function pullFromDrive(){
     if(data.progressLog){ try{ LOG = JSON.parse(data.progressLog); }catch(e){} }
     if(data.settings){
       try{
-        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null}, JSON.parse(data.settings));
+        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, JSON.parse(data.settings));
       }catch(e){}
     }
     if(data.kiemhang){ try{ KIEMHANG = JSON.parse(data.kiemhang) || {}; }catch(e){} }
@@ -3070,148 +3100,147 @@ function renderEnglishItem(){
 // ---- Luyện ngữ pháp: ngân hàng trắc nghiệm 3 cấp độ ----
 // Định dạng mỗi câu: [câu hỏi, [4 đáp án], chỉ số đáp án đúng, giải thích ngắn]
 const LEVEL_LABELS = {beginner:'Cơ bản', intermediate:'Trung cấp', advanced:'Nâng cao'};
-const GRAMMAR_QUIZ = {
-beginner:[
- ["She ___ to school every day.", ["go","goes","going","went"], 1, "Hiện tại đơn, chủ ngữ số ít (she) → động từ thêm s/es: goes."],
- ["They ___ watching TV right now.", ["is","am","are","watch"], 2, "Hiện tại tiếp diễn với chủ ngữ số nhiều (they) → are watching."],
- ["I ___ a teacher.", ["am","is","are","be"], 0, "Chủ ngữ \"I\" luôn đi với \"am\"."],
- ["There ___ a book on the table.", ["is","are","am","be"], 0, "\"a book\" số ít → there is."],
- ["He doesn't ___ coffee.", ["likes","like","liking","liked"], 1, "Sau trợ động từ phủ định \"doesn't\" dùng động từ nguyên mẫu: like."],
- ["___ you speak English?", ["Do","Does","Are","Is"], 0, "Chủ ngữ \"you\" với động từ thường → trợ động từ Do."],
- ["My sister ___ in London.", ["live","lives","living","lived"], 1, "Chủ ngữ số ít (my sister) ở hiện tại đơn → lives."],
- ["We ___ to the beach last summer.", ["go","goes","went","going"], 2, "\"last summer\" → quá khứ đơn: went."],
- ["Look! The children ___ in the garden.", ["play","plays","are playing","played"], 2, "\"Look!\" là dấu hiệu của hiện tại tiếp diễn: are playing."],
- ["I saw ___ elephant at the zoo.", ["a","an","the","-"], 1, "\"elephant\" bắt đầu bằng nguyên âm → dùng \"an\"."],
- ["This is ___ most beautiful place I've ever seen.", ["a","an","the","-"], 2, "So sánh nhất luôn có \"the\" đứng trước."],
- ["There are ___ books on the shelf.", ["much","many","a little","is"], 1, "\"books\" là danh từ đếm được số nhiều → many."],
- ["She is ___ than her brother. (tall)", ["tall","taller","tallest","more tall"], 1, "So sánh hơn với tính từ ngắn: thêm \"-er\" → taller."],
- ["Can you ___ me a favor?", ["do","does","doing","did"], 0, "Sau \"can\" luôn dùng động từ nguyên mẫu: do."],
- ["My parents ___ going to visit us next week.", ["is","am","are","be"], 2, "Chủ ngữ số nhiều (my parents) → are."],
- ["I ___ finished my homework yet.", ["haven't","don't","isn't","didn't"], 0, "\"yet\" trong câu phủ định là dấu hiệu của hiện tại hoàn thành: haven't finished."],
- ["What time ___ the movie start?", ["do","does","is","are"], 1, "\"the movie\" số ít, động từ thường → does."],
- ["She usually ___ up at 6 a.m.", ["get","gets","getting","got"], 1, "Hiện tại đơn, chủ ngữ số ít + \"usually\" → gets."],
- ["___ these your keys?", ["Is","Are","Do","Does"], 1, "\"these\" số nhiều → Are."],
- ["He is interested ___ music.", ["at","in","on","of"], 1, "Cụm cố định: interested in."],
- ["I'm afraid ___ spiders.", ["of","in","at","with"], 0, "Cụm cố định: afraid of."],
- ["We arrived ___ the airport at 7 p.m.", ["in","on","at","to"], 2, "Cụm cố định chỉ nơi chốn: arrive at + địa điểm cụ thể."],
- ["My birthday is ___ May.", ["in","on","at","of"], 0, "Giới từ chỉ tháng: in May."],
- ["The meeting is ___ Monday morning.", ["in","on","at","of"], 1, "Giới từ chỉ thứ trong tuần: on Monday."],
- ["Please ___ the light, it's dark in here.", ["turn on","turn off","look after","give up"], 0, "\"turn on\" nghĩa là bật (đèn) — phù hợp với ngữ cảnh trời tối."]
-],
-intermediate:[
- ["I ___ my keys. Can you help me find them?", ["lost","have lost","was losing","had lost"], 1, "Hành động xảy ra không rõ thời gian, còn ảnh hưởng đến hiện tại → hiện tại hoàn thành: have lost."],
- ["She ___ TV when the phone rang.", ["watched","was watching","has watched","watches"], 1, "Hành động đang diễn ra thì bị xen vào → quá khứ tiếp diễn: was watching."],
- ["This book is ___ than that one.", ["interesting","more interesting","most interesting","interestinger"], 1, "Tính từ dài (interesting) so sánh hơn dùng \"more\"."],
- ["If I ___ more time, I would learn French.", ["have","had","will have","has"], 1, "Câu điều kiện loại 2: If + quá khứ đơn, S + would + V."],
- ["If it rains tomorrow, we ___ the picnic.", ["cancel","will cancel","would cancel","canceled"], 1, "Câu điều kiện loại 1: If + hiện tại đơn, S + will + V."],
- ["You ___ see a doctor if the pain continues.", ["must","should","can","may"], 1, "Lời khuyên → dùng \"should\"."],
- ["Students ___ wear a uniform at this school. It's the rule.", ["should","must","might","could"], 1, "Quy định bắt buộc → dùng \"must\"."],
- ["The cake ___ by my mother yesterday.", ["made","was made","is made","has made"], 1, "Câu bị động ở quá khứ đơn: was made."],
- ["I enjoy ___ novels in my free time.", ["read","to read","reading","reads"], 2, "\"enjoy\" luôn theo sau bởi V-ing: reading."],
- ["She decided ___ abroad to study.", ["go","to go","going","went"], 1, "\"decide\" theo sau bởi to-V: to go."],
- ["He said (that) he ___ tired.", ["is","was","were","be"], 1, "Câu tường thuật lùi thì: is → was."],
- ["The woman ___ is standing over there is my aunt.", ["which","who","whom","whose"], 1, "Mệnh đề quan hệ chỉ người, làm chủ ngữ → who."],
- ["I need to ___ up early tomorrow for the flight.", ["get","look","give","take"], 0, "Cụm động từ: get up (thức dậy)."],
- ["The train leaves ___ 9 o'clock ___ the morning.", ["at/in","in/at","on/in","at/on"], 0, "Giờ cụ thể dùng \"at\", buổi trong ngày dùng \"in\": at 9 o'clock in the morning."],
- ["You're coming to the party, ___?", ["aren't you","don't you","are you","won't you"], 0, "Câu chính khẳng định (are) → đuôi phủ định: aren't you."],
- ["I ___ smoke, but I quit two years ago.", ["use to","used to","am used to","was used"], 1, "Thói quen trong quá khứ nay không còn: used to."],
- ["It was ___ hot that we couldn't sleep.", ["so","such","too","very"], 0, "Cấu trúc \"so + adj + that\"."],
- ["The coffee was ___ hot to drink.", ["so","such","too","very"], 2, "Cấu trúc \"too + adj + to V\"."],
- ["There is only ___ milk left in the fridge — we need to buy more.", ["few","a few","little","a little"], 2, "\"milk\" không đếm được, nhấn mạnh gần như hết → little."],
- ["___ the rain, they continued playing.", ["Although","Because","Despite","However"], 2, "Theo sau là cụm danh từ (the rain), không phải mệnh đề → Despite."],
- ["This isn't my pen; ___ is on the desk.", ["mine","my","I","me"], 0, "Đại từ sở hữu đứng một mình (không kèm danh từ) → mine."],
- ["I heard the bell. There's ___ at the door.", ["somebody","anybody","nobody","everybody"], 0, "Câu khẳng định, phỏng đoán có ai đó → somebody."],
- ["She sang the song ___.", ["beautiful","beautifully","beauty","more beautiful"], 1, "Trạng từ bổ nghĩa cho động từ \"sang\" → beautifully."],
- ["This time tomorrow, I ___ on a plane to Paris.", ["will fly","will be flying","fly","am flying"], 1, "Hành động đang diễn ra tại một thời điểm xác định trong tương lai → tương lai tiếp diễn."],
- ["He's really good ___ playing the guitar.", ["at","in","on","for"], 0, "Cụm cố định: good at."]
-],
-advanced:[
- ["If she ___ harder, she would have passed the exam.", ["studied","had studied","has studied","studies"], 1, "Câu điều kiện loại 3: If + had + V3, S + would have + V3."],
- ["If I had left earlier, I ___ late now.", ["wouldn't be","wouldn't have been","hadn't been","won't be"], 0, "Điều kiện hỗn hợp: mệnh đề if ở quá khứ, kết quả ở hiện tại → wouldn't be."],
- ["By the time we arrived, the film ___ already started.", ["has","had","was","is"], 1, "Hành động hoàn thành trước một thời điểm khác trong quá khứ → quá khứ hoàn thành: had."],
- ["She was exhausted because she ___ all night.", ["had been studying","has studied","was studying","studied"], 0, "Nhấn mạnh khoảng thời gian kéo dài trước một thời điểm trong quá khứ → quá khứ hoàn thành tiếp diễn."],
- ["The bridge ___ next year.", ["will build","will be built","is building","builds"], 1, "Câu bị động ở tương lai đơn: will be built."],
- ["It is believed ___ the treasure is hidden somewhere on the island.", ["that","if","what","which"], 0, "Cấu trúc bị động với động từ tường thuật: It is believed that..."],
- ["He asked me ___.", ["where did I live","where I lived","where I live","where do I live"], 1, "Câu hỏi tường thuật không đảo ngữ, lùi thì: where I lived."],
- ["She asked if I ___ finished the report.", ["have","had","has","will"], 1, "Câu tường thuật lùi thì: have → had."],
- ["I wish I ___ harder when I was in school.", ["study","studied","had studied","have studied"], 2, "Ước về quá khứ (hối tiếc) → wish + had + V3."],
- ["No sooner ___ I arrived than the trouble started.", ["had","have","did","was"], 0, "Đảo ngữ \"No sooner had S V3 than...\"."],
- ["Not only ___ he forget his keys, but he also lost his wallet.", ["did","was","had","does"], 0, "Đảo ngữ \"Not only did S V...\" với động từ thường ở quá khứ."],
- ["It was John ___ broke the vase, not his sister.", ["which","who","whom","whose"], 1, "Câu chẻ nhấn mạnh người: It was John who..."],
- ["___ I need right now is a long vacation.", ["What","That","Which","It"], 0, "Câu chẻ dạng \"What...is\"."],
- ["___ tired, she decided to go to bed early.", ["Feel","Felt","Feeling","Having felt"], 2, "Mệnh đề rút gọn chủ động, đồng thời với mệnh đề chính → V-ing: Feeling."],
- ["___ finished the report, he submitted it to his boss.", ["Having","Have","Had","Has"], 0, "Mệnh đề rút gọn chỉ hành động xảy ra trước → Having + V3."],
- ["I ___ my car repaired last week.", ["had","have","did have","was had"], 0, "Cấu trúc nhờ vả (causative): S + had + O + V3."],
- ["We need to ___ our spending this month.", ["cut down on","look forward to","put up with","come up with"], 0, "Cụm động từ: cut down on (cắt giảm)."],
- ["I can't ___ the noise from the construction site anymore.", ["put up with","look forward to","come up with","get on with"], 0, "Cụm động từ: put up with (chịu đựng)."],
- ["The decision to raise taxes was met with strong ___.", ["oppose","opposition","opposing","opposed"], 1, "Cần danh từ sau tính từ \"strong\" → opposition (danh từ hóa của oppose)."],
- ["Despite ___ hard, he failed the exam.", ["study","studying","studied","to study"], 1, "Sau giới từ \"despite\" dùng V-ing: studying."],
- ["You can watch TV ___ you finish your homework first.", ["unless","provided that","despite","in case"], 1, "\"provided that\" = miễn là, diễn tả điều kiện tích cực."],
- ["You'd better take an umbrella ___ it rains.", ["unless","in case","provided that","even though"], 1, "\"in case\" = phòng khi, diễn tả sự đề phòng."],
- ["He ___ the message; that's why he hasn't replied.", ["can't have received","must not receive","mustn't received","don't have received"], 0, "Suy luận phủ định về quá khứ (chắc chắn là không) → can't have + V3."],
- ["She should ___ me about the change earlier.", ["tell","have told","telling","told"], 1, "Hối tiếc về việc đáng lẽ nên làm trong quá khứ → should have + V3."],
- ["The results, ___ were announced yesterday, surprised everyone.", ["that","which","who","whose"], 1, "Mệnh đề quan hệ không xác định (có dấu phẩy) không được dùng \"that\" → which."]
-]
-};
+// ---- Luyện ngữ pháp: luyện theo từng chủ đề (bám theo mục lục trong Ngữ pháp) hoặc trộn ngẫu nhiên ----
+// Ngân hàng câu hỏi tải từ file ngoài grammar-quiz-data.json để đỡ nặng index.html, cùng cơ chế với Luyện nghe.
+// Định dạng mỗi câu: [câu hỏi có chỗ trống "___", [4 đáp án], chỉ số đáp án đúng, giải thích ngắn, câu dịch tiếng Việt, mẹo học AI]
+const GRAMMAR_TOPICS = [
+  {id:'t_present', group:'tenses', name:'Thì hiện tại', desc:'Hiện tại đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
+  {id:'t_past', group:'tenses', name:'Thì quá khứ', desc:'Quá khứ đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
+  {id:'t_future', group:'tenses', name:'Thì tương lai', desc:'Tương lai đơn · tiếp diễn · hoàn thành · hoàn thành tiếp diễn'},
+  {id:'s_conditional', group:'struct', name:'Câu điều kiện & giả định', desc:'If loại 0-3, hỗn hợp, wish, it\'s time'},
+  {id:'s_passive', group:'struct', name:'Câu bị động', desc:'Passive voice + causative (have/get sth done)'},
+  {id:'s_reported', group:'struct', name:'Câu tường thuật', desc:'Reported speech: câu kể, câu hỏi, mệnh lệnh'},
+  {id:'s_relative', group:'struct', name:'Mệnh đề quan hệ & rút gọn', desc:'Relative clauses + participle clauses'},
+  {id:'s_advanced', group:'struct', name:'So sánh, đảo ngữ, câu chẻ, câu hỏi đuôi', desc:'Comparison, inversion, cleft, question tags'},
+  {id:'p_timeplace', group:'prep', name:'Giới từ thời gian, nơi chốn, chuyển động', desc:'in/on/at + giới từ chuyển động'},
+  {id:'p_fixed', group:'prep', name:'Giới từ cố định', desc:'Đi với tính từ / động từ / danh từ'},
+  {id:'o_articles', group:'other', name:'Mạo từ & lượng từ', desc:'a/an/the, many/much/some/any...'},
+  {id:'o_modal', group:'other', name:'Động từ khiếm khuyết', desc:'Modal verbs + modal + have + V3'},
+  {id:'o_gerund', group:'other', name:'Danh động từ, động từ nguyên mẫu & cụm động từ', desc:'Gerund vs infinitive + phrasal verbs'},
+  {id:'o_adj', group:'other', name:'Tính từ, trạng từ & thứ tự tính từ', desc:'Adjective order, adverbs'}
+];
+const GRAMMAR_TOPIC_GROUPS = [
+  {key:'tenses', label:'12 Thì'}, {key:'struct', label:'Cấu trúc câu'},
+  {key:'prep', label:'Giới từ'}, {key:'other', label:'Ngữ pháp khác'}
+];
+function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
+let GRAMMAR_QUIZ_BANK = null;
+let grammarQuizBankLoading = false;
+async function fetchGrammarQuizBank(){
+  if(GRAMMAR_QUIZ_BANK || grammarQuizBankLoading) return;
+  grammarQuizBankLoading = true;
+  try{
+    const res = await fetch('./grammar-quiz-data.json?v=1');
+    GRAMMAR_QUIZ_BANK = await res.json();
+  }catch(e){
+    console.error('Không tải được ngân hàng câu hỏi ngữ pháp', e);
+    GRAMMAR_QUIZ_BANK = {};
+  }
+  grammarQuizBankLoading = false;
+  if(STATE.tab==='english-item') renderContent();
+}
+function grammarBankFor(topicId){ return (GRAMMAR_QUIZ_BANK && GRAMMAR_QUIZ_BANK[topicId]) || []; }
 function shuffleArr(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function startEnglishQuiz(level){
-  const bank = GRAMMAR_QUIZ[level]||[];
-  const order = shuffleArr(bank.map((_,i)=>i));
-  STATE.quiz = {level, order, idx:0, correct:0, answered:null, finished:false};
+function startEnglishQuiz(topicId){
+  if(!GRAMMAR_QUIZ_BANK) return;
+  let order = [];
+  if(topicId==='mixed'){
+    GRAMMAR_TOPICS.forEach(t=>{ grammarBankFor(t.id).forEach((_,i)=>order.push([t.id,i])); });
+    order = shuffleArr(order).slice(0,30);
+  } else {
+    order = shuffleArr(grammarBankFor(topicId).map((_,i)=>[topicId,i]));
+  }
+  if(order.length===0){ showToast('📭','Chưa có câu hỏi','Chủ đề này sẽ có bài luyện tập ở bản cập nhật sau.'); return; }
+  STATE.quiz = {topicId, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   renderContent();
 }
 function answerEnglishQuiz(optIdx){
   const q = STATE.quiz; if(!q || q.answered!==null) return;
-  const bank = GRAMMAR_QUIZ[q.level];
-  const qItem = bank[q.order[q.idx]];
+  const [tid, idx] = q.order[q.idx];
+  const qItem = grammarBankFor(tid)[idx];
   q.answered = optIdx;
   if(optIdx === qItem[2]) q.correct++;
   renderContent();
 }
+function toggleGrammarTranslate(){
+  const q = STATE.quiz; if(!q || q.answered===null) return;
+  q.showTranslate = !q.showTranslate;
+  renderContent();
+}
+function speakGrammarCurrentSentence(){
+  const q = STATE.quiz; if(!q || q.answered===null) return;
+  const [tid, idx] = q.order[q.idx];
+  const qi = grammarBankFor(tid)[idx];
+  if(!qi) return;
+  const full = qi[0].replace('___', qi[1][qi[2]]);
+  speakGrammarSentence(full);
+}
 function nextEnglishQuiz(){
   const q = STATE.quiz; if(!q) return;
-  if(q.idx < q.order.length-1){ q.idx++; q.answered=null; renderContent(); return; }
+  if(q.idx < q.order.length-1){ q.idx++; q.answered=null; q.showTranslate=false; renderContent(); return; }
   q.finished = true;
   const pct = Math.round((q.correct/q.order.length)*100);
   if(!SETTINGS.grammarQuiz) SETTINGS.grammarQuiz = {};
   if(!SETTINGS.grammarQuiz.best) SETTINGS.grammarQuiz.best = {};
-  const prevBest = SETTINGS.grammarQuiz.best[q.level] || 0;
-  if(pct > prevBest) SETTINGS.grammarQuiz.best[q.level] = pct;
+  const prevBest = SETTINGS.grammarQuiz.best[q.topicId] || 0;
+  if(pct > prevBest) SETTINGS.grammarQuiz.best[q.topicId] = pct;
+  if(!Array.isArray(SETTINGS.grammarQuizLog)) SETTINGS.grammarQuizLog = [];
+  SETTINGS.grammarQuizLog.push({date:todayKey(), topicId:q.topicId, correct:q.correct, total:q.order.length, pct});
+  if(SETTINGS.grammarQuizLog.length>200) SETTINGS.grammarQuizLog = SETTINGS.grammarQuizLog.slice(-200);
   saveSettings(); pushToDrive();
   renderContent();
 }
 function renderEnglishQuiz(item){
   ensureEnglishItems();
+  if(!GRAMMAR_QUIZ_BANK){ fetchGrammarQuizBank(); }
   const q = STATE.quiz;
   let body;
   if(!q){
     const best = (SETTINGS.grammarQuiz && SETTINGS.grammarQuiz.best) || {};
-    const levelCards = ['beginner','intermediate','advanced'].map(lv=>{
-      const b = best[lv];
-      return `<div class="eng-level-card" data-action="quiz-pick-level" data-level="${lv}">
-        <div class="lv-name">${LEVEL_LABELS[lv]}</div>
-        <div class="lv-score">${b!==undefined ? 'Tốt nhất: '+b+'%' : (GRAMMAR_QUIZ[lv]||[]).length+' câu'}</div>
+    if(!GRAMMAR_QUIZ_BANK){
+      body = `<div class="card" style="text-align:center; padding:24px 16px;">
+        <div style="font-size:32px; margin-bottom:8px;">⏳</div>
+        <div style="font-size:13px; color:var(--dim);">Đang tải ngân hàng câu hỏi ngữ pháp…</div>
       </div>`;
-    }).join('');
-    body = `<div class="eng-level-grid">${levelCards}</div>
-    <div class="card" style="text-align:center; padding:24px 16px;">
-      <div style="font-size:32px; margin-bottom:8px;">📝</div>
-      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Chọn một cấp độ để bắt đầu làm bài trắc nghiệm ngữ pháp. Mỗi cấp độ có ${(GRAMMAR_QUIZ.beginner||[]).length} câu hỏi, thứ tự xáo trộn ngẫu nhiên mỗi lần làm. Điểm cao nhất được lưu và đồng bộ qua Google Drive.</div>
-    </div>`;
+    } else {
+      const totalQ = GRAMMAR_TOPICS.reduce((s,t)=>s+grammarBankFor(t.id).length,0);
+      const mixedBest = best.mixed;
+      const groupsHtml = GRAMMAR_TOPIC_GROUPS.map(g=>{
+        const rows = GRAMMAR_TOPICS.filter(t=>t.group===g.key).map(t=>{
+          const n = grammarBankFor(t.id).length;
+          const b = best[t.id];
+          const scoreTxt = n===0 ? 'Sắp có' : (b!==undefined ? `Tốt nhất: ${b}%` : `${n} câu`);
+          return `<div class="eng-topic-row ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${t.id}"`:''}>
+            <div class="eng-topic-name">${escapeHtml(t.name)}</div>
+            <div class="eng-topic-desc">${escapeHtml(t.desc)}</div>
+            <div class="eng-topic-score">${scoreTxt}</div>
+          </div>`;
+        }).join('');
+        return `<div class="eng-topic-grouphead">${g.label}</div>${rows}`;
+      }).join('');
+      body = `<div class="card" style="text-align:center; padding:18px 16px; margin-bottom:14px;">
+        <div style="font-size:28px; margin-bottom:6px;">🔀</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Trộn ngẫu nhiên 30 câu từ mọi chủ đề đang có (${totalQ} câu).</div>
+        <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">Trộn tất cả ${mixedBest!==undefined?`· Tốt nhất: ${mixedBest}%`:''}</button>
+      </div>
+      ${groupsHtml}`;
+    }
   } else if(q.finished){
     const pct = Math.round((q.correct/q.order.length)*100);
+    const topicName = q.topicId==='mixed' ? 'Trộn tất cả' : (grammarTopicById(q.topicId)||{}).name || '';
     body = `<div class="card eng-quiz-result">
-      <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">Cấp độ ${LEVEL_LABELS[q.level]}</div>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${escapeHtml(topicName)}</div>
       <div class="score">${q.correct}/${q.order.length}</div>
       <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác</div>
       <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
-        <button class="form-btn" data-action="quiz-pick-level" data-level="${q.level}">↺ Làm lại</button>
-        <button class="form-btn cancel" data-action="quiz-change-level">Đổi cấp độ</button>
+        <button class="form-btn" data-action="quiz-pick-topic" data-topic="${q.topicId}">↺ Làm lại</button>
+        <button class="form-btn cancel" data-action="quiz-change-level">Đổi chủ đề</button>
       </div>
     </div>`;
   } else {
-    const bank = GRAMMAR_QUIZ[q.level];
-    const qi = bank[q.order[q.idx]];
+    const [tid, idx] = q.order[q.idx];
+    const qi = grammarBankFor(tid)[idx];
+    const topicName = (grammarTopicById(tid)||{}).name || '';
     const opts = qi[1].map((opt,i)=>{
       let cls = 'eng-quiz-opt';
       if(q.answered!==null){
@@ -3221,15 +3250,35 @@ function renderEnglishQuiz(item){
       }
       return `<div class="${cls}" ${q.answered===null?`data-action="quiz-answer" data-opt="${i}"`:''}>${escapeHtml(opt)}</div>`;
     }).join('');
-    body = `<div class="eng-quiz-progress">Câu ${q.idx+1}/${q.order.length} · ${LEVEL_LABELS[q.level]} · Đúng ${q.correct}</div>
+    const translateHtml = qi[4] ? `<div class="eng-quiz-translate">${q.showTranslate ? '🇻🇳 '+escapeHtml(qi[4]) : ''}</div>` : '';
+    body = `<div class="eng-quiz-progress">Câu ${q.idx+1}/${q.order.length} · ${escapeHtml(topicName)} · Đúng ${q.correct}</div>
     <div class="card">
       <div class="eng-quiz-q">${escapeHtml(qi[0])}</div>
       ${opts}
-      ${q.answered!==null ? `<div class="eng-quiz-explain">💡 ${escapeHtml(qi[3]||'')}</div><button class="form-btn" data-action="quiz-next" style="width:100%;">${q.idx<q.order.length-1?'Câu tiếp →':'Xem kết quả'}</button>` : ''}
+      ${q.answered!==null ? `
+        <div class="eng-quiz-explain">💡 ${escapeHtml(qi[3]||'')}</div>
+        ${qi[5] ? `<div class="eng-quiz-tip">🤖 <b>Mẹo AI:</b> ${escapeHtml(qi[5])}</div>` : ''}
+        <div class="eng-quiz-actions">
+          <button class="form-btn cancel" data-action="quiz-speak" style="flex:1;">🔊 Nghe câu đúng</button>
+          ${qi[4] ? `<button class="form-btn cancel" data-action="quiz-toggle-translate" style="flex:1;">${q.showTranslate?'Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
+        </div>
+        ${translateHtml}
+        <button class="form-btn" data-action="quiz-next" style="width:100%; margin-top:8px;">${q.idx<q.order.length-1?'Câu tiếp →':'Xem kết quả'}</button>` : ''}
     </div>`;
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
 }
+// Nhận yêu cầu "Luyện tập chủ đề này" gửi từ iframe english-grammar.html, mở thẳng vào bài luyện tương ứng.
+async function openGrammarPracticeFromMessage(topicId){
+  openEnglishItem('eng_grammar_quiz');
+  if(!GRAMMAR_QUIZ_BANK){ await fetchGrammarQuizBank(); }
+  startEnglishQuiz(topicId);
+}
+window.addEventListener('message', function(e){
+  if(e.data && e.data.type==='openGrammarPractice' && e.data.topicId){
+    openGrammarPracticeFromMessage(e.data.topicId);
+  }
+});
 function renderEnglishGrammar(item){
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
@@ -3659,6 +3708,21 @@ function stopListenAudio(){
   listenPlayToken++;
   if(listenAudioEl){ try{ listenAudioEl.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
+}
+// ---- Phát âm 1 câu đơn cho Luyện ngữ pháp (dùng chung hạ tầng Cloud TTS với Luyện nghe) ----
+let grammarAudioEl = null;
+function getGrammarAudioEl(){ if(!grammarAudioEl) grammarAudioEl = new Audio(); return grammarAudioEl; }
+async function speakGrammarSentence(text){
+  try{
+    if(SETTINGS.cloudTtsApiKey){
+      const url = await fetchCloudTtsAudioUrl(text, CLOUD_TTS_VOICE_A);
+      if(url){ const audio = getGrammarAudioEl(); try{ audio.pause(); }catch(e){} audio.src = url; await audio.play(); return; }
+    }
+    await speakLine(text, 0.9, 1);
+  }catch(e){
+    console.error('Lỗi phát âm câu ngữ pháp', e);
+    showToast('⚠️','Không phát được âm thanh','Kiểm tra API key Cloud TTS hoặc kết nối mạng.');
+  }
 }
 function playListenDialogue(lines){
   stopListenAudio();
@@ -4496,14 +4560,18 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(saveEngNotesEl){ saveEnglishNotes(saveEngNotesEl.getAttribute('data-itemid')); return; }
   const openEngItemEl = e.target.closest('[data-action="open-english-item"]');
   if(openEngItemEl){ openEnglishItem(openEngItemEl.getAttribute('data-itemid')); return; }
-  const quizPickLevelEl = e.target.closest('[data-action="quiz-pick-level"]');
-  if(quizPickLevelEl){ startEnglishQuiz(quizPickLevelEl.getAttribute('data-level')); return; }
+  const quizPickTopicEl = e.target.closest('[data-action="quiz-pick-topic"]');
+  if(quizPickTopicEl){ startEnglishQuiz(quizPickTopicEl.getAttribute('data-topic')); return; }
   const quizAnswerEl = e.target.closest('[data-action="quiz-answer"]');
   if(quizAnswerEl){ answerEnglishQuiz(parseInt(quizAnswerEl.getAttribute('data-opt'),10)); return; }
   const quizNextEl = e.target.closest('[data-action="quiz-next"]');
   if(quizNextEl){ nextEnglishQuiz(); return; }
   const quizChangeLevelEl = e.target.closest('[data-action="quiz-change-level"]');
   if(quizChangeLevelEl){ STATE.quiz = null; renderContent(); return; }
+  const quizSpeakEl = e.target.closest('[data-action="quiz-speak"]');
+  if(quizSpeakEl){ speakGrammarCurrentSentence(); return; }
+  const quizToggleTranslateEl = e.target.closest('[data-action="quiz-toggle-translate"]');
+  if(quizToggleTranslateEl){ toggleGrammarTranslate(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
   if(avPickLevelEl){
     if(!STATE.avLevel) STATE.avLevel = {};
@@ -4761,3 +4829,4 @@ if('serviceWorker' in navigator){
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

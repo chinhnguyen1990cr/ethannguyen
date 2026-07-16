@@ -64,12 +64,16 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .prep-table td{padding:5px 6px; border-bottom:1px solid #EEF2F6; vertical-align:top;}
 .prep-table td:first-child{font-weight:800; color:var(--accentDark); width:60px;}
 .emptyresult{text-align:center; color:var(--muted); font-size:13px; padding:30px 10px;}
+.practice-btn{margin-top:12px; width:100%; padding:11px; border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(90deg,#4FA8FF,#7C6CF0); color:#fff; font-weight:800; font-size:12.5px;
+  display:flex; align-items:center; justify-content:center; gap:6px;}
+.practice-btn:active{opacity:.85;}
 </style>
 </head>
 <body>
 <div class="appbar">
   <h1><span class="logo">📖</span> Ngữ Pháp Tiếng Anh</h1>
-  <div class="sub">Tổng hợp thì, cấu trúc câu &amp; giới từ — tra cứu nhanh</div>
+  <div class="sub">Tổng hợp thì, cấu trúc câu &amp; giới từ — tra cứu nhanh, bấm "Luyện tập" để làm bài riêng cho từng chủ đề</div>
 </div>
 <div class="searchwrap">
   <div class="searchbox"><span class="ic">🔎</span><input id="q" placeholder="Tìm thì, cấu trúc, giới từ..." oninput="doSearch()"></div>
@@ -107,8 +111,19 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 </div>
 
 <script>
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function stripTags(s){ return (s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
 function ul(items){ return '<ul>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ul>'; }
+function practiceTopic(topicId, name){
+  try{
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({type:'openGrammarPractice', topicId, name}, '*');
+    }
+  }catch(e){}
+}
+function practiceBtn(topicId, label){
+  return `<button class="practice-btn" onclick="practiceTopic('${topicId}','${esc(label||'').replace(/'/g,"\\'")}')">🎯 Luyện tập chủ đề này</button>`;
+}
 
 // ================= 12 THÌ =================
 const TENSES = {
@@ -180,9 +195,10 @@ future:[
   ex:['By the end of this year, I <b>will have been working</b> here for five years.']}
 ]
 };
+const TENSE_GROUP_TOPIC = {present:'t_present', past:'t_past', future:'t_future'};
 
-function tenseCard(t, num){
-  let h = `<details class="card" data-search="${esc((t.n+' '+t.en+' '+t.use.join(' ')+' '+t.ex.join(' ')).toLowerCase())}">`;
+function tenseCard(t, num, groupKey){
+  let h = `<details class="card" data-search="${esc((t.n+' '+t.en+' '+t.use.join(' ')+' '+t.ex.map(stripTags).join(' ')).toLowerCase())}">`;
   h += `<summary><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--muted);font-size:11px;margin-left:6px;">(${t.en})</span></span><span class="arrow">▸</span></summary>`;
   h += `<div class="card-body">`;
   h += `<div class="formrow"><span class="tag pos">Khẳng định</span><code>${t.pos}</code></div>`;
@@ -192,17 +208,18 @@ function tenseCard(t, num){
   h += `<div class="subh">Dấu hiệu nhận biết</div><div style="font-size:12.3px;color:var(--muted);">${t.signal.join(' · ')}</div>`;
   h += `<div class="subh">Ví dụ</div><div class="exbox">${t.ex.map(e=>'<div>· '+e+'</div>').join('')}</div>`;
   if(t.note) h += `<div class="notebox">💡 ${t.note}</div>`;
+  h += practiceBtn(TENSE_GROUP_TOPIC[groupKey], 'Thì '+(groupKey==='present'?'hiện tại':groupKey==='past'?'quá khứ':'tương lai'));
   h += `</div></details>`;
   return h;
 }
 let n=1;
-document.getElementById('grp-present').innerHTML = TENSES.present.map(t=>tenseCard(t,n++)).join('');
-document.getElementById('grp-past').innerHTML = TENSES.past.map(t=>tenseCard(t,n++)).join('');
-document.getElementById('grp-future').innerHTML = TENSES.future.map(t=>tenseCard(t,n++)).join('');
+document.getElementById('grp-present').innerHTML = TENSES.present.map(t=>tenseCard(t,n++,'present')).join('');
+document.getElementById('grp-past').innerHTML = TENSES.past.map(t=>tenseCard(t,n++,'past')).join('');
+document.getElementById('grp-future').innerHTML = TENSES.future.map(t=>tenseCard(t,n++,'future')).join('');
 
 // ================= CẤU TRÚC CÂU =================
 const STRUCT = [
- {t:'Câu điều kiện (Conditional Sentences)', body:`
+ {t:'Câu điều kiện (Conditional Sentences)', topic:'s_conditional', body:`
   <div class="subh">Loại 0 — Sự thật hiển nhiên</div>
   <div class="formrow"><code>If + S + V(hiện tại đơn), S + V(hiện tại đơn)</code></div>
   <div class="exbox"><div>· If you <b>heat</b> ice, it <b>melts</b>.</div></div>
@@ -219,7 +236,7 @@ const STRUCT = [
   <div class="formrow"><code>If + S + had + V3/ed, S + would + V (nay)</code></div>
   <div class="exbox"><div>· If I <b>had taken</b> that job, I <b>would be</b> rich now.</div></div>
   <div class="notebox">💡 Có thể thay "if" bằng <b>unless</b> (= if...not), <b>provided/providing that</b>, <b>as long as</b> (miễn là), <b>in case</b> (phòng khi).</div>`},
- {t:'Câu bị động (Passive Voice)', body:`
+ {t:'Câu bị động (Passive Voice)', topic:'s_passive', body:`
   <div class="formrow"><code>S + be + V3/ed (+ by O)</code></div>
   <table class="prep-table">
    <tr><td>Hiện tại đơn</td><td>am/is/are + V3</td></tr>
@@ -235,7 +252,7 @@ const STRUCT = [
   <div class="exbox"><div>· They gave <b>her</b> a prize → <b>She was given a prize.</b> / <b>A prize was given to her.</b></div></div>
   <div class="subh">Bị động với động từ tường thuật</div>
   <div class="exbox"><div>· People say (that) he is rich → <b>It is said that he is rich.</b> / <b>He is said to be rich.</b></div></div>`},
- {t:'Câu tường thuật (Reported Speech)', body:`
+ {t:'Câu tường thuật (Reported Speech)', topic:'s_reported', body:`
   <div class="subh">Câu kể — lùi thì 1 bậc</div>
   <table class="prep-table">
    <tr><td>HT đơn → QK đơn</td><td>"I work here." → He said (that) he worked there.</td></tr>
@@ -253,7 +270,7 @@ const STRUCT = [
   <div class="formrow"><code>S + told/asked + O + (not) + to V</code></div>
   <div class="exbox"><div>· "Close the door!" → He told me <b>to close</b> the door.</div><div>· "Don\'t be late." → She told him <b>not to be</b> late.</div></div>
   <div class="notebox">💡 Trạng từ chỉ thời gian/nơi chốn cũng đổi: now→then, today→that day, tomorrow→the next day, here→there, this→that.</div>`},
- {t:'Mệnh đề quan hệ (Relative Clauses)', body:`
+ {t:'Mệnh đề quan hệ (Relative Clauses)', topic:'s_relative', body:`
   <table class="prep-table">
    <tr><td>who</td><td>thay cho người, làm chủ ngữ</td></tr>
    <tr><td>whom</td><td>thay cho người, làm tân ngữ</td></tr>
@@ -266,7 +283,7 @@ const STRUCT = [
   <div class="subh">Xác định vs Không xác định</div>
   <div class="exbox"><div>· The man <b>who lives</b> next door is a doctor. (xác định — không có dấu phẩy)</div>
    <div>· My father, <b>who is 60</b>, still runs every day. (không xác định — có dấu phẩy, cung cấp thêm thông tin, không dùng "that")</div></div>`},
- {t:'Câu so sánh (Comparison)', body:`
+ {t:'Câu so sánh (Comparison)', topic:'s_advanced', body:`
   <table class="prep-table">
    <tr><td>Bằng</td><td>as + adj/adv + as (VD: as tall as)</td></tr>
    <tr><td>Hơn (ngắn)</td><td>adj/adv + er + than (VD: taller than)</td></tr>
@@ -276,7 +293,7 @@ const STRUCT = [
    <tr><td>So sánh kép</td><td>The + so sánh hơn..., the + so sánh hơn... (VD: The more you practice, the better you get.)</td></tr>
   </table>
   <div class="notebox">💡 Tính từ bất quy tắc: good/well → better → best; bad → worse → worst; far → farther/further → farthest/furthest.</div>`},
- {t:'Đảo ngữ (Inversion)', body:`
+ {t:'Đảo ngữ (Inversion)', topic:'s_advanced', body:`
   <div class="subh">Đảo ngữ với trạng từ phủ định đứng đầu câu</div>
   <div class="exbox">
    <div>· <b>Never</b> have I seen such a beautiful sunset.</div>
@@ -286,7 +303,7 @@ const STRUCT = [
    <div>· <b>Little did</b> she know that she had won the prize.</div>
   </div>
   <div class="notebox">💡 Công thức chung: Từ/cụm từ phủ định + trợ động từ + S + V.</div>`},
- {t:'Câu giả định / Ước muốn (Wish, Subjunctive)', body:`
+ {t:'Câu giả định / Ước muốn (Wish, Subjunctive)', topic:'s_conditional', body:`
   <table class="prep-table">
    <tr><td>Wish + hiện tại</td><td>S + wish(es) + S + V2/ed (to be → were) — ước ở hiện tại</td></tr>
    <tr><td>Wish + quá khứ</td><td>S + wish(es) + S + had + V3/ed — ước, tiếc nuối về quá khứ</td></tr>
@@ -295,22 +312,22 @@ const STRUCT = [
    <tr><td>If only</td><td>tương tự wish, nhấn mạnh cảm xúc hơn</td></tr>
   </table>
   <div class="exbox"><div>· I <b>wish</b> I <b>were</b> taller.</div><div>· I <b>wish</b> I <b>had studied</b> harder for the exam.</div><div>· It's time you <b>went</b> to bed.</div></div>`},
- {t:'Câu chẻ (Cleft Sentences)', body:`
+ {t:'Câu chẻ (Cleft Sentences)', topic:'s_advanced', body:`
   <div class="formrow"><code>It is/was + thành phần nhấn mạnh + that/who + phần còn lại</code></div>
   <div class="exbox"><div>· <b>It was Tom who</b> broke the window. (nhấn mạnh "Tom")</div></div>
   <div class="formrow"><code>What + S + V + is/was + phần nhấn mạnh</code></div>
   <div class="exbox"><div>· <b>What I need</b> is a good night's sleep.</div></div>`},
- {t:'Mệnh đề rút gọn (Participle Clauses)', body:`
+ {t:'Mệnh đề rút gọn (Participle Clauses)', topic:'s_relative', body:`
   <table class="prep-table">
    <tr><td>Chủ động</td><td>V-ing (rút gọn mệnh đề chủ ngữ chủ động: "Because he felt tired, he..." → "Feeling tired, he...")</td></tr>
    <tr><td>Bị động</td><td>V3/ed (VD: "The book which was written by..." → "The book written by...")</td></tr>
    <tr><td>Hoàn thành</td><td>Having + V3/ed — hành động xảy ra trước (VD: "Having finished his work, he went home.")</td></tr>
   </table>`},
- {t:'Câu hỏi đuôi (Question Tags)', body:`
+ {t:'Câu hỏi đuôi (Question Tags)', topic:'s_advanced', body:`
   <div class="subh">Quy tắc chung</div>
   <div class="card-body" style="padding:0;">${ul(['Câu chính khẳng định → đuôi phủ định, và ngược lại','Mượn trợ động từ/động từ "to be"/khiếm khuyết của câu chính','Nếu câu chính không có trợ động từ (thì đơn) → mượn do/does/did'])}</div>
   <div class="exbox"><div>· She <b>is</b> a teacher, <b>isn't she?</b></div><div>· They <b>don't like</b> coffee, <b>do they?</b></div><div>· You <b>have</b> finished, <b>haven't you?</b></div></div>`},
- {t:'Sự hòa hợp thì (Sequence of Tenses) & Liên từ nối câu', body:`
+ {t:'Sự hòa hợp thì (Sequence of Tenses) & Liên từ nối câu', topic:'s_advanced', body:`
   <div class="subh">Liên từ thông dụng</div>
   <table class="prep-table">
    <tr><td>and, but, or, so</td><td>nối 2 vế cùng cấu trúc (liên từ kết hợp)</td></tr>
@@ -322,25 +339,26 @@ const STRUCT = [
   </table>
   <div class="exbox"><div>· <b>Although</b> it was raining, they went out. = <b>Despite</b> the rain, they went out.</div></div>`}
 ];
+const STRUCT_TOPIC_LABEL = {s_conditional:'Câu điều kiện & giả định', s_passive:'Câu bị động', s_reported:'Câu tường thuật', s_relative:'Mệnh đề quan hệ & rút gọn', s_advanced:'So sánh, đảo ngữ, câu chẻ, câu hỏi đuôi'};
 document.getElementById('grp-struct').innerHTML = STRUCT.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+s.body).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, STRUCT_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 // ================= GIỚI TỪ =================
 const PREP = [
- {t:'Giới từ chỉ thời gian: in / on / at', body:`
+ {t:'Giới từ chỉ thời gian: in / on / at', topic:'p_timeplace', body:`
   <table class="prep-table">
    <tr><td>at</td><td>giờ cụ thể (at 7 a.m.), thời điểm (at night, at noon, at the moment, at Christmas)</td></tr>
    <tr><td>on</td><td>ngày, thứ, ngày lễ cụ thể (on Monday, on 20th April, on my birthday)</td></tr>
    <tr><td>in</td><td>tháng/năm/mùa/thế kỷ/khoảng thời gian dài (in June, in 2024, in summer, in the morning)</td></tr>
   </table>`},
- {t:'Giới từ chỉ nơi chốn: in / on / at', body:`
+ {t:'Giới từ chỉ nơi chốn: in / on / at', topic:'p_timeplace', body:`
   <table class="prep-table">
    <tr><td>at</td><td>một điểm cụ thể (at the door, at the bus stop, at 20 Le Loi Street)</td></tr>
    <tr><td>on</td><td>bề mặt (on the table, on the wall, on the second floor)</td></tr>
    <tr><td>in</td><td>không gian kín/khu vực rộng (in the room, in Vietnam, in the box)</td></tr>
   </table>`},
- {t:'Giới từ chỉ sự chuyển động', body:`
+ {t:'Giới từ chỉ sự chuyển động', topic:'p_timeplace', body:`
   <table class="prep-table">
    <tr><td>to</td><td>hướng đến (go to school)</td></tr>
    <tr><td>into / onto</td><td>đi vào trong / lên trên bề mặt</td></tr>
@@ -351,7 +369,7 @@ const PREP = [
    <tr><td>past</td><td>đi ngang qua (walk past the shop)</td></tr>
    <tr><td>towards</td><td>về phía (walk towards the door)</td></tr>
   </table>`},
- {t:'Giới từ đi với tính từ cố định (Adjective + Preposition)', body:`
+ {t:'Giới từ đi với tính từ cố định (Adjective + Preposition)', topic:'p_fixed', body:`
   <table class="prep-table">
    <tr><td>interested in</td><td>quan tâm đến</td></tr>
    <tr><td>afraid of</td><td>sợ</td></tr>
@@ -366,7 +384,7 @@ const PREP = [
    <tr><td>worried about</td><td>lo lắng về</td></tr>
    <tr><td>capable of</td><td>có khả năng</td></tr>
   </table>`},
- {t:'Giới từ đi với động từ cố định (Verb + Preposition)', body:`
+ {t:'Giới từ đi với động từ cố định (Verb + Preposition)', topic:'p_fixed', body:`
   <table class="prep-table">
    <tr><td>depend on</td><td>phụ thuộc vào</td></tr>
    <tr><td>listen to</td><td>lắng nghe</td></tr>
@@ -381,7 +399,7 @@ const PREP = [
    <tr><td>congratulate on</td><td>chúc mừng về</td></tr>
    <tr><td>consist of</td><td>bao gồm</td></tr>
   </table>`},
- {t:'Giới từ đi với danh từ cố định (Noun + Preposition)', body:`
+ {t:'Giới từ đi với danh từ cố định (Noun + Preposition)', topic:'p_fixed', body:`
   <table class="prep-table">
    <tr><td>reason for</td><td>lý do cho</td></tr>
    <tr><td>solution to</td><td>giải pháp cho</td></tr>
@@ -391,19 +409,20 @@ const PREP = [
    <tr><td>relationship with/between</td><td>mối quan hệ với/giữa</td></tr>
   </table>`}
 ];
+const PREP_TOPIC_LABEL = {p_timeplace:'Giới từ thời gian, nơi chốn, chuyển động', p_fixed:'Giới từ cố định'};
 document.getElementById('grp-prep').innerHTML = PREP.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+s.body).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, PREP_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 // ================= NGỮ PHÁP KHÁC =================
 const OTHER = [
- {t:'Mạo từ: a / an / the', body:`
+ {t:'Mạo từ: a / an / the', topic:'o_articles', body:`
   <table class="prep-table">
    <tr><td>a / an</td><td>đứng trước danh từ đếm được số ít, chưa xác định — a: phụ âm, an: nguyên âm (a book, an hour)</td></tr>
    <tr><td>the</td><td>đứng trước danh từ đã xác định (người nói và người nghe đều biết), vật duy nhất (the sun), lần thứ 2 nhắc lại</td></tr>
    <tr><td>Không dùng mạo từ</td><td>danh từ số nhiều/không đếm được mang nghĩa chung, tên riêng, bữa ăn, môn thể thao</td></tr>
   </table>`},
- {t:'Động từ khiếm khuyết (Modal Verbs)', body:`
+ {t:'Động từ khiếm khuyết (Modal Verbs)', topic:'o_modal', body:`
   <table class="prep-table">
    <tr><td>can/could</td><td>khả năng, sự cho phép (thân mật)</td></tr>
    <tr><td>may/might</td><td>sự cho phép (lịch sự), khả năng có thể xảy ra</td></tr>
@@ -416,14 +435,14 @@ const OTHER = [
   <div class="exbox"><div>· <b>must have + V3</b>: chắc hẳn đã (suy luận) — He must have left already.</div>
    <div>· <b>should have + V3</b>: đáng lẽ nên (nhưng đã không làm) — You should have told me.</div>
    <div>· <b>might/could have + V3</b>: có thể đã (không chắc chắn) — She might have missed the bus.</div></div>`},
- {t:'Danh động từ vs. Động từ nguyên mẫu (Gerund vs. Infinitive)', body:`
+ {t:'Danh động từ vs. Động từ nguyên mẫu (Gerund vs. Infinitive)', topic:'o_gerund', body:`
   <table class="prep-table">
    <tr><td>V + V-ing</td><td>enjoy, avoid, finish, suggest, mind, consider, practice, keep, miss, admit</td></tr>
    <tr><td>V + to-V</td><td>want, need, decide, plan, hope, promise, agree, offer, refuse, manage, afford</td></tr>
    <tr><td>V + V-ing / to-V (nghĩa đổi)</td><td>remember, forget, stop, try, regret — mỗi dạng mang nghĩa khác nhau</td></tr>
   </table>
   <div class="exbox"><div>· I <b>remember locking</b> the door. (nhớ đã làm - việc trong quá khứ)</div><div>· I <b>remembered to lock</b> the door. (nhớ để làm - việc cần làm)</div></div>`},
- {t:'Cụm động từ thông dụng (Phrasal Verbs)', body:`
+ {t:'Cụm động từ thông dụng (Phrasal Verbs)', topic:'o_gerund', body:`
   <table class="prep-table">
    <tr><td>give up</td><td>từ bỏ</td></tr>
    <tr><td>look after</td><td>chăm sóc</td></tr>
@@ -438,7 +457,7 @@ const OTHER = [
    <tr><td>set up</td><td>thành lập</td></tr>
    <tr><td>break down</td><td>hỏng (máy móc), suy sụp</td></tr>
   </table>`},
- {t:'Lượng từ (Quantifiers)', body:`
+ {t:'Lượng từ (Quantifiers)', topic:'o_articles', body:`
   <table class="prep-table">
    <tr><td>many / few / a few</td><td>đi với danh từ đếm được (few = ít, mang nghĩa phủ định; a few = một vài, đủ dùng)</td></tr>
    <tr><td>much / little / a little</td><td>đi với danh từ không đếm được (little = ít, phủ định; a little = một chút, đủ dùng)</td></tr>
@@ -446,19 +465,20 @@ const OTHER = [
    <tr><td>a lot of / lots of</td><td>dùng được cho cả 2 loại danh từ, trong câu khẳng định</td></tr>
    <tr><td>every / each</td><td>every: nhấn mạnh tổng thể; each: nhấn mạnh từng cái riêng lẻ</td></tr>
   </table>`},
- {t:'Tính từ & Trạng từ, Thứ tự tính từ', body:`
+ {t:'Tính từ & Trạng từ, Thứ tự tính từ', topic:'o_adj', body:`
   <div class="subh">Thứ tự tính từ trước danh từ</div>
   <div class="formrow"><code>Ý kiến → Kích thước → Tuổi → Hình dáng → Màu sắc → Nguồn gốc → Chất liệu → Mục đích + N</code></div>
   <div class="exbox"><div>· a <b>beautiful small old round black Vietnamese wooden</b> table</div></div>
   <div class="subh">Vị trí trạng từ chỉ cách thức, tần suất</div>
   <div class="card-body" style="padding:0;">${ul(['Trạng từ tần suất (always, usually, often...) đứng trước động từ thường, sau "to be"','Trạng từ cách thức (carefully, quickly...) thường đứng cuối câu hoặc sau động từ'])}</div>`},
- {t:'Câu bị động đặc biệt: Causative (have/get something done)', body:`
+ {t:'Câu bị động đặc biệt: Causative (have/get something done)', topic:'s_passive', body:`
   <div class="formrow"><code>S + have/get + O (vật) + V3/ed</code></div>
   <div class="notebox">Diễn tả việc nhờ/thuê người khác làm gì đó cho mình, thay vì tự mình làm.</div>
   <div class="exbox"><div>· I <b>had my hair cut</b> yesterday. (tôi đi cắt tóc, không tự cắt)</div><div>· We <b>are getting our house painted</b> this weekend.</div></div>`}
 ];
+const OTHER_TOPIC_LABEL = {o_articles:'Mạo từ & lượng từ', o_modal:'Động từ khiếm khuyết', o_gerund:'Danh động từ, động từ nguyên mẫu & cụm động từ', o_adj:'Tính từ, trạng từ & thứ tự tính từ', s_passive:'Câu bị động'};
 document.getElementById('grp-other').innerHTML = OTHER.map((s,i)=>{
-  return `<details class="card" data-search="${esc((s.t+' '+s.body).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}</div></details>`;
+  return `<details class="card" data-search="${esc((s.t+' '+stripTags(s.body)).toLowerCase())}"><summary><span style="display:flex;align-items:center;"><span class="num">${i+1}</span>${s.t}</span><span class="arrow">▸</span></summary><div class="card-body">${s.body}${practiceBtn(s.topic, OTHER_TOPIC_LABEL[s.topic])}</div></details>`;
 }).join('');
 
 function showView(id){
