@@ -597,6 +597,14 @@
     padding:11px 13px; margin:6px 0 12px; border:1px solid var(--border);}
   .eng-quiz-result{text-align:center; padding:20px 10px;}
   .eng-quiz-result .score{font-size:34px; font-weight:800; color:var(--gold); font-family:var(--mono);}
+  .speak-rec-btn{width:100%; background:linear-gradient(135deg,#FF6EA8,#B06CF0); color:#fff; border:none;
+    border-radius:14px; padding:13px; font-size:13.5px; font-weight:800; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; gap:8px;}
+  .speak-rec-btn.recording{background:linear-gradient(135deg,#E5484D,#B0143D);}
+  .speak-rec-btn .rec-dot{width:11px; height:11px; border-radius:50%; background:#fff; animation:recpulse 1s ease-in-out infinite;}
+  @keyframes recpulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.35; transform:scale(0.7);}}
+  .speak-result-card{margin-top:12px; padding:16px 14px;}
+  .speak-overall{text-align:center; font-size:44px; font-weight:800; font-family:var(--mono); line-height:1;}
   .eng-topic-grouphead{font-size:11px; font-weight:800; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;
     margin:16px 2px 8px;}
   .eng-topic-grouphead:first-child{margin-top:0;}
@@ -3643,7 +3651,7 @@ async function fetchListeningQuizData(){
   if(LISTENING_QUIZ || listeningQuizLoading) return;
   listeningQuizLoading = true;
   try{
-    const res = await fetch('./listening-quiz-data.json?v=2');
+    const res = await fetch('./listening-quiz-data.json?v=3');
     LISTENING_QUIZ = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng câu hỏi nghe', e);
@@ -3856,8 +3864,27 @@ advanced:[
 */
 // ===== Âm thanh Luyện nghe: ưu tiên Google Cloud Text-to-Speech (giọng Neural, tự nhiên),
 // tự động dùng giọng đọc mặc định của trình duyệt nếu chưa cấu hình API key. =====
-const CLOUD_TTS_VOICE_A = 'en-US-Neural2-F';
-const CLOUD_TTS_VOICE_B = 'en-US-Neural2-D';
+// ---- Pool giọng đọc: xoay vòng nhiều giọng nam/nữ Google Neural2 để tránh nhàm chán ----
+// (giọng nữ: C,E,F,G,H · giọng nam: A,D,I,J — tất cả đều en-US Neural2 chất lượng cao)
+const TTS_VOICES_FEMALE = ['en-US-Neural2-F','en-US-Neural2-C','en-US-Neural2-E','en-US-Neural2-G','en-US-Neural2-H'];
+const TTS_VOICES_MALE   = ['en-US-Neural2-D','en-US-Neural2-A','en-US-Neural2-I','en-US-Neural2-J'];
+const CLOUD_TTS_VOICE_A = TTS_VOICES_FEMALE[0]; // mặc định giữ tương thích ngược
+const CLOUD_TTS_VOICE_B = TTS_VOICES_MALE[0];
+// Chọn giọng theo giới tính + seed (để cùng 1 người nói trong 1 đoạn giữ nguyên giọng,
+// nhưng đổi giọng giữa các câu/đoạn khác nhau cho đỡ đơn điệu).
+function pickTtsVoice(gender, seed){
+  const pool = gender==='male' ? TTS_VOICES_MALE : TTS_VOICES_FEMALE;
+  const s = (typeof seed==='number' && seed>=0) ? seed : 0;
+  return pool[s % pool.length];
+}
+// Bộ đếm xoay vòng cho các câu đơn lẻ (Luyện ngữ pháp, đọc câu...) — mỗi lần đọc đổi giọng.
+let ttsSingleSeed = 0;
+function nextSingleTtsVoice(){
+  const all = TTS_VOICES_FEMALE.concat(TTS_VOICES_MALE);
+  const v = all[ttsSingleSeed % all.length];
+  ttsSingleSeed++;
+  return v;
+}
 const TTS_CACHE_NAME = 'cloud-tts-cache-v1';
 // Giọng Neural2 của Google Cloud TTS: miễn phí 1.000.000 ký tự/tháng, sau đó tính phí
 // (theo bảng giá chính thức cloud.google.com/text-to-speech/pricing — có thể thay đổi theo Google).
@@ -3919,7 +3946,7 @@ async function fetchCloudTtsAudioUrl(text, voiceName){
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       input:{text},
-      voice:{languageCode:'en-US', name:voiceName},
+      voice:{languageCode:(voiceName||'en-US-Neural2-F').split('-').slice(0,2).join('-'), name:voiceName},
       audioConfig:{audioEncoding:'MP3', speakingRate:0.95}
     })
   });
@@ -3947,7 +3974,8 @@ async function playListenQueueStep(token){
     return;
   }
   const [spk, text] = listenAudioQueue[listenAudioQueueIdx];
-  const voiceName = spk==='A' ? CLOUD_TTS_VOICE_A : CLOUD_TTS_VOICE_B;
+  // Xoay vòng giọng theo câu hỏi: người nói A = giọng nữ, B = giọng nam, đổi giọng giữa các câu.
+  const voiceName = spk==='A' ? pickTtsVoice('female', listenVoiceSeed) : pickTtsVoice('male', listenVoiceSeed);
   try{
     if(SETTINGS.cloudTtsApiKey){
       const url = await fetchCloudTtsAudioUrl(text, voiceName);
@@ -3982,17 +4010,19 @@ function getGrammarAudioEl(){ if(!grammarAudioEl) grammarAudioEl = new Audio(); 
 async function speakGrammarSentence(text){
   try{
     if(SETTINGS.cloudTtsApiKey){
-      const url = await fetchCloudTtsAudioUrl(text, CLOUD_TTS_VOICE_A);
+      const url = await fetchCloudTtsAudioUrl(text, nextSingleTtsVoice());
       if(url){ const audio = getGrammarAudioEl(); try{ audio.pause(); }catch(e){} audio.src = url; await audio.play(); return; }
     }
-    await speakLine(text, 0.9, 1);
+    await speakLine(text, 0.9, 1 + (ttsSingleSeed%2?0.15:0));
   }catch(e){
     console.error('Lỗi phát âm câu ngữ pháp', e);
     showToast('⚠️','Không phát được âm thanh','Kiểm tra API key Cloud TTS hoặc kết nối mạng.');
   }
 }
+let listenVoiceSeed = 0;
 function playListenDialogue(lines){
   stopListenAudio();
+  listenVoiceSeed = (STATE.listenQuiz && typeof STATE.listenQuiz.idx==='number') ? STATE.listenQuiz.idx : (listenVoiceSeed+1);
   listenAudioQueue = lines; listenAudioQueueIdx = 0;
   STATE.listenPlayback = 'playing';
   renderListenQuizUI();
@@ -4042,7 +4072,7 @@ function currentListenItem(){
 function startListenQuiz(level){
   const bank = (LISTENING_QUIZ && LISTENING_QUIZ[level]) || [];
   const allIdx = shuffleArr(bank.map((_,i)=>i));
-  const order = allIdx.slice(0, Math.min(25, allIdx.length));
+  const order = allIdx.slice(0, Math.min(20, allIdx.length));
   STATE.listenQuiz = {level, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   STATE.listenPlayback = 'idle';
   renderContent();
@@ -4090,7 +4120,7 @@ function renderListenQuizUI(){
       <div class="score">${q.correct}/${q.order.length}</div>
       <div style="font-size:13px;color:var(--dim);margin-top:4px;">${pct}% chính xác</div>
       <div style="display:flex;gap:10px;margin-top:18px;justify-content:center;">
-        <button class="form-btn" data-action="listen-quiz-start" data-level="${q.level}">↺ Làm lại (25 câu mới)</button>
+        <button class="form-btn" data-action="listen-quiz-start" data-level="${q.level}">↺ Làm lại (20 câu mới)</button>
         <button class="form-btn cancel" data-action="listen-quiz-exit">Thoát</button>
       </div>
     </div>`;
@@ -4151,116 +4181,316 @@ function renderListenQuizUI(){
     ${body}
   `;
 }
+const AV_LEVEL_COLORS = {beginner:'#2CDBA8', intermediate:'#4FA8FF', advanced:'#B78CFF'};
+const AV_LEVEL_SUBLABELS = {beginner:'Câu ngắn, tốc độ chậm', intermediate:'Hội thoại đời thường', advanced:'Tốc độ tự nhiên'};
+function cloudTtsUsageBarHtml(){
+  if(!SETTINGS.cloudTtsApiKey) return '';
+  const mk = currentMonthKey();
+  const used = (SETTINGS.cloudTtsUsage && SETTINGS.cloudTtsUsage.month===mk) ? SETTINGS.cloudTtsUsage.chars : 0;
+  const pct = Math.min(100, Math.round(used/CLOUD_TTS_FREE_LIMIT*100));
+  const barColor = pct>=100 ? '#ff5c5c' : (pct>=80 ? '#ffb020' : '#2CDBA8');
+  return `<div style="margin-bottom:10px; padding:10px 12px; background:var(--panel2); border:1px solid var(--border); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-bottom:6px;">
+      <span>Đã dùng miễn phí tháng này (giọng Neural2)</span>
+      <span>${used.toLocaleString('vi-VN')} / ${CLOUD_TTS_FREE_LIMIT.toLocaleString('vi-VN')} ký tự (${pct}%)</span>
+    </div>
+    <div style="height:6px; border-radius:4px; background:rgba(255,255,255,0.08); overflow:hidden;">
+      <div style="height:100%; width:${pct}%; background:${barColor};"></div>
+    </div>
+  </div>`;
+}
+function ttsVoiceConfigBtnHtml(){
+  const voiceStatus = SETTINGS.cloudTtsApiKey
+    ? '🎙️ Giọng đọc tự nhiên Google Cloud TTS (xen kẽ nhiều giọng nam/nữ) — bấm để đổi/xóa API key'
+    : '🔈 Đang dùng giọng đọc mặc định của trình duyệt — bấm để cấu hình giọng đọc tự nhiên hơn';
+  return `<div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-cloud-tts-key" style="width:100%; text-align:left; font-size:11.5px;">${voiceStatus}</button></div>`;
+}
+const AV_SOURCE_NOTE = 'Nội dung biên soạn theo phong cách hội thoại giao tiếp hằng ngày của các trang học tiếng Anh uy tín: BBC Learning English, British Council LearnEnglish, VOA Learning English, ESL-Lab.';
+// ===== LUYỆN NGHE: màn chọn cấp độ gọn gàng giống Luyện ngữ pháp =====
 function renderEnglishAV(item, mode){
   ensureEnglishItems();
-  if(mode==='listening' && STATE.listenQuiz){ renderListenQuizUI(); return; }
-  if(!STATE.avLevel) STATE.avLevel = {};
-  const level = STATE.avLevel[item.id] || 'beginner';
-  const levelCards = ['beginner','intermediate','advanced'].map(lv=>`
-    <div class="eng-level-card ${level===lv?'active':''}" data-action="av-pick-level" data-itemid="${item.id}" data-level="${lv}">
-      <div class="lv-name">${LEVEL_LABELS[lv]}</div>
-    </div>`).join('');
-  const folderId = mode==='listening' ? SETTINGS.listeningDriveFolderId : SETTINGS.speakingDriveFolderId;
-  if(!STATE.avDrive) STATE.avDrive = {};
-  const driveState = STATE.avDrive[mode];
-  if(folderId && driveState===undefined) fetchAvDriveList(mode);
-  let driveHtml;
-  if(!folderId){
-    driveHtml = `<div class="eng-av-empty">Chưa cấu hình thư mục Google Drive riêng cho mục này.</div>
-      <div class="eng-drive-cfg"><button class="form-btn" data-action="set-av-drive-folder" data-mode="${mode}">📁 Cấu hình thư mục Drive</button></div>`;
-  } else if(!driveState || driveState.loading){
-    driveHtml = `<div class="eng-av-empty">Đang tải danh sách từ Google Drive...</div>`;
-  } else if(driveState.error){
-    driveHtml = `<div class="eng-av-empty">${escapeHtml(driveState.error)}</div>
-      <div class="eng-drive-cfg"><button class="form-btn cancel" data-action="set-av-drive-folder" data-mode="${mode}">Đổi thư mục</button></div>`;
-  } else if(driveState.files.length===0){
-    driveHtml = `<div class="eng-av-empty">Thư mục chưa có file âm thanh/video nào.</div>
-      <div class="eng-drive-cfg"><button class="form-btn cancel" data-action="set-av-drive-folder" data-mode="${mode}">Đổi thư mục</button></div>`;
+  if(mode==='speaking'){ renderSpeakingPractice(item); return; }
+  if(STATE.listenQuiz){ renderListenQuizUI(); return; }
+  if(LISTENING_QUIZ===null && !listeningQuizLoading) fetchListeningQuizData();
+  const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
+  let levelPickHtml;
+  if(LISTENING_QUIZ===null){
+    levelPickHtml = `<div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:32px; margin-bottom:8px;">⏳</div>
+      <div style="font-size:13px; color:var(--dim);">Đang tải ngân hàng câu hỏi nghe…</div>
+    </div>`;
   } else {
-    driveHtml = driveState.files.map(f=>`
-      <div class="eng-av-link" data-action="play-av-drive" data-mode="${mode}" data-id="${f.id}" data-name="${escapeHtml(f.name)}" data-mimetype="${f.mimeType}">
-        <div><div class="t1">${f.mimeType.indexOf('video')===0?'🎬':'🎧'} ${escapeHtml(f.name)}</div></div>
-        <div style="font-size:14px;">▶</div>
-      </div>`).join('') + `<div class="eng-drive-cfg"><button class="form-btn cancel" data-action="set-av-drive-folder" data-mode="${mode}">Đổi thư mục</button></div>`;
+    const totalQ = ['beginner','intermediate','advanced'].reduce((s,lv)=>s+((LISTENING_QUIZ[lv]||[]).length),0);
+    const cards = ['beginner','intermediate','advanced'].map(lv=>{
+      const b = best[lv]; const n = (LISTENING_QUIZ[lv]||[]).length;
+      return `<div class="eng-level-pick-card ${n===0?'disabled':''}" ${n>0?`data-action="listen-quiz-start" data-level="${lv}"`:''}>
+        <div class="lvl-code" style="color:${AV_LEVEL_COLORS[lv]};">${LEVEL_LABELS[lv]}</div>
+        <div class="lvl-label">${AV_LEVEL_SUBLABELS[lv]}</div>
+        <div class="lvl-count">${n===0?'Sắp có':n+' câu'}</div>
+        ${b!==undefined?`<div class="lvl-best">★ ${b}%</div>`:''}
+      </div>`;
+    }).join('');
+    levelPickHtml = `
+      <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+        <div style="font-size:26px; margin-bottom:6px;">🎧</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Nghe đoạn hội thoại giao tiếp hằng ngày rồi chọn đáp án đúng. Câu hỏi &amp; đáp án hoàn toàn bằng tiếng Anh, có nút dịch và mẹo nghe khi cần. Tổng ${totalQ} câu, mỗi lượt tối đa 20 câu.</div>
+      </div>
+      ${ttsVoiceConfigBtnHtml()}
+      ${cloudTtsUsageBarHtml()}
+      <div class="eng-section-label">🎯 Chọn theo cấp độ</div>
+      <div class="eng-level-pick-row">${cards}</div>
+      <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
   }
-  const playing = STATE.avPlaying && STATE.avPlaying.mode===mode ? STATE.avPlaying : null;
-  const playerHtml = playing ? `<div class="card" style="padding:10px;">
-      <div style="font-size:12px; font-weight:700; margin-bottom:8px;">${playing.mimeType.indexOf('video')===0?'🎬':'🎧'} ${escapeHtml(playing.name)}</div>
-      ${playing.mimeType.indexOf('video')===0
-        ? `<video controls autoplay style="width:100%; border-radius:10px; background:#000;" src="${driveFileStreamUrl(playing.fileId)}"></video>`
-        : `<audio controls autoplay style="width:100%;" src="${driveFileStreamUrl(playing.fileId)}"></audio>`}
-    </div>` : '';
-  const ytTerms = (AV_YT_SEARCH[mode] && AV_YT_SEARCH[mode][level]) || [];
-  const ytHtml = ytTerms.map(term=>`
-    <a class="eng-av-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(term)}" target="_blank" rel="noopener">
-      <div><div class="t1">▶ ${escapeHtml(term)}</div><div class="t2">Mở kết quả tìm kiếm trên YouTube</div></div>
-      <div style="font-size:14px;">↗</div>
-    </a>`).join('');
-  const extLinks = (AV_EXTERNAL[mode] && AV_EXTERNAL[mode][level]) || [];
-  const extHtml = extLinks.map(l=>`
-    <a class="eng-av-link" href="${l.u}" target="_blank" rel="noopener">
-      <div><div class="t1">${escapeHtml(l.t)}</div><div class="t2">${escapeHtml(l.d)}</div></div>
-      <div style="font-size:14px;">↗</div>
-    </a>`).join('');
-  let listenTestHtml = '';
-  if(mode==='listening'){
-    if(LISTENING_QUIZ===null && !listeningQuizLoading) fetchListeningQuizData();
-    const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
-    const voiceStatus = SETTINGS.cloudTtsApiKey
-      ? '🎙️ Đang dùng giọng đọc tự nhiên Google Cloud TTS — bấm để đổi/xóa API key'
-      : '🔈 Đang dùng giọng đọc mặc định của trình duyệt — bấm để cấu hình giọng đọc tự nhiên hơn';
-    let usageHtml = '';
+  document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
+}
+
+// ================= LUYỆN NÓI: luyện phát âm theo cấp độ + chấm điểm AI (Web Speech API) =================
+let SPEAKING_PRACTICE = null;
+let speakingPracticeLoading = false;
+async function fetchSpeakingPracticeData(){
+  if(SPEAKING_PRACTICE || speakingPracticeLoading) return;
+  speakingPracticeLoading = true;
+  try{
+    const res = await fetch('./speaking-practice-data.json?v=1');
+    SPEAKING_PRACTICE = await res.json();
+  }catch(e){
+    console.error('Không tải được ngân hàng luyện nói', e);
+    SPEAKING_PRACTICE = {beginner:[], intermediate:[], advanced:[]};
+  }
+  speakingPracticeLoading = false;
+  if(STATE.tab==='english-item') renderContent();
+}
+// format mỗi item: [text_en, translate_vi, tip_vi]
+function currentSpeakItem(){
+  const s = STATE.speakSession; if(!s || !SPEAKING_PRACTICE) return null;
+  const bank = SPEAKING_PRACTICE[s.level]||[];
+  return bank[s.order[s.idx]];
+}
+function startSpeakPractice(level){
+  const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[];
+  const order = shuffleArr(bank.map((_,i)=>i)).slice(0, Math.min(15, bank.length));
+  STATE.speakSession = {level, order, idx:0, showTranslate:false, result:null, recording:false};
+  STATE.speakPlayback = 'idle';
+  renderContent();
+}
+function speakPracticeExit(){ stopSpeakAudio(); stopSpeakRecognition(); STATE.speakSession=null; renderContent(); }
+function nextSpeakPractice(){
+  const s = STATE.speakSession; if(!s) return;
+  stopSpeakAudio(); stopSpeakRecognition();
+  if(s.idx < s.order.length-1){
+    s.idx++; s.showTranslate=false; s.result=null; s.recording=false; STATE.speakPlayback='idle';
+    renderContent();
+  } else {
+    STATE.speakSession=null; renderContent();
+  }
+}
+function speakToggleTranslate(){ const s=STATE.speakSession; if(!s) return; s.showTranslate=!s.showTranslate; renderSpeakPracticeUI(); }
+// ---- Phát giọng mẫu 1 câu (play/pause/lặp lại) ----
+let speakAudioEl=null; let speakPlayToken=0;
+function getSpeakAudioEl(){
+  if(!speakAudioEl){
+    speakAudioEl=new Audio();
+    speakAudioEl.addEventListener('ended',()=>{ STATE.speakPlayback='idle'; if(STATE.speakSession) renderSpeakPracticeUI(); });
+  }
+  return speakAudioEl;
+}
+function stopSpeakAudio(){ speakPlayToken++; if(speakAudioEl){ try{speakAudioEl.pause();}catch(e){} } if(window.speechSynthesis) window.speechSynthesis.cancel(); }
+async function playSpeakLine(){
+  const item=currentSpeakItem(); if(!item) return;
+  stopSpeakAudio();
+  const token=++speakPlayToken;
+  STATE.speakPlayback='playing'; renderSpeakPracticeUI();
+  try{
     if(SETTINGS.cloudTtsApiKey){
-      const mk = currentMonthKey();
-      const used = (SETTINGS.cloudTtsUsage && SETTINGS.cloudTtsUsage.month===mk) ? SETTINGS.cloudTtsUsage.chars : 0;
-      const pct = Math.min(100, Math.round(used/CLOUD_TTS_FREE_LIMIT*100));
-      const barColor = pct>=100 ? '#ff5c5c' : (pct>=80 ? '#ffb020' : '#2CDBA8');
-      usageHtml = `<div style="margin-bottom:10px; padding:10px 12px; background:var(--panel2); border:1px solid var(--border); border-radius:10px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-bottom:6px;">
-          <span>Đã dùng miễn phí tháng này (giọng Neural2)</span>
-          <span>${used.toLocaleString('vi-VN')} / ${CLOUD_TTS_FREE_LIMIT.toLocaleString('vi-VN')} ký tự (${pct}%)</span>
-        </div>
-        <div style="height:6px; border-radius:4px; background:rgba(255,255,255,0.08); overflow:hidden;">
-          <div style="height:100%; width:${pct}%; background:${barColor};"></div>
-        </div>
-      </div>`;
+      const url=await fetchCloudTtsAudioUrl(item[0], nextSingleTtsVoice());
+      if(token!==speakPlayToken) return;
+      if(url){ const a=getSpeakAudioEl(); a.src=url; await a.play(); return; }
     }
-    if(LISTENING_QUIZ===null){
-      listenTestHtml = `<div class="eng-av-src">
-        <h4>🎧 Kiểm tra nghe hội thoại</h4>
-        <div class="eng-av-empty">Đang tải ngân hàng câu hỏi...</div>
-      </div>`;
-    } else {
-      const totalQ = ['beginner','intermediate','advanced'].reduce((s,lv)=>s+((LISTENING_QUIZ[lv]||[]).length),0);
-      const testLevelCards = ['beginner','intermediate','advanced'].map(lv=>{
-        const b = best[lv];
-        return `<div class="eng-level-card" data-action="listen-quiz-start" data-level="${lv}">
-          <div class="lv-name">${LEVEL_LABELS[lv]}</div>
-          <div class="lv-score">${b!==undefined ? 'Tốt nhất: '+b+'%' : (LISTENING_QUIZ[lv]||[]).length+' câu'}</div>
-        </div>`;
-      }).join('');
-      listenTestHtml = `<div class="eng-av-src">
-        <h4>🎧 Kiểm tra nghe hội thoại (${totalQ} câu · mỗi lượt 25 câu)</h4>
-        <div style="font-size:11.5px; color:var(--dim); line-height:1.6; margin-bottom:8px;">Nghe đoạn hội thoại tình huống giao tiếp hàng ngày rồi chọn đáp án đúng. Ngân hàng câu hỏi đang được tiếp tục mở rộng theo thời gian.</div>
-        <div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-cloud-tts-key" style="width:100%; text-align:left; font-size:11.5px;">${voiceStatus}</button></div>
-        ${usageHtml}
-        <div class="eng-level-grid">${testLevelCards}</div>
-      </div>`;
-    }
+    await speakLine(item[0], 0.92, 1);
+    if(token!==speakPlayToken) return;
+    STATE.speakPlayback='idle'; renderSpeakPracticeUI();
+  }catch(e){
+    console.error('Lỗi phát giọng mẫu Luyện nói', e);
+    if(token!==speakPlayToken) return;
+    STATE.speakPlayback='idle'; if(STATE.speakSession) renderSpeakPracticeUI();
+    showToast('⚠️','Không phát được âm thanh','Kiểm tra API key Cloud TTS hoặc kết nối mạng.');
   }
-  // Mục "Video YouTube gợi ý" và "Nguồn khác uy tín" đã được bỏ khỏi Luyện nghe theo yêu cầu —
-  // vẫn giữ nguyên cho Luyện nói (mode==='speaking') vì phần đó chưa có ngân hàng câu hỏi riêng.
-  const extraSourcesHtml = mode==='speaking' ? `
-    <div class="eng-av-src"><h4>▶ Video YouTube gợi ý (${LEVEL_LABELS[level]})</h4>${ytHtml}</div>
-    <div class="eng-av-src"><h4>🌐 Nguồn khác uy tín (${LEVEL_LABELS[level]})</h4>${extHtml}</div>` : '';
-  document.getElementById('content').innerHTML = `
-    ${englishItemBackRow(item.name)}
-    <div class="eng-level-grid">${levelCards}</div>
-    ${playerHtml}
-    ${listenTestHtml}
-    <div class="eng-av-src"><h4>📁 Thư mục Google Drive riêng</h4>${driveHtml}</div>
-    ${extraSourcesHtml}
-  `;
+}
+function pauseSpeakLine(){
+  if(speakAudioEl && !speakAudioEl.paused) speakAudioEl.pause();
+  if(window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.pause();
+  STATE.speakPlayback='paused'; renderSpeakPracticeUI();
+}
+function resumeSpeakLine(){
+  if(speakAudioEl && speakAudioEl.paused && speakAudioEl.src){ speakAudioEl.play(); STATE.speakPlayback='playing'; renderSpeakPracticeUI(); }
+  else if(window.speechSynthesis && window.speechSynthesis.paused){ window.speechSynthesis.resume(); STATE.speakPlayback='playing'; renderSpeakPracticeUI(); }
+  else playSpeakLine();
+}
+function toggleSpeakPlayback(){ const st=STATE.speakPlayback; if(st==='playing') pauseSpeakLine(); else if(st==='paused') resumeSpeakLine(); else playSpeakLine(); }
+// ---- Chấm điểm phát âm bằng nhận diện giọng nói ----
+function speakNormalizeWords(str){ return (str||'').toLowerCase().replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean); }
+function speakLcsLen(a,b){
+  const m=a.length,n=b.length; if(!m||!n) return 0;
+  let prev=new Array(n+1).fill(0), cur=new Array(n+1).fill(0);
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){ cur[j]= a[i-1]===b[j-1] ? prev[j-1]+1 : Math.max(prev[j],cur[j-1]); }
+    const t=prev; prev=cur; cur=t;
+  }
+  return prev[n];
+}
+function scoreSpeaking(target, heard, durationSec, confidence){
+  const tw=speakNormalizeWords(target), hw=speakNormalizeWords(heard);
+  const lcs=speakLcsLen(tw,hw);
+  const wordAcc= tw.length? Math.round(lcs/tw.length*100):0;
+  const tmp={}; hw.forEach(w=>tmp[w]=(tmp[w]||0)+1);
+  const missed=[]; tw.forEach(w=>{ if(tmp[w]>0){ tmp[w]--; } else missed.push(w); });
+  const wps= durationSec>0? hw.length/durationSec : 0;
+  const idealMin=1.3, idealMax=2.8;
+  let paceScore; if(wps>=idealMin && wps<=idealMax) paceScore=100; else if(wps<idealMin) paceScore=Math.max(40,Math.round(wps/idealMin*100)); else paceScore=Math.max(50,Math.round(idealMax/wps*100));
+  const conf=(typeof confidence==='number' && confidence>0)? Math.round(confidence*100):null;
+  const pron= conf!==null? Math.round(wordAcc*0.6+conf*0.4) : wordAcc;
+  const overall=Math.round(wordAcc*0.5 + pron*0.3 + paceScore*0.2);
+  return {wordAcc, pron, intonation:paceScore, overall, missed:missed.slice(0,8), heard, wps};
+}
+function speakFeedbackMsgs(r){
+  const msgs=[];
+  if(r.overall>=90) msgs.push('Xuất sắc! Bạn đọc rất chuẩn và trôi chảy.');
+  else if(r.overall>=75) msgs.push('Tốt! Câu của bạn khá rõ ràng, chỉ cần chỉnh vài chỗ nhỏ.');
+  else if(r.overall>=55) msgs.push('Khá ổn. Hãy nghe lại giọng mẫu và luyện thêm vài lần cho chắc.');
+  else msgs.push('Cần luyện thêm. Nghe lại giọng mẫu rồi đọc chậm, rõ từng từ một.');
+  if(r.missed && r.missed.length) msgs.push('Từ có thể phát âm chưa rõ (máy không nhận ra): <b>'+r.missed.map(escapeHtml).join(', ')+'</b> — bấm 🔊 nghe mẫu rồi lặp lại.');
+  if(r.intonation<70){ if(r.wps<1.3) msgs.push('Bạn đọc hơi chậm/ngắt quãng — thử nói liền mạch hơn theo từng cụm từ để ngữ điệu tự nhiên.'); else msgs.push('Bạn đọc hơi nhanh — chậm lại một chút để ngữ điệu rõ ràng, tròn vành rõ chữ.'); }
+  else msgs.push('Ngữ điệu và tốc độ nói khá tự nhiên, giữ nhịp này nhé.');
+  return msgs;
+}
+let speakRecognition=null; let speakRecogStart=0;
+function stopSpeakRecognition(){ if(speakRecognition){ try{speakRecognition.abort();}catch(e){} speakRecognition=null; } const s=STATE.speakSession; if(s) s.recording=false; }
+function startSpeakRecording(){
+  const s=STATE.speakSession; if(!s) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy dùng Chrome trên Android hoặc máy tính.'); return; }
+  if(s.recording){ stopSpeakRecognition(); renderSpeakPracticeUI(); return; }
+  stopSpeakAudio();
+  const item=currentSpeakItem(); if(!item) return;
+  const rec=new SR(); speakRecognition=rec;
+  rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1; rec.continuous=false;
+  s.recording=true; s.result=null; speakRecogStart=Date.now(); renderSpeakPracticeUI();
+  rec.onresult=(ev)=>{
+    const res=ev.results[0][0];
+    const heard=res.transcript||''; const conf=res.confidence;
+    const dur=(Date.now()-speakRecogStart)/1000;
+    s.result=scoreSpeaking(item[0], heard, dur, conf);
+    s.recording=false; speakRecognition=null;
+    if(!SETTINGS.speakPractice) SETTINGS.speakPractice={};
+    if(!SETTINGS.speakPractice.best) SETTINGS.speakPractice.best={};
+    const pb=SETTINGS.speakPractice.best[s.level]||0;
+    if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
+    renderSpeakPracticeUI();
+  };
+  rec.onerror=(ev)=>{
+    s.recording=false; speakRecognition=null;
+    if(ev.error==='not-allowed'||ev.error==='service-not-allowed') showToast('🎤','Cần quyền micro','Hãy cho phép ứng dụng truy cập micro để chấm điểm phát âm.');
+    else if(ev.error==='no-speech') showToast('🔇','Không nghe thấy giọng nói','Hãy nói to và rõ hơn rồi thử lại.');
+    else showToast('⚠️','Lỗi nhận diện','Không nhận diện được giọng nói, thử lại nhé.');
+    renderSpeakPracticeUI();
+  };
+  rec.onend=()=>{ if(s.recording){ s.recording=false; speakRecognition=null; renderSpeakPracticeUI(); } };
+  try{ rec.start(); }catch(e){ s.recording=false; speakRecognition=null; showToast('⚠️','Không bắt đầu được','Thử lại sau giây lát.'); renderSpeakPracticeUI(); }
+}
+function speakScoreColor(v){ return v>=80?'#2CDBA8':(v>=55?'#ffb020':'#ff5c5c'); }
+function speakScoreBar(label, v){
+  const c=speakScoreColor(v);
+  return `<div style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);margin-bottom:4px;"><span>${label}</span><span style="color:${c};font-weight:800;font-family:var(--mono);">${v}%</span></div>
+    <div style="height:7px;border-radius:5px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:${v}%;background:${c};"></div></div>
+  </div>`;
+}
+function renderSpeakingPractice(item){
+  if(STATE.speakSession){ renderSpeakPracticeUI(item); return; }
+  if(SPEAKING_PRACTICE===null && !speakingPracticeLoading) fetchSpeakingPracticeData();
+  const best=(SETTINGS.speakPractice && SETTINGS.speakPractice.best)||{};
+  let levelPickHtml;
+  if(SPEAKING_PRACTICE===null){
+    levelPickHtml=`<div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:32px; margin-bottom:8px;">⏳</div>
+      <div style="font-size:13px; color:var(--dim);">Đang tải ngân hàng luyện nói…</div>
+    </div>`;
+  } else {
+    const totalN=['beginner','intermediate','advanced'].reduce((s,lv)=>s+((SPEAKING_PRACTICE[lv]||[]).length),0);
+    const cards=['beginner','intermediate','advanced'].map(lv=>{
+      const b=best[lv]; const n=(SPEAKING_PRACTICE[lv]||[]).length;
+      return `<div class="eng-level-pick-card ${n===0?'disabled':''}" ${n>0?`data-action="speak-practice-start" data-level="${lv}"`:''}>
+        <div class="lvl-code" style="color:${AV_LEVEL_COLORS[lv]};">${LEVEL_LABELS[lv]}</div>
+        <div class="lvl-label">${AV_LEVEL_SUBLABELS[lv]}</div>
+        <div class="lvl-count">${n===0?'Sắp có':n+' câu'}</div>
+        ${b!==undefined?`<div class="lvl-best">★ ${b}đ</div>`:''}
+      </div>`;
+    }).join('');
+    const srOk = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    levelPickHtml=`
+      <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+        <div style="font-size:26px; margin-bottom:6px;">🗣️</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Nghe giọng mẫu, đọc theo rồi để AI chấm điểm <b>phát âm, ngữ điệu, đúng từ</b>. Có nút phát, tạm dừng, đọc lại và dịch nghĩa. Tổng ${totalN} đoạn luyện nói giao tiếp hằng ngày.</div>
+      </div>
+      ${ttsVoiceConfigBtnHtml()}
+      ${cloudTtsUsageBarHtml()}
+      ${srOk ? '' : `<div style="font-size:11.5px;color:#ffb020;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">⚠️ Thiết bị này chưa hỗ trợ nhận diện giọng nói nên phần chấm điểm có thể không hoạt động. Bạn vẫn luyện nghe/đọc theo mẫu bình thường. Khuyến nghị dùng Chrome trên Android hoặc máy tính.</div>`}
+      <div class="eng-section-label">🎯 Chọn theo cấp độ</div>
+      <div class="eng-level-pick-row">${cards}</div>
+      <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
+  }
+  document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
+}
+function renderSpeakPracticeUI(){
+  const s=STATE.speakSession; if(!s){ renderContent(); return; }
+  const item=currentSpeakItem();
+  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">🗣️ Luyện nói · ${LEVEL_LABELS[s.level]}</div></div>`;
+  if(!item){ document.getElementById('content').innerHTML=backRow+`<div class="card"><div class="eng-av-empty">Không có nội dung.</div></div>`; return; }
+  const [text, translateVi, tipVi]=item;
+  const pb=STATE.speakPlayback||'idle';
+  const playLabel= pb==='playing' ? '⏸ Tạm dừng' : (pb==='paused' ? '▶ Tiếp tục' : '🔊 Nghe mẫu');
+  const progressPct=Math.round((s.idx/s.order.length)*100);
+  const r=s.result;
+  const recBtn = s.recording
+    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… bấm để dừng</button>`
+    : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
+  const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
+  const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
+  let resultHtml='';
+  if(r){
+    resultHtml=`<div class="card speak-result-card">
+      <div class="speak-overall" style="color:${speakScoreColor(r.overall)};">${r.overall}<span style="font-size:15px;">đ</span></div>
+      <div style="font-size:11.5px;color:var(--dim);text-align:center;margin-bottom:14px;">Điểm tổng (thang 100)</div>
+      ${speakScoreBar('🎯 Đúng từ', r.wordAcc)}
+      ${speakScoreBar('🔤 Phát âm', r.pron)}
+      ${speakScoreBar('🎵 Ngữ điệu / tốc độ', r.intonation)}
+      <div class="eng-quiz-explain" style="margin-top:12px;">🤖 <b>AI nhận xét:</b><br>${speakFeedbackMsgs(r).map(m=>'• '+m).join('<br>')}</div>
+      <div style="font-size:11px;color:var(--dim2);margin-top:10px;line-height:1.5;">Máy nghe được: “${escapeHtml(r.heard||'(không rõ)')}”. Đây là đánh giá tham khảo từ nhận diện giọng nói trên thiết bị.</div>
+    </div>`;
+  }
+  document.getElementById('content').innerHTML = backRow + `
+    <div class="eng-quiz-progress-wrap">
+      <div class="eng-quiz-progress-top">
+        <span class="eng-quiz-progress-badge count">Câu ${s.idx+1}/${s.order.length}</span>
+        ${r?`<span class="eng-quiz-progress-badge correct">${r.overall}đ</span>`:''}
+      </div>
+      <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
+    </div>
+    <div class="card eng-quiz-card">
+      <div class="eng-quiz-q" style="text-align:left;">${escapeHtml(text)}</div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="form-btn" data-action="speak-toggle-play" style="flex:1;">${playLabel}</button>
+        <button class="form-btn cancel" data-action="speak-replay" style="flex:1;">🔁 Đọc lại mẫu</button>
+      </div>
+      ${recBtn}
+      ${tipHtml}
+      <div class="eng-quiz-actions" style="margin-top:10px;">
+        ${translateVi ? `<button class="form-btn btn-translate" data-action="speak-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
+      </div>
+      ${translateHtml}
+      ${resultHtml}
+      <button class="form-btn eng-quiz-nextbtn" data-action="speak-next" style="width:100%; margin-top:10px;">${s.idx<s.order.length-1?'Câu tiếp →':'🏁 Hoàn thành'}</button>
+    </div>`;
 }
 function renderEnglishNotes(item){
   const text = (SETTINGS.englishNotes && SETTINGS.englishNotes[item.id]) || '';
@@ -4907,6 +5137,20 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenQuizNextEl){ nextListenQuiz(); return; }
   const listenQuizExitEl = e.target.closest('[data-action="listen-quiz-exit"]');
   if(listenQuizExitEl){ stopListenAudio(); STATE.listenQuiz = null; renderContent(); return; }
+  const speakStartEl = e.target.closest('[data-action="speak-practice-start"]');
+  if(speakStartEl){ startSpeakPractice(speakStartEl.getAttribute('data-level')); return; }
+  const speakExitEl = e.target.closest('[data-action="speak-practice-exit"]');
+  if(speakExitEl){ speakPracticeExit(); return; }
+  const speakTogglePlayEl = e.target.closest('[data-action="speak-toggle-play"]');
+  if(speakTogglePlayEl){ toggleSpeakPlayback(); return; }
+  const speakReplayEl = e.target.closest('[data-action="speak-replay"]');
+  if(speakReplayEl){ playSpeakLine(); return; }
+  const speakRecordEl = e.target.closest('[data-action="speak-record"]');
+  if(speakRecordEl){ startSpeakRecording(); return; }
+  const speakToggleTransEl = e.target.closest('[data-action="speak-toggle-translate"]');
+  if(speakToggleTransEl){ speakToggleTranslate(); return; }
+  const speakNextEl = e.target.closest('[data-action="speak-next"]');
+  if(speakNextEl){ nextSpeakPractice(); return; }
   const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
   if(comingSoonEl){ showToast('🔧', comingSoonEl.getAttribute('data-label')||'Sắp ra mắt', 'Tính năng đang được xây dựng, sẽ có sớm.'); return; }
   const addSongEl = e.target.closest('[data-action="add-music-song"]');
