@@ -100,6 +100,8 @@
   .task-wrap.failed{border-color:#7a2b2b; background:rgba(122,43,43,0.08);}
   .task-wrap.failed .lbl{color:#C97575;}
   .fail-tag{font-size:9.5px; font-weight:700; color:#FF6B6B; background:rgba(255,107,107,0.14); border:1px solid rgba(255,107,107,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px;}
+  .ai-tag{font-size:9px; font-weight:700; color:#7C6CF0; background:rgba(124,108,240,0.14); border:1px solid rgba(124,108,240,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px; flex-shrink:0;}
+  .ai-tomorrow-card{background:radial-gradient(120% 140% at 50% -20%, #221B36 0%, var(--panel) 60%); border:1px solid rgba(124,108,240,0.35); margin-top:12px;}
   .task{display:flex; align-items:center; gap:11px; padding:12px 12px; cursor:pointer; user-select:none;}
   .task .time{font-family:var(--mono); font-size:10.5px; color:var(--dim); width:52px; flex-shrink:0; line-height:1.3;}
   .task .time .end{color:var(--dim2); font-size:9.5px;}
@@ -128,7 +130,9 @@
   .task-toggle.on{background:linear-gradient(90deg,#22C55E,#16A34A); border-color:transparent;}
   .task-toggle.on .toggle-knob{transform:translateX(50px);}
   .task-toggle.on .toggle-label{opacity:1;}
-  .task-toggle.failed{background:linear-gradient(90deg,#FF6B6B,#E5484D); border-color:transparent;}
+  .task-toggle.failed{background:linear-gradient(90deg,#FF6B6B,#E5484D); border-color:transparent; cursor:not-allowed;}
+  .task-toggle.failed .toggle-label{opacity:1; right:auto; left:8px; font-size:13px;}
+  .task-toggle.failed .toggle-knob{left:auto; right:3px;}
   .subpanel{max-height:0; overflow:hidden; transition:max-height .4s ease;}
   .subpanel.open{max-height:1400px;}
   .subinner{padding:2px 14px 16px 14px;}
@@ -1262,7 +1266,7 @@ function getPlanForKey(key){
   const rec = LOG[key] || {};
   const removed = rec.removed || {};
   const filteredBase = base.filter(t=>!removed[t.id]);
-  const custom = (rec.customTasks||[]).map(ct=>({ id:ct.id, time:ct.time, dur:ct.dur, label:ct.label, cat:ct.cat, kind:'custom', sub:[] }));
+  const custom = (rec.customTasks||[]).map(ct=>({ id:ct.id, time:ct.time, dur:ct.dur, label:ct.label, cat:ct.cat, kind:'custom', sub:[], aiGenerated:!!ct.aiGenerated }));
   return [...filteredBase, ...custom].sort((a,b)=> a.time.localeCompare(b.time));
 }
 function isRestDay(dateObj){ return [2,4,6].includes(dateObj.getDay()); }
@@ -1488,9 +1492,10 @@ function dayPlanInfo(key){
   return {plan, rec, done, total:plan.length};
 }
 const REST_DAY_XP = 30;
-// Việc quá giờ hẹn 60 phút mà chưa tick hoàn thành sẽ tự động bị đánh dấu "không hoàn thành"
-// (rec.failed[taskId]=true) — trừ XP nhẹ (40% so với mức được cộng nếu hoàn thành) để tạo động lực,
-// nhưng không trừ nếu sau đó người dùng vẫn tick hoàn thành muộn (xem dayXP: chỉ phạt khi vẫn chưa xong).
+// Việc quá giờ hẹn 30 phút mà chưa tick hoàn thành sẽ tự động bị đánh dấu "không hoàn thành"
+// (rec.failed[taskId]=true) — trừ XP nhẹ (40% so với mức được cộng nếu hoàn thành) để tạo động lực.
+// Một khi đã bị đánh dấu bỏ lỡ, nút chuyển trạng thái của việc đó sẽ bị KHÓA vĩnh viễn cho ngày
+// hôm đó — người dùng không thể tick lại thành "Confirmed" nữa (xem toggleTask()).
 const FAIL_XP_PENALTY = Math.round(XP_PER_TASK*0.4);
 function failedCountForList(list, rec){ return list.filter(t=>rec.failed && rec.failed[t.id] && !rec.tasks[t.id]).length; }
 function dayPct(key){ if(isDayOff(key)) return 100; const {done,total} = dayPlanInfo(key); return total>0 ? Math.round(done/total*100) : 0; }
@@ -1502,8 +1507,9 @@ function dayXP(key){
   return Math.max(0, base - failedCountForList(plan, rec)*FAIL_XP_PENALTY);
 }
 function dayMaxXP(key){ if(isDayOff(key)) return REST_DAY_XP; const {total} = dayPlanInfo(key); return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0; }
-// Quét việc của HÔM NAY, tự đánh dấu "không hoàn thành" cho việc nào đã trễ quá 60 phút mà
+// Quét việc của HÔM NAY, tự đánh dấu "không hoàn thành" cho việc nào đã trễ quá 30 phút mà
 // vẫn chưa tick xong — ghi vào LOG của ngày đó để có dữ liệu lịch sử/thống kê lâu dài.
+const AUTO_FAIL_MINUTES = 30;
 function autoFailOverdueTasks(){
   const now = new Date(); const key = todayKey();
   if(isDayOff(key)) return;
@@ -1517,9 +1523,104 @@ function autoFailOverdueTasks(){
     if(rec.tasks[t.id] || rec.failed[t.id]) return;
     const [hh,mm] = t.time.split(':').map(Number);
     const taskTime = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0);
-    if((now-taskTime)/60000 >= 60){ rec.failed[t.id] = true; changed = true; }
+    if((now-taskTime)/60000 >= AUTO_FAIL_MINUTES){ rec.failed[t.id] = true; changed = true; }
   });
   if(changed){ saveLog(); if(STATE.tab==='today') renderContent(); }
+}
+
+// ================= AI LÊN LỊCH NGÀY MAI (theo 4 chỉ tiêu: Thể lực · Tiếng Anh · Chuyên môn · Kỷ luật) =================
+// Phân tích các việc đã làm/bỏ lỡ của một ngày (mặc định hôm nay) theo từng chỉ tiêu, để:
+//  (1) sinh lời khuyên khoa học cho ngày mai (hiển thị dạng thẻ AI), và
+//  (2) tự động chèn thêm 1 việc "bù nhẹ" vào lịch ngày mai cho mỗi chỉ tiêu bị bỏ lỡ (xem applyAiTomorrowAdjustments()).
+const AI_PILLARS = ['the_luc','tieng_anh','chuyen_mon','ky_luat'];
+function pillarStatsForKey(key){
+  const plan = getPlanForKey(key); const rec = dayRecord(key);
+  const out = {};
+  AI_PILLARS.forEach(cat=>{
+    const list = plan.filter(t=>t.cat===cat);
+    const done = list.filter(t=>rec.tasks[t.id]).length;
+    const failed = list.filter(t=>rec.failed && rec.failed[t.id] && !rec.tasks[t.id]);
+    out[cat] = { total:list.length, done, failed:failed.length, failedLabels:failed.map(t=>t.label) };
+  });
+  return out;
+}
+function aiRecommendTomorrow(key){
+  key = key || todayKey();
+  if(isDayOff(key)) return { hasData:false };
+  const {total} = dayPlanInfo(key);
+  if(total===0) return { hasData:false };
+  const stats = pillarStatsForKey(key);
+  const lines = [];
+  const advice = {
+    the_luc:{
+      failed:n=>`🏃 <b>Thể lực:</b> bỏ lỡ ${n} buổi hôm nay. Ngày mai nên khởi động kỹ 5–10 phút trước khi tập để lấy lại nhịp, ưu tiên tập đúng giờ và đủ bài hơn là tập nặng bù — tránh dồn ép gây chấn thương.`,
+      perfect:()=>`🏃 <b>Thể lực:</b> hoàn thành 100% hôm nay — tiến bộ tốt. Ngày mai có thể tăng nhẹ khối lượng tạ hoặc quãng đường chạy thêm khoảng 5–10%.`,
+    },
+    tieng_anh:{
+      failed:n=>`🗣️ <b>Tiếng Anh:</b> bỏ lỡ ${n} buổi luyện hôm nay. Ngày mai nên rút gọn thời lượng từng buổi (vd: shadowing 20 phút thay vì 45 phút) để dễ duy trì đều đặn, quan trọng là không bỏ buổi thêm lần nữa.`,
+      perfect:()=>`🗣️ <b>Tiếng Anh:</b> hoàn thành đủ cả 3 buổi hôm nay. Ngày mai có thể tăng độ khó — thử luyện ngữ pháp ở cấp độ CEFR cao hơn hoặc bài nghe dài hơn.`,
+    },
+    chuyen_mon:{
+      failed:n=>`📚 <b>Chuyên môn:</b> bỏ lỡ ${n} buổi học QC/QA. Ngày mai nên dồn nội dung còn thiếu vào buổi tối (20h00) và rút gọn lại để bù kiến thức mà không quá tải.`,
+      perfect:()=>`📚 <b>Chuyên môn:</b> hoàn thành đầy đủ hôm nay. Tiếp tục giữ nhịp học ổn định, có thể thử áp dụng kỹ thuật Feynman sâu hơn.`,
+    },
+    ky_luat:{
+      failed:n=>`🌙 <b>Kỷ luật:</b> chưa ngủ đúng giờ hôm nay. Ngày mai nên đặt nhắc tắt màn hình từ 21h30 để dễ lên giường đúng 22h00 hơn — kỷ luật giấc ngủ ảnh hưởng trực tiếp tới cả 3 chỉ tiêu còn lại.`,
+      perfect:()=>`🌙 <b>Kỷ luật:</b> đã ngủ đúng giờ hôm nay. Giữ vững thói quen này để duy trì năng lượng cho thể lực và học tập.`,
+    },
+  };
+  let anyFailed = false;
+  AI_PILLARS.forEach(cat=>{
+    const s = stats[cat];
+    if(s.total===0) return;
+    if(s.failed>0){ lines.push(advice[cat].failed(s.failed)); anyFailed = true; }
+    else if(s.done===s.total){ lines.push(advice[cat].perfect()); }
+  });
+  const summary = anyFailed
+    ? 'Một vài chỉ tiêu chưa đạt hôm nay — lịch ngày mai đã được AI điều chỉnh nhẹ (thêm buổi bù ngắn) để bạn bắt kịp mà không bị quá tải, vẫn giữ đủ cả 4 chỉ tiêu gốc: Thể lực, Tiếng Anh, Chuyên môn, Kỷ luật.'
+    : 'Hôm nay đạt tốt ở các chỉ tiêu đã có dữ liệu — ngày mai giữ nguyên khung lịch gốc và có thể tăng nhẹ độ khó ở vài mục để tiếp tục tiến bộ.';
+  return { hasData:lines.length>0, lines, summary, anyFailed };
+}
+function renderAiTomorrowCard(key){
+  const rec = aiRecommendTomorrow(key);
+  if(!rec.hasData) return '';
+  return `<div class="card ai-tomorrow-card">
+    <h3 style="margin-bottom:8px;">🧠 AI lên lịch cho ngày mai</h3>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+      ${rec.lines.map(l=>`<div style="font-size:12px; line-height:1.6; color:var(--dim);">${l}</div>`).join('')}
+    </div>
+    <div style="font-size:11.5px; line-height:1.6; color:var(--teal); font-weight:600; padding-top:8px; border-top:1px solid var(--border);">✅ ${rec.summary}</div>
+  </div>`;
+}
+// Tự động chèn 1 việc "bù nhẹ" cho mỗi chỉ tiêu bị bỏ lỡ hôm qua vào lịch HÔM NAY — chỉ chạy
+// một lần cho mỗi cặp ngày (đánh dấu bằng rec.aiAdjustedFrom) để không lặp lại nhiều lần.
+const AI_MAKEUP_TASKS = {
+  the_luc:   { time:'17:00', dur:15, label:'🔁 Bù nhẹ Thể lực — đi bộ nhanh / giãn cơ 15 phút' },
+  tieng_anh: { time:'08:20', dur:20, label:'🔁 Bù nhẹ Tiếng Anh — ôn nhanh từ vựng/nghe' },
+  chuyen_mon:{ time:'11:10', dur:20, label:'🔁 Bù nhẹ Chuyên môn — đọc lại ghi chú còn thiếu' },
+};
+function applyAiTomorrowAdjustments(){
+  const key = todayKey();
+  const yKey = toKey(addDays(parseKey(key), -1));
+  if(!LOG[yKey] || isDayOff(yKey)) return;
+  if(!LOG[key]) LOG[key] = {tasks:{}};
+  if(LOG[key].aiAdjustedFrom===yKey) return; // đã áp dụng cho cặp ngày này rồi
+  const stats = pillarStatsForKey(yKey);
+  if(!LOG[key].customTasks) LOG[key].customTasks = [];
+  let inserted = 0;
+  Object.keys(AI_MAKEUP_TASKS).forEach(cat=>{
+    if(stats[cat] && stats[cat].failed>0){
+      const id = 'aiadj_'+cat+'_'+key;
+      if(!LOG[key].customTasks.some(ct=>ct.id===id)){
+        const tpl = AI_MAKEUP_TASKS[cat];
+        LOG[key].customTasks.push({ id, time:tpl.time, dur:tpl.dur, label:tpl.label, cat, aiGenerated:true });
+        inserted++;
+      }
+    }
+  });
+  LOG[key].aiAdjustedFrom = yKey;
+  saveLog();
+  if(inserted>0 && STATE.tab==='today') renderContent();
 }
 function catInfo(key, cat){
   const {plan, rec} = dayPlanInfo(key); const list = plan.filter(t=>t.cat===cat);
@@ -1606,14 +1707,14 @@ function buildAdviceTrack(dateKeys, track){
   const streak = computeStreakTrack(track);
   const restCount = track==='schedule' ? tracked.filter(k=>isDayOff(k)).length : 0;
   const msgs = [`Tỷ lệ hoàn thành trung bình: <b>${avgPct}%</b> trên ${tracked.length} ngày có dữ liệu${restCount>0?` (trong đó có <b>${restCount} ngày nghỉ chủ động</b>, được tính là hoàn thành)`:''}. ${trendMsg}`];
-  // Đếm số việc bị tự động đánh dấu "không hoàn thành" (trễ quá 60 phút) trong giai đoạn này —
+  // Đếm số việc bị tự động đánh dấu "không hoàn thành" (trễ quá 30 phút) trong giai đoạn này —
   // đây là dữ liệu thực tế nhất phản ánh việc có thực sự bỏ lỡ hay không.
   let failedTotal = 0;
   tracked.forEach(k=>{
     const list = trackTasksForDay(k, track); const rec = dayRecord(k);
     failedTotal += failedCountForList(list, rec);
   });
-  if(failedTotal>0) msgs.push(`⚠️ Có <b>${failedTotal} việc bị tự động đánh dấu bỏ lỡ</b> (trễ hơn 60 phút mà chưa hoàn thành) trong giai đoạn này — đã bị trừ XP tương ứng. Thử đặt nhắc nhở sớm hơn hoặc dời giờ cho hợp lý hơn.`);
+  if(failedTotal>0) msgs.push(`⚠️ Có <b>${failedTotal} việc bị tự động đánh dấu bỏ lỡ</b> (trễ hơn ${AUTO_FAIL_MINUTES} phút mà chưa hoàn thành) trong giai đoạn này — đã bị trừ XP tương ứng và không thể xác nhận lại. Thử đặt nhắc nhở sớm hơn hoặc dời giờ cho hợp lý hơn.`);
   if(streak>=3) msgs.push(`🔥 Đang giữ chuỗi <b>${streak} ngày liên tiếp</b> — đừng để đứt quãng nhé!`);
   else if(tracked.length>0) msgs.push(`Chuỗi ngày liên tiếp hiện tại là 0. Hoàn thành hôm nay để bắt đầu chuỗi mới!`);
   if(track==='english' && Array.isArray(SETTINGS.grammarQuizLog) && SETTINGS.grammarQuizLog.length>0){
@@ -1951,6 +2052,12 @@ function renderCloudSyncCard(){
 
 function toggleTask(key, taskId){
   if(!LOG[key]) LOG[key] = {tasks:{}};
+  // Việc đã bị tự động đánh dấu "bỏ lỡ" (trễ quá AUTO_FAIL_MINUTES phút) thì khóa vĩnh viễn —
+  // không cho xác nhận lại thành Confirmed nữa, dù bấm bao nhiêu lần.
+  if(LOG[key].failed && LOG[key].failed[taskId]){
+    showToast('🔒', 'Việc này đã bị khóa', `Đã trễ quá ${AUTO_FAIL_MINUTES} phút nên bị đánh dấu bỏ lỡ — không thể xác nhận lại.`);
+    return;
+  }
   const wasDone = !!LOG[key].tasks[taskId];
   LOG[key].tasks[taskId] = !wasDone;
   if(!wasDone){
@@ -3227,7 +3334,7 @@ async function fetchGrammarQuizBank(){
   if(GRAMMAR_QUIZ_BANK || grammarQuizBankLoading) return;
   grammarQuizBankLoading = true;
   try{
-    const res = await fetch('./grammar-quiz-data.json?v=3');
+    const res = await fetch('./grammar-quiz-data.json?v=4');
     GRAMMAR_QUIZ_BANK = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng câu hỏi ngữ pháp', e);
@@ -3536,7 +3643,7 @@ async function fetchListeningQuizData(){
   if(LISTENING_QUIZ || listeningQuizLoading) return;
   listeningQuizLoading = true;
   try{
-    const res = await fetch('./listening-quiz-data.json?v=1');
+    const res = await fetch('./listening-quiz-data.json?v=2');
     LISTENING_QUIZ = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng câu hỏi nghe', e);
@@ -3936,22 +4043,28 @@ function startListenQuiz(level){
   const bank = (LISTENING_QUIZ && LISTENING_QUIZ[level]) || [];
   const allIdx = shuffleArr(bank.map((_,i)=>i));
   const order = allIdx.slice(0, Math.min(25, allIdx.length));
-  STATE.listenQuiz = {level, order, idx:0, correct:0, answered:null, finished:false, optOrder:shuffleArr([0,1,2,3])};
+  STATE.listenQuiz = {level, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   STATE.listenPlayback = 'idle';
   renderContent();
 }
-function answerListenQuiz(displayIdx){
+// Dữ liệu câu hỏi mới: [dialogueLines, question_en, [4 lựa chọn_en], correctIdx, explain_vi, translate_vi, tip_vi]
+function answerListenQuiz(idx){
   const q = STATE.listenQuiz; if(!q || q.answered!==null) return;
-  q.answered = displayIdx;
-  const correctDisplayIdx = q.optOrder.indexOf(0);
-  if(displayIdx === correctDisplayIdx) q.correct++;
+  const item = currentListenItem(); if(!item) return;
+  q.answered = idx;
+  if(idx === item[3]) q.correct++;
+  renderContent();
+}
+function toggleListenTranslate(){
+  const q = STATE.listenQuiz; if(!q) return;
+  q.showTranslate = !q.showTranslate;
   renderContent();
 }
 function nextListenQuiz(){
   const q = STATE.listenQuiz; if(!q) return;
   stopListenAudio();
   if(q.idx < q.order.length-1){
-    q.idx++; q.answered=null; q.optOrder = shuffleArr([0,1,2,3]);
+    q.idx++; q.answered=null; q.showTranslate=false;
     STATE.listenPlayback = 'idle';
     renderContent();
     const item = currentListenItem();
@@ -3983,27 +4096,54 @@ function renderListenQuizUI(){
     </div>`;
   } else {
     const item = currentListenItem();
-    const [lines, question, options] = item;
-    const opts = q.optOrder.map(i=>options[i]);
-    const correctDisplayIdx = q.optOrder.indexOf(0);
-    const optsHtml = opts.map((opt,i)=>{
-      let cls='eng-quiz-opt';
-      if(q.answered!==null){ cls+=' disabled'; if(i===correctDisplayIdx) cls+=' correct'; else if(i===q.answered) cls+=' wrong'; }
-      return `<div class="${cls}" ${q.answered===null?`data-action="listen-quiz-answer" data-opt="${i}"`:''}>${escapeHtml(opt)}</div>`;
+    const [lines, question, options, correctIdx, explainVi, translateVi, tipVi] = item;
+    const optLetters = ['A','B','C','D','E','F'];
+    const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
+    const optsHtml = options.map((opt,i)=>{
+      let cls = 'eng-quiz-opt';
+      if(q.answered!==null){
+        cls += ' disabled';
+        if(i===correctIdx) cls += ' correct';
+        else if(i===q.answered) cls += ' wrong';
+      }
+      return `<div class="${cls}" ${q.answered===null?`data-action="listen-quiz-answer" data-opt="${i}"`:''}>
+        <span class="opt-badge" style="background:${optColors[i%optColors.length]};">${optLetters[i]||(i+1)}</span>
+        <span class="opt-text">${escapeHtml(opt)}</span>
+      </div>`;
     }).join('');
+    // Bảng hội thoại (tiếng Anh) chỉ hiện ra SAU khi trả lời — để bài tập vẫn đúng nghĩa là luyện NGHE
+    // (nghe trước bằng nút Phát/Nghe lại), không phải đọc trước đáp án.
     const transcriptHtml = q.answered!==null ? `<div class="eng-quiz-explain">📝 ${lines.map(l=>`<b>${escapeHtml(l[0])}:</b> ${escapeHtml(l[1])}`).join('<br>')}</div>` : '';
+    const explainHtml = (q.answered!==null && explainVi) ? `<div class="eng-quiz-explain">💡 ${escapeHtml(explainVi)}</div>` : '';
+    const tipHtml = (q.answered!==null && tipVi) ? `<div class="eng-quiz-tip">🤖 <b>Mẹo nghe AI:</b> ${escapeHtml(tipVi)}</div>` : '';
+    const translateHtml = (translateVi && q.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
     const pb = STATE.listenPlayback || 'idle';
     const playBtnLabel = pb==='playing' ? '⏸ Tạm dừng' : (pb==='paused' ? '▶ Tiếp tục' : '▶ Phát');
-    body = `<div class="eng-quiz-progress">Câu ${q.idx+1}/${q.order.length} · ${LEVEL_LABELS[q.level]} · Đúng ${q.correct}</div>
-    <div class="card">
+    const progressPct = Math.round((q.idx/q.order.length)*100);
+    body = `<div class="eng-quiz-progress-wrap">
+      <div class="eng-quiz-progress-top">
+        <span class="eng-quiz-progress-badge count">Câu ${q.idx+1}/${q.order.length}</span>
+        <span class="eng-quiz-progress-badge correct">✓ Đúng ${q.correct}</span>
+      </div>
+      <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
+    </div>
+    <div class="card eng-quiz-card">
       <div style="display:flex; gap:8px; margin-bottom:12px;">
         <button class="form-btn" data-action="listen-quiz-toggle" style="flex:1;">${playBtnLabel}</button>
         <button class="form-btn cancel" data-action="listen-quiz-replay" style="flex:1;">🔁 Nghe lại</button>
       </div>
       <div class="eng-quiz-q">${escapeHtml(question)}</div>
       ${optsHtml}
+      ${q.answered===null ? `<button class="eng-quiz-skip" data-action="listen-quiz-skip">⏭ Bỏ qua câu này</button>` : ''}
       ${transcriptHtml}
-      ${q.answered!==null ? `<button class="form-btn" data-action="listen-quiz-next" style="width:100%;">${q.idx<q.order.length-1?'Câu tiếp →':'Xem kết quả'}</button>` : ''}
+      ${explainHtml}
+      ${tipHtml}
+      ${q.answered!==null ? `
+        <div class="eng-quiz-actions">
+          ${translateVi ? `<button class="form-btn btn-translate" data-action="listen-quiz-toggle-translate" style="flex:1;">${q.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
+        </div>
+        ${translateHtml}
+        <button class="form-btn eng-quiz-nextbtn" data-action="listen-quiz-next" style="width:100%; margin-top:8px;">${q.idx<q.order.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>` : ''}
     </div>`;
   }
   document.getElementById('content').innerHTML = `
@@ -4108,14 +4248,18 @@ function renderEnglishAV(item, mode){
       </div>`;
     }
   }
+  // Mục "Video YouTube gợi ý" và "Nguồn khác uy tín" đã được bỏ khỏi Luyện nghe theo yêu cầu —
+  // vẫn giữ nguyên cho Luyện nói (mode==='speaking') vì phần đó chưa có ngân hàng câu hỏi riêng.
+  const extraSourcesHtml = mode==='speaking' ? `
+    <div class="eng-av-src"><h4>▶ Video YouTube gợi ý (${LEVEL_LABELS[level]})</h4>${ytHtml}</div>
+    <div class="eng-av-src"><h4>🌐 Nguồn khác uy tín (${LEVEL_LABELS[level]})</h4>${extHtml}</div>` : '';
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
     <div class="eng-level-grid">${levelCards}</div>
     ${playerHtml}
     ${listenTestHtml}
     <div class="eng-av-src"><h4>📁 Thư mục Google Drive riêng</h4>${driveHtml}</div>
-    <div class="eng-av-src"><h4>▶ Video YouTube gợi ý (${LEVEL_LABELS[level]})</h4>${ytHtml}</div>
-    <div class="eng-av-src"><h4>🌐 Nguồn khác uy tín (${LEVEL_LABELS[level]})</h4>${extHtml}</div>
+    ${extraSourcesHtml}
   `;
 }
 function renderEnglishNotes(item){
@@ -4193,9 +4337,9 @@ function renderToday(){
       <div class="task" data-action="row" data-task="${t.id}">
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
-        <div class="lbl">${t.label}<span class="chev ${isOpen?'open':''}">▸</span></div>
+        <div class="lbl">${t.label}${t.aiGenerated?'<span class="ai-tag">🤖 AI đề xuất</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
         <div class="task-toggle ${isDone?'on':''} ${isFailed?'failed':''}" data-action="toggle" data-task="${t.id}">
-          <span class="toggle-label">${isDone ? 'Confirmed' : ''}</span>
+          <span class="toggle-label">${isDone ? 'Confirmed' : (isFailed ? '🔒' : '')}</span>
           <span class="toggle-knob"></span>
         </div>
         <div class="rm" data-action="remove-task" data-task="${t.id}" data-custom="${isCustom?'1':'0'}" title="${isCustom?'Xóa việc này':'Ẩn việc này hôm nay'}">✕</div>
@@ -4224,6 +4368,7 @@ function renderToday(){
     <div class="tasklist">${tasksHtml}</div>
     ${resetHtml}
     ${addTaskSection}
+    ${renderAiTomorrowCard(key)}
   `;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     document.querySelectorAll('.ring-fg').forEach(el=>{ el.style.strokeDashoffset = el.getAttribute('data-final'); });
@@ -4754,6 +4899,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(cloudTtsKeyEl){ setCloudTtsApiKey(); return; }
   const listenQuizAnswerEl = e.target.closest('[data-action="listen-quiz-answer"]');
   if(listenQuizAnswerEl){ answerListenQuiz(parseInt(listenQuizAnswerEl.getAttribute('data-opt'),10)); return; }
+  const listenQuizSkipEl = e.target.closest('[data-action="listen-quiz-skip"]');
+  if(listenQuizSkipEl){ nextListenQuiz(); return; }
+  const listenQuizToggleTranslateEl = e.target.closest('[data-action="listen-quiz-toggle-translate"]');
+  if(listenQuizToggleTranslateEl){ toggleListenTranslate(); return; }
   const listenQuizNextEl = e.target.closest('[data-action="listen-quiz-next"]');
   if(listenQuizNextEl){ nextListenQuiz(); return; }
   const listenQuizExitEl = e.target.closest('[data-action="listen-quiz-exit"]');
@@ -4921,6 +5070,7 @@ function markNotified(key, flagKey){
 }
 function checkReminders(){
   autoFailOverdueTasks();
+  applyAiTomorrowAdjustments();
   const now = new Date(); const key = todayKey();
   if(isDayOff(key)) return;
   const {plan, rec} = dayPlanInfo(key);
