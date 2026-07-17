@@ -4251,7 +4251,7 @@ async function fetchSpeakingPracticeData(){
   if(SPEAKING_PRACTICE || speakingPracticeLoading) return;
   speakingPracticeLoading = true;
   try{
-    const res = await fetch('./speaking-practice-data.json?v=1');
+    const res = await fetch('./speaking-practice-data.json?v=2');
     SPEAKING_PRACTICE = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng luyện nói', e);
@@ -4363,39 +4363,64 @@ function speakFeedbackMsgs(r){
   else msgs.push('Ngữ điệu và tốc độ nói khá tự nhiên, giữ nhịp này nhé.');
   return msgs;
 }
-let speakRecognition=null; let speakRecogStart=0;
-function stopSpeakRecognition(){ if(speakRecognition){ try{speakRecognition.abort();}catch(e){} speakRecognition=null; } const s=STATE.speakSession; if(s) s.recording=false; }
+let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal='';
+function stopSpeakRecognition(){
+  if(speakRecognition){ speakRecognition._userStop=true; try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
+  const s=STATE.speakSession; if(s) s.recording=false;
+}
+function saveSpeakBest(s){
+  if(!s.result) return;
+  if(!SETTINGS.speakPractice) SETTINGS.speakPractice={};
+  if(!SETTINGS.speakPractice.best) SETTINGS.speakPractice.best={};
+  const pb=SETTINGS.speakPractice.best[s.level]||0;
+  if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
+}
 function startSpeakRecording(){
   const s=STATE.speakSession; if(!s) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy dùng Chrome trên Android hoặc máy tính.'); return; }
-  if(s.recording){ stopSpeakRecognition(); renderSpeakPracticeUI(); return; }
+  if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
+  // Đang ghi -> bấm lần nữa để DỪNG và chấm điểm phần đã nghe.
+  if(s.recording && speakRecognition){ try{ speakRecognition._userStop=true; speakRecognition.stop(); }catch(e){} return; }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
-  const rec=new SR(); speakRecognition=rec;
-  rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1; rec.continuous=false;
+  let rec;
+  try{ rec=new SR(); }catch(e){ showToast('⚠️','Không khởi tạo được','Thiết bị không hỗ trợ nhận diện giọng nói.'); return; }
+  speakRecognition=rec; speakRecogFinal='';
+  rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
+  try{ rec.continuous=true; }catch(e){}
+  rec._userStop=false; rec._scored=false;
   s.recording=true; s.result=null; speakRecogStart=Date.now(); renderSpeakPracticeUI();
-  rec.onresult=(ev)=>{
-    const res=ev.results[0][0];
-    const heard=res.transcript||''; const conf=res.confidence;
+  const scoreNow=(heard)=>{
+    if(rec._scored) return; rec._scored=true;
+    s.recording=false; if(speakRecognition===rec) speakRecognition=null;
     const dur=(Date.now()-speakRecogStart)/1000;
-    s.result=scoreSpeaking(item[0], heard, dur, conf);
-    s.recording=false; speakRecognition=null;
-    if(!SETTINGS.speakPractice) SETTINGS.speakPractice={};
-    if(!SETTINGS.speakPractice.best) SETTINGS.speakPractice.best={};
-    const pb=SETTINGS.speakPractice.best[s.level]||0;
-    if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
+    if(!heard || !heard.trim()){
+      showToast('🔇','Chưa nghe rõ giọng nói','Bấm micro, chờ 1 giây rồi đọc to & rõ cả đoạn. Đọc xong bấm lại để chấm điểm.');
+      renderSpeakPracticeUI(); return;
+    }
+    s.result=scoreSpeaking(item[0], heard, dur, null);
+    saveSpeakBest(s);
     renderSpeakPracticeUI();
+  };
+  rec.onresult=(ev)=>{
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      if(ev.results[i].isFinal) speakRecogFinal += ev.results[i][0].transcript + ' ';
+    }
   };
   rec.onerror=(ev)=>{
-    s.recording=false; speakRecognition=null;
-    if(ev.error==='not-allowed'||ev.error==='service-not-allowed') showToast('🎤','Cần quyền micro','Hãy cho phép ứng dụng truy cập micro để chấm điểm phát âm.');
-    else if(ev.error==='no-speech') showToast('🔇','Không nghe thấy giọng nói','Hãy nói to và rõ hơn rồi thử lại.');
-    else showToast('⚠️','Lỗi nhận diện','Không nhận diện được giọng nói, thử lại nhé.');
+    const err=(ev && ev.error) || 'unknown';
+    if(err==='aborted') return; // do người dùng chủ động dừng -> để onend chấm điểm
+    rec._scored=true; s.recording=false; if(speakRecognition===rec) speakRecognition=null;
+    if(err==='not-allowed'||err==='service-not-allowed') showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.');
+    else if(err==='no-speech') showToast('🔇','Không nghe thấy giọng nói','Hãy đọc to và rõ hơn rồi thử lại.');
+    else if(err==='network') showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.');
+    else if(err==='audio-capture') showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.');
+    else showToast('⚠️','Lỗi nhận diện ('+err+')','Thử lại nhé. Nếu lặp lại, hãy mở app bằng trình duyệt Chrome.');
     renderSpeakPracticeUI();
   };
-  rec.onend=()=>{ if(s.recording){ s.recording=false; speakRecognition=null; renderSpeakPracticeUI(); } };
-  try{ rec.start(); }catch(e){ s.recording=false; speakRecognition=null; showToast('⚠️','Không bắt đầu được','Thử lại sau giây lát.'); renderSpeakPracticeUI(); }
+  rec.onend=()=>{ if(!rec._scored) scoreNow(speakRecogFinal.trim()); };
+  try{ rec.start(); }
+  catch(e){ if(speakRecognition===rec) speakRecognition=null; s.recording=false; showToast('⚠️','Không bắt đầu được','Đợi 1 giây rồi thử lại.'); renderSpeakPracticeUI(); }
 }
 function speakScoreColor(v){ return v>=80?'#2CDBA8':(v>=55?'#ffb020':'#ff5c5c'); }
 function speakScoreBar(label, v){
@@ -4416,13 +4441,13 @@ function renderSpeakingPractice(item){
       <div style="font-size:13px; color:var(--dim);">Đang tải ngân hàng luyện nói…</div>
     </div>`;
   } else {
-    const totalN=['beginner','intermediate','advanced'].reduce((s,lv)=>s+((SPEAKING_PRACTICE[lv]||[]).length),0);
-    const cards=['beginner','intermediate','advanced'].map(lv=>{
-      const b=best[lv]; const n=(SPEAKING_PRACTICE[lv]||[]).length;
-      return `<div class="eng-level-pick-card ${n===0?'disabled':''}" ${n>0?`data-action="speak-practice-start" data-level="${lv}"`:''}>
-        <div class="lvl-code" style="color:${AV_LEVEL_COLORS[lv]};">${LEVEL_LABELS[lv]}</div>
-        <div class="lvl-label">${AV_LEVEL_SUBLABELS[lv]}</div>
-        <div class="lvl-count">${n===0?'Sắp có':n+' câu'}</div>
+    const totalN=CEFR_LEVELS.reduce((s,lv)=>s+((SPEAKING_PRACTICE[lv.key]||[]).length),0);
+    const cards=CEFR_LEVELS.map(lv=>{
+      const b=best[lv.key]; const n=(SPEAKING_PRACTICE[lv.key]||[]).length;
+      return `<div class="eng-level-pick-card ${n===0?'disabled':''}" ${n>0?`data-action="speak-practice-start" data-level="${lv.key}"`:''}>
+        <div class="lvl-code" style="color:${lv.color};">${lv.key}</div>
+        <div class="lvl-label">${escapeHtml(lv.label)}</div>
+        <div class="lvl-count">${n===0?'Sắp có':n+' đoạn'}</div>
         ${b!==undefined?`<div class="lvl-best">★ ${b}đ</div>`:''}
       </div>`;
     }).join('');
@@ -4430,12 +4455,12 @@ function renderSpeakingPractice(item){
     levelPickHtml=`
       <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
         <div style="font-size:26px; margin-bottom:6px;">🗣️</div>
-        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Nghe giọng mẫu, đọc theo rồi để AI chấm điểm <b>phát âm, ngữ điệu, đúng từ</b>. Có nút phát, tạm dừng, đọc lại và dịch nghĩa. Tổng ${totalN} đoạn luyện nói giao tiếp hằng ngày.</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Nghe giọng mẫu, đọc theo cả đoạn rồi để AI chấm điểm <b>phát âm, ngữ điệu, đúng từ</b>. Có nút phát, tạm dừng, đọc lại và dịch nghĩa. Mỗi đoạn gồm nhiều câu giao tiếp hằng ngày (tổng ${totalN} đoạn).</div>
       </div>
       ${ttsVoiceConfigBtnHtml()}
       ${cloudTtsUsageBarHtml()}
       ${srOk ? '' : `<div style="font-size:11.5px;color:#ffb020;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">⚠️ Thiết bị này chưa hỗ trợ nhận diện giọng nói nên phần chấm điểm có thể không hoạt động. Bạn vẫn luyện nghe/đọc theo mẫu bình thường. Khuyến nghị dùng Chrome trên Android hoặc máy tính.</div>`}
-      <div class="eng-section-label">🎯 Chọn theo cấp độ</div>
+      <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
       <div class="eng-level-pick-row">${cards}</div>
       <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
   }
@@ -4444,7 +4469,9 @@ function renderSpeakingPractice(item){
 function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
   const item=currentSpeakItem();
-  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">🗣️ Luyện nói · ${LEVEL_LABELS[s.level]}</div></div>`;
+  const lvObj=CEFR_LEVELS.find(l=>l.key===s.level);
+  const lvName=lvObj?(lvObj.key+' · '+lvObj.label):s.level;
+  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">🗣️ Luyện nói · ${lvName}</div></div>`;
   if(!item){ document.getElementById('content').innerHTML=backRow+`<div class="card"><div class="eng-av-empty">Không có nội dung.</div></div>`; return; }
   const [text, translateVi, tipVi]=item;
   const pb=STATE.speakPlayback||'idle';
@@ -4452,8 +4479,9 @@ function renderSpeakPracticeUI(){
   const progressPct=Math.round((s.idx/s.order.length)*100);
   const r=s.result;
   const recBtn = s.recording
-    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… bấm để dừng</button>`
+    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… đọc xong bấm để chấm điểm</button>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
+  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro → chờ 1 giây → đọc to, rõ cả đoạn → bấm lại để chấm điểm. Cần cho phép quyền micro.</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -4471,7 +4499,7 @@ function renderSpeakPracticeUI(){
   document.getElementById('content').innerHTML = backRow + `
     <div class="eng-quiz-progress-wrap">
       <div class="eng-quiz-progress-top">
-        <span class="eng-quiz-progress-badge count">Câu ${s.idx+1}/${s.order.length}</span>
+        <span class="eng-quiz-progress-badge count">Đoạn ${s.idx+1}/${s.order.length}</span>
         ${r?`<span class="eng-quiz-progress-badge correct">${r.overall}đ</span>`:''}
       </div>
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
@@ -4483,6 +4511,7 @@ function renderSpeakPracticeUI(){
         <button class="form-btn cancel" data-action="speak-replay" style="flex:1;">🔁 Đọc lại mẫu</button>
       </div>
       ${recBtn}
+      ${recHint}
       ${tipHtml}
       <div class="eng-quiz-actions" style="margin-top:10px;">
         ${translateVi ? `<button class="form-btn btn-translate" data-action="speak-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
