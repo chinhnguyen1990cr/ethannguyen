@@ -4366,6 +4366,7 @@ function speakFeedbackMsgs(r){
 let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal=''; let speakRecogInterim='';
 let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
 let speakAutoStopTimer=null; let speakCountdownTimer=null;
+let speakSessionCount=0; let speakDiagStatus='';
 // Ước lượng thời gian đọc (giây) dựa trên số từ trong đoạn, có giới hạn dưới/trên hợp lý.
 // Dùng để TỰ ĐỘNG dừng ghi âm bằng setTimeout của chính app — không phụ thuộc bất kỳ sự kiện
 // chạm/nhấn nào của trình duyệt. Đây là lưới an toàn cấp cao nhất: dù mọi sự kiện tap/pointer
@@ -4416,6 +4417,7 @@ function beginSpeakRecording(){
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
   speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
+  speakSessionCount=0; speakDiagStatus='';
   s.recording=true; s.result=null; speakRecogStart=Date.now();
   s.recordSecLeft = estimateSpeakDurationSec(item[0]);
   renderSpeakPracticeUI();
@@ -4450,19 +4452,25 @@ function beginSpeakRecording(){
   // lại với nhau để mô phỏng nghe liên tục — cách này ổn định trên cả Android lẫn desktop.
   const runSession=()=>{
     if(speakRecogStopRequested) return;
+    speakSessionCount++;
+    const mySession=speakSessionCount;
     let rec;
     try{ rec=new SR(); }catch(e){ scoreNow(speakRecogFinal.trim()); return; }
     speakRecognition=rec;
     rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
     // Hiển thị trực tiếp chữ máy đang nghe được (cập nhật thẳng DOM, không render lại toàn màn
     // hình) — giúp người dùng (và cả mình khi debug từ xa) thấy ngay mic có thực sự bắt được
-    // giọng nói hay không, thay vì phải đoán mò khi cuối cùng báo "chưa nghe rõ".
+    // giọng nói hay không, thay vì phải đoán mò khi cuối cùng báo "chưa nghe rõ". Khi CHƯA có
+    // chữ nào, hiện luôn trạng thái kỹ thuật (phiên số mấy, đang chờ mic hay đã báo lỗi gì) để
+    // có bằng chứng cụ thể khi người dùng báo lại lỗi trên điện thoại — thay vì đoán mò tiếp.
     const updateCaption=()=>{
       const cap=document.getElementById('speak-live-caption'); if(!cap) return;
       const shown=(speakRecogFinal+' '+speakRecogInterim).trim();
-      cap.textContent = shown ? ('🎙️ '+shown) : '🎙️ Đang chờ giọng nói…';
+      cap.textContent = shown ? ('🎙️ '+shown) : ('🎙️ '+(speakDiagStatus||'Đang chờ giọng nói…'));
     };
-    rec.onsoundstart=()=>{ const cap=document.getElementById('speak-live-caption'); if(cap && !(speakRecogFinal+speakRecogInterim).trim()) cap.textContent='🎙️ Đã nghe thấy âm thanh, đang nhận diện…'; };
+    speakDiagStatus='Phiên '+mySession+': đang khởi động mic…'; updateCaption();
+    rec.onstart=()=>{ speakDiagStatus='Phiên '+mySession+': mic đã mở, đang chờ bạn nói…'; updateCaption(); };
+    rec.onsoundstart=()=>{ speakDiagStatus='Phiên '+mySession+': đã nghe thấy âm thanh, đang nhận diện…'; updateCaption(); };
     rec.onresult=(ev)=>{
       let interim='';
       for(let i=ev.resultIndex;i<ev.results.length;i++){
@@ -4474,8 +4482,12 @@ function beginSpeakRecording(){
     };
     rec.onerror=(ev)=>{
       const err=(ev && ev.error) || 'unknown';
-      if(err==='aborted' || err==='no-speech') return; // để onend tự khởi động lại phiên tiếp theo
+      if(err==='aborted' || err==='no-speech'){
+        speakDiagStatus='Phiên '+mySession+': không bắt được giọng ('+err+'), đang thử lại…'; updateCaption();
+        return; // để onend tự khởi động lại phiên tiếp theo
+      }
       speakRecogStopRequested=true;
+      speakDiagStatus='Phiên '+mySession+': lỗi "'+err+'"';
       if(err==='not-allowed'||err==='service-not-allowed') showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.');
       else if(err==='network') showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.');
       else if(err==='audio-capture') showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.');
@@ -4487,7 +4499,11 @@ function beginSpeakRecording(){
       if(speakRecognition!==rec) return; // đã bị thay bởi phiên mới hơn (hoặc đã bị dừng cứng)
       speakRecognition=null;
       if(speakRecogStopRequested){ scoreNow((speakRecogFinal+' '+speakRecogInterim).trim()); return; }
-      speakRecogRestartTimer=setTimeout(runSession, 150);
+      // Tăng khoảng nghỉ giữa 2 phiên (150ms → 350ms): một số máy Android cần thêm thời gian để
+      // giải phóng hẳn mic trước khi phiên nhận diện kế tiếp mở lại được — nghỉ quá ngắn có thể
+      // khiến phiên sau mở "mic ảo" không thực sự nhận được âm thanh nào (khớp với hiện tượng
+      // "không nhận diện được chữ" trên điện thoại dù đọc to).
+      speakRecogRestartTimer=setTimeout(runSession, 350);
     };
     try{ rec.start(); }
     catch(e){ speakRecogRestartTimer=setTimeout(()=>{ speakRecogStopRequested ? scoreNow((speakRecogFinal+' '+speakRecogInterim).trim()) : runSession(); }, 250); }
@@ -4555,7 +4571,7 @@ function renderSpeakPracticeUI(){
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-10</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-11</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
