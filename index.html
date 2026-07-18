@@ -4364,8 +4364,12 @@ function speakFeedbackMsgs(r){
   return msgs;
 }
 let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal='';
+let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
 function stopSpeakRecognition(){
-  if(speakRecognition){ speakRecognition._userStop=true; try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
+  speakRecogStopRequested=true;
+  if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
+  if(speakRecognition){ try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
+  else if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); }
   const s=STATE.speakSession; if(s) s.recording=false;
 }
 function saveSpeakBest(s){
@@ -4380,19 +4384,22 @@ function startSpeakRecording(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
   // Đang ghi -> bấm lần nữa để DỪNG và chấm điểm phần đã nghe.
-  if(s.recording && speakRecognition){ try{ speakRecognition._userStop=true; speakRecognition.stop(); }catch(e){} return; }
+  if(s.recording){
+    speakRecogStopRequested=true;
+    if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
+    if(speakRecognition){ try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
+    else if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); }
+    return;
+  }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
-  let rec;
-  try{ rec=new SR(); }catch(e){ showToast('⚠️','Không khởi tạo được','Thiết bị không hỗ trợ nhận diện giọng nói.'); return; }
-  speakRecognition=rec; speakRecogFinal='';
-  rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
-  try{ rec.continuous=true; }catch(e){}
-  rec._userStop=false; rec._scored=false;
+  speakRecogFinal=''; speakRecogStopRequested=false;
   s.recording=true; s.result=null; speakRecogStart=Date.now(); renderSpeakPracticeUI();
+
   const scoreNow=(heard)=>{
-    if(rec._scored) return; rec._scored=true;
-    s.recording=false; if(speakRecognition===rec) speakRecognition=null;
+    if(!speakRecogScoreNow) return; // đã chấm rồi
+    speakRecogScoreNow=null;
+    s.recording=false; speakRecognition=null;
     const dur=(Date.now()-speakRecogStart)/1000;
     if(!heard || !heard.trim()){
       showToast('🔇','Chưa nghe rõ giọng nói','Bấm micro, chờ 1 giây rồi đọc to & rõ cả đoạn. Đọc xong bấm lại để chấm điểm.');
@@ -4402,25 +4409,40 @@ function startSpeakRecording(){
     saveSpeakBest(s);
     renderSpeakPracticeUI();
   };
-  rec.onresult=(ev)=>{
-    for(let i=ev.resultIndex;i<ev.results.length;i++){
-      if(ev.results[i].isFinal) speakRecogFinal += ev.results[i][0].transcript + ' ';
-    }
+  speakRecogScoreNow=scoreNow;
+
+  // QUAN TRỌNG: không dùng continuous=true — chế độ này bị lỗi đứng im/không nhận diện
+  // trên Chrome Android (kể cả trong app đã đóng gói lẫn trình duyệt di động), dù hoạt động
+  // bình thường trên desktop. Thay vào đó, tự nối tiếp nhiều phiên nhận diện ngắn (single-shot)
+  // lại với nhau để mô phỏng nghe liên tục — cách này ổn định trên cả Android lẫn desktop.
+  const runSession=()=>{
+    if(speakRecogStopRequested) return;
+    let rec;
+    try{ rec=new SR(); }catch(e){ scoreNow(speakRecogFinal.trim()); return; }
+    speakRecognition=rec;
+    rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
+    rec.onresult=(ev)=>{
+      for(let i=ev.resultIndex;i<ev.results.length;i++){
+        if(ev.results[i].isFinal) speakRecogFinal += ev.results[i][0].transcript + ' ';
+      }
+    };
+    rec.onerror=(ev)=>{
+      const err=(ev && ev.error) || 'unknown';
+      if(err==='aborted' || err==='no-speech') return; // để onend tự khởi động lại phiên tiếp theo
+      if(err==='not-allowed'||err==='service-not-allowed'){ speakRecogStopRequested=true; showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.'); return; }
+      if(err==='network'){ speakRecogStopRequested=true; showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.'); return; }
+      if(err==='audio-capture'){ speakRecogStopRequested=true; showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.'); return; }
+      // lỗi khác không rõ nguyên nhân -> để onend tự thử khởi động lại, không làm phiền người dùng
+    };
+    rec.onend=()=>{
+      if(speakRecognition!==rec) return; // đã bị thay bởi phiên mới hơn
+      if(speakRecogStopRequested){ scoreNow(speakRecogFinal.trim()); return; }
+      speakRecogRestartTimer=setTimeout(runSession, 150);
+    };
+    try{ rec.start(); }
+    catch(e){ speakRecogRestartTimer=setTimeout(()=>{ speakRecogStopRequested ? scoreNow(speakRecogFinal.trim()) : runSession(); }, 250); }
   };
-  rec.onerror=(ev)=>{
-    const err=(ev && ev.error) || 'unknown';
-    if(err==='aborted') return; // do người dùng chủ động dừng -> để onend chấm điểm
-    rec._scored=true; s.recording=false; if(speakRecognition===rec) speakRecognition=null;
-    if(err==='not-allowed'||err==='service-not-allowed') showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.');
-    else if(err==='no-speech') showToast('🔇','Không nghe thấy giọng nói','Hãy đọc to và rõ hơn rồi thử lại.');
-    else if(err==='network') showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.');
-    else if(err==='audio-capture') showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.');
-    else showToast('⚠️','Lỗi nhận diện ('+err+')','Thử lại nhé. Nếu lặp lại, hãy mở app bằng trình duyệt Chrome.');
-    renderSpeakPracticeUI();
-  };
-  rec.onend=()=>{ if(!rec._scored) scoreNow(speakRecogFinal.trim()); };
-  try{ rec.start(); }
-  catch(e){ if(speakRecognition===rec) speakRecognition=null; s.recording=false; showToast('⚠️','Không bắt đầu được','Đợi 1 giây rồi thử lại.'); renderSpeakPracticeUI(); }
+  runSession();
 }
 function speakScoreColor(v){ return v>=80?'#2CDBA8':(v>=55?'#ffb020':'#ff5c5c'); }
 function speakScoreBar(label, v){
