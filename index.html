@@ -4480,6 +4480,22 @@ function beginSpeakRecording(){
   };
   runSession();
 }
+window.__speakDebug = function(){
+  const s = STATE.speakSession;
+  return {
+    recording: s && s.recording,
+    recordSecLeft: s && s.recordSecLeft,
+    hasResult: !!(s && s.result),
+    hasScoreNow: !!speakRecogScoreNow,
+    hasRecognition: !!speakRecognition,
+    stopRequested: speakRecogStopRequested,
+    final: speakRecogFinal,
+    interim: speakRecogInterim,
+    hasAutoTimer: !!speakAutoStopTimer,
+    hasCountdownTimer: !!speakCountdownTimer,
+    hasRestartTimer: !!speakRecogRestartTimer,
+  };
+};
 function speakScoreColor(v){ return v>=80?'#2CDBA8':(v>=55?'#ffb020':'#ff5c5c'); }
 function speakScoreBar(label, v){
   const c=speakScoreColor(v);
@@ -4540,7 +4556,7 @@ function renderSpeakPracticeUI(){
     ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-7</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-8-debug</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
