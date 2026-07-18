@@ -4454,6 +4454,15 @@ function beginSpeakRecording(){
     try{ rec=new SR(); }catch(e){ scoreNow(speakRecogFinal.trim()); return; }
     speakRecognition=rec;
     rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
+    // Hiển thị trực tiếp chữ máy đang nghe được (cập nhật thẳng DOM, không render lại toàn màn
+    // hình) — giúp người dùng (và cả mình khi debug từ xa) thấy ngay mic có thực sự bắt được
+    // giọng nói hay không, thay vì phải đoán mò khi cuối cùng báo "chưa nghe rõ".
+    const updateCaption=()=>{
+      const cap=document.getElementById('speak-live-caption'); if(!cap) return;
+      const shown=(speakRecogFinal+' '+speakRecogInterim).trim();
+      cap.textContent = shown ? ('🎙️ '+shown) : '🎙️ Đang chờ giọng nói…';
+    };
+    rec.onsoundstart=()=>{ const cap=document.getElementById('speak-live-caption'); if(cap && !(speakRecogFinal+speakRecogInterim).trim()) cap.textContent='🎙️ Đã nghe thấy âm thanh, đang nhận diện…'; };
     rec.onresult=(ev)=>{
       let interim='';
       for(let i=ev.resultIndex;i<ev.results.length;i++){
@@ -4461,6 +4470,7 @@ function beginSpeakRecording(){
         else interim += ev.results[i][0].transcript + ' ';
       }
       if(interim) speakRecogInterim=interim;
+      updateCaption();
     };
     rec.onerror=(ev)=>{
       const err=(ev && ev.error) || 'unknown';
@@ -4541,10 +4551,11 @@ function renderSpeakPracticeUI(){
   const progressPct=Math.round((s.idx/s.order.length)*100);
   const r=s.result;
   const recBtn = s.recording
-    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>`
+    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>
+       <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-9</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-10</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
