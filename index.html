@@ -599,7 +599,7 @@
   .eng-quiz-result .score{font-size:34px; font-weight:800; color:var(--gold); font-family:var(--mono);}
   .speak-rec-btn{width:100%; background:linear-gradient(135deg,#FF6EA8,#B06CF0); color:#fff; border:none;
     border-radius:14px; padding:13px; font-size:13.5px; font-weight:800; cursor:pointer; display:flex;
-    align-items:center; justify-content:center; gap:8px;}
+    align-items:center; justify-content:center; gap:8px; touch-action:none; user-select:none; -webkit-user-select:none;}
   .speak-rec-btn.recording{background:linear-gradient(135deg,#E5484D,#B0143D);}
   .speak-rec-btn .rec-dot{width:11px; height:11px; border-radius:50%; background:#fff; animation:recpulse 1s ease-in-out infinite;}
   @keyframes recpulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.35; transform:scale(0.7);}}
@@ -4387,12 +4387,13 @@ function saveSpeakBest(s){
   const pb=SETTINGS.speakPractice.best[s.level]||0;
   if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
 }
-function startSpeakRecording(){
-  const s=STATE.speakSession; if(!s) return;
+// Bắt đầu ghi âm khi NGƯỜI DÙNG NHẤN GIỮ nút micro (pointerdown). Dừng khi thả tay ra
+// (pointerup/pointercancel/pointerleave) -> forceStopSpeakRecording(). Tách bắt đầu/kết thúc
+// theo 2 sự kiện độc lập, rõ ràng thay vì bấm-bấm (toggle) — tránh mọi nhập nhằng về trạng thái.
+function beginSpeakRecording(){
+  const s=STATE.speakSession; if(!s || s.recording) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
-  // Đang ghi -> bấm lần nữa để DỪNG và chấm điểm ngay (không chờ sự kiện của trình duyệt).
-  if(s.recording){ forceStopSpeakRecording(); return; }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
   speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
@@ -4404,7 +4405,7 @@ function startSpeakRecording(){
     s.recording=false; speakRecognition=null;
     const dur=(Date.now()-speakRecogStart)/1000;
     if(!heard || !heard.trim()){
-      showToast('🔇','Chưa nghe rõ giọng nói','Bấm micro, chờ 1 giây rồi đọc to & rõ cả đoạn. Đọc xong bấm lại để chấm điểm.');
+      showToast('🔇','Chưa nghe rõ giọng nói','Nhấn giữ micro, đọc to & rõ cả đoạn, rồi thả tay ra để chấm điểm.');
       renderSpeakPracticeUI(); return;
     }
     s.result=scoreSpeaking(item[0], heard, dur, null);
@@ -4510,9 +4511,9 @@ function renderSpeakPracticeUI(){
   const progressPct=Math.round((s.idx/s.order.length)*100);
   const r=s.result;
   const recBtn = s.recording
-    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… đọc xong bấm để chấm điểm</button>`
-    : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
-  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro → chờ 1 giây → đọc to, rõ cả đoạn → bấm lại để chấm điểm. Cần cho phép quyền micro.</div>`;
+    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record-hold"><span class="rec-dot"></span> Đang nghe… thả tay để chấm điểm</button>`
+    : `<button class="form-btn speak-rec-btn" data-action="speak-record-hold">🎤 ${r?'Giữ để đọc lại & chấm điểm':'Giữ để đọc, thả ra để chấm điểm'}</button>`;
+  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Nhấn giữ micro → đọc to, rõ cả đoạn → thả tay ra để chấm điểm. Cần cho phép quyền micro.</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -5205,8 +5206,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakTogglePlayEl){ toggleSpeakPlayback(); return; }
   const speakReplayEl = e.target.closest('[data-action="speak-replay"]');
   if(speakReplayEl){ playSpeakLine(); return; }
-  const speakRecordEl = e.target.closest('[data-action="speak-record"]');
-  if(speakRecordEl){ startSpeakRecording(); return; }
+  // Nút micro giờ dùng pointerdown/pointerup (nhấn giữ) — xem listener riêng bên dưới, không xử lý ở click.
   const speakToggleTransEl = e.target.closest('[data-action="speak-toggle-translate"]');
   if(speakToggleTransEl){ speakToggleTranslate(); return; }
   const speakNextEl = e.target.closest('[data-action="speak-next"]');
@@ -5355,6 +5355,32 @@ document.getElementById('content').addEventListener('click',(e)=>{
     SETTINGS.methods[mid] = !SETTINGS.methods[mid];
     saveSettings(); renderContent(); return;
   }
+});
+// Nút micro "Luyện nói" — nhấn giữ để nói, thả tay ra để chấm điểm (thay vì bấm-bấm 2 lần).
+// setPointerCapture đảm bảo vẫn nhận được sự kiện thả tay dù ngón tay trượt ra ngoài nút.
+document.getElementById('content').addEventListener('pointerdown',(e)=>{
+  const btn = e.target.closest('[data-action="speak-record-hold"]');
+  if(!btn) return;
+  e.preventDefault();
+  try{ btn.setPointerCapture(e.pointerId); }catch(err){}
+  beginSpeakRecording();
+});
+// pointerup/pointercancel bubble và (nhờ setPointerCapture ở trên) vẫn nhắm đúng vào nút micro
+// dù ngón tay thả ra ở ngoài phạm vi nút — nên không cần thêm pointerleave (sự kiện này không nổi bọt).
+['pointerup','pointercancel'].forEach(evt=>{
+  document.getElementById('content').addEventListener(evt,(e)=>{
+    const btn = e.target.closest('[data-action="speak-record-hold"]');
+    if(!btn) return;
+    const s=STATE.speakSession;
+    if(s && s.recording) forceStopSpeakRecording();
+  });
+});
+// Lưới an toàn cấp toàn trang: nếu vì lý do gì đó (ví dụ trình duyệt cũ không hỗ trợ tốt
+// setPointerCapture) mà nút không nhận được sự kiện thả tay, vẫn dừng ghi âm khi thả tay
+// ở BẤT KỲ đâu trên trang trong lúc đang ghi.
+document.addEventListener('pointerup', ()=>{
+  const s=STATE.speakSession;
+  if(s && s.recording) forceStopSpeakRecording();
 });
 document.getElementById('hud').addEventListener('click', (e)=>{
   if(e.target.closest('[data-action="open-avatar"]')) openAvatarModal();
