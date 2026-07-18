@@ -4446,10 +4446,16 @@ function beginSpeakRecording(){
   };
   speakRecogScoreNow=scoreNow;
 
-  // QUAN TRỌNG: không dùng continuous=true — chế độ này bị lỗi đứng im/không nhận diện
-  // trên Chrome Android (kể cả trong app đã đóng gói lẫn trình duyệt di động), dù hoạt động
-  // bình thường trên desktop. Thay vào đó, tự nối tiếp nhiều phiên nhận diện ngắn (single-shot)
-  // lại với nhau để mô phỏng nghe liên tục — cách này ổn định trên cả Android lẫn desktop.
+  // CẬP NHẬT (sau khi test thực tế trên điện thoại): trước đây tránh continuous=true vì lo ngại
+  // lỗi "đứng im" trên Chrome Android — nhưng lưới an toàn timer tự dừng (estimateSpeakDurationSec
+  // + speakAutoStopTimer, xem forceStopSpeakRecording) đã loại bỏ hẳn rủi ro "đứng im mãi mãi" đó:
+  // dù phiên có bị treo, timer vẫn ép dừng + chấm điểm đúng hạn. Trong khi đó, cách nối nhiều phiên
+  // ngắn (single-shot) lại liên tục khởi động lại bộ nhận diện gốc của Android — đây là nguyên nhân
+  // thực sự khiến điện thoại báo "no-speech" ngay từ phiên đầu: SpeechRecognizer gốc trên nhiều máy
+  // Android không nhả tài nguyên mic kịp giữa các lần start/stop liên tiếp (lỗi nền tảng đã biết).
+  // => Dùng LẠI continuous=true làm chế độ chính (chỉ 1 phiên duy nhất suốt lúc đọc, không phải
+  // khởi động lại liên tục), giữ cơ chế nối phiên cũ chỉ làm lưới dự phòng nếu trình duyệt tự kết
+  // thúc phiên sớm ngoài ý muốn.
   const runSession=()=>{
     if(speakRecogStopRequested) return;
     speakSessionCount++;
@@ -4457,7 +4463,7 @@ function beginSpeakRecording(){
     let rec;
     try{ rec=new SR(); }catch(e){ scoreNow(speakRecogFinal.trim()); return; }
     speakRecognition=rec;
-    rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
+    rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1; rec.continuous=true;
     // Hiển thị trực tiếp chữ máy đang nghe được (cập nhật thẳng DOM, không render lại toàn màn
     // hình) — giúp người dùng (và cả mình khi debug từ xa) thấy ngay mic có thực sự bắt được
     // giọng nói hay không, thay vì phải đoán mò khi cuối cùng báo "chưa nghe rõ". Khi CHƯA có
@@ -4571,7 +4577,7 @@ function renderSpeakPracticeUI(){
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-11</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-12</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
