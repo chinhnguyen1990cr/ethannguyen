@@ -599,7 +599,7 @@
   .eng-quiz-result .score{font-size:34px; font-weight:800; color:var(--gold); font-family:var(--mono);}
   .speak-rec-btn{width:100%; background:linear-gradient(135deg,#FF6EA8,#B06CF0); color:#fff; border:none;
     border-radius:14px; padding:13px; font-size:13.5px; font-weight:800; cursor:pointer; display:flex;
-    align-items:center; justify-content:center; gap:8px; touch-action:none; user-select:none; -webkit-user-select:none;}
+    align-items:center; justify-content:center; gap:8px; user-select:none; -webkit-user-select:none;}
   .speak-rec-btn.recording{background:linear-gradient(135deg,#E5484D,#B0143D);}
   .speak-rec-btn .rec-dot{width:11px; height:11px; border-radius:50%; background:#fff; animation:recpulse 1s ease-in-out infinite;}
   @keyframes recpulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.35; transform:scale(0.7);}}
@@ -4365,13 +4365,27 @@ function speakFeedbackMsgs(r){
 }
 let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal=''; let speakRecogInterim='';
 let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
+let speakAutoStopTimer=null; let speakCountdownTimer=null;
+// Ước lượng thời gian đọc (giây) dựa trên số từ trong đoạn, có giới hạn dưới/trên hợp lý.
+// Dùng để TỰ ĐỘNG dừng ghi âm bằng setTimeout của chính app — không phụ thuộc bất kỳ sự kiện
+// chạm/nhấn nào của trình duyệt. Đây là lưới an toàn cấp cao nhất: dù mọi sự kiện tap/pointer
+// đều không hoạt động đúng trên một số thiết bị, ghi âm vẫn LUÔN tự dừng và chấm điểm đúng hạn.
+function estimateSpeakDurationSec(text){
+  const words = (text||'').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(14, Math.min(50, Math.round(words/1.8) + 7));
+}
+function clearSpeakTimers(){
+  if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
+  if(speakAutoStopTimer){ clearTimeout(speakAutoStopTimer); speakAutoStopTimer=null; }
+  if(speakCountdownTimer){ clearInterval(speakCountdownTimer); speakCountdownTimer=null; }
+}
 // Dừng ghi âm NGAY LẬP TỨC và chấm điểm đồng bộ bằng phần đã nghe được, không chờ sự kiện onend
 // của trình duyệt — một số máy Android không bao giờ bắn sự kiện này (hoặc bắn rất trễ) khiến
 // màn hình bị kẹt mãi ở trạng thái "Đang nghe…". Việc tắt hẳn mic (abort) vẫn được gọi ở nền,
 // nhưng UI không phụ thuộc vào kết quả của nó nữa.
 function forceStopSpeakRecording(){
   speakRecogStopRequested=true;
-  if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
+  clearSpeakTimers();
   const rec=speakRecognition; speakRecognition=null;
   if(rec){ try{ rec.stop(); }catch(e){} setTimeout(()=>{ try{ rec.abort(); }catch(e){} }, 400); }
   if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn((speakRecogFinal+' '+speakRecogInterim).trim()); }
@@ -4387,10 +4401,11 @@ function saveSpeakBest(s){
   const pb=SETTINGS.speakPractice.best[s.level]||0;
   if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
 }
-// Bắt đầu ghi âm khi NGƯỜI DÙNG NHẤN GIỮ nút micro (pointerdown). Dừng khi thả tay ra
-// (pointerup/pointercancel) -> forceStopSpeakRecording(). Tách bắt đầu/kết thúc theo 2 sự kiện
-// độc lập, rõ ràng thay vì bấm-bấm (toggle) — tránh mọi nhập nhằng về trạng thái.
-function beginSpeakRecording(btnEl){
+// Bắt đầu ghi âm khi bấm nút (1 lần). Ghi âm sẽ TỰ ĐỘNG dừng và chấm điểm sau một khoảng thời
+// gian ước lượng theo độ dài đoạn văn (xem estimateSpeakDurationSec) — đây là cơ chế chính, luôn
+// hoạt động vì chỉ phụ thuộc setTimeout của chính app, không phụ thuộc bất kỳ sự kiện chạm/nhấn
+// nào của trình duyệt. Người dùng vẫn có thể bấm nút lần nữa để dừng sớm nếu muốn (không bắt buộc).
+function beginSpeakRecording(){
   const s=STATE.speakSession; if(!s || s.recording) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
@@ -4398,17 +4413,17 @@ function beginSpeakRecording(btnEl){
   const item=currentSpeakItem(); if(!item) return;
   speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
   s.recording=true; s.result=null; speakRecogStart=Date.now();
-  // QUAN TRỌNG: cập nhật giao diện nút TRỰC TIẾP trên chính phần tử đang được nhấn giữ, KHÔNG
-  // gọi renderSpeakPracticeUI() (innerHTML lại toàn màn hình) ở đây — vì nếu hủy/tạo lại đúng nút
-  // đang có con trỏ (pointer capture) giữa chừng cử chỉ, một số Android WebView sẽ không còn bắn
-  // đúng sự kiện thả tay (pointerup/pointercancel) về nút đó nữa, khiến màn hình bị kẹt "Đang nghe…"
-  // mãi mãi. Giữ nguyên node DOM trong suốt cử chỉ nhấn-giữ là điều bắt buộc.
-  if(btnEl){
-    btnEl.classList.add('recording');
-    btnEl.innerHTML = '<span class="rec-dot"></span> Đang nghe… thả tay để chấm điểm';
-  } else {
-    renderSpeakPracticeUI();
-  }
+  s.recordSecLeft = estimateSpeakDurationSec(item[0]);
+  renderSpeakPracticeUI();
+  // Đếm ngược hiển thị + lưới an toàn cao nhất: tự dừng khi hết giờ, KHÔNG cần bất kỳ thao tác nào
+  // từ người dùng. Cập nhật số đếm ngược bằng cách sửa trực tiếp text node (không innerHTML lại
+  // toàn màn hình mỗi giây) để nhẹ và không có rủi ro phá hủy DOM giữa chừng.
+  speakCountdownTimer = setInterval(()=>{
+    s.recordSecLeft = Math.max(0, s.recordSecLeft-1);
+    const el = document.getElementById('speak-countdown-num');
+    if(el) el.textContent = s.recordSecLeft;
+  }, 1000);
+  speakAutoStopTimer = setTimeout(()=>{ if(s.recording) forceStopSpeakRecording(); }, (s.recordSecLeft+1)*1000);
 
   const scoreNow=(heard)=>{
     if(!speakRecogScoreNow) return; // đã chấm rồi
@@ -4416,7 +4431,7 @@ function beginSpeakRecording(btnEl){
     s.recording=false; speakRecognition=null;
     const dur=(Date.now()-speakRecogStart)/1000;
     if(!heard || !heard.trim()){
-      showToast('🔇','Chưa nghe rõ giọng nói','Nhấn giữ micro, đọc to & rõ cả đoạn, rồi thả tay ra để chấm điểm.');
+      showToast('🔇','Chưa nghe rõ giọng nói','Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự chấm điểm khi hết giờ.');
       renderSpeakPracticeUI(); return;
     }
     s.result=scoreSpeaking(item[0], heard, dur, null);
@@ -4522,9 +4537,9 @@ function renderSpeakPracticeUI(){
   const progressPct=Math.round((s.idx/s.order.length)*100);
   const r=s.result;
   const recBtn = s.recording
-    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record-hold"><span class="rec-dot"></span> Đang nghe… thả tay để chấm điểm</button>`
-    : `<button class="form-btn speak-rec-btn" data-action="speak-record-hold">🎤 ${r?'Giữ để đọc lại & chấm điểm':'Giữ để đọc, thả ra để chấm điểm'}</button>`;
-  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Nhấn giữ micro → đọc to, rõ cả đoạn → thả tay ra để chấm điểm. Cần cho phép quyền micro.</div>`;
+    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>`
+    : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
+  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -5217,7 +5232,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakTogglePlayEl){ toggleSpeakPlayback(); return; }
   const speakReplayEl = e.target.closest('[data-action="speak-replay"]');
   if(speakReplayEl){ playSpeakLine(); return; }
-  // Nút micro giờ dùng pointerdown/pointerup (nhấn giữ) — xem listener riêng bên dưới, không xử lý ở click.
+  const speakRecordEl = e.target.closest('[data-action="speak-record"]');
+  if(speakRecordEl){
+    const s=STATE.speakSession;
+    if(s){ if(s.recording) forceStopSpeakRecording(); else beginSpeakRecording(); }
+    return;
+  }
   const speakToggleTransEl = e.target.closest('[data-action="speak-toggle-translate"]');
   if(speakToggleTransEl){ speakToggleTranslate(); return; }
   const speakNextEl = e.target.closest('[data-action="speak-next"]');
@@ -5366,26 +5386,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
     SETTINGS.methods[mid] = !SETTINGS.methods[mid];
     saveSettings(); renderContent(); return;
   }
-});
-// Nút micro "Luyện nói" — nhấn giữ để nói, thả tay ra để chấm điểm (thay vì bấm-bấm 2 lần).
-// setPointerCapture đảm bảo vẫn nhận được sự kiện thả tay dù ngón tay trượt ra ngoài nút.
-document.getElementById('content').addEventListener('pointerdown',(e)=>{
-  const btn = e.target.closest('[data-action="speak-record-hold"]');
-  if(!btn) return;
-  e.preventDefault();
-  try{ btn.setPointerCapture(e.pointerId); }catch(err){}
-  beginSpeakRecording(btn);
-});
-// Dừng khi thả tay ra: lắng nghe pointerup VÀ pointercancel ở CẤP TOÀN TRANG (document), không
-// dựa vào e.target trùng đúng nút micro. Lý do: một số Android WebView bắn pointercancel với
-// target là document/body (không phải phần tử gốc) khi cử chỉ bị gián đoạn, nên việc dò
-// closest('[data-action=...]') có thể bỏ lỡ. Ở đây chỉ cần đang ghi âm (s.recording) là dừng,
-// bất kể sự kiện đến từ đâu — đơn giản và chắc chắn hơn nhiều.
-['pointerup','pointercancel'].forEach(evt=>{
-  document.addEventListener(evt, ()=>{
-    const s=STATE.speakSession;
-    if(s && s.recording) forceStopSpeakRecording();
-  });
 });
 document.getElementById('hud').addEventListener('click', (e)=>{
   if(e.target.closest('[data-action="open-avatar"]')) openAvatarModal();
