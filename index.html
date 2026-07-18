@@ -4388,16 +4388,27 @@ function saveSpeakBest(s){
   if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
 }
 // Bắt đầu ghi âm khi NGƯỜI DÙNG NHẤN GIỮ nút micro (pointerdown). Dừng khi thả tay ra
-// (pointerup/pointercancel/pointerleave) -> forceStopSpeakRecording(). Tách bắt đầu/kết thúc
-// theo 2 sự kiện độc lập, rõ ràng thay vì bấm-bấm (toggle) — tránh mọi nhập nhằng về trạng thái.
-function beginSpeakRecording(){
+// (pointerup/pointercancel) -> forceStopSpeakRecording(). Tách bắt đầu/kết thúc theo 2 sự kiện
+// độc lập, rõ ràng thay vì bấm-bấm (toggle) — tránh mọi nhập nhằng về trạng thái.
+function beginSpeakRecording(btnEl){
   const s=STATE.speakSession; if(!s || s.recording) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
   speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
-  s.recording=true; s.result=null; speakRecogStart=Date.now(); renderSpeakPracticeUI();
+  s.recording=true; s.result=null; speakRecogStart=Date.now();
+  // QUAN TRỌNG: cập nhật giao diện nút TRỰC TIẾP trên chính phần tử đang được nhấn giữ, KHÔNG
+  // gọi renderSpeakPracticeUI() (innerHTML lại toàn màn hình) ở đây — vì nếu hủy/tạo lại đúng nút
+  // đang có con trỏ (pointer capture) giữa chừng cử chỉ, một số Android WebView sẽ không còn bắn
+  // đúng sự kiện thả tay (pointerup/pointercancel) về nút đó nữa, khiến màn hình bị kẹt "Đang nghe…"
+  // mãi mãi. Giữ nguyên node DOM trong suốt cử chỉ nhấn-giữ là điều bắt buộc.
+  if(btnEl){
+    btnEl.classList.add('recording');
+    btnEl.innerHTML = '<span class="rec-dot"></span> Đang nghe… thả tay để chấm điểm';
+  } else {
+    renderSpeakPracticeUI();
+  }
 
   const scoreNow=(heard)=>{
     if(!speakRecogScoreNow) return; // đã chấm rồi
@@ -5363,24 +5374,18 @@ document.getElementById('content').addEventListener('pointerdown',(e)=>{
   if(!btn) return;
   e.preventDefault();
   try{ btn.setPointerCapture(e.pointerId); }catch(err){}
-  beginSpeakRecording();
+  beginSpeakRecording(btn);
 });
-// pointerup/pointercancel bubble và (nhờ setPointerCapture ở trên) vẫn nhắm đúng vào nút micro
-// dù ngón tay thả ra ở ngoài phạm vi nút — nên không cần thêm pointerleave (sự kiện này không nổi bọt).
+// Dừng khi thả tay ra: lắng nghe pointerup VÀ pointercancel ở CẤP TOÀN TRANG (document), không
+// dựa vào e.target trùng đúng nút micro. Lý do: một số Android WebView bắn pointercancel với
+// target là document/body (không phải phần tử gốc) khi cử chỉ bị gián đoạn, nên việc dò
+// closest('[data-action=...]') có thể bỏ lỡ. Ở đây chỉ cần đang ghi âm (s.recording) là dừng,
+// bất kể sự kiện đến từ đâu — đơn giản và chắc chắn hơn nhiều.
 ['pointerup','pointercancel'].forEach(evt=>{
-  document.getElementById('content').addEventListener(evt,(e)=>{
-    const btn = e.target.closest('[data-action="speak-record-hold"]');
-    if(!btn) return;
+  document.addEventListener(evt, ()=>{
     const s=STATE.speakSession;
     if(s && s.recording) forceStopSpeakRecording();
   });
-});
-// Lưới an toàn cấp toàn trang: nếu vì lý do gì đó (ví dụ trình duyệt cũ không hỗ trợ tốt
-// setPointerCapture) mà nút không nhận được sự kiện thả tay, vẫn dừng ghi âm khi thả tay
-// ở BẤT KỲ đâu trên trang trong lúc đang ghi.
-document.addEventListener('pointerup', ()=>{
-  const s=STATE.speakSession;
-  if(s && s.recording) forceStopSpeakRecording();
 });
 document.getElementById('hud').addEventListener('click', (e)=>{
   if(e.target.closest('[data-action="open-avatar"]')) openAvatarModal();
