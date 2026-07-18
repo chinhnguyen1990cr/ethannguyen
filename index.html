@@ -4363,13 +4363,21 @@ function speakFeedbackMsgs(r){
   else msgs.push('Ngữ điệu và tốc độ nói khá tự nhiên, giữ nhịp này nhé.');
   return msgs;
 }
-let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal='';
+let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal=''; let speakRecogInterim='';
 let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
-function stopSpeakRecognition(){
+// Dừng ghi âm NGAY LẬP TỨC và chấm điểm đồng bộ bằng phần đã nghe được, không chờ sự kiện onend
+// của trình duyệt — một số máy Android không bao giờ bắn sự kiện này (hoặc bắn rất trễ) khiến
+// màn hình bị kẹt mãi ở trạng thái "Đang nghe…". Việc tắt hẳn mic (abort) vẫn được gọi ở nền,
+// nhưng UI không phụ thuộc vào kết quả của nó nữa.
+function forceStopSpeakRecording(){
   speakRecogStopRequested=true;
   if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
-  if(speakRecognition){ try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
-  else if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); }
+  const rec=speakRecognition; speakRecognition=null;
+  if(rec){ try{ rec.stop(); }catch(e){} setTimeout(()=>{ try{ rec.abort(); }catch(e){} }, 400); }
+  if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn((speakRecogFinal+' '+speakRecogInterim).trim()); }
+}
+function stopSpeakRecognition(){
+  forceStopSpeakRecording();
   const s=STATE.speakSession; if(s) s.recording=false;
 }
 function saveSpeakBest(s){
@@ -4383,21 +4391,11 @@ function startSpeakRecording(){
   const s=STATE.speakSession; if(!s) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
-  // Đang ghi -> bấm lần nữa để DỪNG và chấm điểm phần đã nghe.
-  if(s.recording){
-    speakRecogStopRequested=true;
-    if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
-    if(speakRecognition){ try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
-    else if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); }
-    // Lưới an toàn: một số thiết bị Android đôi khi không bắn sự kiện onend sau khi gọi stop()/abort()
-    // (đặc biệt nếu đang ở khoảng nghỉ giữa 2 phiên) khiến màn hình bị kẹt ở trạng thái "Đang nghe…".
-    // Nếu sau 3.5s vẫn chưa chấm điểm được thì tự ép chấm điểm bằng phần đã nghe được (nếu có).
-    setTimeout(()=>{ if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); } }, 3500);
-    return;
-  }
+  // Đang ghi -> bấm lần nữa để DỪNG và chấm điểm ngay (không chờ sự kiện của trình duyệt).
+  if(s.recording){ forceStopSpeakRecording(); return; }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
-  speakRecogFinal=''; speakRecogStopRequested=false;
+  speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
   s.recording=true; s.result=null; speakRecogStart=Date.now(); renderSpeakPracticeUI();
 
   const scoreNow=(heard)=>{
@@ -4426,26 +4424,32 @@ function startSpeakRecording(){
     speakRecognition=rec;
     rec.lang='en-US'; rec.interimResults=true; rec.maxAlternatives=1;
     rec.onresult=(ev)=>{
+      let interim='';
       for(let i=ev.resultIndex;i<ev.results.length;i++){
         if(ev.results[i].isFinal) speakRecogFinal += ev.results[i][0].transcript + ' ';
+        else interim += ev.results[i][0].transcript + ' ';
       }
+      if(interim) speakRecogInterim=interim;
     };
     rec.onerror=(ev)=>{
       const err=(ev && ev.error) || 'unknown';
       if(err==='aborted' || err==='no-speech') return; // để onend tự khởi động lại phiên tiếp theo
-      if(err==='not-allowed'||err==='service-not-allowed'){ speakRecogStopRequested=true; showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.'); return; }
-      if(err==='network'){ speakRecogStopRequested=true; showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.'); return; }
-      if(err==='audio-capture'){ speakRecogStopRequested=true; showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.'); return; }
-      // lỗi khác không rõ nguyên nhân -> để onend tự thử khởi động lại, không làm phiền người dùng
+      speakRecogStopRequested=true;
+      if(err==='not-allowed'||err==='service-not-allowed') showToast('🎤','Cần quyền micro','Ứng dụng chưa được cấp quyền micro. Vào Cài đặt điện thoại → cấp quyền Micro cho app (hoặc bấm biểu tượng khóa trên thanh địa chỉ nếu dùng trình duyệt), rồi thử lại.');
+      else if(err==='network') showToast('📶','Cần kết nối mạng','Nhận diện giọng nói cần Internet. Kiểm tra kết nối rồi thử lại. Nếu đang dùng app đã cài mà vẫn lỗi, hãy thử mở bằng trình duyệt Chrome.');
+      else if(err==='audio-capture') showToast('🎤','Không tìm thấy micro','Thiết bị không có micro hoặc đang bị ứng dụng khác chiếm dụng.');
+      // Chấm điểm ngay bằng phần đã nghe được, không chờ onend (một số máy không bắn onend sau lỗi).
+      if(speakRecognition===rec) speakRecognition=null;
+      scoreNow((speakRecogFinal+' '+speakRecogInterim).trim());
     };
     rec.onend=()=>{
-      if(speakRecognition!==rec) return; // đã bị thay bởi phiên mới hơn
-      speakRecognition=null; // xóa ngay để nút "dừng" biết hiện không có phiên nào đang chạy (tránh kẹt giữa 2 phiên)
-      if(speakRecogStopRequested){ scoreNow(speakRecogFinal.trim()); return; }
+      if(speakRecognition!==rec) return; // đã bị thay bởi phiên mới hơn (hoặc đã bị dừng cứng)
+      speakRecognition=null;
+      if(speakRecogStopRequested){ scoreNow((speakRecogFinal+' '+speakRecogInterim).trim()); return; }
       speakRecogRestartTimer=setTimeout(runSession, 150);
     };
     try{ rec.start(); }
-    catch(e){ speakRecogRestartTimer=setTimeout(()=>{ speakRecogStopRequested ? scoreNow(speakRecogFinal.trim()) : runSession(); }, 250); }
+    catch(e){ speakRecogRestartTimer=setTimeout(()=>{ speakRecogStopRequested ? scoreNow((speakRecogFinal+' '+speakRecogInterim).trim()) : runSession(); }, 250); }
   };
   runSession();
 }
