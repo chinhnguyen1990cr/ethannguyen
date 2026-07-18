@@ -4389,6 +4389,10 @@ function startSpeakRecording(){
     if(speakRecogRestartTimer){ clearTimeout(speakRecogRestartTimer); speakRecogRestartTimer=null; }
     if(speakRecognition){ try{ speakRecognition.stop(); }catch(e){ try{ speakRecognition.abort(); }catch(_){} } }
     else if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); }
+    // Lưới an toàn: một số thiết bị Android đôi khi không bắn sự kiện onend sau khi gọi stop()/abort()
+    // (đặc biệt nếu đang ở khoảng nghỉ giữa 2 phiên) khiến màn hình bị kẹt ở trạng thái "Đang nghe…".
+    // Nếu sau 3.5s vẫn chưa chấm điểm được thì tự ép chấm điểm bằng phần đã nghe được (nếu có).
+    setTimeout(()=>{ if(speakRecogScoreNow){ const fn=speakRecogScoreNow; speakRecogScoreNow=null; fn(speakRecogFinal.trim()); } }, 3500);
     return;
   }
   stopSpeakAudio();
@@ -4436,6 +4440,7 @@ function startSpeakRecording(){
     };
     rec.onend=()=>{
       if(speakRecognition!==rec) return; // đã bị thay bởi phiên mới hơn
+      speakRecognition=null; // xóa ngay để nút "dừng" biết hiện không có phiên nào đang chạy (tránh kẹt giữa 2 phiên)
       if(speakRecogStopRequested){ scoreNow(speakRecogFinal.trim()); return; }
       speakRecogRestartTimer=setTimeout(runSession, 150);
     };
