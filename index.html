@@ -4059,7 +4059,7 @@ function replayListenQuiz(){
 }
 function setCloudTtsApiKey(){
   const cur = SETTINGS.cloudTtsApiKey || '';
-  const key = (window.prompt('Dán Google Cloud Text-to-Speech API key (để trống để dùng tạm giọng đọc mặc định của trình duyệt):', cur) || '').trim();
+  const key = (window.prompt('Dán Google Cloud API key (để trống để dùng tạm giọng đọc + nhận diện giọng nói mặc định của trình duyệt).\n\nLưu ý: cần bật CẢ 2 API cho key này trong Google Cloud Console → "Cloud Text-to-Speech API" (đọc mẫu) và "Cloud Speech-to-Text API" (chấm điểm Luyện nói ổn định trên điện thoại).', cur) || '').trim();
   SETTINGS.cloudTtsApiKey = key;
   saveSettings(); pushToDrive();
   renderContent();
@@ -4201,8 +4201,8 @@ function cloudTtsUsageBarHtml(){
 }
 function ttsVoiceConfigBtnHtml(){
   const voiceStatus = SETTINGS.cloudTtsApiKey
-    ? '🎙️ Giọng đọc tự nhiên Google Cloud TTS (xen kẽ nhiều giọng nam/nữ) — bấm để đổi/xóa API key'
-    : '🔈 Đang dùng giọng đọc mặc định của trình duyệt — bấm để cấu hình giọng đọc tự nhiên hơn';
+    ? '🎙️ Giọng đọc tự nhiên + ghi âm chấm điểm ổn định qua Google Cloud (TTS và Speech-to-Text) — bấm để đổi/xóa API key'
+    : '🔈 Đang dùng giọng đọc và nhận diện giọng nói mặc định của trình duyệt — bấm để cấu hình Google Cloud API key (giọng đọc tự nhiên hơn + chấm điểm Luyện nói ổn định hơn trên điện thoại)';
   return `<div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-cloud-tts-key" style="width:100%; text-align:left; font-size:11.5px;">${voiceStatus}</button></div>`;
 }
 const AV_SOURCE_NOTE = 'Nội dung biên soạn theo phong cách hội thoại giao tiếp hằng ngày của các trang học tiếng Anh uy tín: BBC Learning English, British Council LearnEnglish, VOA Learning English, ESL-Lab.';
@@ -4367,6 +4367,14 @@ let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal=''; let sp
 let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
 let speakAutoStopTimer=null; let speakCountdownTimer=null;
 let speakSessionCount=0; let speakDiagStatus='';
+// Ghi âm thật + gửi lên Google Cloud Speech-to-Text — dùng khi người dùng đã cấu hình API key
+// (mục "giọng đọc tự nhiên" phía trên). Đây là đường vòng qua Web Speech API của trình duyệt,
+// vì API đó (webkitSpeechRecognition) trên nhiều máy Android bị lỗi nền tảng "aborted" liên tục
+// dù mic/quyền/mạng đều bình thường (đã xác nhận bằng cách thử ứng dụng Google riêng, nhận diện
+// tốt) — không phải lỗi có thể sửa được từ phía code trang web. Ghi âm thô rồi tự gửi lên dịch vụ
+// nhận diện của Google (giống cách app đã dùng Cloud TTS để đọc mẫu) thì hoạt động ổn định trên
+// mọi thiết bị vì không phụ thuộc bộ nhận diện nội bộ (thường bị lỗi) của Chrome for Android.
+let speakMediaStream=null; let speakMediaRecorder=null; let speakAudioChunks=[];
 // Ước lượng thời gian đọc (giây) dựa trên số từ trong đoạn, có giới hạn dưới/trên hợp lý.
 // Dùng để TỰ ĐỘNG dừng ghi âm bằng setTimeout của chính app — không phụ thuộc bất kỳ sự kiện
 // chạm/nhấn nào của trình duyệt. Đây là lưới an toàn cấp cao nhất: dù mọi sự kiện tap/pointer
@@ -4384,9 +4392,42 @@ function clearSpeakTimers(){
 // của trình duyệt — một số máy Android không bao giờ bắn sự kiện này (hoặc bắn rất trễ) khiến
 // màn hình bị kẹt mãi ở trạng thái "Đang nghe…". Việc tắt hẳn mic (abort) vẫn được gọi ở nền,
 // nhưng UI không phụ thuộc vào kết quả của nó nữa.
+function stopSpeakMediaStream(){
+  if(speakMediaStream){ try{ speakMediaStream.getTracks().forEach(t=>t.stop()); }catch(e){} speakMediaStream=null; }
+}
+// Chuyển audio Blob ghi được thành base64 rồi gửi lên Google Cloud Speech-to-Text (REST, xác thực
+// bằng cùng API key đang dùng cho Cloud TTS — cần bật thêm "Cloud Speech-to-Text API" cho key đó
+// trong Google Cloud Console). Trả về chuỗi chữ nhận diện được (rỗng nếu không nghe được gì).
+async function transcribeCloudStt(blob){
+  const apiKey = SETTINGS.cloudTtsApiKey;
+  if(!apiKey || !blob || !blob.size) return '';
+  const arrayBuf = await blob.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuf);
+  let binary=''; const chunkSize=0x8000;
+  for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
+  const base64Audio = btoa(binary);
+  const res = await fetch(`https://speech.googleapis.com/v1/speech:recognize?key=${encodeURIComponent(apiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      config:{ encoding:'WEBM_OPUS', sampleRateHertz:48000, languageCode:'en-US', enableAutomaticPunctuation:false },
+      audio:{ content: base64Audio }
+    })
+  });
+  if(!res.ok){ const t=await res.text().catch(()=>''); throw new Error('Cloud Speech-to-Text HTTP '+res.status+' — '+t.slice(0,180)); }
+  const data = await res.json();
+  return (data.results||[]).map(r=> (r.alternatives && r.alternatives[0]) ? r.alternatives[0].transcript : '').join(' ').trim();
+}
+// Dừng ghi âm NGAY LẬP TỨC và chấm điểm bằng phần đã nghe được, không chờ sự kiện onend của trình
+// duyệt — một số máy Android không bao giờ bắn sự kiện này (hoặc bắn rất trễ) khiến màn hình bị
+// kẹt mãi ở trạng thái "Đang nghe…". Việc tắt hẳn mic (abort) vẫn được gọi ở nền, nhưng UI không
+// phụ thuộc vào kết quả của nó nữa. Xử lý cả 2 đường: ghi âm thật (Cloud STT) và Web Speech API.
 function forceStopSpeakRecording(){
   speakRecogStopRequested=true;
   clearSpeakTimers();
+  if(speakMediaRecorder && speakMediaRecorder.state!=='inactive'){
+    try{ speakMediaRecorder.stop(); }catch(e){} // kết quả xử lý tiếp trong onstop (bất đồng bộ, xem beginSpeakRecording)
+    return;
+  }
   const rec=speakRecognition; speakRecognition=null;
   if(rec){ try{ rec.stop(); }catch(e){} setTimeout(()=>{ try{ rec.abort(); }catch(e){} }, 400); }
   // QUAN TRỌNG: KHÔNG tự ý gán speakRecogScoreNow=null ở đây rồi mới gọi — bản thân scoreNow()
@@ -4396,7 +4437,11 @@ function forceStopSpeakRecording(){
   if(speakRecogScoreNow){ speakRecogScoreNow((speakRecogFinal+' '+speakRecogInterim).trim()); }
 }
 function stopSpeakRecognition(){
+  // Đang thoát màn hình / chuyển câu — không cần chấm điểm nữa, hủy luôn callback trước khi dừng
+  // để nhánh ghi âm thật (onstop bất đồng bộ) không tốn 1 lượt gọi Cloud Speech-to-Text vô ích.
+  speakRecogScoreNow=null;
   forceStopSpeakRecording();
+  stopSpeakMediaStream();
   const s=STATE.speakSession; if(s) s.recording=false;
 }
 function saveSpeakBest(s){
@@ -4410,15 +4455,61 @@ function saveSpeakBest(s){
 // gian ước lượng theo độ dài đoạn văn (xem estimateSpeakDurationSec) — đây là cơ chế chính, luôn
 // hoạt động vì chỉ phụ thuộc setTimeout của chính app, không phụ thuộc bất kỳ sự kiện chạm/nhấn
 // nào của trình duyệt. Người dùng vẫn có thể bấm nút lần nữa để dừng sớm nếu muốn (không bắt buộc).
+// Nhánh ghi âm thật + Cloud Speech-to-Text (dùng khi đã cấu hình API key — xem transcribeCloudStt).
+// Không có phụ đề trực tiếp như Web Speech API (REST API chấm 1 lần sau khi ghi xong, không có
+// kết quả tạm thời giữa chừng), nên chỉ hiện trạng thái ghi âm / đang gửi lên máy chủ.
+async function beginSpeakRecordingCloud(s, item){
+  const capText=(t)=>{ const cap=document.getElementById('speak-live-caption'); if(cap) cap.textContent=t; };
+  try{
+    speakMediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại (Cài đặt → Ứng dụng → Chrome hoặc app → Quyền → Microphone) rồi thử lại.');
+    s.recording=false; renderSpeakPracticeUI();
+    return;
+  }
+  speakAudioChunks=[];
+  let mimeType='audio/webm;codecs=opus';
+  if(!(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='audio/webm';
+  if(!(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='';
+  try{
+    speakMediaRecorder = mimeType ? new MediaRecorder(speakMediaStream,{mimeType}) : new MediaRecorder(speakMediaStream);
+  }catch(e){
+    showToast('⚠️','Không ghi âm được','Thiết bị/trình duyệt này chưa hỗ trợ ghi âm trực tiếp. Hãy cập nhật Chrome lên bản mới nhất.');
+    stopSpeakMediaStream(); s.recording=false; renderSpeakPracticeUI();
+    return;
+  }
+  speakMediaRecorder.ondataavailable=(ev)=>{ if(ev.data && ev.data.size>0) speakAudioChunks.push(ev.data); };
+  speakMediaRecorder.onstop=async()=>{
+    const chunks=speakAudioChunks; speakAudioChunks=[];
+    stopSpeakMediaStream();
+    if(!speakRecogScoreNow) return; // đã hủy (thoát màn hình / chuyển câu) — không cần gửi lên máy chủ nữa
+    capText('🎙️ Đang gửi lên máy chủ để nhận diện…');
+    const blob = new Blob(chunks, {type: (speakMediaRecorder && speakMediaRecorder.mimeType) || 'audio/webm'});
+    let heard='';
+    try{ heard = await transcribeCloudStt(blob); }
+    catch(e){ showToast('📶','Lỗi kết nối máy chủ nhận diện', String((e&&e.message)||e).slice(0,180)); }
+    if(speakRecogScoreNow) speakRecogScoreNow(heard);
+  };
+  try{ speakMediaRecorder.start(); }
+  catch(e){ showToast('⚠️','Không bắt đầu ghi âm được', String((e&&e.message)||e).slice(0,150)); stopSpeakMediaStream(); s.recording=false; renderSpeakPracticeUI(); return; }
+  capText('🎙️ Đang ghi âm — đọc to, rõ cả đoạn…');
+}
 function beginSpeakRecording(){
   const s=STATE.speakSession; if(!s || s.recording) return;
+  const useCloud = !!SETTINGS.cloudTtsApiKey;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính.'); return; }
+  if(useCloud){
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)){
+      showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt này chưa hỗ trợ ghi âm để chấm điểm. Hãy cập nhật Chrome lên bản mới nhất.'); return;
+    }
+  } else if(!SR){
+    showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ nhận diện giọng nói để chấm điểm. Hãy mở app bằng Chrome trên Android hoặc máy tính, hoặc cấu hình Google Cloud API key ở nút giọng đọc phía trên để ghi âm ổn định hơn.'); return;
+  }
   stopSpeakAudio();
   const item=currentSpeakItem(); if(!item) return;
   speakRecogFinal=''; speakRecogInterim=''; speakRecogStopRequested=false;
   speakSessionCount=0; speakDiagStatus='';
-  s.recording=true; s.result=null; speakRecogStart=Date.now();
+  s.recording=true; s.result=null; s.usingCloudStt=useCloud; speakRecogStart=Date.now();
   s.recordSecLeft = estimateSpeakDurationSec(item[0]);
   renderSpeakPracticeUI();
   // Đếm ngược hiển thị + lưới an toàn cao nhất: tự dừng khi hết giờ, KHÔNG cần bất kỳ thao tác nào
@@ -4446,16 +4537,14 @@ function beginSpeakRecording(){
   };
   speakRecogScoreNow=scoreNow;
 
-  // CẬP NHẬT (sau khi test thực tế trên điện thoại): trước đây tránh continuous=true vì lo ngại
-  // lỗi "đứng im" trên Chrome Android — nhưng lưới an toàn timer tự dừng (estimateSpeakDurationSec
-  // + speakAutoStopTimer, xem forceStopSpeakRecording) đã loại bỏ hẳn rủi ro "đứng im mãi mãi" đó:
-  // dù phiên có bị treo, timer vẫn ép dừng + chấm điểm đúng hạn. Trong khi đó, cách nối nhiều phiên
-  // ngắn (single-shot) lại liên tục khởi động lại bộ nhận diện gốc của Android — đây là nguyên nhân
-  // thực sự khiến điện thoại báo "no-speech" ngay từ phiên đầu: SpeechRecognizer gốc trên nhiều máy
-  // Android không nhả tài nguyên mic kịp giữa các lần start/stop liên tiếp (lỗi nền tảng đã biết).
-  // => Dùng LẠI continuous=true làm chế độ chính (chỉ 1 phiên duy nhất suốt lúc đọc, không phải
-  // khởi động lại liên tục), giữ cơ chế nối phiên cũ chỉ làm lưới dự phòng nếu trình duyệt tự kết
-  // thúc phiên sớm ngoài ý muốn.
+  if(useCloud){ beginSpeakRecordingCloud(s, item); return; }
+
+  // Nhánh dự phòng: Web Speech API của trình duyệt (miễn phí, không cần cấu hình gì) — hoạt động
+  // tốt trên desktop nhưng trên nhiều máy Android bị lỗi nền tảng liên tục báo "aborted"/"no-speech"
+  // dù mic hoàn toàn bình thường (đã xác nhận: ứng dụng Google trên cùng máy nhận diện tốt) — đây
+  // là giới hạn của chính Chrome for Android, không sửa được từ code trang web. Người dùng gặp lỗi
+  // này nên cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang nhánh ghi âm
+  // thật (beginSpeakRecordingCloud) ổn định hơn nhiều.
   const runSession=()=>{
     if(speakRecogStopRequested) return;
     speakSessionCount++;
@@ -4576,8 +4665,8 @@ function renderSpeakPracticeUI(){
     ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
-  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-12</div>`;
+  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-13</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
