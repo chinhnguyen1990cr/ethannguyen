@@ -627,6 +627,16 @@
   .eng-level-pick-card .lvl-label{font-size:10px; color:var(--dim); margin-top:3px; font-weight:700; line-height:1.3;}
   .eng-level-pick-card .lvl-count{font-size:10px; color:var(--text); margin-top:8px; font-weight:800; font-family:var(--mono);}
   .eng-level-pick-card .lvl-best{font-size:9.5px; color:var(--teal); margin-top:3px; font-weight:700;}
+  .video-lesson-list{display:flex; flex-direction:column; gap:10px; margin-bottom:4px;}
+  .video-lesson-card{display:flex; align-items:center; gap:12px; background:var(--panel); border:1.5px solid var(--border);
+    border-radius:14px; padding:8px 10px; cursor:pointer;}
+  .video-lesson-card:active{transform:scale(0.98);}
+  .video-lesson-card .vlc-thumb{width:96px; height:54px; border-radius:8px; object-fit:cover; flex:0 0 auto; background:#000;}
+  .video-lesson-card .vlc-body{flex:1; min-width:0;}
+  .video-lesson-card .vlc-title{font-size:12.5px; font-weight:800; color:var(--text); line-height:1.35;}
+  .video-lesson-card .vlc-desc{font-size:10.5px; color:var(--dim); margin-top:3px; line-height:1.35;}
+  .video-lesson-card .vlc-play{flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--blue);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; padding-left:2px;}
   .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
   .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
     min-height:116px; background:var(--gcgrad); color:#fff; display:flex; flex-direction:column; justify-content:flex-end;
@@ -4065,7 +4075,9 @@ function setCloudTtsApiKey(){
   renderContent();
 }
 function currentListenItem(){
-  const q = STATE.listenQuiz; if(!q || !LISTENING_QUIZ) return null;
+  const q = STATE.listenQuiz; if(!q) return null;
+  if(q.items) return q.items[q.order[q.idx]]; // chế độ video: câu hỏi nằm ngay trong session
+  if(!LISTENING_QUIZ) return null;
   const bank = LISTENING_QUIZ[q.level]||[];
   return bank[q.order[q.idx]];
 }
@@ -4074,6 +4086,15 @@ function startListenQuiz(level){
   const allIdx = shuffleArr(bank.map((_,i)=>i));
   const order = allIdx.slice(0, Math.min(20, allIdx.length));
   STATE.listenQuiz = {level, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
+  STATE.listenPlayback = 'idle';
+  renderContent();
+}
+// Bắt đầu quiz nghe theo 1 video: câu hỏi lấy từ chính lesson (giữ nguyên thứ tự để bám mạch video).
+function startListenVideoQuiz(id){
+  const lesson = (VIDEO_LESSONS && (VIDEO_LESSONS.listening||[]).find(l=>l.id===id));
+  if(!lesson){ showToast('⚠️','Chưa tải được bài','Vui lòng thử lại sau giây lát.'); return; }
+  const order = (lesson.questions||[]).map((_,i)=>i);
+  STATE.listenQuiz = {level:'video', lessonId:lesson.id, videoId:lesson.videoId, videoTitle:lesson.title, items:lesson.questions, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   STATE.listenPlayback = 'idle';
   renderContent();
 }
@@ -4098,16 +4119,18 @@ function nextListenQuiz(){
     STATE.listenPlayback = 'idle';
     renderContent();
     const item = currentListenItem();
-    if(item) playListenDialogue(item[0]);
+    if(item && !q.videoId) playListenDialogue(item[0]); // chế độ video: nguồn nghe là video, không tự phát TTS
     return;
   }
   q.finished = true;
   const pct = Math.round((q.correct/q.order.length)*100);
-  if(!SETTINGS.listenQuiz) SETTINGS.listenQuiz = {};
-  if(!SETTINGS.listenQuiz.best) SETTINGS.listenQuiz.best = {};
-  const prevBest = SETTINGS.listenQuiz.best[q.level] || 0;
-  if(pct > prevBest) SETTINGS.listenQuiz.best[q.level] = pct;
-  saveSettings(); pushToDrive();
+  if(q.level!=='video'){ // best chỉ lưu cho các cấp độ chuẩn, không lưu riêng từng video
+    if(!SETTINGS.listenQuiz) SETTINGS.listenQuiz = {};
+    if(!SETTINGS.listenQuiz.best) SETTINGS.listenQuiz.best = {};
+    const prevBest = SETTINGS.listenQuiz.best[q.level] || 0;
+    if(pct > prevBest) SETTINGS.listenQuiz.best[q.level] = pct;
+    saveSettings(); pushToDrive();
+  }
   renderContent();
 }
 function renderListenQuizUI(){
@@ -4115,12 +4138,15 @@ function renderListenQuizUI(){
   let body;
   if(q.finished){
     const pct = Math.round((q.correct/q.order.length)*100);
+    const redoBtn = q.videoId
+      ? `<button class="form-btn" data-action="listen-video-start" data-id="${q.lessonId}">↺ Làm lại</button>`
+      : `<button class="form-btn" data-action="listen-quiz-start" data-level="${q.level}">↺ Làm lại (20 câu mới)</button>`;
     body = `<div class="card eng-quiz-result">
-      <div style="font-size:13px;color:var(--dim);margin-bottom:4px;">Cấp độ ${LEVEL_LABELS[q.level]}</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:4px;">${q.videoId?escapeHtml(q.videoTitle||'Video'):('Cấp độ '+LEVEL_LABELS[q.level])}</div>
       <div class="score">${q.correct}/${q.order.length}</div>
       <div style="font-size:13px;color:var(--dim);margin-top:4px;">${pct}% chính xác</div>
       <div style="display:flex;gap:10px;margin-top:18px;justify-content:center;">
-        <button class="form-btn" data-action="listen-quiz-start" data-level="${q.level}">↺ Làm lại (20 câu mới)</button>
+        ${redoBtn}
         <button class="form-btn cancel" data-action="listen-quiz-exit">Thoát</button>
       </div>
     </div>`;
@@ -4158,10 +4184,12 @@ function renderListenQuizUI(){
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
     <div class="card eng-quiz-card">
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
+      ${q.videoId
+        ? `${speakVideoEmbedHtml(q.videoId)}<div style="font-size:11px; color:var(--dim2); margin-bottom:12px; text-align:center;">📺 Xem video ở trên rồi chọn đáp án đúng.</div>`
+        : `<div style="display:flex; gap:8px; margin-bottom:12px;">
         <button class="form-btn" data-action="listen-quiz-toggle" style="flex:1;">${playBtnLabel}</button>
         <button class="form-btn cancel" data-action="listen-quiz-replay" style="flex:1;">🔁 Nghe lại</button>
-      </div>
+      </div>`}
       <div class="eng-quiz-q">${escapeHtml(question)}</div>
       ${optsHtml}
       ${q.answered===null ? `<button class="eng-quiz-skip" data-action="listen-quiz-skip">⏭ Bỏ qua câu này</button>` : ''}
@@ -4177,7 +4205,7 @@ function renderListenQuizUI(){
     </div>`;
   }
   document.getElementById('content').innerHTML = `
-    <div class="kh-backrow"><div class="kh-backbtn" data-action="listen-quiz-exit">${svgIcon('back')}</div><div class="title">🎧 Kiểm tra nghe</div></div>
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="listen-quiz-exit">${svgIcon('back')}</div><div class="title">${q.videoId?('📺 '+escapeHtml(q.videoTitle||'Video')):'🎧 Kiểm tra nghe'}</div></div>
     ${body}
   `;
 }
@@ -4239,11 +4267,58 @@ function renderEnglishAV(item, mode){
       ${cloudTtsUsageBarHtml()}
       <div class="eng-section-label">🎯 Chọn theo cấp độ</div>
       <div class="eng-level-pick-row">${cards}</div>
+      ${videoLessonsListHtml('listening')}
       <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
 }
 
+// ================= HỌC QUA VIDEO (VOA Learning English): nhúng video YouTube có hội thoại thật rồi
+// trả lời câu hỏi (Luyện nghe) hoặc luyện nói lại theo lời thoại (Luyện nói). Câu hỏi & lời thoại
+// được biên soạn bám sát transcript CHÍNH THỨC của từng video (nguồn: VOA Learning English) nên
+// đáp án luôn khớp nội dung video. Dữ liệu ở video-lessons-data.json để dễ bổ sung thêm bài. =========
+let VIDEO_LESSONS = null;
+let videoLessonsLoading = false;
+async function fetchVideoLessons(){
+  if(VIDEO_LESSONS || videoLessonsLoading) return;
+  videoLessonsLoading = true;
+  try{
+    const res = await fetch('./video-lessons-data.json?v=1');
+    VIDEO_LESSONS = await res.json();
+  }catch(e){
+    console.error('Không tải được danh sách video', e);
+    VIDEO_LESSONS = {listening:[], speaking:[]};
+  }
+  videoLessonsLoading = false;
+  if(STATE.tab==='english-item' && !STATE.listenQuiz && !STATE.speakSession) renderContent();
+}
+// Danh sách thẻ video cho màn chọn (dùng chung cho cả Luyện nghe & Luyện nói). mode: 'listening' | 'speaking'.
+function videoLessonsListHtml(mode){
+  const list = VIDEO_LESSONS ? (VIDEO_LESSONS[mode]||[]) : null;
+  if(list===null){ if(!videoLessonsLoading) fetchVideoLessons(); return ''; }
+  if(!list.length) return '';
+  const action = mode==='listening' ? 'listen-video-start' : 'speak-video-start';
+  const cards = list.map(l=>{
+    const meta = l.desc || (mode==='listening' ? ((l.questions||[]).length+' câu hỏi') : ((l.lines||[]).length+' câu đọc'));
+    return `<div class="video-lesson-card" data-action="${action}" data-id="${l.id}">
+      <img class="vlc-thumb" src="https://img.youtube.com/vi/${l.videoId}/mqdefault.jpg" alt="" loading="lazy">
+      <div class="vlc-body">
+        <div class="vlc-title">${escapeHtml(l.title)}</div>
+        <div class="vlc-desc">${escapeHtml(meta)}</div>
+      </div>
+      <div class="vlc-play">▶</div>
+    </div>`;
+  }).join('');
+  return `<div class="eng-section-label" style="margin-top:18px;">📺 Học qua video (VOA Learning English)</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Xem video hội thoại thật của VOA rồi ${mode==='listening'?'trả lời câu hỏi':'luyện nói theo từng câu'}. Câu hỏi &amp; lời thoại bám sát đúng nội dung nói trong video.</div>
+    <div class="video-lesson-list">${cards}</div>`;
+}
+function speakVideoEmbedHtml(videoId){
+  if(!videoId) return '';
+  return `<div style="position:relative; width:100%; padding-bottom:56.25%; margin-bottom:12px; border-radius:12px; overflow:hidden; background:#000;">
+    <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>`;
+}
 // ================= LUYỆN NÓI: luyện phát âm theo cấp độ + chấm điểm AI (Web Speech API) =================
 let SPEAKING_PRACTICE = null;
 let speakingPracticeLoading = false;
@@ -4262,7 +4337,9 @@ async function fetchSpeakingPracticeData(){
 }
 // format mỗi item: [text_en, translate_vi, tip_vi]
 function currentSpeakItem(){
-  const s = STATE.speakSession; if(!s || !SPEAKING_PRACTICE) return null;
+  const s = STATE.speakSession; if(!s) return null;
+  if(s.lines) return s.lines[s.order[s.idx]]; // chế độ video: các câu đọc nằm ngay trong session
+  if(!SPEAKING_PRACTICE) return null;
   const bank = SPEAKING_PRACTICE[s.level]||[];
   return bank[s.order[s.idx]];
 }
@@ -4270,6 +4347,15 @@ function startSpeakPractice(level){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[];
   const order = shuffleArr(bank.map((_,i)=>i)).slice(0, Math.min(15, bank.length));
   STATE.speakSession = {level, order, idx:0, showTranslate:false, result:null, recording:false};
+  STATE.speakPlayback = 'idle';
+  renderContent();
+}
+// Bắt đầu luyện nói theo 1 video: các câu đọc lấy từ chính lesson (giữ nguyên thứ tự theo video).
+function startSpeakVideoPractice(id){
+  const lesson = (VIDEO_LESSONS && (VIDEO_LESSONS.speaking||[]).find(l=>l.id===id));
+  if(!lesson){ showToast('⚠️','Chưa tải được bài','Vui lòng thử lại sau giây lát.'); return; }
+  const order = (lesson.lines||[]).map((_,i)=>i);
+  STATE.speakSession = {level:'video', videoId:lesson.videoId, videoTitle:lesson.title, lines:lesson.lines, order, idx:0, showTranslate:false, result:null, recording:false};
   STATE.speakPlayback = 'idle';
   renderContent();
 }
@@ -4787,6 +4873,7 @@ function renderSpeakingPractice(item){
       ${srOk ? '' : `<div style="font-size:11.5px;color:#ffb020;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">⚠️ Thiết bị này chưa hỗ trợ nhận diện giọng nói nên phần chấm điểm có thể không hoạt động. Bạn vẫn luyện nghe/đọc theo mẫu bình thường. Khuyến nghị dùng Chrome trên Android hoặc máy tính.</div>`}
       <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
       <div class="eng-level-pick-row">${cards}</div>
+      ${videoLessonsListHtml('speaking')}
       <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
@@ -4795,8 +4882,8 @@ function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
   const item=currentSpeakItem();
   const lvObj=CEFR_LEVELS.find(l=>l.key===s.level);
-  const lvName=lvObj?(lvObj.key+' · '+lvObj.label):s.level;
-  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">🗣️ Luyện nói · ${lvName}</div></div>`;
+  const lvName= s.videoId ? s.videoTitle : (lvObj?(lvObj.key+' · '+lvObj.label):s.level);
+  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">${s.videoId?'📺 '+escapeHtml(lvName):'🗣️ Luyện nói · '+escapeHtml(lvName)}</div></div>`;
   if(!item){ document.getElementById('content').innerHTML=backRow+`<div class="card"><div class="eng-av-empty">Không có nội dung.</div></div>`; return; }
   const [text, translateVi, tipVi]=item;
   const pb=STATE.speakPlayback||'idle';
@@ -4808,7 +4895,7 @@ function renderSpeakPracticeUI(){
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-17</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-18</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -4832,6 +4919,7 @@ function renderSpeakPracticeUI(){
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
     <div class="card eng-quiz-card">
+      ${s.videoId ? speakVideoEmbedHtml(s.videoId)+'<div style="font-size:11px; color:var(--dim2); margin:-4px 0 10px; text-align:center;">📺 Xem video mẫu ở trên, rồi đọc theo từng câu bên dưới.</div>' : ''}
       <div class="eng-quiz-q" style="text-align:left;">${r ? speakHighlightTarget(text, r.matchMask) : escapeHtml(text)}</div>
       ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được</div>' : ''}
       <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -5478,6 +5566,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(playAvDriveEl){ playAvDrive(playAvDriveEl.getAttribute('data-mode'), playAvDriveEl.getAttribute('data-id'), playAvDriveEl.getAttribute('data-name'), playAvDriveEl.getAttribute('data-mimetype')); return; }
   const listenQuizStartEl = e.target.closest('[data-action="listen-quiz-start"]');
   if(listenQuizStartEl){ startListenQuiz(listenQuizStartEl.getAttribute('data-level')); return; }
+  const listenVideoStartEl = e.target.closest('[data-action="listen-video-start"]');
+  if(listenVideoStartEl){ startListenVideoQuiz(listenVideoStartEl.getAttribute('data-id')); return; }
+  const speakVideoStartEl = e.target.closest('[data-action="speak-video-start"]');
+  if(speakVideoStartEl){ startSpeakVideoPractice(speakVideoStartEl.getAttribute('data-id')); return; }
   const listenQuizReplayEl = e.target.closest('[data-action="listen-quiz-replay"]');
   if(listenQuizReplayEl){ replayListenQuiz(); return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
