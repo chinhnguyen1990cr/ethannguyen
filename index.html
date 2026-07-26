@@ -485,6 +485,24 @@
   .drive-ctrl-play{width:38px; height:38px; background:linear-gradient(135deg,#B06CF0,#6C6CF0); font-size:15px;}
   .yt-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
   .yt-controls .drive-ctrl-btn{width:auto; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; gap:6px;}
+  /* ===== Trình phát nhạc hiện đại (dùng chung cho YouTube & Google Drive) ===== */
+  .mplayer{background:linear-gradient(150deg, rgba(176,108,240,0.22), rgba(108,108,240,0.10) 60%, rgba(79,168,255,0.10)); border:1px solid rgba(176,108,240,0.35); border-radius:22px; padding:14px 14px 16px; margin-bottom:16px; box-shadow:0 8px 26px rgba(108,108,240,0.18);}
+  .mplayer .music-player-wrap{margin-bottom:12px;}
+  .mplayer-cover{width:100%; height:150px; border-radius:16px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#B06CF0,#6C6CF0); color:#fff; overflow:hidden;}
+  .mplayer-cover img{width:100%; height:100%; object-fit:cover;}
+  .mplayer-cover .disc{font-size:56px; animation:mp-spin 6s linear infinite;}
+  @keyframes mp-spin{to{transform:rotate(360deg);}}
+  .mplayer-title{font-size:14px; font-weight:800; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px;}
+  .mplayer-sub{font-size:10.5px; color:var(--dim); text-align:center; margin-top:3px; margin-bottom:14px;}
+  .mp-controls{display:flex; align-items:center; justify-content:center; gap:16px;}
+  .mp-btn{display:flex; align-items:center; justify-content:center; border:0; cursor:pointer; color:#fff; background:rgba(255,255,255,0.12); border-radius:50%; width:46px; height:46px; font-size:20px; transition:transform .12s ease, background .2s;}
+  .mp-btn:active{transform:scale(0.88);}
+  .mp-btn.small{width:40px; height:40px; font-size:16px; background:rgba(255,255,255,0.08);}
+  .mp-btn.play{width:64px; height:64px; font-size:26px; background:linear-gradient(135deg,#C77DFF,#6C6CF0); box-shadow:0 8px 22px rgba(124,108,240,0.55);}
+  .mp-btn svg{width:1em; height:1em; display:block;}
+  .mp-hint{font-size:10px; color:var(--dim2); text-align:center; margin-top:10px; line-height:1.5;}
+  .reset-schedule-btn{display:block; width:100%; margin:18px 0 8px; padding:11px; border-radius:12px; border:1px solid rgba(255,92,92,0.4); background:rgba(255,92,92,0.10); color:#ff7a7a; font-size:12px; font-weight:700; cursor:pointer; text-align:center;}
+  .reset-schedule-btn:active{opacity:0.7;}
   .drive-mode-tabs{display:flex; gap:8px; margin-bottom:12px;}
   .drive-mode-tab{flex:1; text-align:center; padding:8px 0; border-radius:10px; background:var(--panel2); font-size:12px; font-weight:700; color:var(--dim); cursor:pointer;}
   .drive-mode-tab.active{background:linear-gradient(135deg,#B06CF0,#6C6CF0); color:#fff;}
@@ -1325,6 +1343,20 @@ function restoreTaskForToday(taskId){
 function resetTodayRemoved(){
   const key = todayKey();
   if(LOG[key] && LOG[key].removed){ LOG[key].removed = {}; saveLog(); renderContent(); }
+}
+// Reset TOÀN BỘ Lịch làm việc: xóa sạch lịch sử chấm công của mọi ngày (LOG) — vì XP, Level và màu
+// lịch tuần/tháng/năm đều được tính từ LOG nên việc này đưa tất cả về mốc ban đầu (XP≈0, Level 1,
+// lịch trắng). Hôm nay được đánh dấu là NGÀY NGHỈ để không bị tính bỏ lỡ/trừ điểm — kế hoạch bắt
+// đầu chấm từ ngày mai. Những ngày sau đó nếu không hoàn thành sẽ tự động bị đánh dấu bỏ lỡ (đỏ) +
+// trừ XP như cơ chế sẵn có (xem autoFailOverdueTasks / FAIL_XP_PENALTY). Không thể hoàn tác.
+function resetSchedule(){
+  if(!window.confirm('Reset TOÀN BỘ Lịch làm việc hàng ngày?\n\n• Xóa sạch lịch sử hoàn thành/bỏ lỡ của MỌI ngày\n• XP về ~0, Level về 1, lịch tuần/tháng/năm trắng trơn\n• Hôm nay được đánh dấu là NGÀY NGHỈ — kế hoạch bắt đầu chấm từ NGÀY MAI\n\nHành động này KHÔNG THỂ hoàn tác. Tiếp tục?')) return;
+  LOG = {};
+  const tk = todayKey();
+  LOG[tk] = { dayOff:true, tasks:{}, failed:{}, removed:{}, customTasks:[] };
+  saveLog(); pushToDrive();
+  showToast('✅','Đã reset lịch làm việc','Lịch sử, XP và Level đã về mốc đầu. Hôm nay là ngày nghỉ — bắt đầu kế hoạch từ ngày mai nhé!');
+  renderContent();
 }
 function timeRangeLabel(t, baseDate){
   const [hh,mm] = t.time.split(':').map(Number);
@@ -3054,24 +3086,50 @@ function toggleDriveAudioPlayPause(){
   if(!audio || !audio.src) return;
   if(audio.paused) audio.play().catch(e=>console.error(e)); else audio.pause();
 }
+// Phát lại từ đầu: nhạc Drive tua currentTime về 0; video YouTube nạp lại (phát lại từ 0).
+function replayDriveSong(){
+  const audio = document.getElementById('drive-audio-player');
+  if(!audio || !audio.src) return;
+  audio.currentTime = 0; audio.play().catch(e=>console.error(e));
+}
+function replayYtSong(){ if(STATE.playingSongId) playMusicSong(STATE.playingSongId); }
+// Icon SVG cho trình phát (prev/next/play/pause/replay) — nét hiện đại, dùng currentColor để đổi màu.
+function mpIcon(n){
+  const paths = {
+    prev:'<path d="M7 5.5v13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M19.5 5.5v13L9 12l10.5-6.5z" fill="currentColor"/>',
+    next:'<path d="M17 5.5v13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4.5 5.5v13L15 12 4.5 5.5z" fill="currentColor"/>',
+    play:'<path d="M7 4.7v14.6L19.5 12 7 4.7z" fill="currentColor"/>',
+    pause:'<rect x="6.5" y="5" width="3.6" height="14" rx="1.3" fill="currentColor"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.3" fill="currentColor"/>',
+    replay:'<path d="M12 6a6 6 0 1 0 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 1.5L8 5.5l4 4v-8z" fill="currentColor"/>'
+  }[n] || '';
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+}
 function renderMusicPlaylist(){
   const list = SETTINGS.musicPlaylist||[];
   const playing = list.find(s=>s.id===STATE.playingSongId);
   const drivePlayingHtml = (!playing && STATE.playingDriveId) ? `
-    <div class="drive-now-playing">
-      <div class="song-thumb">${svgIcon('music')}</div>
-      <div class="song-info"><div class="song-title">${escapeHtml((STATE.playingDriveName||'').replace(/\.[^.]+$/,''))}</div><div class="song-type">Đang phát từ Google Drive</div></div>
-      <div class="drive-controls">
-        <div class="drive-ctrl-btn" data-action="drive-prev-song" title="Bài trước">⏮</div>
-        <div class="drive-ctrl-btn drive-ctrl-play" data-action="toggle-drive-playpause" title="Phát/Tạm dừng">${STATE.driveAudioPlaying?'⏸':'▶'}</div>
-        <div class="drive-ctrl-btn" data-action="drive-next-song" title="Bài sau">⏭</div>
+    <div class="mplayer">
+      <div class="mplayer-cover"><div class="disc">💿</div></div>
+      <div class="mplayer-title">${escapeHtml((STATE.playingDriveName||'').replace(/\.[^.]+$/,''))}</div>
+      <div class="mplayer-sub">🎵 Đang phát từ Google Drive</div>
+      <div class="mp-controls">
+        <button class="mp-btn small" data-action="drive-prev-song" title="Bài trước">${mpIcon('prev')}</button>
+        <button class="mp-btn" data-action="drive-replay-song" title="Phát lại từ đầu">${mpIcon('replay')}</button>
+        <button class="mp-btn play" data-action="toggle-drive-playpause" title="Phát/Tạm dừng">${mpIcon(STATE.driveAudioPlaying?'pause':'play')}</button>
+        <button class="mp-btn small" data-action="drive-next-song" title="Bài sau">${mpIcon('next')}</button>
       </div>
     </div>` : '';
   const playerHtml = playing ? `
-    <div class="music-player-wrap"><iframe src="${escapeHtml(playing.embed)}" title="${escapeHtml(playing.title)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-    <div class="yt-controls">
-      <div class="drive-ctrl-btn" data-action="yt-prev-song">⏮ Bài trước</div>
-      <div class="drive-ctrl-btn" data-action="yt-next-song">Bài sau ⏭</div>
+    <div class="mplayer">
+      <div class="music-player-wrap"><iframe src="${escapeHtml(playing.embed)}" title="${escapeHtml(playing.title)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <div class="mplayer-title">${escapeHtml(playing.title)}</div>
+      <div class="mplayer-sub">${playing.type==='playlist'?'📃 Playlist YouTube':'🎬 Đang phát'}</div>
+      <div class="mp-controls">
+        <button class="mp-btn small" data-action="yt-prev-song" title="Bài trước">${mpIcon('prev')}</button>
+        <button class="mp-btn" data-action="yt-replay-song" title="Phát lại từ đầu">${mpIcon('replay')}</button>
+        <button class="mp-btn small" data-action="yt-next-song" title="Bài sau">${mpIcon('next')}</button>
+      </div>
+      <div class="mp-hint">▶ / ⏸ Phát &amp; tạm dừng nằm ngay trên video · ↺ để phát lại từ đầu</div>
     </div>` : drivePlayingHtml;
   const rowsHtml = list.length ? list.map(s=>`
     <div class="song-row ${STATE.playingSongId===s.id?'active':''}" data-action="play-music-song" data-id="${s.id}">
@@ -4903,7 +4961,7 @@ function renderSpeakPracticeUI(){
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-19</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-20</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -5052,6 +5110,7 @@ function renderToday(){
     ${resetHtml}
     ${addTaskSection}
     ${renderAiTomorrowCard(key)}
+    <button class="reset-schedule-btn" data-action="reset-schedule">↺ Reset lịch làm việc (bắt đầu lại từ ngày mai)</button>
   `;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     document.querySelectorAll('.ring-fg').forEach(el=>{ el.style.strokeDashoffset = el.getAttribute('data-final'); });
@@ -5716,6 +5775,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
 
   const resetEl = e.target.closest('[data-action="reset-today-removed"]');
   if(resetEl){ resetTodayRemoved(); return; }
+  const resetSchedEl = e.target.closest('[data-action="reset-schedule"]');
+  if(resetSchedEl){ resetSchedule(); return; }
+  const ytReplayEl = e.target.closest('[data-action="yt-replay-song"]');
+  if(ytReplayEl){ replayYtSong(); return; }
+  const driveReplayEl = e.target.closest('[data-action="drive-replay-song"]');
+  if(driveReplayEl){ replayDriveSong(); return; }
 
   const chkEl = e.target.closest('[data-action="toggle"]');
   if(chkEl){
