@@ -302,15 +302,28 @@ function tenseCard(t, num, groupKey){
     <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="arrow">›</span></div>
   </div>`;
 }
+// Trang này được nhúng qua <iframe> trong index.html, và index.html quản lý toàn bộ điều hướng
+// vuốt-back/nút-back của app qua 1 "NAV_STACK" dùng History API ở tài liệu NGOÀI — iframe không tự
+// có lịch sử riêng cho hành động mở/đóng "trang riêng" này. Nếu không báo cho parent biết, vuốt back
+// khi đang xem 1 trang riêng sẽ thoát LUÔN ra "Học tiếng Anh" thay vì chỉ đóng trang riêng trước.
+// => mở trang riêng: báo parent "grammarDetailOpen" để parent đẩy thêm 1 mốc lịch sử (navForward);
+//    đóng trang riêng: báo parent "grammarDetailClose" để parent tiêu thụ đúng mốc đó (navBack) —
+//    navBack() gọi history.back() khiến parent tự render lại (iframe này được nạp lại từ đầu, quay
+//    về danh sách), nên không cần tự đồng bộ state gì thêm ở đây.
+function notifyParentNav(type){
+  try{ if(window.parent && window.parent!==window) window.parent.postMessage({type}, '*'); }catch(e){}
+}
 function openTopicDetail(id){
   const view = document.getElementById('topic-detail-view');
   document.getElementById('topic-detail-title').innerHTML = TOPIC_TITLE[id] || '';
   document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}</div>`;
   view.classList.add('show');
   document.getElementById('topic-detail-body').scrollTop = 0;
+  notifyParentNav('grammarDetailOpen');
 }
 function closeTopicDetail(){
   document.getElementById('topic-detail-view').classList.remove('show');
+  notifyParentNav('grammarDetailClose');
 }
 // Helper dùng chung cho 3 nhóm còn lại (Cấu trúc câu / Giới từ / Ngữ pháp khác) — mỗi mục đã có sẵn
 // HTML "body" dựng riêng (bảng, ví dụ...), chỉ cần đăng ký vào TOPIC_BODY và trả về thẻ tóm tắt.

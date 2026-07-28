@@ -1026,7 +1026,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v46';
+const APP_VERSION = 'v47';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 const MONTH_NAMES = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
 
@@ -1329,6 +1329,9 @@ function restoreNav(snap){
   STATE.activeCustomCat = snap.activeCustomCat;
   STATE.listenQuiz = snap.listenQuiz!==undefined ? snap.listenQuiz : null;
   STATE.speakSession = snap.speakSession!==undefined ? snap.speakSession : null;
+  // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
+  // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
+  STATE.grammarDetailOpen = false;
   const am = document.getElementById('avatar-modal'), dm = document.getElementById('day-detail-modal');
   if(am) am.classList.toggle('show', !!snap.avatarOpen);
   if(dm) dm.classList.toggle('show', !!snap.dayDetailOpen);
@@ -3823,9 +3826,24 @@ async function openGrammarPracticeFromMessage(topicId){
   if(!GRAMMAR_QUIZ_BANK){ await fetchGrammarQuizBank(); }
   startEnglishQuiz(topicId);
 }
+// LƯU Ý QUAN TRỌNG khi thêm bất kỳ "màn/lớp con" mới nào vào app (kể cả bên trong 1 trang nhúng qua
+// <iframe> như english-grammar.html) — PHẢI tích hợp với NAV_STACK ở trên, nếu không cử chỉ vuốt-back
+// sẽ NHẢY THẲNG ra ngoài thay vì lùi đúng 1 lớp:
+//  • Nếu lớp con nằm ngay trong index.html: gọi navForward() lúc mở (thường bọc trong `if(!STATE.x)
+//    navForward();` để tránh đẩy trùng khi "Làm lại"), và gọi navBack() lúc đóng/thoát (KHÔNG tự đổi
+//    STATE rồi renderContent() suông — phải đi qua navBack() để tiêu thụ đúng mốc lịch sử tương ứng).
+//  • Nếu lớp con nằm TRONG 1 iframe nhúng: iframe không có lịch sử riêng mà popstate của index.html
+//    nhìn thấy, nên phải bắc cầu qua postMessage — xem ví dụ 'grammarDetailOpen'/'grammarDetailClose'
+//    bên dưới (mở gọi navForward(), đóng gọi navBack()) — copy đúng mẫu này cho mọi trang nhúng khác.
 window.addEventListener('message', function(e){
   if(e.data && e.data.type==='openGrammarPractice' && e.data.topicId){
     openGrammarPracticeFromMessage(e.data.topicId);
+  } else if(e.data && e.data.type==='grammarDetailOpen'){
+    STATE.grammarDetailOpen = true;
+    navForward();
+  } else if(e.data && e.data.type==='grammarDetailClose'){
+    STATE.grammarDetailOpen = false;
+    navBack();
   }
 });
 function renderEnglishGrammar(item){
@@ -5806,7 +5824,15 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const nhuaBackEl = e.target.closest('[data-action="nhua-back"]');
   if(nhuaBackEl){ STATE.tab = 'kiemhang'; renderContent(); window.scrollTo(0,0); navBack(); return; }
   const engItemBackEl = e.target.closest('[data-action="english-item-back"]');
-  if(engItemBackEl){ STATE.tab = 'english'; renderContent(); window.scrollTo(0,0); navBack(); return; }
+  if(engItemBackEl){
+    // Nếu đang mở "trang riêng" 1 chủ đề ngữ pháp (bên trong iframe), nút back ở đầu màn hình cũng
+    // phải đóng trang riêng đó TRƯỚC (đúng 1 lớp), không được nhảy thẳng ra "Học tiếng Anh" — khớp
+    // với hành vi vuốt-back. navBack() sẽ tiêu thụ đúng mốc lịch sử đó và tự render lại (iframe nạp
+    // lại từ đầu, quay về danh sách chủ đề) mà không cần đổi STATE.tab ở đây.
+    if(STATE.grammarDetailOpen){ navBack(); return; }
+    STATE.tab = 'english'; renderContent(); window.scrollTo(0,0); navBack();
+    return;
+  }
   const renameEngItemEl = e.target.closest('[data-action="rename-english-item"]');
   if(renameEngItemEl){ renameEnglishItem(renameEngItemEl.getAttribute('data-itemid')); return; }
   const addEngItemEl = e.target.closest('[data-action="add-english-item"]');
