@@ -270,28 +270,34 @@
     background:none; border:none; color:var(--dim2); cursor:pointer;}
   .navitem .ic{font-size:18px;} .navitem .t{font-size:9.5px; font-weight:700;} .navitem.active{color:var(--gold);}
 
-  /* ============ HUB HOME — đồng hồ analog điện tử, tràn khung ============ */
-  .hub-clock-card{display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px 16px 16px; margin-top:12px;
-    background:linear-gradient(160deg, rgba(79,168,255,0.09), rgba(124,108,240,0.08) 55%, rgba(44,219,168,0.06));
-    border:1px solid var(--border); border-radius:22px; box-shadow:0 10px 24px rgba(0,0,0,0.25); overflow:hidden; position:relative;}
-  .hub-clock-analog{position:relative; width:100%; max-width:230px; aspect-ratio:1/1; margin:0 auto;}
-  .hub-clock-analog svg{display:block; width:100%; height:100%; filter:drop-shadow(0 6px 16px rgba(0,0,0,.35));}
-  .hub-clock-outerring{animation:hubRingGlow 3.2s ease-in-out infinite; transform-origin:100px 100px;}
-  @keyframes hubRingGlow{ 0%,100%{opacity:.7;} 50%{opacity:1;} }
-  .hub-clock-ticks line{stroke:rgba(255,255,255,0.26); stroke-width:1.4;}
-  .hub-clock-ticks line.major{stroke:rgba(255,255,255,0.6); stroke-width:2.6;}
-  .hub-hand{stroke-linecap:round; transition:transform .25s cubic-bezier(.4,2,.6,1);}
-  .hub-hand-hour{stroke:#EDF2F7; stroke-width:5;}
-  .hub-hand-min{stroke:#EDF2F7; stroke-width:3.2;}
-  .hub-hand-sec{stroke:#2CDBA8; stroke-width:1.6;}
-  .hub-hand-pivot{fill:#2CDBA8; stroke:#0E1218; stroke-width:1.5;}
-  .hub-clock-digital{position:absolute; left:50%; bottom:19%; transform:translateX(-50%); font-family:var(--mono); font-size:14px; font-weight:800;
-    color:#2CDBA8; letter-spacing:.05em; text-shadow:0 0 8px rgba(44,219,168,.55); background:rgba(10,15,22,0.55);
-    border:1px solid rgba(44,219,168,.28); border-radius:8px; padding:2px 9px; white-space:nowrap;}
-  .hub-clock-info-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:center;}
-  .hub-clock-weekday-badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--dim);}
-  .hub-clock-daynum{font-family:var(--sans); font-size:14px; font-weight:800; color:var(--text);}
+  /* ============ HUB HOME — đồng hồ LED kỹ thuật số (7 đoạn), phong cách đồng hồ để bàn LED thật:
+     nền đen tuyền, danh sách Thứ bên trái (ngày hiện tại phát sáng), số giờ:phút 7-đoạn cỡ lớn ở giữa,
+     Tháng/Ngày dạng số bên phải. Toàn bộ dựng bằng div/CSS thuần (không phụ thuộc font ngoài) để vẫn
+     hiển thị đúng khi dùng ngoại tuyến (PWA). ============ */
+  .hub-clock-card{--led-color:#2CDBA8; display:flex; align-items:center; gap:4%; padding:16px 14px; margin-top:12px;
+    background:linear-gradient(165deg,#161616,#050505); border:1px solid rgba(255,255,255,0.08); border-radius:20px;
+    box-shadow:0 14px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05); overflow:hidden;}
+  .hub-led-daylist{display:flex; flex-direction:column; gap:1px; font-family:var(--mono); font-size:10.5px; font-weight:700;
+    color:rgba(255,255,255,0.28); letter-spacing:.04em; flex:0 0 auto;}
+  .hub-led-daylist .active{color:var(--led-color); text-shadow:0 0 6px var(--led-color);}
+  .hub-led-digits{display:flex; align-items:center; justify-content:center; flex:1 1 auto; gap:1.5%;}
+  .led-digit{position:relative; width:clamp(20px,7.2vw,32px); height:clamp(38px,14vw,60px); flex:0 0 auto; transform:skewX(-6deg);}
+  .led-digit .seg{position:absolute; background:var(--led-color); border-radius:2px; box-shadow:0 0 5px var(--led-color), 0 0 12px var(--led-color);}
+  .led-digit .seg-a{top:0; left:15%; width:70%; height:10.5%;}
+  .led-digit .seg-g{top:44.75%; left:15%; width:70%; height:10.5%;}
+  .led-digit .seg-d{bottom:0; left:15%; width:70%; height:10.5%;}
+  .led-digit .seg-f{top:6%; left:0; width:13%; height:41%;}
+  .led-digit .seg-b{top:6%; right:0; width:13%; height:41%;}
+  .led-digit .seg-e{bottom:6%; left:0; width:13%; height:41%;}
+  .led-digit .seg-c{bottom:6%; right:0; width:13%; height:41%;}
+  .hub-led-colon{display:flex; flex-direction:column; justify-content:center; gap:16%; height:clamp(38px,14vw,60px); flex:0 0 auto;}
+  .hub-led-colon .dot{width:clamp(4px,1.6vw,7px); height:clamp(4px,1.6vw,7px); border-radius:50%; background:var(--led-color);
+    box-shadow:0 0 5px var(--led-color), 0 0 12px var(--led-color); transition:opacity .2s;}
+  .hub-led-colon.dim .dot{opacity:.15; box-shadow:none;}
+  .hub-led-md{display:flex; flex-direction:column; gap:7px; flex:0 0 auto;}
+  .hub-led-md-cell{display:flex; align-items:baseline; gap:3px;}
+  .hub-led-md-cell .num{font-family:var(--sans); font-size:14px; font-weight:800; color:#fff; line-height:1;}
+  .hub-led-md-cell .lbl{font-size:8px; font-weight:700; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.03em;}
   .hub-grid{margin-top:18px;}
   .menu-card{background:var(--panel); border:1px solid var(--border); border-radius:22px; overflow:hidden;
     box-shadow:0 10px 24px rgba(0,0,0,0.22);}
@@ -1026,8 +1032,11 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v47';
+const APP_VERSION = 'v48';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
+// Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
+// kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
+const WD_MON_FIRST = ['T2','T3','T4','T5','T6','T7','CN'];
 const MONTH_NAMES = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
 
 const IPA_GROUPS = [
@@ -2910,49 +2919,33 @@ function renderAuthGate(){
     </div>
   `;
 }
-// Đồng hồ analog "điện tử" cho màn hình Hub — mặt kính gradient + viền phát sáng + kim SVG xoay theo
-// giờ/phút/giây thật, cùng ô hiển thị điện tử (LED-style) HH:MM:SS lồng bên trong mặt đồng hồ.
-// id trên các phần tử (hubHandHour/Min/Sec, hubClockDigital) được tickHubClock() cập nhật mỗi giây
-// mà không cần render lại toàn bộ Hub, để kim đồng hồ chạy mượt thời gian thực.
-function hubClockFaceSvg(now){
-  const sec = now.getSeconds(), min = now.getMinutes(), hr12 = now.getHours()%12;
-  const secDeg = sec*6, minDeg = min*6 + sec*0.1, hourDeg = hr12*30 + min*0.5;
-  let ticks = '';
-  for(let i=0;i<12;i++){
-    const rad = i*30*Math.PI/180;
-    const major = i%3===0;
-    const rOuter = 88, rInner = major?75:80;
-    const x1 = (100 + rOuter*Math.sin(rad)).toFixed(1), y1 = (100 - rOuter*Math.cos(rad)).toFixed(1);
-    const x2 = (100 + rInner*Math.sin(rad)).toFixed(1), y2 = (100 - rInner*Math.cos(rad)).toFixed(1);
-    ticks += `<line class="${major?'major':''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-  }
-  return `<svg viewBox="0 0 200 200" id="hubClockSvg">
-    <defs>
-      <radialGradient id="hubFaceGrad" cx="0.32" cy="0.28" r="0.9"><stop offset="0" stop-color="#1E2A3D"/><stop offset="1" stop-color="#0A0F16"/></radialGradient>
-      <linearGradient id="hubRingGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FA8FF"/><stop offset="0.5" stop-color="#2CDBA8"/><stop offset="1" stop-color="#B06CF0"/></linearGradient>
-    </defs>
-    <circle class="hub-clock-outerring" cx="100" cy="100" r="96" fill="none" stroke="url(#hubRingGrad)" stroke-width="2"/>
-    <circle cx="100" cy="100" r="88" fill="url(#hubFaceGrad)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-    <g class="hub-clock-ticks">${ticks}</g>
-    <line id="hubHandHour" class="hub-hand hub-hand-hour" x1="100" y1="100" x2="100" y2="62" transform="rotate(${hourDeg} 100 100)"/>
-    <line id="hubHandMin" class="hub-hand hub-hand-min" x1="100" y1="100" x2="100" y2="42" transform="rotate(${minDeg} 100 100)"/>
-    <line id="hubHandSec" class="hub-hand hub-hand-sec" x1="100" y1="115" x2="100" y2="34" transform="rotate(${secDeg} 100 100)"/>
-    <circle cx="100" cy="100" r="4.5" class="hub-hand-pivot"/>
-  </svg>`;
+// Đồng hồ LED kỹ thuật số (7 đoạn) cho màn hình Hub — mô phỏng đồng hồ để bàn LED thật: nền đen,
+// số giờ:phút dựng bằng các "đoạn" div sáng (không dùng font ngoài nên vẫn đúng khi dùng ngoại tuyến).
+// LED_SEG_MAP: mỗi chữ số 0-9 liệt kê các đoạn cần sáng (a=trên, b=phải-trên, c=phải-dưới, d=dưới,
+// e=trái-dưới, f=trái-trên, g=giữa) — theo đúng quy ước đồng hồ 7-đoạn tiêu chuẩn.
+const LED_SEG_MAP = {
+  '0':'abcdef', '1':'bc', '2':'abged', '3':'abgcd', '4':'fgbc',
+  '5':'afgcd', '6':'afgedc', '7':'abc', '8':'abcdefg', '9':'abcdfg'
+};
+function ledDigitHtml(ch){
+  const segs = LED_SEG_MAP[ch] || '';
+  const spans = ['a','b','c','d','e','f','g'].filter(s=>segs.indexOf(s)!==-1)
+    .map(s=>`<span class="seg seg-${s}"></span>`).join('');
+  return `<div class="led-digit">${spans}</div>`;
 }
-// Cập nhật kim + số điện tử mỗi giây khi màn hình Hub đang mở, không render lại toàn bộ nội dung
-// (tránh giật/mất vị trí cuộn) — tự thoát sớm nếu người dùng đã rời khỏi Hub (element không còn tồn tại).
+function ledDigitsHtml(now, dim){
+  const h = pad(now.getHours()), m = pad(now.getMinutes());
+  return `${ledDigitHtml(h[0])}${ledDigitHtml(h[1])}
+    <div class="hub-led-colon${dim?' dim':''}"><span class="dot"></span><span class="dot"></span></div>
+    ${ledDigitHtml(m[0])}${ledDigitHtml(m[1])}`;
+}
+// Cập nhật số + chấm nháy mỗi giây khi màn hình Hub đang mở, không render lại toàn bộ nội dung (tránh
+// giật/mất vị trí cuộn) — tự thoát sớm nếu người dùng đã rời khỏi Hub (element không còn tồn tại).
 function tickHubClock(){
-  const hourEl = document.getElementById('hubHandHour');
-  if(!hourEl) return;
+  const el = document.getElementById('hubLedDigits');
+  if(!el) return;
   const now = new Date();
-  const sec = now.getSeconds(), min = now.getMinutes(), hr12 = now.getHours()%12;
-  const secDeg = sec*6, minDeg = min*6 + sec*0.1, hourDeg = hr12*30 + min*0.5;
-  hourEl.setAttribute('transform', `rotate(${hourDeg} 100 100)`);
-  const minEl = document.getElementById('hubHandMin'); if(minEl) minEl.setAttribute('transform', `rotate(${minDeg} 100 100)`);
-  const secEl = document.getElementById('hubHandSec'); if(secEl) secEl.setAttribute('transform', `rotate(${secDeg} 100 100)`);
-  const dEl = document.getElementById('hubClockDigital');
-  if(dEl) dEl.textContent = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  el.innerHTML = ledDigitsHtml(now, now.getSeconds()%2===0);
 }
 setInterval(tickHubClock, 1000);
 function renderHub(){
@@ -2990,17 +2983,15 @@ function renderHub(){
       </div>
     </div>`;
   const now = new Date();
-  const hr = now.getHours();
-  const dayPartIcon = hr<5 ? '🌙' : hr<11 ? '☀️' : hr<13 ? '🌞' : hr<18 ? '🌤️' : hr<22 ? '🌆' : '🌙';
+  const todayMonIdx = (now.getDay()+6)%7; // getDay(): 0=CN → quy về chỉ số trong WD_MON_FIRST (0=T2)
+  const daylistHtml = WD_MON_FIRST.map((d,i)=>`<div class="${i===todayMonIdx?'active':''}">${d}</div>`).join('');
   const clockHtml = `
     <div class="hub-clock-card">
-      <div class="hub-clock-analog">
-        ${hubClockFaceSvg(now)}
-        <div class="hub-clock-digital" id="hubClockDigital">${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}</div>
-      </div>
-      <div class="hub-clock-info-row">
-        <div class="hub-clock-weekday-badge">${dayPartIcon} ${WD[now.getDay()]}</div>
-        <div class="hub-clock-daynum">${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
+      <div class="hub-led-daylist">${daylistHtml}</div>
+      <div class="hub-led-digits" id="hubLedDigits">${ledDigitsHtml(now, true)}</div>
+      <div class="hub-led-md">
+        <div class="hub-led-md-cell"><span class="num">${now.getMonth()+1}</span><span class="lbl">Th</span></div>
+        <div class="hub-led-md-cell"><span class="num">${now.getDate()}</span><span class="lbl">Ng</span></div>
       </div>
     </div>`;
   document.getElementById('content').innerHTML = `
