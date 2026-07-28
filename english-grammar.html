@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0E1218">
+<meta name="theme-color" content="#2F63D9">
 <title>Ngữ Pháp Tiếng Anh</title>
 <style>
+/* Tone sáng, hiện đại (trước đây nền tối) — theo phản hồi người dùng. */
 :root{
-  --bg:#0E1218; --panel:#171E27; --panel2:#1D2531; --border:#2A3341;
-  --text:#EDF2F7; --dim:#8B96A8; --dim2:#5C6779;
-  --gold:#FFC94A; --orange:#FF8A3D; --blue:#4FA8FF; --teal:#2CDBA8; --red:#FF5A6E; --purple:#B78CFF;
-  --shadow:0 2px 14px rgba(0,0,0,.28); --radius:16px;
+  --bg:#F3F6FB; --panel:#FFFFFF; --panel2:#EFF3F9; --border:#E1E7F1;
+  --text:#1B2434; --dim:#66717F; --dim2:#98A2B3;
+  --gold:#D99A2B; --orange:#E8703A; --blue:#2E7BE0; --teal:#0EA98B; --red:#E5484D; --purple:#8B5CF6;
+  --shadow:0 2px 14px rgba(20,30,55,.08); --radius:16px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -19,8 +20,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Roboto,
   padding-bottom:calc(30px + env(safe-area-inset-bottom)); overscroll-behavior-y:contain;}
 a{color:inherit;}
 .appbar{position:sticky; top:0; z-index:40;
-  background:linear-gradient(135deg,#171E27 0%,#20304D 55%,#2C4A7A 130%);
-  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 2px 14px rgba(0,0,0,.35);
+  background:linear-gradient(135deg,#4F8CF7 0%,#2E6BE8 55%,#5B4FE0 130%);
+  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 4px 16px rgba(46,107,232,.25);
   border-bottom:1px solid var(--border);}
 .appbar h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:9px;}
 .appbar .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--teal));
@@ -94,13 +95,22 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .topic-summary-card{padding:0; cursor:pointer;}
 .topic-summary-row{padding:13px 14px; font-weight:800; font-size:13.5px; color:var(--text);
   display:flex; align-items:center; justify-content:space-between; gap:8px;}
-.topic-summary-row .arrow{color:var(--blue); font-size:15px; flex-shrink:0;}
+.topic-open-btn{flex:0 0 auto; font-size:11px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--blue),var(--purple));
+  border-radius:999px; padding:6px 12px; box-shadow:0 3px 8px rgba(46,107,232,.28);}
+/* Nút loa đọc to ví dụ — chèn cạnh mỗi câu ví dụ bằng JS (addTtsButtons), dùng chung cho .exbox mọi nơi. */
+.ex-tts-btn{flex:0 0 auto; width:24px; height:24px; border-radius:8px; border:1px solid var(--border);
+  background:var(--panel); color:var(--blue); font-size:12px; display:inline-flex; align-items:center;
+  justify-content:center; cursor:pointer; margin-left:6px; vertical-align:middle;}
+.ex-tts-btn:active{background:var(--panel2); transform:scale(0.92);}
+.ex-tts-btn.speaking{color:#fff; background:var(--blue); border-color:transparent;}
+.exbox > div, .ex10box > div{display:flex; align-items:flex-start; justify-content:space-between; gap:6px;}
+.exbox > div .ex-line-text, .ex10box > div .ex-line-text{flex:1; min-width:0;}
 .topic-detail-view{position:fixed; inset:0; z-index:100; background:var(--bg); display:none;
   flex-direction:column; overflow:hidden;}
 .topic-detail-view.show{display:flex;}
 .topic-detail-header{position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:10px;
-  background:linear-gradient(135deg,#171E27 0%,#20304D 55%,#2C4A7A 130%); color:#fff;
-  padding:calc(14px + env(safe-area-inset-top)) 14px 14px; box-shadow:0 2px 14px rgba(0,0,0,.35); flex-shrink:0;}
+  background:linear-gradient(135deg,#4F8CF7 0%,#2E6BE8 55%,#5B4FE0 130%); color:#fff;
+  padding:calc(14px + env(safe-area-inset-top)) 14px 14px; box-shadow:0 4px 16px rgba(46,107,232,.25); flex-shrink:0;}
 .topic-detail-back{flex:0 0 auto; width:34px; height:34px; border-radius:11px; background:rgba(255,255,255,.14);
   border:1px solid rgba(255,255,255,.2); color:#fff; font-size:17px; display:flex; align-items:center;
   justify-content:center; cursor:pointer;}
@@ -165,6 +175,56 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 <script>
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function stripTags(s){ return (s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
+// Đọc to câu ví dụ bằng speechSynthesis của trình duyệt (offline, không phụ thuộc Cloud TTS của app cha).
+function speakExample(text, btnEl){
+  try{
+    if(!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = 0.95;
+    document.querySelectorAll('.ex-tts-btn.speaking').forEach(b=>b.classList.remove('speaking'));
+    if(btnEl){
+      btnEl.classList.add('speaking');
+      u.onend = ()=>btnEl.classList.remove('speaking');
+      u.onerror = ()=>btnEl.classList.remove('speaking');
+    }
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+// Chèn nút 🔊 cạnh MỌI câu ví dụ trong 1 vùng DOM — dùng chung cho cả câu ví dụ ngắn (t.ex, .exbox)
+// lẫn ví dụ mở rộng (ex10Html, .ex10box) và cả các khối .exbox viết tay trong nhóm Cấu trúc câu/Giới
+// từ/Ngữ pháp khác — vì tất cả đều render ra cùng 1 cấu trúc DOM ".exbox > div" nên chỉ cần 1 lượt
+// quét sau khi nội dung đã được chèn vào trang, không cần sửa từng chỗ tạo HTML.
+function addTtsButtons(container){
+  if(!container) return;
+  container.querySelectorAll('.exbox > div').forEach(div=>{
+    if(div.querySelector('.ex-tts-btn')) return; // đã có nút — tránh chèn trùng nếu gọi lại
+    let enText;
+    const viSpan = div.querySelector('.ex10-vi');
+    if(viSpan){
+      // Ví dụ mở rộng: bỏ số thứ tự "N." và phần dịch tiếng Việt, chỉ đọc câu tiếng Anh.
+      const clone = div.cloneNode(true);
+      const b = clone.querySelector('b'); if(b) b.remove();
+      const vi = clone.querySelector('.ex10-vi'); if(vi) vi.remove();
+      enText = stripTags(clone.innerHTML).trim();
+    } else {
+      enText = stripTags(div.innerHTML).replace(/^[·\s]+/,'').trim();
+    }
+    if(!enText) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'ex-line-text';
+    wrap.innerHTML = div.innerHTML;
+    div.innerHTML = '';
+    div.appendChild(wrap);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ex-tts-btn';
+    btn.textContent = '🔊';
+    btn.setAttribute('aria-label','Đọc to câu ví dụ');
+    btn.onclick = function(ev){ ev.stopPropagation(); speakExample(enText, btn); };
+    div.appendChild(btn);
+  });
+}
 function ul(items){ return '<ul>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ul>'; }
 function practiceTopic(topicId, name){
   try{
@@ -299,7 +359,7 @@ function tenseCard(t, num, groupKey){
   TOPIC_BODY[t.topic] = body;
   TOPIC_TITLE[t.topic] = `${t.n} <span style="font-weight:600;color:var(--dim);font-size:11.5px;margin-left:4px;">(${t.en})</span>`;
   return `<div class="card topic-summary-card" data-search="${searchText}" onclick="openTopicDetail('${t.topic}')">
-    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="arrow">›</span></div>
+    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
 // Trang này được nhúng qua <iframe> trong index.html, và index.html quản lý toàn bộ điều hướng
@@ -319,10 +379,12 @@ function openTopicDetail(id){
   document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}</div>`;
   view.classList.add('show');
   document.getElementById('topic-detail-body').scrollTop = 0;
+  addTtsButtons(document.getElementById('topic-detail-body'));
   notifyParentNav('grammarDetailOpen');
 }
 function closeTopicDetail(){
   document.getElementById('topic-detail-view').classList.remove('show');
+  try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
   notifyParentNav('grammarDetailClose');
 }
 // Helper dùng chung cho 3 nhóm còn lại (Cấu trúc câu / Giới từ / Ngữ pháp khác) — mỗi mục đã có sẵn
@@ -332,7 +394,7 @@ function simpleTopicCard(s, num, labelMap){
   TOPIC_TITLE[s.topic] = s.t;
   const searchText = esc((s.t+' '+stripTags(s.body)).toLowerCase());
   return `<div class="card topic-summary-card" data-search="${searchText}" onclick="openTopicDetail('${s.topic}')">
-    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${s.t}${levelChip(s.topic)}</span><span class="arrow">›</span></div>
+    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${s.t}${levelChip(s.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
 let n=1;

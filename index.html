@@ -85,9 +85,11 @@
   .form-input{width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
     font-size:13px; padding:10px 12px; border-radius:10px; font-family:var(--sans);}
   .form-input::placeholder{color:var(--dim2);}
-  .form-btn{flex:1; border:none; padding:11px; border-radius:10px; font-size:12.5px; font-weight:700; cursor:pointer;}
-  .form-btn.submit{background:linear-gradient(90deg,var(--gold),#FFE08A); color:#0E1218;}
-  .form-btn.cancel{background:var(--panel2); color:var(--dim); border:1px solid var(--border);}
+  .form-btn{flex:1; border:none; padding:12px; border-radius:14px; font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:transform .12s ease, opacity .12s ease; -webkit-tap-highlight-color:transparent;}
+  .form-btn:active{transform:scale(0.96); opacity:.88;}
+  .form-btn.submit{background:linear-gradient(135deg,var(--gold),#FFE08A); color:#0E1218; box-shadow:0 6px 16px -6px rgba(255,201,74,.55);}
+  .form-btn.cancel{background:var(--panel2); color:var(--dim); border:none;}
 
   .rm{width:20px;height:20px;border-radius:6px; display:flex; align-items:center; justify-content:center;
     color:var(--dim2); font-size:10px; flex-shrink:0; margin-left:2px;}
@@ -270,34 +272,23 @@
     background:none; border:none; color:var(--dim2); cursor:pointer;}
   .navitem .ic{font-size:18px;} .navitem .t{font-size:9.5px; font-weight:700;} .navitem.active{color:var(--gold);}
 
-  /* ============ HUB HOME — đồng hồ LED kỹ thuật số (7 đoạn), phong cách đồng hồ để bàn LED thật:
-     nền đen tuyền, danh sách Thứ bên trái (ngày hiện tại phát sáng), số giờ:phút 7-đoạn cỡ lớn ở giữa,
-     Tháng/Ngày dạng số bên phải. Toàn bộ dựng bằng div/CSS thuần (không phụ thuộc font ngoài) để vẫn
-     hiển thị đúng khi dùng ngoại tuyến (PWA). ============ */
-  .hub-clock-card{--led-color:#2CDBA8; display:flex; align-items:center; gap:4%; padding:16px 14px; margin-top:12px;
-    background:linear-gradient(165deg,#161616,#050505); border:1px solid rgba(255,255,255,0.08); border-radius:20px;
-    box-shadow:0 14px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05); overflow:hidden;}
-  .hub-led-daylist{display:flex; flex-direction:column; gap:1px; font-family:var(--mono); font-size:10.5px; font-weight:700;
-    color:rgba(255,255,255,0.28); letter-spacing:.04em; flex:0 0 auto;}
-  .hub-led-daylist .active{color:var(--led-color); text-shadow:0 0 6px var(--led-color);}
-  .hub-led-digits{display:flex; align-items:center; justify-content:center; flex:1 1 auto; gap:1.5%;}
-  .led-digit{position:relative; width:clamp(20px,7.2vw,32px); height:clamp(38px,14vw,60px); flex:0 0 auto; transform:skewX(-6deg);}
-  .led-digit .seg{position:absolute; background:var(--led-color); border-radius:2px; box-shadow:0 0 5px var(--led-color), 0 0 12px var(--led-color);}
-  .led-digit .seg-a{top:0; left:15%; width:70%; height:10.5%;}
-  .led-digit .seg-g{top:44.75%; left:15%; width:70%; height:10.5%;}
-  .led-digit .seg-d{bottom:0; left:15%; width:70%; height:10.5%;}
-  .led-digit .seg-f{top:6%; left:0; width:13%; height:41%;}
-  .led-digit .seg-b{top:6%; right:0; width:13%; height:41%;}
-  .led-digit .seg-e{bottom:6%; left:0; width:13%; height:41%;}
-  .led-digit .seg-c{bottom:6%; right:0; width:13%; height:41%;}
-  .hub-led-colon{display:flex; flex-direction:column; justify-content:center; gap:16%; height:clamp(38px,14vw,60px); flex:0 0 auto;}
-  .hub-led-colon .dot{width:clamp(4px,1.6vw,7px); height:clamp(4px,1.6vw,7px); border-radius:50%; background:var(--led-color);
-    box-shadow:0 0 5px var(--led-color), 0 0 12px var(--led-color); transition:opacity .2s;}
-  .hub-led-colon.dim .dot{opacity:.15; box-shadow:none;}
-  .hub-led-md{display:flex; flex-direction:column; gap:7px; flex:0 0 auto;}
-  .hub-led-md-cell{display:flex; align-items:baseline; gap:3px;}
-  .hub-led-md-cell .num{font-family:var(--sans); font-size:14px; font-weight:800; color:#fff; line-height:1;}
-  .hub-led-md-cell .lbl{font-size:8px; font-weight:700; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.03em;}
+  /* ============ HUB HOME — đồng hồ gọn, nền bản đồ thế giới dạng chấm kéo dài toàn khung:
+     giờ:phút lớn dễ đọc bên trái (font số thường, không phải 7-đoạn), ngày/tháng bên dưới,
+     nhãn Thứ ở góc phải. Khung thấp, chỉ 1 hàng, để danh mục bên dưới vẫn hiện đủ. ============ */
+  .hub-clock-card{position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:12px; padding:13px 16px; min-height:56px; border-radius:18px; overflow:hidden;
+    background:linear-gradient(120deg,#0B2036 0%,#0E3654 55%,#0A2A44 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);}
+  .hub-clock-map{position:absolute; inset:0; width:100%; height:100%; opacity:.4;}
+  .hub-clock-map circle{fill:#6FE0D0;}
+  .hub-clock-scrim{position:absolute; inset:0; background:linear-gradient(100deg, rgba(9,24,40,.2) 0%, rgba(9,24,40,.82) 78%);}
+  .hub-clock-left{position:relative; z-index:1; min-width:0;}
+  .hub-clock-time{font-family:var(--mono); font-size:26px; font-weight:800; color:#fff; letter-spacing:.5px; line-height:1.1;}
+  .hub-clock-date{font-size:11px; font-weight:700; color:rgba(255,255,255,.78); margin-top:3px;}
+  .hub-clock-right{position:relative; z-index:1; display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;}
+  .hub-clock-day-badge{font-size:10.5px; font-weight:800; color:#fff; background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.22); border-radius:8px; padding:3px 9px; letter-spacing:.03em;}
+  .hub-clock-md{font-size:10px; color:rgba(255,255,255,.68); font-weight:700;}
   .hub-grid{margin-top:18px;}
   .menu-card{background:var(--panel); border:1px solid var(--border); border-radius:22px; overflow:hidden;
     box-shadow:0 10px 24px rgba(0,0,0,0.22);}
@@ -344,21 +335,22 @@
   .ent-tile-add{width:52px; height:52px; border-radius:15px; display:flex; align-items:center; justify-content:center;
     border:1.5px dashed var(--border); color:var(--dim2); font-size:22px; font-weight:700;}
   .cat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .cat-card{position:relative; border-radius:22px; padding:16px; min-height:112px; display:flex; flex-direction:column;
-    justify-content:space-between; cursor:pointer; overflow:hidden; box-shadow:0 10px 22px rgba(0,0,0,0.28);
-    transition:transform .12s ease;}
-  .cat-card:active{transform:scale(0.97);}
-  .cat-card .ic{width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,0.22); display:flex;
+  .cat-card{position:relative; border-radius:20px; padding:16px; min-height:112px; display:flex; flex-direction:column;
+    justify-content:space-between; cursor:pointer; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.18);
+    transition:transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease; -webkit-tap-highlight-color:transparent;}
+  .cat-card:active{transform:scale(0.96); box-shadow:0 4px 12px rgba(0,0,0,0.16);}
+  .cat-card .ic{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.24); backdrop-filter:blur(6px); display:flex;
     align-items:center; justify-content:center; flex-shrink:0;}
-  .cat-card .ic svg{width:20px; height:20px; display:block;}
+  .cat-card .ic svg{width:19px; height:19px; display:block;}
   .cat-card .name{font-size:13.5px; font-weight:800; color:#fff; margin-top:10px; line-height:1.25;}
   .cat-card .stat{font-size:10px; font-weight:700; color:rgba(255,255,255,0.85); margin-top:3px;}
   .cat-card .deco{position:absolute; right:-12px; bottom:-14px; font-size:70px; opacity:0.16; line-height:1;}
-  .cat-card-scrim{position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.62)); border-radius:22px;}
+  .cat-card-scrim{position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.62)); border-radius:20px;}
   .cat-card-fg{position:relative; display:flex; flex-direction:column; justify-content:space-between; flex:1;}
-  .cat-card-actions{position:absolute; top:10px; right:10px; display:flex; gap:5px; z-index:2;}
-  .cat-card-iconbtn{width:24px; height:24px; border-radius:8px; background:rgba(0,0,0,0.22); display:flex;
-    align-items:center; justify-content:center; color:#fff; cursor:pointer;}
+  .cat-card-actions{position:absolute; top:10px; right:10px; display:flex; gap:6px; z-index:2;}
+  .cat-card-iconbtn{width:26px; height:26px; border-radius:50%; background:rgba(20,20,20,0.38); backdrop-filter:blur(6px); display:flex;
+    align-items:center; justify-content:center; color:#fff; cursor:pointer; transition:transform .12s ease;}
+  .cat-card-iconbtn:active{transform:scale(0.88);}
   .cat-card-iconbtn svg{width:11px; height:11px;}
   .cat-card-add{border:1.5px dashed var(--border); background:var(--panel); box-shadow:none; align-items:center;
     justify-content:center; flex-direction:row; gap:8px;}
@@ -375,8 +367,9 @@
     background-color:#2A3648; display:flex; flex-direction:column; justify-content:flex-end; padding:14px 16px; box-sizing:border-box;}
   .banner-overlay{position:absolute; inset:0; background:linear-gradient(180deg, rgba(14,18,24,0.1) 0%, rgba(14,18,24,0.88) 100%);}
   .banner-actions{position:absolute; top:10px; right:10px; z-index:3; display:flex; gap:8px;}
-  .banner-icon-btn{width:32px; height:32px; border-radius:10px; background:rgba(14,18,24,0.55); border:1px solid rgba(255,255,255,0.18);
-    color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .banner-icon-btn{width:32px; height:32px; border-radius:50%; background:rgba(14,18,24,0.5); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.18);
+    color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .12s ease;}
+  .banner-icon-btn:active{transform:scale(0.88);}
   .banner-icon-btn .icon-svg svg{width:16px; height:16px; display:block;}
   .banner-title{position:relative; z-index:1; font-size:15px; font-weight:800; color:#fff;}
   .banner-sub{position:relative; z-index:1; font-size:11px; color:rgba(255,255,255,0.82); margin-top:2px; font-weight:600; word-break:break-all;}
@@ -741,16 +734,16 @@
   .eng-group-grid.compact .eng-group-card .gc-name{font-size:11.5px;}
   .eng-group-grid.compact .eng-group-card .gc-desc{font-size:9px; margin-top:1px; -webkit-line-clamp:1; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical;}
   .eng-group-grid.compact .eng-group-card .gc-count{font-size:8.5px; margin-top:6px; padding:2px 6px;}
-  .eng-mocktest-card{text-align:center; padding:18px 16px; margin-bottom:16px;}
-  .eng-mocktest-card .mocktest-icon{font-size:26px; margin-bottom:4px;}
-  .eng-mocktest-card .mocktest-title{font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;}
-  .eng-mocktest-card .mocktest-desc{font-size:12px; color:var(--dim); line-height:1.55; margin-bottom:12px;}
-  .mocktest-count-row{display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-bottom:14px;}
-  .mocktest-count-btn{flex:0 0 auto; min-width:42px; padding:7px 10px; border-radius:11px; border:1.5px solid var(--border);
-    background:var(--panel2); color:var(--dim); font-size:12px; font-weight:800; font-family:var(--mono); cursor:pointer;
+  .eng-mocktest-card{text-align:center; padding:12px 12px; margin-bottom:12px;}
+  .eng-mocktest-card .mocktest-icon{font-size:19px; margin-bottom:2px;}
+  .eng-mocktest-card .mocktest-title{font-size:13px; font-weight:800; color:var(--text); margin-bottom:2px;}
+  .eng-mocktest-card .mocktest-desc{font-size:10.5px; color:var(--dim); line-height:1.4; margin-bottom:8px;}
+  .mocktest-count-row{display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:9px;}
+  .mocktest-count-btn{flex:0 0 auto; min-width:32px; padding:4px 7px; border-radius:999px; border:1.5px solid var(--border);
+    background:var(--panel2); color:var(--dim); font-size:10.5px; font-weight:800; font-family:var(--mono); cursor:pointer;
     transition:transform .12s ease, border-color .12s ease, background .12s ease, color .12s ease;}
   .mocktest-count-btn:active{transform:scale(0.94);}
-  .mocktest-count-btn.active{background:linear-gradient(135deg,var(--blue),#7C6CF0); border-color:transparent; color:#fff; box-shadow:0 4px 12px -4px rgba(79,168,255,.5);}
+  .mocktest-count-btn.active{background:linear-gradient(135deg,var(--blue),#7C6CF0); border-color:transparent; color:#fff; box-shadow:0 3px 9px -3px rgba(79,168,255,.5);}
   .eng-quiz-tip{font-size:11.5px; color:var(--teal); line-height:1.6; background:rgba(44,219,168,0.1);
     border:1px solid rgba(44,219,168,0.25); border-radius:10px; padding:9px 12px; margin-bottom:10px;}
   .eng-quiz-actions{display:flex; gap:8px; flex-wrap:wrap;}
@@ -1032,7 +1025,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v48';
+const APP_VERSION = 'v49';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -2051,7 +2044,12 @@ async function onDriveTokenResponse(resp){
   driveTokenExpiry = Date.now() + ((resp.expires_in||3500)*1000);
   markDriveConnected(true);
   scheduleSilentRefresh();
-  try{ await fetchDriveUserEmail(); }catch(e){}
+  // QUAN TRỌNG — nguyên nhân khiến đăng nhập "khựng lại": trước đây `await fetchDriveUserEmail()`
+  // (1 lượt gọi mạng riêng chỉ để lấy tên/email hiển thị) chặn đứng toàn bộ phần dưới, kể cả lượt
+  // render đầu tiên hiện "Đang đồng bộ...". Nếu mạng chậm, người dùng thấy màn hình đứng im vài giây
+  // trước khi có phản hồi gì. Giờ để chạy nền (không await) — email sẽ tự cập nhật khi tải xong,
+  // không chặn phần đồng bộ dữ liệu chính chạy ngay lập tức.
+  fetchDriveUserEmail().catch(()=>{}).then(()=>{ if(STATE.tab!=='authgate') renderContent(); });
   if(!wasConnected){
     driveSyncing = true; renderContent();
     try{
@@ -2919,33 +2917,29 @@ function renderAuthGate(){
     </div>
   `;
 }
-// Đồng hồ LED kỹ thuật số (7 đoạn) cho màn hình Hub — mô phỏng đồng hồ để bàn LED thật: nền đen,
-// số giờ:phút dựng bằng các "đoạn" div sáng (không dùng font ngoài nên vẫn đúng khi dùng ngoại tuyến).
-// LED_SEG_MAP: mỗi chữ số 0-9 liệt kê các đoạn cần sáng (a=trên, b=phải-trên, c=phải-dưới, d=dưới,
-// e=trái-dưới, f=trái-trên, g=giữa) — theo đúng quy ước đồng hồ 7-đoạn tiêu chuẩn.
-const LED_SEG_MAP = {
-  '0':'abcdef', '1':'bc', '2':'abged', '3':'abgcd', '4':'fgbc',
-  '5':'afgcd', '6':'afgedc', '7':'abc', '8':'abcdefg', '9':'abcdfg'
-};
-function ledDigitHtml(ch){
-  const segs = LED_SEG_MAP[ch] || '';
-  const spans = ['a','b','c','d','e','f','g'].filter(s=>segs.indexOf(s)!==-1)
-    .map(s=>`<span class="seg seg-${s}"></span>`).join('');
-  return `<div class="led-digit">${spans}</div>`;
+// Đồng hồ gọn cho màn hình Hub — nền là bản đồ thế giới dạng chấm (kéo dài toàn khung, viewBox
+// 100x50 phóng không giữ tỉ lệ để trải phẳng theo chiều ngang của khung thấp), số giờ:phút dùng
+// font thường (không phải 7-đoạn) để dễ đọc hơn theo phản hồi thực tế của người dùng.
+// Toạ độ gần đúng các châu lục trên phép chiếu hình chữ nhật (equirectangular), chỉ mang tính trang trí.
+const WORLD_MAP_DOTS = [
+  [10,10],[13,9],[16,8],[19,9],[22,10],[25,12],[27,14],[24,16],[20,15],[16,17],[12,18],[9,16],[11,13],[14,12],[18,13],[21,14],[24,18],[20,20],[16,21],[13,20],[10,22],[17,24],[22,22],
+  [22,28],[24,27],[26,29],[28,31],[27,34],[25,37],[23,40],[21,43],[20,45],[24,33],[26,36],[22,38],[25,41],[23,44],
+  [48,8],[50,7],[52,8],[54,9],[56,10],[50,11],[48,12],[52,13],[55,12],[47,10],
+  [50,20],[53,19],[56,21],[58,23],[60,25],[59,28],[57,31],[55,34],[53,37],[51,40],[49,38],[52,42],[54,25],[48,26],[50,30],[56,33],[58,36],[52,22],
+  [64,8],[68,7],[72,6],[76,7],[80,8],[84,9],[88,10],[90,12],[86,13],[82,12],[78,11],[74,10],[70,9],[66,10],[62,11],[65,14],[69,15],[73,14],[77,16],[81,17],[85,16],[89,18],[64,18],[68,19],[72,18],[76,20],[80,21],[84,22],[60,15],[63,22],[67,24],[71,23],[75,25],[79,26],[83,25],[60,26],
+  [80,40],[83,39],[86,40],[89,42],[85,44],[81,43],[88,45],[83,46]
+];
+function worldMapSvg(){
+  const dots = WORLD_MAP_DOTS.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="0.55"/>`).join('');
+  return `<svg class="hub-clock-map" viewBox="0 0 100 50" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${dots}</svg>`;
 }
-function ledDigitsHtml(now, dim){
-  const h = pad(now.getHours()), m = pad(now.getMinutes());
-  return `${ledDigitHtml(h[0])}${ledDigitHtml(h[1])}
-    <div class="hub-led-colon${dim?' dim':''}"><span class="dot"></span><span class="dot"></span></div>
-    ${ledDigitHtml(m[0])}${ledDigitHtml(m[1])}`;
-}
-// Cập nhật số + chấm nháy mỗi giây khi màn hình Hub đang mở, không render lại toàn bộ nội dung (tránh
-// giật/mất vị trí cuộn) — tự thoát sớm nếu người dùng đã rời khỏi Hub (element không còn tồn tại).
+// Cập nhật giờ:phút mỗi giây khi màn hình Hub đang mở, chỉ đổi text (không render lại toàn bộ) để
+// tránh giật/mất vị trí cuộn — tự thoát sớm nếu người dùng đã rời khỏi Hub (element không còn tồn tại).
 function tickHubClock(){
-  const el = document.getElementById('hubLedDigits');
+  const el = document.getElementById('hubClockTime');
   if(!el) return;
   const now = new Date();
-  el.innerHTML = ledDigitsHtml(now, now.getSeconds()%2===0);
+  el.textContent = pad(now.getHours())+':'+pad(now.getMinutes());
 }
 setInterval(tickHubClock, 1000);
 function renderHub(){
@@ -2984,14 +2978,17 @@ function renderHub(){
     </div>`;
   const now = new Date();
   const todayMonIdx = (now.getDay()+6)%7; // getDay(): 0=CN → quy về chỉ số trong WD_MON_FIRST (0=T2)
-  const daylistHtml = WD_MON_FIRST.map((d,i)=>`<div class="${i===todayMonIdx?'active':''}">${d}</div>`).join('');
   const clockHtml = `
     <div class="hub-clock-card">
-      <div class="hub-led-daylist">${daylistHtml}</div>
-      <div class="hub-led-digits" id="hubLedDigits">${ledDigitsHtml(now, true)}</div>
-      <div class="hub-led-md">
-        <div class="hub-led-md-cell"><span class="num">${now.getMonth()+1}</span><span class="lbl">Th</span></div>
-        <div class="hub-led-md-cell"><span class="num">${now.getDate()}</span><span class="lbl">Ng</span></div>
+      ${worldMapSvg()}
+      <div class="hub-clock-scrim"></div>
+      <div class="hub-clock-left">
+        <div class="hub-clock-time" id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</div>
+        <div class="hub-clock-date">${WD[now.getDay()]}, ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}</div>
+      </div>
+      <div class="hub-clock-right">
+        <div class="hub-clock-day-badge">${WD_MON_FIRST[todayMonIdx]}</div>
+        <div class="hub-clock-md">Th${now.getMonth()+1} · ${now.getDate()}</div>
       </div>
     </div>`;
   document.getElementById('content').innerHTML = `
