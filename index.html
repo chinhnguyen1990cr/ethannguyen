@@ -635,16 +635,34 @@
   .eng-topic-score{font-size:10.5px; color:var(--gold); font-family:var(--mono); font-weight:700; flex:0 0 auto;}
   .eng-section-label{font-size:11.5px; font-weight:800; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;
     margin:18px 2px 10px;}
-  .eng-level-pick-row{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 6px; margin-bottom:4px; scrollbar-width:none;}
-  .eng-level-pick-row::-webkit-scrollbar{display:none;}
-  .eng-level-pick-card{flex:0 0 90px; background:var(--panel); border:1.5px solid var(--border); border-radius:16px;
-    padding:14px 8px; text-align:center; cursor:pointer;}
-  .eng-level-pick-card:active{transform:scale(0.96);}
-  .eng-level-pick-card.disabled{opacity:.4; cursor:default;}
-  .eng-level-pick-card .lvl-code{font-size:19px; font-weight:900; font-family:var(--mono);}
-  .eng-level-pick-card .lvl-label{font-size:10px; color:var(--dim); margin-top:3px; font-weight:700; line-height:1.3;}
-  .eng-level-pick-card .lvl-count{font-size:10px; color:var(--text); margin-top:8px; font-weight:800; font-family:var(--mono);}
-  .eng-level-pick-card .lvl-best{font-size:9.5px; color:var(--teal); margin-top:3px; font-weight:700;}
+  /* Thẻ chọn cấp độ (CEFR) — dùng chung cho Luyện nghe/Luyện nói/Luyện ngữ pháp. Thiết kế "luxury":
+     nền gradient than-đen sâu, viền/khung vàng ánh kim mảnh, chữ cấp độ khắc nổi bằng gradient vàng,
+     hiệu ứng nâng nhẹ khi hover (laptop) và bấm (mobile). display:flex + flex-wrap để tự động xếp
+     thành lưới gọn trên màn hình rộng (laptop) và xếp 2-3 cột trên điện thoại, không cần cuộn ngang. */
+  .eng-level-pick-row{display:flex; flex-wrap:wrap; gap:12px; padding:2px 2px 6px; margin-bottom:4px;}
+  .eng-level-pick-card{position:relative; flex:1 1 128px; max-width:168px; min-width:108px;
+    background:linear-gradient(160deg,#232A3B 0%,#161A24 60%,#12151d 100%);
+    border:1px solid rgba(255,201,74,0.28); border-radius:18px;
+    padding:18px 10px 16px; text-align:center; cursor:pointer; overflow:hidden;
+    box-shadow:0 10px 22px -12px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+    transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;}
+  .eng-level-pick-card::before{content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, rgba(255,201,74,.7), transparent); opacity:.8;}
+  .eng-level-pick-card:hover{transform:translateY(-3px); border-color:rgba(255,201,74,0.55);
+    box-shadow:0 16px 30px -14px rgba(0,0,0,.65), 0 0 0 1px rgba(255,201,74,.12);}
+  .eng-level-pick-card:active{transform:scale(0.97) translateY(0);}
+  .eng-level-pick-card.disabled{opacity:.38; cursor:default;}
+  .eng-level-pick-card.disabled:hover{transform:none; border-color:rgba(255,201,74,0.28); box-shadow:0 10px 22px -12px rgba(0,0,0,.6);}
+  .eng-level-pick-card .lvl-code{font-size:21px; font-weight:900; font-family:var(--mono); letter-spacing:.5px;
+    background:linear-gradient(135deg,#FFE3A0,#FFC94A 55%,#D89A2E); -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent; color:#FFC94A;}
+  .eng-level-pick-card .lvl-label{font-size:10px; color:var(--dim); margin-top:4px; font-weight:700; line-height:1.3;
+    text-transform:uppercase; letter-spacing:.4px;}
+  .eng-level-pick-card .lvl-count{font-size:10px; color:var(--text); margin-top:10px; font-weight:800; font-family:var(--mono);
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:3px 10px; display:inline-block;}
+  .eng-level-pick-card .lvl-best{position:absolute; top:8px; right:8px; font-size:9px; color:#1a1206; font-weight:800;
+    background:linear-gradient(135deg,#FFE3A0,#FFC94A); border-radius:8px; padding:2px 6px; box-shadow:0 2px 6px rgba(0,0,0,.35);}
+  @media (min-width:520px){ .eng-level-pick-card{flex:0 1 150px;} }
   .video-lesson-list{display:flex; flex-direction:column; gap:10px; margin-bottom:4px;}
   .video-lesson-card{display:flex; align-items:center; gap:12px; background:var(--panel); border:1.5px solid var(--border);
     border-radius:14px; padding:8px 10px; cursor:pointer;}
@@ -658,23 +676,9 @@
   .video-embed-wrap{position:relative; width:100%; padding-bottom:56.25%; margin-bottom:12px; border-radius:16px; overflow:hidden; background:#000;}
   .video-embed-wrap iframe{position:absolute; top:0; left:0; width:100%; height:100%; border:0;}
 
-  /* ===== Giao diện hiện đại riêng cho Luyện nghe / Luyện nói: nhiều theme màu, chỉ áp dụng bên
-     trong .eng-av-modern để KHÔNG ảnh hưởng các màn hình khác (vd Luyện ngữ pháp) đang dùng chung
-     class .eng-quiz-*. Đổi theme bằng thanh chấm màu ở đầu màn hình, lưu vào SETTINGS.avTheme. ===== */
-  .eng-av-modern{ --avp1:var(--blue); --avp2:var(--teal); --avp3:var(--gold); }
-  .eng-av-modern.avtheme-ocean{ --avp1:#2E86FF; --avp2:#00D4FF; --avp3:#7CE8FF; }
-  .eng-av-modern.avtheme-sunset{ --avp1:#FF7A59; --avp2:#FF4D8D; --avp3:#FFC94A; }
-  .eng-av-modern.avtheme-forest{ --avp1:#2CDBA8; --avp2:#7ED957; --avp3:#B7FF5C; }
-  .av-theme-row{display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:4px 2px;}
-  .av-theme-dot{width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;
-    box-shadow:0 2px 6px rgba(0,0,0,.25); transition:transform .15s ease, border-color .15s ease; flex:0 0 auto;}
-  .av-theme-dot:active{transform:scale(0.88);}
-  .av-theme-dot.active{border-color:#fff; transform:scale(1.12);}
-  .av-theme-dot.t-default{background:linear-gradient(135deg,var(--blue),var(--teal));}
-  .av-theme-dot.t-ocean{background:linear-gradient(135deg,#2E86FF,#00D4FF);}
-  .av-theme-dot.t-sunset{background:linear-gradient(135deg,#FF7A59,#FF4D8D);}
-  .av-theme-dot.t-forest{background:linear-gradient(135deg,#2CDBA8,#7ED957);}
-  .av-theme-label{font-size:10.5px; color:var(--dim2); margin-left:auto;}
+  /* ===== Giao diện "luxury" cố định riêng cho Luyện nghe / Luyện nói: nền than-đen sâu + ánh vàng
+     kim làm điểm nhấn, chỉ áp dụng bên trong .eng-av-modern để KHÔNG ảnh hưởng màn hình khác. ===== */
+  .eng-av-modern{ --avp1:#FFC94A; --avp2:#D89A2E; --avp3:#4FA8FF; }
   .eng-av-modern .eng-quiz-card{border-radius:22px; border:1px solid color-mix(in srgb, var(--avp1) 35%, var(--border));
     box-shadow:0 10px 28px -12px rgba(0,0,0,.5); background:linear-gradient(180deg, var(--panel), var(--panel2));}
   .eng-av-modern .eng-quiz-card::before{height:5px; background:linear-gradient(90deg,var(--avp1),var(--avp2),var(--avp3));}
@@ -692,13 +696,11 @@
   .eng-av-modern .eng-quiz-progress-badge.correct{background:color-mix(in srgb, var(--avp2) 18%, transparent); color:var(--avp2); border-color:color-mix(in srgb, var(--avp2) 40%, transparent);}
   .eng-av-modern .form-btn{border-radius:16px; font-weight:800; transition:transform .12s ease;}
   .eng-av-modern .form-btn:active{transform:scale(0.96);}
-  .eng-av-modern .eng-quiz-nextbtn{background:linear-gradient(135deg,var(--avp1),var(--avp2)); border-radius:18px; box-shadow:0 8px 20px -8px color-mix(in srgb, var(--avp2) 60%, transparent);}
-  .eng-av-modern .speak-rec-btn{border-radius:20px; background:linear-gradient(135deg,var(--avp1),var(--avp2)); box-shadow:0 10px 24px -10px color-mix(in srgb, var(--avp2) 55%, transparent);}
-  .eng-av-modern .speak-rec-btn.recording{background:linear-gradient(135deg,#E5484D,#B0143D);}
-  .eng-av-modern .eng-quiz-tip{background:color-mix(in srgb, var(--avp2) 12%, transparent); border-color:color-mix(in srgb, var(--avp2) 30%, transparent); color:var(--avp2);}
+  .eng-av-modern .eng-quiz-nextbtn{background:linear-gradient(135deg,var(--avp1),var(--avp2)); color:#1a1206; border-radius:18px; box-shadow:0 8px 20px -8px color-mix(in srgb, var(--avp2) 60%, transparent);}
+  .eng-av-modern .speak-rec-btn{border-radius:20px; background:linear-gradient(135deg,var(--avp1),var(--avp2)); color:#1a1206; box-shadow:0 10px 24px -10px color-mix(in srgb, var(--avp2) 55%, transparent);}
+  .eng-av-modern .speak-rec-btn.recording{background:linear-gradient(135deg,#E5484D,#B0143D); color:#fff;}
+  .eng-av-modern .eng-quiz-tip{background:color-mix(in srgb, var(--avp3) 12%, transparent); border-color:color-mix(in srgb, var(--avp3) 30%, transparent); color:var(--avp3);}
   .eng-av-modern .video-embed-wrap{border-radius:20px; box-shadow:0 10px 24px -10px rgba(0,0,0,.5);}
-  .eng-av-modern .eng-level-pick-card{border-radius:20px;}
-  .eng-av-modern .eng-level-pick-card .lvl-code{color:var(--avp1);}
   .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
   .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
     min-height:116px; background:var(--gcgrad); color:#fff; display:flex; flex-direction:column; justify-content:flex-end;
@@ -4375,9 +4377,8 @@ function renderListenQuizUI(){
     </div>`;
   }
   document.getElementById('content').innerHTML = `
-    <div class="eng-av-modern avtheme-${avThemeId()}">
+    <div class="eng-av-modern">
     <div class="kh-backrow"><div class="kh-backbtn" data-action="listen-quiz-exit">${svgIcon('back')}</div><div class="title">${q.videoId?('📺 '+escapeHtml(q.videoTitle||'Video')):'🎧 Kiểm tra nghe'}</div></div>
-    ${avThemePickerHtml()}
     ${body}
     </div>
   `;
@@ -4485,19 +4486,6 @@ function videoLessonsListHtml(mode){
   return `<div class="eng-section-label" style="margin-top:18px;">📺 Học qua video (VOA Learning English)</div>
     <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Xem video hội thoại thật của VOA rồi ${mode==='listening'?'trả lời câu hỏi':'luyện nói theo từng câu'}. Câu hỏi &amp; lời thoại bám sát đúng nội dung nói trong video.</div>
     <div class="video-lesson-list">${cards}</div>`;
-}
-const AV_THEMES = [
-  {id:'default', label:'Mặc định'},
-  {id:'ocean', label:'Đại dương'},
-  {id:'sunset', label:'Hoàng hôn'},
-  {id:'forest', label:'Rừng xanh'},
-];
-function avThemeId(){ return SETTINGS.avTheme || 'default'; }
-// Thanh chọn theme màu — dùng chung cho Luyện nghe & Luyện nói, chỉ đổi màu nhấn (không đổi bố cục).
-function avThemePickerHtml(){
-  const cur = avThemeId();
-  const dots = AV_THEMES.map(t=>`<div class="av-theme-dot t-${t.id} ${cur===t.id?'active':''}" data-action="av-theme-pick" data-theme="${t.id}" title="${t.label}"></div>`).join('');
-  return `<div class="av-theme-row">${dots}<span class="av-theme-label">🎨 Đổi giao diện</span></div>`;
 }
 function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
   if(!videoId) return '';
@@ -5081,7 +5069,7 @@ function renderSpeakPracticeUI(){
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
-    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-21</div>`;
+    <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">build sp-fix-22</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   let resultHtml='';
@@ -5097,9 +5085,8 @@ function renderSpeakPracticeUI(){
     </div>`;
   }
   document.getElementById('content').innerHTML = `
-    <div class="eng-av-modern avtheme-${avThemeId()}">
+    <div class="eng-av-modern">
     ${backRow}
-    ${avThemePickerHtml()}
     <div class="eng-quiz-progress-wrap">
       <div class="eng-quiz-progress-top">
         <span class="eng-quiz-progress-badge count">Đoạn ${s.idx+1}/${s.order.length}</span>
@@ -5762,8 +5749,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenQuizReplayEl){ replayListenQuiz(); return; }
   const listenVideoReplayEl = e.target.closest('[data-action="listen-video-replay"]');
   if(listenVideoReplayEl){ const q=STATE.listenQuiz; if(q){ q.replaySeed=(q.replaySeed||0)+1; renderContent(); } return; }
-  const avThemePickEl = e.target.closest('[data-action="av-theme-pick"]');
-  if(avThemePickEl){ SETTINGS.avTheme = avThemePickEl.getAttribute('data-theme'); saveSettings(); renderContent(); return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
   if(listenQuizToggleEl){ toggleListenPlayback(); return; }
   const cloudTtsKeyEl = e.target.closest('[data-action="set-cloud-tts-key"]');
