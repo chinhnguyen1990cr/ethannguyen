@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#2F63D9">
+<meta name="theme-color" content="#0E1218">
 <title>Ngữ Pháp Tiếng Anh</title>
 <style>
-/* Tone sáng, hiện đại (trước đây nền tối) — theo phản hồi người dùng. */
+/* Tone tối, khớp đúng bảng màu hiện tại của app (index.html :root) — người dùng phản hồi bản
+   sáng trước đó không hợp, nên quay lại nền tối nhưng đồng bộ chính xác với giao diện chung. */
 :root{
-  --bg:#F3F6FB; --panel:#FFFFFF; --panel2:#EFF3F9; --border:#E1E7F1;
-  --text:#1B2434; --dim:#66717F; --dim2:#98A2B3;
-  --gold:#D99A2B; --orange:#E8703A; --blue:#2E7BE0; --teal:#0EA98B; --red:#E5484D; --purple:#8B5CF6;
-  --shadow:0 2px 14px rgba(20,30,55,.08); --radius:16px;
+  --bg:#0E1218; --panel:#171E27; --panel2:#1D2531; --border:#2A3341;
+  --text:#EDF2F7; --dim:#8B96A8; --dim2:#5C6779;
+  --gold:#FFC94A; --orange:#FF8A3D; --blue:#4FA8FF; --teal:#2CDBA8; --red:#FF5A6E; --purple:#B78CFF;
+  --shadow:0 2px 14px rgba(0,0,0,.28); --radius:16px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -20,8 +21,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Roboto,
   padding-bottom:calc(30px + env(safe-area-inset-bottom)); overscroll-behavior-y:contain;}
 a{color:inherit;}
 .appbar{position:sticky; top:0; z-index:40;
-  background:linear-gradient(135deg,#4F8CF7 0%,#2E6BE8 55%,#5B4FE0 130%);
-  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 4px 16px rgba(46,107,232,.25);
+  background:linear-gradient(135deg,#171E27 0%,#20304D 55%,#2C4A7A 130%);
+  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; box-shadow:0 2px 14px rgba(0,0,0,.35);
   border-bottom:1px solid var(--border);}
 .appbar h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:9px;}
 .appbar .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--teal));
@@ -82,6 +83,10 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .ex10-vi{color:var(--dim); font-style:normal; font-size:11.5px;}
 .notebox{background:rgba(255,201,74,.1); border:1px solid rgba(255,201,74,.3); border-radius:12px; padding:10px 12px; margin-top:8px; font-size:12px; color:#FFD98A; line-height:1.55;}
 .notebox b{color:var(--gold);}
+.tipbox{background:rgba(183,140,255,.1); border:1px solid rgba(183,140,255,.3); border-radius:12px; padding:10px 12px; margin-top:4px;}
+.tip-line{font-size:12px; color:var(--text); line-height:1.6; padding-left:14px; position:relative; margin-bottom:6px;}
+.tip-line:last-child{margin-bottom:0;}
+.tip-line::before{content:'•'; position:absolute; left:0; color:var(--purple); font-weight:800;}
 .prep-table{width:100%; border-collapse:collapse; font-size:12.3px; margin-top:4px;}
 .prep-table td{padding:6px 6px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text);}
 .prep-table td:first-child{font-weight:800; color:var(--blue); width:62px;}
@@ -98,10 +103,11 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .topic-open-btn{flex:0 0 auto; font-size:11px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--blue),var(--purple));
   border-radius:999px; padding:6px 12px; box-shadow:0 3px 8px rgba(46,107,232,.28);}
 /* Nút loa đọc to ví dụ — chèn cạnh mỗi câu ví dụ bằng JS (addTtsButtons), dùng chung cho .exbox mọi nơi. */
-.ex-tts-btn{flex:0 0 auto; width:24px; height:24px; border-radius:8px; border:1px solid var(--border);
-  background:var(--panel); color:var(--blue); font-size:12px; display:inline-flex; align-items:center;
-  justify-content:center; cursor:pointer; margin-left:6px; vertical-align:middle;}
-.ex-tts-btn:active{background:var(--panel2); transform:scale(0.92);}
+.ex-tts-btn{flex:0 0 auto; width:30px; height:30px; min-width:30px; border-radius:10px; border:1px solid var(--border);
+  background:var(--panel); color:var(--blue); font-size:14px; display:inline-flex; align-items:center;
+  justify-content:center; cursor:pointer; margin-left:6px; vertical-align:middle; -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;}
+.ex-tts-btn:active{background:var(--panel2); transform:scale(0.9);}
 .ex-tts-btn.speaking{color:#fff; background:var(--blue); border-color:transparent;}
 .exbox > div, .ex10box > div{display:flex; align-items:flex-start; justify-content:space-between; gap:6px;}
 .exbox > div .ex-line-text, .ex10box > div .ex-line-text{flex:1; min-width:0;}
@@ -109,8 +115,8 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
   flex-direction:column; overflow:hidden;}
 .topic-detail-view.show{display:flex;}
 .topic-detail-header{position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:10px;
-  background:linear-gradient(135deg,#4F8CF7 0%,#2E6BE8 55%,#5B4FE0 130%); color:#fff;
-  padding:calc(14px + env(safe-area-inset-top)) 14px 14px; box-shadow:0 4px 16px rgba(46,107,232,.25); flex-shrink:0;}
+  background:linear-gradient(135deg,#171E27 0%,#20304D 55%,#2C4A7A 130%); color:#fff;
+  padding:calc(14px + env(safe-area-inset-top)) 14px 14px; box-shadow:0 2px 14px rgba(0,0,0,.35); flex-shrink:0;}
 .topic-detail-back{flex:0 0 auto; width:34px; height:34px; border-radius:11px; background:rgba(255,255,255,.14);
   border:1px solid rgba(255,255,255,.2); color:#fff; font-size:17px; display:flex; align-items:center;
   justify-content:center; cursor:pointer;}
@@ -176,19 +182,42 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function stripTags(s){ return (s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
 // Đọc to câu ví dụ bằng speechSynthesis của trình duyệt (offline, không phụ thuộc Cloud TTS của app cha).
+// "Mồi" danh sách giọng đọc ngay khi trang tải — một số trình duyệt/WebView (đặc biệt trên Android,
+// nơi app này cũng chạy dưới dạng PWA/APK) trả về danh sách giọng rỗng ở lần gọi đầu tiên, khiến
+// speak() có thể im lặng không phát gì. Gọi getVoices() sớm 1 lần để giọng kịp nạp trước khi bấm nút loa.
+if('speechSynthesis' in window){
+  try{
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = function(){ window.speechSynthesis.getVoices(); };
+  }catch(e){}
+}
 function speakExample(text, btnEl){
   try{
     if(!('speechSynthesis' in window) || !text) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US'; u.rate = 0.95;
+    const synth = window.speechSynthesis;
     document.querySelectorAll('.ex-tts-btn.speaking').forEach(b=>b.classList.remove('speaking'));
-    if(btnEl){
-      btnEl.classList.add('speaking');
-      u.onend = ()=>btnEl.classList.remove('speaking');
-      u.onerror = ()=>btnEl.classList.remove('speaking');
+    const doSpeak = function(){
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = 0.95;
+      let started = false;
+      u.onstart = function(){ started = true; };
+      u.onend = function(){ if(btnEl) btnEl.classList.remove('speaking'); };
+      u.onerror = function(){ if(btnEl) btnEl.classList.remove('speaking'); };
+      if(btnEl) btnEl.classList.add('speaking');
+      synth.speak(u);
+      // Chrome/WebView đôi khi "nuốt" lượt speak() gọi ngay sau cancel() trong cùng 1 tick (lỗi đã biết
+      // của engine) — nếu sau 250ms vẫn chưa có sự kiện onstart lẫn không ở trạng thái đang nói/đang chờ,
+      // thử phát lại 1 lần để không bị im lặng hoàn toàn.
+      setTimeout(function(){
+        if(!started && !synth.speaking && !synth.pending){ synth.speak(u); }
+      }, 250);
+    };
+    if(synth.speaking || synth.pending){
+      synth.cancel();
+      setTimeout(doSpeak, 60); // đợi 1 nhịp để cancel() xử lý xong trước khi bắt đầu lượt đọc mới
+    } else {
+      doSpeak();
     }
-    window.speechSynthesis.speak(u);
   }catch(e){}
 }
 // Chèn nút 🔊 cạnh MỌI câu ví dụ trong 1 vùng DOM — dùng chung cho cả câu ví dụ ngắn (t.ex, .exbox)
@@ -345,6 +374,54 @@ function ex10Html(list){
 // (#topic-detail-view) — tách khỏi thẻ tóm tắt hiển thị trong danh sách để trang danh sách gọn nhẹ.
 const TOPIC_BODY = {};
 const TOPIC_TITLE = {};
+// Mẹo học nhanh cho từng chủ đề — hiển thị ở cuối mỗi "trang riêng" (xem tipsHtml() + openTopicDetail()).
+// Tách riêng khỏi TOPIC_BODY để không phải sửa lại 3 nơi tạo nội dung (tenseCard/simpleTopicCard/khối
+// viết tay) — chỉ cần tra theo id chủ đề khi mở trang chi tiết, áp dụng đồng loạt cho cả 38 chủ đề.
+const TOPIC_TIPS = {
+  t_pres_simple: ["Chỉ thêm 's/es' khi chủ ngữ là he/she/it (số ít, ngôi 3) — các chủ ngữ khác giữ nguyên động từ.", "Nhận diện qua trạng từ tần suất: always, usually, often, sometimes, never, every day/week.", "Đừng nhầm với hiện tại tiếp diễn: hiện tại đơn nói về thói quen/sự thật, không phải việc đang xảy ra ngay lúc nói."],
+  t_pres_cont: ["Công thức cố định: am/is/are + V-ing — chỉ cần nhớ đúng trợ động từ theo chủ ngữ.", "Dấu hiệu: now, right now, at the moment, Look!, Listen!.", "Một số động từ trạng thái (know, like, love, want, believe) KHÔNG dùng ở dạng tiếp diễn."],
+  t_pres_perf: ["Công thức: have/has + V3/ed — chú ý have/has theo chủ ngữ.", "Diễn tả việc xảy ra trong quá khứ nhưng còn liên quan/ảnh hưởng đến hiện tại, không nói rõ thời điểm cụ thể.", "Dấu hiệu: just, already, yet, ever, never, since, for, so far."],
+  t_pres_perf_cont: ["Công thức: have/has been + V-ing — nhấn mạnh QUÁ TRÌNH kéo dài, không phải kết quả.", "So sánh với hiện tại hoàn thành thường: 'I have written 3 emails' (kết quả) vs 'I have been writing emails' (quá trình, có thể chưa xong).", "Dấu hiệu: how long, since, for, all day/week/morning."],
+  t_past_simple: ["Động từ có quy tắc thêm -ed; động từ bất quy tắc phải học thuộc bảng riêng (go→went, eat→ate...).", "Diễn tả hành động đã kết thúc hoàn toàn trong quá khứ, thường có mốc thời gian cụ thể.", "Dấu hiệu: yesterday, last night/week/year, ago, in 2020, when I was young."],
+  t_past_cont: ["Công thức: was/were + V-ing — was cho I/he/she/it, were cho you/we/they.", "Thường dùng để mô tả hành động đang diễn ra thì bị hành động khác (quá khứ đơn) xen vào: 'I was sleeping when the phone rang.'", "Cũng dùng cho 2 hành động song song trong quá khứ, nối bằng 'while'."],
+  t_past_perf: ["Công thức: had + V3/ed (had dùng chung cho mọi chủ ngữ, không đổi dạng).", "Diễn tả hành động xảy ra TRƯỚC một hành động/thời điểm khác trong quá khứ — luôn có 2 mốc thời gian.", "Thường đi kèm quá khứ đơn: 'By the time she arrived, the train had already left.'"],
+  t_past_perf_cont: ["Công thức: had been + V-ing — nhấn mạnh quá trình kéo dài trước một thời điểm/hành động khác trong quá khứ.", "Trả lời câu hỏi 'đã làm việc đó bao lâu trước khi việc kia xảy ra'.", "Dấu hiệu: for, since, before, until then."],
+  t_fut_simple: ["'Will' dùng cho quyết định tức thời, dự đoán không chắc chắn, lời hứa; 'be going to' dùng cho kế hoạch đã định trước.", "Will KHÔNG đổi dạng theo chủ ngữ — luôn là will + V nguyên mẫu.", "Dấu hiệu: tomorrow, next week/year, soon, in the future."],
+  t_fut_cont: ["Công thức: will be + V-ing — diễn tả hành động đang diễn ra tại một thời điểm cụ thể trong tương lai.", "Khác 'will' đơn thuần: 'will be doing' nhấn mạnh việc đó đang xảy ra tại mốc thời gian đó, không phải sẽ bắt đầu.", "Cũng dùng để hỏi lịch trình một cách lịch sự: 'Will you be using the car tonight?'"],
+  t_fut_perf: ["Công thức: will have + V3/ed — hành động sẽ HOÀN TẤT trước một thời điểm/mốc trong tương lai.", "Luôn đi kèm mốc thời gian rõ ràng: by 2030, by next month, by the time...", "Dễ nhầm với tương lai hoàn thành tiếp diễn — nếu nhấn mạnh KẾT QUẢ (đã xong) dùng dạng này, nhấn mạnh QUÁ TRÌNH thì dùng will have been + V-ing."],
+  t_fut_perf_cont: ["Công thức: will have been + V-ing — nhấn mạnh khoảng THỜI GIAN kéo dài tính đến một mốc trong tương lai.", "Thường trả lời 'đến lúc đó sẽ làm việc này được bao lâu': 'By June, I will have been working here for 5 years.'", "Ít gặp trong giao tiếp hằng ngày nhưng hay xuất hiện trong bài thi ở trình độ cao."],
+  s_conditional: ["Loại 0 (sự thật hiển nhiên): If + hiện tại đơn, hiện tại đơn. Loại 1 (có thể xảy ra): If + hiện tại đơn, will + V.", "Loại 2 (giả định trái hiện tại): If + quá khứ đơn (were cho mọi ngôi), would + V. Loại 3 (giả định trái quá khứ): If + had + V3, would have + V3.", "Mẹo nhớ nhanh: càng giả định xa thực tế thì mệnh đề if càng lùi về quá khứ (hiện tại→quá khứ→quá khứ hoàn thành)."],
+  s_passive: ["Công thức chung: be + V3/ed — chia 'be' theo đúng thì của câu chủ động gốc.", "Chỉ đổi được câu có tân ngữ (ngoại động từ) sang bị động; tân ngữ chủ động trở thành chủ ngữ bị động.", "Tác nhân gây ra hành động (nếu cần nêu) đứng sau 'by' và thường được lược bỏ nếu không quan trọng."],
+  s_reported: ["Khi động từ tường thuật ở quá khứ (said/told), lùi thì của câu trực tiếp: hiện tại→quá khứ, quá khứ→quá khứ hoàn thành, will→would.", "Đại từ nhân xưng và từ chỉ thời gian/nơi chốn cũng phải đổi cho phù hợp: today→that day, tomorrow→the next day, here→there.", "Câu hỏi tường thuật đổi thành mệnh đề khẳng định (bỏ đảo ngữ, thêm if/whether cho câu hỏi Yes/No)."],
+  s_relative: ["who/whom dùng cho người, which dùng cho vật, that dùng được cho cả hai (không dùng sau dấu phẩy).", "Mệnh đề quan hệ xác định (không dấu phẩy) cung cấp thông tin cần thiết; không xác định (có dấu phẩy) chỉ bổ sung thêm.", "Có thể lược bỏ đại từ quan hệ nếu nó làm tân ngữ trong mệnh đề xác định."],
+  s_comparison: ["Tính từ ngắn (1 âm tiết): thêm -er/-est. Tính từ dài (≥2 âm tiết, trừ ngoại lệ): dùng more/most.", "So sánh bằng: as + adj + as. So sánh kém: less + adj + than.", "Ghi nhớ các dạng bất quy tắc: good→better→best, bad→worse→worst, far→farther/further."],
+  s_inversion: ["Khi đảo ngữ với trạng từ phủ định đứng đầu câu (Never, Rarely, Not only...), trợ động từ phải đảo lên trước chủ ngữ giống câu hỏi.", "Cấu trúc 'Not only... but also' khi đảo ngữ: Not only + trợ động từ + S + V, but S also + V.", "Đảo ngữ thường dùng trong văn viết trang trọng để nhấn mạnh, ít dùng trong giao tiếp hằng ngày."],
+  s_wish: ["Wish về hiện tại: wish + quá khứ đơn (were cho mọi ngôi). Wish về quá khứ: wish + had + V3 (tiếc nuối việc đã xảy ra).", "Wish về tương lai (muốn ai đó thay đổi): wish + would + V (thường thể hiện sự khó chịu/mong đợi thay đổi).", "'If only' dùng tương tự 'wish' nhưng mang sắc thái cảm xúc mạnh hơn."],
+  s_cleft: ["Câu chẻ với 'It' nhấn mạnh 1 thành phần cụ thể: It + is/was + [thành phần nhấn mạnh] + that/who + phần còn lại.", "Câu chẻ với 'What' nhấn mạnh hành động/sự việc: What + S + V + is/was + [phần nhấn mạnh].", "Dùng câu chẻ để làm nổi bật thông tin quan trọng nhất trong câu, thường gặp trong văn viết học thuật/trang trọng."],
+  s_participle: ["Rút gọn mệnh đề quan hệ chủ động dùng V-ing, bị động dùng V3/ed — thay cho 'who/which + V'.", "Mệnh đề rút gọn chỉ dùng được khi 2 mệnh đề có CHUNG chủ ngữ.", "Giúp câu văn ngắn gọn, trang trọng hơn — thường gặp trong văn viết, báo chí, văn học."],
+  s_qtag: ["Quy tắc vàng: câu khẳng định → đuôi phủ định; câu phủ định → đuôi khẳng định.", "Đuôi câu hỏi lặp lại đúng trợ động từ/động từ 'to be' của mệnh đề chính, chia theo đúng thì và chủ ngữ.", "Trường hợp đặc biệt: 'I am' → đuôi là 'aren't I?'; câu mệnh lệnh → đuôi thường là 'will you?'."],
+  s_sequence: ["Khi mệnh đề chính ở quá khứ, mệnh đề phụ thường cũng lùi về quá khứ tương ứng (sự hòa hợp thì).", "Ngoại lệ: sự thật hiển nhiên/chân lý khoa học vẫn giữ hiện tại đơn dù mệnh đề chính ở quá khứ.", "Liên từ chỉ thời gian (when, while, as soon as, before, after) giúp xác định trình tự các hành động."],
+  p_time: ["IN dùng cho khoảng thời gian dài: tháng, năm, mùa, buổi (in July, in 2024, in the morning).", "ON dùng cho ngày cụ thể: thứ, ngày trong tháng (on Monday, on July 4th).", "AT dùng cho thời điểm chính xác: giờ, các mốc đặc biệt (at 7pm, at night, at Christmas)."],
+  p_place: ["IN dùng cho không gian kín/khu vực rộng: thành phố, quốc gia, phòng (in Hanoi, in the room).", "ON dùng cho bề mặt: on the table, on the wall, on the street.", "AT dùng cho địa điểm/điểm cụ thể: at the door, at school, at the bus stop."],
+  p_movement: ["INTO diễn tả đi vào bên trong một không gian kín (walk into the room).", "ONTO diễn tả di chuyển lên một bề mặt (jump onto the bed).", "THROUGH diễn tả xuyên qua một không gian; ACROSS diễn tả đi ngang qua một bề mặt/khu vực."],
+  p_adj: ["Đây là các cụm cố định, không theo logic dịch từ tiếng Việt — cần học thuộc từng cụm: interested IN, afraid OF, good AT, married TO.", "Gợi ý: học theo nhóm cảm xúc (afraid of, tired of, bored with) sẽ dễ nhớ hơn học lẻ tẻ.", "Đọc nhiều để quen mắt — trí nhớ ngữ cảnh hiệu quả hơn học thuộc lòng danh sách khô khan."],
+  p_verb: ["Cụm động từ + giới từ cũng là collocation cố định: depend ON, listen TO, look forward TO, apologize FOR.", "Chú ý 'look forward to' và các cụm có 'to' giới từ (theo sau là V-ing, không phải to-V).", "Học theo câu ví dụ thực tế thay vì học rời rạc để nhớ lâu hơn."],
+  p_noun: ["Danh từ + giới từ cố định: reason FOR, interest IN, solution TO, reason behind cũng thường gặp.", "Nhiều cụm danh từ dùng giới từ khác với động từ cùng gốc (interested IN nhưng interest IN cũng đúng — cần để ý từng trường hợp).", "Ghi chú lại các cụm gặp trong bài đọc để tích lũy dần, đây là phần cần ghi nhớ nhiều hơn là suy luận."],
+  o_articles: ["A/AN dùng cho danh từ đếm được số ít, chưa xác định (a/an phân biệt theo ÂM ĐỌC đầu từ, không phải chữ cái: an hour, a university).", "THE dùng khi người nói và người nghe đều biết rõ vật/người được nhắc đến (đã đề cập trước đó, hoặc là duy nhất).", "KHÔNG dùng mạo từ với danh từ số nhiều/không đếm được khi nói chung chung, và với hầu hết tên riêng."],
+  o_modal: ["Sau động từ khiếm khuyết luôn là V nguyên mẫu (không 'to', trừ ought to, have to).", "Can/could: khả năng, xin phép. Must/have to: bắt buộc (must mang tính chủ quan, have to mang tính khách quan/quy định). Should: lời khuyên.", "May/might diễn tả khả năng có thể xảy ra — might mang nghĩa ít chắc chắn hơn may."],
+  o_gerund: ["Một số động từ chỉ theo sau bởi V-ing (enjoy, avoid, suggest, mind, finish); một số chỉ theo sau bởi to-V (want, decide, hope, plan, promise).", "Một số động từ đổi nghĩa tùy dạng theo sau: remember/forget + V-ing (nhớ đã làm) khác remember/forget + to-V (nhớ phải làm).", "Sau giới từ luôn dùng V-ing, không dùng to-V (interested in learning, không phải interested in to learn)."],
+  o_phrasal: ["Học cụm động từ theo NGỮ CẢNH/câu ví dụ thay vì học nghĩa rời rạc — dễ nhớ và dùng đúng hơn.", "Chú ý cụm tách được (give up smoking = give smoking up, nhưng give it up không thể viết give up it) và không tách được.", "Nhiều cụm động từ mang nghĩa khác hoàn toàn so với động từ gốc: give up (từ bỏ) ≠ give (đưa)."],
+  o_quantifiers: ["SOME dùng trong câu khẳng định, ANY dùng trong câu phủ định/nghi vấn (ngoại lệ: dùng some trong câu hỏi mời/đề nghị).", "MUCH đi với danh từ không đếm được, MANY đi với danh từ đếm được số nhiều; A LOT OF dùng được cho cả hai trong câu khẳng định.", "A FEW/FEW đi với danh từ đếm được, A LITTLE/LITTLE đi với danh từ không đếm được — bỏ 'a' mang nghĩa phủ định (gần như không có)."],
+  o_adj_adv: ["Trạng từ bổ nghĩa cho động từ/tính từ/trạng từ khác; tính từ chỉ bổ nghĩa cho danh từ hoặc đứng sau động từ liên kết (be, seem, look, feel, taste, sound).", "Trật tự tính từ chuẩn (OSASCOMP): Ý kiến - Kích thước - Tuổi - Hình dạng - Màu sắc - Xuất xứ - Chất liệu - Mục đích.", "Một số từ giữ nguyên dạng ở cả tính từ và trạng từ: fast, hard, late, early — chú ý 'hardly' và 'lately' mang nghĩa khác hẳn."],
+  o_causative: ["Have/get + tân ngữ + V3/ed = nhờ/thuê người khác làm gì đó cho mình (have my car washed = tôi thuê người rửa xe).", "'Get' thường mang sắc thái thân mật/thông tục hơn 'have' nhưng nghĩa tương đương.", "Cấu trúc này cũng dùng để diễn tả sự việc không may xảy đến với ai đó: 'I had my phone stolen' (tôi bị mất trộm điện thoại)."],
+  o_correlative: ["Both...and luôn đi với động từ số nhiều; either...or và neither...nor thì động từ chia theo chủ ngữ GẦN động từ nhất.", "Not only...but also khi đứng đầu câu phải đảo ngữ (Not only + trợ động từ + S + V).", "Hai vế của liên từ tương quan phải song song về cấu trúc ngữ pháp (parallel structure)."],
+  o_emphasis: ["Dùng do/does/did + V nguyên mẫu để nhấn mạnh tính xác thực của hành động, thường để phản bác hoặc khẳng định mạnh.", "Chỉ dùng được với câu khẳng định (không có trợ động từ khác) — nếu câu đã có trợ động từ/động từ khiếm khuyết thì nhấn giọng trực tiếp vào từ đó.", "Ví dụ: 'I do like it' (nhấn mạnh là TÔI THỰC SỰ thích) khác 'I like it' (câu bình thường)."],
+};
+function tipsHtml(id){
+  const tips = TOPIC_TIPS[id];
+  if(!tips || !tips.length) return '';
+  return `<div class="subh">💡 Mẹo học nhanh</div><div class="tipbox">${tips.map(t=>`<div class="tip-line">${t}</div>`).join('')}</div>`;
+}
 function tenseCard(t, num, groupKey){
   const searchText = esc((t.n+' '+t.en+' '+t.use.join(' ')+' '+t.ex.map(stripTags).join(' ')+' '+(t.ex10?t.ex10.map(e=>stripTags(e[0])).join(' '):'')).toLowerCase());
   let body = `<div class="formrow"><span class="tag pos">Khẳng định</span><code>${t.pos}</code></div>`;
@@ -376,7 +453,7 @@ function notifyParentNav(type){
 function openTopicDetail(id){
   const view = document.getElementById('topic-detail-view');
   document.getElementById('topic-detail-title').innerHTML = TOPIC_TITLE[id] || '';
-  document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}</div>`;
+  document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}${tipsHtml(id)}</div>`;
   view.classList.add('show');
   document.getElementById('topic-detail-body').scrollTop = 0;
   addTtsButtons(document.getElementById('topic-detail-body'));

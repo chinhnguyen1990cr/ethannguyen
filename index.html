@@ -744,8 +744,46 @@
     transition:transform .12s ease, border-color .12s ease, background .12s ease, color .12s ease;}
   .mocktest-count-btn:active{transform:scale(0.94);}
   .mocktest-count-btn.active{background:linear-gradient(135deg,var(--blue),#7C6CF0); border-color:transparent; color:#fff; box-shadow:0 3px 9px -3px rgba(79,168,255,.5);}
+  .listen-speed-group{display:flex; flex:0 0 auto; border:1.5px solid var(--border); border-radius:12px; overflow:hidden;}
+  .listen-speed-btn{flex:0 0 auto; border:none; padding:0 10px; background:var(--panel2); color:var(--dim);
+    font-size:11px; font-weight:800; font-family:var(--mono); cursor:pointer; transition:background .12s ease, color .12s ease;}
+  .listen-speed-btn + .listen-speed-btn{border-left:1.5px solid var(--border);}
+  .listen-speed-btn.active{background:linear-gradient(135deg,var(--blue),#7C6CF0); color:#fff;}
+  .listen-speed-btn:active{opacity:.85;}
   .eng-quiz-tip{font-size:11.5px; color:var(--teal); line-height:1.6; background:rgba(44,219,168,0.1);
     border:1px solid rgba(44,219,168,0.25); border-radius:10px; padding:9px 12px; margin-bottom:10px;}
+  .speak-word{cursor:pointer; border-radius:4px; padding:0 1px; transition:background .15s;}
+  .speak-word:active{background:rgba(124,108,240,0.25);}
+  #speak-word-meaning:not(:empty){font-size:12px; color:var(--gold); line-height:1.6; background:rgba(255,201,74,0.1);
+    border:1px solid rgba(255,201,74,0.3); border-radius:10px; padding:8px 12px; margin:8px 0;}
+  #speak-word-meaning .tip-line{margin:0;}
+  .ipac-intro-card{padding:14px 16px;}
+  .ipac-intro-title{font-size:15px; font-weight:800; margin-bottom:4px;}
+  .ipac-intro-desc{font-size:12px; color:var(--dim); line-height:1.5;}
+  .ipac-tabs{display:flex; gap:6px; margin:10px 0; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .ipac-tab{flex:1; white-space:nowrap; padding:9px 10px; border-radius:12px; border:1px solid var(--border); background:var(--panel2);
+    color:var(--dim); font-size:12px; font-weight:700;}
+  .ipac-tab.active{background:linear-gradient(135deg,#B78CFF,#7C6CF0); color:#fff; border-color:transparent;}
+  .ipac-grid-card{padding:14px;}
+  .ipac-subgroup{margin-bottom:14px;}
+  .ipac-subgroup:last-child{margin-bottom:0;}
+  .ipac-subgroup-title{font-size:11.5px; font-weight:700; color:var(--dim); margin-bottom:8px; text-transform:uppercase; letter-spacing:.02em;}
+  .ipac-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .ipac-chip-wrap{width:100%;}
+  .ipac-chip-wrap:not(.open){width:auto;}
+  .ipac-chip{padding:9px 14px; border-radius:12px; border:1.5px solid rgba(183,140,255,0.35);
+    background:rgba(183,140,255,0.1); color:#B78CFF; font-size:14.5px; font-weight:800; font-family:inherit;}
+  .ipac-chip-wrap.open .ipac-chip{background:linear-gradient(135deg,#B78CFF,#7C6CF0); color:#fff; border-color:transparent;}
+  .ipac-detail{margin-top:8px; padding:12px; border-radius:12px; background:var(--panel2); border:1px solid var(--border);}
+  .ipac-detail-tip{font-size:12px; color:var(--fg); line-height:1.6; margin-bottom:6px;}
+  .ipac-detail-confuse{font-size:11.5px; color:var(--gold); line-height:1.6; margin-bottom:8px;}
+  .ipac-detail-examples{display:flex; flex-direction:column; gap:6px;}
+  .ipac-example{display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:9px; background:var(--panel); cursor:pointer;}
+  .ipac-example:active{opacity:.7;}
+  .ipac-ex-play{font-size:12px;}
+  .ipac-ex-word{font-size:12.5px; font-weight:700; color:var(--fg);}
+  .ipac-ex-ipa{font-size:11.5px; color:#B78CFF;}
+  .ipac-ex-vi{font-size:11px; color:var(--dim); margin-left:auto;}
   .eng-quiz-actions{display:flex; gap:8px; flex-wrap:wrap;}
   .eng-quiz-actions .btn-listen{background:linear-gradient(135deg, rgba(79,168,255,0.18), rgba(79,168,255,0.05));
     border:1px solid rgba(79,168,255,0.4); color:var(--blue); font-weight:700;}
@@ -1025,7 +1063,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v49';
+const APP_VERSION = 'v50';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3416,12 +3454,19 @@ function defaultEnglishItems(){
     {id:'eng_grammar', name:'Ngữ pháp', kind:'grammar'},
     {id:'eng_grammar_quiz', name:'Luyện ngữ pháp', kind:'quiz'},
     {id:'eng_listening', name:'Luyện nghe', kind:'listening'},
-    {id:'eng_speaking', name:'Luyện nói', kind:'speaking'}
+    {id:'eng_speaking', name:'Luyện nói', kind:'speaking'},
+    {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'}
   ];
 }
 function ensureEnglishItems(){
   if(!Array.isArray(SETTINGS.englishItems) || SETTINGS.englishItems.length===0){
     SETTINGS.englishItems = defaultEnglishItems();
+    saveSettings(); pushToDrive();
+  }
+  // Di trú: người dùng đã có sẵn danh sách mục (đồng bộ từ trước) sẽ không tự có mục mới "Luyện IPA"
+  // vì điều kiện ở trên chỉ áp dụng khi danh sách rỗng — cần chèn thêm nếu còn thiếu.
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='ipa')){
+    SETTINGS.englishItems.push({id:'eng_ipa', name:'Luyện IPA', kind:'ipa'});
     saveSettings(); pushToDrive();
   }
   if(!SETTINGS.englishNotes || typeof SETTINGS.englishNotes!=='object') SETTINGS.englishNotes = {};
@@ -3432,6 +3477,7 @@ const ENGLISH_ITEM_KIND = {
   quiz:     {icon:'quiz',       c1:'#FF8A3D', c2:'#FFC94A', sub:'Trắc nghiệm ngữ pháp theo cấp độ'},
   listening:{icon:'headphones', c1:'#2CDBA8', c2:'#1FA88A', sub:'Nghe hội thoại · chọn theo cấp độ'},
   speaking: {icon:'mic',        c1:'#FF6EA8', c2:'#B06CF0', sub:'Luyện nói & phát âm theo cấp độ'},
+  ipa:      {icon:'headphones', c1:'#B78CFF', c2:'#7C6CF0', sub:'Bảng phiên âm IPA · 44 âm theo nhóm'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
 function renderEnglishItemRows(){
@@ -3514,6 +3560,7 @@ function renderEnglishItem(){
   if(item.kind==='quiz') return renderEnglishQuiz(item);
   if(item.kind==='listening') return renderEnglishAV(item,'listening');
   if(item.kind==='speaking') return renderEnglishAV(item,'speaking');
+  if(item.kind==='ipa') return renderEnglishIPA(item);
   return renderEnglishNotes(item);
 }
 // ---- Luyện ngữ pháp: ngân hàng trắc nghiệm 3 cấp độ ----
@@ -3576,6 +3623,77 @@ const CEFR_LEVELS = [
   {key:'B2', label:'Trung cấp cao', color:'var(--gold)'},
   {key:'C1', label:'Nâng cao', color:'#B78CFF'}
 ];
+// ---- Luyện IPA: bảng 44 âm tiếng Anh (British English), chia theo nhóm khoa học để dễ học ----
+// Nguyên âm đơn (giữ nguyên khẩu hình khi phát âm) → Nguyên âm đôi (lướt từ âm này sang âm khác)
+// → Phụ âm (chia nhỏ theo CÁCH phát âm: tắc/xát/mũi/tiếp cận/tắc-xát — vì đây là cách người học
+// dễ ghi nhớ và phân biệt các cặp âm dễ nhầm nhất, đặc biệt với người Việt).
+const IPA_CHART_GROUPS = [
+  {key:'mono', name:'Nguyên âm đơn', icon:'🔵', desc:'12 âm — khẩu hình giữ NGUYÊN vị trí suốt âm, không đổi.'},
+  {key:'di',   name:'Nguyên âm đôi', icon:'🔀', desc:'8 âm — lưỡi/môi LƯỚT từ âm này sang âm khác trong 1 âm tiết.'},
+  {key:'cons', name:'Phụ âm',        icon:'🔤', desc:'24 âm — chia theo cách phát âm: tắc, xát, mũi, tiếp cận, tắc-xát.'}
+];
+const IPA_CHART_SUBGROUPS = {
+  cons: [
+    {key:'plosive',    name:'Âm tắc (Plosives)',      syms:['p','b','t','d','k','g']},
+    {key:'fricative',  name:'Âm xát (Fricatives)',    syms:['f','v','θ','ð','s','z','ʃ','ʒ','h']},
+    {key:'affricate',  name:'Âm tắc-xát (Affricates)', syms:['tʃ','dʒ']},
+    {key:'nasal',      name:'Âm mũi (Nasals)',         syms:['m','n','ŋ']},
+    {key:'approximant',name:'Âm tiếp cận (Approximants)', syms:['l','r','w','j']}
+  ]
+};
+// Mỗi âm: {ipa, tip: mẹo khẩu hình, confuse: cặp âm dễ nhầm (nếu có), examples:[{w,ipa,vi}]}
+const IPA_CHART_DATA = {
+  mono: [
+    {ipa:'iː', tip:'Khóe miệng kéo NGANG như đang cười, lưỡi đưa cao ra trước, âm phát DÀI.', confuse:'Dễ nhầm với /ɪ/ (ngắn hơn, miệng thả lỏng hơn) — "sheep" (con cừu) khác "ship" (con tàu).', examples:[{w:'see',ipa:'siː',vi:'nhìn thấy'},{w:'tea',ipa:'tiː',vi:'trà'},{w:'sheep',ipa:'ʃiːp',vi:'con cừu'}]},
+    {ipa:'ɪ', tip:'Giống /iː/ nhưng NGẮN, miệng thả lỏng hơn, không kéo dài giọng.', confuse:'Dễ nhầm với /iː/ — so sánh "it" và "eat".', examples:[{w:'sit',ipa:'sɪt',vi:'ngồi'},{w:'ship',ipa:'ʃɪp',vi:'con tàu'},{w:'big',ipa:'bɪg',vi:'to lớn'}]},
+    {ipa:'ʊ', tip:'Môi tròn nhẹ, lưỡi lùi về sau nhưng KHÔNG căng, âm ngắn.', confuse:'Dễ nhầm với /uː/ — so sánh "full" và "fool".', examples:[{w:'book',ipa:'bʊk',vi:'quyển sách'},{w:'foot',ipa:'fʊt',vi:'bàn chân'},{w:'put',ipa:'pʊt',vi:'đặt để'}]},
+    {ipa:'uː', tip:'Môi tròn và đưa ra trước rõ rệt, lưỡi lùi cao về sau, âm DÀI.', confuse:'Dễ nhầm với /ʊ/ (ngắn hơn, môi tròn ít hơn).', examples:[{w:'food',ipa:'fuːd',vi:'thức ăn'},{w:'blue',ipa:'bluː',vi:'màu xanh dương'},{w:'moon',ipa:'muːn',vi:'mặt trăng'}]},
+    {ipa:'e', tip:'Miệng mở vừa, lưỡi ở vị trí giữa, gần giống "e" trong tiếng Việt nhưng ngắn hơn.', confuse:'Dễ nhầm với /æ/ (miệng mở rộng hơn nhiều) — so sánh "bed" và "bad".', examples:[{w:'bed',ipa:'bed',vi:'cái giường'},{w:'ten',ipa:'ten',vi:'số mười'},{w:'red',ipa:'red',vi:'màu đỏ'}]},
+    {ipa:'ə', tip:'Âm "schwa" — âm YẾU và LƯỜI NHẤT trong tiếng Anh, miệng gần như không mở, chỉ xuất hiện ở âm tiết không nhấn.', confuse:'Là âm phổ biến nhất trong tiếng Anh nói tự nhiên — luôn KHÔNG được nhấn trọng âm.', examples:[{w:'about',ipa:'əˈbaʊt',vi:'khoảng, về'},{w:'sofa',ipa:'ˈsəʊfə',vi:'ghế sofa'},{w:'teacher',ipa:'ˈtiːtʃə',vi:'giáo viên'}]},
+    {ipa:'ɜː', tip:'Miệng mở vừa, lưỡi ở giữa nhưng CĂNG và kéo DÀI — giống schwa nhưng dài và rõ hơn, thường có "r" trong chữ viết (Anh-Anh không đọc "r").', confuse:'Thường xuất hiện trong "-ir-", "-ur-", "-er-", "-or-" ở âm tiết nhấn.', examples:[{w:'bird',ipa:'bɜːd',vi:'con chim'},{w:'girl',ipa:'gɜːl',vi:'cô gái'},{w:'nurse',ipa:'nɜːs',vi:'y tá'}]},
+    {ipa:'ɔː', tip:'Môi tròn, mở vừa, lưỡi lùi về sau, âm DÀI — gần giống "o" tiếng Việt nhưng tròn môi và dài hơn nhiều.', confuse:'Dễ nhầm với /ɒ/ (ngắn hơn, môi mở nhiều hơn) — so sánh "caught" và "cot".', examples:[{w:'talk',ipa:'tɔːk',vi:'nói chuyện'},{w:'sport',ipa:'spɔːt',vi:'thể thao'},{w:'door',ipa:'dɔː',vi:'cánh cửa'}]},
+    {ipa:'æ', tip:'Miệng mở RỘNG nhất trong các nguyên âm đơn, khóe miệng kéo ngang, lưỡi đưa ra trước và hạ thấp.', confuse:'Dễ nhầm với /e/ và /ʌ/ — so sánh "cat", "cut", "cot" là 3 âm khác hẳn nhau.', examples:[{w:'cat',ipa:'kæt',vi:'con mèo'},{w:'apple',ipa:'ˈæpl',vi:'quả táo'},{w:'hand',ipa:'hænd',vi:'bàn tay'}]},
+    {ipa:'ʌ', tip:'Miệng mở vừa, lưỡi ở giữa-sau, âm NGẮN và bật nhẹ — không tròn môi.', confuse:'Dễ nhầm với /æ/ và /ɑː/ — so sánh "cup" /kʌp/ và "cop" /kɒp/.', examples:[{w:'cup',ipa:'kʌp',vi:'cái cốc'},{w:'love',ipa:'lʌv',vi:'yêu'},{w:'sun',ipa:'sʌn',vi:'mặt trời'}]},
+    {ipa:'ɑː', tip:'Miệng mở RỘNG và lùi sâu về sau, âm DÀI — gần giống "a" tiếng Việt nhưng dài và mở hơn hẳn.', confuse:'Dễ nhầm với /æ/ và /ʌ/ (đều ngắn hơn) — so sánh "cart" /kɑːt/ và "cat" /kæt/.', examples:[{w:'car',ipa:'kɑː',vi:'xe hơi'},{w:'father',ipa:'ˈfɑːðə',vi:'bố'},{w:'heart',ipa:'hɑːt',vi:'trái tim'}]},
+    {ipa:'ɒ', tip:'Môi tròn, mở khá rộng, lưỡi lùi về sau, âm NGẮN — gần giống "o" tiếng Việt nhưng ngắn và tròn môi hơn.', confuse:'Dễ nhầm với /ɔː/ (dài hơn) — so sánh "not" và "nought".', examples:[{w:'hot',ipa:'hɒt',vi:'nóng'},{w:'dog',ipa:'dɒg',vi:'con chó'},{w:'clock',ipa:'klɒk',vi:'đồng hồ'}]}
+  ],
+  di: [
+    {ipa:'eɪ', tip:'Bắt đầu từ /e/ lướt nhanh sang /ɪ/ — miệng khép dần, khóe miệng kéo ngang.', confuse:'', examples:[{w:'name',ipa:'neɪm',vi:'tên'},{w:'day',ipa:'deɪ',vi:'ngày'},{w:'play',ipa:'pleɪ',vi:'chơi'}]},
+    {ipa:'aɪ', tip:'Bắt đầu từ /ɑ/ (miệng mở rộng) lướt nhanh sang /ɪ/ (miệng khép lại).', confuse:'Dễ nhầm với /eɪ/ — so sánh "time" /taɪm/ và "tame" /teɪm/.', examples:[{w:'time',ipa:'taɪm',vi:'thời gian'},{w:'my',ipa:'maɪ',vi:'của tôi'},{w:'like',ipa:'laɪk',vi:'thích'}]},
+    {ipa:'ɔɪ', tip:'Bắt đầu từ /ɔː/ (môi tròn) lướt nhanh sang /ɪ/ (môi thả lỏng, khép lại).', confuse:'', examples:[{w:'boy',ipa:'bɔɪ',vi:'cậu bé'},{w:'toy',ipa:'tɔɪ',vi:'đồ chơi'},{w:'voice',ipa:'vɔɪs',vi:'giọng nói'}]},
+    {ipa:'aʊ', tip:'Bắt đầu từ /ɑ/ (miệng mở rộng) lướt nhanh sang /ʊ/ (môi tròn lại).', confuse:'Dễ nhầm với /əʊ/ — so sánh "how" /haʊ/ và "hoe" /həʊ/.', examples:[{w:'how',ipa:'haʊ',vi:'như thế nào'},{w:'now',ipa:'naʊ',vi:'bây giờ'},{w:'house',ipa:'haʊs',vi:'ngôi nhà'}]},
+    {ipa:'əʊ', tip:'Bắt đầu từ schwa /ə/ lướt nhanh sang /ʊ/ (môi tròn dần lại).', confuse:'Dễ nhầm với /aʊ/ — so sánh "go" /gəʊ/ và "gow" (không có từ này, chỉ để phân biệt âm).', examples:[{w:'go',ipa:'gəʊ',vi:'đi'},{w:'home',ipa:'həʊm',vi:'nhà'},{w:'phone',ipa:'fəʊn',vi:'điện thoại'}]},
+    {ipa:'ɪə', tip:'Bắt đầu từ /ɪ/ lướt nhẹ sang schwa /ə/ — thường xuất hiện khi chữ viết có "-ear", "-eer".', confuse:'', examples:[{w:'ear',ipa:'ɪə',vi:'tai'},{w:'here',ipa:'hɪə',vi:'ở đây'},{w:'idea',ipa:'aɪˈdɪə',vi:'ý tưởng'}]},
+    {ipa:'eə', tip:'Bắt đầu từ /e/ lướt nhẹ sang schwa /ə/ — thường xuất hiện ở "-air", "-are", "-ear".', confuse:'Dễ nhầm với /ɪə/ — so sánh "hair" /heə/ và "here" /hɪə/.', examples:[{w:'hair',ipa:'heə',vi:'tóc'},{w:'chair',ipa:'tʃeə',vi:'cái ghế'},{w:'care',ipa:'keə',vi:'quan tâm'}]},
+    {ipa:'ʊə', tip:'Bắt đầu từ /ʊ/ lướt nhẹ sang schwa /ə/ — âm hiếm gặp, nhiều người bản xứ hiện đại đọc gần thành /ɔː/.', confuse:'', examples:[{w:'tour',ipa:'tʊə',vi:'chuyến du lịch'},{w:'poor',ipa:'pʊə',vi:'nghèo'},{w:'sure',ipa:'ʃʊə',vi:'chắc chắn'}]}
+  ],
+  cons: [
+    {ipa:'p', tip:'Hai môi khép chặt rồi bật hơi ra mạnh — KHÔNG rung dây thanh (âm vô thanh).', confuse:'Cặp với /b/ (rung dây thanh) — so sánh "pin" và "bin".', examples:[{w:'pen',ipa:'pen',vi:'cây bút'},{w:'stop',ipa:'stɒp',vi:'dừng lại'},{w:'apple',ipa:'ˈæpl',vi:'quả táo'}]},
+    {ipa:'b', tip:'Hai môi khép rồi bật ra như /p/ nhưng CÓ rung dây thanh (đặt tay vào cổ họng sẽ thấy rung).', confuse:'Cặp với /p/ — người Việt hay đọc /b/ và /p/ giống nhau, cần chú ý rung thanh quản.', examples:[{w:'boy',ipa:'bɔɪ',vi:'cậu bé'},{w:'book',ipa:'bʊk',vi:'quyển sách'},{w:'job',ipa:'dʒɒb',vi:'công việc'}]},
+    {ipa:'t', tip:'Đầu lưỡi chạm lợi trên rồi bật hơi ra — vô thanh, KHÔNG rung dây thanh.', confuse:'Cặp với /d/ — so sánh "town" và "down".', examples:[{w:'tea',ipa:'tiː',vi:'trà'},{w:'cat',ipa:'kæt',vi:'con mèo'},{w:'water',ipa:'ˈwɔːtə',vi:'nước'}]},
+    {ipa:'d', tip:'Giống /t/ nhưng CÓ rung dây thanh.', confuse:'Cặp với /t/ — chú ý đuôi "-ed" phát âm /d/ sau âm hữu thanh (played /pleɪd/).', examples:[{w:'dog',ipa:'dɒg',vi:'con chó'},{w:'day',ipa:'deɪ',vi:'ngày'},{w:'red',ipa:'red',vi:'màu đỏ'}]},
+    {ipa:'k', tip:'Gốc lưỡi chạm vòm miệng mềm rồi bật hơi ra — vô thanh.', confuse:'Cặp với /g/ — so sánh "coat" và "goat".', examples:[{w:'cat',ipa:'kæt',vi:'con mèo'},{w:'key',ipa:'kiː',vi:'chìa khóa'},{w:'school',ipa:'skuːl',vi:'trường học'}]},
+    {ipa:'g', tip:'Giống /k/ nhưng CÓ rung dây thanh.', confuse:'Cặp với /k/ — người Việt hay đọc thành âm "cờ" chưa rung đủ.', examples:[{w:'go',ipa:'gəʊ',vi:'đi'},{w:'girl',ipa:'gɜːl',vi:'cô gái'},{w:'big',ipa:'bɪg',vi:'to lớn'}]},
+    {ipa:'f', tip:'Răng trên chạm nhẹ vào môi dưới, đẩy hơi ra ma sát — vô thanh.', confuse:'Cặp với /v/ — so sánh "fan" và "van". Người Việt hay lẫn với "ph".', examples:[{w:'fish',ipa:'fɪʃ',vi:'con cá'},{w:'coffee',ipa:'ˈkɒfi',vi:'cà phê'},{w:'laugh',ipa:'lɑːf',vi:'cười'}]},
+    {ipa:'v', tip:'Giống /f/ nhưng CÓ rung dây thanh — răng trên chạm môi dưới, rung.', confuse:'Cặp với /f/ và dễ nhầm với /w/ — người Việt hay đọc /v/ thành "d" hoặc "w".', examples:[{w:'very',ipa:'ˈveri',vi:'rất'},{w:'love',ipa:'lʌv',vi:'yêu'},{w:'voice',ipa:'vɔɪs',vi:'giọng nói'}]},
+    {ipa:'θ', tip:'Đầu lưỡi đặt giữa hai hàm răng, đẩy hơi ra nhẹ — vô thanh (chữ "th" vô thanh: think, three).', confuse:'Cặp với /ð/ và dễ nhầm với /s/, /t/ — người Việt không có âm này nên hay thay bằng "th" hoặc "s".', examples:[{w:'think',ipa:'θɪŋk',vi:'suy nghĩ'},{w:'three',ipa:'θriː',vi:'số ba'},{w:'mouth',ipa:'maʊθ',vi:'miệng'}]},
+    {ipa:'ð', tip:'Giống /θ/ nhưng CÓ rung dây thanh (chữ "th" hữu thanh: this, that, the).', confuse:'Cặp với /θ/ — dễ nhầm với /d/, /z/. Rất phổ biến vì "the, this, that, there" đều dùng âm này.', examples:[{w:'this',ipa:'ðɪs',vi:'cái này'},{w:'the',ipa:'ðə',vi:'(mạo từ)'},{w:'mother',ipa:'ˈmʌðə',vi:'mẹ'}]},
+    {ipa:'s', tip:'Đầu lưỡi gần lợi trên (không chạm), đẩy hơi ma sát rít qua khe hẹp — vô thanh.', confuse:'Cặp với /z/ — so sánh "sink" và "zinc".', examples:[{w:'see',ipa:'siː',vi:'nhìn thấy'},{w:'nice',ipa:'naɪs',vi:'tốt đẹp'},{w:'bus',ipa:'bʌs',vi:'xe buýt'}]},
+    {ipa:'z', tip:'Giống /s/ nhưng CÓ rung dây thanh.', confuse:'Cặp với /s/ — chú ý đuôi số nhiều "-s" đọc /z/ sau âm hữu thanh (dogs /dɒgz/).', examples:[{w:'zoo',ipa:'zuː',vi:'sở thú'},{w:'busy',ipa:'ˈbɪzi',vi:'bận rộn'},{w:'cheese',ipa:'tʃiːz',vi:'phô mai'}]},
+    {ipa:'ʃ', tip:'Môi hơi tròn đưa ra, lưỡi cong lên gần vòm miệng, đẩy hơi ra rít nhẹ hơn /s/ — vô thanh.', confuse:'Cặp với /ʒ/, dễ nhầm với /s/ và /tʃ/ — so sánh "she" và "see".', examples:[{w:'she',ipa:'ʃiː',vi:'cô ấy'},{w:'shop',ipa:'ʃɒp',vi:'cửa hàng'},{w:'wash',ipa:'wɒʃ',vi:'rửa'}]},
+    {ipa:'ʒ', tip:'Giống /ʃ/ nhưng CÓ rung dây thanh — âm hiếm, thường ở giữa từ vay mượn tiếng Pháp.', confuse:'Cặp với /ʃ/ — dễ nhầm với /dʒ/.', examples:[{w:'vision',ipa:'ˈvɪʒn',vi:'tầm nhìn'},{w:'usual',ipa:'ˈjuːʒuəl',vi:'thường lệ'},{w:'measure',ipa:'ˈmeʒə',vi:'đo lường'}]},
+    {ipa:'h', tip:'Bật hơi ra nhẹ từ cổ họng, không có vật cản trong miệng — gần giống "h" tiếng Việt.', confuse:'', examples:[{w:'hat',ipa:'hæt',vi:'cái mũ'},{w:'house',ipa:'haʊs',vi:'ngôi nhà'},{w:'hello',ipa:'həˈləʊ',vi:'xin chào'}]},
+    {ipa:'tʃ', tip:'Kết hợp /t/ + /ʃ/ liền mạch — lưỡi chạm lợi trên rồi bật ra thành âm xát, vô thanh.', confuse:'Cặp với /dʒ/ — so sánh "chip" và "ship".', examples:[{w:'chair',ipa:'tʃeə',vi:'cái ghế'},{w:'teach',ipa:'tiːtʃ',vi:'dạy học'},{w:'lunch',ipa:'lʌntʃ',vi:'bữa trưa'}]},
+    {ipa:'dʒ', tip:'Giống /tʃ/ nhưng CÓ rung dây thanh — kết hợp /d/ + /ʒ/.', confuse:'Cặp với /tʃ/ — so sánh "jam" và "champ".', examples:[{w:'job',ipa:'dʒɒb',vi:'công việc'},{w:'orange',ipa:'ˈɒrɪndʒ',vi:'quả cam'},{w:'bridge',ipa:'brɪdʒ',vi:'cây cầu'}]},
+    {ipa:'m', tip:'Hai môi khép, hơi thoát ra qua mũi, dây thanh rung.', confuse:'Cặp với /n/ — âm mũi ở môi.', examples:[{w:'man',ipa:'mæn',vi:'người đàn ông'},{w:'name',ipa:'neɪm',vi:'tên'},{w:'summer',ipa:'ˈsʌmə',vi:'mùa hè'}]},
+    {ipa:'n', tip:'Đầu lưỡi chạm lợi trên, hơi thoát qua mũi, dây thanh rung.', confuse:'Cặp với /ŋ/ và /m/ — người Việt hay lẫn "n" cuối với "ng".', examples:[{w:'no',ipa:'nəʊ',vi:'không'},{w:'nine',ipa:'naɪn',vi:'số chín'},{w:'sun',ipa:'sʌn',vi:'mặt trời'}]},
+    {ipa:'ŋ', tip:'Gốc lưỡi chạm vòm miệng mềm (như /g/) nhưng hơi thoát qua mũi — không có "g" bật hơi phía sau (chữ "-ng").', confuse:'Cặp với /n/ — người Việt hay đọc "sing" thành "sin" hoặc thêm âm "g" thừa.', examples:[{w:'sing',ipa:'sɪŋ',vi:'hát'},{w:'ring',ipa:'rɪŋ',vi:'chiếc nhẫn'},{w:'morning',ipa:'ˈmɔːnɪŋ',vi:'buổi sáng'}]},
+    {ipa:'l', tip:'Đầu lưỡi chạm lợi trên, hơi thoát ra hai bên lưỡi.', confuse:'Cặp với /r/ và /n/ — người Việt rất hay lẫn "l" và "n" (light/night).', examples:[{w:'light',ipa:'laɪt',vi:'ánh sáng'},{w:'love',ipa:'lʌv',vi:'yêu'},{w:'school',ipa:'skuːl',vi:'trường học'}]},
+    {ipa:'r', tip:'Đầu lưỡi cong lên gần vòm miệng nhưng KHÔNG chạm, môi hơi tròn — không rung lưỡi như tiếng Việt.', confuse:'Cặp với /l/ — so sánh "right" và "light". Đây là 1 trong các âm khó nhất với người Việt.', examples:[{w:'red',ipa:'red',vi:'màu đỏ'},{w:'right',ipa:'raɪt',vi:'đúng, bên phải'},{w:'sorry',ipa:'ˈsɒri',vi:'xin lỗi'}]},
+    {ipa:'w', tip:'Môi tròn nhỏ đưa ra trước như chuẩn bị huýt sáo, rồi mở nhanh.', confuse:'Dễ nhầm với /v/ — người Việt hay đọc "w" thành "qu" hoặc "v".', examples:[{w:'we',ipa:'wiː',vi:'chúng tôi'},{w:'water',ipa:'ˈwɔːtə',vi:'nước'},{w:'window',ipa:'ˈwɪndəʊ',vi:'cửa sổ'}]},
+    {ipa:'j', tip:'Giữa lưỡi nâng cao gần vòm miệng cứng, giống bắt đầu âm "i" rồi lướt nhanh sang nguyên âm sau — gần giống "y" tiếng Việt.', confuse:'', examples:[{w:'yes',ipa:'jes',vi:'vâng, đúng'},{w:'you',ipa:'juː',vi:'bạn'},{w:'music',ipa:'ˈmjuːzɪk',vi:'âm nhạc'}]}
+  ]
+};
 function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
 function grammarGroupById(key){ return GRAMMAR_TOPIC_GROUPS.find(g=>g.key===key); }
 function grammarLevelById(key){ return CEFR_LEVELS.find(l=>l.key===key); }
@@ -4148,6 +4266,9 @@ advanced:[
 // (giọng nữ: C,E,F,G,H · giọng nam: A,D,I,J — tất cả đều en-US Neural2 chất lượng cao)
 const TTS_VOICES_FEMALE = ['en-US-Neural2-F','en-US-Neural2-C','en-US-Neural2-E','en-US-Neural2-G','en-US-Neural2-H'];
 const TTS_VOICES_MALE   = ['en-US-Neural2-D','en-US-Neural2-A','en-US-Neural2-I','en-US-Neural2-J'];
+// Tốc độ đọc cho Luyện nghe — thay cho nút "Nghe lại" (giờ chỉ cần bấm Phát lại), người dùng có thể
+// chỉnh tốc độ chậm/thường/nhanh tùy trình độ, áp dụng cho cả giọng Cloud TTS lẫn giọng trình duyệt.
+const LISTEN_SPEEDS = [0.75, 1, 1.25];
 const CLOUD_TTS_VOICE_A = TTS_VOICES_FEMALE[0]; // mặc định giữ tương thích ngược
 const CLOUD_TTS_VOICE_B = TTS_VOICES_MALE[0];
 // Chọn giọng theo giới tính + seed (để cùng 1 người nói trong 1 đoạn giữ nguyên giọng,
@@ -4211,10 +4332,11 @@ function speakLine(text, rate, pitch){
     }catch(e){ resolve(); }
   });
 }
-async function fetchCloudTtsAudioUrl(text, voiceName){
+async function fetchCloudTtsAudioUrl(text, voiceName, speedMul){
   const apiKey = SETTINGS.cloudTtsApiKey;
   if(!apiKey) return null;
-  const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent(voiceName+'|'+text);
+  speedMul = speedMul || 1;
+  const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent(voiceName+'|'+speedMul+'|'+text);
   if('caches' in window){
     try{
       const cache = await caches.open(TTS_CACHE_NAME);
@@ -4227,7 +4349,7 @@ async function fetchCloudTtsAudioUrl(text, voiceName){
     body: JSON.stringify({
       input:{text},
       voice:{languageCode:(voiceName||'en-US-Neural2-F').split('-').slice(0,2).join('-'), name:voiceName},
-      audioConfig:{audioEncoding:'MP3', speakingRate:0.95}
+      audioConfig:{audioEncoding:'MP3', speakingRate: Math.max(0.5, Math.min(2, 0.95*speedMul))}
     })
   });
   if(!res.ok) throw new Error('Cloud TTS HTTP '+res.status);
@@ -4256,18 +4378,20 @@ async function playListenQueueStep(token){
   const [spk, text] = listenAudioQueue[listenAudioQueueIdx];
   // Xoay vòng giọng theo câu hỏi: người nói A = giọng nữ, B = giọng nam, đổi giọng giữa các câu.
   const voiceName = spk==='A' ? pickTtsVoice('female', listenVoiceSeed) : pickTtsVoice('male', listenVoiceSeed);
+  const speedMul = STATE.listenSpeed || 1;
   try{
     if(SETTINGS.cloudTtsApiKey){
-      const url = await fetchCloudTtsAudioUrl(text, voiceName);
+      const url = await fetchCloudTtsAudioUrl(text, voiceName, speedMul);
       if(token !== listenPlayToken) return;
       if(url){
         const audio = getListenAudioEl();
+        audio.playbackRate = 1; // tốc độ đã áp dụng qua speakingRate khi tạo audio, không chỉnh playbackRate để tránh đổi cả cao độ giọng
         audio.src = url;
         await audio.play();
         return;
       }
     }
-    await speakLine(text, 0.95, spk==='A' ? 1 : 1.22);
+    await speakLine(text, 0.95*speedMul, spk==='A' ? 1 : 1.22);
     if(token !== listenPlayToken) return;
     listenAudioQueueIdx++;
     playListenQueueStep(token);
@@ -4389,9 +4513,9 @@ function nextListenQuiz(){
   if(q.idx < q.order.length-1){
     q.idx++; q.answered=null; q.showTranslate=false;
     STATE.listenPlayback = 'idle';
+    // Trước đây tự động phát ngay khi chuyển câu — theo phản hồi người dùng, giờ chờ người dùng tự bấm
+    // "Phát" khi đã sẵn sàng nghe, không tự phát ngay khi màn hình vừa chuyển sang câu mới.
     renderContent();
-    const item = currentListenItem();
-    if(item && !q.videoId) playListenDialogue(item[0]); // chế độ video: nguồn nghe là video, không tự phát TTS
     return;
   }
   q.finished = true;
@@ -4464,10 +4588,11 @@ function renderListenQuizUI(){
           <button class="form-btn cancel" data-action="listen-video-replay" style="flex:1;">🔁 Lặp lại đoạn này</button>
         </div>
         <div style="font-size:11px; color:var(--dim2); margin-bottom:12px; text-align:center;">📺 Video chỉ phát đúng đoạn chứa câu hỏi — bấm "Lặp lại" nếu cần nghe thêm lần nữa.</div>`
-        : `<div style="display:flex; gap:8px; margin-bottom:12px;">
+        : `<div style="display:flex; gap:8px; margin-bottom:12px; align-items:stretch;">
         <button class="form-btn" data-action="listen-quiz-toggle" style="flex:1;">${playBtnLabel}</button>
-        <button class="form-btn cancel" data-action="listen-quiz-replay" style="flex:1;">🔁 Nghe lại</button>
-      </div>`}
+        <div class="listen-speed-group">${LISTEN_SPEEDS.map(sp=>`<button class="listen-speed-btn ${((STATE.listenSpeed||1)===sp)?'active':''}" data-action="listen-quiz-speed" data-speed="${sp}">${sp}x</button>`).join('')}</div>
+      </div>
+      <div style="font-size:10.5px; color:var(--dim2); margin:-6px 0 12px; text-align:center;">Cần nghe lại? Bấm "▶ Phát" thêm lần nữa sau khi bài nghe kết thúc.</div>`}
       <div class="eng-quiz-q">${escapeHtml(question)}</div>
       ${optsHtml}
       ${q.answered===null ? `<button class="eng-quiz-skip" data-action="listen-quiz-skip">⏭ Bỏ qua câu này</button>` : ''}
@@ -4640,10 +4765,16 @@ function startSpeakPractice(level){
   STATE.speakPlayback = 'idle';
   renderContent();
 }
-function speakPracticeExit(){ stopSpeakAudio(); stopSpeakRecognition(); STATE.speakSession=null; renderContent(); navBack(); }
+function speakPracticeExit(){
+  stopSpeakAudio(); stopSpeakRecognition();
+  const s=STATE.speakSession;
+  if(s && s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} }
+  STATE.speakSession=null; renderContent(); navBack();
+}
 function nextSpeakPractice(){
   const s = STATE.speakSession; if(!s) return;
   stopSpeakAudio(); stopSpeakRecognition();
+  if(s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
   if(s.idx < s.order.length-1){
     s.idx++; s.showTranslate=false; s.result=null; s.recording=false; STATE.speakPlayback='idle';
     renderContent();
@@ -4742,36 +4873,144 @@ function scoreSpeaking(target, heard, durationSec, confidence){
 // Tô màu trực tiếp lên đoạn văn gốc: xanh cho từ đã nhận diện đúng (theo matchMask, tính theo LCS
 // với thứ tự đọc), đỏ/gạch chân cho từ máy chưa nhận ra — giúp thấy ngay phần nào đọc tốt, phần nào
 // cần luyện lại thay vì phải tự đối chiếu điểm số với đoạn văn bằng mắt.
+// Mỗi từ được bọc trong 1 span bấm được (data-action="speak-word-click") để nghe lại phát âm chuẩn +
+// xem nghĩa tiếng Việt của riêng từ đó — hoạt động cả khi CHƯA chấm điểm (matchMask=null, chỉ là chữ
+// thường không tô màu) lẫn sau khi chấm điểm (tô xanh/đỏ theo matchMask như trước).
 function speakHighlightTarget(text, matchMask){
-  if(!matchMask) return escapeHtml(text||'');
   const re=/[A-Za-z0-9']+|[^A-Za-z0-9']+/g;
   let out='', idx=0, m;
   while((m=re.exec(text||''))){
     const tok=m[0];
     if(/^[A-Za-z0-9']/.test(tok)){
-      const ok = matchMask[idx]===true; idx++;
-      out += `<span style="${ok?'color:#2CDBA8;':'color:#ff5c5c; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:2px;'}">${escapeHtml(tok)}</span>`;
+      let colorStyle='';
+      if(matchMask){ const ok = matchMask[idx]===true; idx++; colorStyle = ok?'color:#2CDBA8;':'color:#ff5c5c; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:2px;'; }
+      out += `<span class="speak-word" data-action="speak-word-click" data-word="${escapeHtml(tok)}" style="${colorStyle}">${escapeHtml(tok)}</span>`;
     } else {
       out += escapeHtml(tok);
     }
   }
   return out;
 }
+// ---- Bấm vào 1 từ trong câu: đọc to từ đó + tra nhanh nghĩa tiếng Việt ----
+function speakSingleWord(word){
+  try{
+    if(!('speechSynthesis' in window) || !word) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'en-US'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+let speakWordLookupToken = 0;
+async function speakWordClick(word){
+  speakSingleWord(word);
+  const box = document.getElementById('speak-word-meaning');
+  if(!box) return;
+  box.style.display = 'block';
+  box.innerHTML = `<div class="tip-line">🔊 <b>${escapeHtml(word)}</b> — đang tra nghĩa…</div>`;
+  const token = ++speakWordLookupToken;
+  try{
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|vi`);
+    if(token !== speakWordLookupToken) return;
+    const data = await res.json();
+    const meaning = data && data.responseData && data.responseData.translatedText;
+    box.innerHTML = meaning
+      ? `<div class="tip-line">🔊 <b>${escapeHtml(word)}</b> — ${escapeHtml(meaning)}</div>`
+      : `<div class="tip-line">🔊 <b>${escapeHtml(word)}</b> — (chưa tra được nghĩa)</div>`;
+  }catch(e){
+    if(token !== speakWordLookupToken) return;
+    box.innerHTML = `<div class="tip-line">🔊 <b>${escapeHtml(word)}</b> — (không tra được nghĩa, kiểm tra kết nối mạng)</div>`;
+  }
+}
+// Đưa ra nhận xét NHẮM ĐÚNG vào điểm yếu nhất (thay vì liệt kê chung chung cả 3 tiêu chí) + mẹo theo
+// NHÓM lỗi phát âm phổ biến (đuôi -ed/-s, tốc độ đọc) — giúp người học biết chính xác nên luyện gì.
 function speakFeedbackMsgs(r){
   const msgs=[];
-  if(r.overall>=90) msgs.push('Xuất sắc! Bạn đọc rất chuẩn và trôi chảy.');
-  else if(r.overall>=75) msgs.push('Tốt! Câu của bạn khá rõ ràng, chỉ cần chỉnh vài chỗ nhỏ.');
-  else if(r.overall>=55) msgs.push('Khá ổn. Hãy nghe lại giọng mẫu và luyện thêm vài lần cho chắc.');
-  else msgs.push('Cần luyện thêm. Nghe lại giọng mẫu rồi đọc chậm, rõ từng từ một.');
-  if(r.missed && r.missed.length) msgs.push('Từ có thể phát âm chưa rõ (máy không nhận ra): <b>'+r.missed.map(escapeHtml).join(', ')+'</b> — bấm 🔊 nghe mẫu rồi lặp lại.');
-  if(r.intonation<70){ if(r.wps<1.3) msgs.push('Bạn đọc hơi chậm/ngắt quãng — thử nói liền mạch hơn theo từng cụm từ để ngữ điệu tự nhiên.'); else msgs.push('Bạn đọc hơi nhanh — chậm lại một chút để ngữ điệu rõ ràng, tròn vành rõ chữ.'); }
-  else msgs.push('Ngữ điệu và tốc độ nói khá tự nhiên, giữ nhịp này nhé.');
+  if(r.overall>=90) msgs.push('🌟 Xuất sắc! Bạn đọc rất chuẩn và trôi chảy, gần như không có lỗi.');
+  else if(r.overall>=75) msgs.push('👍 Tốt! Câu của bạn khá rõ ràng, chỉ cần chỉnh vài chỗ nhỏ để hoàn thiện hơn.');
+  else if(r.overall>=55) msgs.push('🙂 Khá ổn. Nghe lại giọng mẫu và luyện thêm 2-3 lần cho quen miệng.');
+  else msgs.push('💪 Cần luyện thêm. Đọc chậm lại, tách rõ từng từ trước khi ghép cả câu.');
+
+  const scoreList=[['wordAcc',r.wordAcc,'đúng từ'],['pron',r.pron,'phát âm'],['intonation',r.intonation,'ngữ điệu/tốc độ']];
+  const weakest=scoreList.slice().sort((a,b)=>a[1]-b[1])[0];
+  if(weakest[1]<80){
+    if(weakest[0]==='wordAcc') msgs.push('🎯 Điểm cần cải thiện nhất: <b>đúng từ</b> — có thể bạn đã bỏ sót hoặc đọc nhầm vài từ. Đọc đúng nguyên văn, đừng diễn giải theo ý mình.');
+    else if(weakest[0]==='pron') msgs.push('🔤 Điểm cần cải thiện nhất: <b>phát âm</b> — máy chưa nhận rõ nhiều âm. Chú ý đọc rõ đuôi từ (-s, -ed, -ing) và các âm khó như "th", "r", "v".');
+    else msgs.push('🎵 Điểm cần cải thiện nhất: <b>ngữ điệu/tốc độ</b> — thử nhấn giọng vào từ quan trọng trong câu và ngắt hơi đúng chỗ có dấu phẩy/dấu chấm.');
+  }
+  if(r.missed && r.missed.length){
+    const hasEd=r.missed.some(w=>/ed$/.test(w));
+    const hasS=r.missed.some(w=>/s$/.test(w) && w.length>2);
+    let extra='';
+    if(hasEd) extra=' Nhiều từ tận cùng "-ed" — nhớ 3 cách đọc: /t/ sau âm vô thanh (walked), /d/ sau âm hữu thanh (played), /ɪd/ sau âm t/d (wanted, needed).';
+    else if(hasS) extra=' Nhiều từ tận cùng "-s/-es" — đừng bỏ qua âm cuối này, nó rất dễ bị nuốt khi đọc nhanh.';
+    msgs.push('Từ máy chưa nhận ra: <b>'+r.missed.map(escapeHtml).join(', ')+'</b> — bấm vào từng từ trong câu phía trên để nghe phát âm chuẩn và xem nghĩa.'+extra);
+  }
+  if(r.intonation<70){
+    if(r.wps<1.3) msgs.push('⏱️ Bạn đọc hơi chậm/ngắt quãng nhiều — thử nói liền mạch theo từng CỤM từ (không phải từng từ đơn lẻ) để nghe tự nhiên hơn.');
+    else msgs.push('⏱️ Bạn đọc hơi nhanh — chậm lại một chút, đọc tròn vành rõ chữ để dễ nghe hơn.');
+  } else {
+    msgs.push('✅ Ngữ điệu và tốc độ nói khá tự nhiên, giữ nhịp này nhé.');
+  }
   return msgs;
 }
 let speakRecognition=null; let speakRecogStart=0; let speakRecogFinal=''; let speakRecogInterim='';
 let speakRecogStopRequested=false; let speakRecogRestartTimer=null; let speakRecogScoreNow=null;
 let speakAutoStopTimer=null; let speakCountdownTimer=null;
 let speakSessionCount=0; let speakDiagStatus='';
+// ---- Ghi lại chính giọng đọc của người dùng để phát lại (nút "Nghe lại giọng của bạn") ----
+// Chạy HOÀN TOÀN ĐỘC LẬP với 2 luồng chấm điểm ở trên (Cloud STT theo đoạn nhỏ / Web Speech API) —
+// chỉ để lưu lại toàn bộ audio của lượt đọc, không tham gia vào việc nhận diện/chấm điểm, nên không
+// có rủi ro làm hỏng luồng chấm điểm vốn đã được xử lý kỹ càng nhiều lỗi thiết bị Android trước đây.
+let speakPlaybackRecorder=null, speakPlaybackChunks=[], speakPlaybackStream=null;
+async function startSpeakPlaybackCapture(){
+  try{
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) return;
+    speakPlaybackStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    speakPlaybackChunks = [];
+    let mime = 'audio/webm;codecs=opus';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = 'audio/webm';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = '';
+    speakPlaybackRecorder = mime ? new MediaRecorder(speakPlaybackStream,{mimeType:mime}) : new MediaRecorder(speakPlaybackStream);
+    speakPlaybackRecorder.ondataavailable = (ev)=>{ if(ev.data && ev.data.size>0) speakPlaybackChunks.push(ev.data); };
+    speakPlaybackRecorder.start();
+  }catch(e){ speakPlaybackRecorder=null; } // im lặng bỏ qua — nút "Nghe lại giọng của bạn" sẽ đơn giản không xuất hiện
+}
+// Dừng ghi + build Blob URL, gán vào s.recordingUrl. Chạy bất đồng bộ (không chặn luồng chấm điểm
+// đồng bộ ở trên) — nếu xong SAU khi màn hình kết quả đã hiện, tự render lại 1 lần để nút bấm xuất
+// hiện ngay khi có, không cần người dùng thao tác gì thêm.
+function stopSpeakPlaybackCapture(sessionObj){
+  const rec = speakPlaybackRecorder; speakPlaybackRecorder=null;
+  const stream = speakPlaybackStream; speakPlaybackStream=null;
+  if(!rec){ return; }
+  rec.onstop = ()=>{
+    try{
+      const blob = new Blob(speakPlaybackChunks, {type: rec.mimeType || 'audio/webm'});
+      if(blob.size && sessionObj){
+        if(sessionObj.recordingUrl){ try{ URL.revokeObjectURL(sessionObj.recordingUrl); }catch(e){} }
+        sessionObj.recordingUrl = URL.createObjectURL(blob);
+        if(STATE.speakSession === sessionObj) renderSpeakPracticeUI();
+      }
+    }catch(e){}
+    if(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
+  };
+  try{ if(rec.state!=='inactive') rec.stop(); }catch(e){}
+}
+function discardSpeakPlaybackCapture(){
+  // Hủy ngang (không lưu) khi người dùng thoát màn hình/chuyển câu giữa chừng lúc đang ghi.
+  const rec = speakPlaybackRecorder; speakPlaybackRecorder=null;
+  const stream = speakPlaybackStream; speakPlaybackStream=null;
+  if(rec){ try{ rec.onstop=null; if(rec.state!=='inactive') rec.stop(); }catch(e){} }
+  if(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
+}
+let speakPlaybackAudioEl=null;
+function playOwnRecording(){
+  const s=STATE.speakSession; if(!s || !s.recordingUrl) return;
+  stopSpeakAudio();
+  if(!speakPlaybackAudioEl) speakPlaybackAudioEl = new Audio();
+  speakPlaybackAudioEl.src = s.recordingUrl;
+  speakPlaybackAudioEl.play().catch(()=>{});
+}
 // Ghi âm thật + gửi lên Google Cloud Speech-to-Text — dùng khi người dùng đã cấu hình API key
 // (mục "giọng đọc tự nhiên" phía trên). Đây là đường vòng qua Web Speech API của trình duyệt,
 // vì API đó (webkitSpeechRecognition) trên nhiều máy Android bị lỗi nền tảng "aborted" liên tục
@@ -4891,6 +5130,7 @@ async function transcribeCloudStt(blob){
 function forceStopSpeakRecording(){
   speakRecogStopRequested=true;
   clearSpeakTimers();
+  stopSpeakPlaybackCapture(STATE.speakSession);
   if(speakSegRecorder && !speakSegStopping){
     // Đánh dấu đoạn đang ghi là đoạn CUỐI — khi nó dừng xong (onstop), sẽ không mở đoạn mới nữa
     // mà tổng hợp toàn bộ các đoạn đã nhận diện được để chấm điểm (xem finalizeSpeakSegments).
@@ -5020,6 +5260,8 @@ function beginSpeakRecording(){
   if(speakSegTimerHandle){ clearTimeout(speakSegTimerHandle); speakSegTimerHandle=null; }
   s.recording=true; s.result=null; s.usingCloudStt=useCloud; speakRecogStart=Date.now();
   s.recordSecLeft = estimateSpeakDurationSec(item[0]);
+  if(s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
+  startSpeakPlaybackCapture(); // ghi song song để dùng cho nút "Nghe lại giọng của bạn" sau khi chấm điểm
   renderSpeakPracticeUI();
   // Đếm ngược hiển thị + lưới an toàn cao nhất: tự dừng khi hết giờ, KHÔNG cần bất kỳ thao tác nào
   // từ người dùng. Cập nhật số đếm ngược bằng cách sửa trực tiếp text node (không innerHTML lại
@@ -5178,6 +5420,7 @@ function renderSpeakPracticeUI(){
     <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">${APP_VERSION}</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
+  const heardHtml = r ? `<div class="speak-heard-line" style="font-size:11.5px;color:var(--dim);margin:-4px 0 10px;line-height:1.5;">👂 <b>Máy nghe được:</b> “${escapeHtml(r.heard||'(không rõ)')}”</div>` : '';
   let resultHtml='';
   if(r){
     resultHtml=`<div class="card speak-result-card">
@@ -5187,9 +5430,9 @@ function renderSpeakPracticeUI(){
       ${speakScoreBar('🔤 Phát âm', r.pron)}
       ${speakScoreBar('🎵 Ngữ điệu / tốc độ', r.intonation)}
       <div class="eng-quiz-explain" style="margin-top:12px;">🤖 <b>AI nhận xét:</b><br>${speakFeedbackMsgs(r).map(m=>'• '+m).join('<br>')}</div>
-      <div style="font-size:11px;color:var(--dim2);margin-top:10px;line-height:1.5;">Máy nghe được: “${escapeHtml(r.heard||'(không rõ)')}”. Đây là đánh giá tham khảo từ nhận diện giọng nói trên thiết bị.</div>
     </div>`;
   }
+  const replayBtnLabel = s.recordingUrl ? '🎧 Nghe lại giọng bạn' : '🎧 Chưa có bản ghi';
   document.getElementById('content').innerHTML = `
     <div class="eng-av-modern">
     ${backRow}
@@ -5201,11 +5444,13 @@ function renderSpeakPracticeUI(){
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
     <div class="card eng-quiz-card">
-      <div class="eng-quiz-q" style="text-align:left; white-space:pre-line;">${r ? speakHighlightTarget(text, r.matchMask) : escapeHtml(text)}</div>
-      ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được</div>' : ''}
+      <div class="eng-quiz-q" style="text-align:left; white-space:pre-line;">${speakHighlightTarget(text, r?r.matchMask:null)}</div>
+      <div id="speak-word-meaning"></div>
+      ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được &nbsp;·&nbsp; chạm 1 từ để nghe phát âm + nghĩa</div>' : '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">Chạm vào 1 từ bất kỳ để nghe phát âm + xem nghĩa tiếng Việt</div>'}
+      ${heardHtml}
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <button class="form-btn" data-action="speak-toggle-play" style="flex:1;">${playLabel}</button>
-        <button class="form-btn cancel" data-action="speak-replay" style="flex:1;">🔁 Đọc lại mẫu</button>
+        <button class="form-btn cancel" data-action="speak-play-own" style="flex:1;" ${s.recordingUrl?'':'disabled'}>${replayBtnLabel}</button>
       </div>
       ${recBtn}
       ${recHint}
@@ -5239,6 +5484,86 @@ function saveEnglishNotes(id){
   SETTINGS.englishNotes[id] = ta.value;
   saveSettings(); pushToDrive();
   showToast('💾','Đã lưu','Ghi chú đã được lưu và đồng bộ.');
+}
+// ---- Luyện IPA: duyệt bảng 44 âm theo nhóm, bấm 1 âm để xem chi tiết + nghe ví dụ ----
+function ipaChartSelectGroup(key){
+  if(!IPA_CHART_GROUPS.some(g=>g.key===key)) return;
+  STATE.ipaChartGroup = key; STATE.ipaChartOpen = null; renderEnglishItem();
+}
+function ipaChartToggleSymbol(sym){
+  STATE.ipaChartOpen = (STATE.ipaChartOpen===sym) ? null : sym;
+  renderEnglishItem();
+}
+function speakIpaChartExample(word){
+  try{
+    if(!('speechSynthesis' in window) || !word) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'en-GB'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function renderEnglishIPA(item){
+  if(!STATE.ipaChartGroup) STATE.ipaChartGroup = 'mono';
+  const groupKey = STATE.ipaChartGroup;
+  const group = IPA_CHART_GROUPS.find(g=>g.key===groupKey) || IPA_CHART_GROUPS[0];
+  const list = IPA_CHART_DATA[groupKey] || [];
+  const subgroups = IPA_CHART_SUBGROUPS[groupKey];
+
+  const tabsHtml = IPA_CHART_GROUPS.map(g=>`
+    <button class="ipac-tab ${g.key===groupKey?'active':''}" data-action="ipa-chart-group" data-key="${g.key}">${g.icon} ${escapeHtml(g.name)}</button>
+  `).join('');
+
+  const symbolChip = (ph)=>{
+    const open = STATE.ipaChartOpen === ph.ipa;
+    const detail = open ? `
+      <div class="ipac-detail">
+        <div class="ipac-detail-tip">💡 ${escapeHtml(ph.tip)}</div>
+        ${ph.confuse ? `<div class="ipac-detail-confuse">⚠️ ${escapeHtml(ph.confuse)}</div>` : ''}
+        <div class="ipac-detail-examples">
+          ${ph.examples.map(ex=>`
+            <div class="ipac-example" data-action="ipa-chart-speak" data-word="${escapeHtml(ex.w)}">
+              <span class="ipac-ex-play">🔊</span>
+              <span class="ipac-ex-word">${escapeHtml(ex.w)}</span>
+              <span class="ipac-ex-ipa">/${escapeHtml(ex.ipa)}/</span>
+              <span class="ipac-ex-vi">${escapeHtml(ex.vi)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>` : '';
+    return `<div class="ipac-chip-wrap ${open?'open':''}">
+      <button class="ipac-chip" data-action="ipa-chart-toggle" data-sym="${escapeHtml(ph.ipa)}">/${escapeHtml(ph.ipa)}/</button>
+      ${detail}
+    </div>`;
+  };
+
+  let gridHtml;
+  if(subgroups){
+    gridHtml = subgroups.map(sg=>{
+      const phs = sg.syms.map(sym=> list.find(p=>p.ipa===sym) ).filter(Boolean);
+      return `<div class="ipac-subgroup">
+        <div class="ipac-subgroup-title">${escapeHtml(sg.name)}</div>
+        <div class="ipac-grid">${phs.map(symbolChip).join('')}</div>
+      </div>`;
+    }).join('');
+  } else {
+    gridHtml = `<div class="ipac-grid">${list.map(symbolChip).join('')}</div>`;
+  }
+
+  document.getElementById('content').innerHTML = `
+    ${englishItemBackRow(item.name)}
+    <div class="card ipac-intro-card">
+      <div class="ipac-intro-title">${group.icon} ${escapeHtml(group.name)}</div>
+      <div class="ipac-intro-desc">${escapeHtml(group.desc)}</div>
+    </div>
+    <div class="ipac-tabs">${tabsHtml}</div>
+    <div class="card ipac-grid-card">
+      ${gridHtml}
+    </div>
+    <div class="card" style="text-align:center; padding:16px; font-size:11px; color:var(--dim2); line-height:1.6;">
+      🎬 Video ví dụ khẩu hình sẽ được bổ sung sau.<br>Bấm vào 1 âm để xem mẹo phát âm + nghe ví dụ, bấm vào từng từ ví dụ để nghe phát âm chuẩn.
+    </div>
+  `;
 }
 function renderEnglishMethods(){
   document.getElementById('content').innerHTML = `
@@ -5867,6 +6192,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenVideoReplayEl){ const q=STATE.listenQuiz; if(q){ q.replaySeed=(q.replaySeed||0)+1; renderContent(); } return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
   if(listenQuizToggleEl){ toggleListenPlayback(); return; }
+  const listenQuizSpeedEl = e.target.closest('[data-action="listen-quiz-speed"]');
+  if(listenQuizSpeedEl){ STATE.listenSpeed = parseFloat(listenQuizSpeedEl.getAttribute('data-speed')); renderContent(); return; }
   const cloudTtsKeyEl = e.target.closest('[data-action="set-cloud-tts-key"]');
   if(cloudTtsKeyEl){ setCloudTtsApiKey(); return; }
   const listenQuizAnswerEl = e.target.closest('[data-action="listen-quiz-answer"]');
@@ -5885,8 +6212,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakExitEl){ speakPracticeExit(); return; }
   const speakTogglePlayEl = e.target.closest('[data-action="speak-toggle-play"]');
   if(speakTogglePlayEl){ toggleSpeakPlayback(); return; }
-  const speakReplayEl = e.target.closest('[data-action="speak-replay"]');
-  if(speakReplayEl){ playSpeakLine(); return; }
+  const speakPlayOwnEl = e.target.closest('[data-action="speak-play-own"]');
+  if(speakPlayOwnEl){ playOwnRecording(); return; }
+  const speakWordEl = e.target.closest('[data-action="speak-word-click"]');
+  if(speakWordEl){ speakWordClick(speakWordEl.getAttribute('data-word')); return; }
+  const ipaGroupEl = e.target.closest('[data-action="ipa-chart-group"]');
+  if(ipaGroupEl){ ipaChartSelectGroup(ipaGroupEl.getAttribute('data-key')); return; }
+  const ipaToggleEl = e.target.closest('[data-action="ipa-chart-toggle"]');
+  if(ipaToggleEl){ ipaChartToggleSymbol(ipaToggleEl.getAttribute('data-sym')); return; }
+  const ipaSpeakEl = e.target.closest('[data-action="ipa-chart-speak"]');
+  if(ipaSpeakEl){ speakIpaChartExample(ipaSpeakEl.getAttribute('data-word')); return; }
   const speakRecordEl = e.target.closest('[data-action="speak-record"]');
   if(speakRecordEl){
     const s=STATE.speakSession;
