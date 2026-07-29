@@ -47,9 +47,15 @@ a{color:inherit;}
 .search-grouptitle{display:none; align-items:center; gap:8px; font-size:12px; font-weight:800; color:var(--teal);
   text-transform:uppercase; letter-spacing:.5px; margin:16px 2px 8px; padding-top:4px; border-top:1px dashed var(--border);}
 .search-grouptitle:first-child{border-top:none; padding-top:0;}
-.sectitle{font-size:12.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.5px;
-  margin:18px 2px 9px;display:flex;align-items:center;gap:8px;}
-.sectitle .bar{width:4px;height:14px;background:linear-gradient(180deg,var(--blue),var(--teal));border-radius:2px;}
+/* "Đề mục" (tiêu đề nhóm) — cố tình làm nổi bật rõ rệt bằng dải nền gradient màu, khác hẳn tone của
+   các thẻ "mục con" bên dưới (xem .topic-summary-card), để mắt người dùng phân biệt ngay cấp bậc. */
+.sectitle{font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.6px;
+  margin:18px 0 10px;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;
+  background:linear-gradient(90deg,#3D2E7A,#5A3E9E 55%,#7C4FBE); box-shadow:0 3px 12px rgba(90,62,158,.35);}
+.sectitle:first-child{margin-top:2px;}
+.sectitle .bar{width:5px;height:15px;background:var(--gold);border-radius:3px;flex-shrink:0;}
+.sectitle .cnt{margin-left:auto;font-size:10px;font-weight:800;background:rgba(255,255,255,.18);
+  padding:2px 8px;border-radius:999px;letter-spacing:.2px;}
 details.card{background:var(--panel);border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);
   margin-bottom:10px; overflow:hidden; position:relative;}
 details.card[open]{border-color:rgba(79,168,255,.35);}
@@ -83,6 +89,9 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .ex10-vi{color:var(--dim); font-style:normal; font-size:11.5px;}
 .notebox{background:rgba(255,201,74,.1); border:1px solid rgba(255,201,74,.3); border-radius:12px; padding:10px 12px; margin-top:8px; font-size:12px; color:#FFD98A; line-height:1.55;}
 .notebox b{color:var(--gold);}
+.signalbox{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;}
+.signal-chip{font-size:11.3px; font-weight:700; color:var(--gold); background:rgba(255,201,74,.1);
+  border:1px solid rgba(255,201,74,.3); border-radius:9px; padding:5px 9px; line-height:1.4;}
 .tipbox{background:rgba(183,140,255,.1); border:1px solid rgba(183,140,255,.3); border-radius:12px; padding:10px 12px; margin-top:4px;}
 .tip-line{font-size:12px; color:var(--text); line-height:1.6; padding-left:14px; position:relative; margin-bottom:6px;}
 .tip-line:last-child{margin-bottom:0;}
@@ -95,13 +104,27 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
   background:linear-gradient(90deg,#4FA8FF,#7C6CF0); color:#fff; font-weight:800; font-size:12.5px;
   display:flex; align-items:center; justify-content:center; gap:6px;}
 .practice-btn:active{opacity:.85;}
-/* ===== Thẻ tóm tắt chủ đề (thay cho <details> sổ xuống) — bấm vào sẽ mở TRANG RIÊNG toàn màn hình
-   (#topic-detail-view) thay vì mở rộng ngay tại chỗ, giúp nội dung dài (ví dụ mở rộng...) dễ đọc hơn. ===== */
-.topic-summary-card{padding:0; cursor:pointer;}
-.topic-summary-row{padding:13px 14px; font-weight:800; font-size:13.5px; color:var(--text);
+/* ===== Thẻ tóm tắt chủ đề — thiết kế lại thành dạng "button" màu sắc bắt mắt (khác hẳn tone phẳng
+   trước đây) để rõ ràng là "mục con" có thể bấm vào, tương phản với dải "đề mục" phía trên. Mỗi nhóm
+   lớn (12 Thì / Cấu trúc câu / Giới từ / Ngữ pháp khác) có 1 tông màu gradient viền trái riêng, đặt qua
+   thuộc tính data-grp — bấm vào sẽ mở TRANG RIÊNG toàn màn hình (#topic-detail-view) thay vì mở rộng
+   ngay tại chỗ, giúp nội dung dài (ví dụ mở rộng...) dễ đọc hơn. ===== */
+.topic-summary-card{padding:0; cursor:pointer; border-radius:14px; border:1.5px solid transparent;
+  background:linear-gradient(100deg, rgba(79,168,255,.14), rgba(79,168,255,.03)); border-left:4px solid var(--blue);
+  transition:transform .12s;}
+.topic-summary-card:active{transform:scale(0.985);}
+.topic-summary-card[data-grp="present"],.topic-summary-card[data-grp="past"],.topic-summary-card[data-grp="future"]{
+  background:linear-gradient(100deg, rgba(79,168,255,.14), rgba(44,219,168,.04)); border-left-color:var(--blue);}
+.topic-summary-card[data-grp="struct"]{background:linear-gradient(100deg, rgba(183,140,255,.16), rgba(183,140,255,.03)); border-left-color:var(--purple);}
+.topic-summary-card[data-grp="prep"]{background:linear-gradient(100deg, rgba(44,219,168,.15), rgba(44,219,168,.03)); border-left-color:var(--teal);}
+.topic-summary-card[data-grp="other"]{background:linear-gradient(100deg, rgba(255,138,61,.16), rgba(255,201,74,.04)); border-left-color:var(--orange);}
+.topic-summary-row{padding:14px 14px; font-weight:800; font-size:13.5px; color:var(--text);
   display:flex; align-items:center; justify-content:space-between; gap:8px;}
 .topic-open-btn{flex:0 0 auto; font-size:11px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--blue),var(--purple));
-  border-radius:999px; padding:6px 12px; box-shadow:0 3px 8px rgba(46,107,232,.28);}
+  border-radius:999px; padding:7px 13px; box-shadow:0 3px 8px rgba(46,107,232,.28);}
+.topic-summary-card[data-grp="struct"] .topic-open-btn{background:linear-gradient(135deg,var(--purple),#8B5CF6);box-shadow:0 3px 8px rgba(139,92,246,.3);}
+.topic-summary-card[data-grp="prep"] .topic-open-btn{background:linear-gradient(135deg,var(--teal),#1FA88A);box-shadow:0 3px 8px rgba(44,219,168,.3);}
+.topic-summary-card[data-grp="other"] .topic-open-btn{background:linear-gradient(135deg,var(--orange),var(--gold));box-shadow:0 3px 8px rgba(255,138,61,.3);}
 /* Nút loa đọc to ví dụ — chèn cạnh mỗi câu ví dụ bằng JS (addTtsButtons), dùng chung cho .exbox mọi nơi. */
 .ex-tts-btn{flex:0 0 auto; width:30px; height:30px; min-width:30px; border-radius:10px; border:1px solid var(--border);
   background:var(--panel); color:var(--blue); font-size:14px; display:inline-flex; align-items:center;
@@ -151,29 +174,32 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 
 <div class="view active" id="v-tenses">
   <div class="search-grouptitle">12 Thì</div>
-  <div class="sectitle"><span class="bar"></span>Nhóm hiện tại</div>
+  <div class="sectitle"><span class="bar"></span>Nhóm hiện tại<span class="cnt">4</span></div>
   <div id="grp-present"></div>
-  <div class="sectitle"><span class="bar"></span>Nhóm quá khứ</div>
+  <div class="sectitle"><span class="bar"></span>Nhóm quá khứ<span class="cnt">4</span></div>
   <div id="grp-past"></div>
-  <div class="sectitle"><span class="bar"></span>Nhóm tương lai</div>
+  <div class="sectitle"><span class="bar"></span>Nhóm tương lai<span class="cnt">4</span></div>
   <div id="grp-future"></div>
   <div class="emptyresult" id="empty-tenses">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-struct">
   <div class="search-grouptitle">Cấu trúc câu</div>
+  <div class="sectitle"><span class="bar"></span>Cấu trúc câu nâng cao<span class="cnt">11</span></div>
   <div id="grp-struct"></div>
   <div class="emptyresult" id="empty-struct">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-prep">
   <div class="search-grouptitle">Giới từ</div>
+  <div class="sectitle"><span class="bar"></span>Giới từ theo nhóm<span class="cnt">6</span></div>
   <div id="grp-prep"></div>
   <div class="emptyresult" id="empty-prep">Không tìm thấy kết quả phù hợp.</div>
 </div>
 
 <div class="view" id="v-other">
   <div class="search-grouptitle">Ngữ pháp khác</div>
+  <div class="sectitle"><span class="bar"></span>Chủ điểm ngữ pháp khác<span class="cnt">9</span></div>
   <div id="grp-other"></div>
   <div class="emptyresult" id="empty-other">Không tìm thấy kết quả phù hợp.</div>
 </div>
@@ -181,28 +207,70 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 <script>
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function stripTags(s){ return (s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
-// Đọc to câu ví dụ bằng speechSynthesis của trình duyệt (offline, không phụ thuộc Cloud TTS của app cha).
-// "Mồi" danh sách giọng đọc ngay khi trang tải — một số trình duyệt/WebView (đặc biệt trên Android,
-// nơi app này cũng chạy dưới dạng PWA/APK) trả về danh sách giọng rỗng ở lần gọi đầu tiên, khiến
-// speak() có thể im lặng không phát gì. Gọi getVoices() sớm 1 lần để giọng kịp nạp trước khi bấm nút loa.
+// ---- Đọc to câu ví dụ ----
+// NGUYÊN NHÂN GỐC thật sự của lỗi "bấm loa nhưng không đọc" trên điện thoại: rất nhiều máy Android
+// (đặc biệt máy giá rẻ, hoặc máy chưa cài gói giọng đọc tiếng Anh cho engine Text-to-Speech mặc định)
+// có speechSynthesis.getVoices() trả về RỖNG hoặc không có giọng nào khớp 'en-US' — speak() khi đó
+// không báo lỗi gì cả (không có onerror, không có onstart) mà chỉ ÂM THẦM không phát ra tiếng gì. Đây
+// chính là lý do các bản vá phòng thủ trước đây (mồi giọng sớm, thử phát lại sau 250ms) không đủ: bản
+// thân trình duyệt không có giọng để đọc chứ không phải lỗi gọi API sai thời điểm.
+// => Giải pháp thật: nếu app cha (index.html) đã cấu hình Google Cloud Text-to-Speech (đã được xác nhận
+// hoạt động ổn định trên mọi thiết bị ở các mục Luyện nghe/Luyện nói/Luyện ngữ pháp), bắc cầu qua
+// postMessage để app cha đọc bằng Cloud TTS thay vì dùng giọng máy cục bộ của chính iframe này. Nếu
+// app cha CHƯA cấu hình Cloud TTS, vẫn giữ giọng máy cục bộ làm phương án dự phòng, nhưng chọn tường
+// minh 1 giọng tiếng Anh (thay vì chỉ đặt lang) và hiện gợi ý rõ ràng nếu máy thực sự không đọc được,
+// thay vì im lặng như trước.
+let PARENT_HAS_CLOUD_TTS = false;
+window.addEventListener('message', function(e){
+  if(e.data && e.data.type==='grammarInit'){ PARENT_HAS_CLOUD_TTS = !!e.data.hasCloudTts; }
+});
 if('speechSynthesis' in window){
   try{
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = function(){ window.speechSynthesis.getVoices(); };
   }catch(e){}
 }
+function showTtsHint(){
+  let el = document.getElementById('tts-hint');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'tts-hint';
+    el.style.cssText = 'position:fixed; left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom)); z-index:200; background:rgba(255,90,110,.15); border:1px solid rgba(255,90,110,.4); color:#FFD3D8; font-size:12px; line-height:1.55; padding:11px 13px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,.35); transition:opacity .3s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = '⚠️ Thiết bị này chưa có giọng đọc tiếng Anh. Vào Cài đặt → Ngôn ngữ & nhập → Text-to-speech (Chuyển văn bản thành giọng nói) để cài gói tiếng Anh, hoặc cấu hình Google Cloud TTS trong mục giọng đọc của ứng dụng để đọc ổn định trên mọi máy.';
+  el.style.opacity = '1'; el.style.display = 'block';
+  clearTimeout(showTtsHint._t);
+  showTtsHint._t = setTimeout(function(){ el.style.opacity = '0'; setTimeout(()=>{ el.style.display='none'; }, 300); }, 6000);
+}
 function speakExample(text, btnEl){
   try{
-    if(!('speechSynthesis' in window) || !text) return;
-    const synth = window.speechSynthesis;
+    if(!text) return;
     document.querySelectorAll('.ex-tts-btn.speaking').forEach(b=>b.classList.remove('speaking'));
+    if(PARENT_HAS_CLOUD_TTS && window.parent && window.parent !== window){
+      if(btnEl) btnEl.classList.add('speaking');
+      try{ window.parent.postMessage({type:'speakGrammarExample', text}, '*'); }catch(e){}
+      // Không có callback đồng bộ qua postMessage — ước lượng thời lượng đọc theo số từ để tắt hiệu ứng nút.
+      const estMs = Math.max(1200, text.trim().split(/\s+/).length * 380);
+      if(btnEl) setTimeout(function(){ btnEl.classList.remove('speaking'); }, estMs);
+      return;
+    }
+    if(!('speechSynthesis' in window)){ showTtsHint(); return; }
+    const synth = window.speechSynthesis;
     const doSpeak = function(){
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US'; u.rate = 0.95;
+      // Chọn tường minh 1 giọng tiếng Anh nếu tìm được — đáng tin cậy hơn việc chỉ đặt 'lang' và để
+      // trình duyệt tự khớp, vì nhiều máy Android khớp giọng theo lang không chính xác/không tìm thấy.
+      try{
+        const voices = synth.getVoices() || [];
+        const enVoice = voices.find(v=>/^en/i.test(v.lang));
+        if(enVoice) u.voice = enVoice;
+      }catch(e){}
       let started = false;
       u.onstart = function(){ started = true; };
       u.onend = function(){ if(btnEl) btnEl.classList.remove('speaking'); };
-      u.onerror = function(){ if(btnEl) btnEl.classList.remove('speaking'); };
+      u.onerror = function(){ if(btnEl) btnEl.classList.remove('speaking'); showTtsHint(); };
       if(btnEl) btnEl.classList.add('speaking');
       synth.speak(u);
       // Chrome/WebView đôi khi "nuốt" lượt speak() gọi ngay sau cancel() trong cùng 1 tick (lỗi đã biết
@@ -211,6 +279,11 @@ function speakExample(text, btnEl){
       setTimeout(function(){
         if(!started && !synth.speaking && !synth.pending){ synth.speak(u); }
       }, 250);
+      // Nếu sau 1.5s vẫn chưa từng bắt đầu đọc và cũng không còn ở hàng chờ — máy thực sự không có
+      // giọng khả dụng, hiện gợi ý thay vì để người dùng tưởng app bị lỗi.
+      setTimeout(function(){
+        if(!started && !synth.speaking && !synth.pending){ if(btnEl) btnEl.classList.remove('speaking'); showTtsHint(); }
+      }, 1500);
     };
     if(synth.speaking || synth.pending){
       synth.cancel();
@@ -368,7 +441,7 @@ future:[
 // kèm dịch nghĩa tiếng Việt, giúp người học thấy nhiều ngữ cảnh sử dụng khác nhau.
 function ex10Html(list){
   if(!list || !list.length) return '';
-  return `<div class="subh">📚 Ví dụ mở rộng (${list.length} câu)</div><div class="exbox ex10box">${list.map((e,i)=>`<div><b>${i+1}.</b> ${e[0]} <span class="ex10-vi">— ${e[1]}</span></div>`).join('')}</div>`;
+  return `<div class="subh">📚 Ví dụ mở rộng (${list.length} câu)</div><div class="exbox ex10box">${list.map((e)=>`<div>${e[0]} <span class="ex10-vi">— ${e[1]}</span></div>`).join('')}</div>`;
 }
 // Registry lưu tiêu đề + nội dung chi tiết đầy đủ của từng chủ đề, dùng khi mở "trang riêng"
 // (#topic-detail-view) — tách khỏi thẻ tóm tắt hiển thị trong danh sách để trang danh sách gọn nhẹ.
@@ -422,6 +495,42 @@ function tipsHtml(id){
   if(!tips || !tips.length) return '';
   return `<div class="subh">💡 Mẹo học nhanh</div><div class="tipbox">${tips.map(t=>`<div class="tip-line">${t}</div>`).join('')}</div>`;
 }
+// Dấu hiệu nhận biết chi tiết cho 26 chủ đề KHÔNG thuộc nhóm 12 Thì (nhóm Thì đã có sẵn "signal" riêng
+// hiển thị ngay trong thân bài — xem tenseCard()). Đây là các từ/cụm từ/ngữ cảnh đặc trưng giúp nhận
+// ra NGAY chủ đề ngữ pháp đang gặp khi đọc câu, đặc biệt hữu ích khi làm bài tập trắc nghiệm.
+const TOPIC_SIGNALS = {
+  s_conditional: ['if', 'unless (= if...not)', 'provided/providing that', 'as long as', 'in case', 'were/had ở đầu câu (đảo ngữ điều kiện)'],
+  s_passive: ['by + tác nhân gây ra hành động', 'be + V3/ed', 'chủ ngữ là người/vật CHỊU tác động, không tự thực hiện hành động', 'get + V3/ed (bị động thông tục)'],
+  s_reported: ['said/told/asked + (that)', 'động từ tường thuật ở QK → lùi thì mệnh đề sau', 'if/whether (câu hỏi Yes/No tường thuật)', 'to + V (mệnh lệnh/yêu cầu tường thuật)'],
+  s_relative: ['who, whom, which, that, whose, where, when', 'dấu phẩy trước đại từ quan hệ (mệnh đề không xác định)', 'đại từ quan hệ đứng ngay sau danh từ nó bổ nghĩa'],
+  s_comparison: ['as...as, than, the...est, the most', 'more/less + adj/adv', 'the + so sánh hơn, the + so sánh hơn (so sánh kép)'],
+  s_inversion: ['Never, Rarely, Hardly, Little, No sooner, Not only đứng đầu câu', 'trợ động từ đảo lên trước chủ ngữ ngay sau từ phủ định', 'Were/Had/Should đứng đầu câu điều kiện trang trọng'],
+  s_wish: ['wish, if only', "it's (high) time", 'were thay cho was sau wish/if (mọi ngôi)', 'wish + would (mong ai đó thay đổi)'],
+  s_cleft: ['It is/was...that/who...', 'What...is/was...', 'thành phần được nhấn mạnh đứng ngay sau it is/was'],
+  s_participle: ['V-ing hoặc V3/ed đứng đầu câu, không có chủ ngữ riêng', 'Having + V3/ed đứng đầu câu (hành động xảy ra trước)', '2 mệnh đề gốc có CHUNG chủ ngữ'],
+  s_qtag: ['dấu phẩy + trợ động từ + đại từ + dấu chấm hỏi ở cuối câu', "isn't it?, don't you?, can't he?, won't they?...", 'câu khẳng định → đuôi phủ định và ngược lại'],
+  s_sequence: ['because/since/as (nguyên nhân)', 'although/though/despite (tương phản)', 'however/therefore đứng đầu câu có dấu phẩy'],
+  p_time: ['at + giờ/thời điểm (at 7pm, at night)', 'on + ngày/thứ (on Monday)', 'in + tháng/năm/mùa/khoảng thời gian dài (in June, in 2024)'],
+  p_place: ['at + điểm cụ thể (at the door)', 'on + bề mặt (on the table)', 'in + không gian kín/khu vực rộng (in the room, in Vietnam)'],
+  p_movement: ['into, onto, through, across, along, over, under, past, towards — đi kèm động từ chỉ chuyển động (walk, drive, swim, run...)'],
+  p_adj: ['tính từ + giới từ cố định ngay sau nó: interested IN, afraid OF, good AT, married TO, proud OF, famous FOR'],
+  p_verb: ['động từ + giới từ cố định: depend ON, listen TO, look FOR, wait FOR, apologize FOR/TO, agree WITH/ON'],
+  p_noun: ['danh từ + giới từ cố định: reason FOR, solution TO, interest IN, increase/decrease IN, relationship WITH/BETWEEN'],
+  o_articles: ['a/an trước danh từ đếm được số ít CHƯA xác định', 'the trước danh từ đã xác định/duy nhất/nhắc lại lần 2', 'không mạo từ trước danh từ số nhiều/không đếm được nói chung, tên riêng'],
+  o_modal: ['can/could, may/might, must, have to, should/ought to, need — đứng ngay trước V nguyên mẫu (không "to")', 'modal + have + V3 (suy đoán về quá khứ: must have, should have, might have)'],
+  o_gerund: ['enjoy/avoid/finish/suggest/mind + V-ing', 'want/decide/hope/plan/promise + to-V', 'giới từ + V-ing (interested in learning)'],
+  o_phrasal: ['động từ + giới từ/trạng từ tạo nghĩa MỚI khác hẳn động từ gốc (give up, look after, put off, run out of)'],
+  o_quantifiers: ['many/few/a few + danh từ đếm được', 'much/little/a little + danh từ không đếm được', 'some (khẳng định/đề nghị), any (phủ định/nghi vấn)'],
+  o_adj_adv: ['tính từ đứng trước danh từ hoặc sau be/seem/look/feel', 'trạng từ kết thúc -ly, bổ nghĩa động từ/tính từ/trạng từ khác', 'trật tự tính từ: ý kiến-kích thước-tuổi-hình dáng-màu sắc-nguồn gốc-chất liệu-mục đích'],
+  o_causative: ['have/get + tân ngữ (vật) + V3/ed', 'chủ ngữ KHÔNG tự làm mà nhờ/thuê người khác làm'],
+  o_correlative: ['both...and, either...or, neither...nor, not only...but also, whether...or'],
+  o_emphasis: ['do/does/did + V nguyên mẫu (nhấn giọng, phản bác ý kiến trái ngược)'],
+};
+function signalsHtml(id){
+  const sig = TOPIC_SIGNALS[id];
+  if(!sig || !sig.length) return '';
+  return `<div class="subh">🔍 Dấu hiệu nhận biết</div><div class="signalbox">${sig.map(s=>`<span class="signal-chip">${s}</span>`).join('')}</div>`;
+}
 function tenseCard(t, num, groupKey){
   const searchText = esc((t.n+' '+t.en+' '+t.use.join(' ')+' '+t.ex.map(stripTags).join(' ')+' '+(t.ex10?t.ex10.map(e=>stripTags(e[0])).join(' '):'')).toLowerCase());
   let body = `<div class="formrow"><span class="tag pos">Khẳng định</span><code>${t.pos}</code></div>`;
@@ -435,8 +544,8 @@ function tenseCard(t, num, groupKey){
   body += practiceBtn(t.topic, t.n);
   TOPIC_BODY[t.topic] = body;
   TOPIC_TITLE[t.topic] = `${t.n} <span style="font-weight:600;color:var(--dim);font-size:11.5px;margin-left:4px;">(${t.en})</span>`;
-  return `<div class="card topic-summary-card" data-search="${searchText}" onclick="openTopicDetail('${t.topic}')">
-    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
+  return `<div class="card topic-summary-card" data-grp="${groupKey}" data-search="${searchText}" onclick="openTopicDetail('${t.topic}')">
+    <div class="topic-summary-row"><span style="display:flex;align-items:center;">${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
 // Trang này được nhúng qua <iframe> trong index.html, và index.html quản lý toàn bộ điều hướng
@@ -453,7 +562,7 @@ function notifyParentNav(type){
 function openTopicDetail(id){
   const view = document.getElementById('topic-detail-view');
   document.getElementById('topic-detail-title').innerHTML = TOPIC_TITLE[id] || '';
-  document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}${tipsHtml(id)}</div>`;
+  document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}${signalsHtml(id)}${tipsHtml(id)}</div>`;
   view.classList.add('show');
   document.getElementById('topic-detail-body').scrollTop = 0;
   addTtsButtons(document.getElementById('topic-detail-body'));
@@ -462,16 +571,17 @@ function openTopicDetail(id){
 function closeTopicDetail(){
   document.getElementById('topic-detail-view').classList.remove('show');
   try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+  try{ if(window.parent && window.parent!==window) window.parent.postMessage({type:'stopGrammarSpeak'}, '*'); }catch(e){}
   notifyParentNav('grammarDetailClose');
 }
 // Helper dùng chung cho 3 nhóm còn lại (Cấu trúc câu / Giới từ / Ngữ pháp khác) — mỗi mục đã có sẵn
 // HTML "body" dựng riêng (bảng, ví dụ...), chỉ cần đăng ký vào TOPIC_BODY và trả về thẻ tóm tắt.
-function simpleTopicCard(s, num, labelMap){
+function simpleTopicCard(s, num, labelMap, grp){
   TOPIC_BODY[s.topic] = s.body + practiceBtn(s.topic, labelMap[s.topic]);
   TOPIC_TITLE[s.topic] = s.t;
   const searchText = esc((s.t+' '+stripTags(s.body)).toLowerCase());
-  return `<div class="card topic-summary-card" data-search="${searchText}" onclick="openTopicDetail('${s.topic}')">
-    <div class="topic-summary-row"><span style="display:flex;align-items:center;"><span class="num">${num}</span>${s.t}${levelChip(s.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
+  return `<div class="card topic-summary-card" data-grp="${grp}" data-search="${searchText}" onclick="openTopicDetail('${s.topic}')">
+    <div class="topic-summary-row"><span style="display:flex;align-items:center;">${s.t}${levelChip(s.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
 let n=1;
@@ -619,7 +729,7 @@ const STRUCT = [
   ${ex10Html([['She was late <b>because</b> the traffic was heavy.','Cô ấy trễ vì kẹt xe nặng.'],['<b>Although</b> he was tired, he kept working.','Mặc dù mệt, anh ấy vẫn tiếp tục làm việc.'],['<b>Despite</b> the rain, we went for a walk.','Mặc dù trời mưa, chúng tôi vẫn đi dạo.'],['I like tea, <b>but</b> I don\'t like coffee.','Tôi thích trà, nhưng không thích cà phê.'],['She studied hard, <b>so</b> she passed the exam.','Cô ấy học chăm chỉ nên đã đỗ kỳ thi.'],['<b>Since</b> it\'s late, let\'s go home.','Vì đã trễ rồi, chúng ta về nhà thôi.'],['He failed the test; <b>however</b>, he didn\'t give up.','Anh ấy trượt bài kiểm tra; tuy nhiên, anh ấy không bỏ cuộc.'],['<b>As</b> she was tired, she went to bed early.','Vì mệt, cô ấy đi ngủ sớm.'],['We stayed home <b>because of</b> the storm.','Chúng tôi ở nhà vì cơn bão.'],['It rained all day; <b>therefore</b>, the match was cancelled.','Trời mưa cả ngày; do đó, trận đấu bị hủy.'],['He <b>passed</b> the interview <b>because</b> he had prepared so well.','Anh ấy đã vượt qua buổi phỏng vấn vì đã chuẩn bị rất kỹ.'],['<b>Although</b> it was expensive, she <b>bought</b> the dress anyway.','Mặc dù nó đắt, cô ấy vẫn mua chiếc váy đó.'],['<b>Despite</b> having a bad cold, he still <b>went</b> to work.','Mặc dù bị cảm nặng, anh ấy vẫn đi làm.'],['The flight was delayed; <b>however</b>, we still arrived on time.','Chuyến bay bị trễ; tuy nhiên, chúng tôi vẫn đến đúng giờ.'],['<b>Since</b> she is allergic to nuts, she <b>avoids</b> that restaurant.','Vì cô ấy dị ứng với các loại hạt, cô ấy tránh nhà hàng đó.']])}`}
 ];
 const STRUCT_TOPIC_LABEL = {s_conditional:'Câu điều kiện', s_passive:'Câu bị động', s_reported:'Câu tường thuật', s_relative:'Mệnh đề quan hệ', s_comparison:'Câu so sánh', s_inversion:'Đảo ngữ', s_wish:'Câu giả định / Ước muốn', s_cleft:'Câu chẻ', s_participle:'Mệnh đề rút gọn', s_qtag:'Câu hỏi đuôi', s_sequence:'Sự hòa hợp thì & liên từ'};
-document.getElementById('grp-struct').innerHTML = STRUCT.map((s,i)=> simpleTopicCard(s, i+1, STRUCT_TOPIC_LABEL)).join('');
+document.getElementById('grp-struct').innerHTML = STRUCT.map((s,i)=> simpleTopicCard(s, i+1, STRUCT_TOPIC_LABEL, 'struct')).join('');
 
 // ================= GIỚI TỪ =================
 const PREP = [
@@ -693,7 +803,7 @@ const PREP = [
   ${ex10Html([['I don\'t know the <b>reason for</b> his absence.','Tôi không biết lý do vắng mặt của anh ấy.'],['We need a <b>solution to</b> this problem.','Chúng ta cần một giải pháp cho vấn đề này.'],['She has a real <b>interest in</b> art.','Cô ấy thực sự quan tâm đến nghệ thuật.'],['There\'s no <b>need for</b> concern.','Không cần phải lo lắng.'],['There was an <b>increase in</b> sales this month.','Doanh số tăng trong tháng này.'],['They have a good <b>relationship with</b> their neighbors.','Họ có mối quan hệ tốt với hàng xóm.'],['What\'s the <b>connection between</b> these two events?','Mối liên hệ giữa hai sự kiện này là gì?'],['His <b>attitude towards</b> work has changed.','Thái độ của anh ấy đối với công việc đã thay đổi.'],['There has been a <b>decrease in</b> prices.','Đã có sự giảm giá.'],['She showed great <b>respect for</b> her teacher.','Cô ấy thể hiện sự tôn trọng lớn đối với thầy giáo.'],['There was no clear <b>answer to</b> my question.','Không có câu trả lời rõ ràng cho câu hỏi của tôi.'],['Her <b>love for</b> animals led her to become a vet.','Tình yêu của cô ấy dành cho động vật đã khiến cô trở thành bác sĩ thú y.'],['The <b>demand for</b> affordable housing keeps rising every year.','Nhu cầu về nhà ở giá cả phải chăng tiếp tục tăng mỗi năm.'],['His deep <b>knowledge of</b> history impressed the whole class.','Kiến thức sâu rộng của anh ấy về lịch sử đã gây ấn tượng với cả lớp.'],['Everyone deserves <b>access to</b> clean drinking water.','Mọi người đều xứng đáng được tiếp cận nước uống sạch.']])}`}
 ];
 const PREP_TOPIC_LABEL = {p_time:'Giới từ chỉ thời gian', p_place:'Giới từ chỉ nơi chốn', p_movement:'Giới từ chỉ sự chuyển động', p_adj:'Giới từ + tính từ cố định', p_verb:'Giới từ + động từ cố định', p_noun:'Giới từ + danh từ cố định'};
-document.getElementById('grp-prep').innerHTML = PREP.map((s,i)=> simpleTopicCard(s, i+1, PREP_TOPIC_LABEL)).join('');
+document.getElementById('grp-prep').innerHTML = PREP.map((s,i)=> simpleTopicCard(s, i+1, PREP_TOPIC_LABEL, 'prep')).join('');
 
 // ================= NGỮ PHÁP KHÁC =================
 const OTHER = [
@@ -783,7 +893,7 @@ const OTHER = [
   ${ex10Html([['I <b>do</b> want to go with you.','Tôi thực sự muốn đi cùng bạn.'],['She <b>does</b> care about you, believe me.','Cô ấy thực sự quan tâm đến bạn, tin tôi đi.'],['He <b>did</b> apologize, I heard him.','Anh ấy đã thực sự xin lỗi, tôi nghe thấy rồi.'],['We <b>do</b> appreciate your help.','Chúng tôi thực sự trân trọng sự giúp đỡ của bạn.'],['I <b>did</b> tell you about the meeting.','Tôi đã thực sự nói với bạn về cuộc họp rồi.'],['She <b>does</b> know the answer, she\'s just shy.','Cô ấy thực sự biết câu trả lời, chỉ là ngại thôi.'],['They <b>do</b> work hard every day.','Họ thực sự làm việc chăm chỉ mỗi ngày.'],['He <b>does</b> love his job, despite complaining.','Anh ấy thực sự yêu công việc, dù có than phiền.'],['I <b>did</b> finish the report on time.','Tôi đã thực sự hoàn thành báo cáo đúng giờ.'],['We <b>do</b> believe in you.','Chúng tôi thực sự tin tưởng vào bạn.'],['I <b>do enjoy</b> your cooking, even though I rarely say it.','Tôi thực sự thích món ăn bạn nấu, dù tôi ít khi nói ra.'],['He <b>does remember</b> your birthday, he\'s just terrible at planning surprises.','Anh ấy có nhớ sinh nhật của bạn, chỉ là anh ấy rất tệ trong việc lên kế hoạch bất ngờ.'],['We <b>did warn</b> you about the heavy traffic this morning.','Chúng tôi đã cảnh báo bạn về tình trạng kẹt xe nghiêm trọng sáng nay rồi.'],['She <b>does try</b> her best in every single class.','Cô bé thực sự cố gắng hết sức trong mỗi giờ học.'],['They <b>did call</b> before they arrived, but no one answered.','Họ đã gọi trước khi đến, nhưng không ai nghe máy.']])}`}
 ];
 const OTHER_TOPIC_LABEL = {o_articles:'Mạo từ', o_modal:'Động từ khiếm khuyết', o_gerund:'Danh động từ & động từ nguyên mẫu', o_phrasal:'Cụm động từ thông dụng', o_quantifiers:'Lượng từ', o_adj_adv:'Tính từ & Trạng từ', o_causative:'Câu bị động đặc biệt (Causative)', o_correlative:'Liên từ tương quan', o_emphasis:'Nhấn mạnh với trợ động từ'};
-document.getElementById('grp-other').innerHTML = OTHER.map((s,i)=> simpleTopicCard(s, i+1, OTHER_TOPIC_LABEL)).join('');
+document.getElementById('grp-other').innerHTML = OTHER.map((s,i)=> simpleTopicCard(s, i+1, OTHER_TOPIC_LABEL, 'other')).join('');
 
 function showView(id){
   document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.getAttribute('data-view')===id));
