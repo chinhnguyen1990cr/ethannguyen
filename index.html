@@ -757,23 +757,35 @@
   #speak-word-meaning:not(:empty){font-size:12px; color:var(--gold); line-height:1.6; background:rgba(255,201,74,0.1);
     border:1px solid rgba(255,201,74,0.3); border-radius:10px; padding:8px 12px; margin:8px 0;}
   #speak-word-meaning .tip-line{margin:0;}
-  .ipac-intro-card{padding:14px 16px;}
-  .ipac-intro-title{font-size:15px; font-weight:800; margin-bottom:4px;}
-  .ipac-intro-desc{font-size:12px; color:var(--dim); line-height:1.5;}
-  .ipac-tabs{display:flex; gap:6px; margin:10px 0; overflow-x:auto; -webkit-overflow-scrolling:touch;}
-  .ipac-tab{flex:1; white-space:nowrap; padding:9px 10px; border-radius:12px; border:1px solid var(--border); background:var(--panel2);
-    color:var(--dim); font-size:12px; font-weight:700;}
-  .ipac-tab.active{background:linear-gradient(135deg,#B78CFF,#7C6CF0); color:#fff; border-color:transparent;}
+  .ipac-intro-card{padding:14px 16px; display:flex; align-items:center; gap:12px;}
+  .ipac-intro-icon{width:46px; height:46px; border-radius:14px; flex-shrink:0; display:flex; align-items:center;
+    justify-content:center; font-size:22px; box-shadow:0 4px 12px rgba(0,0,0,.28);}
+  .ipac-intro-title{font-size:15px; font-weight:800; margin-bottom:3px;}
+  .ipac-intro-desc{font-size:11.5px; color:var(--dim); line-height:1.5;}
+  /* Dải chọn nhóm kiểu icon app iPhone — ô vuông bo góc, nền gradient, nhãn dưới, giống màn hình chính iOS. */
+  .ipac-tabs{display:flex; gap:14px; margin:14px 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
+  .ipac-tab{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; cursor:pointer; opacity:.55; transition:opacity .15s, transform .15s;}
+  .ipac-tab.active{opacity:1; transform:translateY(-2px);}
+  .ipac-tab-icon{width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-size:24px; box-shadow:0 4px 10px rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12);}
+  .ipac-tab.active .ipac-tab-icon{box-shadow:0 6px 16px rgba(0,0,0,.4), 0 0 0 2.5px rgba(255,255,255,.5) inset;}
+  .ipac-tab-label{font-size:10.5px; font-weight:700; color:var(--dim); text-align:center; line-height:1.3;}
+  .ipac-tab.active .ipac-tab-label{color:var(--fg);}
   .ipac-grid-card{padding:14px;}
-  .ipac-subgroup{margin-bottom:14px;}
+  .ipac-subgroup{margin-bottom:16px;}
   .ipac-subgroup:last-child{margin-bottom:0;}
-  .ipac-subgroup-title{font-size:11.5px; font-weight:700; color:var(--dim); margin-bottom:8px; text-transform:uppercase; letter-spacing:.02em;}
+  .ipac-subgroup-title{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800; color:var(--fg);
+    margin-bottom:10px; letter-spacing:.02em;}
+  .ipac-subgroup-icon{width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-size:13px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,.25);}
   .ipac-grid{display:flex; flex-wrap:wrap; gap:8px;}
   .ipac-chip-wrap{width:100%;}
   .ipac-chip-wrap:not(.open){width:auto;}
-  .ipac-chip{padding:9px 14px; border-radius:12px; border:1.5px solid rgba(183,140,255,0.35);
-    background:rgba(183,140,255,0.1); color:#B78CFF; font-size:14.5px; font-weight:800; font-family:inherit;}
-  .ipac-chip-wrap.open .ipac-chip{background:linear-gradient(135deg,#B78CFF,#7C6CF0); color:#fff; border-color:transparent;}
+  /* Mỗi âm là 1 "icon" vuông bo góc kiểu iOS thay vì pill phẳng — to hơn, dễ bấm, màu theo nhóm/nhóm nhỏ. */
+  .ipac-chip{width:58px; height:58px; border-radius:16px; border:1.5px solid rgba(183,140,255,0.3);
+    background:rgba(183,140,255,0.08); color:#B78CFF; font-size:14.5px; font-weight:800; font-family:inherit;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.18);}
+  .ipac-chip-wrap.open .ipac-chip{color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.35);}
   .ipac-detail{margin-top:8px; padding:12px; border-radius:12px; background:var(--panel2); border:1px solid var(--border);}
   .ipac-detail-tip{font-size:12px; color:var(--fg); line-height:1.6; margin-bottom:6px;}
   .ipac-detail-confuse{font-size:11.5px; color:var(--gold); line-height:1.6; margin-bottom:8px;}
@@ -784,6 +796,26 @@
   .ipac-ex-word{font-size:12.5px; font-weight:700; color:var(--fg);}
   .ipac-ex-ipa{font-size:11.5px; color:#B78CFF;}
   .ipac-ex-vi{font-size:11px; color:var(--dim); margin-left:auto;}
+  /* Danh sách video Youtube minh họa cách đọc từng âm — thẻ có ảnh thumbnail, mở/đóng player nhúng ngay dưới thẻ. */
+  .ipac-video-section{margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);}
+  .ipac-video-heading{font-size:11.5px; font-weight:800; color:var(--fg); margin-bottom:8px;}
+  .ipac-video-list{display:flex; flex-direction:column; gap:7px;}
+  .ipac-video-loading{font-size:11.5px; color:var(--dim2); padding:6px 0;}
+  .ipac-video-card{display:flex; align-items:center; gap:9px; padding:7px; border-radius:10px; background:var(--panel);
+    border:1px solid var(--border); cursor:pointer;}
+  .ipac-video-card:active{opacity:.8;}
+  .ipac-video-card.open{border-color:rgba(183,140,255,0.5); background:rgba(183,140,255,0.08);}
+  .ipac-video-thumb{width:56px; height:40px; border-radius:7px; object-fit:cover; flex-shrink:0; background:#000;}
+  .ipac-video-thumb-fallback{display:flex; align-items:center; justify-content:center; font-size:18px; background:var(--panel2);}
+  .ipac-video-info{flex:1; min-width:0;}
+  .ipac-video-title{font-size:11.5px; font-weight:700; color:var(--fg); line-height:1.35;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .ipac-video-meta{font-size:10px; color:var(--dim2); margin-top:3px; display:flex; align-items:center; gap:5px;}
+  .ipac-video-lang{font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:5px;}
+  .ipac-video-lang.vi{background:rgba(44,219,168,0.15); color:#2CDBA8;}
+  .ipac-video-lang.en{background:rgba(79,168,255,0.15); color:#4FA8FF;}
+  .ipac-video-play{font-size:13px; color:#B78CFF; flex-shrink:0; width:22px; text-align:center;}
+  .ipac-video-embed-wrap{position:relative; width:100%; padding-top:56.25%; margin-top:6px; border-radius:10px; overflow:hidden; background:#000;}
   .eng-quiz-actions{display:flex; gap:8px; flex-wrap:wrap;}
   .eng-quiz-actions .btn-listen{background:linear-gradient(135deg, rgba(79,168,255,0.18), rgba(79,168,255,0.05));
     border:1px solid rgba(79,168,255,0.4); color:var(--blue); font-weight:700;}
@@ -1063,7 +1095,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v50';
+const APP_VERSION = 'v51';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1358,9 +1390,12 @@ function snapshotNav(){
     activeCustomCat: STATE.activeCustomCat,
     avatarOpen: !!(am && am.classList.contains('show')),
     dayDetailOpen: !!(dm && dm.classList.contains('show')),
-    // Ghi lại phiên Luyện nghe/Luyện nói đang mở (thường là null tại thời điểm push, vì chỉ push khi
-    // MỚI vào) — nhờ vậy 1 lần vuốt/back chỉ lùi đúng 1 màn (về màn chọn bài) thay vì thoát hẳn.
-    listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession
+    // Ghi lại phiên Luyện nghe/Luyện nói/Luyện ngữ pháp đang mở (thường là null tại thời điểm push, vì
+    // chỉ push khi MỚI vào) — nhờ vậy 1 lần vuốt/back chỉ lùi đúng 1 màn (về màn chọn bài) thay vì
+    // thoát hẳn ra "Học tiếng Anh". Trước đây STATE.quiz (Luyện ngữ pháp) không được đẩy vào lịch sử khi
+    // bắt đầu làm bài — nên vuốt back lúc đang làm bài sẽ tiêu thụ nhầm mốc lịch sử của "mở Luyện ngữ
+    // pháp" (đẩy bởi openEnglishItem), khiến nhảy thẳng về "Học tiếng Anh" thay vì về màn chọn chủ đề.
+    listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz
   };
 }
 function restoreNav(snap){
@@ -1369,6 +1404,7 @@ function restoreNav(snap){
   STATE.activeCustomCat = snap.activeCustomCat;
   STATE.listenQuiz = snap.listenQuiz!==undefined ? snap.listenQuiz : null;
   STATE.speakSession = snap.speakSession!==undefined ? snap.speakSession : null;
+  STATE.quiz = snap.quiz!==undefined ? snap.quiz : null;
   // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
   // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
   STATE.grammarDetailOpen = false;
@@ -3628,17 +3664,17 @@ const CEFR_LEVELS = [
 // → Phụ âm (chia nhỏ theo CÁCH phát âm: tắc/xát/mũi/tiếp cận/tắc-xát — vì đây là cách người học
 // dễ ghi nhớ và phân biệt các cặp âm dễ nhầm nhất, đặc biệt với người Việt).
 const IPA_CHART_GROUPS = [
-  {key:'mono', name:'Nguyên âm đơn', icon:'🔵', desc:'12 âm — khẩu hình giữ NGUYÊN vị trí suốt âm, không đổi.'},
-  {key:'di',   name:'Nguyên âm đôi', icon:'🔀', desc:'8 âm — lưỡi/môi LƯỚT từ âm này sang âm khác trong 1 âm tiết.'},
-  {key:'cons', name:'Phụ âm',        icon:'🔤', desc:'24 âm — chia theo cách phát âm: tắc, xát, mũi, tiếp cận, tắc-xát.'}
+  {key:'mono', name:'Nguyên âm đơn', icon:'🔵', grad:['#4FA8FF','#2568B0'], desc:'12 âm — khẩu hình giữ NGUYÊN vị trí suốt âm, không đổi.'},
+  {key:'di',   name:'Nguyên âm đôi', icon:'🔀', grad:['#B78CFF','#7C4FBE'], desc:'8 âm — lưỡi/môi LƯỚT từ âm này sang âm khác trong 1 âm tiết.'},
+  {key:'cons', name:'Phụ âm',        icon:'🔤', grad:['#FF8A3D','#E0631A'], desc:'24 âm — chia theo cách phát âm: tắc, xát, mũi, tiếp cận, tắc-xát.'}
 ];
 const IPA_CHART_SUBGROUPS = {
   cons: [
-    {key:'plosive',    name:'Âm tắc (Plosives)',      syms:['p','b','t','d','k','g']},
-    {key:'fricative',  name:'Âm xát (Fricatives)',    syms:['f','v','θ','ð','s','z','ʃ','ʒ','h']},
-    {key:'affricate',  name:'Âm tắc-xát (Affricates)', syms:['tʃ','dʒ']},
-    {key:'nasal',      name:'Âm mũi (Nasals)',         syms:['m','n','ŋ']},
-    {key:'approximant',name:'Âm tiếp cận (Approximants)', syms:['l','r','w','j']}
+    {key:'plosive',    name:'Âm tắc (Plosives)',      icon:'💥', grad:['#FF5A6E','#D53A4E'], syms:['p','b','t','d','k','g']},
+    {key:'fricative',  name:'Âm xát (Fricatives)',    icon:'💨', grad:['#2CDBA8','#1FA88A'], syms:['f','v','θ','ð','s','z','ʃ','ʒ','h']},
+    {key:'affricate',  name:'Âm tắc-xát (Affricates)', icon:'⚡', grad:['#FFC94A','#E0A020'], syms:['tʃ','dʒ']},
+    {key:'nasal',      name:'Âm mũi (Nasals)',         icon:'👃', grad:['#4FA8FF','#2568B0'], syms:['m','n','ŋ']},
+    {key:'approximant',name:'Âm tiếp cận (Approximants)', icon:'🌊', grad:['#B78CFF','#7C4FBE'], syms:['l','r','w','j']}
   ]
 };
 // Mỗi âm: {ipa, tip: mẹo khẩu hình, confuse: cặp âm dễ nhầm (nếu có), examples:[{w,ipa,vi}]}
@@ -3772,6 +3808,10 @@ function startEnglishQuiz(topicId){
   }
   const order = grammarPickOrder(candidates, count);
   if(order.length===0){ showToast('📭','Chưa có câu hỏi','Chủ đề này sẽ có bài luyện tập ở bản cập nhật sau.'); return; }
+  // Chỉ đẩy 1 mốc lịch sử mới khi ĐANG ở màn chọn chủ đề (STATE.quiz null) — nếu đã ở trong 1 bài làm
+  // (ví dụ bấm "Làm lại"/đổi chủ đề trong lúc đang xem kết quả), giữ nguyên độ sâu lịch sử hiện tại
+  // thay vì chồng thêm mốc, để 1 lần vuốt back luôn về đúng màn chọn chủ đề.
+  if(!STATE.quiz) navForward();
   STATE.quiz = {topicId, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   renderContent();
 }
@@ -3950,15 +3990,30 @@ window.addEventListener('message', function(e){
   } else if(e.data && e.data.type==='grammarDetailClose'){
     STATE.grammarDetailOpen = false;
     navBack();
+  } else if(e.data && e.data.type==='speakGrammarExample' && e.data.text){
+    speakGrammarSentence(e.data.text);
+  } else if(e.data && e.data.type==='stopGrammarSpeak'){
+    try{ if(grammarAudioEl){ grammarAudioEl.pause(); } }catch(err){}
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(err){}
   }
 });
 function renderEnglishGrammar(item){
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
     <div style="margin:-4px -16px 0; height:calc(100vh - 90px); border-radius:0; overflow:hidden;">
-      <iframe src="english-grammar.html" title="${escapeHtml(item.name)}" style="width:100%; height:100%; border:none; display:block; background:#fff;"></iframe>
+      <iframe id="grammar-iframe" src="english-grammar.html" title="${escapeHtml(item.name)}" style="width:100%; height:100%; border:none; display:block; background:#fff;"></iframe>
     </div>
   `;
+  // Báo cho iframe biết app cha có cấu hình Google Cloud TTS hay không, để nút loa đọc ví dụ trong
+  // trang Ngữ pháp bắc cầu qua Cloud TTS (ổn định trên mọi máy) thay vì chỉ dùng giọng máy cục bộ của
+  // chính iframe — xem 'speakGrammarExample' trong message listener bên dưới và speakExample() trong
+  // english-grammar.html.
+  const gfr = document.getElementById('grammar-iframe');
+  if(gfr){
+    gfr.addEventListener('load', function(){
+      try{ gfr.contentWindow.postMessage({type:'grammarInit', hasCloudTts: !!SETTINGS.cloudTtsApiKey}, '*'); }catch(e){}
+    });
+  }
 }
 // ---- Luyện nghe / Luyện nói: chọn cấp độ + 3 nguồn nội dung (Drive riêng / YouTube gợi ý / Nguồn khác uy tín) ----
 const AV_LABELS = {listening:{title:'Luyện nghe'}, speaking:{title:'Luyện nói'}};
@@ -4417,11 +4472,66 @@ async function speakGrammarSentence(text){
       const url = await fetchCloudTtsAudioUrl(text, nextSingleTtsVoice());
       if(url){ const audio = getGrammarAudioEl(); try{ audio.pause(); }catch(e){} audio.src = url; await audio.play(); return; }
     }
-    await speakLine(text, 0.9, 1 + (ttsSingleSeed%2?0.15:0));
+    await speakEnglishRobust(text, {rate:0.9, pitch: 1 + (ttsSingleSeed%2?0.15:0)});
   }catch(e){
     console.error('Lỗi phát âm câu ngữ pháp', e);
     showToast('⚠️','Không phát được âm thanh','Kiểm tra API key Cloud TTS hoặc kết nối mạng.');
   }
+}
+// ---- Hạ tầng đọc tiếng Anh dùng chung, ưu tiên Cloud TTS (ổn định mọi máy) khi đã cấu hình API key,
+// nếu không thì dùng giọng máy cục bộ với "lưới an toàn" chống lỗi im lặng đã xác định qua nhiều vòng
+// gỡ lỗi trước đây: (1) chọn tường minh 1 giọng khớp 'en' thay vì chỉ đặt lang (khớp lang có thể thất
+// bại trên một số máy Android), (2) thử phát lại 1 lần nếu sau 250ms vẫn chưa có onstart (lỗi
+// cancel()+speak() cùng tick của một số bản Chrome/WebView), (3) báo lỗi rõ ràng qua showToast thay vì
+// im lặng, nếu sau 1.5s máy vẫn không đọc được gì (thường do máy chưa cài giọng tiếng Anh cho engine
+// Text-to-Speech mặc định) — dùng chung cho IPA, click-từ trong Luyện nói, và làm phương án dự phòng
+// cho Ngữ pháp khi chưa cấu hình Cloud TTS.
+let sharedTtsAudioEl = null;
+function getSharedTtsAudioEl(){ if(!sharedTtsAudioEl) sharedTtsAudioEl = new Audio(); return sharedTtsAudioEl; }
+let ttsNoVoiceWarned = false;
+async function speakEnglishRobust(text, opts){
+  if(!text) return;
+  opts = opts || {};
+  try{
+    if(SETTINGS.cloudTtsApiKey){
+      const voiceName = opts.voiceName || nextSingleTtsVoice();
+      const url = await fetchCloudTtsAudioUrl(text, voiceName, opts.speedMul||1);
+      if(url){ const audio = getSharedTtsAudioEl(); try{ audio.pause(); }catch(e){} audio.src = url; await audio.play(); return; }
+    }
+  }catch(e){ /* rơi xuống giọng máy cục bộ bên dưới */ }
+  try{
+    if(!('speechSynthesis' in window)){
+      if(!ttsNoVoiceWarned){ ttsNoVoiceWarned = true; showToast('⚠️','Máy chưa hỗ trợ đọc tiếng Anh','Cấu hình Google Cloud TTS trong mục giọng đọc để đọc ổn định trên mọi thiết bị.'); }
+      return;
+    }
+    const synth = window.speechSynthesis;
+    await new Promise(resolve=>{
+      const doSpeak = function(){
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; u.rate = opts.rate||0.95; u.pitch = opts.pitch||1;
+        try{
+          const voices = synth.getVoices() || [];
+          const enVoice = voices.find(v=>/^en/i.test(v.lang));
+          if(enVoice) u.voice = enVoice;
+        }catch(e){}
+        let started = false;
+        u.onstart = ()=>{ started = true; };
+        u.onend = ()=>resolve();
+        u.onerror = ()=>resolve();
+        synth.speak(u);
+        setTimeout(function(){
+          if(!started && !synth.speaking && !synth.pending){ synth.speak(u); }
+        }, 250);
+        setTimeout(function(){
+          if(!started && !synth.speaking && !synth.pending){
+            resolve();
+            if(!ttsNoVoiceWarned){ ttsNoVoiceWarned = true; showToast('⚠️','Thiết bị chưa có giọng đọc tiếng Anh','Vào Cài đặt → Ngôn ngữ & nhập → Text-to-speech để cài gói tiếng Anh, hoặc cấu hình Google Cloud TTS trong ứng dụng.'); }
+          }
+        }, 1500);
+      };
+      if(synth.speaking || synth.pending){ synth.cancel(); setTimeout(doSpeak, 60); } else { doSpeak(); }
+    });
+  }catch(e){}
 }
 let listenVoiceSeed = 0;
 function playListenDialogue(lines){
@@ -4893,13 +5003,8 @@ function speakHighlightTarget(text, matchMask){
 }
 // ---- Bấm vào 1 từ trong câu: đọc to từ đó + tra nhanh nghĩa tiếng Việt ----
 function speakSingleWord(word){
-  try{
-    if(!('speechSynthesis' in window) || !word) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(word);
-    u.lang = 'en-US'; u.rate = 0.85;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+  if(!word) return;
+  speakEnglishRobust(word, {rate:0.85});
 }
 let speakWordLookupToken = 0;
 async function speakWordClick(word){
@@ -5488,20 +5593,64 @@ function saveEnglishNotes(id){
 // ---- Luyện IPA: duyệt bảng 44 âm theo nhóm, bấm 1 âm để xem chi tiết + nghe ví dụ ----
 function ipaChartSelectGroup(key){
   if(!IPA_CHART_GROUPS.some(g=>g.key===key)) return;
-  STATE.ipaChartGroup = key; STATE.ipaChartOpen = null; renderEnglishItem();
+  STATE.ipaChartGroup = key; STATE.ipaChartOpen = null; STATE.ipacVideoOpen = null; renderEnglishItem();
 }
 function ipaChartToggleSymbol(sym){
   STATE.ipaChartOpen = (STATE.ipaChartOpen===sym) ? null : sym;
+  STATE.ipacVideoOpen = null;
   renderEnglishItem();
 }
 function speakIpaChartExample(word){
+  if(!word) return;
+  speakEnglishRobust(word, {rate:0.85});
+}
+// 220 video Youtube minh họa cách đọc từng âm (5 video/âm, trộn kênh Việt + nước ngoài) — dữ liệu ở
+// ipa-videos-data.json để dễ bổ sung/thay video sau này mà không phải sửa index.html.
+let IPA_VIDEOS = null;
+let ipaVideosLoading = false;
+async function fetchIpaVideos(){
+  if(IPA_VIDEOS || ipaVideosLoading) return;
+  ipaVideosLoading = true;
   try{
-    if(!('speechSynthesis' in window) || !word) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(word);
-    u.lang = 'en-GB'; u.rate = 0.85;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+    const res = await fetch('./ipa-videos-data.json?v=1');
+    IPA_VIDEOS = await res.json();
+  }catch(e){
+    console.error('Không tải được video minh họa IPA', e);
+    IPA_VIDEOS = {};
+  }
+  ipaVideosLoading = false;
+  if(STATE.tab==='english-item') renderContent();
+}
+function ipaVideoToggle(sym, idx){
+  const key = sym+'|'+idx;
+  STATE.ipacVideoOpen = (STATE.ipacVideoOpen===key) ? null : key;
+  renderEnglishItem();
+}
+function ipaVideosHtml(sym){
+  if(!IPA_VIDEOS){ if(!ipaVideosLoading) fetchIpaVideos(); return `<div class="ipac-video-loading">⏳ Đang tải video minh họa…</div>`; }
+  const list = IPA_VIDEOS[sym] || [];
+  if(!list.length) return '';
+  const cards = list.map((v,idx)=>{
+    const parsed = parseYouTubeUrl(v.url);
+    const key = sym+'|'+idx;
+    const open = STATE.ipacVideoOpen === key;
+    const embed = (open && parsed) ? `<div class="ipac-video-embed-wrap"><iframe src="${parsed.embed}?rel=0&modestbranding=1" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : '';
+    return `<div class="ipac-video-item">
+      <div class="ipac-video-card ${open?'open':''}" data-action="ipa-video-toggle" data-sym="${escapeHtml(sym)}" data-idx="${idx}">
+        ${parsed && parsed.thumb ? `<img class="ipac-video-thumb" src="${parsed.thumb}" alt="" loading="lazy">` : `<div class="ipac-video-thumb ipac-video-thumb-fallback">🎬</div>`}
+        <div class="ipac-video-info">
+          <div class="ipac-video-title">${escapeHtml(v.title)}</div>
+          <div class="ipac-video-meta"><span class="ipac-video-lang ${v.lang==='vi'?'vi':'en'}">${v.lang==='vi'?'🇻🇳 VN':'🌍 EN'}</span>${escapeHtml(v.channel)}</div>
+        </div>
+        <div class="ipac-video-play">${open?'✕':'▶'}</div>
+      </div>
+      ${embed}
+    </div>`;
+  }).join('');
+  return `<div class="ipac-video-section">
+    <div class="ipac-video-heading">🎥 Video hướng dẫn phát âm (${list.length})</div>
+    <div class="ipac-video-list">${cards}</div>
+  </div>`;
 }
 function renderEnglishIPA(item){
   if(!STATE.ipaChartGroup) STATE.ipaChartGroup = 'mono';
@@ -5510,11 +5659,15 @@ function renderEnglishIPA(item){
   const list = IPA_CHART_DATA[groupKey] || [];
   const subgroups = IPA_CHART_SUBGROUPS[groupKey];
 
+  // Dải chọn nhóm kiểu icon app iPhone: ô vuông bo góc, nền gradient riêng theo nhóm, nhãn bên dưới.
   const tabsHtml = IPA_CHART_GROUPS.map(g=>`
-    <button class="ipac-tab ${g.key===groupKey?'active':''}" data-action="ipa-chart-group" data-key="${g.key}">${g.icon} ${escapeHtml(g.name)}</button>
+    <div class="ipac-tab ${g.key===groupKey?'active':''}" data-action="ipa-chart-group" data-key="${g.key}">
+      <div class="ipac-tab-icon" style="background:linear-gradient(145deg,${g.grad[0]},${g.grad[1]});">${g.icon}</div>
+      <div class="ipac-tab-label">${escapeHtml(g.name)}</div>
+    </div>
   `).join('');
 
-  const symbolChip = (ph)=>{
+  const symbolChip = (ph, grad)=>{
     const open = STATE.ipaChartOpen === ph.ipa;
     const detail = open ? `
       <div class="ipac-detail">
@@ -5530,9 +5683,10 @@ function renderEnglishIPA(item){
             </div>
           `).join('')}
         </div>
+        ${ipaVideosHtml(ph.ipa)}
       </div>` : '';
     return `<div class="ipac-chip-wrap ${open?'open':''}">
-      <button class="ipac-chip" data-action="ipa-chart-toggle" data-sym="${escapeHtml(ph.ipa)}">/${escapeHtml(ph.ipa)}/</button>
+      <button class="ipac-chip" data-action="ipa-chart-toggle" data-sym="${escapeHtml(ph.ipa)}" style="${open?`background:linear-gradient(145deg,${grad[0]},${grad[1]});border-color:transparent;`:''}">/${escapeHtml(ph.ipa)}/</button>
       ${detail}
     </div>`;
   };
@@ -5542,26 +5696,29 @@ function renderEnglishIPA(item){
     gridHtml = subgroups.map(sg=>{
       const phs = sg.syms.map(sym=> list.find(p=>p.ipa===sym) ).filter(Boolean);
       return `<div class="ipac-subgroup">
-        <div class="ipac-subgroup-title">${escapeHtml(sg.name)}</div>
-        <div class="ipac-grid">${phs.map(symbolChip).join('')}</div>
+        <div class="ipac-subgroup-title"><span class="ipac-subgroup-icon" style="background:linear-gradient(145deg,${sg.grad[0]},${sg.grad[1]});">${sg.icon}</span>${escapeHtml(sg.name)}</div>
+        <div class="ipac-grid">${phs.map(p=>symbolChip(p, sg.grad)).join('')}</div>
       </div>`;
     }).join('');
   } else {
-    gridHtml = `<div class="ipac-grid">${list.map(symbolChip).join('')}</div>`;
+    gridHtml = `<div class="ipac-grid">${list.map(p=>symbolChip(p, group.grad)).join('')}</div>`;
   }
 
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
-    <div class="card ipac-intro-card">
-      <div class="ipac-intro-title">${group.icon} ${escapeHtml(group.name)}</div>
-      <div class="ipac-intro-desc">${escapeHtml(group.desc)}</div>
+    <div class="card ipac-intro-card" style="background:linear-gradient(120deg,${group.grad[0]}22,${group.grad[1]}0d);">
+      <div class="ipac-intro-icon" style="background:linear-gradient(145deg,${group.grad[0]},${group.grad[1]});">${group.icon}</div>
+      <div>
+        <div class="ipac-intro-title">${escapeHtml(group.name)}</div>
+        <div class="ipac-intro-desc">${escapeHtml(group.desc)}</div>
+      </div>
     </div>
     <div class="ipac-tabs">${tabsHtml}</div>
     <div class="card ipac-grid-card">
       ${gridHtml}
     </div>
     <div class="card" style="text-align:center; padding:16px; font-size:11px; color:var(--dim2); line-height:1.6;">
-      🎬 Video ví dụ khẩu hình sẽ được bổ sung sau.<br>Bấm vào 1 âm để xem mẹo phát âm + nghe ví dụ, bấm vào từng từ ví dụ để nghe phát âm chuẩn.
+      💡 Bấm vào 1 âm để xem mẹo phát âm, nghe ví dụ &amp; xem video hướng dẫn. Bấm vào từng từ ví dụ để nghe phát âm chuẩn.
     </div>
   `;
 }
@@ -6167,7 +6324,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const quizSkipEl = e.target.closest('[data-action="quiz-skip"]');
   if(quizSkipEl){ nextEnglishQuiz(); return; }
   const quizChangeLevelEl = e.target.closest('[data-action="quiz-change-level"]');
-  if(quizChangeLevelEl){ STATE.quiz = null; renderContent(); return; }
+  if(quizChangeLevelEl){ navBack(); return; }
   const quizSpeakEl = e.target.closest('[data-action="quiz-speak"]');
   if(quizSpeakEl){ speakGrammarCurrentSentence(); return; }
   const quizToggleTranslateEl = e.target.closest('[data-action="quiz-toggle-translate"]');
@@ -6222,6 +6379,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaToggleEl){ ipaChartToggleSymbol(ipaToggleEl.getAttribute('data-sym')); return; }
   const ipaSpeakEl = e.target.closest('[data-action="ipa-chart-speak"]');
   if(ipaSpeakEl){ speakIpaChartExample(ipaSpeakEl.getAttribute('data-word')); return; }
+  const ipaVideoEl = e.target.closest('[data-action="ipa-video-toggle"]');
+  if(ipaVideoEl){ ipaVideoToggle(ipaVideoEl.getAttribute('data-sym'), Number(ipaVideoEl.getAttribute('data-idx'))); return; }
   const speakRecordEl = e.target.closest('[data-action="speak-record"]');
   if(speakRecordEl){
     const s=STATE.speakSession;
