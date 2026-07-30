@@ -737,29 +737,46 @@
     border:1px solid rgba(255,201,74,0.3); border-radius:10px; padding:8px 12px; margin:8px 0;}
   #speak-word-meaning .tip-line{margin:0;}
   .speak-word-ipa{color:#B78CFF; font-family:var(--mono); font-weight:700; font-size:11.5px;}
-  .ipac-intro-card{padding:14px 16px; display:flex; align-items:center; gap:12px;}
-  .ipac-intro-icon{width:46px; height:46px; border-radius:14px; flex-shrink:0; display:flex; align-items:center;
-    justify-content:center; font-size:22px; box-shadow:0 4px 12px rgba(0,0,0,.28);}
-  .ipac-intro-title{font-size:15px; font-weight:800; margin-bottom:3px;}
-  .ipac-intro-desc{font-size:11.5px; color:var(--dim); line-height:1.5;}
-  /* Dải chọn nhóm kiểu icon app iPhone — ô vuông bo góc, nền gradient, nhãn dưới, giống màn hình chính iOS. */
-  .ipac-tabs{display:flex; gap:14px; margin:14px 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
-  .ipac-tab{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; cursor:pointer; opacity:.55; transition:opacity .15s, transform .15s;}
-  .ipac-tab.active{opacity:1; transform:translateY(-2px);}
-  .ipac-tab-icon{width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center;
-    font-size:24px; box-shadow:0 4px 10px rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12);}
-  .ipac-tab.active .ipac-tab-icon{box-shadow:0 6px 16px rgba(0,0,0,.4), 0 0 0 2.5px rgba(255,255,255,.5) inset;}
-  .ipac-tab-label{font-size:10.5px; font-weight:700; color:var(--dim); text-align:center; line-height:1.3;}
-  .ipac-tab.active .ipac-tab-label{color:var(--fg);}
-  .ipac-grid-card{padding:14px;}
-  .ipac-subgroup{margin-bottom:16px;}
-  .ipac-subgroup:last-child{margin-bottom:0;}
-  .ipac-subgroup-title{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800; color:var(--fg);
-    margin-bottom:10px; letter-spacing:.02em;}
-  .ipac-subgroup-icon{width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-    font-size:13px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,.25);}
-  /* Mỗi âm giờ dùng chung style thẻ "chọn theo chủ đề" (.eng-group-card/.eng-group-grid, đã định
-     nghĩa ở phần Luyện ngữ pháp) để đồng bộ giao diện toàn app — không còn CSS icon vuông riêng nữa. */
+  /* Luyện IPA — 3 "thư mục" (Nguyên âm đơn/đôi, Phụ âm) dạng button ngang màu sinh động, bấm vào
+     XỔ RA (accordion) danh sách âm bên dưới; Phụ âm có thêm 1 lớp thư mục con (theo cách phát âm). */
+  .ipac-folders{display:flex; flex-direction:column; gap:10px; margin-bottom:10px;}
+  .ipac-folder-bar{display:flex; align-items:center; gap:12px; padding:15px 16px; border-radius:18px; color:#fff;
+    cursor:pointer; box-shadow:0 5px 16px -6px rgba(0,0,0,.45); transition:transform .12s;}
+  .ipac-folder-bar:active{transform:scale(0.98);}
+  .ipac-folder-icon{font-size:23px; flex-shrink:0; filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+  .ipac-folder-body{flex:1; min-width:0;}
+  .ipac-folder-name{font-size:14px; font-weight:800;}
+  .ipac-folder-desc{font-size:10.5px; opacity:.88; margin-top:2px; line-height:1.4;}
+  .ipac-folder-chev{font-size:13px; opacity:.85; flex-shrink:0;}
+  .ipac-folder-panel{background:var(--panel); border:1.5px solid var(--border); border-radius:16px; margin-top:8px; padding:14px;}
+  .ipac-subbar{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:13px; color:#fff;
+    cursor:pointer; margin-bottom:8px; box-shadow:0 3px 10px -5px rgba(0,0,0,.4);}
+  .ipac-subbar-icon{font-size:16px; flex-shrink:0;}
+  .ipac-subbar-body{flex:1; min-width:0;}
+  .ipac-subbar-name{font-size:12.5px; font-weight:800;}
+  .ipac-subbar-count{font-size:9.5px; opacity:.85; margin-top:1px;}
+  .ipac-subbar-chev{font-size:11px; opacity:.85; flex-shrink:0;}
+  /* Ô âm IPA — nhỏ gọn vừa phải, màu sáng sinh động, không còn thẻ lớn kèm chữ ví dụ. */
+  .ipa-symgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(56px,1fr)); gap:9px; margin:2px 0 12px;}
+  .ipa-symgrid:last-child{margin-bottom:2px;}
+  .ipa-sym-chip{aspect-ratio:1; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:800; font-size:12.5px; color:#fff; cursor:pointer;
+    box-shadow:0 4px 10px -4px rgba(0,0,0,.5); transition:transform .12s; text-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .ipa-sym-chip:active{transform:scale(0.9);}
+  /* Thẻ CTA mở "Luyện tập phát âm IPA" — nổi bật, tách biệt hẳn khỏi 3 thư mục âm ở trên. */
+  .ipac-practice-cta{display:flex; align-items:center; gap:12px; padding:16px; border-radius:18px; cursor:pointer;
+    background:linear-gradient(120deg,#2CDBA8,#1FA88A); color:#fff; margin-bottom:12px; box-shadow:0 5px 16px -6px rgba(0,0,0,.45);}
+  .ipac-practice-cta:active{transform:scale(0.98);}
+  .ipac-practice-icon{font-size:26px; flex-shrink:0;}
+  .ipac-practice-body{flex:1; min-width:0;}
+  .ipac-practice-name{font-size:14px; font-weight:800;}
+  .ipac-practice-desc{font-size:10.5px; opacity:.9; margin-top:2px; line-height:1.4;}
+  /* Tab chọn video khi 1 âm có nhiều nguồn (nhiều kênh) khác nhau. */
+  .ipac-vidtabs{display:flex; gap:8px; margin-bottom:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .ipac-vidtab{flex:0 0 auto; font-size:11px; font-weight:700; color:var(--dim); background:var(--panel2);
+    border:1.5px solid var(--border); border-radius:20px; padding:7px 13px; cursor:pointer; font-family:inherit; white-space:nowrap;}
+  .ipac-vidtab.active{color:#fff; background:var(--blue); border-color:var(--blue);}
+  .ipac-vidtab-flag{margin-left:2px;}
   .ipac-detail-tip{font-size:12px; color:var(--fg); line-height:1.6; margin-bottom:6px;}
   .ipac-detail-confuse{font-size:11.5px; color:var(--gold); line-height:1.6;}
   .ipac-detail-examples{display:flex; flex-direction:column; gap:6px;}
@@ -779,6 +796,8 @@
   .ipac-detail-diagram-card{text-align:center; padding:18px 16px;}
   .ipac-detail-heading{font-size:12.5px; font-weight:800; color:var(--fg); margin-bottom:10px;}
   .ipac-mouth-svg{width:100%; max-width:220px; height:auto;}
+  .ipac-diagram-caption{font-size:11.5px; color:var(--fg); line-height:1.6; margin-top:10px; padding:10px 12px;
+    background:var(--panel2); border-radius:12px; text-align:left;}
   .ipac-detail-navrow{display:flex; gap:10px; margin:4px 4px 10px;}
   .ipac-detail-navbtn{flex:1; padding:12px; border-radius:12px; background:var(--panel); border:1px solid var(--border);
     color:var(--fg); font-weight:700; font-size:12.5px; cursor:pointer; font-family:inherit;}
@@ -1062,7 +1081,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v54';
+const APP_VERSION = 'v55';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3700,18 +3719,29 @@ const IPA_CHART_DATA = {
     {ipa:'j', tip:'Giữa lưỡi nâng cao gần vòm miệng cứng, giống bắt đầu âm "i" rồi lướt nhanh sang nguyên âm sau — gần giống "y" tiếng Việt.', confuse:'', m:{place:'palatal',voiced:true,manner:'approximant'}, examples:[{w:'yes',ipa:'jes',vi:'vâng, đúng'},{w:'you',ipa:'juː',vi:'bạn'},{w:'music',ipa:'ˈmjuːzɪk',vi:'âm nhạc'},{w:'young',ipa:'jʌŋ',vi:'trẻ'},{w:'year',ipa:'jɪə',vi:'năm'},{w:'yellow',ipa:'ˈjeləʊ',vi:'màu vàng'},{w:'yesterday',ipa:'ˈjestədeɪ',vi:'hôm qua'},{w:'university',ipa:'ˌjuːnɪˈvɜːsəti',vi:'đại học'},{w:'few',ipa:'fjuː',vi:'ít'},{w:'beautiful',ipa:'ˈbjuːtɪfl',vi:'đẹp'}]}
   ]
 };
-// Video hướng dẫn phát âm 44 âm IPA (kênh YouTube What's Up English, công khai, có timestamp
-// riêng cho từng âm trong mô tả video) — nhúng bằng iframe chính thức của YouTube (không tải lại
-// file), tự động tua tới đúng mốc thời gian của âm đang xem qua tham số ?start=.
-const IPA_VIDEO_ID = 'wKEI9n_Xs5Q';
-const IPA_VIDEO_CREDIT = "What's Up English";
-const IPA_VIDEO_TIMESTAMPS = {
-  'ɪ':31, 'iː':168, 'e':217, 'æ':240, 'ə':301, 'ʌ':343, 'ɑː':368, 'ɒ':399, 'ɔː':420, 'uː':470, 'ʊ':533, 'ɜː':598,
-  'eɪ':711, 'aɪ':781, 'ɔɪ':850, 'aʊ':917, 'əʊ':944, 'ɪə':991, 'eə':1045, 'ʊə':1103,
-  'b':1166, 'p':1166, 'd':1203, 't':1203, 'g':1257, 'k':1257, 'tʃ':1281, 'dʒ':1281, 'f':1359, 'v':1359,
-  'θ':1375, 'ð':1375, 's':1467, 'z':1467, 'ʃ':1491, 'ʒ':1491, 'm':1512, 'n':1512, 'ŋ':1512,
-  'l':1536, 'r':1536, 'w':1596, 'j':1596, 'h':1596
-};
+// Video hướng dẫn phát âm 44 âm IPA — DANH SÁCH NHIỀU NGUỒN (mỗi nguồn 1 video tổng hợp trọn bộ IPA,
+// đã xác minh timestamp thật trong mô tả video, công khai trên YouTube) — nhúng bằng iframe chính
+// thức của YouTube (không tải lại file), tự động tua tới đúng mốc thời gian của âm đang xem qua
+// tham số ?start=. Mỗi phần tử: {id: videoId, credit: tên kênh, accent: 'US'|'UK', timestamps: {ipa:giây}}.
+// Hiện có 2 nguồn đã xác minh kỹ (giọng Mỹ + giọng Anh); có thể bổ sung thêm nguồn sau này bằng cách
+// thêm phần tử mới vào mảng này — KHÔNG cần sửa chỗ nào khác, mọi nơi dùng IPA_VIDEO_SOURCES đều tự
+// động nhận thêm video mới nếu timestamps[ipa] tồn tại.
+const IPA_VIDEO_SOURCES = [
+  { id:'wKEI9n_Xs5Q', credit:"What's Up English", accent:'US', timestamps:{
+    'ɪ':31, 'iː':168, 'e':217, 'æ':240, 'ə':301, 'ʌ':343, 'ɑː':368, 'ɒ':399, 'ɔː':420, 'uː':470, 'ʊ':533, 'ɜː':598,
+    'eɪ':711, 'aɪ':781, 'ɔɪ':850, 'aʊ':917, 'əʊ':944, 'ɪə':991, 'eə':1045, 'ʊə':1103,
+    'b':1166, 'p':1166, 'd':1203, 't':1203, 'g':1257, 'k':1257, 'tʃ':1281, 'dʒ':1281, 'f':1359, 'v':1359,
+    'θ':1375, 'ð':1375, 's':1467, 'z':1467, 'ʃ':1491, 'ʒ':1491, 'm':1512, 'n':1512, 'ŋ':1512,
+    'l':1536, 'r':1536, 'w':1596, 'j':1596, 'h':1596
+  }},
+  { id:'QxQUapA-2w4', credit:'BBC Learning English', accent:'UK', timestamps:{
+    'iː':0, 'ɪ':131, 'ʊ':251, 'uː':292, 'e':345, 'ə':455, 'ɜː':696, 'ɔː':750, 'æ':800, 'ʌ':846, 'ɑː':957, 'ɒ':996,
+    'ɪə':1036, 'eɪ':1103, 'ʊə':1205, 'ɔɪ':1259, 'əʊ':1313, 'eə':1423, 'aɪ':1526, 'aʊ':1586,
+    'p':1723, 'b':1860, 't':1994, 'd':2124, 'tʃ':2249, 'dʒ':2354, 'k':2459, 'g':2579, 'f':2684, 'v':2780,
+    'θ':2970, 'ð':3041, 's':3113, 'z':3209, 'ʃ':3305, 'ʒ':3462, 'm':3506, 'n':3625, 'ŋ':3750, 'h':3879,
+    'l':3945, 'r':4160, 'w':4367, 'j':4490
+  }}
+];
 function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
 function grammarGroupById(key){ return GRAMMAR_TOPIC_GROUPS.find(g=>g.key===key); }
 function grammarLevelById(key){ return CEFR_LEVELS.find(l=>l.key===key); }
@@ -4916,12 +4946,15 @@ async function fetchSpeakingPracticeData(){
 // format mỗi item: [text_en, translate_vi, tip_vi]
 function currentSpeakItem(){
   const s = STATE.speakSession; if(!s) return null;
+  if(s.level==='ipa') return getIpaPracticeBank()[s.order[s.idx]];
   if(!SPEAKING_PRACTICE) return null;
   const bank = SPEAKING_PRACTICE[s.level]||[];
   return bank[s.order[s.idx]];
 }
 function startSpeakPractice(level){
-  const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[];
+  // level==='ipa': luyện phát âm IPA theo TỪNG TỪ ĐƠN, nội dung lấy từ getIpaPracticeBank() (tính sẵn
+  // từ IPA_CHART_DATA, không cần tải mạng) — mọi level khác vẫn dùng ngân hàng đoạn văn như cũ.
+  const bank = level==='ipa' ? getIpaPracticeBank() : ((SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[]);
   const order = shuffleArr(bank.map((_,i)=>i)).slice(0, Math.min(15, bank.length));
   if(!STATE.speakSession) navForward(); // chỉ đẩy 1 lớp điều hướng khi thực sự MỚI vào
   STATE.speakSession = {level, order, idx:0, showTranslate:false, result:null, recording:false};
@@ -5266,6 +5299,7 @@ let speakCaptionHasText=false;
 // đều không hoạt động đúng trên một số thiết bị, ghi âm vẫn LUÔN tự dừng và chấm điểm đúng hạn.
 function estimateSpeakDurationSec(text){
   const words = (text||'').trim().split(/\s+/).filter(Boolean).length;
+  if(words<=1) return 6; // luyện 1 từ đơn (Luyện tập phát âm IPA) — không cần cửa sổ ghi âm dài như cả đoạn văn
   return Math.max(14, Math.min(50, Math.round(words/1.8) + 7));
 }
 function clearSpeakTimers(){
@@ -5619,8 +5653,9 @@ function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
   const item=currentSpeakItem();
   const lvObj=CEFR_LEVELS.find(l=>l.key===s.level);
-  const lvName= lvObj?(lvObj.key+' · '+lvObj.label):s.level;
-  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">🗣️ Luyện nói · ${escapeHtml(lvName)}</div></div>`;
+  const isIpaPractice = s.level==='ipa';
+  const lvName= isIpaPractice ? 'Luyện tập phát âm IPA' : (lvObj?(lvObj.key+' · '+lvObj.label):s.level);
+  const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">${isIpaPractice?'🔤':'🗣️'} ${escapeHtml(isIpaPractice?lvName:('Luyện nói · '+lvName))}</div></div>`;
   if(!item){ document.getElementById('content').innerHTML=backRow+`<div class="card"><div class="eng-av-empty">Không có nội dung.</div></div>`; return; }
   const [text, translateVi, tipVi]=item;
   const pb=STATE.speakPlayback||'idle';
@@ -5652,7 +5687,7 @@ function renderSpeakPracticeUI(){
     ${backRow}
     <div class="eng-quiz-progress-wrap">
       <div class="eng-quiz-progress-top">
-        <span class="eng-quiz-progress-badge count">Đoạn ${s.idx+1}/${s.order.length}</span>
+        <span class="eng-quiz-progress-badge count">${isIpaPractice?'Từ':'Đoạn'} ${s.idx+1}/${s.order.length}</span>
         ${r?`<span class="eng-quiz-progress-badge correct">${r.overall}đ</span>`:''}
       </div>
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
@@ -5698,10 +5733,17 @@ function saveEnglishNotes(id){
   saveSettings(); pushToDrive();
   showToast('💾','Đã lưu','Ghi chú đã được lưu và đồng bộ.');
 }
-// ---- Luyện IPA: duyệt bảng 44 âm theo nhóm, bấm 1 âm để chuyển tới TRANG RIÊNG của âm đó ----
+// ---- Luyện IPA: duyệt bảng 44 âm theo nhóm dạng "thư mục xổ ra" (accordion), bấm 1 âm để chuyển
+// tới TRANG RIÊNG của âm đó ----
 function ipaChartSelectGroup(key){
   if(!IPA_CHART_GROUPS.some(g=>g.key===key)) return;
-  STATE.ipaChartGroup = key; renderEnglishItem();
+  STATE.ipaChartGroup = (STATE.ipaChartGroup===key) ? null : key; // bấm lại để đóng thư mục
+  STATE.ipaChartSubgroup = null; // đổi/đóng nhóm lớn thì luôn đóng nhóm con đang mở (nếu có)
+  renderEnglishItem();
+}
+function ipaChartSelectSubgroup(key){
+  STATE.ipaChartSubgroup = (STATE.ipaChartSubgroup===key) ? null : key;
+  renderEnglishItem();
 }
 function speakIpaChartExample(word){
   if(!word) return;
@@ -5721,6 +5763,7 @@ function findIpaPhoneme(sym){
 function openIpaDetail(sym){
   if(!STATE.ipaDetailSym) navForward();
   STATE.ipaDetailSym = sym;
+  STATE.ipaVideoIdx = 0;
   renderContent();
   window.scrollTo(0,0);
 }
@@ -5737,8 +5780,29 @@ function ipaDetailNav(dir){
   const { idx, list } = found;
   const nextIdx = dir==='next' ? (idx+1)%list.length : (idx-1+list.length)%list.length;
   STATE.ipaDetailSym = list[nextIdx].ipa;
+  STATE.ipaVideoIdx = 0;
   renderContent();
   window.scrollTo(0,0);
+}
+// Chọn video đang hiển thị trong trang chi tiết (khi 1 âm có nhiều video từ nhiều kênh khác nhau).
+function ipaVideoSelect(idx){
+  STATE.ipaVideoIdx = idx;
+  renderContent();
+}
+// "Nghe âm mẫu" giờ tua + tự phát ĐÚNG đoạn video thật (giọng người thật từ kênh đang chọn) thay vì
+// giọng máy tổng hợp — chỉ rơi xuống giọng máy (speakIpaPhonemeSound) khi âm đó chưa có video nào.
+function ipaVideoListen(){
+  const sym = STATE.ipaDetailSym; if(!sym) return;
+  const found = findIpaPhoneme(sym); if(!found) return;
+  const avail = IPA_VIDEO_SOURCES.map(src=>({src, sec:src.timestamps[found.ph.ipa]})).filter(v=>v.sec!=null);
+  if(!avail.length){ speakIpaPhonemeSound(sym); return; }
+  const idx = (STATE.ipaVideoIdx>=0 && STATE.ipaVideoIdx<avail.length) ? STATE.ipaVideoIdx : 0;
+  const v = avail[idx];
+  const ifr = document.getElementById('ipac-video-iframe');
+  if(ifr){
+    ifr.src = `https://www.youtube.com/embed/${v.src.id}?start=${v.sec}&autoplay=1&rel=0`;
+    ifr.scrollIntoView({behavior:'smooth', block:'center'});
+  }
 }
 // Sơ đồ minh họa "mặt cắt khoang miệng nhìn nghiêng" — vẽ hẳn đầu người nhìn nghiêng, khoang miệng
 // cắt lộ ra, lưỡi là 1 khối màu gồ lên đúng vị trí phát âm. Trực quan hơn hẳn biểu đồ hình thang IPA
@@ -5802,12 +5866,28 @@ function ipaMouthDiagramSvg(ph, groupKey, grad){
     ${IPAM_HEAD}${IPAM_CAVITY}${IPAM_TEETH}
     <path d="${tonguePath}" fill="#D9707E" stroke="#B0505E" stroke-width="1.6"/>
     ${noseAirflow}${startLine}
-    <circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="8" fill="${grad[1]}" stroke="#fff" stroke-width="2"/>
-    ${icon?`<text x="${markerX.toFixed(1)}" y="${(markerY-13).toFixed(1)}" font-size="15" text-anchor="middle">${icon}</text>`:''}
-    <text x="42" y="188" font-size="9.5" fill="var(--dim2)">👄 Môi</text>
-    <text x="178" y="188" font-size="9.5" fill="var(--dim2)" text-anchor="end">Họng</text>
-    ${label?`<text x="110" y="14" font-size="9.5" fill="var(--dim)" text-anchor="middle">${escapeHtml(label)}</text>`:''}
+    <circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="10" fill="${grad[1]}" stroke="#fff" stroke-width="2.5"/>
+    ${icon?`<text x="${markerX.toFixed(1)}" y="${(markerY-15).toFixed(1)}" font-size="16" text-anchor="middle">${icon}</text>`:''}
+    <text x="42" y="188" font-size="10" fill="var(--dim2)">👄 Môi</text>
+    <text x="178" y="188" font-size="10" fill="var(--dim2)" text-anchor="end">Họng</text>
+    ${label?`<text x="110" y="14" font-size="10" fill="var(--dim)" text-anchor="middle" font-weight="700">${escapeHtml(label)}</text>`:''}
   </svg>`;
+}
+// Câu mô tả bằng lời NGẮN GỌN, đơn giản đi kèm sơ đồ — giúp hình dung ngay cả khi không nhìn kỹ hình,
+// tối giản hết mức có thể (chỉ 1 câu) thay vì bắt người học tự suy luận từ hình vẽ.
+function ipaPositionCaption(groupKey, ph){
+  const m = ph.m || {};
+  if(groupKey==='cons'){
+    const place = m.place || 'alveolar';
+    return `🔵 Chấm màu = nơi luồng hơi bị cản: ${CONS_PLACE_LABEL[place]||''}. ${m.voiced?'Dây thanh RUNG khi phát âm.':'Dây thanh KHÔNG rung — chỉ đẩy hơi ra.'}`;
+  }
+  const mm = Object.assign({tx:.5,ty:.5}, m);
+  const hasDiph = typeof mm.tx2==='number';
+  const tx = hasDiph?mm.tx2:mm.tx, ty = hasDiph?mm.ty2:mm.ty;
+  const front = tx<0.35?'phía TRƯỚC':(tx<0.65?'ở GIỮA':'phía SAU');
+  const height = ty<0.35?'gồ CAO, gần vòm miệng':(ty<0.65?'ở mức VỪA':'hạ THẤP, miệng mở rộng');
+  const glide = hasDiph ? ' — lưỡi LƯỚT dần từ vị trí mờ sang vị trí đậm (đường nối thể hiện hướng lướt).' : '';
+  return `🔵 Chấm màu = lưỡi gồ lên ${front} khoang miệng, ${height}.${glide}`;
 }
 // Từ "mồi" (carrier) tiếng Anh gần đúng nhất để MÔ PHỎNG ÂM ĐANG CHỌN khi đọc rời (không phải đọc
 // nguyên từ ví dụ) — dùng cho giọng máy cục bộ (Web Speech API không hỗ trợ SSML/IPA nên không thể ra
@@ -5834,63 +5914,89 @@ async function speakIpaPhonemeSound(sym){
   }catch(e){ /* rơi xuống giọng máy cục bộ bên dưới */ }
   speakEnglishRobust(carrier, {rate:0.75});
 }
+// ---- Luyện tập phát âm IPA: tái dùng TOÀN BỘ engine ghi âm/chấm điểm AI của "Luyện nói" (Web Speech
+// API/Cloud STT, so khớp Levenshtein, chấm phát âm/ngữ điệu/đúng từ) — chỉ khác nội dung luyện là
+// TỪNG TỪ ĐƠN thay vì cả đoạn văn. Ngân hàng từ lấy trực tiếp từ chính các ví dụ đã có sẵn, được biên
+// soạn kỹ trong IPA_CHART_DATA (44 âm × 10 từ = 440 từ) — luôn khớp chính xác với âm IPA đang luyện,
+// không cần thêm dữ liệu mới/tự tạo. Có thể bổ sung thêm từ sau này bằng cách thêm examples vào
+// IPA_CHART_DATA, ngân hàng luyện tập sẽ tự động cập nhật theo.
+let IPA_PRACTICE_BANK = null;
+function getIpaPracticeBank(){
+  if(IPA_PRACTICE_BANK) return IPA_PRACTICE_BANK;
+  const bank = [];
+  for(const gk of Object.keys(IPA_CHART_DATA)){
+    for(const ph of IPA_CHART_DATA[gk]){
+      for(const ex of ph.examples){
+        // Định dạng [text, translateVi, tipVi] — ĐÚNG NHƯ format mà currentSpeakItem()/renderSpeakPracticeUI()
+        // của Luyện nói đã dùng sẵn, nên tái sử dụng được 100% giao diện + logic chấm điểm không cần viết lại.
+        bank.push([ex.w, ex.vi, `Tập trung vào âm /${ph.ipa}/ — ${ph.tip}`]);
+      }
+    }
+  }
+  IPA_PRACTICE_BANK = bank;
+  return IPA_PRACTICE_BANK;
+}
+// Mỗi âm giờ là 1 ô tròn/bo góc nhỏ gọn, màu sáng sinh động (không còn thẻ lớn kèm chữ) — bấm vào
+// để CHUYỂN TỚI TRANG RIÊNG của âm đó, có video hướng dẫn, sơ đồ khẩu hình, mẹo phát âm và ví dụ.
+function ipaSymbolChip(ph, grad){
+  const gradCss = `linear-gradient(135deg,${grad[0]},${grad[1]})`;
+  return `<div class="ipa-sym-chip" data-action="ipa-chart-open" data-sym="${escapeHtml(ph.ipa)}" style="background:${gradCss};">/${escapeHtml(ph.ipa)}/</div>`;
+}
 function renderEnglishIPA(item){
   if(STATE.ipaDetailSym) return renderIpaDetail(item, STATE.ipaDetailSym);
-  if(!STATE.ipaChartGroup) STATE.ipaChartGroup = 'mono';
-  const groupKey = STATE.ipaChartGroup;
-  const group = IPA_CHART_GROUPS.find(g=>g.key===groupKey) || IPA_CHART_GROUPS[0];
-  const list = IPA_CHART_DATA[groupKey] || [];
-  const subgroups = IPA_CHART_SUBGROUPS[groupKey];
+  const openGroup = STATE.ipaChartGroup || null;
+  const openSub = STATE.ipaChartSubgroup || null;
 
-  // Dải chọn nhóm kiểu icon app iPhone: ô vuông bo góc, nền gradient riêng theo nhóm, nhãn bên dưới.
-  const tabsHtml = IPA_CHART_GROUPS.map(g=>`
-    <div class="ipac-tab ${g.key===groupKey?'active':''}" data-action="ipa-chart-group" data-key="${g.key}">
-      <div class="ipac-tab-icon" style="background:linear-gradient(145deg,${g.grad[0]},${g.grad[1]});">${g.icon}</div>
-      <div class="ipac-tab-label">${escapeHtml(g.name)}</div>
-    </div>
-  `).join('');
-
-  // Mỗi âm giờ là 1 thẻ gradient kiểu "chọn theo chủ đề" của Luyện ngữ pháp (dùng chung class
-  // .eng-group-card/.eng-group-grid) để đồng bộ giao diện toàn app — bấm vào để CHUYỂN TỚI TRANG
-  // RIÊNG của âm đó, có sơ đồ khẩu hình, mẹo phát âm và 10 từ ví dụ để đọc.
-  const symbolChip = (ph, grad)=>{
-    const gradCss = `linear-gradient(135deg,${grad[0]},${grad[1]})`;
-    const preview = ph.examples.slice(0,3).map(e=>e.w).join(', ');
-    return `<div class="eng-group-card compact" data-action="ipa-chart-open" data-sym="${escapeHtml(ph.ipa)}" style="--gcgrad:${gradCss};">
-      <div class="gc-icon">/${escapeHtml(ph.ipa)}/</div>
-      <div class="gc-name">${escapeHtml(preview)}</div>
-      <div class="gc-count">${ph.examples.length} từ ví dụ</div>
+  // Mỗi nhóm lớn (Nguyên âm đơn/đôi, Phụ âm) là 1 "thư mục" dạng button ngang màu sinh động —
+  // bấm vào sẽ XỔ RA (accordion) danh sách âm con ngay bên dưới, bấm lại để đóng lại.
+  const foldersHtml = IPA_CHART_GROUPS.map(g=>{
+    const isOpen = g.key===openGroup;
+    const list = IPA_CHART_DATA[g.key] || [];
+    const subgroups = IPA_CHART_SUBGROUPS[g.key];
+    let panelInner;
+    if(subgroups){
+      panelInner = subgroups.map(sg=>{
+        const subOpen = sg.key===openSub;
+        const phs = sg.syms.map(sym=> list.find(p=>p.ipa===sym) ).filter(Boolean);
+        return `<div class="ipac-subbar" data-action="ipa-chart-subgroup" data-key="${sg.key}" style="background:linear-gradient(120deg,${sg.grad[0]},${sg.grad[1]});">
+            <div class="ipac-subbar-icon">${sg.icon}</div>
+            <div class="ipac-subbar-body">
+              <div class="ipac-subbar-name">${escapeHtml(sg.name)}</div>
+              <div class="ipac-subbar-count">${phs.length} âm</div>
+            </div>
+            <div class="ipac-subbar-chev">${subOpen?'︿':'﹀'}</div>
+          </div>
+          ${subOpen ? `<div class="ipa-symgrid">${phs.map(p=>ipaSymbolChip(p, sg.grad)).join('')}</div>` : ''}`;
+      }).join('');
+    } else {
+      panelInner = `<div class="ipa-symgrid">${list.map(p=>ipaSymbolChip(p, g.grad)).join('')}</div>`;
+    }
+    return `<div class="ipac-folder">
+      <div class="ipac-folder-bar" data-action="ipa-chart-group" data-key="${g.key}" style="background:linear-gradient(120deg,${g.grad[0]},${g.grad[1]});">
+        <div class="ipac-folder-icon">${g.icon}</div>
+        <div class="ipac-folder-body">
+          <div class="ipac-folder-name">${escapeHtml(g.name)}</div>
+          <div class="ipac-folder-desc">${escapeHtml(g.desc)}</div>
+        </div>
+        <div class="ipac-folder-chev">${isOpen?'︿':'﹀'}</div>
+      </div>
+      ${isOpen ? `<div class="ipac-folder-panel">${panelInner}</div>` : ''}
     </div>`;
-  };
-
-  let gridHtml;
-  if(subgroups){
-    gridHtml = subgroups.map(sg=>{
-      const phs = sg.syms.map(sym=> list.find(p=>p.ipa===sym) ).filter(Boolean);
-      return `<div class="ipac-subgroup">
-        <div class="ipac-subgroup-title"><span class="ipac-subgroup-icon" style="background:linear-gradient(145deg,${sg.grad[0]},${sg.grad[1]});">${sg.icon}</span>${escapeHtml(sg.name)}</div>
-        <div class="eng-group-grid compact">${phs.map(p=>symbolChip(p, sg.grad)).join('')}</div>
-      </div>`;
-    }).join('');
-  } else {
-    gridHtml = `<div class="eng-group-grid compact">${list.map(p=>symbolChip(p, group.grad)).join('')}</div>`;
-  }
+  }).join('');
 
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
-    <div class="card ipac-intro-card" style="background:linear-gradient(120deg,${group.grad[0]}22,${group.grad[1]}0d);">
-      <div class="ipac-intro-icon" style="background:linear-gradient(145deg,${group.grad[0]},${group.grad[1]});">${group.icon}</div>
-      <div>
-        <div class="ipac-intro-title">${escapeHtml(group.name)}</div>
-        <div class="ipac-intro-desc">${escapeHtml(group.desc)}</div>
+    <div class="ipac-folders">${foldersHtml}</div>
+    <div class="ipac-practice-cta" data-action="ipa-practice-start">
+      <div class="ipac-practice-icon">🎙️</div>
+      <div class="ipac-practice-body">
+        <div class="ipac-practice-name">Luyện tập phát âm IPA</div>
+        <div class="ipac-practice-desc">Đọc to từng từ, AI chấm điểm phát âm — ${getIpaPracticeBank().length} từ theo từng âm IPA</div>
       </div>
-    </div>
-    <div class="ipac-tabs">${tabsHtml}</div>
-    <div class="card ipac-grid-card">
-      ${gridHtml}
+      <div class="ipac-folder-chev">›</div>
     </div>
     <div class="card" style="text-align:center; padding:16px; font-size:11px; color:var(--dim2); line-height:1.6;">
-      💡 Bấm vào 1 âm để xem trang chi tiết: cách phát âm, mẹo, sơ đồ khẩu hình &amp; 10 từ ví dụ để luyện đọc.
+      💡 Bấm vào 1 nhóm để xổ ra danh sách âm, rồi bấm 1 âm để xem trang chi tiết: video hướng dẫn, sơ đồ khẩu hình, mẹo phát âm &amp; ví dụ luyện đọc.
     </div>
   `;
 }
@@ -5910,26 +6016,35 @@ function renderIpaDetail(item, sym){
       <span class="ipac-ex-vi">${escapeHtml(ex.vi)}</span>
     </div>
   `).join('');
-  const vidSec = IPA_VIDEO_TIMESTAMPS[ph.ipa];
-  const videoHtml = (vidSec==null) ? '' : `
+  // Có thể có NHIỀU video (nhiều kênh khác nhau) cho cùng 1 âm — lọc ra những nguồn thực sự có
+  // timestamp cho âm này, cho phép chuyển đổi qua lại bằng tab nhỏ phía trên khung video.
+  const availVideos = IPA_VIDEO_SOURCES.map(src=>({src, sec:src.timestamps[ph.ipa]})).filter(v=>v.sec!=null);
+  if(!(STATE.ipaVideoIdx>=0 && STATE.ipaVideoIdx<availVideos.length)) STATE.ipaVideoIdx = 0;
+  const activeVideo = availVideos[STATE.ipaVideoIdx];
+  const videoTabsHtml = availVideos.length>1 ? `<div class="ipac-vidtabs">${availVideos.map((v,i)=>`
+      <button class="ipac-vidtab ${i===STATE.ipaVideoIdx?'active':''}" data-action="ipa-video-select" data-idx="${i}">${escapeHtml(v.src.credit)} <span class="ipac-vidtab-flag">${v.src.accent==='UK'?'🇬🇧':'🇺🇸'}</span></button>
+    `).join('')}</div>` : '';
+  const videoHtml = !activeVideo ? '' : `
     <div class="card">
-      <div class="ipac-detail-heading">🎥 Video hướng dẫn phát âm</div>
-      <div class="video-embed-wrap"><iframe src="https://www.youtube.com/embed/${IPA_VIDEO_ID}?start=${vidSec}&rel=0" title="Hướng dẫn phát âm /${escapeHtml(ph.ipa)}/" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-      <div class="ipac-detail-tip" style="margin-top:2px;">Video của kênh ${escapeHtml(IPA_VIDEO_CREDIT)}, tự động tua tới đoạn giảng âm /${escapeHtml(ph.ipa)}/.
-        <a href="https://www.youtube.com/watch?v=${IPA_VIDEO_ID}&t=${vidSec}s" target="_blank" rel="noopener" style="color:var(--blue); font-weight:700;">Xem trên YouTube ↗</a>
+      <div class="ipac-detail-heading">🎥 Video hướng dẫn phát âm (${availVideos.length} nguồn)</div>
+      ${videoTabsHtml}
+      <div class="video-embed-wrap"><iframe id="ipac-video-iframe" src="https://www.youtube.com/embed/${activeVideo.src.id}?start=${activeVideo.sec}&rel=0" title="Hướng dẫn phát âm /${escapeHtml(ph.ipa)}/" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <div class="ipac-detail-tip" style="margin-top:2px;">Video của kênh ${escapeHtml(activeVideo.src.credit)} (${activeVideo.src.accent==='UK'?'giọng Anh-Anh':'giọng Anh-Mỹ'}), tự động tua tới đoạn giảng âm /${escapeHtml(ph.ipa)}/.
+        <a href="https://www.youtube.com/watch?v=${activeVideo.src.id}&t=${activeVideo.sec}s" target="_blank" rel="noopener" style="color:var(--blue); font-weight:700;">Xem trên YouTube ↗</a>
       </div>
     </div>`;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="ipa-detail-close">${svgIcon('back')}</div><div class="title">${escapeHtml(group.name)}</div></div>
     <div class="card ipac-detail-hero" style="background:linear-gradient(135deg,${group.grad[0]}2e,${group.grad[1]}12);">
       <div class="ipac-detail-symbol" style="background:linear-gradient(145deg,${group.grad[0]},${group.grad[1]});">/${escapeHtml(ph.ipa)}/</div>
-      <button class="ipac-detail-listen" data-action="ipa-phoneme-speak" data-sym="${escapeHtml(ph.ipa)}">🔊 Nghe âm mẫu</button>
+      <button class="ipac-detail-listen" data-action="ipa-video-listen">🔊 Nghe âm mẫu</button>
     </div>
+    ${videoHtml}
     <div class="card ipac-detail-diagram-card">
       <div class="ipac-detail-heading">👄 ${isCons?'Vị trí phát âm':'Khẩu hình &amp; vị trí lưỡi'}</div>
       ${diagram}
+      <div class="ipac-diagram-caption">${escapeHtml(ipaPositionCaption(groupKey, ph))}</div>
     </div>
-    ${videoHtml}
     <div class="card">
       <div class="ipac-detail-heading">💡 Cách phát âm &amp; mẹo</div>
       <div class="ipac-detail-tip">${escapeHtml(ph.tip)}</div>
@@ -6602,16 +6717,24 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakWordEl){ speakWordClick(speakWordEl.getAttribute('data-word')); return; }
   const ipaGroupEl = e.target.closest('[data-action="ipa-chart-group"]');
   if(ipaGroupEl){ ipaChartSelectGroup(ipaGroupEl.getAttribute('data-key')); return; }
+  const ipaSubgroupEl = e.target.closest('[data-action="ipa-chart-subgroup"]');
+  if(ipaSubgroupEl){ ipaChartSelectSubgroup(ipaSubgroupEl.getAttribute('data-key')); return; }
   const ipaOpenEl = e.target.closest('[data-action="ipa-chart-open"]');
   if(ipaOpenEl){ openIpaDetail(ipaOpenEl.getAttribute('data-sym')); return; }
   const ipaSpeakEl = e.target.closest('[data-action="ipa-chart-speak"]');
   if(ipaSpeakEl){ speakIpaChartExample(ipaSpeakEl.getAttribute('data-word')); return; }
   const ipaPhonemeSpeakEl = e.target.closest('[data-action="ipa-phoneme-speak"]');
   if(ipaPhonemeSpeakEl){ speakIpaPhonemeSound(ipaPhonemeSpeakEl.getAttribute('data-sym')); return; }
+  const ipaVideoListenEl = e.target.closest('[data-action="ipa-video-listen"]');
+  if(ipaVideoListenEl){ ipaVideoListen(); return; }
+  const ipaVideoSelectEl = e.target.closest('[data-action="ipa-video-select"]');
+  if(ipaVideoSelectEl){ ipaVideoSelect(parseInt(ipaVideoSelectEl.getAttribute('data-idx'),10)||0); return; }
   const ipaDetailCloseEl = e.target.closest('[data-action="ipa-detail-close"]');
   if(ipaDetailCloseEl){ closeIpaDetail(); return; }
   const ipaDetailNavEl = e.target.closest('[data-action="ipa-detail-nav"]');
   if(ipaDetailNavEl){ ipaDetailNav(ipaDetailNavEl.getAttribute('data-dir')); return; }
+  const ipaPracticeStartEl = e.target.closest('[data-action="ipa-practice-start"]');
+  if(ipaPracticeStartEl){ startSpeakPractice('ipa'); return; }
   const speakRecordEl = e.target.closest('[data-action="speak-record"]');
   if(speakRecordEl){
     const s=STATE.speakSession;
