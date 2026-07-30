@@ -696,6 +696,15 @@
     color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; padding-left:1.5px;}
   .video-embed-wrap{position:relative; width:100%; padding-bottom:56.25%; margin-bottom:12px; border-radius:16px; overflow:hidden; background:#000;}
   .video-embed-wrap iframe{position:absolute; top:0; left:0; width:100%; height:100%; border:0;}
+  .video-channel-row{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+  .video-channel-chip{font-size:10.5px; font-weight:800; color:var(--dim); background:var(--panel); border:1.5px solid var(--border);
+    border-radius:20px; padding:6px 12px; cursor:pointer; white-space:nowrap;}
+  .video-channel-chip:active{transform:scale(0.96);}
+  .video-channel-chip.active{color:#fff; background:var(--blue); border-color:var(--blue);}
+  .video-channel-chip .vcc-count{opacity:.75; font-weight:700; margin-left:3px;}
+  .video-channel-add-card{display:flex; align-items:center; gap:8px; background:var(--panel); border:1.5px dashed var(--border);
+    border-radius:12px; padding:10px 12px; cursor:pointer; margin-bottom:10px; font-size:11.5px; font-weight:700; color:var(--dim);}
+  .video-channel-add-card:active{transform:scale(0.98);}
 
   .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
   .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
@@ -829,6 +838,15 @@
   .eng-quiz-nextbtn{background:linear-gradient(135deg,var(--teal),var(--blue)); color:#0E1218; font-weight:800; border:none;}
   .eng-quiz-translate{font-size:12.5px; color:#FFD98A; line-height:1.6; margin-top:8px; font-weight:600;
     background:rgba(255,201,74,0.12); border:1px solid rgba(255,201,74,0.35); border-radius:10px; padding:9px 12px;}
+  .vocab-forms-row{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px;}
+  .vocab-form-chip{display:flex; flex-direction:column; align-items:center; gap:1px; background:var(--panel2);
+    border:1px solid var(--border); border-radius:10px; padding:5px 10px;}
+  .vocab-form-chip .vfc-label{font-size:8.5px; color:var(--dim2); text-transform:uppercase; letter-spacing:.4px;}
+  .vocab-form-chip .vfc-word{font-size:11.5px; font-weight:800; color:var(--text);}
+  .vocab-extra-examples{text-align:left; margin-top:10px;}
+  .vocab-extra-ex-item{font-size:11.5px; line-height:1.5; padding:8px 10px; background:var(--panel2);
+    border:1px solid var(--border); border-radius:9px; margin-bottom:6px;}
+  .vocab-extra-ex-item .vee-vi{color:var(--dim); margin-top:2px;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1115,7 +1133,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v62';
+const APP_VERSION = 'v63';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -2137,11 +2155,12 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[]}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
     if(!Array.isArray(SETTINGS.driveOfflineSongs)) SETTINGS.driveOfflineSongs = [];
+    if(!Array.isArray(SETTINGS.myYoutubeChannels)) SETTINGS.myYoutubeChannels = [];
   }catch(e){ /* keep defaults */ }
   if(!SETTINGS.programStart) SETTINGS.programStart = todayKey();
   if(!SETTINGS.ipaLearned) SETTINGS.ipaLearned = {};
@@ -3583,7 +3602,8 @@ function defaultEnglishItems(){
     {id:'eng_listening', name:'Luyện nghe', kind:'listening'},
     {id:'eng_speaking', name:'Luyện nói', kind:'speaking'},
     {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'},
-    {id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'}
+    {id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'},
+    {id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'}
   ];
 }
 function ensureEnglishItems(){
@@ -3602,6 +3622,11 @@ function ensureEnglishItems(){
     SETTINGS.englishItems.push({id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'});
     saveSettings(); pushToDrive();
   }
+  // Di trú tương tự cho mục mới "Câu thông dụng" (300 câu giao tiếp hằng ngày người bản xứ hay dùng).
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='sentences')){
+    SETTINGS.englishItems.push({id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'});
+    saveSettings(); pushToDrive();
+  }
   if(!SETTINGS.englishNotes || typeof SETTINGS.englishNotes!=='object') SETTINGS.englishNotes = {};
   if(!SETTINGS.grammarQuiz || typeof SETTINGS.grammarQuiz!=='object') SETTINGS.grammarQuiz = {};
   if(!SETTINGS.vocabProgress || typeof SETTINGS.vocabProgress!=='object') SETTINGS.vocabProgress = {};
@@ -3612,6 +3637,10 @@ function ensureEnglishItems(){
   if(!SETTINGS.vocabStreak || typeof SETTINGS.vocabStreak!=='object') SETTINGS.vocabStreak = {lastDate:null, streak:0};
   if(!SETTINGS.vocabDailyStats || typeof SETTINGS.vocabDailyStats!=='object') SETTINGS.vocabDailyStats = {};
   if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
+  if(!SETTINGS.sentProgress || typeof SETTINGS.sentProgress!=='object') SETTINGS.sentProgress = {};
+  if(!SETTINGS.sentDailyNew || typeof SETTINGS.sentDailyNew!=='number') SETTINGS.sentDailyNew = 15;
+  if(!SETTINGS.sentStreak || typeof SETTINGS.sentStreak!=='object') SETTINGS.sentStreak = {lastDate:null, streak:0};
+  if(!SETTINGS.sentDailyStats || typeof SETTINGS.sentDailyStats!=='object') SETTINGS.sentDailyStats = {};
 }
 const ENGLISH_ITEM_KIND = {
   grammar:  {icon:'book',       c1:'#4FA8FF', c2:'#7C6CF0', sub:'Tra cứu thì, cấu trúc câu, giới từ'},
@@ -3620,6 +3649,7 @@ const ENGLISH_ITEM_KIND = {
   speaking: {icon:'mic',        c1:'#FF6EA8', c2:'#B06CF0', sub:'Luyện nói & phát âm theo cấp độ'},
   ipa:      {icon:'headphones', c1:'#B78CFF', c2:'#7C6CF0', sub:'Bảng phiên âm IPA · 44 âm theo nhóm'},
   vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3000 từ vựng · lịch học mỗi ngày + ôn tập'},
+  sentences:{icon:'chat',       c1:'#FFC94A', c2:'#FF8A3D', sub:'300 câu giao tiếp thông dụng · 20 tình huống'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
 function renderEnglishItemRows(){
@@ -3704,6 +3734,7 @@ function renderEnglishItem(){
   if(item.kind==='speaking') return renderEnglishAV(item,'speaking');
   if(item.kind==='ipa') return renderEnglishIPA(item);
   if(item.kind==='vocab') return renderEnglishVocab(item);
+  if(item.kind==='sentences') return renderEnglishSentences(item);
   return renderEnglishNotes(item);
 }
 // ================= LUYỆN TỪ VỰNG: 3000 từ, học theo lịch mỗi ngày (spaced repetition kiểu Leitner) =================
@@ -3730,7 +3761,7 @@ async function fetchVocabData(){
   if(VOCAB_DATA || vocabDataLoading) return;
   vocabDataLoading = true;
   try{
-    const res = await fetch('./vocab-data.json?v=1');
+    const res = await fetch('./vocab-data.json?v=2');
     VOCAB_DATA = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng từ vựng', e);
@@ -3740,6 +3771,14 @@ async function fetchVocabData(){
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
+const VOCAB_FORM_LABELS = {n:'Danh từ', n2:'Danh từ', n3:'Danh từ', v:'Động từ', v2:'Động từ', adj:'Tính từ', adj2:'Tính từ', adv:'Trạng từ', adv2:'Trạng từ'};
+// Hiện các dạng từ loại khác (danh từ/động từ/tính từ/trạng từ) của từ đang học, nếu dữ liệu có (word[7]).
+// Chỉ 1 phần từ vựng (lô đầu) đã có dữ liệu này — các từ còn lại sẽ được bổ sung dần ở các bản cập nhật sau.
+function vocabFormsHtml(forms){
+  if(!forms || typeof forms!=='object' || !Object.keys(forms).length) return '';
+  const chips = Object.keys(forms).map(k=>`<div class="vocab-form-chip"><span class="vfc-label">${escapeHtml(VOCAB_FORM_LABELS[k]||k)}</span><span class="vfc-word">${escapeHtml(forms[k])}</span></div>`).join('');
+  return `<div class="vocab-forms-row">${chips}</div>`;
+}
 function vocabTopics(){ return (VOCAB_DATA && VOCAB_DATA.topics) || []; }
 function vocabTopicMeta(code){ return vocabTopics().find(t=>t.code===code) || {code, label:code, icon:'📘'}; }
 function vocabWordsByTopic(code){ if(!VOCAB_DATA) return []; return VOCAB_DATA.words.filter(w=>w[3]===code); }
@@ -3766,6 +3805,7 @@ function vocabUpdateStreak(){
 function vocabRecordAnswer(n, isCorrect){
   const p = vocabProgressFor(n);
   p.seen = (p.seen||0)+1;
+  if(!p.introduced) p.introducedDate = todayKey(); // chỉ ghi ngày lần đầu học từ này (dùng cho thống kê "học hôm nay")
   p.introduced = true;
   if(isCorrect){
     p.correct = (p.correct||0)+1;
@@ -3791,7 +3831,7 @@ function vocabRecordAnswer(n, isCorrect){
 // học dàn trải — đây là điểm "tối ưu" quan trọng nhất so với bản trước chỉ đếm số từ đơn thuần. ----
 function vocabStats(){
   const total = (VOCAB_DATA && VOCAB_DATA.words.length) || 3000;
-  let learned=0, mastered=0, learning=0, dueToday=0, totalCorrect=0, totalAnswered=0;
+  let learned=0, mastered=0, learning=0, dueToday=0, totalCorrect=0, totalAnswered=0, learnedToday=0;
   const today = todayKey();
   const prog = SETTINGS.vocabProgress || {};
   const topicAgg = {}; // code -> {correct, wrong}
@@ -3799,6 +3839,7 @@ function vocabStats(){
     const p = prog[k];
     if(!p.introduced) return;
     learned++;
+    if(p.introducedDate===today) learnedToday++;
     const box = p.box||0;
     if(box>=5) mastered++; else learning++;
     if(p.next && p.next<=today) dueToday++;
@@ -3822,7 +3863,7 @@ function vocabStats(){
     }
   });
   const streak = (SETTINGS.vocabStreak && SETTINGS.vocabStreak.streak) || 0;
-  return {total, learned, mastered, learning, dueToday, accuracyPct, weakTopic, streak};
+  return {total, learned, mastered, learning, dueToday, accuracyPct, weakTopic, streak, learnedToday};
 }
 // ---- Xây gói "Từ hôm nay": từ đến hạn ôn tập + từ mới theo thứ tự tần suất, cache theo ngày để phiên
 // học không đổi giữa các lần mở lại trong cùng 1 ngày (kể cả khi đã làm xong vài từ). ----
@@ -3986,6 +4027,9 @@ function renderVocabDailyHome(){
       🌱 đang ôn <b>${stats.learning}</b> từ · 🏆 đã thuộc lòng <b>${stats.mastered}</b> từ${stats.accuracyPct!==null?` · 🎯 độ chính xác <b>${stats.accuracyPct}%</b>`:''}
       ${stats.streak>0?`<br>🔥 học liên tục <b>${stats.streak}</b> ngày`:''}
     </div>
+  </div>
+  <div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #4FA8FF55;">
+    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">📖 <b>Hôm nay bạn đã học <span style="color:var(--text); font-size:15px; font-weight:800;">${stats.learnedToday}</span> từ mới</b>${stats.learnedToday>0?' — tiếp tục phát huy nhé!':' — bắt đầu gói học hôm nay để tăng con số này.'}</div>
   </div>`;
   const weakTopicHtml = stats.weakTopic ? `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
     <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn hay trả lời sai ở chủ đề <b>${escapeHtml(vocabTopicMeta(stats.weakTopic.code).label)}</b> (sai khoảng ${Math.round(stats.weakTopic.wrongRate*100)}%) — nên vào mục <b>Chủ đề</b> ôn lại nhóm từ này thêm.</div>
@@ -4071,17 +4115,27 @@ function renderVocabSession(){
     <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
   </div>`;
   if(s.showIntro){
+    const formsHtml = vocabFormsHtml(word[7]);
+    const extraEx = word[8];
+    const extraExHtml = (Array.isArray(extraEx) && extraEx.length) ? `
+      <div class="eng-quiz-actions" style="justify-content:center; margin-top:10px;">
+        <button class="form-btn cancel" data-action="vocab-toggle-examples" style="width:100%;">${s.showExtraExamples?'🙈 Ẩn bớt ví dụ':`📚 Xem thêm ${extraEx.length} câu ví dụ`}</button>
+      </div>
+      ${s.showExtraExamples ? `<div class="vocab-extra-examples">${extraEx.map(ex=>`<div class="vocab-extra-ex-item">${escapeHtml(ex[0])}<div class="vee-vi">🇻🇳 ${escapeHtml(ex[1])}</div></div>`).join('')}</div>` : ''}
+    ` : '';
     return `${progressWrap}
     <div class="card eng-quiz-card" style="text-align:center;">
       <div style="font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">✨ Từ mới</div>
       <div style="font-size:26px; font-weight:800; margin-bottom:4px;">${escapeHtml(word[1])}</div>
       <div style="font-size:11px; color:var(--dim); font-family:var(--mono); margin-bottom:10px;">${escapeHtml(word[2])}</div>
-      <div style="font-size:16px; color:var(--gold); font-weight:700; margin-bottom:14px;">${escapeHtml(word[4])}</div>
+      <div style="font-size:16px; color:var(--gold); font-weight:700; margin-bottom:12px;">${escapeHtml(word[4])}</div>
+      ${formsHtml}
       <div class="eng-quiz-q" style="text-align:left;">${escapeHtml(word[5])}</div>
       <div class="eng-quiz-translate" style="margin-bottom:14px;">🇻🇳 ${escapeHtml(word[6])}</div>
       <div class="eng-quiz-actions" style="justify-content:center;">
         <button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe phát âm</button>
       </div>
+      ${extraExHtml}
       <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-intro-continue">Đã hiểu, bắt đầu luyện →</button>
     </div>`;
   }
@@ -5377,6 +5431,7 @@ function renderEnglishAV(item, mode){
   ensureEnglishItems();
   if(mode==='speaking'){ renderSpeakingPractice(item); return; }
   if(STATE.listenQuiz){ renderListenQuizUI(); return; }
+  if(STATE.addYtChannelOpen){ renderAddYoutubeChannelUI(item); return; }
   if(LISTENING_QUIZ===null && !listeningQuizLoading) fetchListeningQuizData();
   const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
   let levelPickHtml;
@@ -5417,6 +5472,317 @@ function renderEnglishAV(item, mode){
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
 }
 
+// ================= CÂU THÔNG DỤNG: 300 câu giao tiếp hằng ngày người bản xứ hay dùng, chia 20 tình
+// huống thực tế (chào hỏi, rủ rê, xin lỗi, cảm ơn, mua sắm, gọi điện...). Mỗi câu có IPA phát âm Mỹ +
+// nghĩa tiếng Việt. Cơ chế học lặp lại ngắt quãng (spaced repetition kiểu Leitner) giống hệt Luyện từ
+// vựng để nhất quán trải nghiệm, cộng thêm hướng dẫn "Cách học nhanh" (shadowing + ôn đều đặn) dựa theo
+// phương pháp gốc trong tài liệu người dùng cung cấp, mở rộng thêm cho hiệu quả hơn. Dữ liệu ở file
+// common-sentences-data.json để dễ bổ sung thêm câu sau này. =========
+let COMMON_SENT_DATA = null; // {categories, sentences}
+let commonSentDataLoading = false;
+async function fetchCommonSentData(){
+  if(COMMON_SENT_DATA || commonSentDataLoading) return;
+  commonSentDataLoading = true;
+  try{
+    const res = await fetch('./common-sentences-data.json?v=1');
+    COMMON_SENT_DATA = await res.json();
+  }catch(e){
+    console.error('Không tải được dữ liệu câu thông dụng', e);
+    COMMON_SENT_DATA = {categories:[], sentences:[]};
+  }
+  commonSentDataLoading = false;
+  if(STATE.tab==='english-item' && !STATE.sentSession) renderContent();
+}
+function sentByN(n){ if(!COMMON_SENT_DATA) return null; return COMMON_SENT_DATA.sentences[n-1] || null; }
+function sentCategories(){ return (COMMON_SENT_DATA && COMMON_SENT_DATA.categories) || []; }
+function sentCategoryMeta(code){ return sentCategories().find(c=>c.code===code) || {code, label:code, icon:'💬'}; }
+function sentByCategory(code){ if(!COMMON_SENT_DATA) return []; return COMMON_SENT_DATA.sentences.filter(s=>s[3]===code); }
+function sentProgressFor(n){
+  if(!SETTINGS.sentProgress) SETTINGS.sentProgress = {};
+  let p = SETTINGS.sentProgress[n];
+  if(!p){ p = {box:0, next:null, seen:0, correct:0, wrong:0, introduced:false}; SETTINGS.sentProgress[n] = p; }
+  return p;
+}
+function sentUpdateStreak(){
+  if(!SETTINGS.sentStreak || typeof SETTINGS.sentStreak!=='object') SETTINGS.sentStreak = {lastDate:null, streak:0};
+  const st = SETTINGS.sentStreak;
+  const today = todayKey();
+  if(st.lastDate===today) return;
+  const yesterday = vocabDayKeyPlus(-1);
+  st.streak = (st.lastDate===yesterday) ? (st.streak||0)+1 : 1;
+  st.lastDate = today;
+}
+function sentRecordAnswer(n, isCorrect){
+  const p = sentProgressFor(n);
+  p.seen = (p.seen||0)+1;
+  if(!p.introduced) p.introducedDate = todayKey();
+  p.introduced = true;
+  if(isCorrect){
+    p.correct = (p.correct||0)+1;
+    p.box = Math.min(5, (p.box||0)+1);
+    p.next = vocabDayKeyPlus(VOCAB_BOX_INTERVAL_DAYS[p.box-1]||1);
+  } else {
+    p.wrong = (p.wrong||0)+1;
+    p.box = Math.max(0, (p.box||0)-1);
+    p.next = vocabDayKeyPlus(1);
+  }
+  sentUpdateStreak();
+  if(!SETTINGS.sentDailyStats || typeof SETTINGS.sentDailyStats!=='object') SETTINGS.sentDailyStats = {};
+  const today = todayKey();
+  const ds = SETTINGS.sentDailyStats[today] || (SETTINGS.sentDailyStats[today] = {answered:0, correct:0});
+  ds.answered++; if(isCorrect) ds.correct++;
+  saveSettings();
+}
+function sentStats(){
+  const total = (COMMON_SENT_DATA && COMMON_SENT_DATA.sentences.length) || 300;
+  let learned=0, mastered=0, learning=0, dueToday=0, learnedToday=0;
+  const today = todayKey();
+  const prog = SETTINGS.sentProgress || {};
+  Object.keys(prog).forEach(k=>{
+    const p = prog[k];
+    if(!p.introduced) return;
+    learned++;
+    if(p.introducedDate===today) learnedToday++;
+    const box = p.box||0;
+    if(box>=5) mastered++; else learning++;
+    if(p.next && p.next<=today) dueToday++;
+  });
+  const streak = (SETTINGS.sentStreak && SETTINGS.sentStreak.streak) || 0;
+  return {total, learned, mastered, learning, dueToday, streak, learnedToday};
+}
+function sentBuildDailyQueue(){
+  const today = todayKey();
+  if(SETTINGS.sentDailyCache && SETTINGS.sentDailyCache.date===today && Array.isArray(SETTINGS.sentDailyCache.ids)){
+    return SETTINGS.sentDailyCache.ids.filter(n=>sentByN(n));
+  }
+  const prog = SETTINGS.sentProgress || {};
+  const due = Object.keys(prog).map(k=>parseInt(k,10))
+    .filter(n=>prog[n].introduced && prog[n].next && prog[n].next<=today)
+    .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
+    .slice(0, 20);
+  const dueSet = new Set(due);
+  const newCount = Math.max(0, SETTINGS.sentDailyNew||15);
+  const newOnes = [];
+  const total = (COMMON_SENT_DATA && COMMON_SENT_DATA.sentences.length) || 300;
+  for(let n=1; n<=total && newOnes.length<newCount; n++){
+    if(dueSet.has(n)) continue;
+    const p = prog[n];
+    if(p && p.introduced) continue;
+    newOnes.push(n);
+  }
+  const ids = shuffleArr(due).concat(newOnes);
+  SETTINGS.sentDailyCache = {date: today, ids};
+  saveSettings();
+  return ids;
+}
+function sentPickDistractors(sentence, count){
+  const catItems = sentByCategory(sentence[3]).filter(s=>s[0]!==sentence[0]);
+  let pool = catItems.length>=count ? catItems : COMMON_SENT_DATA.sentences.filter(s=>s[0]!==sentence[0]);
+  pool = shuffleArr(pool);
+  return pool.slice(0, count);
+}
+function sentPrepareCurrent(){
+  const s = STATE.sentSession; if(!s) return;
+  const n = s.ids[s.idx];
+  const sentence = sentByN(n);
+  s.answered = null;
+  if(!sentence){ s.showIntro=false; s.exType=null; s.options=[]; s.correctIdx=-1; return; }
+  const p = sentProgressFor(n);
+  s.showIntro = !p.introduced;
+  const box = p.box||0;
+  const exType = (s.idx + box) % 2 === 0 ? 'mc_en_vi' : 'mc_vi_en';
+  s.exType = exType;
+  const distractors = sentPickDistractors(sentence, 3);
+  let correctText, optTexts;
+  if(exType==='mc_en_vi'){ correctText = sentence[4]; optTexts = distractors.map(d=>d[4]); }
+  else { correctText = sentence[1]; optTexts = distractors.map(d=>d[1]); }
+  const all = shuffleArr([{t:correctText, correct:true}].concat(optTexts.map(t=>({t, correct:false}))));
+  s.options = all.map(o=>o.t);
+  s.correctIdx = all.findIndex(o=>o.correct);
+}
+function sentStartDaily(){
+  if(!COMMON_SENT_DATA){ fetchCommonSentData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
+  const ids = sentBuildDailyQueue();
+  if(ids.length===0){ showToast('🎉','Đã xong hết hôm nay!','Bạn đã học và ôn tập đủ số câu hẹn hôm nay. Quay lại vào ngày mai nhé, hoặc duyệt tự do theo tình huống.'); return; }
+  navForward();
+  STATE.sentSession = {mode:'daily', category:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
+  sentPrepareCurrent();
+  renderContent(); window.scrollTo(0,0);
+}
+function sentStartCategory(code){
+  if(!COMMON_SENT_DATA){ fetchCommonSentData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
+  const bank = sentByCategory(code);
+  const ids = shuffleArr(bank.map(s=>s[0]));
+  navForward();
+  STATE.sentSession = {mode:'category', category:code, ids, idx:0, correct:0, finished:false, retried:{}};
+  sentPrepareCurrent();
+  renderContent(); window.scrollTo(0,0);
+}
+function sentIntroContinue(){
+  const s = STATE.sentSession; if(!s) return;
+  s.showIntro = false; renderContent();
+}
+function sentAnswer(optIdx){
+  const s = STATE.sentSession; if(!s || s.answered!==null) return;
+  s.answered = optIdx;
+  const n = s.ids[s.idx];
+  const isCorrect = optIdx===s.correctIdx;
+  if(isCorrect) s.correct++;
+  sentRecordAnswer(n, isCorrect);
+  if(!isCorrect && !s.retried[n]){ s.retried[n] = true; s.ids.push(n); }
+  renderContent();
+}
+function sentNext(){
+  const s = STATE.sentSession; if(!s) return;
+  if(s.idx < s.ids.length-1){ s.idx++; sentPrepareCurrent(); renderContent(); }
+  else { s.finished = true; renderContent(); }
+}
+function sentSpeakCurrent(){
+  const s = STATE.sentSession; if(!s) return;
+  const sentence = sentByN(s.ids[s.idx]);
+  if(sentence) speakEnglishRobust(sentence[1], {rate:0.85});
+}
+function sentExitSession(){ STATE.sentSession = null; renderContent(); navBack(); }
+function sentHomeSubNav(){
+  const view = STATE.sentView || 'daily';
+  return `<div class="seg" style="margin-bottom:14px;">
+    <button class="${view==='daily'?'active':''}" data-action="sent-set-view" data-view="daily">📅 Câu hôm nay</button>
+    <button class="${view==='cats'?'active':''}" data-action="sent-set-view" data-view="cats">📂 Tình huống</button>
+  </div>`;
+}
+function renderSentDailyHome(){
+  const stats = sentStats();
+  const ids = COMMON_SENT_DATA ? sentBuildDailyQueue() : [];
+  const dueCount = SETTINGS.sentProgress ? ids.filter(n=>{ const p=SETTINGS.sentProgress[n]; return p && p.introduced; }).length : 0;
+  const newCount = ids.length - dueCount;
+  const pct = stats.total ? Math.round((stats.learned/stats.total)*100) : 0;
+  const statsHtml = `<div class="card" style="padding:14px 16px; margin-bottom:10px; border:1px solid #FFC94A55;">
+    <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
+      📊 Tiến độ tổng: đã học <b>${stats.learned}</b>/${stats.total} câu (${pct}%)<br>
+      🌱 đang ôn <b>${stats.learning}</b> câu · 🏆 đã thuộc lòng <b>${stats.mastered}</b> câu
+      ${stats.streak>0?`<br>🔥 học liên tục <b>${stats.streak}</b> ngày`:''}
+    </div>
+  </div>
+  <div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #4FA8FF55;">
+    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">📖 <b>Hôm nay bạn đã học <span style="color:var(--text); font-size:15px; font-weight:800;">${stats.learnedToday}</span> câu mới</b>${stats.learnedToday>0?' — tiếp tục phát huy nhé!':' — bắt đầu gói học hôm nay để tăng con số này.'}</div>
+  </div>`;
+  const methodHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid var(--border);">
+    <div class="eng-section-label" style="margin:0 0 8px;">💡 Cách học nhanh, nhớ lâu</div>
+    <div style="font-size:12px; color:var(--dim); line-height:1.8;">
+      1️⃣ Nghe trước bằng nút 🔊, sau đó <b>nói nhại lại (shadowing)</b> ngay lập tức — cố bắt chước đúng tốc độ và ngữ điệu, không chỉ đúng từ.<br>
+      2️⃣ <b>Học theo tình huống</b> thay vì học lan man — mỗi lần tập trung 1-2 chủ đề (ví dụ: Xin lỗi, Gọi điện) để dễ liên tưởng khi dùng thật.<br>
+      3️⃣ Đừng học 1 lần rồi bỏ — app sẽ tự <b>nhắc ôn tập ngắt quãng</b> (1 → 3 → 7 → 16 → 35 ngày) đúng lúc bạn sắp quên, hiệu quả hơn học dồn.<br>
+      4️⃣ Nói to thành tiếng mỗi câu ít nhất 2-3 lần, tốt nhất là ghi âm lại và so sánh với giọng mẫu.<br>
+      5️⃣ Học đều mỗi ngày một lượng nhỏ (15 câu/ngày) thay vì học dồn một lúc rồi nghỉ dài ngày.
+    </div>
+  </div>`;
+  return `${statsHtml}${methodHtml}
+  <div class="card eng-mocktest-card">
+    <div class="mocktest-icon">💬</div>
+    <div class="mocktest-title">Câu hôm nay</div>
+    <div class="mocktest-desc">${COMMON_SENT_DATA ? (ids.length===0 ? 'Bạn đã học và ôn tập đủ số câu hẹn hôm nay — quay lại vào ngày mai nhé!' : `Gói học hôm nay: <b>${newCount}</b> câu mới + <b>${dueCount}</b> câu cần ôn tập (tổng ${ids.length} câu).`) : 'Đang tải dữ liệu…'}</div>
+    ${ids.length>0 ? `<button class="form-btn" style="width:100%;" data-action="sent-start-daily">▶️ Bắt đầu học hôm nay</button>` : ''}
+  </div>`;
+}
+function renderSentCategoriesGrid(){
+  const cats = sentCategories();
+  const prog = SETTINGS.sentProgress || {};
+  const cards = cats.map(c=>{
+    const items = sentByCategory(c.code);
+    const learnedN = items.filter(s=>prog[s[0]] && prog[s[0]].introduced).length;
+    return `<div class="eng-group-card compact" data-action="sent-start-category" data-cat="${c.code}" style="--gcgrad:linear-gradient(135deg,#FFC94A,#FF8A3D);">
+      <div class="gc-icon">${c.icon}</div>
+      <div class="gc-name">${escapeHtml(c.label)}</div>
+      <div class="gc-desc">${items.length} câu</div>
+      <div class="gc-count">Đã học ${learnedN}/${items.length}</div>
+    </div>`;
+  }).join('');
+  return `<div class="eng-section-label">📂 Duyệt theo tình huống (${cats.length} tình huống · 300 câu)</div>
+  <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu…</div>'}</div>`;
+}
+function renderSentSession(){
+  const s = STATE.sentSession;
+  if(s.finished){
+    const pct = Math.round((s.correct/s.ids.length)*100);
+    return `${englishItemBackRow('Câu thông dụng')}
+    <div class="card eng-quiz-result">
+      <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${s.mode==='category'?sentCategoryMeta(s.category).label:'Câu hôm nay'}</div>
+      <div class="score">${s.correct}/${s.ids.length}</div>
+      <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác</div>
+      <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
+        <button class="form-btn cancel" data-action="sent-exit-session">✓ Hoàn tất</button>
+      </div>
+    </div>`;
+  }
+  const n = s.ids[s.idx];
+  const sentence = sentByN(n);
+  if(!sentence) return `${englishItemBackRow('Câu thông dụng')}<div class="card">Không tải được dữ liệu.</div>`;
+  const progressPct = Math.round((s.idx/s.ids.length)*100);
+  const progressWrap = `<div class="eng-quiz-progress-wrap">
+    <div class="eng-quiz-progress-top">
+      <span class="eng-quiz-progress-badge count">Câu ${s.idx+1}/${s.ids.length}</span>
+      <span class="eng-quiz-progress-badge correct">✓ Đúng ${s.correct}</span>
+    </div>
+    <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
+  </div>`;
+  let body;
+  if(s.showIntro){
+    body = `<div class="card eng-quiz-card" style="text-align:center;">
+      <div style="font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">✨ ${escapeHtml(sentCategoryMeta(sentence[3]).icon)} ${escapeHtml(sentCategoryMeta(sentence[3]).label)}</div>
+      <div style="font-size:20px; font-weight:800; margin-bottom:6px; line-height:1.4;">${escapeHtml(sentence[1])}</div>
+      <div style="font-size:12px; color:var(--dim); font-family:var(--mono); margin-bottom:10px;">${escapeHtml(sentence[2])}</div>
+      <div style="font-size:15px; color:var(--gold); font-weight:700; margin-bottom:14px;">🇻🇳 ${escapeHtml(sentence[4])}</div>
+      <div class="eng-quiz-actions" style="justify-content:center;">
+        <button class="form-btn btn-listen" data-action="sent-speak-current">🔊 Nghe phát âm</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-intro-continue">Đã hiểu, bắt đầu luyện →</button>
+    </div>`;
+  } else {
+    const questionText = s.exType==='mc_en_vi' ? `"${sentence[1]}" nghĩa là gì?` : `Câu nào có nghĩa: "${sentence[4]}"?`;
+    const optLetters = ['A','B','C','D'];
+    const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
+    const opts = s.options.map((opt,i)=>{
+      let cls = 'eng-quiz-opt';
+      if(s.answered!==null){
+        cls += ' disabled';
+        if(i===s.correctIdx) cls += ' correct';
+        else if(i===s.answered) cls += ' wrong';
+      }
+      return `<div class="${cls}" ${s.answered===null?`data-action="sent-answer" data-opt="${i}"`:''}>
+        <span class="opt-badge" style="background:${optColors[i%optColors.length]};">${optLetters[i]}</span>
+        <span class="opt-text">${escapeHtml(opt)}</span>
+      </div>`;
+    }).join('');
+    body = `<div class="card eng-quiz-card">
+      <div class="eng-quiz-q">${escapeHtml(questionText)}</div>
+      ${opts}
+      ${s.answered!==null ? `
+        <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[2])}</div>
+        <div class="eng-quiz-actions">
+          <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe câu</button>
+        </div>
+        <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>` : ''}
+    </div>`;
+  }
+  return `${englishItemBackRow('Câu thông dụng')}${progressWrap}${body}`;
+}
+function renderEnglishSentences(item){
+  ensureEnglishItems();
+  if(!COMMON_SENT_DATA){ fetchCommonSentData(); }
+  if(STATE.sentSession){ document.getElementById('content').innerHTML = renderSentSession(); return; }
+  const view = STATE.sentView || 'daily';
+  let body;
+  if(!COMMON_SENT_DATA){
+    body = `<div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:32px; margin-bottom:8px;">⏳</div>
+      <div style="font-size:13px; color:var(--dim);">Đang tải dữ liệu câu thông dụng…</div>
+    </div>`;
+  } else {
+    body = sentHomeSubNav() + (view==='cats' ? renderSentCategoriesGrid() : renderSentDailyHome());
+  }
+  document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
+}
+
 // ================= HỌC QUA VIDEO (podcast luyện nghe — Slow English Podcast, What's Up English,
 // Aus English with Lauren, Volka English): nhúng video YouTube THẬT của 4 kênh trên rồi trả lời câu
 // hỏi (Luyện nghe) hoặc luyện nói lại (Luyện nói). KHÔNG dùng transcript trích dẫn nguyên văn từ các
@@ -5427,11 +5793,12 @@ function renderEnglishAV(item, mode){
 // Dữ liệu ở video-lessons-data.json để dễ bổ sung thêm bài. =========
 let VIDEO_LESSONS = null;
 let videoLessonsLoading = false;
+let videoChannelFilter = 'all'; // kênh Podcast đang được lọc trong Luyện nghe
 async function fetchVideoLessons(){
   if(VIDEO_LESSONS || videoLessonsLoading) return;
   videoLessonsLoading = true;
   try{
-    const res = await fetch('./video-lessons-data.json?v=3');
+    const res = await fetch('./video-lessons-data.json?v=4');
     VIDEO_LESSONS = await res.json();
   }catch(e){
     console.error('Không tải được danh sách video', e);
@@ -5441,11 +5808,24 @@ async function fetchVideoLessons(){
   if(STATE.tab==='english-item' && !STATE.listenQuiz && !STATE.speakSession) renderContent();
 }
 // Danh sách thẻ video cho màn chọn (dùng chung cho cả Luyện nghe & Luyện nói). mode: 'listening' | 'speaking'.
+// Có thanh chip lọc theo từng kênh YouTube (thay vì chạy dọc hết tất cả video), vì số lượng video sẽ
+// tăng dần theo thời gian — bấm vào 1 kênh để chỉ xem video của kênh đó.
 function videoLessonsListHtml(mode){
-  const list = VIDEO_LESSONS ? (VIDEO_LESSONS[mode]||[]) : null;
-  if(list===null){ if(!videoLessonsLoading) fetchVideoLessons(); return ''; }
-  if(!list.length) return '';
+  const fullList = VIDEO_LESSONS ? (VIDEO_LESSONS[mode]||[]) : null;
+  if(fullList===null){ if(!videoLessonsLoading) fetchVideoLessons(); return ''; }
+  if(!fullList.length) return '';
   const action = mode==='listening' ? 'listen-video-start' : 'speak-video-start';
+  // Danh sách kênh + số video mỗi kênh, giữ nguyên thứ tự xuất hiện đầu tiên trong data.
+  const channels = [];
+  fullList.forEach(l=>{ const c=l.channel||'Khác'; if(!channels.includes(c)) channels.push(c); });
+  const activeFilter = channels.includes(videoChannelFilter) ? videoChannelFilter : 'all';
+  const list = activeFilter==='all' ? fullList : fullList.filter(l=>(l.channel||'Khác')===activeFilter);
+  const chipAll = `<div class="video-channel-chip ${activeFilter==='all'?'active':''}" data-action="video-channel-filter" data-mode="${mode}" data-channel="all">Tất cả<span class="vcc-count">${fullList.length}</span></div>`;
+  const chips = channels.map(c=>{
+    const n = fullList.filter(l=>(l.channel||'Khác')===c).length;
+    return `<div class="video-channel-chip ${activeFilter===c?'active':''}" data-action="video-channel-filter" data-mode="${mode}" data-channel="${escapeHtml(c)}">${escapeHtml(c)}<span class="vcc-count">${n}</span></div>`;
+  }).join('');
+  const addChannelCard = mode==='listening' ? `<div class="video-channel-add-card" data-action="video-channel-add-open">➕ Thêm kênh YouTube mới để luyện nghe</div>` : '';
   const cards = list.map(l=>{
     const meta = l.desc || (mode==='listening' ? ((l.questions||[]).length+' câu hỏi') : ((l.lines||[]).length+' câu đọc'));
     return `<div class="video-lesson-card" data-action="${action}" data-id="${l.id}">
@@ -5458,7 +5838,9 @@ function videoLessonsListHtml(mode){
     </div>`;
   }).join('');
   return `<div class="eng-section-label" style="margin-top:18px;">📺 Podcast luyện nghe (kênh YouTube thật)</div>
-    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren, Volka English, ELLLO (English Listening Lesson Library Online) &amp; Randall's ESL Cyber Listening Lab — nghe trọn video rồi ${mode==='listening'?'trả lời câu hỏi chủ đề/từ vựng':'luyện nói theo từng câu'}. Video không có transcript trích sẵn — đúng tinh thần luyện nghe thật, không đọc trước đáp án.</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren, Volka English, ELLLO (English Listening Lesson Library Online) &amp; Randall's ESL Cyber Listening Lab — bấm chọn kênh muốn học, mỗi câu hỏi sẽ tự phát ĐÚNG đoạn video liên quan (không chạy hết cả video).</div>
+    <div class="video-channel-row">${chipAll}${chips}</div>
+    ${addChannelCard}
     <div class="video-lesson-list">${cards}</div>`;
 }
 function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
@@ -5476,6 +5858,132 @@ function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
   return `<div class="video-embed-wrap">
     <iframe src="https://www.youtube.com/embed/${videoId}${qs}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
   </div>`;
+}
+// ================= THÊM KÊNH YOUTUBE (Luyện nghe): dán link kênh → tự lấy danh sách video mới nhất
+// qua RSS công khai của YouTube (miễn phí, không cần API key). App CHỈ lấy danh sách video (tiêu đề,
+// ảnh, video ID) để người dùng xem/chọn — việc soạn câu hỏi luyện nghe chính xác cho video mới vẫn cần
+// làm thủ công ở các bản cập nhật sau (để đảm bảo câu hỏi đúng nội dung thật, không suy đoán sai).
+// Vì YouTube không mở CORS cho feed RSS khi gọi trực tiếp từ trình duyệt, dùng 1 proxy CORS công khai
+// (allorigins.win) làm cầu nối đọc dữ liệu — nếu proxy lỗi/quá tải sẽ báo rõ cho người dùng biết. =========
+function openAddYoutubeChannel(){ STATE.addYtChannelOpen = true; STATE.ytChannelFetchResult = null; STATE.ytChannelFetchError = null; renderContent(); }
+function closeAddYoutubeChannel(){ STATE.addYtChannelOpen = false; STATE.ytChannelFetchResult = null; STATE.ytChannelFetchError = null; renderContent(); }
+function ensureMyYtChannels(){ if(!Array.isArray(SETTINGS.myYoutubeChannels)) SETTINGS.myYoutubeChannels = []; return SETTINGS.myYoutubeChannels; }
+const YT_CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+function extractYoutubeChannelId(input){
+  input = (input||'').trim();
+  let m = input.match(/channel\/(UC[\w-]{20,})/);
+  if(m) return {type:'id', value:m[1]};
+  m = input.match(/^UC[\w-]{20,}$/);
+  if(m) return {type:'id', value:input};
+  m = input.match(/(?:youtube\.com\/)@([\w.-]+)/);
+  if(m) return {type:'handle', value:'@'+m[1]};
+  if(/^@[\w.-]+$/.test(input)) return {type:'handle', value:input};
+  m = input.match(/youtube\.com\/(?:c\/|user\/)?([\w.-]+)/);
+  if(m) return {type:'handle', value:'@'+m[1]};
+  if(/^[\w.-]+$/.test(input)) return {type:'handle', value:'@'+input};
+  return null;
+}
+async function resolveYoutubeChannelId(parsed){
+  if(parsed.type==='id') return parsed.value;
+  // Cần đọc trang kênh (qua proxy CORS) để lấy channelId thật từ đường dẫn @handle.
+  const pageUrl = `https://www.youtube.com/${parsed.value}`;
+  const res = await fetch(YT_CORS_PROXY+encodeURIComponent(pageUrl));
+  if(!res.ok) throw new Error('Không mở được trang kênh (HTTP '+res.status+')');
+  const html = await res.text();
+  const m = html.match(/"channelId":"(UC[\w-]{20,})"/) || html.match(/channel_id=(UC[\w-]{20,})/);
+  if(!m) throw new Error('Không tìm thấy channel ID trên trang kênh — thử dán link dạng youtube.com/channel/UC...');
+  return m[1];
+}
+async function fetchYoutubeChannelVideos(channelId){
+  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+  const res = await fetch(YT_CORS_PROXY+encodeURIComponent(feedUrl));
+  if(!res.ok) throw new Error('Không tải được danh sách video (HTTP '+res.status+')');
+  const xmlText = await res.text();
+  const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
+  if(xml.querySelector('parsererror')) throw new Error('Dữ liệu kênh trả về không hợp lệ');
+  const channelTitleEl = xml.querySelector('feed > title');
+  const channelTitle = channelTitleEl ? channelTitleEl.textContent : 'Kênh YouTube';
+  const entries = Array.from(xml.querySelectorAll('entry')).slice(0,20).map(en=>{
+    const vid = (en.querySelector('videoId')||{}).textContent || '';
+    const title = (en.querySelector('title')||{}).textContent || '';
+    const published = (en.querySelector('published')||{}).textContent || '';
+    return {videoId:vid, title, published};
+  }).filter(e=>e.videoId);
+  return {channelId, channelTitle, videos:entries};
+}
+async function submitAddYoutubeChannel(){
+  const inputEl = document.getElementById('ytChannelInput');
+  const raw = inputEl ? inputEl.value.trim() : '';
+  if(!raw){ STATE.ytChannelFetchError = 'Vui lòng dán link hoặc @handle của kênh YouTube.'; renderContent(); return; }
+  const parsed = extractYoutubeChannelId(raw);
+  if(!parsed){ STATE.ytChannelFetchError = 'Không nhận diện được link kênh. Thử dạng youtube.com/@tenkenh hoặc youtube.com/channel/UC...'; renderContent(); return; }
+  STATE.ytChannelFetchLoading = true; STATE.ytChannelFetchError = null; STATE.ytChannelFetchResult = null; renderContent();
+  try{
+    const channelId = await resolveYoutubeChannelId(parsed);
+    const data = await fetchYoutubeChannelVideos(channelId);
+    STATE.ytChannelFetchResult = data;
+  }catch(e){
+    console.error(e);
+    STATE.ytChannelFetchError = 'Không lấy được danh sách video: '+(e.message||'lỗi không xác định')+'. Có thể do dịch vụ trung gian đang quá tải, thử lại sau ít phút.';
+  }
+  STATE.ytChannelFetchLoading = false; renderContent();
+}
+function saveMyYoutubeChannel(){
+  const data = STATE.ytChannelFetchResult; if(!data) return;
+  const list = ensureMyYtChannels();
+  if(list.some(c=>c.channelId===data.channelId)){ STATE.ytChannelFetchError = 'Kênh này đã có trong danh sách của bạn rồi.'; renderContent(); return; }
+  list.push({channelId:data.channelId, channelTitle:data.channelTitle, addedAt:Date.now(), videos:data.videos});
+  saveSettings();
+  closeAddYoutubeChannel();
+}
+function removeMyYoutubeChannel(channelId){
+  const list = ensureMyYtChannels();
+  const idx = list.findIndex(c=>c.channelId===channelId);
+  if(idx>=0){ list.splice(idx,1); saveSettings(); renderContent(); }
+}
+function renderAddYoutubeChannelUI(item){
+  const myChannels = ensureMyYtChannels();
+  const result = STATE.ytChannelFetchResult;
+  const err = STATE.ytChannelFetchError;
+  const loading = STATE.ytChannelFetchLoading;
+  const savedListHtml = myChannels.length ? `
+    <div class="eng-section-label" style="margin-top:18px;">📌 Kênh bạn đã thêm</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Danh sách video của các kênh này đã được lưu lại. Mình sẽ soạn câu hỏi luyện nghe chính xác cho các video bạn muốn học ở bản cập nhật tiếp theo — cứ nhắn video/kênh nào bạn muốn ưu tiên trước.</div>
+    ${myChannels.map(c=>`
+      <div class="card" style="padding:12px 14px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div style="font-weight:800; font-size:12.5px;">${escapeHtml(c.channelTitle)}</div>
+          <button class="form-btn cancel" style="padding:4px 10px; font-size:10.5px;" data-action="video-channel-remove" data-channelid="${escapeHtml(c.channelId)}">Xóa</button>
+        </div>
+        <div style="font-size:10.5px; color:var(--dim); margin-top:4px;">${(c.videos||[]).length} video mới nhất đã lấy được</div>
+        <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+          ${(c.videos||[]).slice(0,6).map(v=>`<div style="font-size:10.5px; color:var(--dim); line-height:1.4;">▸ ${escapeHtml(v.title)}</div>`).join('')}
+        </div>
+      </div>
+    `).join('')}
+  ` : '';
+  const resultHtml = result ? `
+    <div class="card" style="padding:14px; margin-top:12px; border:1px solid #2CDBA855;">
+      <div style="font-weight:800; font-size:13px; margin-bottom:6px;">✅ ${escapeHtml(result.channelTitle)}</div>
+      <div style="font-size:11px; color:var(--dim); margin-bottom:10px;">Tìm thấy ${result.videos.length} video mới nhất từ kênh này.</div>
+      <div style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; margin-bottom:10px;">
+        ${result.videos.map(v=>`<div style="font-size:11px; color:var(--text); line-height:1.4; padding:4px 0; border-bottom:1px solid var(--border);">▸ ${escapeHtml(v.title)}</div>`).join('')}
+      </div>
+      <button class="form-btn" style="width:100%;" data-action="video-channel-save">💾 Lưu kênh này vào danh sách của tôi</button>
+    </div>
+  ` : '';
+  const errHtml = err ? `<div style="font-size:11.5px; color:#ff8080; background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.25); border-radius:10px; padding:10px 12px; margin-top:10px; line-height:1.5;">⚠️ ${escapeHtml(err)}</div>` : '';
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="video-channel-add-close">${svgIcon('back')}</div><div class="title">➕ Thêm kênh YouTube</div></div>
+    <div class="card" style="padding:16px;">
+      <div style="font-size:11.5px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Dán link kênh YouTube bạn muốn luyện nghe (dạng <b>youtube.com/@tenkenh</b> hoặc <b>youtube.com/channel/UC...</b>). App sẽ tự lấy danh sách video mới nhất của kênh qua RSS công khai — miễn phí, không cần đăng nhập.</div>
+      <input type="text" id="ytChannelInput" class="form-input" placeholder="https://www.youtube.com/@tenkenh" style="width:100%; margin-bottom:10px;">
+      <button class="form-btn" style="width:100%;" data-action="video-channel-fetch" ${loading?'disabled':''}>${loading?'⏳ Đang tải danh sách video...':'🔍 Tìm video của kênh'}</button>
+      ${errHtml}
+      ${resultHtml}
+    </div>
+    ${savedListHtml}
+  `;
 }
 // ================= LUYỆN NÓI: luyện phát âm theo cấp độ + chấm điểm AI (Web Speech API) =================
 let SPEAKING_PRACTICE = null;
@@ -7547,6 +8055,24 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(vocabSpeakCurrentEl){ vocabSpeakCurrent(); return; }
   const vocabToggleTranslateEl = e.target.closest('[data-action="vocab-toggle-translate"]');
   if(vocabToggleTranslateEl){ vocabToggleTranslate(); return; }
+  const vocabToggleExamplesEl = e.target.closest('[data-action="vocab-toggle-examples"]');
+  if(vocabToggleExamplesEl){ const s=STATE.vocabSession; if(s){ s.showExtraExamples=!s.showExtraExamples; renderContent(); } return; }
+  const sentSetViewEl = e.target.closest('[data-action="sent-set-view"]');
+  if(sentSetViewEl){ STATE.sentView = sentSetViewEl.getAttribute('data-view'); renderContent(); return; }
+  const sentStartDailyEl = e.target.closest('[data-action="sent-start-daily"]');
+  if(sentStartDailyEl){ sentStartDaily(); return; }
+  const sentStartCategoryEl = e.target.closest('[data-action="sent-start-category"]');
+  if(sentStartCategoryEl){ sentStartCategory(sentStartCategoryEl.getAttribute('data-cat')); return; }
+  const sentIntroContinueEl = e.target.closest('[data-action="sent-intro-continue"]');
+  if(sentIntroContinueEl){ sentIntroContinue(); return; }
+  const sentAnswerEl = e.target.closest('[data-action="sent-answer"]');
+  if(sentAnswerEl){ sentAnswer(parseInt(sentAnswerEl.getAttribute('data-opt'),10)); return; }
+  const sentNextEl = e.target.closest('[data-action="sent-next"]');
+  if(sentNextEl){ sentNext(); return; }
+  const sentSpeakCurrentEl = e.target.closest('[data-action="sent-speak-current"]');
+  if(sentSpeakCurrentEl){ sentSpeakCurrent(); return; }
+  const sentExitSessionEl = e.target.closest('[data-action="sent-exit-session"]');
+  if(sentExitSessionEl){ sentExitSession(); return; }
   const vocabExitSessionEl = e.target.closest('[data-action="vocab-exit-session"]');
   if(vocabExitSessionEl){ vocabExitSession(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
@@ -7563,6 +8089,18 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenQuizStartEl){ startListenQuiz(listenQuizStartEl.getAttribute('data-level')); return; }
   const listenVideoStartEl = e.target.closest('[data-action="listen-video-start"]');
   if(listenVideoStartEl){ startListenVideoQuiz(listenVideoStartEl.getAttribute('data-id')); return; }
+  const videoChannelFilterEl = e.target.closest('[data-action="video-channel-filter"]');
+  if(videoChannelFilterEl){ videoChannelFilter = videoChannelFilterEl.getAttribute('data-channel'); renderContent(); return; }
+  const videoChannelAddOpenEl = e.target.closest('[data-action="video-channel-add-open"]');
+  if(videoChannelAddOpenEl){ openAddYoutubeChannel(); return; }
+  const videoChannelAddCloseEl = e.target.closest('[data-action="video-channel-add-close"]');
+  if(videoChannelAddCloseEl){ closeAddYoutubeChannel(); return; }
+  const videoChannelFetchEl = e.target.closest('[data-action="video-channel-fetch"]');
+  if(videoChannelFetchEl){ submitAddYoutubeChannel(); return; }
+  const videoChannelSaveEl = e.target.closest('[data-action="video-channel-save"]');
+  if(videoChannelSaveEl){ saveMyYoutubeChannel(); return; }
+  const videoChannelRemoveEl = e.target.closest('[data-action="video-channel-remove"]');
+  if(videoChannelRemoveEl){ removeMyYoutubeChannel(videoChannelRemoveEl.getAttribute('data-channelid')); return; }
   const listenQuizReplayEl = e.target.closest('[data-action="listen-quiz-replay"]');
   if(listenQuizReplayEl){ replayListenQuiz(); return; }
   const listenVideoReplayEl = e.target.closest('[data-action="listen-video-replay"]');
