@@ -847,6 +847,31 @@
   .vocab-extra-ex-item{font-size:11.5px; line-height:1.5; padding:8px 10px; background:var(--panel2);
     border:1px solid var(--border); border-radius:9px; margin-bottom:6px;}
   .vocab-extra-ex-item .vee-vi{color:var(--dim); margin-top:2px;}
+  .kh-backrow-action{position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:11px; font-weight:800;
+    color:var(--dim); background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:7px 12px;
+    cursor:pointer; flex-shrink:0;}
+  .kh-backrow-action:active{transform:translateY(-50%) scale(0.95);}
+  .ai-chat-msgs{display:flex; flex-direction:column; gap:10px; max-height:60vh; min-height:180px; overflow-y:auto;
+    padding:4px 2px 10px; margin-bottom:10px;}
+  .ai-chat-msg{display:flex;}
+  .ai-chat-msg.user{justify-content:flex-end;}
+  .ai-chat-msg.ai{justify-content:flex-start; flex-direction:column; align-items:flex-start;}
+  .ai-chat-bubble{max-width:82%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.5;}
+  .ai-chat-msg.user .ai-chat-bubble{background:var(--blue); color:#fff; border-bottom-right-radius:4px;}
+  .ai-chat-msg.ai .ai-chat-bubble{background:var(--panel); border:1px solid var(--border); color:var(--text); border-bottom-left-radius:4px;}
+  .ai-chat-speak{cursor:pointer; margin-left:6px; opacity:.8;}
+  .ai-chat-tip{font-size:11px; color:var(--gold); margin-top:4px; margin-left:6px; line-height:1.4; max-width:82%;}
+  .ai-chat-typing{color:var(--dim); font-weight:800; letter-spacing:2px;}
+  .ai-chat-error{font-size:11.5px; color:#ff8080; text-align:center; margin-bottom:8px;}
+  .ai-chat-inputbar{display:flex; align-items:center; gap:8px; position:sticky; bottom:8px; background:var(--bg); padding-top:4px;}
+  .ai-chat-mic-btn{flex-shrink:0; width:42px; height:42px; border-radius:50%; background:var(--panel);
+    border:1.5px solid var(--border); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .ai-chat-mic-btn.recording{background:#ff5c5c; border-color:#ff5c5c; color:#fff; animation:aiChatPulse 1.1s infinite;}
+  @keyframes aiChatPulse{0%{box-shadow:0 0 0 0 rgba(255,92,92,.5);} 70%{box-shadow:0 0 0 10px rgba(255,92,92,0);} 100%{box-shadow:0 0 0 0 rgba(255,92,92,0);}}
+  .ai-chat-input{flex:1; min-width:0; background:var(--panel); border:1.5px solid var(--border); border-radius:20px;
+    padding:10px 14px; font-size:13px; color:var(--text);}
+  .ai-chat-send-btn{flex-shrink:0; width:42px; height:42px; border-radius:50%; background:var(--blue); border:none;
+    color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1133,7 +1158,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v63';
+const APP_VERSION = 'v64';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3603,7 +3628,8 @@ function defaultEnglishItems(){
     {id:'eng_speaking', name:'Luyện nói', kind:'speaking'},
     {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'},
     {id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'},
-    {id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'}
+    {id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'},
+    {id:'eng_aichat', name:'Hội thoại AI', kind:'aichat'}
   ];
 }
 function ensureEnglishItems(){
@@ -3627,6 +3653,13 @@ function ensureEnglishItems(){
     SETTINGS.englishItems.push({id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'});
     saveSettings(); pushToDrive();
   }
+  // Di trú tương tự cho mục mới "Hội thoại AI" (luyện phản xạ nói qua lại với Gemini — tự do hoặc
+  // theo 14 tình huống dựng sẵn). Người dùng tự dán API key riêng của mình (miễn phí tại Google AI
+  // Studio) vì app là trang tĩnh, không có server để giấu key an toàn.
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='aichat')){
+    SETTINGS.englishItems.push({id:'eng_aichat', name:'Hội thoại AI', kind:'aichat'});
+    saveSettings(); pushToDrive();
+  }
   if(!SETTINGS.englishNotes || typeof SETTINGS.englishNotes!=='object') SETTINGS.englishNotes = {};
   if(!SETTINGS.grammarQuiz || typeof SETTINGS.grammarQuiz!=='object') SETTINGS.grammarQuiz = {};
   if(!SETTINGS.vocabProgress || typeof SETTINGS.vocabProgress!=='object') SETTINGS.vocabProgress = {};
@@ -3641,6 +3674,8 @@ function ensureEnglishItems(){
   if(!SETTINGS.sentDailyNew || typeof SETTINGS.sentDailyNew!=='number') SETTINGS.sentDailyNew = 15;
   if(!SETTINGS.sentStreak || typeof SETTINGS.sentStreak!=='object') SETTINGS.sentStreak = {lastDate:null, streak:0};
   if(!SETTINGS.sentDailyStats || typeof SETTINGS.sentDailyStats!=='object') SETTINGS.sentDailyStats = {};
+  if(typeof SETTINGS.geminiApiKey !== 'string') SETTINGS.geminiApiKey = '';
+  if(!Array.isArray(SETTINGS.aiChatLog)) SETTINGS.aiChatLog = [];
 }
 const ENGLISH_ITEM_KIND = {
   grammar:  {icon:'book',       c1:'#4FA8FF', c2:'#7C6CF0', sub:'Tra cứu thì, cấu trúc câu, giới từ'},
@@ -3650,6 +3685,7 @@ const ENGLISH_ITEM_KIND = {
   ipa:      {icon:'headphones', c1:'#B78CFF', c2:'#7C6CF0', sub:'Bảng phiên âm IPA · 44 âm theo nhóm'},
   vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3000 từ vựng · lịch học mỗi ngày + ôn tập'},
   sentences:{icon:'chat',       c1:'#FFC94A', c2:'#FF8A3D', sub:'300 câu giao tiếp thông dụng · 20 tình huống'},
+  aichat:   {icon:'chat',       c1:'#5CD6C0', c2:'#4F8CFF', sub:'Trò chuyện phản xạ với AI · tự do hoặc theo tình huống'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
 function renderEnglishItemRows(){
@@ -3735,6 +3771,7 @@ function renderEnglishItem(){
   if(item.kind==='ipa') return renderEnglishIPA(item);
   if(item.kind==='vocab') return renderEnglishVocab(item);
   if(item.kind==='sentences') return renderEnglishSentences(item);
+  if(item.kind==='aichat') return renderAiChat(item);
   return renderEnglishNotes(item);
 }
 // ================= LUYỆN TỪ VỰNG: 3000 từ, học theo lịch mỗi ngày (spaced repetition kiểu Leitner) =================
@@ -5792,6 +5829,263 @@ function renderEnglishSentences(item){
     body = sentHomeSubNav() + (view==='cats' ? renderSentCategoriesGrid() : renderSentDailyHome());
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
+}
+
+// ================= HỘI THOẠI AI: luyện phản xạ nói/nghe bằng cách trò chuyện qua lại với Gemini —
+// tự do (nói chuyện bất kỳ chủ đề gì) hoặc theo 1 trong 14 tình huống đời thường dựng sẵn (quán cà
+// phê, nhà hàng, phỏng vấn xin việc...). App là trang tĩnh (GitHub Pages), không có server riêng để
+// giấu API key an toàn, nên người dùng tự dán API key MIỄN PHÍ của chính họ lấy tại Google AI Studio
+// (aistudio.google.com/apikey) — lưu trong SETTINGS.geminiApiKey, đồng bộ qua Drive như các cấu hình
+// khác trong app. Gọi thẳng REST endpoint generateContent của model gemini-2.5-flash (gói miễn phí).
+// AI luôn được yêu cầu trả lời đúng định dạng "EN: ...\nTIP: ..." để tách được câu thoại tiếng Anh
+// (dùng hiển thị + đọc to bằng speakEnglishRobust có sẵn) và 1 mẹo sửa câu ngắn bằng tiếng Việt (hoặc
+// "OK" nếu câu của người học đã ổn) — giúp vừa luyện phản xạ vừa được sửa lỗi ngay trong lúc trò chuyện.
+const GEMINI_CHAT_MODEL = 'gemini-2.5-flash';
+const AICHAT_MAX_HISTORY = 14; // số lượt gần nhất gửi kèm làm ngữ cảnh, tránh phình quá nhiều token mỗi lần gọi
+const AICHAT_SCENARIOS = [
+  {code:'cafe', emoji:'☕', title:'Quán cà phê', sub:'Gọi món, thanh toán', grad:'linear-gradient(135deg,#C9A66E,#8B6F3E)',
+    roleEn:'a friendly barista at a coffee shop', descEn:'The learner just walked up to the counter to order a drink and maybe a snack.',
+    opener:"Hi there! Welcome in — what can I get started for you today?"},
+  {code:'restaurant', emoji:'🍽️', title:'Nhà hàng', sub:'Đặt bàn, gọi món', grad:'linear-gradient(135deg,#FF8A3D,#FFC94A)',
+    roleEn:'a waiter at a restaurant', descEn:'The learner has just sat down at a table and is ready to order food.',
+    opener:"Good evening! Can I start you off with something to drink while you look at the menu?"},
+  {code:'hotel', emoji:'🏨', title:'Khách sạn', sub:'Nhận phòng, hỏi dịch vụ', grad:'linear-gradient(135deg,#4FA8FF,#7C6CF0)',
+    roleEn:'a hotel front-desk receptionist', descEn:'The learner is checking in at the hotel front desk.',
+    opener:"Welcome to Sunview Hotel! Do you have a reservation with us tonight?"},
+  {code:'airport', emoji:'✈️', title:'Sân bay', sub:'Làm thủ tục, hải quan', grad:'linear-gradient(135deg,#2CDBA8,#1FA88A)',
+    roleEn:'an airline check-in agent at the airport', descEn:'The learner is checking in for a flight at the airline counter.',
+    opener:"Hello! Could I see your passport and booking reference, please?"},
+  {code:'directions', emoji:'🗺️', title:'Hỏi đường', sub:'Tìm địa điểm', grad:'linear-gradient(135deg,#B78CFF,#7C6CF0)',
+    roleEn:'a friendly local stranger stopped on the street', descEn:'The learner is a tourist who stopped you to ask for directions somewhere in the city.',
+    opener:"Hey, you look a little lost — can I help you find something?"},
+  {code:'shopping', emoji:'🛍️', title:'Mua sắm quần áo', sub:'Hỏi size, giá, đổi trả', grad:'linear-gradient(135deg,#FF6EA8,#B06CF0)',
+    roleEn:'a sales assistant at a clothing store', descEn:'The learner is browsing clothes in your store and might need help.',
+    opener:"Hi! Let me know if you need a different size or color for anything."},
+  {code:'phone', emoji:'☎️', title:'Gọi điện thoại', sub:'Đặt lịch, hỏi thông tin', grad:'linear-gradient(135deg,#4F8CFF,#2CDBA8)',
+    roleEn:'a customer service representative answering a phone call', descEn:"The learner has called a company's hotline and you just picked up.",
+    opener:"Thanks for calling, this is Alex speaking — how can I help you today?"},
+  {code:'interview', emoji:'💼', title:'Phỏng vấn xin việc', sub:'Trả lời câu hỏi tuyển dụng', grad:'linear-gradient(135deg,#8891A0,#4F5A6B)',
+    roleEn:'an HR interviewer conducting a job interview', descEn:'The learner is interviewing for a job at your company.',
+    opener:"Thanks for coming in today. Why don't you start by telling me a bit about yourself?"},
+  {code:'coworker', emoji:'🧑‍💻', title:'Đồng nghiệp văn phòng', sub:'Trò chuyện công sở', grad:'linear-gradient(135deg,#FFC94A,#FF8A3D)',
+    roleEn:'a friendly coworker chatting at the office', descEn:'You and the learner work together and are chatting casually before a meeting.',
+    opener:"Hey! Busy morning so far? Did you catch the email about the meeting?"},
+  {code:'doctor', emoji:'🩺', title:'Khám bệnh', sub:'Mô tả triệu chứng', grad:'linear-gradient(135deg,#2CDBA8,#4FA8FF)',
+    roleEn:'a doctor doing a check-up', descEn:"The learner has come in for a doctor's appointment and you are asking about their symptoms.",
+    opener:"Hi, come on in. What brings you in today — how have you been feeling?"},
+  {code:'smalltalk', emoji:'👋', title:'Làm quen bạn mới', sub:'Small talk xã giao', grad:'linear-gradient(135deg,#B06CF0,#FF6EA8)',
+    roleEn:'someone meeting the learner for the first time at a social event', descEn:'You and the learner just met at a party or event and are making small talk.',
+    opener:"Hi, I don't think we've met — I'm Jamie. How do you know the host?"},
+  {code:'complaint', emoji:'😤', title:'Than phiền dịch vụ', sub:'Khiếu nại, yêu cầu xử lý', grad:'linear-gradient(135deg,#FF5C5C,#FF8A3D)',
+    roleEn:'a customer service manager handling a complaint', descEn:'The learner is unhappy about a product or service and has come to you to complain.',
+    opener:"I'm sorry to hear you're having trouble. Can you tell me exactly what happened?"},
+  {code:'taxi', emoji:'🚕', title:'Đi taxi / Grab', sub:'Chỉ đường, trò chuyện', grad:'linear-gradient(135deg,#FFC94A,#4FA8FF)',
+    roleEn:'a taxi driver making conversation with a passenger', descEn:'The learner just got in your cab and told you a destination.',
+    opener:"Hop in! Where are you headed today?"},
+  {code:'delivery', emoji:'🛵', title:'Gọi đồ ăn / giao hàng', sub:'Đặt món qua điện thoại', grad:'linear-gradient(135deg,#2CDBA8,#FFC94A)',
+    roleEn:'a restaurant employee taking a phone order for delivery', descEn:'The learner has called your restaurant to place a delivery order.',
+    opener:"Thanks for calling Golden Bowl, what would you like to order today?"}
+];
+function aiChatScenario(code){ return AICHAT_SCENARIOS.find(s=>s.code===code) || null; }
+function aiChatSystemPrompt(mode, sc){
+  const format = 'ALWAYS reply in EXACTLY this 2-line format, nothing else, no markdown, no quotation marks:\nEN: <your reply>\nTIP: <a short, friendly tip in Vietnamese pointing out ONE grammar/word-choice mistake in the learner\'s last message and how to say it better — or just "OK" if their message was already fine>';
+  if(mode==='scenario' && sc){
+    return `You are role-playing as ${sc.roleEn} for a spoken-English practice conversation with a Vietnamese learner. Scenario: ${sc.descEn}\nStay fully in character at all times — never say you are an AI, never break the scenario. Reply naturally and casually like a real person would speak out loud, 1-2 short sentences only, and keep the conversation moving forward realistically. If the learner goes off-topic or says something unclear, react the way a real person in this situation would.\n${format}`;
+  }
+  return `You are a warm, friendly native English speaker having a casual spoken conversation with a Vietnamese learner who is practicing English speaking reflexes. Talk about anything — ask friendly follow-up questions to keep the conversation flowing naturally, like a real chat between friends. Reply casually, 1-2 short sentences only.\n${format}`;
+}
+function aiChatParseReply(raw){
+  const text = (raw||'').trim();
+  const enMatch = text.match(/EN:\s*([\s\S]*?)(?:\n+TIP:|$)/i);
+  const tipMatch = text.match(/TIP:\s*([\s\S]*)$/i);
+  let en = enMatch ? enMatch[1].trim() : text.replace(/^EN:\s*/i,'').trim();
+  let tip = tipMatch ? tipMatch[1].trim() : '';
+  if(/^OK\.?$/i.test(tip)) tip = '';
+  if(!en) en = text;
+  return {en, tip};
+}
+async function callGeminiChat(systemPrompt, historyMsgs){
+  const apiKey = SETTINGS.geminiApiKey;
+  if(!apiKey) throw new Error('NO_KEY');
+  const contents = historyMsgs.map(m=> m.role==='user'
+    ? {role:'user', parts:[{text:m.text}]}
+    : {role:'model', parts:[{text:m.raw || ('EN: '+m.text+'\nTIP: OK')}]});
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      systemInstruction:{parts:[{text:systemPrompt}]},
+      contents,
+      generationConfig:{temperature:0.85, maxOutputTokens:220}
+    })
+  });
+  if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' — '+t.slice(0,200)); }
+  const data = await res.json();
+  const cand = data.candidates && data.candidates[0];
+  const raw = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
+  if(!raw) throw new Error('EMPTY');
+  const parsed = aiChatParseReply(raw);
+  return {en:parsed.en, tip:parsed.tip, raw};
+}
+function setGeminiApiKey(){
+  const cur = SETTINGS.geminiApiKey || '';
+  const key = (window.prompt('Dán Gemini API key (miễn phí, lấy tại aistudio.google.com/apikey — đăng nhập Google rồi bấm "Create API key").\n\nKey chỉ lưu trên máy bạn (đồng bộ qua Drive như các cấu hình khác), app không có server riêng nên không thể giấu key hộ bạn.\n\nĐể trống rồi bấm OK để xóa key hiện tại.', cur) || '').trim();
+  SETTINGS.geminiApiKey = key;
+  saveSettings(); pushToDrive();
+  renderContent();
+}
+function aiChatApiKeyBtnHtml(){
+  const status = SETTINGS.geminiApiKey
+    ? '🔑 Đã cấu hình Gemini API key — bấm để đổi/xóa'
+    : '🔑 Chưa có Gemini API key — bấm để dán key miễn phí từ Google AI Studio (bắt buộc để trò chuyện)';
+  return `<div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-gemini-key" style="width:100%; text-align:left; font-size:11.5px;">${status}</button></div>`;
+}
+function startAiChatFree(){
+  navForward();
+  const opener = "Hey! How's it going? What do you want to talk about today?";
+  STATE.aiChatSession = {
+    mode:'free', scenario:null,
+    messages:[{role:'ai', text:opener, tip:'', raw:'EN: '+opener+'\nTIP: OK'}],
+    recording:false, sending:false, error:null
+  };
+  renderContent(); window.scrollTo(0,0);
+}
+function startAiChatScenario(code){
+  const sc = aiChatScenario(code); if(!sc) return;
+  navForward();
+  STATE.aiChatSession = {
+    mode:'scenario', scenario:code,
+    messages:[{role:'ai', text:sc.opener, tip:'', raw:'EN: '+sc.opener+'\nTIP: OK'}],
+    recording:false, sending:false, error:null
+  };
+  renderContent(); window.scrollTo(0,0);
+}
+function aiChatExit(){
+  const s = STATE.aiChatSession;
+  if(s){
+    const userTurns = s.messages.filter(m=>m.role==='user').length;
+    if(userTurns>0){
+      if(!Array.isArray(SETTINGS.aiChatLog)) SETTINGS.aiChatLog = [];
+      SETTINGS.aiChatLog.push({date:todayKey(), mode:s.mode, scenario:s.scenario, turns:userTurns});
+      if(SETTINGS.aiChatLog.length>300) SETTINGS.aiChatLog = SETTINGS.aiChatLog.slice(-300);
+      saveSettings(); pushToDrive();
+    }
+  }
+  aiChatStopRecord();
+  STATE.aiChatSession = null; renderContent(); navBack();
+}
+async function aiChatSend(text){
+  const s = STATE.aiChatSession; if(!s || s.sending) return;
+  const t = (text||'').trim(); if(!t) return;
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Bấm nút "Chưa có Gemini API key" phía trên để dán key trước khi trò chuyện.'); return; }
+  s.messages.push({role:'user', text:t});
+  s.sending = true; s.error = null;
+  renderContent();
+  try{
+    const sys = aiChatSystemPrompt(s.mode, aiChatScenario(s.scenario));
+    const hist = s.messages.slice(-AICHAT_MAX_HISTORY);
+    const reply = await callGeminiChat(sys, hist);
+    s.messages.push({role:'ai', text:reply.en, tip:reply.tip, raw:reply.raw});
+  }catch(err){
+    console.error('Lỗi gọi Gemini', err);
+    s.error = (err && err.message==='NO_KEY') ? 'Chưa có API key.' : 'Không gửi được tin nhắn — kiểm tra API key hoặc kết nối mạng, rồi thử lại.';
+  }
+  s.sending = false;
+  renderContent();
+  if(!s.error){
+    const last = s.messages[s.messages.length-1];
+    if(last && last.role==='ai') speakEnglishRobust(last.text, {rate:0.95});
+  }
+}
+function aiChatSendText(){
+  const el = document.getElementById('aiChatInput');
+  const text = el ? el.value.trim() : '';
+  if(!text) return;
+  aiChatSend(text);
+}
+let aiChatRecognition = null;
+function aiChatToggleRecord(){
+  const s = STATE.aiChatSession; if(!s || s.sending) return;
+  if(s.recording){ aiChatStopRecord(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt này chưa hỗ trợ nhận diện giọng nói. Hãy gõ tin nhắn thay vì dùng mic, hoặc mở app bằng Chrome.'); return; }
+  let rec;
+  try{ rec = new SR(); }catch(e){ showToast('⚠️','Lỗi mic','Không khởi động được micro.'); return; }
+  rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 1; rec.continuous = false;
+  rec.onresult = (ev)=>{
+    const transcript = (ev.results && ev.results[0] && ev.results[0][0]) ? ev.results[0][0].transcript : '';
+    aiChatRecognition = null; s.recording = false;
+    if(transcript.trim()) aiChatSend(transcript.trim()); else renderContent();
+  };
+  rec.onerror = ()=>{ aiChatRecognition = null; s.recording = false; renderContent(); };
+  rec.onend = ()=>{ if(aiChatRecognition===rec){ aiChatRecognition = null; s.recording = false; renderContent(); } };
+  try{ rec.start(); aiChatRecognition = rec; s.recording = true; renderContent(); }catch(e){ s.recording = false; }
+}
+function aiChatStopRecord(){
+  if(aiChatRecognition){ try{ aiChatRecognition.stop(); }catch(e){} }
+  const s = STATE.aiChatSession; if(s) s.recording = false;
+}
+function aiChatScenarioGridHtml(){
+  const cards = AICHAT_SCENARIOS.map(sc=>`<div class="eng-group-card compact" data-action="aichat-start-scenario" data-code="${sc.code}" style="--gcgrad:${sc.grad};">
+    <div class="gc-icon">${sc.emoji}</div>
+    <div class="gc-name">${escapeHtml(sc.title)}</div>
+    <div class="gc-desc">${escapeHtml(sc.sub)}</div>
+  </div>`).join('');
+  return `<div class="eng-group-grid compact">${cards}</div>`;
+}
+function renderAiChatPicker(item){
+  const intro = `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+    <div style="font-size:26px; margin-bottom:6px;">🤖</div>
+    <div style="font-size:13px; color:var(--dim); line-height:1.6;">Trò chuyện qua lại với AI bằng giọng nói hoặc gõ chữ để luyện phản xạ tiếng Anh. AI trả lời tự nhiên như người thật, đọc to câu trả lời, và gợi ý sửa câu bằng tiếng Việt khi bạn nói/viết chưa đúng.</div>
+  </div>`;
+  const freeCard = `<div class="card" data-action="aichat-start-free" style="padding:16px; margin-bottom:14px; cursor:pointer; border:1px solid #4F8CFF55;">
+    <div style="font-size:26px; margin-bottom:6px;">💬</div>
+    <div style="font-weight:800; font-size:14px; margin-bottom:4px;">Trò chuyện tự do</div>
+    <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Nói chuyện thoải mái bất kỳ chủ đề gì với AI, giống nhắn tin với bạn bè — luyện phản xạ nghe/nói tự nhiên, không theo kịch bản.</div>
+  </div>`;
+  return `${englishItemBackRow(item.name)}
+    ${intro}
+    ${aiChatApiKeyBtnHtml()}
+    <div class="eng-section-label">💬 Kiểu trò chuyện</div>
+    ${freeCard}
+    <div class="eng-section-label">🎭 Theo tình huống (${AICHAT_SCENARIOS.length} tình huống)</div>
+    ${aiChatScenarioGridHtml()}`;
+}
+function renderAiChatSessionHtml(){
+  const s = STATE.aiChatSession;
+  const sc = s.scenario ? aiChatScenario(s.scenario) : null;
+  const title = sc ? sc.title : 'Trò chuyện tự do';
+  const msgsHtml = s.messages.map(m=>{
+    if(m.role==='user'){
+      return `<div class="ai-chat-msg user"><div class="ai-chat-bubble">${escapeHtml(m.text)}</div></div>`;
+    }
+    const tipHtml = m.tip ? `<div class="ai-chat-tip">💡 ${escapeHtml(m.tip)}</div>` : '';
+    return `<div class="ai-chat-msg ai">
+      <div class="ai-chat-bubble">${escapeHtml(m.text)} <span class="ai-chat-speak" data-action="aichat-speak-msg" data-text="${escapeHtml(m.text)}">🔊</span></div>
+      ${tipHtml}
+    </div>`;
+  }).join('');
+  const typingHtml = s.sending ? `<div class="ai-chat-msg ai"><div class="ai-chat-bubble ai-chat-typing">···</div></div>` : '';
+  const errorHtml = s.error ? `<div class="ai-chat-error">⚠️ ${escapeHtml(s.error)}</div>` : '';
+  return `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div><div class="title">${escapeHtml(title)}</div><button class="kh-backrow-action" data-action="aichat-exit">Thoát</button></div>
+    <div class="ai-chat-msgs" id="aiChatMsgs">${msgsHtml}${typingHtml}</div>
+    ${errorHtml}
+    <div class="ai-chat-inputbar">
+      <button class="ai-chat-mic-btn ${s.recording?'recording':''}" data-action="aichat-toggle-record" ${s.sending?'disabled':''}>${svgIcon('mic')}</button>
+      <input id="aiChatInput" class="ai-chat-input" type="text" placeholder="${s.recording?'Đang nghe…':'Gõ tin nhắn hoặc bấm mic để nói…'}" ${s.sending||s.recording?'disabled':''} onkeydown="if(event.key==='Enter'){event.preventDefault(); aiChatSendText();}">
+      <button class="ai-chat-send-btn" data-action="aichat-send-text" ${s.sending?'disabled':''}>➤</button>
+    </div>`;
+}
+function renderAiChat(item){
+  ensureEnglishItems();
+  const s = STATE.aiChatSession;
+  document.getElementById('content').innerHTML = s ? renderAiChatSessionHtml() : renderAiChatPicker(item);
+  if(s){
+    const box = document.getElementById('aiChatMsgs');
+    if(box) box.scrollTop = box.scrollHeight;
+    const inputEl = document.getElementById('aiChatInput');
+    if(inputEl && !s.sending && !s.recording) inputEl.focus();
+  }
 }
 
 // ================= HỌC QUA VIDEO (podcast luyện nghe — Slow English Podcast, What's Up English,
@@ -8086,6 +8380,20 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sentExitSessionEl){ sentExitSession(); return; }
   const vocabExitSessionEl = e.target.closest('[data-action="vocab-exit-session"]');
   if(vocabExitSessionEl){ vocabExitSession(); return; }
+  const aichatStartFreeEl = e.target.closest('[data-action="aichat-start-free"]');
+  if(aichatStartFreeEl){ startAiChatFree(); return; }
+  const aichatStartScenarioEl = e.target.closest('[data-action="aichat-start-scenario"]');
+  if(aichatStartScenarioEl){ startAiChatScenario(aichatStartScenarioEl.getAttribute('data-code')); return; }
+  const aichatExitEl = e.target.closest('[data-action="aichat-exit"]');
+  if(aichatExitEl){ aiChatExit(); return; }
+  const aichatSendTextEl = e.target.closest('[data-action="aichat-send-text"]');
+  if(aichatSendTextEl){ aiChatSendText(); return; }
+  const aichatToggleRecordEl = e.target.closest('[data-action="aichat-toggle-record"]');
+  if(aichatToggleRecordEl){ aiChatToggleRecord(); return; }
+  const aichatSpeakMsgEl = e.target.closest('[data-action="aichat-speak-msg"]');
+  if(aichatSpeakMsgEl){ speakEnglishRobust(aichatSpeakMsgEl.getAttribute('data-text'), {rate:0.95}); return; }
+  const setGeminiKeyEl = e.target.closest('[data-action="set-gemini-key"]');
+  if(setGeminiKeyEl){ setGeminiApiKey(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
   if(avPickLevelEl){
     if(!STATE.avLevel) STATE.avLevel = {};
