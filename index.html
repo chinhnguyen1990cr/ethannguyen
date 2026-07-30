@@ -1081,7 +1081,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v56';
+const APP_VERSION = 'v57';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -5211,15 +5211,28 @@ let speakSessionCount=0; let speakDiagStatus='';
 // chỉ để lưu lại toàn bộ audio của lượt đọc, không tham gia vào việc nhận diện/chấm điểm, nên không
 // có rủi ro làm hỏng luồng chấm điểm vốn đã được xử lý kỹ càng nhiều lỗi thiết bị Android trước đây.
 let speakPlaybackRecorder=null, speakPlaybackChunks=[], speakPlaybackStream=null;
-async function startSpeakPlaybackCapture(){
+// sharedStream (tùy chọn): nếu đã có sẵn 1 luồng mic đang mở (nhánh Cloud STT — xem beginSpeakRecording),
+// TÁI SỬ DỤNG luôn thay vì tự gọi getUserMedia() thêm 1 lần nữa. Trước đây hàm này luôn tự mở luồng mic
+// RIÊNG của nó, chạy song song với luồng mic của beginSpeakRecordingCloud — tức xin quyền/mở phần cứng
+// mic 2 LẦN CÙNG LÚC. Trên nhiều điện thoại Android, mic không phục vụ tốt 2 yêu cầu getUserMedia đồng
+// thời (1 trong 2 luồng có thể bị treo hoặc chỉ nhận được im lặng) — đây là nghi vấn nguyên nhân gốc của
+// lỗi "bấm mic không nói được, không nghe lại được" tái diễn ở Luyện tập phát âm IPA. Khi dùng chung 1
+// luồng, hàm này KHÔNG tự đóng track khi kết thúc (chủ luồng — nơi đã mở nó — chịu trách nhiệm đóng).
+async function startSpeakPlaybackCapture(sharedStream){
   try{
-    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) return;
-    speakPlaybackStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    let stream = sharedStream;
+    if(stream){
+      speakPlaybackStream = null; // không sở hữu luồng này — không tự dừng track ở stopSpeakPlaybackCapture()
+    } else {
+      if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) return;
+      stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      speakPlaybackStream = stream;
+    }
     speakPlaybackChunks = [];
     let mime = 'audio/webm;codecs=opus';
     if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = 'audio/webm';
     if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = '';
-    speakPlaybackRecorder = mime ? new MediaRecorder(speakPlaybackStream,{mimeType:mime}) : new MediaRecorder(speakPlaybackStream);
+    speakPlaybackRecorder = mime ? new MediaRecorder(stream,{mimeType:mime}) : new MediaRecorder(stream);
     speakPlaybackRecorder.ondataavailable = (ev)=>{ if(ev.data && ev.data.size>0) speakPlaybackChunks.push(ev.data); };
     speakPlaybackRecorder.start();
   }catch(e){ speakPlaybackRecorder=null; } // im lặng bỏ qua — nút "Nghe lại giọng của bạn" sẽ đơn giản không xuất hiện
@@ -5299,7 +5312,10 @@ let speakCaptionHasText=false;
 // đều không hoạt động đúng trên một số thiết bị, ghi âm vẫn LUÔN tự dừng và chấm điểm đúng hạn.
 function estimateSpeakDurationSec(text){
   const words = (text||'').trim().split(/\s+/).filter(Boolean).length;
-  if(words<=1) return 6; // luyện 1 từ đơn (Luyện tập phát âm IPA) — không cần cửa sổ ghi âm dài như cả đoạn văn
+  // Luyện 1 từ đơn (Luyện tập phát âm IPA): tăng lên 9s (từ 6s) — 6s là quá ngắn để kịp đọc từ, hiểu
+  // cách phát âm rồi mới nói, đặc biệt khi cộng thêm ~1-2s độ trễ xin quyền/khởi động mic trên điện
+  // thoại — khiến người dùng cảm giác "bấm mic không kịp nói" dù bản ghi âm về mặt kỹ thuật vẫn chạy.
+  if(words<=1) return 9;
   return Math.max(14, Math.min(50, Math.round(words/1.8) + 7));
 }
 function clearSpeakTimers(){
@@ -5425,14 +5441,22 @@ function saveSpeakBest(s){
 // diện ngay, vừa hiện chữ dần lên màn hình trên MỌI thiết bị (kể cả Android — không phụ thuộc Web
 // Speech API), vừa giúp lúc dừng ghi âm chỉ còn đoạn cuối (tối đa ~10s) cần chờ nhận diện thay vì
 // toàn bộ đoạn văn dài, nên trả kết quả nhanh hơn nhiều.
-async function beginSpeakRecordingCloud(s, item){
+// existingStream (tùy chọn): luồng mic đã mở sẵn từ beginSpeakRecording (xem chú thích ở
+// startSpeakPlaybackCapture) — dùng chung để tránh gọi getUserMedia() 2 lần cùng lúc trên cùng 1 lượt
+// ghi âm. Chỉ tự mở luồng riêng (nhánh catch cũ) nếu KHÔNG được truyền sẵn (an toàn ngược, phòng khi
+// có nơi khác gọi hàm này độc lập trong tương lai).
+async function beginSpeakRecordingCloud(s, item, existingStream){
   const capText=(t)=>{ const cap=document.getElementById('speak-live-caption'); if(cap) cap.textContent=t; };
-  try{
-    speakMediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
-  }catch(e){
-    showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại (Cài đặt → Ứng dụng → Chrome hoặc app → Quyền → Microphone) rồi thử lại.');
-    s.recording=false; renderSpeakPracticeUI();
-    return;
+  if(existingStream){
+    speakMediaStream = existingStream;
+  } else {
+    try{
+      speakMediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    }catch(e){
+      showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại (Cài đặt → Ứng dụng → Chrome hoặc app → Quyền → Microphone) rồi thử lại.');
+      s.recording=false; renderSpeakPracticeUI();
+      return;
+    }
   }
   let mimeType='audio/webm;codecs=opus';
   if(!(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='audio/webm';
@@ -5510,7 +5534,11 @@ function beginSpeakRecording(){
   s.recording=true; s.result=null; s.usingCloudStt=useCloud; speakRecogStart=Date.now();
   s.recordSecLeft = estimateSpeakDurationSec(item[0]);
   if(s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
-  startSpeakPlaybackCapture(); // ghi song song để dùng cho nút "Nghe lại giọng của bạn" sau khi chấm điểm
+  // Nhánh Web Speech (không dùng Cloud STT): vẫn cần tự mở 1 luồng mic RIÊNG chỉ để ghi lại nghe lại
+  // giọng của bạn, vì Web Speech API không cho trang web truy cập audio thô. Nhánh Cloud STT thì
+  // KHÔNG mở ở đây — sẽ mở 1 luồng DÙNG CHUNG bên dưới (xem khối "if(useCloud)") để tránh xin quyền
+  // mic 2 lần cùng lúc.
+  if(!useCloud) startSpeakPlaybackCapture();
   renderSpeakPracticeUI();
   // Đếm ngược hiển thị + lưới an toàn cao nhất: tự dừng khi hết giờ, KHÔNG cần bất kỳ thao tác nào
   // từ người dùng. Cập nhật số đếm ngược bằng cách sửa trực tiếp text node (không innerHTML lại
@@ -5537,7 +5565,22 @@ function beginSpeakRecording(){
   };
   speakRecogScoreNow=scoreNow;
 
-  if(useCloud){ beginSpeakRecordingCloud(s, item); return; }
+  if(useCloud){
+    // Mở DUY NHẤT 1 luồng mic, dùng chung cho cả ghi âm chấm điểm (Cloud STT) và ghi lại để nghe lại
+    // giọng của bạn — xem chú thích chi tiết ở startSpeakPlaybackCapture. Trước đây 2 luồng mic được
+    // mở CÙNG LÚC (2 lệnh getUserMedia độc lập), nghi vấn là nguyên nhân khiến 1 trong 2 luồng bị
+    // treo/rỗng trên một số điện thoại Android — biểu hiện "bấm mic không nói được, không nghe lại
+    // được" tái diễn ở Luyện tập phát âm IPA.
+    navigator.mediaDevices.getUserMedia({audio:true}).then((stream)=>{
+      if(!s.recording){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} return; } // đã hủy giữa chừng (bấm dừng sớm/thoát màn hình) trước khi xin quyền xong — đóng luôn, không dùng
+      startSpeakPlaybackCapture(stream);
+      beginSpeakRecordingCloud(s, item, stream);
+    }).catch(()=>{
+      showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại (Cài đặt → Ứng dụng → Chrome hoặc app → Quyền → Microphone) rồi thử lại.');
+      s.recording=false; renderSpeakPracticeUI();
+    });
+    return;
+  }
 
   // Nhánh dự phòng: Web Speech API của trình duyệt (miễn phí, không cần cấu hình gì) — hoạt động
   // tốt trên desktop nhưng trên nhiều máy Android bị lỗi nền tảng liên tục báo "aborted"/"no-speech"
