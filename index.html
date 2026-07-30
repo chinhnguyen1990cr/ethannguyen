@@ -758,13 +758,8 @@
     margin-bottom:10px; letter-spacing:.02em;}
   .ipac-subgroup-icon{width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center;
     font-size:13px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,.25);}
-  .ipac-grid{display:flex; flex-wrap:wrap; gap:10px;}
-  /* Mỗi âm là 1 "icon" vuông bo góc SÁNG MÀU kiểu iOS — nền gradient đậm theo nhóm/nhóm nhỏ (không còn
-     nền mờ trong suốt như trước), bấm vào chuyển thẳng tới trang riêng của âm đó. */
-  .ipac-chip{width:66px; height:66px; border-radius:18px; border:none; color:#fff; font-size:14.5px; font-weight:800;
-    font-family:inherit; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 5px 14px rgba(0,0,0,.32), 0 0 0 1.5px rgba(255,255,255,.14) inset; transition:transform .12s;}
-  .ipac-chip:active{transform:scale(0.92);}
+  /* Mỗi âm giờ dùng chung style thẻ "chọn theo chủ đề" (.eng-group-card/.eng-group-grid, đã định
+     nghĩa ở phần Luyện ngữ pháp) để đồng bộ giao diện toàn app — không còn CSS icon vuông riêng nữa. */
   .ipac-detail-tip{font-size:12px; color:var(--fg); line-height:1.6; margin-bottom:6px;}
   .ipac-detail-confuse{font-size:11.5px; color:var(--gold); line-height:1.6;}
   .ipac-detail-examples{display:flex; flex-direction:column; gap:6px;}
@@ -1067,7 +1062,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v52';
+const APP_VERSION = 'v53';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3651,7 +3646,7 @@ const IPA_CHART_SUBGROUPS = {
   ]
 };
 // Mỗi âm: {ipa, tip: mẹo khẩu hình, confuse: cặp âm dễ nhầm (nếu có), m: tham số vẽ hình minh họa
-// khẩu hình/vị trí lưỡi (dùng cho ipaVowelDiagramSvg/ipaConsonantDiagramSvg), examples:[{w,ipa,vi}]
+// khẩu hình/vị trí lưỡi (dùng cho ipaMouthDiagramSvg), examples:[{w,ipa,vi}]
 // — mỗi âm 10 từ ví dụ (trước đây chỉ 3) để có nhiều từ luyện đọc hơn.
 const IPA_CHART_DATA = {
   mono: [
@@ -4383,11 +4378,11 @@ function speakLine(text, rate, pitch){
     }catch(e){ resolve(); }
   });
 }
-async function fetchCloudTtsAudioUrl(text, voiceName, speedMul){
+async function fetchCloudTtsAudioUrl(text, voiceName, speedMul, isSsml){
   const apiKey = SETTINGS.cloudTtsApiKey;
   if(!apiKey) return null;
   speedMul = speedMul || 1;
-  const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent(voiceName+'|'+speedMul+'|'+text);
+  const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent((isSsml?'ssml':'text')+'|'+voiceName+'|'+speedMul+'|'+text);
   if('caches' in window){
     try{
       const cache = await caches.open(TTS_CACHE_NAME);
@@ -4398,7 +4393,7 @@ async function fetchCloudTtsAudioUrl(text, voiceName, speedMul){
   const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      input:{text},
+      input: isSsml ? {ssml:text} : {text},
       voice:{languageCode:(voiceName||'en-US-Neural2-F').split('-').slice(0,2).join('-'), name:voiceName},
       audioConfig:{audioEncoding:'MP3', speakingRate: Math.max(0.5, Math.min(2, 0.95*speedMul))}
     })
@@ -5733,46 +5728,99 @@ function ipaDetailNav(dir){
   renderContent();
   window.scrollTo(0,0);
 }
-// Sơ đồ minh họa khẩu hình cho NGUYÊN ÂM (đơn + đôi) — vẽ trên "hình thang nguyên âm" IPA chuẩn:
-// cạnh trên = lưỡi cao (close), cạnh dưới = lưỡi thấp (open), trái = lưỡi trước (front), phải = lưỡi
-// sau (back). Chấm tròn đánh dấu vị trí lưỡi; với nguyên âm đôi có thêm 1 đường lướt từ điểm đầu (mờ)
-// tới điểm cuối (đậm). Hình bầu dục dưới cùng thể hiện khẩu hình môi (tròn/kéo ngang/trung tính).
-function ipaVowelDiagramSvg(ph, grad){
-  const m = ph.m || {shape:'neutral', open:.4, tx:.5, ty:.5};
-  const pt = (tx,ty)=>{ const topX = 20+tx*120, botX = 50+tx*60; return [topX+(botX-topX)*ty, 20+ty*100]; };
-  const [x,y] = pt(m.tx, m.ty);
-  const hasEnd = typeof m.tx2==='number';
-  const [x2,y2] = hasEnd ? pt(m.tx2, m.ty2) : [x,y];
-  const lipRx = m.shape==='round' ? 16 : (m.shape==='spread' ? 30 : 22);
-  const lipRy = m.shape==='round' ? 18 : (m.shape==='spread' ? 9 : 13);
-  return `<svg viewBox="0 0 160 156" class="ipac-mouth-svg">
-    <polygon points="20,20 140,20 110,120 50,120" fill="none" stroke="${grad[0]}" stroke-width="1.5" opacity="0.4"/>
-    <text x="80" y="12" font-size="8.5" fill="var(--dim2)" text-anchor="middle">Lưỡi cao</text>
-    <text x="80" y="134" font-size="8.5" fill="var(--dim2)" text-anchor="middle">Lưỡi thấp</text>
-    ${hasEnd?`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="${grad[1]}" stroke-width="3" stroke-linecap="round" opacity="0.85"/><circle cx="${x}" cy="${y}" r="4.5" fill="${grad[0]}" opacity="0.55"/>`:''}
-    <circle cx="${x2}" cy="${y2}" r="7.5" fill="${grad[1]}"/>
-    <ellipse cx="80" cy="144" rx="${lipRx}" ry="${lipRy}" fill="none" stroke="${grad[1]}" stroke-width="3"/>
-  </svg>`;
+// Sơ đồ minh họa "mặt cắt khoang miệng nhìn nghiêng" — vẽ hẳn đầu người nhìn nghiêng, khoang miệng
+// cắt lộ ra, lưỡi là 1 khối màu gồ lên đúng vị trí phát âm. Trực quan hơn hẳn biểu đồ hình thang IPA
+// trừu tượng trước đây vì người học nhìn là hình dung ngay "âm này phát ra ở đâu trong miệng" mà
+// không cần biết lý thuyết ngữ âm học. Dùng CHUNG 1 hệ tọa độ (vòm miệng + sàn miệng) cho cả nguyên âm
+// (lưỡi gồ theo vị trí trước/sau — cao/thấp) lẫn phụ âm (lưỡi/môi/họng cản hơi đúng điểm cấu âm).
+const IPAM_ROOF = [[46,90],[80,66],[132,88]];     // vòm miệng: môi -> vòm cứng -> vòm mềm/họng
+const IPAM_FLOOR = [[46,122],[86,140],[128,130]]; // sàn miệng: môi -> giữa -> họng
+const IPAM_TIP = [50,121], IPAM_ROOT = [124,131], IPAM_FLOORMID = [88,142];
+function ipamBez(pts,t){
+  const x0=pts[0][0],y0=pts[0][1], x1=pts[1][0],y1=pts[1][1], x2=pts[2][0],y2=pts[2][1], mt=1-t;
+  return [mt*mt*x0+2*mt*t*x1+t*t*x2, mt*mt*y0+2*mt*t*y1+t*t*y2];
 }
-// Vị trí phát âm (nơi luồng hơi bị cản trong khoang miệng) cho PHỤ ÂM, xếp từ môi (trước) tới thanh
-// hầu (sau) trên 1 thanh ngang; màu chấm đánh dấu hữu thanh (rung dây thanh)/vô thanh, icon thể hiện
-// cách phát âm (tắc/xát/mũi/tiếp cận).
+function ipamHump(tx,ty){
+  const r = ipamBez(IPAM_ROOF, tx), f = ipamBez(IPAM_FLOOR, tx);
+  return [r[0]+(f[0]-r[0])*ty, r[1]+(f[1]-r[1])*ty];
+}
+function ipamTonguePath(hx,hy){
+  const tx=IPAM_TIP[0],ty=IPAM_TIP[1], rx=IPAM_ROOT[0],ry=IPAM_ROOT[1], mx=IPAM_FLOORMID[0],my=IPAM_FLOORMID[1];
+  return `M ${tx},${ty} Q ${(tx+hx)/2},${Math.min(ty,hy)-8} ${hx},${hy} Q ${(hx+rx)/2},${Math.min(hy,ry)-6} ${rx},${ry} Q ${(rx+mx)/2},${ry+8} ${mx},${my} Q ${(mx+tx)/2},${my+4} ${tx},${ty} Z`;
+}
+const IPAM_HEAD = `<path d="M 118,14 C 160,16 186,42 190,80 C 193,108 184,132 165,146 C 150,158 128,166 105,166 C 85,166 68,158 57,146 C 48,136 42,124 40,112 C 38,100 36,90 40,80 C 30,74 26,64 32,54 C 38,44 48,32 62,24 C 78,16 98,13 118,14 Z" fill="#E8B98A" stroke="#B5875A" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="155" cy="88" rx="8" ry="13" fill="#E8B98A" stroke="#B5875A" stroke-width="1.6"/>`;
+const IPAM_CAVITY = `<path d="M 42,102 C 55,80 80,68 106,68 C 126,68 138,80 142,96 C 145,108 143,116 134,120 L 130,134 C 115,145 92,149 71,146 C 55,144 46,136 40,124 Z" fill="#3B2430" stroke="#8A5568" stroke-width="1.3"/>`;
+const IPAM_TEETH = `<rect x="40" y="96" width="10" height="7" rx="1.5" fill="#fff" opacity="0.92"/><rect x="40" y="118" width="10" height="7" rx="1.5" fill="#fff" opacity="0.92"/>`;
 const CONS_PLACE_POS = {bilabial:.05, labiodental:.18, dental:.30, alveolar:.42, postalveolar:.56, palatal:.68, velar:.84, glottal:.97};
 const CONS_PLACE_LABEL = {bilabial:'Môi — Môi', labiodental:'Môi — Răng', dental:'Răng', alveolar:'Lợi (chân răng)', postalveolar:'Sau lợi', palatal:'Vòm cứng', velar:'Vòm mềm', glottal:'Thanh hầu'};
 const CONS_MANNER_ICON = {plosive:'💥', fricative:'💨', affricate:'⚡', nasal:'👃', approximant:'🌊'};
-function ipaConsonantDiagramSvg(ph, grad){
+const CONS_MANNER_TY = {plosive:.12, fricative:.14, affricate:.12, nasal:.18, approximant:.28};
+const CONS_NONLINGUAL = {bilabial:1, labiodental:1}; // môi/răng tạo âm, KHÔNG phải lưỡi chạm vòm
+function ipaMouthDiagramSvg(ph, groupKey, grad){
   const m = ph.m || {};
-  const pos = CONS_PLACE_POS[m.place]!==undefined ? CONS_PLACE_POS[m.place] : .5;
-  const x = 14 + pos*132;
-  const icon = CONS_MANNER_ICON[m.manner] || '🔤';
-  return `<svg viewBox="0 0 160 96" class="ipac-mouth-svg">
-    <text x="14" y="16" font-size="9" fill="var(--dim2)">👄 Môi</text>
-    <text x="146" y="16" font-size="9" fill="var(--dim2)" text-anchor="end">Họng 🫁</text>
-    <line x1="14" y1="32" x2="146" y2="32" stroke="${grad[0]}" stroke-width="3" stroke-linecap="round" opacity="0.35"/>
-    <circle cx="${x}" cy="32" r="9" fill="${m.voiced?grad[1]:grad[0]}"/>
-    <text x="${x}" y="55" font-size="19" text-anchor="middle">${icon}</text>
-    <text x="80" y="80" font-size="9.5" fill="var(--dim)" text-anchor="middle">${escapeHtml(CONS_PLACE_LABEL[m.place]||'')} · ${m.voiced?'hữu thanh (rung dây thanh)':'vô thanh (không rung)'}</text>
+  let hx,hy, markerX,markerY, icon='', label='', hasDiph=false, sx,sy;
+  if(groupKey==='cons'){
+    const place = m.place || 'alveolar';
+    const placeTx = CONS_PLACE_POS[place]!==undefined ? CONS_PLACE_POS[place] : .5;
+    icon = CONS_MANNER_ICON[m.manner] || '';
+    label = `${CONS_PLACE_LABEL[place]||''} · ${m.voiced?'hữu thanh':'vô thanh'}`;
+    if(place==='glottal'){
+      [hx,hy] = ipamHump(.42,.7);      // lưỡi thả lỏng — âm /h/ cản hơi sâu trong thanh hầu, không ở miệng
+      [markerX,markerY] = ipamHump(.97,.68);
+    } else if(CONS_NONLINGUAL[place]){
+      [hx,hy] = ipamHump(.42,.72);     // lưỡi thả lỏng ở vị trí trung tính
+      [markerX,markerY] = ipamHump(placeTx,.15);
+    } else {
+      const ty = CONS_MANNER_TY[m.manner]!==undefined ? CONS_MANNER_TY[m.manner] : .15;
+      [hx,hy] = ipamHump(placeTx, ty);
+      markerX = hx; markerY = hy;
+    }
+  } else {
+    const mm = Object.assign({shape:'neutral',open:.4,tx:.5,ty:.5}, m);
+    hasDiph = typeof mm.tx2==='number';
+    const endTx = hasDiph?mm.tx2:mm.tx, endTy = hasDiph?mm.ty2:mm.ty;
+    [hx,hy] = ipamHump(endTx, endTy);
+    markerX = hx; markerY = hy;
+    if(hasDiph){ [sx,sy] = ipamHump(mm.tx, mm.ty); }
+  }
+  const tonguePath = ipamTonguePath(hx,hy);
+  const startLine = hasDiph ? `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${markerX.toFixed(1)}" y2="${markerY.toFixed(1)}" stroke="${grad[1]}" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="5" fill="${grad[0]}" opacity="0.55"/>` : '';
+  const noseAirflow = (groupKey==='cons' && m.manner==='nasal') ? `<path d="M 34,66 C 28,60 26,52 30,44" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.8"/><path d="M 40,62 C 35,56 34,49 37,42" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.6"/>` : '';
+  return `<svg viewBox="0 0 220 200" class="ipac-mouth-svg">
+    ${IPAM_HEAD}${IPAM_CAVITY}${IPAM_TEETH}
+    <path d="${tonguePath}" fill="#D9707E" stroke="#B0505E" stroke-width="1.6"/>
+    ${noseAirflow}${startLine}
+    <circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="8" fill="${grad[1]}" stroke="#fff" stroke-width="2"/>
+    ${icon?`<text x="${markerX.toFixed(1)}" y="${(markerY-13).toFixed(1)}" font-size="15" text-anchor="middle">${icon}</text>`:''}
+    <text x="42" y="188" font-size="9.5" fill="var(--dim2)">👄 Môi</text>
+    <text x="178" y="188" font-size="9.5" fill="var(--dim2)" text-anchor="end">Họng</text>
+    ${label?`<text x="110" y="14" font-size="9.5" fill="var(--dim)" text-anchor="middle">${escapeHtml(label)}</text>`:''}
   </svg>`;
+}
+// Từ "mồi" (carrier) tiếng Anh gần đúng nhất để MÔ PHỎNG ÂM ĐANG CHỌN khi đọc rời (không phải đọc
+// nguyên từ ví dụ) — dùng cho giọng máy cục bộ (Web Speech API không hỗ trợ SSML/IPA nên không thể ra
+// lệnh đọc chính xác 1 âm vị). Khi đã cấu hình Google Cloud TTS, ưu tiên dùng SSML <phoneme
+// alphabet="ipa"> để yêu cầu bộ máy đọc ĐÚNG âm vị IPA đó — chính xác hơn nhiều so với đọc từ mồi.
+const IPA_SOUND_CARRIER = {
+  'iː':'ee','ɪ':'ih','ʊ':'uu','uː':'oo','e':'eh','ə':'uh','ɜː':'ur','ɔː':'aw','æ':'a','ʌ':'uh','ɑː':'ah','ɒ':'o',
+  'eɪ':'ay','aɪ':'eye','ɔɪ':'oy','aʊ':'ow','əʊ':'oh','ɪə':'ear','eə':'air','ʊə':'oor',
+  'p':'puh','b':'buh','t':'tuh','d':'duh','k':'kuh','g':'guh','f':'fff','v':'vvv','θ':'thuh','ð':'thuh',
+  's':'sss','z':'zzz','ʃ':'shh','ʒ':'zhuh','h':'huh','tʃ':'chuh','dʒ':'juh','m':'mmm','n':'nnn','ŋ':'ng',
+  'l':'lll','r':'rrr','w':'wuh','j':'yuh'
+};
+let ipaPhonemeAudioEl = null;
+function getIpaPhonemeAudioEl(){ if(!ipaPhonemeAudioEl) ipaPhonemeAudioEl = new Audio(); return ipaPhonemeAudioEl; }
+async function speakIpaPhonemeSound(sym){
+  if(!sym) return;
+  const carrier = IPA_SOUND_CARRIER[sym] || sym;
+  try{
+    if(SETTINGS.cloudTtsApiKey){
+      const ssml = `<speak><phoneme alphabet="ipa" ph="${sym}">${escapeHtml(carrier)}</phoneme></speak>`;
+      const url = await fetchCloudTtsAudioUrl(ssml, nextSingleTtsVoice(), 0.8, true);
+      if(url){ const audio = getIpaPhonemeAudioEl(); try{ audio.pause(); }catch(e){} audio.src = url; await audio.play(); return; }
+    }
+  }catch(e){ /* rơi xuống giọng máy cục bộ bên dưới */ }
+  speakEnglishRobust(carrier, {rate:0.75});
 }
 function renderEnglishIPA(item){
   if(STATE.ipaDetailSym) return renderIpaDetail(item, STATE.ipaDetailSym);
@@ -5790,12 +5838,18 @@ function renderEnglishIPA(item){
     </div>
   `).join('');
 
-  // Mỗi âm giờ là 1 "icon" vuông sáng màu — bấm vào để CHUYỂN TỚI TRANG RIÊNG của âm đó (không mở
-  // rộng tại chỗ nữa) — trang riêng có sơ đồ khẩu hình, mẹo phát âm và 10 từ ví dụ để đọc.
-  const symbolChip = (ph, grad)=>`
-    <button class="ipac-chip" data-action="ipa-chart-open" data-sym="${escapeHtml(ph.ipa)}"
-      style="background:linear-gradient(145deg,${grad[0]},${grad[1]});">/${escapeHtml(ph.ipa)}/</button>
-  `;
+  // Mỗi âm giờ là 1 thẻ gradient kiểu "chọn theo chủ đề" của Luyện ngữ pháp (dùng chung class
+  // .eng-group-card/.eng-group-grid) để đồng bộ giao diện toàn app — bấm vào để CHUYỂN TỚI TRANG
+  // RIÊNG của âm đó, có sơ đồ khẩu hình, mẹo phát âm và 10 từ ví dụ để đọc.
+  const symbolChip = (ph, grad)=>{
+    const gradCss = `linear-gradient(135deg,${grad[0]},${grad[1]})`;
+    const preview = ph.examples.slice(0,3).map(e=>e.w).join(', ');
+    return `<div class="eng-group-card compact" data-action="ipa-chart-open" data-sym="${escapeHtml(ph.ipa)}" style="--gcgrad:${gradCss};">
+      <div class="gc-icon">/${escapeHtml(ph.ipa)}/</div>
+      <div class="gc-name">${escapeHtml(preview)}</div>
+      <div class="gc-count">${ph.examples.length} từ ví dụ</div>
+    </div>`;
+  };
 
   let gridHtml;
   if(subgroups){
@@ -5803,11 +5857,11 @@ function renderEnglishIPA(item){
       const phs = sg.syms.map(sym=> list.find(p=>p.ipa===sym) ).filter(Boolean);
       return `<div class="ipac-subgroup">
         <div class="ipac-subgroup-title"><span class="ipac-subgroup-icon" style="background:linear-gradient(145deg,${sg.grad[0]},${sg.grad[1]});">${sg.icon}</span>${escapeHtml(sg.name)}</div>
-        <div class="ipac-grid">${phs.map(p=>symbolChip(p, sg.grad)).join('')}</div>
+        <div class="eng-group-grid compact">${phs.map(p=>symbolChip(p, sg.grad)).join('')}</div>
       </div>`;
     }).join('');
   } else {
-    gridHtml = `<div class="ipac-grid">${list.map(p=>symbolChip(p, group.grad)).join('')}</div>`;
+    gridHtml = `<div class="eng-group-grid compact">${list.map(p=>symbolChip(p, group.grad)).join('')}</div>`;
   }
 
   document.getElementById('content').innerHTML = `
@@ -5835,7 +5889,7 @@ function renderIpaDetail(item, sym){
   const { groupKey, ph } = found;
   const group = IPA_CHART_GROUPS.find(g=>g.key===groupKey) || IPA_CHART_GROUPS[0];
   const isCons = groupKey==='cons';
-  const diagram = isCons ? ipaConsonantDiagramSvg(ph, group.grad) : ipaVowelDiagramSvg(ph, group.grad);
+  const diagram = ipaMouthDiagramSvg(ph, groupKey, group.grad);
   const examplesHtml = ph.examples.map(ex=>`
     <div class="ipac-example" data-action="ipa-chart-speak" data-word="${escapeHtml(ex.w)}">
       <span class="ipac-ex-play">🔊</span>
@@ -5848,7 +5902,7 @@ function renderIpaDetail(item, sym){
     <div class="kh-backrow"><div class="kh-backbtn" data-action="ipa-detail-close">${svgIcon('back')}</div><div class="title">${escapeHtml(group.name)}</div></div>
     <div class="card ipac-detail-hero" style="background:linear-gradient(135deg,${group.grad[0]}2e,${group.grad[1]}12);">
       <div class="ipac-detail-symbol" style="background:linear-gradient(145deg,${group.grad[0]},${group.grad[1]});">/${escapeHtml(ph.ipa)}/</div>
-      <button class="ipac-detail-listen" data-action="ipa-chart-speak" data-word="${escapeHtml(ph.examples[0].w)}">🔊 Nghe âm mẫu</button>
+      <button class="ipac-detail-listen" data-action="ipa-phoneme-speak" data-sym="${escapeHtml(ph.ipa)}">🔊 Nghe âm mẫu</button>
     </div>
     <div class="card ipac-detail-diagram-card">
       <div class="ipac-detail-heading">👄 ${isCons?'Vị trí phát âm':'Khẩu hình &amp; vị trí lưỡi'}</div>
@@ -6530,6 +6584,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaOpenEl){ openIpaDetail(ipaOpenEl.getAttribute('data-sym')); return; }
   const ipaSpeakEl = e.target.closest('[data-action="ipa-chart-speak"]');
   if(ipaSpeakEl){ speakIpaChartExample(ipaSpeakEl.getAttribute('data-word')); return; }
+  const ipaPhonemeSpeakEl = e.target.closest('[data-action="ipa-phoneme-speak"]');
+  if(ipaPhonemeSpeakEl){ speakIpaPhonemeSound(ipaPhonemeSpeakEl.getAttribute('data-sym')); return; }
   const ipaDetailCloseEl = e.target.closest('[data-action="ipa-detail-close"]');
   if(ipaDetailCloseEl){ closeIpaDetail(); return; }
   const ipaDetailNavEl = e.target.closest('[data-action="ipa-detail-nav"]');
