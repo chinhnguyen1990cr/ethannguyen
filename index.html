@@ -249,6 +249,14 @@
   .method-name{font-size:13px; font-weight:700; color:var(--text);}
   .method-desc{font-size:11.3px; color:var(--dim); margin-top:3px; line-height:1.4;}
   .method-link{font-size:10.5px; color:var(--gold); text-decoration:none; margin-top:5px; display:inline-block; font-weight:600;}
+  .emethod-jump{font-size:10.5px; color:var(--blue); margin-top:5px; display:inline-block; font-weight:700; cursor:pointer;}
+  .emethod-jump:active{opacity:.7;}
+  .modstat-grid{display:flex; flex-direction:column; gap:8px;}
+  .modstat-row{display:flex; align-items:center; gap:10px;}
+  .modstat-ic{width:34px; height:34px; border-radius:10px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:15px;}
+  .modstat-body{flex:1; min-width:0;}
+  .modstat-name{font-size:12px; font-weight:700; color:var(--text);}
+  .modstat-sub{font-size:10.5px; color:var(--dim); margin-top:1px;}
   .method-reason{font-size:10.5px; color:var(--teal); margin-top:6px; font-weight:600; display:flex; align-items:flex-start; gap:5px; line-height:1.4;}
   .method-reason .ic{flex-shrink:0;}
   .method-detail-toggle{font-size:10px; font-weight:700; color:var(--gold); flex-shrink:0; padding:3px 8px; border-radius:8px;
@@ -674,16 +682,18 @@
   .eng-level-pick-card .lvl-best{position:absolute; top:8px; right:8px; font-size:9px; color:#3a2c12; font-weight:700;
     background:#C9A66E; border-radius:8px; padding:2px 6px; opacity:.9;}
   @media (min-width:520px){ .eng-level-pick-card{flex:0 1 150px;} }
-  .video-lesson-list{display:flex; flex-direction:column; gap:10px; margin-bottom:4px;}
-  .video-lesson-card{display:flex; align-items:center; gap:12px; background:var(--panel); border:1.5px solid var(--border);
-    border-radius:14px; padding:8px 10px; cursor:pointer;}
+  .video-lesson-list{display:flex; flex-direction:column; gap:7px; margin-bottom:4px;}
+  .video-lesson-card{display:flex; align-items:center; gap:9px; background:var(--panel); border:1.5px solid var(--border);
+    border-radius:12px; padding:6px 8px; cursor:pointer;}
   .video-lesson-card:active{transform:scale(0.98);}
-  .video-lesson-card .vlc-thumb{width:96px; height:54px; border-radius:8px; object-fit:cover; flex:0 0 auto; background:#000;}
+  .video-lesson-card .vlc-thumb{width:72px; height:41px; border-radius:7px; object-fit:cover; flex:0 0 auto; background:#000;}
   .video-lesson-card .vlc-body{flex:1; min-width:0;}
-  .video-lesson-card .vlc-title{font-size:12.5px; font-weight:800; color:var(--text); line-height:1.35;}
-  .video-lesson-card .vlc-desc{font-size:10.5px; color:var(--dim); margin-top:3px; line-height:1.35;}
-  .video-lesson-card .vlc-play{flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--blue);
-    color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; padding-left:2px;}
+  .video-lesson-card .vlc-title{font-size:11.5px; font-weight:800; color:var(--text); line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;}
+  .video-lesson-card .vlc-desc{font-size:9.5px; color:var(--dim); margin-top:2px; line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .video-lesson-card .vlc-play{flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--blue);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; padding-left:1.5px;}
   .video-embed-wrap{position:relative; width:100%; padding-bottom:56.25%; margin-bottom:12px; border-radius:16px; overflow:hidden; background:#000;}
   .video-embed-wrap iframe{position:absolute; top:0; left:0; width:100%; height:100%; border:0;}
 
@@ -1105,7 +1115,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v61';
+const APP_VERSION = 'v62';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -2051,6 +2061,38 @@ function buildAdviceTrack(dateKeys, track){
       gmsg += ' Rất tốt — thử chế độ "Trộn tất cả" để ôn tổng hợp nhiều chủ đề cùng lúc.';
     }
     msgs.push(gmsg);
+  }
+  if(track==='english' && Array.isArray(SETTINGS.listenQuizLog) && SETTINGS.listenQuizLog.length>0){
+    const recent = SETTINGS.listenQuizLog.slice(-10);
+    const avgListen = Math.round(recent.reduce((s,r)=>s+r.pct,0)/recent.length);
+    let lmsg = `🎧 Luyện nghe: điểm trung bình ${recent.length} lượt gần nhất là <b>${avgListen}%</b>.`;
+    if(avgListen<70) lmsg += ' Nên nghe lại nhiều lần hoặc chọn cấp độ thấp hơn để nắm chắc trước khi lên cấp.';
+    else if(avgListen>=90) lmsg += ' Rất tốt — thử lên cấp độ cao hơn hoặc nghe trọn các video podcast dài hơn để thử thách bản thân.';
+    msgs.push(lmsg);
+  }
+  if(track==='english' && Array.isArray(SETTINGS.speakPracticeLog) && SETTINGS.speakPracticeLog.length>0){
+    const recentSpeak = SETTINGS.speakPracticeLog.filter(r=>r.level!=='ipa').slice(-10);
+    const recentIpa = SETTINGS.speakPracticeLog.filter(r=>r.level==='ipa').slice(-15);
+    if(recentSpeak.length>0){
+      const avgSpeak = Math.round(recentSpeak.reduce((s,r)=>s+r.overall,0)/recentSpeak.length);
+      let smsg = `🗣️ Luyện nói: điểm trung bình ${recentSpeak.length} lượt gần nhất là <b>${avgSpeak}%</b>.`;
+      if(avgSpeak<70) smsg += ' Thử luyện Shadowing (nói đè theo video) trước khi tự đọc để quen ngữ điệu.';
+      msgs.push(smsg);
+    }
+    if(recentIpa.length>0){
+      const avgIpa = Math.round(recentIpa.reduce((s,r)=>s+r.overall,0)/recentIpa.length);
+      let imsg = `🔤 Luyện IPA: điểm trung bình ${recentIpa.length} từ gần nhất là <b>${avgIpa}%</b>.`;
+      if(avgIpa<70) imsg += ' Xem lại video khẩu hình của âm đang luyện, chú ý vị trí lưỡi/môi trước khi đọc lại.';
+      msgs.push(imsg);
+    }
+  }
+  if(track==='english'){
+    const vs = vocabStats();
+    if(vs.learned>0){
+      let vmsg = `📖 Từ vựng: đã học <b>${vs.learned}/${vs.total}</b> từ (${vs.mastered} từ đã thuộc kỹ)${vs.accuracyPct!==null?`, độ chính xác <b>${vs.accuracyPct}%</b>`:''}${vs.dueToday>0?`. Có <b>${vs.dueToday} từ</b> đến hạn ôn tập hôm nay`:''}.`;
+      if(vs.weakTopic) vmsg += ` Chủ đề yếu nhất: <b>${vocabTopicMeta(vs.weakTopic.code).label}</b> — nên ôn thêm.`;
+      msgs.push(vmsg);
+    }
   }
   return msgs;
 }
@@ -3568,6 +3610,8 @@ function ensureEnglishItems(){
   // mặc định cũ, chưa từng có UI cho phép tự chỉnh) để họ cũng được hưởng gói học lớn hơn.
   if(SETTINGS.vocabDailyNew===10) SETTINGS.vocabDailyNew = 20;
   if(!SETTINGS.vocabStreak || typeof SETTINGS.vocabStreak!=='object') SETTINGS.vocabStreak = {lastDate:null, streak:0};
+  if(!SETTINGS.vocabDailyStats || typeof SETTINGS.vocabDailyStats!=='object') SETTINGS.vocabDailyStats = {};
+  if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
 }
 const ENGLISH_ITEM_KIND = {
   grammar:  {icon:'book',       c1:'#4FA8FF', c2:'#7C6CF0', sub:'Tra cứu thì, cấu trúc câu, giới từ'},
@@ -3733,6 +3777,13 @@ function vocabRecordAnswer(n, isCorrect){
     p.next = vocabDayKeyPlus(1);
   }
   vocabUpdateStreak();
+  // Ghi nhận theo NGÀY (không phải mảng log từng câu — số lượt trả lời từ vựng rất nhiều nên gộp
+  // theo ngày để phục vụ mục "Thống kê" mà không làm phình dữ liệu lưu trữ) — dùng cho biểu đồ/thống
+  // kê tuần-tháng-năm ở mục Học tiếng Anh > Thống kê.
+  if(!SETTINGS.vocabDailyStats || typeof SETTINGS.vocabDailyStats!=='object') SETTINGS.vocabDailyStats = {};
+  const today = todayKey();
+  const ds = SETTINGS.vocabDailyStats[today] || (SETTINGS.vocabDailyStats[today] = {answered:0, correct:0});
+  ds.answered++; if(isCorrect) ds.correct++;
   saveSettings();
 }
 // ---- Thống kê tổng quan + gợi ý AI: ngoài số đếm cơ bản, còn xác định CHỦ ĐỀ YẾU NHẤT (tỷ lệ trả
@@ -5380,7 +5431,7 @@ async function fetchVideoLessons(){
   if(VIDEO_LESSONS || videoLessonsLoading) return;
   videoLessonsLoading = true;
   try{
-    const res = await fetch('./video-lessons-data.json?v=2');
+    const res = await fetch('./video-lessons-data.json?v=3');
     VIDEO_LESSONS = await res.json();
   }catch(e){
     console.error('Không tải được danh sách video', e);
@@ -5407,7 +5458,7 @@ function videoLessonsListHtml(mode){
     </div>`;
   }).join('');
   return `<div class="eng-section-label" style="margin-top:18px;">📺 Podcast luyện nghe (kênh YouTube thật)</div>
-    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren &amp; Volka English — nghe trọn video rồi ${mode==='listening'?'trả lời câu hỏi chủ đề/từ vựng':'luyện nói theo từng câu'}. Video không có transcript trích sẵn — đúng tinh thần luyện nghe thật, không đọc trước đáp án.</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren, Volka English, ELLLO (English Listening Lesson Library Online) &amp; Randall's ESL Cyber Listening Lab — nghe trọn video rồi ${mode==='listening'?'trả lời câu hỏi chủ đề/từ vựng':'luyện nói theo từng câu'}. Video không có transcript trích sẵn — đúng tinh thần luyện nghe thật, không đọc trước đáp án.</div>
     <div class="video-lesson-list">${cards}</div>`;
 }
 function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
@@ -5946,7 +5997,16 @@ function saveSpeakBest(s){
   if(!SETTINGS.speakPractice) SETTINGS.speakPractice={};
   if(!SETTINGS.speakPractice.best) SETTINGS.speakPractice.best={};
   const pb=SETTINGS.speakPractice.best[s.level]||0;
-  if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; saveSettings(); pushToDrive(); }
+  let changed=false;
+  if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; changed=true; }
+  // Ghi lại MỖI lượt luyện (không chỉ điểm cao nhất) theo ngày — cùng cơ chế với grammarQuizLog/
+  // listenQuizLog, phục vụ mục "Thống kê" (đếm số bài + điểm trung bình theo ngày/tháng/năm) cho cả
+  // Luyện nói (level A1..C1/long) lẫn Luyện IPA phát âm (level='ipa', dùng chung engine chấm điểm này).
+  if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
+  SETTINGS.speakPracticeLog.push({date:todayKey(), level:s.level, overall:s.result.overall});
+  if(SETTINGS.speakPracticeLog.length>300) SETTINGS.speakPracticeLog = SETTINGS.speakPracticeLog.slice(-300);
+  saveSettings();
+  if(changed) pushToDrive();
 }
 // Bắt đầu ghi âm khi bấm nút (1 lần). Ghi âm sẽ TỰ ĐỘNG dừng và chấm điểm sau một khoảng thời
 // gian ước lượng theo độ dài đoạn văn (xem estimateSpeakDurationSec) — đây là cơ chế chính, luôn
@@ -6706,19 +6766,122 @@ function renderIpaDetail(item, sym){
   `;
   window.scrollTo(0,0);
 }
+// ================= PHƯƠNG PHÁP HỌC TIẾNG ANH (mục "Phương pháp" trong Học tiếng Anh) =================
+// 8 phương pháp được xem là hiệu quả nhất / phổ biến nhất trong xu hướng học ngoại ngữ hiện nay
+// (input có chủ đích, luyện tập có phản hồi ngay bằng AI, spaced repetition, v.v.) — mỗi phương pháp
+// đều gắn trực tiếp với 1 tính năng có sẵn trong app để người dùng áp dụng ngay, không chỉ đọc lý thuyết.
+const ENGLISH_STUDY_METHODS = [
+  {
+    id:'input', icon:'🎧', name:'Comprehensible Input (i+1)', itemId:'eng_listening',
+    sum:'Nghe/đọc nội dung VỪA SỨC — hiểu được phần lớn nhưng vẫn có vài điều mới — là cách não bộ tiếp thu ngôn ngữ tự nhiên nhất, theo giả thuyết Input của nhà ngôn ngữ học Stephen Krashen.',
+    why:'Đây vẫn là nền tảng của mọi phương pháp hiện đại: Duolingo, LingQ hay các kênh "slow English" đều xây trên nguyên lý này — học từ ngữ cảnh thay vì học luật đơn thuần.',
+    steps:[
+      'Vào <b>Luyện nghe</b>, chọn đúng cấp độ hiện tại (đừng chọn cấp quá khó — nghe hiểu &lt;70% nghĩa là đang quá sức).',
+      'Ưu tiên các video podcast thật (Slow English, What\'s Up English...) thay vì chỉ nghe câu ngắn tách rời, để quen nhịp điệu hội thoại tự nhiên.',
+      'Nghe lại 2-3 lần cùng 1 nội dung trước khi chuyển bài mới — lặp lại giúp não củng cố mẫu câu tốt hơn nghe lướt nhiều bài.',
+    ],
+  },
+  {
+    id:'shadow', icon:'🗣️', name:'Shadowing (nói đè theo)', itemId:'eng_speaking',
+    sum:'Nghe và LẶP LẠI gần như ngay lập tức, cố bắt chước cả ngữ điệu, trọng âm, tốc độ — không chỉ từ ngữ — của người bản xứ.',
+    why:'Được hầu hết giáo viên IELTS/TOEFL và ứng dụng luyện phát âm khuyên dùng vì tác động trực tiếp đến "cơ miệng" và khả năng phản xạ, thứ mà học ngữ pháp đơn thuần không rèn được.',
+    steps:[
+      'Bắt đầu với đoạn ngắn, tốc độ chậm ở <b>Luyện nói</b> cấp A1-A2 trước khi lên đoạn dài.',
+      'Không cần hiểu 100% nghĩa trước — cứ bắt chước âm thanh trước, hiểu nghĩa sau.',
+      'Ghi âm giọng mình rồi nghe lại, so với bản gốc — tự nhận ra chỗ lệch trọng âm nhanh hơn nhiều so với chỉ nghe suông.',
+    ],
+  },
+  {
+    id:'deliberate', icon:'🎯', name:'Luyện tập có phản hồi tức thì', itemId:'eng_speaking',
+    sum:'Theo nguyên lý "Deliberate Practice" (luyện tập có chủ đích) của nhà tâm lý học Anders Ericsson: chỉ luyện tập thôi chưa đủ — phải có PHẢN HỒI NGAY để biết đúng/sai và sửa liền, mới thực sự tiến bộ.',
+    why:'Đây là lý do các app hiện đại (kể cả app này) tích hợp AI chấm điểm phát âm theo thời gian thực, thay vì để người học tự đoán mình nói đúng hay sai.',
+    steps:[
+      'Mỗi lần luyện nói, đọc xong bấm chấm điểm ngay và ĐỌC KỸ phần từ bị nhận sai (đã tô màu) thay vì chỉ nhìn điểm số.',
+      'Đọc lại NGAY bài vừa sai 1-2 lần nữa trong cùng buổi — sửa nóng hiệu quả hơn để dồn qua hôm sau.',
+      'Theo dõi điểm trung bình ở mục Thống kê để biết xu hướng tiến bộ thật, không chỉ dựa cảm giác.',
+    ],
+  },
+  {
+    id:'srs', icon:'📖', name:'Spaced Repetition (SRS)', itemId:'eng_vocab',
+    sum:'Ôn từ vựng theo chu kỳ giãn cách tăng dần (1 → 3 → 7 → 16 → 35 ngày) đúng lúc não sắp quên — thay vì học dồn 1 lần rồi thôi.',
+    why:'Là kỹ thuật đứng sau các app ghi nhớ nổi tiếng như Anki, Quizlet — dựa trên "đường cong quên lãng" (forgetting curve) của Hermann Ebbinghaus, vẫn là phương pháp ghi nhớ từ vựng hiệu quả nhất được khoa học chứng minh.',
+    steps:[
+      'Mở <b>Luyện từ vựng</b> mỗi ngày và làm hết gói "Từ hôm nay" — app đã tự xếp lịch ôn theo đúng thuật toán này, không cần tự tính.',
+      'Đừng bỏ qua từ đến hạn ôn dù đã "nhớ mang máng" — ôn đúng lúc sắp quên mới là lúc trí nhớ dài hạn được củng cố.',
+      'Giữ chuỗi ngày học liên tục (streak) — hiệu quả SRS phụ thuộc vào việc ôn ĐÚNG NGÀY, bỏ dở giữa chừng sẽ làm hỏng lịch giãn cách.',
+    ],
+  },
+  {
+    id:'minimalpairs', icon:'🔤', name:'Minimal Pairs (cặp âm tối thiểu)', itemId:'eng_ipa',
+    sum:'Luyện phân biệt các cặp âm dễ nhầm (ví dụ /iː/-/ɪ/ trong "sheep"-"ship", /θ/-/s/ trong "think"-"sink") để tai và miệng nhận ra khác biệt nhỏ nhưng đổi hẳn nghĩa từ.',
+    why:'Đây là phương pháp cốt lõi trong ngữ âm học ứng dụng (applied phonetics) — người học tiếng Anh không phải bản xứ thường không "nghe ra" những cặp âm không tồn tại trong tiếng mẹ đẻ, nên cần luyện có chủ đích thay vì chỉ nghe thụ động.',
+    steps:[
+      'Vào <b>Luyện IPA</b>, xem hình khẩu hình (vị trí lưỡi/môi) trước khi luyện đọc — hiểu CƠ CHẾ tạo âm giúp sửa nhanh hơn bắt chước mù.',
+      'Ưu tiên các âm tiếng Việt không có (như /θ/, /ð/, /v/, /r/ kiểu Mỹ) — đây thường là nguồn gốc lỗi phát âm dai dẳng nhất.',
+      'Dùng mục "Luyện tập phát âm IPA" để AI chấm từng từ theo đúng âm đang học, thay vì luyện từ ngẫu nhiên.',
+    ],
+  },
+  {
+    id:'chunks', icon:'🧩', name:'Học theo cụm từ (Lexical Chunking)', itemId:'eng_grammar',
+    sum:'Học nguyên CỤM từ hay dùng cùng nhau (collocation) như "make a decision", "heavy rain", "take responsibility" — thay vì học từng từ đơn lẻ rồi tự ghép câu.',
+    why:'Xu hướng giảng dạy ngôn ngữ hiện nay (Lexical Approach) cho rằng người bản xứ nói trôi chảy phần lớn nhờ "kho cụm từ có sẵn" trong đầu, không phải nhờ ghép ngữ pháp real-time — học chunk giúp nói tự nhiên hơn nhiều so với học ngữ pháp rời rạc.',
+    steps:[
+      'Khi tra <b>Ngữ pháp</b>, chú ý các câu ví dụ nguyên cụm thay vì chỉ học công thức — cố nhớ cả cụm, không chỉ từ mới.',
+      'Khi gặp từ mới ở Luyện từ vựng, học luôn câu ví dụ đi kèm (đã có sẵn) thay vì chỉ học nghĩa đơn lẻ.',
+      'Khi luyện nói, cố dùng lại đúng cụm từ vừa học thay vì diễn đạt theo cách khác — lặp lại cụm đúng giúp nó "dính" vào phản xạ.',
+    ],
+  },
+  {
+    id:'aiconvo', icon:'🤖', name:'Hội thoại cùng AI', itemId:null,
+    sum:'Dùng trợ lý AI (chế độ giọng nói của ChatGPT, Claude, Gemini...) để luyện phản xạ hội thoại thật — hỏi đáp tự do, được sửa lỗi ngay, không ngại xấu hổ như nói với người thật.',
+    why:'Đây là xu hướng lớn nhất trong 2-3 năm gần đây: AI hội thoại giọng nói cho phép luyện "đầu ra" (output) không giới hạn thời gian, không cần bạn học hay giáo viên — bù đắp đúng điểm yếu lớn nhất của người tự học là thiếu môi trường luyện nói thực tế.',
+    steps:[
+      'Mỗi tuần dành 10-15 phút nói chuyện tự do với AI bằng giọng nói về 1 chủ đề bất kỳ (công việc, sở thích, tin tức) — không chuẩn bị trước kịch bản.',
+      'Yêu cầu AI SỬA LỖI ngữ pháp/từ vựng ngay sau khi bạn nói xong thay vì chỉ trò chuyện xã giao.',
+      'Kết hợp với mục Luyện nói trong app: AI hội thoại rèn PHẢN XẠ tự do, còn Luyện nói trong app rèn PHÁT ÂM chuẩn — hai kỹ năng bổ sung cho nhau.',
+    ],
+  },
+  {
+    id:'immersion', icon:'📺', name:'Đắm mình trong nội dung thật (Extensive Input)', itemId:'eng_listening',
+    sum:'Tiêu thụ LƯỢNG LỚN nội dung tiếng Anh thật (podcast, YouTube, phim, sách) mỗi ngày — ưu tiên số lượng và sự đều đặn hơn là hiểu chi tiết từng câu.',
+    why:'Khác với Comprehensible Input (chọn lọc kỹ nội dung vừa sức), Extensive Input nhấn mạnh KHỐI LƯỢNG tiếp xúc — nghiên cứu thụ đắc ngôn ngữ thứ hai cho thấy số giờ tiếp xúc thực tế là yếu tố dự đoán trình độ tốt hơn số giờ "học" ngữ pháp thuần túy.',
+    steps:[
+      'Đặt mục tiêu nghe tối thiểu 1 video/podcast trọn vẹn mỗi ngày ở mục Luyện nghe, kể cả những ngày bận.',
+      'Xen kẽ nội dung: có ngày nghe kỹ trả lời câu hỏi, có ngày chỉ nghe thư giãn không cần làm bài — cả hai đều có giá trị.',
+      'Tận dụng thời gian "chết" (di chuyển, dọn nhà) để nghe lại các bài đã học — tổng thời lượng tiếp xúc mới là yếu tố quyết định lâu dài.',
+    ],
+  },
+];
+function engMethodCardHtml(m){
+  const isOpen = !!STATE.expandedMethod['em_'+m.id];
+  const jump = m.itemId ? `<div class="emethod-jump" data-action="open-english-item" data-itemid="${m.itemId}">Mở mục này →</div>` : '';
+  return `<div class="method-card" style="cursor:default;">
+    <div class="method-body" style="width:100%;">
+      <div class="method-name-row">
+        <div class="method-name">${m.icon} ${m.name}</div>
+        <div class="method-detail-toggle ${isOpen?'open':''}" data-action="emethod-toggle" data-mid="${m.id}">Chi tiết <span class="mdt-arrow">▾</span></div>
+      </div>
+      <div class="method-desc">${m.sum}</div>
+      ${jump}
+      <div class="method-detail ${isOpen?'open':''}">${isOpen?`<div class="method-detail-inner">
+        <p><b>Vì sao hiệu quả / xu hướng hiện nay:</b> ${m.why}</p>
+        <p><b>Áp dụng ngay trong app:</b></p>
+        <ol>${m.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      </div>`:''}</div>
+    </div>
+  </div>`;
+}
 function renderEnglishMethods(){
+  const cardsHtml = ENGLISH_STUDY_METHODS.map(engMethodCardHtml).join('');
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
-    ${renderEnglishBlankCard()}
+    <div class="card" style="font-size:12px; color:var(--dim); line-height:1.6;">💡 8 phương pháp học tiếng Anh được xem là hiệu quả và phù hợp nhất với xu hướng hiện nay — mỗi phương pháp đều gắn trực tiếp với 1 tính năng có sẵn trong app để bạn áp dụng ngay, không chỉ đọc lý thuyết suông. Bấm "Chi tiết" để xem cách áp dụng cụ thể.</div>
+    ${cardsHtml}
   `;
 }
 function renderEnglishStats(){
-  document.getElementById('content').innerHTML = `
-    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
-    ${englishSubNav()}
-    ${renderEnglishBlankCard()}
-  `;
+  renderStatsFor('english');
 }
 
 function renderToday(){
@@ -6998,6 +7161,43 @@ function destroyCharts(){
 function hasChartJs(){ return typeof Chart !== 'undefined'; }
 
 // ================= RENDER: STATS =================
+// ---- Thẻ "Bài học theo mục" cho Thống kê Học tiếng Anh: tổng hợp số lượt luyện + điểm trung bình
+// của TỪNG mục con (Ngữ pháp/Luyện nghe/Luyện nói/Luyện IPA/Từ vựng) trong 1 khoảng ngày [startKey,
+// endKey] (chuỗi 'YYYY-MM-DD' so sánh trực tiếp được vì cùng định dạng). Dữ liệu lấy từ các log đã có
+// sẵn (grammarQuizLog, listenQuizLog, speakPracticeLog) + vocabDailyStats — không cần track riêng vì
+// các log này độc lập với LOG lịch làm việc (có thể luyện tiếng Anh mà không đụng tới lịch hôm đó). ----
+function englishModuleStatsCard(startKey, endKey){
+  const inRange = d => d>=startKey && d<=endKey;
+  const gLog = (SETTINGS.grammarQuizLog||[]).filter(r=>inRange(r.date));
+  const lLog = (SETTINGS.listenQuizLog||[]).filter(r=>inRange(r.date));
+  const allSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>inRange(r.date));
+  const spLog = allSpeak.filter(r=>r.level!=='ipa');
+  const ipaLog = allSpeak.filter(r=>r.level==='ipa');
+  const vocabDates = Object.keys(SETTINGS.vocabDailyStats||{}).filter(inRange);
+  let vocabAnswered=0, vocabCorrect=0;
+  vocabDates.forEach(d=>{ const v=SETTINGS.vocabDailyStats[d]; vocabAnswered+=v.answered||0; vocabCorrect+=v.correct||0; });
+  const avgPct = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.pct,0)/arr.length) : null;
+  const avgOverall = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.overall,0)/arr.length) : null;
+  const rows = [
+    {icon:'📝', name:'Ngữ pháp', count:gLog.length, unit:'lượt thi thử', score:avgPct(gLog), c1:'#FF8A3D', c2:'#FFC94A'},
+    {icon:'🎧', name:'Luyện nghe', count:lLog.length, unit:'lượt', score:avgPct(lLog), c1:'#2CDBA8', c2:'#1FA88A'},
+    {icon:'🗣️', name:'Luyện nói', count:spLog.length, unit:'lượt', score:avgOverall(spLog), c1:'#FF6EA8', c2:'#B06CF0'},
+    {icon:'🔤', name:'Luyện IPA', count:ipaLog.length, unit:'từ', score:avgOverall(ipaLog), c1:'#B78CFF', c2:'#7C6CF0'},
+    {icon:'📖', name:'Từ vựng', count:vocabAnswered, unit:'câu', score: vocabAnswered? Math.round(vocabCorrect/vocabAnswered*100):null, c1:'#2CDBA8', c2:'#4FA8FF'},
+  ];
+  const totalLessons = gLog.length + lLog.length + spLog.length + ipaLog.length + vocabDates.length;
+  const rowsHtml = rows.map(r=>`
+    <div class="modstat-row">
+      <div class="modstat-ic" style="background:linear-gradient(135deg,${r.c1},${r.c2})">${r.icon}</div>
+      <div class="modstat-body">
+        <div class="modstat-name">${r.name}</div>
+        <div class="modstat-sub">${r.count} ${r.unit}${r.score!==null?' · điểm TB <b>'+r.score+'%</b>':''}</div>
+      </div>
+    </div>`).join('');
+  return `<div class="card"><h3>📊 Bài học theo mục${totalLessons>0?' — tổng '+totalLessons+' lượt':''}</h3>
+    <div class="modstat-grid">${rowsHtml}</div>
+  </div>`;
+}
 function renderWeek(track){
   const days = []; for(let i=6;i>=0;i--){ days.push(toKey(addDays(new Date(),-i))); }
   const today = todayKey();
@@ -7026,6 +7226,7 @@ function renderWeek(track){
   }
   const chartsHtml = `<div class="card"><h3>7 ngày gần nhất</h3><div class="weekbars">${bars}</div></div>
     ${catBreakdown ? (useChart ? `<div class="card"><h3>Tỷ lệ theo nhóm</h3><div style="height:190px;"><canvas id="week-cat-chart"></canvas></div></div>` : `<div class="card"><h3>Tỷ lệ theo nhóm</h3>${catRows}</div>`) : ''}`;
+  const moduleCard = track==='english' ? englishModuleStatsCard(days[0], days[6]) : '';
 
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
@@ -7033,6 +7234,7 @@ function renderWeek(track){
     ${renderTrackHUD(track)}
     ${statsSeg()}
     ${chartsHtml}
+    ${moduleCard}
     <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">HLV AI nhận xét</span></div>${advice.map(m=>`<p>${m}</p>`).join('')}</div>
   `;
   attachStatsSegEvents();
@@ -7117,6 +7319,7 @@ function renderMonth(track){
   const perfectDays = trackedKeys.filter(k=>dayPctTrack(k,track)===100).length;
   const advice = buildAdviceTrack(monthKeys, track);
   const useChart = hasChartJs();
+  const moduleCard = track==='english' ? englishModuleStatsCard(monthKeys[0], monthKeys[monthKeys.length-1]) : '';
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
@@ -7133,6 +7336,7 @@ function renderMonth(track){
       <div class="stat"><div class="v">${trackedKeys.length}</div><div class="l">Ngày có dữ liệu</div></div>
     </div>
     ${useChart ? `<div class="card"><h3>Xu hướng theo ngày</h3><div style="height:150px;"><canvas id="month-trend-chart"></canvas></div></div>` : ''}
+    ${moduleCard}
     <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">HLV AI nhận xét</span></div>${advice.map(mm=>`<p>${mm}</p>`).join('')}</div>
   `;
   attachStatsSegEvents();
@@ -7177,6 +7381,7 @@ function renderYear(track){
     return best>=0 && bestAvg>0 ?MONTH_NAMES[best]:'—'; })();
   const advice = buildAdviceTrack(yearTrackedKeys, track);
   const badges = computeBadgesTrack(track);
+  const moduleCard = track==='english' ? englishModuleStatsCard(y+'-01-01', y+'-12-31') : '';
   // Biểu đồ cột dạng viên nang (pill/capsule) nhiều màu, % hiển thị phía trên mỗi cột — theo mẫu ảnh người dùng gửi.
   const yearChartHtml = `<div class="yearbars">${monthAvgs.map((avg,m)=>{
     const color = CUSTOM_CAT_COLORS[m % CUSTOM_CAT_COLORS.length];
@@ -7200,6 +7405,7 @@ function renderYear(track){
     </div>
     <div class="card"><h3>Huy hiệu thành tích</h3><div class="badgegrid">${badges.map(b=>`
         <div class="badge ${b.earned?'earned':''}"><div class="ic">${b.icon}</div><div class="t">${b.label}</div></div>`).join('')}</div></div>
+    ${moduleCard}
     <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">HLV AI nhận xét</span></div>${advice.map(mm=>`<p>${mm}</p>`).join('')}</div>
   `;
   attachStatsSegEvents();
@@ -7563,6 +7769,13 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const methodDetailToggle = e.target.closest('[data-action="method-detail-toggle"]');
   if(methodDetailToggle){
     const mid = methodDetailToggle.getAttribute('data-mid');
+    STATE.expandedMethod[mid] = !STATE.expandedMethod[mid];
+    renderContentPreserveScroll();
+    return;
+  }
+  const emethodToggle = e.target.closest('[data-action="emethod-toggle"]');
+  if(emethodToggle){
+    const mid = 'em_'+emethodToggle.getAttribute('data-mid');
     STATE.expandedMethod[mid] = !STATE.expandedMethod[mid];
     renderContentPreserveScroll();
     return;
