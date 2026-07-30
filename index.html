@@ -1081,7 +1081,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v57';
+const APP_VERSION = 'v58';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1381,7 +1381,8 @@ function snapshotNav(){
     // thoát hẳn ra "Học tiếng Anh". Trước đây STATE.quiz (Luyện ngữ pháp) không được đẩy vào lịch sử khi
     // bắt đầu làm bài — nên vuốt back lúc đang làm bài sẽ tiêu thụ nhầm mốc lịch sử của "mở Luyện ngữ
     // pháp" (đẩy bởi openEnglishItem), khiến nhảy thẳng về "Học tiếng Anh" thay vì về màn chọn chủ đề.
-    listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz, ipaDetailSym: STATE.ipaDetailSym
+    listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz, ipaDetailSym: STATE.ipaDetailSym,
+    vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic
   };
 }
 function restoreNav(snap){
@@ -1392,6 +1393,8 @@ function restoreNav(snap){
   STATE.speakSession = snap.speakSession!==undefined ? snap.speakSession : null;
   STATE.quiz = snap.quiz!==undefined ? snap.quiz : null;
   STATE.ipaDetailSym = snap.ipaDetailSym!==undefined ? snap.ipaDetailSym : null;
+  STATE.vocabSession = snap.vocabSession!==undefined ? snap.vocabSession : null;
+  STATE.vocabBrowseTopic = snap.vocabBrowseTopic!==undefined ? snap.vocabBrowseTopic : null;
   // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
   // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
   STATE.grammarDetailOpen = false;
@@ -3478,7 +3481,8 @@ function defaultEnglishItems(){
     {id:'eng_grammar_quiz', name:'Luyện ngữ pháp', kind:'quiz'},
     {id:'eng_listening', name:'Luyện nghe', kind:'listening'},
     {id:'eng_speaking', name:'Luyện nói', kind:'speaking'},
-    {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'}
+    {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'},
+    {id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'}
   ];
 }
 function ensureEnglishItems(){
@@ -3492,8 +3496,15 @@ function ensureEnglishItems(){
     SETTINGS.englishItems.push({id:'eng_ipa', name:'Luyện IPA', kind:'ipa'});
     saveSettings(); pushToDrive();
   }
+  // Di trú tương tự cho mục mới "Luyện từ vựng" (3000 từ, học theo lịch mỗi ngày + ôn tập xen kẽ).
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='vocab')){
+    SETTINGS.englishItems.push({id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'});
+    saveSettings(); pushToDrive();
+  }
   if(!SETTINGS.englishNotes || typeof SETTINGS.englishNotes!=='object') SETTINGS.englishNotes = {};
   if(!SETTINGS.grammarQuiz || typeof SETTINGS.grammarQuiz!=='object') SETTINGS.grammarQuiz = {};
+  if(!SETTINGS.vocabProgress || typeof SETTINGS.vocabProgress!=='object') SETTINGS.vocabProgress = {};
+  if(!SETTINGS.vocabDailyNew || typeof SETTINGS.vocabDailyNew!=='number') SETTINGS.vocabDailyNew = 10;
 }
 const ENGLISH_ITEM_KIND = {
   grammar:  {icon:'book',       c1:'#4FA8FF', c2:'#7C6CF0', sub:'Tra cứu thì, cấu trúc câu, giới từ'},
@@ -3501,6 +3512,7 @@ const ENGLISH_ITEM_KIND = {
   listening:{icon:'headphones', c1:'#2CDBA8', c2:'#1FA88A', sub:'Nghe hội thoại · chọn theo cấp độ'},
   speaking: {icon:'mic',        c1:'#FF6EA8', c2:'#B06CF0', sub:'Luyện nói & phát âm theo cấp độ'},
   ipa:      {icon:'headphones', c1:'#B78CFF', c2:'#7C6CF0', sub:'Bảng phiên âm IPA · 44 âm theo nhóm'},
+  vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3000 từ vựng · lịch học mỗi ngày + ôn tập'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
 function renderEnglishItemRows(){
@@ -3584,7 +3596,382 @@ function renderEnglishItem(){
   if(item.kind==='listening') return renderEnglishAV(item,'listening');
   if(item.kind==='speaking') return renderEnglishAV(item,'speaking');
   if(item.kind==='ipa') return renderEnglishIPA(item);
+  if(item.kind==='vocab') return renderEnglishVocab(item);
   return renderEnglishNotes(item);
+}
+// ================= LUYỆN TỪ VỰNG: 3000 từ, học theo lịch mỗi ngày (spaced repetition kiểu Leitner) =================
+// Dữ liệu tải từ vocab-data.json (đỡ nặng index.html, cùng cơ chế với Luyện nghe/Luyện nói):
+//   { topics: [{code,label,icon}, ...], words: [[n, word, type, topic, meaning_vi, example_en, example_vi], ...] }
+// n chạy 1..3000 theo đúng thứ tự trong mảng words (mảng đã sort theo n) nên tra cứu bằng words[n-1].
+//
+// PHƯƠNG PHÁP HỌC (đã thống nhất với người dùng qua 2 câu hỏi làm rõ trước khi bắt đầu soạn nội dung):
+//  1) "Từ hôm nay" — gói học mỗi ngày TỰ ĐỘNG gồm: (a) các từ ĐÃ học nhưng đến hạn ôn tập (thuật toán
+//     Leitner 6 hộp, khoảng lặp tăng dần 1→3→7→16→35 ngày), cộng với (b) một số từ MỚI theo đúng thứ tự
+//     tần suất (n tăng dần — 1000 từ đầu là từ phổ biến nhất, phần còn lại mở rộng theo chủ đề). Đây là
+//     bản tự động hóa của lịch "100 ngày, mỗi ngày 10 từ mới + 20 từ ôn tập" gợi ý trong tài liệu gốc.
+//  2) Duyệt tự do theo 21 chủ đề bất kỳ lúc nào (không phụ thuộc lịch), xem nghĩa/ví dụ và có thể bấm
+//     "Luyện chủ đề này" để làm bài ngay mà không ảnh hưởng lịch ôn tập hàng ngày (chỉ cập nhật tiến độ
+//     hộp Leitner của riêng những từ được luyện, không đổi hạn của các từ khác).
+//  3) Đa dạng dạng bài để tăng khả năng ghi nhớ chủ động (active recall) thay vì chỉ đọc thụ động:
+//     - Thẻ ghi nhớ (flashcard) giới thiệu khi gặp từ MỚI lần đầu — xem nghĩa, ví dụ, nghe phát âm.
+//     - Trắc nghiệm Anh→Việt (chọn đúng nghĩa) và Việt→Anh (chọn đúng từ) — luân phiên theo hộp Leitner.
+//     - Điền từ vào câu ví dụ (fill-in-the-blank) khi từ đã quen hơn — kiểm tra khả năng dùng từ trong
+//       ngữ cảnh, không chỉ nhớ nghĩa đơn thuần.
+let VOCAB_DATA = null; // {topics, words}
+let vocabDataLoading = false;
+async function fetchVocabData(){
+  if(VOCAB_DATA || vocabDataLoading) return;
+  vocabDataLoading = true;
+  try{
+    const res = await fetch('./vocab-data.json?v=1');
+    VOCAB_DATA = await res.json();
+  }catch(e){
+    console.error('Không tải được ngân hàng từ vựng', e);
+    VOCAB_DATA = {topics:[], words:[]};
+  }
+  vocabDataLoading = false;
+  if(STATE.tab==='english-item') renderContent();
+}
+function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
+function vocabTopics(){ return (VOCAB_DATA && VOCAB_DATA.topics) || []; }
+function vocabTopicMeta(code){ return vocabTopics().find(t=>t.code===code) || {code, label:code, icon:'📘'}; }
+function vocabWordsByTopic(code){ if(!VOCAB_DATA) return []; return VOCAB_DATA.words.filter(w=>w[3]===code); }
+// ---- Tiến độ học (Leitner 6 hộp: 0=mới chưa học, 1..5=đã học, khoảng ôn tăng dần) ----
+const VOCAB_BOX_INTERVAL_DAYS = [1,3,7,16,35]; // khoảng cách (ngày) SAU KHI đạt hộp 1..5
+function vocabProgressFor(n){
+  if(!SETTINGS.vocabProgress) SETTINGS.vocabProgress = {};
+  let p = SETTINGS.vocabProgress[n];
+  if(!p){ p = {box:0, next:null, seen:0, correct:0, wrong:0, introduced:false}; SETTINGS.vocabProgress[n] = p; }
+  return p;
+}
+function vocabDayKeyPlus(days){ return toKey(addDays(new Date(), days)); }
+function vocabRecordAnswer(n, isCorrect){
+  const p = vocabProgressFor(n);
+  p.seen = (p.seen||0)+1;
+  p.introduced = true;
+  if(isCorrect){
+    p.correct = (p.correct||0)+1;
+    p.box = Math.min(5, (p.box||0)+1);
+    p.next = vocabDayKeyPlus(VOCAB_BOX_INTERVAL_DAYS[p.box-1]||1);
+  } else {
+    p.wrong = (p.wrong||0)+1;
+    p.box = Math.max(0, (p.box||0)-1);
+    p.next = vocabDayKeyPlus(1);
+  }
+  saveSettings();
+}
+function vocabStats(){
+  const total = (VOCAB_DATA && VOCAB_DATA.words.length) || 3000;
+  let learned=0, mastered=0, dueToday=0;
+  const today = todayKey();
+  const prog = SETTINGS.vocabProgress || {};
+  Object.keys(prog).forEach(k=>{
+    const p = prog[k];
+    if(p.introduced) learned++;
+    if((p.box||0)>=5) mastered++;
+    if(p.introduced && p.next && p.next<=today) dueToday++;
+  });
+  return {total, learned, mastered, dueToday};
+}
+// ---- Xây gói "Từ hôm nay": từ đến hạn ôn tập + từ mới theo thứ tự tần suất, cache theo ngày để phiên
+// học không đổi giữa các lần mở lại trong cùng 1 ngày (kể cả khi đã làm xong vài từ). ----
+function vocabBuildDailyQueue(){
+  const today = todayKey();
+  if(SETTINGS.vocabDailyCache && SETTINGS.vocabDailyCache.date===today && Array.isArray(SETTINGS.vocabDailyCache.ids)){
+    return SETTINGS.vocabDailyCache.ids.filter(n=>vocabWordByN(n));
+  }
+  const prog = SETTINGS.vocabProgress || {};
+  const due = Object.keys(prog).map(k=>parseInt(k,10))
+    .filter(n=>prog[n].introduced && prog[n].next && prog[n].next<=today)
+    .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
+    .slice(0, 25);
+  const dueSet = new Set(due);
+  const newCount = Math.max(0, SETTINGS.vocabDailyNew||10);
+  const newWords = [];
+  const total = (VOCAB_DATA && VOCAB_DATA.words.length) || 3000;
+  for(let n=1; n<=total && newWords.length<newCount; n++){
+    if(dueSet.has(n)) continue;
+    const p = prog[n];
+    if(p && p.introduced) continue;
+    newWords.push(n);
+  }
+  const ids = shuffleArr(due).concat(newWords);
+  SETTINGS.vocabDailyCache = {date: today, ids};
+  saveSettings();
+  return ids;
+}
+// ---- Sinh câu hỏi trắc nghiệm / điền từ cho 1 từ ----
+function vocabPickDistractorWords(word, count){
+  const topicWords = vocabWordsByTopic(word[3]).filter(w=>w[0]!==word[0]);
+  let pool = topicWords.length>=count ? topicWords : VOCAB_DATA.words.filter(w=>w[0]!==word[0]);
+  pool = shuffleArr(pool);
+  return pool.slice(0, count);
+}
+function vocabExampleHasWord(word){
+  const re = new RegExp('\\b'+word[1].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b', 'i');
+  return re.test(word[5]);
+}
+function vocabBlankSentence(word){
+  const re = new RegExp('\\b'+word[1].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b', 'i');
+  return word[5].replace(re, '____');
+}
+function vocabPrepareCurrent(){
+  const s = STATE.vocabSession; if(!s) return;
+  const n = s.ids[s.idx];
+  const word = vocabWordByN(n);
+  s.answered = null; s.showTranslate = false;
+  if(!word){ s.showIntro=false; s.exType=null; s.options=[]; s.correctIdx=-1; return; }
+  const p = vocabProgressFor(n);
+  s.showIntro = !p.introduced;
+  const box = p.box||0;
+  let types = ['mc_en_vi','mc_vi_en'];
+  if(vocabExampleHasWord(word)) types.push('fill_blank');
+  const exType = types[(s.idx + box) % types.length];
+  s.exType = exType;
+  const distractors = vocabPickDistractorWords(word, 3);
+  let correctText, optTexts;
+  if(exType==='mc_en_vi'){
+    correctText = word[4];
+    optTexts = distractors.map(w=>w[4]);
+  } else if(exType==='fill_blank'){
+    correctText = word[1];
+    optTexts = distractors.map(w=>w[1]);
+  } else {
+    correctText = word[1];
+    optTexts = distractors.map(w=>w[1]);
+  }
+  const all = shuffleArr([{t:correctText, correct:true}].concat(optTexts.map(t=>({t, correct:false}))));
+  s.options = all.map(o=>o.t);
+  s.correctIdx = all.findIndex(o=>o.correct);
+}
+function vocabStartDaily(){
+  if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
+  const ids = vocabBuildDailyQueue();
+  if(ids.length===0){ showToast('🎉','Đã xong hết hôm nay!','Bạn đã học và ôn tập đủ số từ hẹn hôm nay. Quay lại vào ngày mai nhé, hoặc duyệt tự do theo chủ đề.'); return; }
+  navForward();
+  STATE.vocabSession = {mode:'daily', topic:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
+  vocabPrepareCurrent();
+  renderContent(); window.scrollTo(0,0);
+}
+function vocabStartTopic(code){
+  if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
+  const bank = vocabWordsByTopic(code);
+  const ids = shuffleArr(bank.map(w=>w[0])).slice(0, Math.min(20, bank.length));
+  navForward();
+  STATE.vocabSession = {mode:'topic', topic:code, ids, idx:0, correct:0, finished:false, retried:{}};
+  vocabPrepareCurrent();
+  renderContent(); window.scrollTo(0,0);
+}
+function vocabIntroContinue(){
+  const s = STATE.vocabSession; if(!s) return;
+  s.showIntro = false;
+  renderContent();
+}
+function vocabAnswer(optIdx){
+  const s = STATE.vocabSession; if(!s || s.answered!==null) return;
+  s.answered = optIdx;
+  const n = s.ids[s.idx];
+  const isCorrect = optIdx===s.correctIdx;
+  if(isCorrect) s.correct++;
+  vocabRecordAnswer(n, isCorrect);
+  if(!isCorrect && !s.retried[n]){
+    s.retried[n] = true;
+    s.ids.push(n); // ôn lại ngay trong phiên này để củng cố (active recall ngay sau khi sai)
+  }
+  renderContent();
+}
+function vocabNext(){
+  const s = STATE.vocabSession; if(!s) return;
+  if(s.idx < s.ids.length-1){
+    s.idx++;
+    vocabPrepareCurrent();
+    renderContent();
+  } else {
+    s.finished = true;
+    renderContent();
+  }
+}
+function vocabSpeakCurrent(){
+  const s = STATE.vocabSession; if(!s) return;
+  const word = vocabWordByN(s.ids[s.idx]);
+  if(word) speakEnglishRobust(word[1], {rate:0.85});
+}
+function vocabToggleTranslate(){
+  const s = STATE.vocabSession; if(!s) return;
+  s.showTranslate = !s.showTranslate; renderContent();
+}
+function vocabExitSession(){
+  STATE.vocabSession = null; renderContent(); navBack();
+}
+function vocabOpenTopic(code){
+  navForward();
+  STATE.vocabBrowseTopic = code;
+  renderContent(); window.scrollTo(0,0);
+}
+function vocabCloseTopic(){
+  STATE.vocabBrowseTopic = null; renderContent(); navBack();
+}
+function vocabSpeakWord(n){
+  const w = vocabWordByN(n);
+  if(w) speakEnglishRobust(w[1], {rate:0.85});
+}
+// ---- Giao diện ----
+function vocabHomeSubNav(){
+  const view = STATE.vocabView || 'daily';
+  return `<div class="seg" style="margin-bottom:14px;">
+    <button class="${view==='daily'?'active':''}" data-action="vocab-set-view" data-view="daily">📅 Từ hôm nay</button>
+    <button class="${view==='topics'?'active':''}" data-action="vocab-set-view" data-view="topics">📂 Chủ đề</button>
+  </div>`;
+}
+function renderVocabDailyHome(){
+  const stats = vocabStats();
+  const ids = VOCAB_DATA ? vocabBuildDailyQueue() : [];
+  const dueCount = SETTINGS.vocabProgress ? ids.filter(n=>{ const p=SETTINGS.vocabProgress[n]; return p && p.introduced; }).length : 0;
+  const newCount = ids.length - dueCount;
+  const pct = stats.total ? Math.round((stats.learned/stats.total)*100) : 0;
+  return `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #2CDBA855;">
+    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">📊 Tiến độ tổng: đã học <b>${stats.learned}</b>/${stats.total} từ (${pct}%) · đã thuộc lòng <b>${stats.mastered}</b> từ.</div>
+  </div>
+  <div class="card eng-mocktest-card">
+    <div class="mocktest-icon">📅</div>
+    <div class="mocktest-title">Từ hôm nay</div>
+    <div class="mocktest-desc">${VOCAB_DATA ? (ids.length===0 ? 'Bạn đã học và ôn tập đủ số từ hẹn hôm nay — quay lại vào ngày mai nhé!' : `Gói học hôm nay: <b>${newCount}</b> từ mới + <b>${dueCount}</b> từ cần ôn tập (tổng ${ids.length} từ).`) : 'Đang tải dữ liệu từ vựng…'}</div>
+    ${ids.length>0 ? `<button class="form-btn" style="width:100%;" data-action="vocab-start-daily">▶️ Bắt đầu học hôm nay</button>` : ''}
+  </div>
+  <div class="eng-section-label">💡 Cách học hiệu quả</div>
+  <div class="card" style="padding:14px 16px; font-size:12.5px; color:var(--dim); line-height:1.7;">
+    Mỗi ngày app tự chọn cho bạn một số từ <b>mới</b> (theo thứ tự từ thông dụng nhất) và các từ <b>đến hạn ôn tập</b>
+    (dựa trên nguyên lý lặp lại ngắt quãng — từ nào bạn nhớ tốt sẽ giãn cách ôn xa dần: 1 → 3 → 7 → 16 → 35 ngày;
+    từ nào trả lời sai sẽ được hỏi lại sớm hơn). Học đều mỗi ngày sẽ hiệu quả hơn nhiều so với học dồn một lúc.
+  </div>`;
+}
+function renderVocabTopicsGrid(){
+  const topics = vocabTopics();
+  const prog = SETTINGS.vocabProgress || {};
+  const cards = topics.map(t=>{
+    const words = VOCAB_DATA ? vocabWordsByTopic(t.code) : [];
+    const learned = words.filter(w=>{ const p=prog[w[0]]; return p && p.introduced; }).length;
+    return `<div class="eng-group-card compact" data-action="vocab-open-topic" data-topic="${t.code}" style="--gcgrad:linear-gradient(135deg,#2CDBA8,#4FA8FF);">
+      <div class="gc-icon">${t.icon}</div>
+      <div class="gc-name">${escapeHtml(t.label)}</div>
+      <div class="gc-desc">${words.length} từ</div>
+      <div class="gc-count">Đã học ${learned}/${words.length}</div>
+    </div>`;
+  }).join('');
+  return `<div class="eng-section-label">📂 Duyệt tự do theo chủ đề (${topics.length} chủ đề · 3000 từ)</div>
+  <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu từ vựng…</div>'}</div>`;
+}
+function renderVocabTopicWordList(){
+  const code = STATE.vocabBrowseTopic;
+  const meta = vocabTopicMeta(code);
+  const words = vocabWordsByTopic(code);
+  const prog = SETTINGS.vocabProgress || {};
+  const rows = words.map(w=>{
+    const p = prog[w[0]];
+    const learned = p && p.introduced;
+    return `<div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; align-items:flex-start; gap:10px;">
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <b style="font-size:14px;">${escapeHtml(w[1])}</b>
+          <span style="font-size:10px; color:var(--dim); font-family:var(--mono);">${escapeHtml(w[2])}</span>
+          ${learned?`<span style="font-size:9px; color:#2CDBA8; font-weight:700;">✓ đã học${(p.box||0)>=5?' · thuộc lòng':''}</span>`:''}
+        </div>
+        <div style="font-size:12.5px; color:var(--dim); margin-top:3px;">${escapeHtml(w[4])}</div>
+        <div style="font-size:11.5px; color:var(--text); margin-top:5px; font-style:italic;">${escapeHtml(w[5])}</div>
+        <div style="font-size:11px; color:var(--dim); margin-top:2px;">${escapeHtml(w[6])}</div>
+      </div>
+      <div class="eng-item-edit" data-action="vocab-speak-word" data-n="${w[0]}" title="Nghe phát âm">🔊</div>
+    </div>`;
+  }).join('');
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="vocab-close-topic">${svgIcon('back')}</div><div class="title">${meta.icon} ${escapeHtml(meta.label)}</div></div>
+  <button class="form-btn" style="width:100%; margin-bottom:14px;" data-action="vocab-start-topic" data-topic="${code}">🎯 Luyện chủ đề này (${words.length} từ)</button>
+  ${rows}`;
+}
+function renderVocabSession(){
+  const s = STATE.vocabSession;
+  if(s.finished){
+    const pct = Math.round((s.correct/s.ids.length)*100);
+    return `<div class="card eng-quiz-result">
+      <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${s.mode==='topic'?vocabTopicMeta(s.topic).label:'Từ hôm nay'}</div>
+      <div class="score">${s.correct}/${s.ids.length}</div>
+      <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác</div>
+      <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
+        <button class="form-btn cancel" data-action="vocab-exit-session">✓ Hoàn tất</button>
+      </div>
+    </div>`;
+  }
+  const n = s.ids[s.idx];
+  const word = vocabWordByN(n);
+  if(!word) return `<div class="card">Không tải được dữ liệu từ vựng.</div>`;
+  const progressPct = Math.round((s.idx/s.ids.length)*100);
+  const progressWrap = `<div class="eng-quiz-progress-wrap">
+    <div class="eng-quiz-progress-top">
+      <span class="eng-quiz-progress-badge count">Từ ${s.idx+1}/${s.ids.length}</span>
+      <span class="eng-quiz-progress-badge correct">✓ Đúng ${s.correct}</span>
+    </div>
+    <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
+  </div>`;
+  if(s.showIntro){
+    return `${progressWrap}
+    <div class="card eng-quiz-card" style="text-align:center;">
+      <div style="font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">✨ Từ mới</div>
+      <div style="font-size:26px; font-weight:800; margin-bottom:4px;">${escapeHtml(word[1])}</div>
+      <div style="font-size:11px; color:var(--dim); font-family:var(--mono); margin-bottom:10px;">${escapeHtml(word[2])}</div>
+      <div style="font-size:16px; color:var(--gold); font-weight:700; margin-bottom:14px;">${escapeHtml(word[4])}</div>
+      <div class="eng-quiz-q" style="text-align:left;">${escapeHtml(word[5])}</div>
+      <div class="eng-quiz-translate" style="margin-bottom:14px;">🇻🇳 ${escapeHtml(word[6])}</div>
+      <div class="eng-quiz-actions" style="justify-content:center;">
+        <button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe phát âm</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-intro-continue">Đã hiểu, bắt đầu luyện →</button>
+    </div>`;
+  }
+  const questionText = s.exType==='mc_en_vi' ? `${word[1]} (${word[2]}) nghĩa là gì?`
+    : s.exType==='fill_blank' ? `Điền từ còn thiếu: "${vocabBlankSentence(word)}"`
+    : `Từ tiếng Anh nào có nghĩa: "${word[4]}"?`;
+  const optLetters = ['A','B','C','D'];
+  const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
+  const opts = s.options.map((opt,i)=>{
+    let cls = 'eng-quiz-opt';
+    if(s.answered!==null){
+      cls += ' disabled';
+      if(i===s.correctIdx) cls += ' correct';
+      else if(i===s.answered) cls += ' wrong';
+    }
+    return `<div class="${cls}" ${s.answered===null?`data-action="vocab-answer" data-opt="${i}"`:''}>
+      <span class="opt-badge" style="background:${optColors[i%optColors.length]};">${optLetters[i]}</span>
+      <span class="opt-text">${escapeHtml(opt)}</span>
+    </div>`;
+  }).join('');
+  const translateHtml = s.showTranslate ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(word[6])}</div>` : '';
+  return `${progressWrap}
+  <div class="card eng-quiz-card">
+    <div class="eng-quiz-q">${escapeHtml(questionText)}</div>
+    ${opts}
+    ${s.answered!==null ? `
+      <div class="eng-quiz-explain">💡 ${escapeHtml(word[5])}</div>
+      <div class="eng-quiz-actions">
+        <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe từ</button>
+        <button class="form-btn btn-translate" data-action="vocab-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch câu ví dụ'}</button>
+      </div>
+      ${translateHtml}
+      <button class="form-btn eng-quiz-nextbtn" data-action="vocab-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Từ tiếp →':'🏁 Xem kết quả'}</button>` : ''}
+  </div>`;
+}
+function renderEnglishVocab(item){
+  ensureEnglishItems();
+  if(!VOCAB_DATA){ fetchVocabData(); }
+  let body;
+  if(STATE.vocabSession){
+    body = renderVocabSession();
+  } else if(STATE.vocabBrowseTopic){
+    document.getElementById('content').innerHTML = renderVocabTopicWordList();
+    return;
+  } else {
+    const view = STATE.vocabView || 'daily';
+    body = vocabHomeSubNav() + (view==='daily' ? renderVocabDailyHome() : renderVocabTopicsGrid());
+  }
+  document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
 }
 // ---- Luyện ngữ pháp: ngân hàng trắc nghiệm 3 cấp độ ----
 // Định dạng mỗi câu: [câu hỏi, [4 đáp án], chỉ số đáp án đúng, giải thích ngắn]
@@ -6715,6 +7102,30 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(quizSpeakEl){ speakGrammarCurrentSentence(); return; }
   const quizToggleTranslateEl = e.target.closest('[data-action="quiz-toggle-translate"]');
   if(quizToggleTranslateEl){ toggleGrammarTranslate(); return; }
+  const vocabSetViewEl = e.target.closest('[data-action="vocab-set-view"]');
+  if(vocabSetViewEl){ STATE.vocabView = vocabSetViewEl.getAttribute('data-view'); renderContent(); return; }
+  const vocabStartDailyEl = e.target.closest('[data-action="vocab-start-daily"]');
+  if(vocabStartDailyEl){ vocabStartDaily(); return; }
+  const vocabOpenTopicEl = e.target.closest('[data-action="vocab-open-topic"]');
+  if(vocabOpenTopicEl){ vocabOpenTopic(vocabOpenTopicEl.getAttribute('data-topic')); return; }
+  const vocabCloseTopicEl = e.target.closest('[data-action="vocab-close-topic"]');
+  if(vocabCloseTopicEl){ vocabCloseTopic(); return; }
+  const vocabStartTopicEl = e.target.closest('[data-action="vocab-start-topic"]');
+  if(vocabStartTopicEl){ vocabStartTopic(vocabStartTopicEl.getAttribute('data-topic')); return; }
+  const vocabSpeakWordEl = e.target.closest('[data-action="vocab-speak-word"]');
+  if(vocabSpeakWordEl){ vocabSpeakWord(parseInt(vocabSpeakWordEl.getAttribute('data-n'),10)); return; }
+  const vocabIntroContinueEl = e.target.closest('[data-action="vocab-intro-continue"]');
+  if(vocabIntroContinueEl){ vocabIntroContinue(); return; }
+  const vocabAnswerEl = e.target.closest('[data-action="vocab-answer"]');
+  if(vocabAnswerEl){ vocabAnswer(parseInt(vocabAnswerEl.getAttribute('data-opt'),10)); return; }
+  const vocabNextEl = e.target.closest('[data-action="vocab-next"]');
+  if(vocabNextEl){ vocabNext(); return; }
+  const vocabSpeakCurrentEl = e.target.closest('[data-action="vocab-speak-current"]');
+  if(vocabSpeakCurrentEl){ vocabSpeakCurrent(); return; }
+  const vocabToggleTranslateEl = e.target.closest('[data-action="vocab-toggle-translate"]');
+  if(vocabToggleTranslateEl){ vocabToggleTranslate(); return; }
+  const vocabExitSessionEl = e.target.closest('[data-action="vocab-exit-session"]');
+  if(vocabExitSessionEl){ vocabExitSession(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
   if(avPickLevelEl){
     if(!STATE.avLevel) STATE.avLevel = {};
