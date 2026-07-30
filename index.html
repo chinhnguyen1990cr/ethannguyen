@@ -1081,7 +1081,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v55';
+const APP_VERSION = 'v56';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -5943,6 +5943,7 @@ function ipaSymbolChip(ph, grad){
   return `<div class="ipa-sym-chip" data-action="ipa-chart-open" data-sym="${escapeHtml(ph.ipa)}" style="background:${gradCss};">/${escapeHtml(ph.ipa)}/</div>`;
 }
 function renderEnglishIPA(item){
+  if(STATE.speakSession && STATE.speakSession.level==='ipa'){ renderSpeakPracticeUI(); return; }
   if(STATE.ipaDetailSym) return renderIpaDetail(item, STATE.ipaDetailSym);
   const openGroup = STATE.ipaChartGroup || null;
   const openSub = STATE.ipaChartSubgroup || null;
