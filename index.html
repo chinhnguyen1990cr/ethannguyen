@@ -1062,7 +1062,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v53';
+const APP_VERSION = 'v54';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3700,6 +3700,18 @@ const IPA_CHART_DATA = {
     {ipa:'j', tip:'Giữa lưỡi nâng cao gần vòm miệng cứng, giống bắt đầu âm "i" rồi lướt nhanh sang nguyên âm sau — gần giống "y" tiếng Việt.', confuse:'', m:{place:'palatal',voiced:true,manner:'approximant'}, examples:[{w:'yes',ipa:'jes',vi:'vâng, đúng'},{w:'you',ipa:'juː',vi:'bạn'},{w:'music',ipa:'ˈmjuːzɪk',vi:'âm nhạc'},{w:'young',ipa:'jʌŋ',vi:'trẻ'},{w:'year',ipa:'jɪə',vi:'năm'},{w:'yellow',ipa:'ˈjeləʊ',vi:'màu vàng'},{w:'yesterday',ipa:'ˈjestədeɪ',vi:'hôm qua'},{w:'university',ipa:'ˌjuːnɪˈvɜːsəti',vi:'đại học'},{w:'few',ipa:'fjuː',vi:'ít'},{w:'beautiful',ipa:'ˈbjuːtɪfl',vi:'đẹp'}]}
   ]
 };
+// Video hướng dẫn phát âm 44 âm IPA (kênh YouTube What's Up English, công khai, có timestamp
+// riêng cho từng âm trong mô tả video) — nhúng bằng iframe chính thức của YouTube (không tải lại
+// file), tự động tua tới đúng mốc thời gian của âm đang xem qua tham số ?start=.
+const IPA_VIDEO_ID = 'wKEI9n_Xs5Q';
+const IPA_VIDEO_CREDIT = "What's Up English";
+const IPA_VIDEO_TIMESTAMPS = {
+  'ɪ':31, 'iː':168, 'e':217, 'æ':240, 'ə':301, 'ʌ':343, 'ɑː':368, 'ɒ':399, 'ɔː':420, 'uː':470, 'ʊ':533, 'ɜː':598,
+  'eɪ':711, 'aɪ':781, 'ɔɪ':850, 'aʊ':917, 'əʊ':944, 'ɪə':991, 'eə':1045, 'ʊə':1103,
+  'b':1166, 'p':1166, 'd':1203, 't':1203, 'g':1257, 'k':1257, 'tʃ':1281, 'dʒ':1281, 'f':1359, 'v':1359,
+  'θ':1375, 'ð':1375, 's':1467, 'z':1467, 'ʃ':1491, 'ʒ':1491, 'm':1512, 'n':1512, 'ŋ':1512,
+  'l':1536, 'r':1536, 'w':1596, 'j':1596, 'h':1596
+};
 function grammarTopicById(id){ return GRAMMAR_TOPICS.find(t=>t.id===id); }
 function grammarGroupById(key){ return GRAMMAR_TOPIC_GROUPS.find(g=>g.key===key); }
 function grammarLevelById(key){ return CEFR_LEVELS.find(l=>l.key===key); }
@@ -5898,6 +5910,15 @@ function renderIpaDetail(item, sym){
       <span class="ipac-ex-vi">${escapeHtml(ex.vi)}</span>
     </div>
   `).join('');
+  const vidSec = IPA_VIDEO_TIMESTAMPS[ph.ipa];
+  const videoHtml = (vidSec==null) ? '' : `
+    <div class="card">
+      <div class="ipac-detail-heading">🎥 Video hướng dẫn phát âm</div>
+      <div class="video-embed-wrap"><iframe src="https://www.youtube.com/embed/${IPA_VIDEO_ID}?start=${vidSec}&rel=0" title="Hướng dẫn phát âm /${escapeHtml(ph.ipa)}/" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <div class="ipac-detail-tip" style="margin-top:2px;">Video của kênh ${escapeHtml(IPA_VIDEO_CREDIT)}, tự động tua tới đoạn giảng âm /${escapeHtml(ph.ipa)}/.
+        <a href="https://www.youtube.com/watch?v=${IPA_VIDEO_ID}&t=${vidSec}s" target="_blank" rel="noopener" style="color:var(--blue); font-weight:700;">Xem trên YouTube ↗</a>
+      </div>
+    </div>`;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="ipa-detail-close">${svgIcon('back')}</div><div class="title">${escapeHtml(group.name)}</div></div>
     <div class="card ipac-detail-hero" style="background:linear-gradient(135deg,${group.grad[0]}2e,${group.grad[1]}12);">
@@ -5908,6 +5929,7 @@ function renderIpaDetail(item, sym){
       <div class="ipac-detail-heading">👄 ${isCons?'Vị trí phát âm':'Khẩu hình &amp; vị trí lưỡi'}</div>
       ${diagram}
     </div>
+    ${videoHtml}
     <div class="card">
       <div class="ipac-detail-heading">💡 Cách phát âm &amp; mẹo</div>
       <div class="ipac-detail-tip">${escapeHtml(ph.tip)}</div>
