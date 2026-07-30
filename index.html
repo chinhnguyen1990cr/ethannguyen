@@ -1090,7 +1090,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v59';
+const APP_VERSION = 'v60';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1427,6 +1427,15 @@ function navBack(){
 }
 window.addEventListener('popstate', ()=>{
   if(NAV_STACK.length){
+    // QUAN TRỌNG: cử chỉ vuốt back (kích hoạt popstate trực tiếp, KHÔNG đi qua nút back trong app như
+    // speakPracticeExit()/listenQuizExit()) trước đây KHÔNG dừng audio đang phát — giọng mẫu TTS lẫn
+    // bản ghi âm "nghe lại giọng bạn" của Luyện nói/Luyện IPA, hay audio câu hỏi của Luyện nghe — nên
+    // vuốt back ra khỏi màn hình xong âm thanh vẫn tiếp tục phát ngầm phía sau. Dừng tất cả trước khi
+    // khôi phục màn hình trước đó, bất kể đang ở màn nào (các hàm dưới đây tự bỏ qua an toàn nếu không
+    // có gì đang phát/ghi).
+    try{ stopSpeakAudio(); }catch(e){}
+    try{ stopSpeakRecognition(); }catch(e){}
+    try{ stopListenAudio(); }catch(e){}
     const snap = NAV_STACK.pop();
     restoreNav(snap);
   }
@@ -5433,7 +5442,12 @@ function getSpeakAudioEl(){
   }
   return speakAudioEl;
 }
-function stopSpeakAudio(){ speakPlayToken++; if(speakAudioEl){ try{speakAudioEl.pause();}catch(e){} } if(window.speechSynthesis) window.speechSynthesis.cancel(); }
+// QUAN TRỌNG: dừng CẢ 2 nguồn audio có thể đang phát — giọng mẫu TTS (speakAudioEl) VÀ bản ghi âm
+// người dùng vừa nghe lại (speakPlaybackAudioEl, xem playOwnRecording). Trước đây hàm này chỉ dừng
+// speakAudioEl nên khi đang bấm "Nghe lại giọng bạn" rồi bấm nút back thoát màn hình, âm thanh vẫn
+// tiếp tục phát ngầm phía sau vì speakPracticeExit()/nextSpeakPractice() chỉ gọi hàm này — không có
+// nơi nào khác dừng riêng speakPlaybackAudioEl.
+function stopSpeakAudio(){ speakPlayToken++; if(speakAudioEl){ try{speakAudioEl.pause();}catch(e){} } if(speakPlaybackAudioEl){ try{speakPlaybackAudioEl.pause();}catch(e){} } if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 async function playSpeakLine(){
   const item=currentSpeakItem(); if(!item) return;
   stopSpeakAudio();
@@ -5656,6 +5670,15 @@ let speakSessionCount=0; let speakDiagStatus='';
 // chỉ để lưu lại toàn bộ audio của lượt đọc, không tham gia vào việc nhận diện/chấm điểm, nên không
 // có rủi ro làm hỏng luồng chấm điểm vốn đã được xử lý kỹ càng nhiều lỗi thiết bị Android trước đây.
 let speakPlaybackRecorder=null, speakPlaybackChunks=[], speakPlaybackStream=null;
+// Ràng buộc mic dùng chung cho MỌI lượt getUserMedia() của Luyện nói/Luyện IPA — bật rõ ràng khử
+// tiếng vọng/khử ồn/tự cân chỉnh âm lượng và ép mono (1 kênh) thay vì để mặc định của trình duyệt,
+// vì trên một số điện thoại Android mặc định KHÔNG bật các cờ này, khiến bản ghi bị ù/nhỏ/lẫn tạp âm
+// nền — làm cả người nghe lại (chính chủ) lẫn Cloud Speech-to-Text khó nhận diện chính xác.
+const SPEAK_AUDIO_CONSTRAINTS = {audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1}};
+// Bitrate mã hoá tối thiểu cho MediaRecorder — một số trình duyệt/thiết bị tự chọn bitrate rất thấp
+// (có thể chỉ ~24-32kbps) khi không chỉ định, khiến giọng nói bị nén méo/rè. Ép lên 128kbps cho rõ hơn
+// hẳn, vẫn là mức nhẹ, không gây trễ hay tốn băng thông đáng kể cho các đoạn ghi âm ngắn.
+const SPEAK_AUDIO_BITRATE = 128000;
 // sharedStream (tùy chọn): nếu đã có sẵn 1 luồng mic đang mở (nhánh Cloud STT — xem beginSpeakRecording),
 // TÁI SỬ DỤNG luôn thay vì tự gọi getUserMedia() thêm 1 lần nữa. Trước đây hàm này luôn tự mở luồng mic
 // RIÊNG của nó, chạy song song với luồng mic của beginSpeakRecordingCloud — tức xin quyền/mở phần cứng
@@ -5670,14 +5693,15 @@ async function startSpeakPlaybackCapture(sharedStream){
       speakPlaybackStream = null; // không sở hữu luồng này — không tự dừng track ở stopSpeakPlaybackCapture()
     } else {
       if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) return;
-      stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      stream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS);
       speakPlaybackStream = stream;
     }
     speakPlaybackChunks = [];
     let mime = 'audio/webm;codecs=opus';
     if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = 'audio/webm';
     if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = '';
-    speakPlaybackRecorder = mime ? new MediaRecorder(stream,{mimeType:mime}) : new MediaRecorder(stream);
+    const pbOpts = Object.assign(mime?{mimeType:mime}:{}, {audioBitsPerSecond:SPEAK_AUDIO_BITRATE});
+    speakPlaybackRecorder = new MediaRecorder(stream, pbOpts);
     speakPlaybackRecorder.ondataavailable = (ev)=>{ if(ev.data && ev.data.size>0) speakPlaybackChunks.push(ev.data); };
     speakPlaybackRecorder.start();
   }catch(e){ speakPlaybackRecorder=null; } // im lặng bỏ qua — nút "Nghe lại giọng của bạn" sẽ đơn giản không xuất hiện
@@ -5737,12 +5761,14 @@ let speakSegStopping=false;   // true khi đã yêu cầu dừng hẳn — đo�
 let speakSegPromises=[];      // promise nhận diện của từng đoạn, theo đúng thứ tự
 let speakSegTexts=[];         // chữ đã nhận diện được của từng đoạn (để ghép hiển thị dần)
 let speakSegMime='';          // mimeType dùng chung cho các đoạn trong 1 lượt ghi âm
-const SPEAK_SEG_MS = 4000;    // độ dài mỗi đoạn ghi âm nhỏ (4 giây) trước khi gửi lên Cloud STT — rút
-                               // ngắn từ 10s xuống 4s để chữ cập nhật thường xuyên hơn trên máy Android
-                               // (nơi Web Speech API song song bị lỗi, chỉ còn nguồn hiển thị này hoạt động).
-                               // Đánh đổi: nhiều lượt gọi Cloud STT hơn trong 1 lượt ghi âm (mỗi lượt gọi
-                               // Google tính phí làm tròn lên tối thiểu 15 giây) — chấp nhận được với mức
-                               // dùng cá nhân để luyện tập.
+const SPEAK_SEG_MS = 8000;    // độ dài mỗi đoạn ghi âm nhỏ (8 giây) trước khi gửi lên Cloud STT. Trước
+                               // đây từng giảm xuống 4s để chữ hiển thị mượt hơn trên Android, nhưng cắt
+                               // đoạn quá ngắn khiến TỪ Ở RANH GIỚI 2 ĐOẠN bị chia đôi (mỗi nửa gửi lên
+                               // Cloud STT riêng, không có ngữ cảnh của nửa còn lại) — làm giảm rõ rệt độ
+                               // chính xác nhận diện, nhất là với câu dài. Tăng lên 8s để giảm số lần cắt
+                               // giữa từ, cải thiện độ chính xác chấm điểm; caption hiển thị theo đoạn vẫn
+                               // đủ mượt vì đã có phiên Web Speech API chạy song song lo phần hiển thị
+                               // theo thời gian thực trên thiết bị hỗ trợ tốt (xem startCaptionRecognition).
 // 10 giây/đoạn là quá thô để cảm giác "chữ chạy theo từng từ" — nên CHẠY THÊM song song 1 phiên
 // Web Speech API chỉ để hiển thị chữ mượt theo thời gian thực (nơi trình duyệt hỗ trợ tốt, ví dụ
 // laptop/Chrome desktop). Trên máy Android bị lỗi nền tảng Web Speech, phiên này sẽ không cho ra
@@ -5896,7 +5922,7 @@ async function beginSpeakRecordingCloud(s, item, existingStream){
     speakMediaStream = existingStream;
   } else {
     try{
-      speakMediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+      speakMediaStream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS);
     }catch(e){
       showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại (Cài đặt → Ứng dụng → Chrome hoặc app → Quyền → Microphone) rồi thử lại.');
       s.recording=false; renderSpeakPracticeUI();
@@ -5929,7 +5955,8 @@ async function beginSpeakRecordingCloud(s, item, existingStream){
   const startSegment=()=>{
     if(speakSegStopping) return;
     let rec;
-    try{ rec = speakSegMime ? new MediaRecorder(speakMediaStream,{mimeType:speakSegMime}) : new MediaRecorder(speakMediaStream); }
+    const segOpts = Object.assign(speakSegMime?{mimeType:speakSegMime}:{}, {audioBitsPerSecond:SPEAK_AUDIO_BITRATE});
+    try{ rec = new MediaRecorder(speakMediaStream, segOpts); }
     catch(e){ speakSegStopping=true; finalizeSpeakSegments(); return; }
     const myIndex = speakSegPromises.length; speakSegPromises.push(null);
     const chunks=[];
@@ -6016,7 +6043,7 @@ function beginSpeakRecording(){
     // mở CÙNG LÚC (2 lệnh getUserMedia độc lập), nghi vấn là nguyên nhân khiến 1 trong 2 luồng bị
     // treo/rỗng trên một số điện thoại Android — biểu hiện "bấm mic không nói được, không nghe lại
     // được" tái diễn ở Luyện tập phát âm IPA.
-    navigator.mediaDevices.getUserMedia({audio:true}).then((stream)=>{
+    navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS).then((stream)=>{
       if(!s.recording){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} return; } // đã hủy giữa chừng (bấm dừng sớm/thoát màn hình) trước khi xin quyền xong — đóng luôn, không dùng
       startSpeakPlaybackCapture(stream);
       beginSpeakRecordingCloud(s, item, stream);
