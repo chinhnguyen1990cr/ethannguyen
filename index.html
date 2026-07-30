@@ -828,6 +828,21 @@
   .eng-av-empty{font-size:11.5px; color:var(--dim); text-align:center; padding:12px;}
   .eng-drive-cfg{display:flex; gap:8px; margin-top:4px;}
   .eng-drive-cfg .form-btn{flex:none; padding:8px 12px; font-size:11px;}
+
+  /* ===== Responsive desktop/laptop layout =====
+     Trước đây #shell/#navbar-inner luôn bị chặn max-width:460px dù mở trên màn hình laptop rộng
+     — khiến app trông như "giả lập điện thoại" thu nhỏ giữa 1 màn hình lớn, lãng phí không gian.
+     Trên điện thoại thật (viewport < 860px) mọi thứ giữ nguyên như cũ (width:100%, ăn theo device-width
+     thật của máy). Chỉ khi màn hình đủ rộng (laptop/desktop, ≥860px) mới nới max-width lên 720px và
+     thêm viền/bóng đổ để trông giống 1 khung ứng dụng độc lập, dễ nhìn hơn hẳn cột hẹp 460px giữa màn
+     hình trống trải. 3 nơi cùng cần nới đồng bộ: #shell (nội dung chính), #navbar-inner (thanh điều
+     hướng dưới cùng, phải khớp bề rộng #shell để không bị lệch), và modal thông tin cá nhân. */
+  @media (min-width:860px){
+    #shell{max-width:720px; border-left:1px solid var(--border); border-right:1px solid var(--border);
+      box-shadow:0 30px 90px -24px rgba(0,0,0,0.65);}
+    #navbar-inner{max-width:720px;}
+    .avatar-modal-card{max-width:520px;}
+  }
 </style>
 </head>
 <body>
@@ -1090,7 +1105,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v60';
+const APP_VERSION = 'v61';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1391,7 +1406,7 @@ function snapshotNav(){
     // bắt đầu làm bài — nên vuốt back lúc đang làm bài sẽ tiêu thụ nhầm mốc lịch sử của "mở Luyện ngữ
     // pháp" (đẩy bởi openEnglishItem), khiến nhảy thẳng về "Học tiếng Anh" thay vì về màn chọn chủ đề.
     listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz, ipaDetailSym: STATE.ipaDetailSym,
-    vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic
+    vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic, longPassageBrowse: STATE.longPassageBrowse
   };
 }
 function restoreNav(snap){
@@ -1404,6 +1419,7 @@ function restoreNav(snap){
   STATE.ipaDetailSym = snap.ipaDetailSym!==undefined ? snap.ipaDetailSym : null;
   STATE.vocabSession = snap.vocabSession!==undefined ? snap.vocabSession : null;
   STATE.vocabBrowseTopic = snap.vocabBrowseTopic!==undefined ? snap.vocabBrowseTopic : null;
+  STATE.longPassageBrowse = snap.longPassageBrowse!==undefined ? snap.longPassageBrowse : false;
   // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
   // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
   STATE.grammarDetailOpen = false;
@@ -1475,36 +1491,61 @@ function programWeekFor(dateObj){
   return Math.max(1, Math.floor(daysBetween(start, dateObj)/7)+1);
 }
 // Lịch được tối ưu theo khoa học tập luyện đồng thời (concurrent training): tách buổi chạy bộ
-// (sáng sớm, hệ thần kinh + glycogen còn tươi cho vận động hiếu khí) và buổi tập tạ (tối, sau giờ
-// làm) cách nhau >12 giờ — vượt xa mức tối thiểu 3-6 giờ mà nghiên cứu khuyến nghị để tránh "hiệu
-// ứng giao thoa" (interference effect) làm giảm hiệu quả cả hai. Buổi tối được sắp theo thứ tự:
-// việc cần thể lực/tập trung cao nhất (tập tạ) trước, việc nhẹ nhàng lặp lại (shadowing) sau, rồi
-// đến học chuyên môn, và luôn chừa ≥45 phút "wind-down" không màn hình trước giờ ngủ 22h00 — đúng
-// khuyến nghị vệ sinh giấc ngủ mà chính mục Kỷ luật bên dưới cũng nhắc tới.
+// (sáng sớm, hệ thần kinh + glycogen còn tươi cho vận động hiếu khí) và buổi tập tạ (tối) cách nhau
+// >12 giờ — vượt xa mức tối thiểu 3-6 giờ mà nghiên cứu khuyến nghị để tránh "hiệu ứng giao thoa"
+// (interference effect) làm giảm hiệu quả cả hai.
+// QUAN TRỌNG: Thứ 2-Thứ 6 người dùng đi làm CỐ ĐỊNH 7:00-19:00 — lịch ngày thường (isWorkday) được
+// sắp xếp CHỈ trong 2 khung giờ rảnh thực tế: sáng sớm trước 7h (luyện IPA lúc đầu óc tỉnh táo nhất,
+// giờ cố định mỗi ngày để xây thói quen kỷ luật) và buổi tối sau 19h (tập tạ/luyện nói/chuyên môn),
+// cộng thêm 1 việc rất nhẹ trong giờ nghỉ trưa (nghe podcast — không cần yên tĩnh, chỉ cần tai nghe).
+// Ngày có tập tạ (T2/T4/T6) dành ít thời gian buổi tối hơn cho chuyên môn vì đã có 60 phút tập tạ;
+// ngày nghỉ tạ (T3/T5) bù lại bằng buổi Luyện nói + chuyên môn dài hơn. Cuối tuần KHÔNG bị ràng buộc
+// giờ làm nên giữ nguyên các buổi luyện tập dài, sâu như trước. Luôn chừa ≥30 phút "wind-down" không
+// màn hình trước giờ ngủ — đúng khuyến nghị vệ sinh giấc ngủ mà mục Kỷ luật nhắc tới.
 function getPlanForDate(dateObj){
   const wd = dateObj.getDay();
+  const isWorkday = wd>=1 && wd<=5; // Thứ 2 - Thứ 6: đi làm cố định 7:00-19:00
+  const isGymDay = wd===1||wd===3||wd===5;
   const tasks = [];
   if(wd===1){
-    tasks.push({id:'chay_bo', time:'05:15', dur:40, label:'Chạy bộ – Easy run 3km', cat:'the_luc', kind:'run_easy'});
-    tasks.push({id:'tap_ta', time:'17:15', dur:60, label:'Tập tạ (buổi tối) – Buổi 1: Ngực · Lưng · Tay', cat:'the_luc', kind:'gym_a'});
+    tasks.push({id:'chay_bo', time:'05:15', dur:40, label:'Chạy bộ – Easy run 3km (trước giờ làm)', cat:'the_luc', kind:'run_easy'});
   } else if(wd===3){
-    tasks.push({id:'chay_bo', time:'05:15', dur:35, label:'Chạy bộ – Interval nhẹ', cat:'the_luc', kind:'run_interval'});
-    tasks.push({id:'tap_ta', time:'17:15', dur:60, label:'Tập tạ (buổi tối) – Buổi 2: Chân · Vai · Core', cat:'the_luc', kind:'gym_b'});
+    tasks.push({id:'chay_bo', time:'05:15', dur:35, label:'Chạy bộ – Interval nhẹ (trước giờ làm)', cat:'the_luc', kind:'run_interval'});
   } else if(wd===5){
-    tasks.push({id:'chay_bo', time:'05:15', dur:40, label:'Chạy bộ – Easy run 3-4km', cat:'the_luc', kind:'run_easy2'});
-    tasks.push({id:'tap_ta', time:'17:15', dur:60, label:'Tập tạ (buổi tối) – Buổi 3: Toàn thân', cat:'the_luc', kind:'gym_c'});
+    tasks.push({id:'chay_bo', time:'05:15', dur:40, label:'Chạy bộ – Easy run 3-4km (trước giờ làm)', cat:'the_luc', kind:'run_easy2'});
   } else if(wd===0){
     tasks.push({id:'chay_bo', time:'05:15', dur:70, label:'Chạy bộ – Long run (tuần '+Math.min(programWeekFor(dateObj),12)+'/12)', cat:'the_luc', kind:'run_long'});
   }
-  tasks.push({id:'ipa', time:'07:45', dur:30, label:'Luyện phát âm IPA', cat:'tieng_anh', kind:'ipa'});
-  tasks.push({id:'luyen_noi', time:'09:00', dur:120, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
-  tasks.push({id:'qc_qa_sang', time:'11:45', dur:45, label:'Tìm hiểu QC/QA cùng AI', cat:'chuyen_mon', kind:'qc_ai',
-    sub:['Đặt câu hỏi/tình huống QC-QA thực tế cho AI','Ghi chú thuật ngữ và kiến thức mới','Lưu lại để ôn tập cuối tuần']});
-  tasks.push({id:'shadowing', time:'18:45', dur:45, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
-  tasks.push({id:'hoc_chuyen_nganh', time:'19:45', dur:90, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
-    sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
-  tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
-    sub:['Ngưng dùng màn hình trước 30 phút','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00']});
+
+  if(isWorkday){
+    tasks.push({id:'ipa', time:'06:10', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+    tasks.push({id:'nghe_trua', time:'12:15', dur:25, label:'Nghe podcast tiếng Anh (giờ nghỉ trưa)', cat:'tieng_anh', kind:'listening_lunch',
+      sub:['Chọn 1 video podcast ngắn ở mục Luyện nghe (Slow English Podcast, What\'s Up English, Aus English, Volka English)','Nghe thụ động khi ăn trưa/nghỉ ngơi, không cần ghi chú kỹ','Đây là lúc "nạp input" nhẹ nhàng giữa ngày làm việc dài, không tốn sức tập trung']});
+    if(isGymDay){
+      tasks.push({id:'tap_ta', time:'19:15', dur:60, label:'Tập tạ (sau giờ làm)', cat:'the_luc', kind: wd===1?'gym_a':(wd===3?'gym_b':'gym_c')});
+      tasks.push({id:'shadowing', time:'20:45', dur:30, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+      tasks.push({id:'hoc_chuyen_nganh', time:'21:15', dur:15, label:'Ôn nhanh QC/QA', cat:'chuyen_mon', kind:'study',
+        sub:['Xem lại 1 ghi chú/thuật ngữ QC-QA đã học','Tự hỏi-đáp nhanh bằng kỹ thuật Feynman','Ngày có tập tạ nên chỉ cần ôn ngắn — duy trì đều đặn quan trọng hơn số lượng']});
+    } else {
+      tasks.push({id:'luyen_noi', time:'19:50', dur:45, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
+      tasks.push({id:'hoc_chuyen_nganh', time:'20:35', dur:40, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+        sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
+      tasks.push({id:'shadowing', time:'21:15', dur:15, label:'Shadowing nhanh', cat:'tieng_anh', kind:'shadowing'});
+    }
+    tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
+      sub:['Ngưng dùng màn hình trước 30 phút','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00']});
+  } else {
+    // Cuối tuần — không bị ràng buộc giờ làm, giữ các buổi luyện tập dài & sâu hơn như trước.
+    tasks.push({id:'ipa', time:'07:45', dur:30, label:'Luyện phát âm IPA', cat:'tieng_anh', kind:'ipa'});
+    tasks.push({id:'luyen_noi', time:'09:00', dur:120, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
+    tasks.push({id:'qc_qa_sang', time:'11:45', dur:45, label:'Tìm hiểu QC/QA cùng AI', cat:'chuyen_mon', kind:'qc_ai',
+      sub:['Đặt câu hỏi/tình huống QC-QA thực tế cho AI','Ghi chú thuật ngữ và kiến thức mới','Lưu lại để ôn tập cuối tuần']});
+    tasks.push({id:'shadowing', time:'18:45', dur:45, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+    tasks.push({id:'hoc_chuyen_nganh', time:'19:45', dur:90, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+      sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
+    tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
+      sub:['Ngưng dùng màn hình trước 30 phút','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00']});
+  }
   return tasks.sort((a,b)=> a.time.localeCompare(b.time));
 }
 function getPlanForKey(key){
@@ -5325,17 +5366,21 @@ function renderEnglishAV(item, mode){
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${levelPickHtml}`;
 }
 
-// ================= HỌC QUA VIDEO (VOA Learning English): nhúng video YouTube có hội thoại thật rồi
-// trả lời câu hỏi (Luyện nghe) hoặc luyện nói lại theo lời thoại (Luyện nói). Câu hỏi & lời thoại
-// được biên soạn bám sát transcript CHÍNH THỨC của từng video (nguồn: VOA Learning English) nên
-// đáp án luôn khớp nội dung video. Dữ liệu ở video-lessons-data.json để dễ bổ sung thêm bài. =========
+// ================= HỌC QUA VIDEO (podcast luyện nghe — Slow English Podcast, What's Up English,
+// Aus English with Lauren, Volka English): nhúng video YouTube THẬT của 4 kênh trên rồi trả lời câu
+// hỏi (Luyện nghe) hoặc luyện nói lại (Luyện nói). KHÔNG dùng transcript trích dẫn nguyên văn từ các
+// video này (tránh vi phạm bản quyền nội dung của nhà sáng tạo) — câu hỏi được soạn ở mức chủ đề/từ
+// vựng dự đoán trước, dựa trên tiêu đề/chủ đề CÔNG KHAI thật của từng video, để người học tự nghe và
+// kiểm tra hiểu ý chính, đúng tinh thần luyện nghe thật (không đọc trước đáp án như đọc transcript).
+// Trước đây dùng video VOA Learning English/British Council — nay thay bằng 4 kênh trên theo yêu cầu.
+// Dữ liệu ở video-lessons-data.json để dễ bổ sung thêm bài. =========
 let VIDEO_LESSONS = null;
 let videoLessonsLoading = false;
 async function fetchVideoLessons(){
   if(VIDEO_LESSONS || videoLessonsLoading) return;
   videoLessonsLoading = true;
   try{
-    const res = await fetch('./video-lessons-data.json?v=1');
+    const res = await fetch('./video-lessons-data.json?v=2');
     VIDEO_LESSONS = await res.json();
   }catch(e){
     console.error('Không tải được danh sách video', e);
@@ -5361,8 +5406,8 @@ function videoLessonsListHtml(mode){
       <div class="vlc-play">▶</div>
     </div>`;
   }).join('');
-  return `<div class="eng-section-label" style="margin-top:18px;">📺 Học qua video (VOA Learning English)</div>
-    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Xem video hội thoại thật của VOA rồi ${mode==='listening'?'trả lời câu hỏi':'luyện nói theo từng câu'}. Câu hỏi &amp; lời thoại bám sát đúng nội dung nói trong video.</div>
+  return `<div class="eng-section-label" style="margin-top:18px;">📺 Podcast luyện nghe (kênh YouTube thật)</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren &amp; Volka English — nghe trọn video rồi ${mode==='listening'?'trả lời câu hỏi chủ đề/từ vựng':'luyện nói theo từng câu'}. Video không có transcript trích sẵn — đúng tinh thần luyện nghe thật, không đọc trước đáp án.</div>
     <div class="video-lesson-list">${cards}</div>`;
 }
 function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
@@ -5388,7 +5433,7 @@ async function fetchSpeakingPracticeData(){
   if(SPEAKING_PRACTICE || speakingPracticeLoading) return;
   speakingPracticeLoading = true;
   try{
-    const res = await fetch('./speaking-practice-data.json?v=3');
+    const res = await fetch('./speaking-practice-data.json?v=4');
     SPEAKING_PRACTICE = await res.json();
   }catch(e){
     console.error('Không tải được ngân hàng luyện nói', e);
@@ -6004,7 +6049,15 @@ function beginSpeakRecording(){
   speakSegRecorder=null; speakSegStopping=false; speakSegPromises=[]; speakSegTexts=[]; speakCaptionHasText=false;
   if(speakSegTimerHandle){ clearTimeout(speakSegTimerHandle); speakSegTimerHandle=null; }
   s.recording=true; s.result=null; s.usingCloudStt=useCloud; speakRecogStart=Date.now();
-  s.recordSecLeft = estimateSpeakDurationSec(item[0]);
+  // "Đoạn văn dài" (level==='long', ~150-200 từ/bài) KHÔNG áp dụng giới hạn thời gian đọc như các đoạn
+  // ngắn khác — trước đây estimateSpeakDurationSec() bị chặn trần ở 50 giây (Math.min(50,...)), quá
+  // ngắn để đọc trọn 1 bài dài, khiến app tự cắt ngang giữa chừng dù người dùng chưa đọc xong. Với đoạn
+  // dài, đặt recordSecLeft rất lớn (coi như không có hạn) và hiển thị ĐẾM LÊN (thời gian đã đọc) thay
+  // vì đếm ngược — người dùng chủ động bấm "Dừng & chấm điểm" khi đọc xong, đúng yêu cầu "không cần có
+  // thời gian kết thúc" vì rất khó ước lượng trước thời gian đọc 1 đoạn văn dài.
+  const isLongRec = s.level==='long';
+  s.recordSecLeft = isLongRec ? 3600 : estimateSpeakDurationSec(item[0]);
+  s.recordElapsed = 0;
   if(s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
   // Nhánh Web Speech (không dùng Cloud STT): vẫn cần tự mở 1 luồng mic RIÊNG chỉ để ghi lại nghe lại
   // giọng của bạn, vì Web Speech API không cho trang web truy cập audio thô. Nhánh Cloud STT thì
@@ -6017,8 +6070,9 @@ function beginSpeakRecording(){
   // toàn màn hình mỗi giây) để nhẹ và không có rủi ro phá hủy DOM giữa chừng.
   speakCountdownTimer = setInterval(()=>{
     s.recordSecLeft = Math.max(0, s.recordSecLeft-1);
+    s.recordElapsed = (s.recordElapsed||0)+1;
     const el = document.getElementById('speak-countdown-num');
-    if(el) el.textContent = s.recordSecLeft;
+    if(el) el.textContent = isLongRec ? s.recordElapsed : s.recordSecLeft;
   }, 1000);
   speakAutoStopTimer = setTimeout(()=>{ if(s.recording) forceStopSpeakRecording(); }, (s.recordSecLeft+1)*1000);
 
@@ -6128,9 +6182,55 @@ function speakScoreBar(label, v){
     <div style="height:7px;border-radius:5px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:${v}%;background:${c};"></div></div>
   </div>`;
 }
+// Danh sách chọn TỪNG bài đoạn văn dài riêng lẻ — trước đây bấm "Đoạn văn dài" sẽ gộp cả 15 bài vào 1
+// phiên luyện tuần tự kiểu "Đoạn 1/15 → Câu tiếp" giống các cấp độ CEFR ngắn, không hợp lý vì mỗi bài
+// dài ~150-200 từ, người học thường chỉ cố đọc trọn 1 bài/lượt. Giờ mỗi bài là 1 nút riêng — bấm vào
+// bài nào sẽ vào thẳng bài đó (phiên chỉ gồm 1 bài), đọc xong bấm "Hoàn thành" để quay lại danh sách.
+function renderLongPassageList(item){
+  const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
+  const bestLong = (SETTINGS.speakPractice && SETTINGS.speakPractice.best && SETTINGS.speakPractice.best.long);
+  const cards = bank.map((p,i)=>{
+    const title = p[3] || ('Bài '+(i+1));
+    const wc = (p[0]||'').trim().split(/\s+/).filter(Boolean).length;
+    return `<div class="video-lesson-card" data-action="long-passage-start" data-idx="${i}">
+      <div class="vlc-body" style="padding-left:2px;">
+        <div class="vlc-title">📖 ${escapeHtml(title)}</div>
+        <div class="vlc-desc">Bài ${i+1}/${bank.length} · ~${wc} từ</div>
+      </div>
+      <div class="vlc-play">▶</div>
+    </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="long-passage-back">${svgIcon('back')}</div><div class="title">📖 Đoạn văn dài</div></div>
+    <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Chọn 1 bài để đọc trọn — mỗi bài là 1 câu chuyện/bài nói chuyện ngắn riêng biệt, không cần đọc hết cả 15 bài trong 1 lượt. Ghi âm KHÔNG giới hạn thời gian, đọc xong tự bấm dừng để chấm điểm.${bestLong!==undefined?` Điểm cao nhất của bạn: <b>★ ${bestLong}đ</b>.`:''}</div>
+    </div>
+    <div class="video-lesson-list">${cards}</div>`;
+}
+function longPassageBrowseOpen(){
+  STATE.longPassageBrowse = true;
+  navForward();
+  renderContent();
+  window.scrollTo(0,0);
+}
+function longPassageBrowseClose(){
+  STATE.longPassageBrowse = false;
+  renderContent();
+  navBack();
+}
+function startLongPassage(idx){
+  const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
+  if(!bank[idx]) return;
+  if(!STATE.speakSession) navForward();
+  STATE.speakSession = {level:'long', order:[idx], idx:0, showTranslate:false, result:null, recording:false};
+  STATE.speakPlayback = 'idle';
+  renderContent();
+  window.scrollTo(0,0);
+}
 function renderSpeakingPractice(item){
   if(STATE.speakSession){ renderSpeakPracticeUI(item); return; }
   if(SPEAKING_PRACTICE===null && !speakingPracticeLoading) fetchSpeakingPracticeData();
+  if(STATE.longPassageBrowse){ renderLongPassageList(item); return; }
   const best=(SETTINGS.speakPractice && SETTINGS.speakPractice.best)||{};
   let levelPickHtml;
   if(SPEAKING_PRACTICE===null){
@@ -6160,7 +6260,7 @@ function renderSpeakingPractice(item){
       ${srOk ? '' : `<div style="font-size:11.5px;color:#ffb020;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">⚠️ Thiết bị này chưa hỗ trợ nhận diện giọng nói nên phần chấm điểm có thể không hoạt động. Bạn vẫn luyện nghe/đọc theo mẫu bình thường. Khuyến nghị dùng Chrome trên Android hoặc máy tính.</div>`}
       <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
       <div class="eng-level-pick-row compact">${cards}</div>
-      <div class="speak-longpassage-cta" data-action="speak-practice-start" data-level="long">
+      <div class="speak-longpassage-cta" data-action="long-passage-open">
         <div class="speak-longpassage-icon">📖</div>
         <div class="speak-longpassage-body">
           <div class="speak-longpassage-name">Đoạn văn dài</div>
@@ -6186,10 +6286,13 @@ function renderSpeakPracticeUI(){
   const progressPct=Math.round((s.idx/s.order.length)*100);
   const r=s.result;
   const recBtn = s.recording
-    ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>
+    ? (isLongPassage
+        ? `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang đọc… đã <span id="speak-countdown-num">${s.recordElapsed||0}</span>s (bấm khi đọc xong để chấm điểm)</button>
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`
+        : `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>
+       <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`)
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
-  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại). Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
+  const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">${isLongPassage ? 'Bấm micro rồi đọc to, rõ cả bài — đoạn dài nên KHÔNG giới hạn thời gian, đọc xong bấm nút để chấm điểm.' : 'Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại).'} Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
     <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">${APP_VERSION}</div>`;
   const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
@@ -6286,7 +6389,12 @@ function findIpaPhoneme(sym){
 function openIpaDetail(sym){
   if(!STATE.ipaDetailSym) navForward();
   STATE.ipaDetailSym = sym;
-  STATE.ipaVideoIdx = 0;
+  // KHÔNG reset ipaVideoIdx về 0 ở đây nữa — trước đây mỗi lần mở 1 âm mới đều tự quay lại kênh đầu
+  // tiên (What's Up English), khiến người dùng chọn kênh BBC Learning English xong nhưng hễ chuyển
+  // sang âm khác là bị "quên" lựa chọn, nên luôn thấy được What's Up còn BBC thì như chưa từng chọn
+  // được. Giữ nguyên lựa chọn kênh của người dùng xuyên suốt các âm — renderIpaDetail() bên dưới đã tự
+  // kẹp giá trị về 0 an toàn nếu lần đầu mở (chưa có lựa chọn nào) hoặc kênh đã chọn không có dữ liệu
+  // cho âm đang xem.
   renderContent();
   window.scrollTo(0,0);
 }
@@ -6303,7 +6411,7 @@ function ipaDetailNav(dir){
   const { idx, list } = found;
   const nextIdx = dir==='next' ? (idx+1)%list.length : (idx-1+list.length)%list.length;
   STATE.ipaDetailSym = list[nextIdx].ipa;
-  STATE.ipaVideoIdx = 0;
+  // Giữ nguyên kênh video người dùng đang chọn khi bấm âm trước/sau (xem giải thích ở openIpaDetail()).
   renderContent();
   window.scrollTo(0,0);
 }
@@ -6383,17 +6491,30 @@ function ipaMouthDiagramSvg(ph, groupKey, grad){
     if(hasDiph){ [sx,sy] = ipamHump(mm.tx, mm.ty); }
   }
   const tonguePath = ipamTonguePath(hx,hy);
-  const startLine = hasDiph ? `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${markerX.toFixed(1)}" y2="${markerY.toFixed(1)}" stroke="${grad[1]}" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="5" fill="${grad[0]}" opacity="0.55"/>` : '';
-  const noseAirflow = (groupKey==='cons' && m.manner==='nasal') ? `<path d="M 34,66 C 28,60 26,52 30,44" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.8"/><path d="M 40,62 C 35,56 34,49 37,42" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.6"/>` : '';
+  const startLine = hasDiph ? `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${markerX.toFixed(1)}" y2="${markerY.toFixed(1)}" stroke="${grad[1]}" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>` : '';
+  const noseAirflow = (groupKey==='cons' && m.manner==='nasal') ? `<path d="M 34,66 C 28,60 26,52 30,44" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.8" stroke-dasharray="3 3"><animate attributeName="stroke-dashoffset" values="12;0" dur="0.9s" repeatCount="indefinite"/></path><path d="M 40,62 C 35,56 34,49 37,42" fill="none" stroke="${grad[1]}" stroke-width="2" stroke-linecap="round" opacity="0.6" stroke-dasharray="3 3"><animate attributeName="stroke-dashoffset" values="12;0" dur="1.1s" repeatCount="indefinite"/></path>` : '';
+  const airflowAnim = (groupKey==='cons' && (m.manner==='fricative'||m.manner==='plosive'||m.manner==='affricate')) ? `<circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="10" fill="none" stroke="${grad[1]}" stroke-width="1.6" opacity="0"><animate attributeName="r" values="10;20;10" dur="1.3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;0;0.55" dur="1.3s" repeatCount="indefinite"/></circle>` : '';
+  // Hoạt hình: nguyên âm đôi (diphthong) cho lưỡi + chấm màu LƯỚT qua lại giữa 2 vị trí (start→end→start)
+  // để người học thấy rõ chuyển động lướt đặc trưng của âm đôi; các âm khác (nguyên âm đơn/phụ âm) chỉ
+  // có hiệu ứng "thở" (phồng nhẹ) trên chấm màu để thu hút chú ý vào ĐÚNG vị trí mà không gây hiểu lầm
+  // là có chuyển động lướt (vì các âm này giữ nguyên 1 vị trí lưỡi khi phát âm).
+  const startTonguePath = hasDiph ? ipamTonguePath(sx,sy) : '';
+  const tongueEl = hasDiph
+    ? `<path d="${tonguePath}" fill="#D9707E" stroke="#B0505E" stroke-width="1.6"><animate attributeName="d" values="${startTonguePath};${tonguePath};${startTonguePath}" dur="2.4s" repeatCount="indefinite"/></path>`
+    : `<path d="${tonguePath}" fill="#D9707E" stroke="#B0505E" stroke-width="1.6"/>`;
+  const markerEl = hasDiph
+    ? `<circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="10" fill="${grad[1]}" stroke="#fff" stroke-width="2.5"><animate attributeName="cx" values="${sx.toFixed(1)};${markerX.toFixed(1)};${sx.toFixed(1)}" dur="2.4s" repeatCount="indefinite"/><animate attributeName="cy" values="${sy.toFixed(1)};${markerY.toFixed(1)};${sy.toFixed(1)}" dur="2.4s" repeatCount="indefinite"/></circle>`
+    : `<circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="10" fill="${grad[1]}" stroke="#fff" stroke-width="2.5"><animate attributeName="r" values="9;11;9" dur="1.6s" repeatCount="indefinite"/></circle>`;
   return `<svg viewBox="0 0 220 200" class="ipac-mouth-svg">
     ${IPAM_HEAD}${IPAM_CAVITY}${IPAM_TEETH}
-    <path d="${tonguePath}" fill="#D9707E" stroke="#B0505E" stroke-width="1.6"/>
-    ${noseAirflow}${startLine}
-    <circle cx="${markerX.toFixed(1)}" cy="${markerY.toFixed(1)}" r="10" fill="${grad[1]}" stroke="#fff" stroke-width="2.5"/>
+    ${tongueEl}
+    ${noseAirflow}${startLine}${airflowAnim}
+    ${markerEl}
     ${icon?`<text x="${markerX.toFixed(1)}" y="${(markerY-15).toFixed(1)}" font-size="16" text-anchor="middle">${icon}</text>`:''}
     <text x="42" y="188" font-size="10" fill="var(--dim2)">👄 Môi</text>
     <text x="178" y="188" font-size="10" fill="var(--dim2)" text-anchor="end">Họng</text>
     ${label?`<text x="110" y="14" font-size="10" fill="var(--dim)" text-anchor="middle" font-weight="700">${escapeHtml(label)}</text>`:''}
+    ${hasDiph?`<text x="110" y="196" font-size="9" fill="var(--dim2)" text-anchor="middle">↔ Lưỡi LƯỚT giữa 2 vị trí</text>`:''}
   </svg>`;
 }
 // Câu mô tả bằng lời NGẮN GỌN, đơn giản đi kèm sơ đồ — giúp hình dung ngay cả khi không nhìn kỹ hình,
@@ -6625,6 +6746,8 @@ function renderToday(){
   const legend = catsPresent.map(cat=>{ const ci=catInfo(key,cat); return `
     <div class="leg-item" style="background:${CATS[cat].hex}22; border:1px solid ${CATS[cat].hex}55; color:${CATS[cat].hex};"><span class="leg-dot" style="background:${CATS[cat].hex}"></span>${catIconHtml(cat)} ${CATS[cat].label}: <b>${ci.done}/${ci.total}</b></div>`; }).join('');
   const restBanner = isRestDay(now) ? `<div class="rest-banner">💤 Hôm nay là ngày nghỉ chạy/tập tạ theo lịch mặc định để phục hồi. Tập trung Tiếng Anh &amp; Chuyên môn nhé!</div>` : '';
+  const isWorkdayNow = now.getDay()>=1 && now.getDay()<=5;
+  const workBanner = isWorkdayNow ? `<div class="rest-banner" style="background:#4FA8FF14; border-color:#4FA8FF44;">💼 Lịch hôm nay đã sắp xếp quanh giờ làm 7:00-19:00 của bạn — buổi sáng trước 7h &amp; buổi tối sau 19h dành cho Thể lực/Tiếng Anh/Chuyên môn, giữa trưa có 1 việc rất nhẹ. Điều chỉnh vài phút theo giờ di chuyển thực tế của bạn nếu cần.</div>` : '';
 
   const tasksHtml = plan.map(t=>{
     const isDone = !!rec.tasks[t.id];
@@ -6660,6 +6783,7 @@ function renderToday(){
     ${scheduleSubNav()}
     ${renderTrackHUD('schedule')}
     ${toggleRow}
+    ${workBanner}
     ${restBanner}
     <div class="ringcard" id="ringcard">${renderDayWheel(key, null, 180)}<div class="legend">${legend}</div></div>
     <div class="card" style="text-align:center;">
@@ -7255,6 +7379,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenQuizExitEl){ stopListenAudio(); STATE.listenQuiz = null; renderContent(); navBack(); return; }
   const speakStartEl = e.target.closest('[data-action="speak-practice-start"]');
   if(speakStartEl){ startSpeakPractice(speakStartEl.getAttribute('data-level')); return; }
+  const longPassageOpenEl = e.target.closest('[data-action="long-passage-open"]');
+  if(longPassageOpenEl){ longPassageBrowseOpen(); return; }
+  const longPassageBackEl = e.target.closest('[data-action="long-passage-back"]');
+  if(longPassageBackEl){ longPassageBrowseClose(); return; }
+  const longPassageStartEl = e.target.closest('[data-action="long-passage-start"]');
+  if(longPassageStartEl){ startLongPassage(parseInt(longPassageStartEl.getAttribute('data-idx'),10)||0); return; }
   const speakExitEl = e.target.closest('[data-action="speak-practice-exit"]');
   if(speakExitEl){ speakPracticeExit(); return; }
   const speakTogglePlayEl = e.target.closest('[data-action="speak-toggle-play"]');
