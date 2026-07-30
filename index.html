@@ -5575,10 +5575,21 @@ function sentBuildDailyQueue(){
   saveSettings();
   return ids;
 }
-function sentPickDistractors(sentence, count){
-  const catItems = sentByCategory(sentence[3]).filter(s=>s[0]!==sentence[0]);
-  let pool = catItems.length>=count ? catItems : COMMON_SENT_DATA.sentences.filter(s=>s[0]!==sentence[0]);
-  pool = shuffleArr(pool);
+function sentPickDistractors(sentence, count, textField, excludeText){
+  // Loại các câu có cùng nội dung đáp án (VD nhiều câu tiếng Anh khác nhau nhưng cùng nghĩa tiếng Việt)
+  // để tránh 2 lựa chọn trắc nghiệm bị trùng chữ, gây khó hiểu cho người học.
+  const dedupe = (list) => {
+    const seen = new Set([excludeText]);
+    const out = [];
+    for(const s of list){
+      const t = s[textField];
+      if(seen.has(t)) continue;
+      seen.add(t); out.push(s);
+    }
+    return out;
+  };
+  const catItems = dedupe(shuffleArr(sentByCategory(sentence[3]).filter(s=>s[0]!==sentence[0])));
+  let pool = catItems.length>=count ? catItems : dedupe(shuffleArr(COMMON_SENT_DATA.sentences.filter(s=>s[0]!==sentence[0])));
   return pool.slice(0, count);
 }
 function sentPrepareCurrent(){
@@ -5592,10 +5603,10 @@ function sentPrepareCurrent(){
   const box = p.box||0;
   const exType = (s.idx + box) % 2 === 0 ? 'mc_en_vi' : 'mc_vi_en';
   s.exType = exType;
-  const distractors = sentPickDistractors(sentence, 3);
-  let correctText, optTexts;
-  if(exType==='mc_en_vi'){ correctText = sentence[4]; optTexts = distractors.map(d=>d[4]); }
-  else { correctText = sentence[1]; optTexts = distractors.map(d=>d[1]); }
+  const textField = exType==='mc_en_vi' ? 4 : 1;
+  const correctText = sentence[textField];
+  const distractors = sentPickDistractors(sentence, 3, textField, correctText);
+  const optTexts = distractors.map(d=>d[textField]);
   const all = shuffleArr([{t:correctText, correct:true}].concat(optTexts.map(t=>({t, correct:false}))));
   s.options = all.map(o=>o.t);
   s.correctIdx = all.findIndex(o=>o.correct);
