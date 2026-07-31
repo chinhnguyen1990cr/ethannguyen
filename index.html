@@ -1178,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v71';
+const APP_VERSION = 'v72';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6231,6 +6231,17 @@ function aiCallAppendCaption(role, text){
   if(s.captions.length>40) s.captions = s.captions.slice(-40);
 }
 function aiCallHandleMessage(raw){
+  // QUAN TRỌNG: dữ liệu nhận về qua WebSocket có thể là chuỗi text HOẶC frame nhị phân (ArrayBuffer/Blob)
+  // tùy server — trước đây code giả định luôn là string nên JSON.parse(raw) ném lỗi im lặng và bị catch
+  // nuốt mất (return trắng, không log gì), khiến "setupComplete" hay bất kỳ phản hồi nào tới bằng frame
+  // nhị phân đều bị ÂM THẦM VỨT BỎ — đây là nguyên nhân rất có thể khiến màn hình treo ở "Đang kết nối"
+  // dù kết nối WebSocket đã mở thành công (server có gửi phản hồi, chỉ là mình không đọc được).
+  if(raw instanceof ArrayBuffer){
+    try{ raw = new TextDecoder('utf-8').decode(raw); }catch(e){ return; }
+  } else if(typeof Blob !== 'undefined' && raw instanceof Blob){
+    raw.text().then(t=> aiCallHandleMessage(t)); // đọc bất đồng bộ rồi tự gọi lại xử lý với dạng text
+    return;
+  }
   let msg; try{ msg = JSON.parse(raw); }catch(e){ return; }
   const s = STATE.aiCallSession; if(!s) return;
   // Gemini Live có thể trả lỗi dưới dạng JSON message thường (không phải qua close code) — ví dụ key
@@ -6265,6 +6276,7 @@ function aiCallConnect(){
   const apiKey = SETTINGS.geminiApiKey;
   const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(apiKey)}`;
   try{ aiCallWs = new WebSocket(url); }catch(e){ aiCallSetError('Không tạo được kết nối gọi thoại.'); return; }
+  aiCallWs.binaryType = 'arraybuffer'; // ép nhận frame nhị phân dạng ArrayBuffer (xử lý đồng bộ ngay, thay vì Blob phải đọc bất đồng bộ)
   // Một số mạng (wifi công cộng, mạng công ty, một số nhà mạng di động) âm thầm chặn/rớt lưu lượng
   // WebSocket tới generativelanguage.googleapis.com mà KHÔNG bắn sự kiện error/close nào cả — khiến màn
   // hình bị kẹt mãi ở "Đang kết nối..." không có phản hồi, không có lỗi để biết đường xử lý. Đặt giới hạn
