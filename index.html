@@ -872,6 +872,26 @@
     padding:10px 14px; font-size:13px; color:var(--text);}
   .ai-chat-send-btn{flex-shrink:0; width:42px; height:42px; border-radius:50%; background:var(--blue); border:none;
     color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .ai-call-screen{display:flex; flex-direction:column; align-items:center; min-height:70vh; padding:20px 10px 10px; text-align:center;}
+  .ai-call-top{font-size:12px; color:var(--dim); font-weight:700; letter-spacing:.5px; margin-bottom:18px;}
+  .ai-call-orb{width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,#5CD6C0,#4F8CFF);
+    display:flex; align-items:center; justify-content:center; font-size:48px; margin-bottom:18px;
+    box-shadow:0 0 0 0 rgba(79,140,255,.4); transition:box-shadow .3s;}
+  .ai-call-orb.listening{animation:aiCallListenPulse 1.8s infinite;}
+  .ai-call-orb.speaking{animation:aiCallSpeakPulse .9s infinite;}
+  @keyframes aiCallListenPulse{0%{box-shadow:0 0 0 0 rgba(92,214,192,.4);} 70%{box-shadow:0 0 0 16px rgba(92,214,192,0);} 100%{box-shadow:0 0 0 0 rgba(92,214,192,0);}}
+  @keyframes aiCallSpeakPulse{0%{box-shadow:0 0 0 0 rgba(79,140,255,.5);} 70%{box-shadow:0 0 0 22px rgba(79,140,255,0);} 100%{box-shadow:0 0 0 0 rgba(79,140,255,0);}}
+  .ai-call-status{font-size:13px; color:var(--text); font-weight:700; margin-bottom:22px;}
+  .ai-call-captions{width:100%; max-width:420px; display:flex; flex-direction:column; gap:8px; margin-bottom:16px; flex:1;}
+  .ai-call-cap{font-size:12.5px; line-height:1.5; padding:8px 12px; border-radius:12px; text-align:left; opacity:.85;}
+  .ai-call-cap.user{background:var(--panel2); align-self:flex-end; border-bottom-right-radius:4px;}
+  .ai-call-cap.ai{background:var(--panel); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px;}
+  .ai-call-controls{display:flex; align-items:center; gap:16px; margin-top:auto; padding-top:10px;}
+  .ai-call-mute-btn{width:52px; height:52px; border-radius:50%; background:var(--panel); border:1.5px solid var(--border);
+    color:var(--text); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .ai-call-mute-btn.muted{background:#ff5c5c; border-color:#ff5c5c; color:#fff;}
+  .ai-call-end-btn{padding:14px 26px; border-radius:26px; background:#ff5c5c; border:none; color:#fff;
+    font-size:14px; font-weight:800; cursor:pointer;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1158,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v66';
+const APP_VERSION = 'v67';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1505,6 +1525,7 @@ window.addEventListener('popstate', ()=>{
     try{ stopSpeakAudio(); }catch(e){}
     try{ stopSpeakRecognition(); }catch(e){}
     try{ stopListenAudio(); }catch(e){}
+    try{ if(STATE.aiCallSession) aiCallCleanupResources(); }catch(e){}
     const snap = NAV_STACK.pop();
     restoreNav(snap);
   }
@@ -6038,8 +6059,9 @@ function aiChatStopRecord(){
   if(aiChatRecognition){ try{ aiChatRecognition.stop(); }catch(e){} }
   const s = STATE.aiChatSession; if(s) s.recording = false;
 }
-function aiChatScenarioGridHtml(){
-  const cards = AICHAT_SCENARIOS.map(sc=>`<div class="eng-group-card compact" data-action="aichat-start-scenario" data-code="${sc.code}" style="--gcgrad:${sc.grad};">
+function aiChatScenarioGridHtml(mode){
+  const action = mode==='call' ? 'aichat-start-scenario-call' : 'aichat-start-scenario';
+  const cards = AICHAT_SCENARIOS.map(sc=>`<div class="eng-group-card compact" data-action="${action}" data-code="${sc.code}" style="--gcgrad:${sc.grad};">
     <div class="gc-icon">${sc.emoji}</div>
     <div class="gc-name">${escapeHtml(sc.title)}</div>
     <div class="gc-desc">${escapeHtml(sc.sub)}</div>
@@ -6047,11 +6069,22 @@ function aiChatScenarioGridHtml(){
   return `<div class="eng-group-grid compact">${cards}</div>`;
 }
 function renderAiChatPicker(item){
-  const intro = `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
-    <div style="font-size:26px; margin-bottom:6px;">🤖</div>
-    <div style="font-size:13px; color:var(--dim); line-height:1.6;">Trò chuyện qua lại với AI bằng giọng nói hoặc gõ chữ để luyện phản xạ tiếng Anh. AI trả lời tự nhiên như người thật, đọc to câu trả lời, và gợi ý sửa câu bằng tiếng Việt khi bạn nói/viết chưa đúng.</div>
+  const mode = STATE.aiChatPickerMode || 'call';
+  const intro = mode==='call'
+    ? `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+        <div style="font-size:26px; margin-bottom:6px;">🎙️</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Gọi thoại trực tiếp với AI — nói và nghe liền mạch như đang gọi điện thật, không cần gõ chữ. Giọng AI tự nhiên, phản xạ tức thì, có thể ngắt lời như hội thoại đời thực.</div>
+      </div>`
+    : `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
+        <div style="font-size:26px; margin-bottom:6px;">🤖</div>
+        <div style="font-size:13px; color:var(--dim); line-height:1.6;">Trò chuyện qua lại với AI bằng giọng nói hoặc gõ chữ để luyện phản xạ tiếng Anh. AI trả lời tự nhiên như người thật, đọc to câu trả lời, và gợi ý sửa câu bằng tiếng Việt khi bạn nói/viết chưa đúng.</div>
+      </div>`;
+  const modeSeg = `<div class="seg" style="margin-bottom:14px;">
+    <button class="${mode==='call'?'active':''}" data-action="aichat-picker-mode" data-mode="call">🎙️ Gọi thoại (mới)</button>
+    <button class="${mode==='text'?'active':''}" data-action="aichat-picker-mode" data-mode="text">⌨️ Nhắn tin</button>
   </div>`;
-  const freeCard = `<div class="card" data-action="aichat-start-free" style="padding:16px; margin-bottom:14px; cursor:pointer; border:1px solid #4F8CFF55;">
+  const freeAction = mode==='call' ? 'aichat-start-free-call' : 'aichat-start-free';
+  const freeCard = `<div class="card" data-action="${freeAction}" style="padding:16px; margin-bottom:14px; cursor:pointer; border:1px solid #4F8CFF55;">
     <div style="font-size:26px; margin-bottom:6px;">💬</div>
     <div style="font-weight:800; font-size:14px; margin-bottom:4px;">Trò chuyện tự do</div>
     <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Nói chuyện thoải mái bất kỳ chủ đề gì với AI, giống nhắn tin với bạn bè — luyện phản xạ nghe/nói tự nhiên, không theo kịch bản.</div>
@@ -6059,10 +6092,11 @@ function renderAiChatPicker(item){
   return `${englishItemBackRow(item.name)}
     ${intro}
     ${aiChatApiKeyBtnHtml()}
+    ${modeSeg}
     <div class="eng-section-label">💬 Kiểu trò chuyện</div>
     ${freeCard}
     <div class="eng-section-label">🎭 Theo tình huống (${AICHAT_SCENARIOS.length} tình huống)</div>
-    ${aiChatScenarioGridHtml()}`;
+    ${aiChatScenarioGridHtml(mode)}`;
 }
 function renderAiChatSessionHtml(){
   const s = STATE.aiChatSession;
@@ -6092,6 +6126,7 @@ function renderAiChatSessionHtml(){
 }
 function renderAiChat(item){
   ensureEnglishItems();
+  if(STATE.aiCallSession){ document.getElementById('content').innerHTML = renderAiCallSessionHtml(); return; }
   const s = STATE.aiChatSession;
   document.getElementById('content').innerHTML = s ? renderAiChatSessionHtml() : renderAiChatPicker(item);
   if(s){
@@ -6100,6 +6135,206 @@ function renderAiChat(item){
     const inputEl = document.getElementById('aiChatInput');
     if(inputEl && !s.sending && !s.recording) inputEl.focus();
   }
+}
+
+// ================= GỌI THOẠI TRỰC TIẾP VỚI AI (Gemini Live API — voice-to-voice thật, không qua
+// bước gõ/đợi văn bản như "Hội thoại AI" bản nhắn tin ở trên): mở kết nối WebSocket bidirectional tới
+// model *-live-preview, liên tục gửi audio micro (PCM 16-bit) lên, nhận lại audio phản hồi (PCM 16-bit
+// 24kHz) và phát ngay — cảm giác gần với gọi điện thật hơn nhiều so với chu trình gõ→chờ→TTS máy đọc.
+// VAD (nhận biết khi nào người dùng đang nói/ngừng nói, kể cả ngắt lời AI giữa chừng) được xử lý tự
+// động phía server (Google) miễn là client gửi audio liên tục — client không cần tự dò lúc nào là hết
+// câu. Toàn bộ audio capture/playback dùng Web Audio API thuần (không cần thư viện ngoài). Tham khảo
+// tài liệu chính thức: ai.google.dev/gemini-api/docs/live-api/get-started-websocket.
+const GEMINI_LIVE_MODEL = 'gemini-3.1-flash-live-preview';
+let aiCallWs = null;
+let aiCallAudioCtx = null, aiCallMicStream = null, aiCallProcessorNode = null, aiCallSilentGain = null;
+let aiCallPlaybackCtx = null, aiCallNextStartTime = 0, aiCallActiveSources = [];
+function aiCallSystemPrompt(mode, sc){
+  // KHÔNG ép khuôn "1-2 câu ngắn" hay định dạng EN:/TIP: cứng nhắc như bản nhắn tin — chính điều đó
+  // khiến AI trả lời cụt lủn, "gượng" như đang làm bài tập thay vì trò chuyện thật. Ở chế độ gọi thoại,
+  // để AI nói tự nhiên dài ngắn tùy ngữ cảnh như người thật, và sửa lỗi kiểu "recast" (lặp lại đúng
+  // cách nói trong câu trả lời của chính mình) thay vì dừng lại giảng giải — đúng cách người bản xứ
+  // thật sự phản hồi khi trò chuyện, không phá vỡ mạch hội thoại.
+  const base = `This is a live spoken phone-call-style conversation with a Vietnamese learner practicing English. Talk exactly like a real person on a call: vary your sentence length naturally, react emotionally, ask genuine follow-up questions, use casual conversational fillers sometimes ("oh nice", "hmm", "really?", "wait, really?"). Do NOT keep every reply artificially short — speak as much or as little as a real person naturally would in that moment. If the learner makes a grammar or word-choice mistake, do NOT stop to correct them like a teacher — just naturally reuse the correct phrasing yourself in your next sentence (the way native speakers naturally "recast" what they hear), so it never feels like a lesson. Never say you are an AI and never break character.`;
+  if(mode==='scenario' && sc) return `You are role-playing as ${sc.roleEn}. Scenario: ${sc.descEn}\n${base}`;
+  return `You are a warm, friendly native English speaker having a real phone-call conversation with the learner about anything.\n${base}`;
+}
+function aiCallFloatTo16BitPCM(float32Array){
+  const buf = new ArrayBuffer(float32Array.length*2);
+  const view = new DataView(buf);
+  for(let i=0, offset=0; i<float32Array.length; i++, offset+=2){
+    const s = Math.max(-1, Math.min(1, float32Array[i]));
+    view.setInt16(offset, s<0 ? s*0x8000 : s*0x7FFF, true); // little-endian, đúng định dạng API yêu cầu
+  }
+  return buf;
+}
+function aiCallBufferToBase64(buf){
+  const bytes = new Uint8Array(buf);
+  let binary=''; const chunkSize=0x8000;
+  for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
+  return btoa(binary);
+}
+async function aiCallStartMic(){
+  aiCallMicStream = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+  aiCallAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const source = aiCallAudioCtx.createMediaStreamSource(aiCallMicStream);
+  aiCallProcessorNode = aiCallAudioCtx.createScriptProcessor(4096, 1, 1);
+  const rate = aiCallAudioCtx.sampleRate; // API tự resample phía server, chỉ cần khai đúng rate thật trong mimeType
+  aiCallProcessorNode.onaudioprocess = (ev)=>{
+    if(!aiCallWs || aiCallWs.readyState!==WebSocket.OPEN) return;
+    if(STATE.aiCallSession && STATE.aiCallSession.muted) return;
+    const pcm = aiCallFloatTo16BitPCM(ev.inputBuffer.getChannelData(0));
+    aiCallWs.send(JSON.stringify({realtimeInput:{audio:{data:aiCallBufferToBase64(pcm), mimeType:'audio/pcm;rate='+rate}}}));
+  };
+  // ScriptProcessorNode chỉ thực sự bắn sự kiện onaudioprocess khi nằm trong đồ thị nối tới destination —
+  // nối qua 1 GainNode gain=0 để không phát ngược mic ra loa (tránh vọng/hú) mà vẫn giữ node "sống".
+  aiCallSilentGain = aiCallAudioCtx.createGain(); aiCallSilentGain.gain.value = 0;
+  source.connect(aiCallProcessorNode);
+  aiCallProcessorNode.connect(aiCallSilentGain);
+  aiCallSilentGain.connect(aiCallAudioCtx.destination);
+}
+function aiCallEnsurePlaybackCtx(){
+  if(!aiCallPlaybackCtx) aiCallPlaybackCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000});
+  return aiCallPlaybackCtx;
+}
+function aiCallPlayChunk(base64){
+  const ctx = aiCallEnsurePlaybackCtx();
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  const view = new DataView(bytes.buffer);
+  const sampleCount = Math.floor(bytes.length/2);
+  const audioBuf = ctx.createBuffer(1, sampleCount, 24000); // audio trả về từ Live API luôn là PCM 16-bit 24kHz
+  const chData = audioBuf.getChannelData(0);
+  for(let i=0;i<sampleCount;i++){ chData[i] = view.getInt16(i*2, true)/0x8000; }
+  const src = ctx.createBufferSource();
+  src.buffer = audioBuf; src.connect(ctx.destination);
+  const startAt = Math.max(ctx.currentTime, aiCallNextStartTime);
+  src.start(startAt);
+  aiCallNextStartTime = startAt + audioBuf.duration;
+  aiCallActiveSources.push(src);
+  src.onended = ()=>{ aiCallActiveSources = aiCallActiveSources.filter(x=>x!==src); };
+}
+function aiCallStopPlayback(){
+  aiCallActiveSources.forEach(s=>{ try{ s.stop(); }catch(e){} });
+  aiCallActiveSources = [];
+  aiCallNextStartTime = aiCallPlaybackCtx ? aiCallPlaybackCtx.currentTime : 0;
+}
+function aiCallAppendCaption(role, text){
+  const s = STATE.aiCallSession; if(!s || !text) return;
+  if(!s.captions) s.captions = [];
+  const last = s.captions[s.captions.length-1];
+  if(last && last.role===role && !last.done){ last.text += text; }
+  else { s.captions.push({role, text, done:false}); }
+  if(s.captions.length>40) s.captions = s.captions.slice(-40);
+}
+function aiCallHandleMessage(raw){
+  let msg; try{ msg = JSON.parse(raw); }catch(e){ return; }
+  const s = STATE.aiCallSession; if(!s) return;
+  if(msg.setupComplete){ s.status = 'listening'; renderContent(); return; }
+  if(msg.serverContent){
+    const sc = msg.serverContent;
+    if(sc.interrupted){ aiCallStopPlayback(); }
+    if(sc.modelTurn && sc.modelTurn.parts){
+      for(const part of sc.modelTurn.parts){
+        if(part.inlineData && part.inlineData.data){ aiCallPlayChunk(part.inlineData.data); s.status = 'ai_speaking'; }
+      }
+    }
+    if(sc.inputTranscription && sc.inputTranscription.text) aiCallAppendCaption('user', sc.inputTranscription.text);
+    if(sc.outputTranscription && sc.outputTranscription.text) aiCallAppendCaption('ai', sc.outputTranscription.text);
+    if(sc.turnComplete){ (s.captions||[]).forEach(c=>{ c.done = true; }); if(s.status==='ai_speaking') s.status='listening'; }
+    renderContent();
+  }
+}
+function aiCallSetError(msg){
+  const s = STATE.aiCallSession; if(!s) return;
+  s.status = 'error'; s.error = msg; renderContent();
+}
+function aiCallConnect(){
+  const apiKey = SETTINGS.geminiApiKey;
+  const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(apiKey)}`;
+  try{ aiCallWs = new WebSocket(url); }catch(e){ aiCallSetError('Không tạo được kết nối gọi thoại.'); return; }
+  aiCallWs.onopen = ()=>{
+    const s = STATE.aiCallSession; if(!s) return;
+    const sys = aiCallSystemPrompt(s.mode, aiChatScenario(s.scenario));
+    aiCallWs.send(JSON.stringify({config:{
+      model: 'models/'+GEMINI_LIVE_MODEL,
+      responseModalities: ['AUDIO'],
+      systemInstruction: {parts:[{text:sys}]},
+      inputAudioTranscription: {},
+      outputAudioTranscription: {},
+      speechConfig: {voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}
+    }}));
+    aiCallStartMic().catch(err=>{ aiCallSetError('Không dùng được micro: '+(err&&err.message?err.message:'từ chối quyền truy cập')+'.'); });
+  };
+  aiCallWs.onmessage = (ev)=> aiCallHandleMessage(ev.data);
+  aiCallWs.onerror = ()=>{ aiCallSetError('Lỗi kết nối tới Gemini Live — kiểm tra API key hoặc mạng, rồi thử gọi lại.'); };
+  aiCallWs.onclose = ()=>{ const s = STATE.aiCallSession; if(s && s.status!=='ended' && s.status!=='error'){ s.status='ended'; renderContent(); } };
+}
+// Dọn dẹp mic/WebSocket/AudioContext — dùng CHUNG cho cả 2 đường thoát: bấm nút "Kết thúc" (aiCallEnd,
+// có điều hướng navBack) và vuốt back/thoát đột ngột (popstate, xem nơi gọi trong window.addEventListener
+// 'popstate' phía trên) — để mic KHÔNG BAO GIỜ bị bỏ quên đang mở chạy ngầm sau khi rời màn hình, dù
+// người dùng thoát bằng cách nào.
+function aiCallCleanupResources(){
+  const s = STATE.aiCallSession;
+  if(aiCallWs){ try{ aiCallWs.close(); }catch(e){} aiCallWs = null; }
+  if(aiCallProcessorNode){ try{ aiCallProcessorNode.disconnect(); }catch(e){} aiCallProcessorNode = null; }
+  if(aiCallSilentGain){ try{ aiCallSilentGain.disconnect(); }catch(e){} aiCallSilentGain = null; }
+  if(aiCallMicStream){ try{ aiCallMicStream.getTracks().forEach(t=>t.stop()); }catch(e){} aiCallMicStream = null; }
+  if(aiCallAudioCtx){ try{ aiCallAudioCtx.close(); }catch(e){} aiCallAudioCtx = null; }
+  aiCallStopPlayback();
+  if(aiCallPlaybackCtx){ try{ aiCallPlaybackCtx.close(); }catch(e){} aiCallPlaybackCtx = null; }
+  if(s){
+    const turns = (s.captions||[]).filter(c=>c.role==='user').length;
+    if(turns>0){
+      if(!Array.isArray(SETTINGS.aiChatLog)) SETTINGS.aiChatLog = [];
+      SETTINGS.aiChatLog.push({date:todayKey(), mode:'call_'+s.mode, scenario:s.scenario, turns});
+      if(SETTINGS.aiChatLog.length>300) SETTINGS.aiChatLog = SETTINGS.aiChatLog.slice(-300);
+      saveSettings(); pushToDrive();
+    }
+  }
+  STATE.aiCallSession = null;
+}
+function aiCallEnd(){ aiCallCleanupResources(); renderContent(); navBack(); }
+function aiCallToggleMute(){ const s = STATE.aiCallSession; if(!s) return; s.muted = !s.muted; renderContent(); }
+function aiCallSupported(){ return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext||window.webkitAudioContext) && !!window.WebSocket; }
+function startAiCallFree(){
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Bấm nút "Chưa có Gemini API key" phía trên để dán key trước khi gọi.'); return; }
+  if(!aiCallSupported()){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt này chưa hỗ trợ gọi thoại trực tiếp. Hãy dùng Chrome trên máy tính/Android, hoặc chuyển sang Nhắn tin.'); return; }
+  navForward();
+  STATE.aiCallSession = {mode:'free', scenario:null, status:'connecting', captions:[], error:null, muted:false};
+  renderContent(); window.scrollTo(0,0);
+  aiCallConnect();
+}
+function startAiCallScenario(code){
+  const sc = aiChatScenario(code); if(!sc) return;
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Bấm nút "Chưa có Gemini API key" phía trên để dán key trước khi gọi.'); return; }
+  if(!aiCallSupported()){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt này chưa hỗ trợ gọi thoại trực tiếp. Hãy dùng Chrome trên máy tính/Android, hoặc chuyển sang Nhắn tin.'); return; }
+  navForward();
+  STATE.aiCallSession = {mode:'scenario', scenario:code, status:'connecting', captions:[], error:null, muted:false};
+  renderContent(); window.scrollTo(0,0);
+  aiCallConnect();
+}
+function renderAiCallSessionHtml(){
+  const s = STATE.aiCallSession;
+  const sc = s.scenario ? aiChatScenario(s.scenario) : null;
+  const title = sc ? sc.title : 'Trò chuyện tự do';
+  const statusLabel = {connecting:'Đang kết nối…', listening:'Đang nghe bạn…', ai_speaking:'AI đang nói…', error:'Lỗi kết nối', ended:'Đã kết thúc cuộc gọi'}[s.status] || '';
+  const capHtml = (s.captions||[]).slice(-6).map(c=>`<div class="ai-call-cap ${c.role}">${c.role==='ai'?'🤖 ':'🗣️ '}${escapeHtml(c.text)}</div>`).join('');
+  const errHtml = s.error ? `<div class="ai-chat-error">⚠️ ${escapeHtml(s.error)}</div>` : '';
+  return `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div><div class="title">${escapeHtml(title)}</div></div>
+    <div class="ai-call-screen">
+      <div class="ai-call-top">📞 Gọi thoại trực tiếp</div>
+      <div class="ai-call-orb ${s.status==='ai_speaking'?'speaking':''} ${s.status==='listening'?'listening':''}">🤖</div>
+      <div class="ai-call-status">${statusLabel}</div>
+      <div class="ai-call-captions">${capHtml}</div>
+      ${errHtml}
+      <div class="ai-call-controls">
+        <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${s.muted?'🔇':'🎙️'}</button>
+        <button class="ai-call-end-btn" data-action="aicall-end">☎️ Kết thúc</button>
+      </div>
+    </div>`;
 }
 
 // ================= HỌC QUA VIDEO (podcast luyện nghe — Slow English Podcast, What's Up English,
@@ -8322,6 +8557,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     // phải đóng trang riêng đó TRƯỚC (đúng 1 lớp), không được nhảy thẳng ra "Học tiếng Anh" — khớp
     // với hành vi vuốt-back. navBack() sẽ tiêu thụ đúng mốc lịch sử đó và tự render lại (iframe nạp
     // lại từ đầu, quay về danh sách chủ đề) mà không cần đổi STATE.tab ở đây.
+    if(STATE.aiCallSession){ aiCallEnd(); return; }
     if(STATE.grammarDetailOpen){ navBack(); return; }
     STATE.tab = 'english'; renderContent(); window.scrollTo(0,0); navBack();
     return;
@@ -8408,6 +8644,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aichatSpeakMsgEl){ speakEnglishRobust(aichatSpeakMsgEl.getAttribute('data-text'), {rate:0.95}); return; }
   const setGeminiKeyEl = e.target.closest('[data-action="set-gemini-key"]');
   if(setGeminiKeyEl){ setGeminiApiKey(); return; }
+  const aichatPickerModeEl = e.target.closest('[data-action="aichat-picker-mode"]');
+  if(aichatPickerModeEl){ STATE.aiChatPickerMode = aichatPickerModeEl.getAttribute('data-mode'); renderContent(); return; }
+  const aichatStartFreeCallEl = e.target.closest('[data-action="aichat-start-free-call"]');
+  if(aichatStartFreeCallEl){ startAiCallFree(); return; }
+  const aichatStartScenarioCallEl = e.target.closest('[data-action="aichat-start-scenario-call"]');
+  if(aichatStartScenarioCallEl){ startAiCallScenario(aichatStartScenarioCallEl.getAttribute('data-code')); return; }
+  const aicallToggleMuteEl = e.target.closest('[data-action="aicall-toggle-mute"]');
+  if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
+  const aicallEndEl = e.target.closest('[data-action="aicall-end"]');
+  if(aicallEndEl){ aiCallEnd(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
   if(avPickLevelEl){
     if(!STATE.avLevel) STATE.avLevel = {};
