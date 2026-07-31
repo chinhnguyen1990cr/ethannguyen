@@ -892,6 +892,42 @@
   .ai-call-mute-btn.muted{background:#ff5c5c; border-color:#ff5c5c; color:#fff;}
   .ai-call-end-btn{padding:14px 26px; border-radius:26px; background:#ff5c5c; border:none; color:#fff;
     font-size:14px; font-weight:800; cursor:pointer;}
+  /* ---- Ngữ pháp game: lộ trình vượt ải ---- */
+  .gg-scorebar{display:flex; gap:8px; margin-bottom:12px;}
+  .gg-scorebox{flex:1; background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:10px 6px; text-align:center;}
+  .gg-scorebox .v{font-size:17px; font-weight:900; color:var(--gold);}
+  .gg-scorebox .l{font-size:9.5px; color:var(--dim); margin-top:2px;}
+  .gg-scorebox.ok .v{color:var(--teal);} .gg-scorebox.warn .v{color:#ff8080;}
+  .gg-level-hdr{font-size:11px; font-weight:900; color:var(--dim); letter-spacing:1px; margin:16px 0 8px; text-transform:uppercase;}
+  .gg-path{padding-bottom:20px;}
+  .gg-node{display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border);
+    border-radius:16px; padding:12px 14px; margin-bottom:8px; position:relative;}
+  .gg-node.open{border-color:var(--gold); box-shadow:0 0 14px rgba(255,201,74,.25); cursor:pointer; animation:ggGlow 2s infinite;}
+  @keyframes ggGlow{0%,100%{box-shadow:0 0 8px rgba(255,201,74,.18);} 50%{box-shadow:0 0 18px rgba(255,201,74,.4);}}
+  .gg-node.passed{border-color:#2CDBA855; cursor:pointer;}
+  .gg-node.locked{opacity:.42; filter:grayscale(.6);}
+  .gg-node-icon{font-size:20px; flex-shrink:0;}
+  .gg-node-txt{flex:1; min-width:0;}
+  .gg-node-txt .n{font-weight:800; font-size:13px;}
+  .gg-node-txt .d{font-size:10.5px; color:var(--dim); margin-top:2px;}
+  .gg-node-score{font-size:11px; font-weight:800; color:var(--teal); flex-shrink:0;}
+  .gg-test-prog{position:relative; height:26px; background:var(--panel); border:1px solid var(--border); border-radius:13px; margin-bottom:12px; overflow:hidden;}
+  .gg-test-prog .bar{position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#4F8CFF,#5CD6C0); transition:width .3s;}
+  .gg-test-prog span{position:relative; display:block; text-align:center; line-height:24px; font-size:11px; font-weight:800;}
+  .gg-qtitle{font-size:12px; font-weight:900; color:var(--dim); margin-bottom:8px;}
+  .gg-qtext{font-size:15px; font-weight:700; line-height:1.5; margin-bottom:12px;}
+  .gg-opts{display:flex; flex-direction:column; gap:8px;}
+  .gg-opt{background:var(--panel2); border:1.5px solid var(--border); border-radius:12px; padding:11px 14px;
+    font-size:13px; color:var(--text); text-align:left; cursor:pointer;}
+  .gg-opt.right{border-color:var(--teal); background:rgba(44,219,168,.12); font-weight:800;}
+  .gg-opt.wrong{border-color:#ff5c5c; background:rgba(255,92,92,.1);}
+  .gg-built{min-height:44px; background:var(--panel2); border:1.5px dashed var(--border); border-radius:12px;
+    padding:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px;}
+  .gg-words{display:flex; flex-wrap:wrap; gap:6px;}
+  .gg-chip{background:var(--panel); border:1.5px solid #4F8CFF66; border-radius:10px; padding:7px 12px;
+    font-size:13px; font-weight:700; color:var(--text); cursor:pointer;}
+  .gg-chip.built{border-color:var(--teal); background:rgba(44,219,168,.1); cursor:default;}
+  .gg-speak-word{font-size:30px; font-weight:900; text-align:center; color:var(--gold); margin:8px 0;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1178,7 +1214,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v73';
+const APP_VERSION = 'v74';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1479,7 +1515,8 @@ function snapshotNav(){
     // bắt đầu làm bài — nên vuốt back lúc đang làm bài sẽ tiêu thụ nhầm mốc lịch sử của "mở Luyện ngữ
     // pháp" (đẩy bởi openEnglishItem), khiến nhảy thẳng về "Học tiếng Anh" thay vì về màn chọn chủ đề.
     listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz, ipaDetailSym: STATE.ipaDetailSym,
-    vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic, longPassageBrowse: STATE.longPassageBrowse
+    vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic, longPassageBrowse: STATE.longPassageBrowse,
+    ggTopic: STATE.ggTopic, ggTest: STATE.ggTest, ggTheory: STATE.ggTheory
   };
 }
 function restoreNav(snap){
@@ -1493,6 +1530,9 @@ function restoreNav(snap){
   STATE.vocabSession = snap.vocabSession!==undefined ? snap.vocabSession : null;
   STATE.vocabBrowseTopic = snap.vocabBrowseTopic!==undefined ? snap.vocabBrowseTopic : null;
   STATE.longPassageBrowse = snap.longPassageBrowse!==undefined ? snap.longPassageBrowse : false;
+  STATE.ggTopic = snap.ggTopic!==undefined ? snap.ggTopic : null;
+  STATE.ggTest = snap.ggTest!==undefined ? snap.ggTest : null;
+  STATE.ggTheory = snap.ggTheory!==undefined ? snap.ggTheory : false;
   // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
   // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
   STATE.grammarDetailOpen = false;
@@ -4739,9 +4779,385 @@ window.addEventListener('message', function(e){
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(err){}
   }
 });
-function renderEnglishGrammar(item){
+// ================= NGỮ PHÁP GAME — LỘ TRÌNH MỞ KHÓA TUẦN TỰ =================
+// Toàn bộ 38 chủ đề ngữ pháp xếp thành 1 lộ trình DUY NHẤT từ dễ → khó (bắt đầu "Hiện tại đơn").
+// Chỉ chủ đề đang tới lượt là sáng và bấm được; học lý thuyết xong sẽ mở bài "kiểm tra vượt ải"
+// 10 câu trộn 5 dạng (trắc nghiệm, nghe-điền, sắp xếp câu, dịch nghĩa, phát âm) — đúng ≥8/10 mới mở
+// chủ đề kế tiếp. Thứ tự trong mỗi bậc CEFR xếp theo sư phạm: thì nền tảng trước, cấu trúc phái
+// sinh sau (ví dụ Quá khứ đơn phải trước Câu tường thuật vì tường thuật cần lùi thì).
+const GRAMMAR_PATH = [
+  't_pres_simple','t_pres_cont','o_articles','p_time','p_place',
+  't_past_simple','t_fut_simple','o_quantifiers','o_modal','s_comparison','t_past_cont','p_movement',
+  't_pres_perf','o_gerund','o_adj_adv','s_relative','s_qtag','t_past_perf','s_conditional','s_passive',
+  't_fut_cont','o_phrasal','p_adj','p_verb','p_noun',
+  't_pres_perf_cont','t_past_perf_cont','t_fut_perf','s_wish','s_reported','o_causative','s_sequence',
+  'o_correlative','o_emphasis',
+  't_fut_perf_cont','s_inversion','s_cleft','s_participle'
+];
+// ---- Hệ "Điểm học tập" (ENG SCORE) — dùng CHUNG cho Ngữ pháp/Luyện ngữ pháp/Luyện nghe/Luyện nói ----
+// Cách tính điểm (mô hình các app học hiện đại): +2/câu đúng trong bài vượt ải, +15 thưởng vượt ải,
+// +3 học xong lý thuyết; các module khác cộng theo hoạt động. TRỪ ĐIỂM KHI LƯỜI: mỗi ngày không có
+// hoạt động tiếng Anh bị trừ 5 điểm, phạt TĂNG DẦN theo số ngày bỏ liên tiếp (ngày 2: -10, ngày 3:
+// -15... tối đa -30/ngày); đồng thời "chỉ tiêu tối thiểu mỗi ngày" cũng tăng theo (bỏ càng lâu, ngày
+// quay lại càng phải làm nhiều hoạt động hơn mới được tính là đã học) — chống lười đúng yêu cầu.
+function ensureEngGame(){
+  if(!SETTINGS.engGame || typeof SETTINGS.engGame !== 'object'){
+    SETTINGS.engGame = {score:0, gPassed:{}, gStudied:{}, missStreak:0, lastCheck:todayKey(), daily:{}, log:[]};
+  }
+  const g = SETTINGS.engGame;
+  if(typeof g.score!=='number') g.score = 0;
+  if(!g.gPassed) g.gPassed = {};
+  if(!g.gStudied) g.gStudied = {};
+  if(typeof g.missStreak!=='number') g.missStreak = 0;
+  if(!g.daily) g.daily = {};
+  if(!Array.isArray(g.log)) g.log = [];
+  if(!g.lastCheck) g.lastCheck = todayKey();
+  // Quét các ngày đã trôi qua kể từ lần kiểm tra trước: ngày nào không đạt chỉ tiêu → trừ điểm lũy tiến.
+  const today = todayKey();
+  if(g.lastCheck !== today){
+    let d = addDays(parseKey(g.lastCheck), 1);
+    const todayD = parseKey(today);
+    let changed = false;
+    while(d < todayD){
+      const k = toKey(d);
+      const need = 1 + Math.min(g.missStreak, 3);
+      if((g.daily[k]||0) < need){
+        g.missStreak++;
+        const penalty = Math.min(5 * g.missStreak, 30);
+        g.score -= penalty;
+        g.log.push({d:k, delta:-penalty, why:'Bỏ ngày học (chuỗi bỏ '+g.missStreak+' ngày, chỉ tiêu '+need+' hoạt động)'});
+      } else {
+        g.missStreak = 0;
+      }
+      d = addDays(d, 1);
+      changed = true;
+    }
+    g.lastCheck = today;
+    if(g.log.length>200) g.log = g.log.slice(-200);
+    if(changed){ saveSettings(); pushToDrive(); }
+  }
+}
+function engGameGoalToday(){ ensureEngGame(); return 1 + Math.min(SETTINGS.engGame.missStreak, 3); }
+function engGameAddScore(delta, why){
+  ensureEngGame();
+  const g = SETTINGS.engGame;
+  g.score += delta;
+  g.log.push({d:todayKey(), delta, why});
+  if(g.log.length>200) g.log = g.log.slice(-200);
+  saveSettings();
+}
+// Ghi nhận "1 hoạt động học" hôm nay (mọi module tiếng Anh gọi khi hoàn thành 1 việc).
+function engGameMarkActivity(){
+  ensureEngGame();
+  const g = SETTINGS.engGame; const k = todayKey();
+  g.daily[k] = (g.daily[k]||0) + 1;
+  const need = 1 + Math.min(g.missStreak, 3);
+  if(g.daily[k] >= need && g.missStreak > 0){
+    g.missStreak = 0; // đạt đủ chỉ tiêu ngày quay lại → xóa chuỗi bỏ, chỉ tiêu về bình thường
+    g.log.push({d:k, delta:0, why:'Đạt chỉ tiêu ngày — xóa chuỗi bỏ học'});
+  }
+  const keys = Object.keys(g.daily); if(keys.length>120){ keys.sort(); keys.slice(0, keys.length-120).forEach(kk=>delete g.daily[kk]); }
+  saveSettings();
+}
+function ggPathIndexOf(topicId){ return GRAMMAR_PATH.indexOf(topicId); }
+// Chủ đề mở khi: là chủ đề đầu tiên, hoặc chủ đề NGAY TRƯỚC nó trong lộ trình đã vượt ải.
+function ggIsUnlocked(topicId){
+  ensureEngGame();
+  const i = ggPathIndexOf(topicId);
+  if(i<=0) return i===0;
+  return !!SETTINGS.engGame.gPassed[GRAMMAR_PATH[i-1]];
+}
+function ggStatus(topicId){
+  ensureEngGame();
+  if(SETTINGS.engGame.gPassed[topicId]) return 'passed';
+  return ggIsUnlocked(topicId) ? 'open' : 'locked';
+}
+// ---- Xây bài kiểm tra vượt ải 10 câu, trộn 5 dạng từ ngân hàng câu hỏi của chủ đề ----
+function ggResolveSentence(bq){ return bq[0].replace(/_{2,}/, bq[1][bq[2]]); }
+function ggShuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function ggBuildTest(topicId){
+  let bank = grammarBankFor(topicId).slice();
+  const topic = grammarTopicById(topicId);
+  if(bank.length < 14 && topic){
+    GRAMMAR_TOPICS.filter(t=>t.group===topic.group && t.id!==topicId).forEach(t=>{ bank = bank.concat(grammarBankFor(t.id)); });
+  }
+  bank = ggShuffle(bank).slice(0, 20);
+  const hasSR = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const qs = [];
+  const used = new Set();
+  const take = ()=>{ for(let i=0;i<bank.length;i++){ if(!used.has(i)){ used.add(i); return bank[i]; } } return null; };
+  const takeShort = ()=>{ // dạng sắp xếp cần câu ≤10 từ cho dễ thao tác
+    for(let i=0;i<bank.length;i++){
+      if(used.has(i)) continue;
+      if(ggResolveSentence(bank[i]).split(/\s+/).length <= 10){ used.add(i); return bank[i]; }
+    }
+    return take();
+  };
+  for(let i=0;i<4;i++){ const b=take(); if(b) qs.push({type:'mcq', q:b[0], opts:b[1], correct:b[2], explain:b[3], vi:b[4]}); }
+  for(let i=0;i<2;i++){ const b=take(); if(b) qs.push({type:'listen', sentence:ggResolveSentence(b), q:b[0], opts:b[1], correct:b[2], explain:b[3], vi:b[4]}); }
+  for(let i=0;i<2;i++){ const b=takeShort(); if(b){ const s=ggResolveSentence(b).replace(/\s+/g,' ').trim(); qs.push({type:'order', sentence:s, words:ggShuffle(s.replace(/[.?!]$/,'').split(' ')), built:[], vi:b[4]}); } }
+  { const b=take(); if(b){
+      const correctS = ggResolveSentence(b);
+      const others = [];
+      for(let i=0;i<bank.length && others.length<3;i++){ if(!used.has(i)) others.push(ggResolveSentence(bank[i])); }
+      while(others.length<3 && bank.length) others.push(ggResolveSentence(bank[Math.floor(Math.random()*bank.length)]));
+      const opts = ggShuffle([correctS, ...others.slice(0,3)]);
+      qs.push({type:'translate', vi:b[4]||b[3]||'', opts, correct:opts.indexOf(correctS)});
+  } }
+  { const b=take(); if(b){
+      const word = /^[a-zA-Z']+$/.test(b[1][b[2]]) ? b[1][b[2]] : (ggResolveSentence(b).replace(/[^a-zA-Z' ]/g,'').split(' ').sort((x,y)=>y.length-x.length)[0]||'hello');
+      if(hasSR) qs.push({type:'speak', word, sentence:ggResolveSentence(b)});
+      else qs.push({type:'mcq', q:b[0], opts:b[1], correct:b[2], explain:b[3], vi:b[4]});
+  } }
+  return ggShuffle(qs).slice(0,10);
+}
+async function ggStartTest(){
+  const topicId = STATE.ggTopic; if(!topicId) return;
+  if(!GRAMMAR_QUIZ_BANK){ await fetchGrammarQuizBank(); }
+  const qs = ggBuildTest(topicId);
+  if(qs.length<6){ alert('Chưa đủ ngân hàng câu hỏi cho chủ đề này.'); return; }
+  navForward();
+  STATE.ggTest = {topicId, qs, idx:0, correct:0, answered:null, done:false, srState:null, srText:''};
+  renderContent(); window.scrollTo(0,0);
+  const q0 = qs[0]; if(q0 && q0.type==='listen') setTimeout(()=>{ try{ speakEnglishRobust(q0.sentence,{rate:0.9}); }catch(e){} }, 400);
+}
+function ggAnswer(i){
+  const t = STATE.ggTest; if(!t || t.answered!==null) return;
+  const q = t.qs[t.idx];
+  t.answered = i;
+  if(i === q.correct){ t.correct++; q.wasCorrect = true; }
+  renderContent();
+}
+function ggOrderTap(wi){
+  const t = STATE.ggTest; if(!t || t.answered!==null) return;
+  const q = t.qs[t.idx];
+  if(q.words[wi]===null || q.words[wi]===undefined) return;
+  q.built.push({w:q.words[wi], from:wi});
+  q.words[wi] = null;
+  renderContent();
+}
+function ggOrderUndo(){
+  const t = STATE.ggTest; if(!t || t.answered!==null) return;
+  const q = t.qs[t.idx];
+  const last = q.built.pop();
+  if(last) q.words[last.from] = last.w;
+  renderContent();
+}
+function ggOrderCheck(){
+  const t = STATE.ggTest; if(!t || t.answered!==null) return;
+  const q = t.qs[t.idx];
+  const target = q.sentence.replace(/[.?!]$/,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const builtS = q.built.map(b=>b.w).join(' ').toLowerCase();
+  t.answered = 'order';
+  if(builtS === target){ t.correct++; q.wasCorrect = true; }
+  renderContent();
+}
+function ggSpeakStart(){
+  const t = STATE.ggTest; if(!t || t.answered!==null || t.srState==='rec') return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ ggSpeakSkip(); return; }
+  const q = t.qs[t.idx];
+  const rec = new SR();
+  rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=5;
+  t.srState='rec'; t.srText=''; renderContent();
+  let finished=false;
+  const finish=(heard)=>{
+    if(finished) return; finished=true;
+    t.srState='done'; t.srText=heard||'';
+    const target=q.word.toLowerCase().replace(/[^a-z']/g,'');
+    const ok=(heard||'').toLowerCase().split(/\s+/).some(w=>w.replace(/[^a-z']/g,'')===target);
+    t.answered='speak';
+    if(ok){ t.correct++; q.wasCorrect=true; }
+    renderContent();
+  };
+  rec.onresult=(ev)=>{ let heard=''; try{ for(let i=0;i<ev.results[0].length;i++){ heard+=' '+ev.results[0][i].transcript; } }catch(e){} finish(heard.trim()); };
+  rec.onerror=()=>finish('');
+  rec.onend=()=>{ if(!finished) finish(t.srText); };
+  try{ rec.start(); }catch(e){ finish(''); }
+  setTimeout(()=>{ try{ rec.stop(); }catch(e){} }, 6000);
+}
+function ggSpeakSkip(){
+  const t = STATE.ggTest; if(!t || t.answered!==null) return;
+  t.answered='speak'; t.srState='done'; t.srText='(bỏ qua)';
+  renderContent();
+}
+function ggNext(){
+  const t = STATE.ggTest; if(!t) return;
+  if(t.idx < t.qs.length-1){
+    t.idx++; t.answered=null; t.srState=null; t.srText='';
+    renderContent(); window.scrollTo(0,0);
+    const q = t.qs[t.idx]; if(q.type==='listen') setTimeout(()=>{ try{ speakEnglishRobust(q.sentence,{rate:0.9}); }catch(e){} }, 400);
+  } else {
+    t.done = true;
+    const passed = t.correct >= 8;
+    engGameAddScore(t.correct*2, 'Vượt ải "'+((grammarTopicById(t.topicId)||{}).name||'')+'": '+t.correct+'/10 đúng');
+    if(passed){
+      SETTINGS.engGame.gPassed[t.topicId] = t.correct;
+      engGameAddScore(15, 'Vượt ải thành công — mở khóa chủ đề tiếp theo');
+      pushToDrive();
+    }
+    engGameMarkActivity();
+    renderContent(); window.scrollTo(0,0);
+  }
+}
+function ggMarkStudied(){
+  const tid = STATE.ggTopic; if(!tid) return;
+  ensureEngGame();
+  if(!SETTINGS.engGame.gStudied[tid]){
+    SETTINGS.engGame.gStudied[tid] = true;
+    engGameAddScore(3, 'Học xong lý thuyết "'+((grammarTopicById(tid)||{}).name||'')+'"');
+    engGameMarkActivity();
+  }
+  renderContent();
+}
+// ---- Giao diện ----
+function ggScoreHeaderHtml(){
+  ensureEngGame();
+  const g = SETTINGS.engGame;
+  const doneToday = g.daily[todayKey()]||0;
+  const need = engGameGoalToday();
+  const okToday = doneToday>=need;
+  return `<div class="gg-scorebar">
+    <div class="gg-scorebox"><div class="v">${g.score}</div><div class="l">Điểm học tập</div></div>
+    <div class="gg-scorebox"><div class="v">${Object.keys(g.gPassed).length}/${GRAMMAR_PATH.length}</div><div class="l">Ải đã vượt</div></div>
+    <div class="gg-scorebox ${okToday?'ok':'warn'}"><div class="v">${doneToday}/${need}</div><div class="l">Hôm nay${g.missStreak>0?' ⚠️':''}</div></div>
+  </div>`;
+}
+function renderGrammarPath(item){
+  ensureEngGame();
+  let lastLevel = '';
+  const nodes = GRAMMAR_PATH.map((tid)=>{
+    const t = grammarTopicById(tid); if(!t) return '';
+    const st = ggStatus(tid);
+    let levelHdr = '';
+    if(t.level !== lastLevel){
+      lastLevel = t.level;
+      const lv = CEFR_LEVELS.find(l=>l.key===t.level);
+      levelHdr = `<div class="gg-level-hdr">${t.level} · ${lv?lv.label:''}</div>`;
+    }
+    const icon = st==='passed' ? '✅' : (st==='open' ? '⭐' : '🔒');
+    const score = st==='passed' ? `<span class="gg-node-score">${SETTINGS.engGame.gPassed[tid]}/10</span>` : '';
+    return `${levelHdr}
+      <div class="gg-node ${st}" ${st!=='locked'?`data-action="gg-open-topic" data-tid="${tid}"`:''}>
+        <div class="gg-node-icon">${icon}</div>
+        <div class="gg-node-txt"><div class="n">${escapeHtml(t.name)}</div><div class="d">${escapeHtml(t.desc)}</div></div>
+        ${score}
+      </div>`;
+  }).join('');
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
+    ${ggScoreHeaderHtml()}
+    <div class="card" style="padding:12px 14px; margin-bottom:12px; font-size:11.5px; color:var(--dim); line-height:1.6;">
+      🎮 <b style="color:var(--text);">Lộ trình vượt ải:</b> học lý thuyết chủ đề đang mở ⭐ → làm bài kiểm tra 10 câu (trắc nghiệm, nghe-điền, sắp xếp câu, dịch, phát âm) → đúng <b style="color:var(--gold);">≥8/10</b> để mở khóa chủ đề tiếp theo. Bỏ ngày học sẽ bị <b style="color:#ff8080;">trừ điểm lũy tiến</b> và chỉ tiêu mỗi ngày sẽ tăng lên!
+    </div>
+    <div class="gg-path">${nodes}</div>`;
+}
+function renderGrammarTopic(item){
+  const tid = STATE.ggTopic;
+  const t = grammarTopicById(tid);
+  if(!t){ STATE.ggTopic=null; return renderGrammarPath(item); }
+  ensureEngGame();
+  const studied = !!SETTINGS.engGame.gStudied[tid];
+  const passed = SETTINGS.engGame.gPassed[tid];
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="gg-topic-back">${svgIcon('back')}</div><div class="title">${escapeHtml(t.name)}</div></div>
+    ${ggScoreHeaderHtml()}
+    <div class="card" style="padding:18px; text-align:center; margin-bottom:14px;">
+      <div style="font-size:34px; margin-bottom:6px;">${passed?'🏆':'📖'}</div>
+      <div style="font-weight:800; font-size:16px;">${escapeHtml(t.name)}</div>
+      <div style="font-size:12px; color:var(--dim); margin-top:4px;">${escapeHtml(t.desc)} · Cấp độ ${t.level}</div>
+      ${passed?`<div style="margin-top:8px; font-size:12px; color:var(--teal); font-weight:700;">Đã vượt ải với ${passed}/10 câu đúng — có thể làm lại để luyện thêm</div>`:''}
+    </div>
+    <div class="card" data-action="gg-open-theory" style="padding:14px 16px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:12px; border:1px solid #4F8CFF55;">
+      <div style="font-size:24px;">📚</div>
+      <div style="flex:1;"><div style="font-weight:800; font-size:13.5px;">Học lý thuyết</div><div style="font-size:11px; color:var(--dim); margin-top:2px;">Mở trang Ngữ pháp tham khảo — tìm mục "${escapeHtml(t.name)}" để đọc kỹ + nghe ví dụ</div></div>
+      ${studied?'<div style="color:var(--teal); font-weight:800;">✓</div>':''}
+    </div>
+    ${!studied?`<button class="form-btn" data-action="gg-mark-studied" style="width:100%; margin-bottom:10px;">✅ Tôi đã học xong lý thuyết (+3 điểm)</button>`:''}
+    <button class="form-btn eng-quiz-nextbtn" data-action="gg-start-test" style="width:100%; ${!studied&&!passed?'opacity:.45; pointer-events:none;':''}">📝 Kiểm tra vượt ải — 10 câu (cần ≥8 đúng)</button>
+    ${!studied&&!passed?'<div style="font-size:11px; color:var(--dim); text-align:center; margin-top:6px;">Hoàn thành lý thuyết trước để mở bài kiểm tra</div>':''}`;
+}
+function renderGrammarTest(item){
+  const t = STATE.ggTest;
+  const topic = grammarTopicById(t.topicId)||{name:''};
+  if(t.done){
+    const passed = t.correct>=8;
+    document.getElementById('content').innerHTML = `
+      <div class="kh-backrow"><div class="kh-backbtn" data-action="gg-test-exit">${svgIcon('back')}</div><div class="title">Kết quả</div></div>
+      <div class="card" style="padding:26px 18px; text-align:center;">
+        <div style="font-size:44px;">${passed?'🎉':'😤'}</div>
+        <div style="font-weight:800; font-size:20px; margin-top:8px;">${t.correct}/10 câu đúng</div>
+        <div style="font-size:13px; color:${passed?'var(--teal)':'#ff8080'}; font-weight:700; margin-top:6px;">
+          ${passed?'VƯỢT ẢI THÀNH CÔNG — đã mở khóa chủ đề tiếp theo!':'Chưa đạt (cần ≥8/10) — ôn lại lý thuyết rồi thử lại nhé!'}
+        </div>
+        <div style="font-size:12px; color:var(--dim); margin-top:10px;">+${t.correct*2} điểm học tập${passed?' +15 thưởng vượt ải':''}</div>
+        <div style="display:flex; gap:10px; margin-top:18px;">
+          ${!passed?`<button class="form-btn" data-action="gg-retry-test" style="flex:1;">🔄 Làm lại</button>`:''}
+          <button class="form-btn eng-quiz-nextbtn" data-action="gg-test-exit" style="flex:1;">${passed?'Về lộ trình →':'Về chủ đề'}</button>
+        </div>
+      </div>`;
+    return;
+  }
+  const q = t.qs[t.idx];
+  const progress = `<div class="gg-test-prog"><div class="bar" style="width:${(t.idx/t.qs.length)*100}%;"></div><span>Câu ${t.idx+1}/${t.qs.length} · Đúng: ${t.correct}</span></div>`;
+  let body = '';
+  const optBtn = (o,i)=>{
+    let cls='gg-opt';
+    if(t.answered!==null){ if(i===q.correct) cls+=' right'; else if(i===t.answered) cls+=' wrong'; }
+    return `<button class="${cls}" data-action="gg-answer" data-i="${i}" ${t.answered!==null?'disabled':''}>${escapeHtml(o)}</button>`;
+  };
+  if(q.type==='mcq'){
+    body = `<div class="gg-qtitle">✍️ Chọn đáp án đúng</div><div class="gg-qtext">${escapeHtml(q.q)}</div>
+      <div class="gg-opts">${q.opts.map(optBtn).join('')}</div>
+      ${t.answered!==null&&q.explain?`<div class="eng-quiz-tip">💡 ${escapeHtml(q.explain)}</div>`:''}`;
+  } else if(q.type==='listen'){
+    body = `<div class="gg-qtitle">🎧 Nghe và điền từ còn thiếu</div>
+      <button class="form-btn btn-listen" data-action="gg-replay" style="width:100%; margin-bottom:10px;">🔊 Nghe lại câu</button>
+      <div class="gg-qtext">${escapeHtml(q.q)}</div>
+      <div class="gg-opts">${q.opts.map(optBtn).join('')}</div>
+      ${t.answered!==null?`<div class="eng-quiz-tip">📝 Câu đầy đủ: ${escapeHtml(q.sentence)}${q.vi?'<br>🇻🇳 '+escapeHtml(q.vi):''}</div>`:''}`;
+  } else if(q.type==='order'){
+    body = `<div class="gg-qtitle">🧩 Sắp xếp thành câu đúng</div>
+      ${q.vi?`<div style="font-size:12px; color:var(--dim); margin-bottom:8px;">🇻🇳 ${escapeHtml(q.vi)}</div>`:''}
+      <div class="gg-built">${q.built.length?q.built.map(b=>`<span class="gg-chip built">${escapeHtml(b.w)}</span>`).join(''):'<span style="color:var(--dim2); font-size:12px;">Bấm các từ bên dưới theo đúng thứ tự...</span>'}</div>
+      <div class="gg-words">${q.words.map((w,i)=> w===null?'':`<button class="gg-chip" data-action="gg-order-tap" data-i="${i}">${escapeHtml(w)}</button>`).join('')}</div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="form-btn cancel" data-action="gg-order-undo" style="flex:1;" ${t.answered!==null?'disabled':''}>↩️ Xóa từ cuối</button>
+        <button class="form-btn" data-action="gg-order-check" style="flex:1;" ${q.built.length===0||t.answered!==null?'disabled':''}>Kiểm tra</button>
+      </div>
+      ${t.answered!==null?`<div class="eng-quiz-tip">${q.wasCorrect?'✅ Chính xác!':'❌ Chưa đúng.'} Câu đúng: <b>${escapeHtml(q.sentence)}</b></div>`:''}`;
+  } else if(q.type==='translate'){
+    body = `<div class="gg-qtitle">🇻🇳→🇬🇧 Chọn câu tiếng Anh đúng nghĩa</div>
+      <div class="gg-qtext">"${escapeHtml(q.vi)}"</div>
+      <div class="gg-opts">${q.opts.map(optBtn).join('')}</div>`;
+  } else if(q.type==='speak'){
+    body = `<div class="gg-qtitle">🎤 Phát âm từ sau</div>
+      <div class="gg-speak-word">${escapeHtml(q.word)}</div>
+      <div style="font-size:11.5px; color:var(--dim); text-align:center; margin-bottom:10px;">Trong câu: ${escapeHtml(q.sentence)}</div>
+      <button class="form-btn btn-listen" data-action="gg-speak-sample" style="width:100%; margin-bottom:8px;">🔊 Nghe mẫu</button>
+      ${t.srState==='rec'
+        ? `<div style="text-align:center; color:#ff5c5c; font-weight:800; padding:10px;">🎙️ Đang nghe... hãy đọc to từ trên</div>`
+        : t.answered===null
+          ? `<button class="form-btn eng-quiz-nextbtn" data-action="gg-speak-start" style="width:100%;">🎤 Bấm và đọc từ</button>
+             <button class="form-btn cancel" data-action="gg-speak-skip" style="width:100%; margin-top:8px;">Bỏ qua (tính là sai)</button>`
+          : `<div class="eng-quiz-tip">${q.wasCorrect?'✅ Phát âm được nhận diện đúng!':'❌ Chưa nhận diện được đúng từ.'} ${t.srText&&t.srText!=='(bỏ qua)'?('Máy nghe thấy: "'+escapeHtml(t.srText)+'"'):''}</div>`}`;
+  }
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="gg-test-exit">${svgIcon('back')}</div><div class="title">Vượt ải: ${escapeHtml(topic.name)}</div></div>
+    ${progress}
+    <div class="card" style="padding:16px;">${body}
+      ${t.answered!==null?`<button class="form-btn eng-quiz-nextbtn" data-action="gg-next" style="width:100%; margin-top:12px;">${t.idx<t.qs.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>`:''}
+    </div>`;
+}
+function renderEnglishGrammar(item){
+  if(STATE.ggTest) return renderGrammarTest(item);
+  if(STATE.ggTheory) return renderGrammarTheoryFrame(item);
+  if(STATE.ggTopic) return renderGrammarTopic(item);
+  return renderGrammarPath(item);
+}
+function renderGrammarTheoryFrame(item){
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="gg-theory-back">${svgIcon('back')}</div><div class="title">Lý thuyết ngữ pháp</div></div>
     <div style="margin:-4px -16px 0; height:calc(100vh - 90px); border-radius:0; overflow:hidden;">
       <iframe id="grammar-iframe" src="english-grammar.html" title="${escapeHtml(item.name)}" style="width:100%; height:100%; border:none; display:block; background:#fff;"></iframe>
     </div>
@@ -8776,6 +9192,53 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
   const aicallEndEl = e.target.closest('[data-action="aicall-end"]');
   if(aicallEndEl){ aiCallEnd(); return; }
+  // ---- Ngữ pháp game (lộ trình vượt ải) ----
+  const ggOpenTopicEl = e.target.closest('[data-action="gg-open-topic"]');
+  if(ggOpenTopicEl){ navForward(); STATE.ggTopic = ggOpenTopicEl.getAttribute('data-tid'); renderContent(); window.scrollTo(0,0); return; }
+  const ggTopicBackEl = e.target.closest('[data-action="gg-topic-back"]');
+  if(ggTopicBackEl){ STATE.ggTopic = null; renderContent(); navBack(); return; }
+  const ggOpenTheoryEl = e.target.closest('[data-action="gg-open-theory"]');
+  if(ggOpenTheoryEl){ navForward(); STATE.ggTheory = true; renderContent(); return; }
+  const ggTheoryBackEl = e.target.closest('[data-action="gg-theory-back"]');
+  if(ggTheoryBackEl){ STATE.ggTheory = false; renderContent(); navBack(); return; }
+  const ggMarkStudiedEl = e.target.closest('[data-action="gg-mark-studied"]');
+  if(ggMarkStudiedEl){ ggMarkStudied(); return; }
+  const ggStartTestEl = e.target.closest('[data-action="gg-start-test"]');
+  if(ggStartTestEl){ ggStartTest(); return; }
+  const ggAnswerEl = e.target.closest('[data-action="gg-answer"]');
+  if(ggAnswerEl){ ggAnswer(parseInt(ggAnswerEl.getAttribute('data-i'),10)); return; }
+  const ggReplayEl = e.target.closest('[data-action="gg-replay"]');
+  if(ggReplayEl){ const t=STATE.ggTest; if(t && t.qs[t.idx].sentence){ try{ speakEnglishRobust(t.qs[t.idx].sentence,{rate:0.9}); }catch(err){} } return; }
+  const ggOrderTapEl = e.target.closest('[data-action="gg-order-tap"]');
+  if(ggOrderTapEl){ ggOrderTap(parseInt(ggOrderTapEl.getAttribute('data-i'),10)); return; }
+  const ggOrderUndoEl = e.target.closest('[data-action="gg-order-undo"]');
+  if(ggOrderUndoEl){ ggOrderUndo(); return; }
+  const ggOrderCheckEl = e.target.closest('[data-action="gg-order-check"]');
+  if(ggOrderCheckEl){ ggOrderCheck(); return; }
+  const ggSpeakSampleEl = e.target.closest('[data-action="gg-speak-sample"]');
+  if(ggSpeakSampleEl){ const t=STATE.ggTest; if(t && t.qs[t.idx].word){ try{ speakEnglishRobust(t.qs[t.idx].word,{rate:0.85}); }catch(err){} } return; }
+  const ggSpeakStartEl = e.target.closest('[data-action="gg-speak-start"]');
+  if(ggSpeakStartEl){ ggSpeakStart(); return; }
+  const ggSpeakSkipEl = e.target.closest('[data-action="gg-speak-skip"]');
+  if(ggSpeakSkipEl){ ggSpeakSkip(); return; }
+  const ggNextEl = e.target.closest('[data-action="gg-next"]');
+  if(ggNextEl){ ggNext(); return; }
+  const ggRetryTestEl = e.target.closest('[data-action="gg-retry-test"]');
+  if(ggRetryTestEl){
+    // Làm lại NGAY TẠI CHỖ (không navBack rồi mở lại — tránh đẩy/tiêu thụ lệch mốc lịch sử, đúng quy
+    // ước "Làm lại không push thêm nav" của codebase).
+    const tid = STATE.ggTest ? STATE.ggTest.topicId : null;
+    if(tid){ (async()=>{
+      if(!GRAMMAR_QUIZ_BANK){ await fetchGrammarQuizBank(); }
+      const qs = ggBuildTest(tid);
+      STATE.ggTest = {topicId:tid, qs, idx:0, correct:0, answered:null, done:false, srState:null, srText:''};
+      renderContent(); window.scrollTo(0,0);
+      const q0 = qs[0]; if(q0 && q0.type==='listen') setTimeout(()=>{ try{ speakEnglishRobust(q0.sentence,{rate:0.9}); }catch(err){} }, 400);
+    })(); }
+    return;
+  }
+  const ggTestExitEl = e.target.closest('[data-action="gg-test-exit"]');
+  if(ggTestExitEl){ STATE.ggTest = null; renderContent(); navBack(); return; }
   const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
   if(avPickLevelEl){
     if(!STATE.avLevel) STATE.avLevel = {};
