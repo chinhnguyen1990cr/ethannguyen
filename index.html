@@ -1158,7 +1158,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v64';
+const APP_VERSION = 'v65';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -5918,7 +5918,16 @@ async function callGeminiChat(systemPrompt, historyMsgs){
       generationConfig:{temperature:0.85, maxOutputTokens:220}
     })
   });
-  if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' — '+t.slice(0,200)); }
+  if(!res.ok){
+    const t = await res.text().catch(()=>'');
+    // Cố gắng lấy đúng field error.message ngắn gọn từ JSON lỗi của Gemini (vd "API key not valid.")
+    // thay vì cả khối JSON dài — để hiện thẳng lên UI cho người dùng tự đọc hiểu chỗ sai, không cần
+    // mở console trình duyệt mới chẩn đoán được.
+    let msg = 'HTTP '+res.status;
+    try{ const j = JSON.parse(t); if(j && j.error && j.error.message) msg = 'HTTP '+res.status+': '+j.error.message; }
+    catch(e){ if(t) msg += ' — '+t.slice(0,200); }
+    throw new Error(msg);
+  }
   const data = await res.json();
   const cand = data.candidates && data.candidates[0];
   const raw = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
@@ -5987,7 +5996,12 @@ async function aiChatSend(text){
     s.messages.push({role:'ai', text:reply.en, tip:reply.tip, raw:reply.raw});
   }catch(err){
     console.error('Lỗi gọi Gemini', err);
-    s.error = (err && err.message==='NO_KEY') ? 'Chưa có API key.' : 'Không gửi được tin nhắn — kiểm tra API key hoặc kết nối mạng, rồi thử lại.';
+    // Hiện thẳng nội dung lỗi thật (thay vì câu chung chung) để người dùng tự biết chính xác cần sửa
+    // gì — vd "API key not valid" (dán nhầm/thiếu key), "429" (hết quota miễn phí trong ngày), lỗi
+    // mạng "Failed to fetch" (có thể do chặn CORS/mạng chặn generativelanguage.googleapis.com)...
+    if(err && err.message==='NO_KEY') s.error = 'Chưa có API key.';
+    else if(err && /Failed to fetch|NetworkError|Load failed/i.test(err.message||'')) s.error = 'Không kết nối được tới máy chủ Gemini — kiểm tra mạng, VPN, hoặc trình chặn quảng cáo rồi thử lại.';
+    else s.error = 'Lỗi: ' + (err && err.message ? err.message : 'không xác định') + '.';
   }
   s.sending = false;
   renderContent();
