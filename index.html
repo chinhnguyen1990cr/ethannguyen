@@ -1178,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v68';
+const APP_VERSION = 'v69';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6265,13 +6265,20 @@ function aiCallConnect(){
   aiCallWs.onopen = ()=>{
     const s = STATE.aiCallSession; if(!s) return;
     const sys = aiCallSystemPrompt(s.mode, aiChatScenario(s.scenario));
-    aiCallWs.send(JSON.stringify({config:{
+    // QUAN TRỌNG: message đầu tiên phải bọc trong field "setup" (đúng theo BidiGenerateContentSetup của
+    // API reference chính thức ai.google.dev/api/live) — KHÔNG PHẢI "config" như ví dụ ở trang
+    // get-started-websocket (trang đó ghi sai/không khớp schema thật, đã xác nhận qua lỗi thực tế server
+    // trả về: "Unknown name \"config\": Cannot find field."). responseModalities/speechConfig cũng phải
+    // nằm lồng trong generationConfig, không phải field ngang hàng với model.
+    aiCallWs.send(JSON.stringify({setup:{
       model: 'models/'+GEMINI_LIVE_MODEL,
-      responseModalities: ['AUDIO'],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}
+      },
       systemInstruction: {parts:[{text:sys}]},
       inputAudioTranscription: {},
-      outputAudioTranscription: {},
-      speechConfig: {voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}
+      outputAudioTranscription: {}
     }}));
     aiCallStartMic().catch(err=>{ aiCallSetError('Không dùng được micro: '+(err&&err.message?err.message:'từ chối quyền truy cập')+'.'); });
   };
