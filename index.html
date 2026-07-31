@@ -928,6 +928,7 @@
     font-size:13px; font-weight:700; color:var(--text); cursor:pointer;}
   .gg-chip.built{border-color:var(--teal); background:rgba(44,219,168,.1); cursor:default;}
   .gg-speak-word{font-size:30px; font-weight:900; text-align:center; color:var(--gold); margin:8px 0;}
+  .lgq-locked{opacity:.45; filter:grayscale(.65); pointer-events:none;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1214,7 +1215,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v74';
+const APP_VERSION = 'v75';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -4630,8 +4631,67 @@ function nextEnglishQuiz(){
   if(!Array.isArray(SETTINGS.grammarQuizLog)) SETTINGS.grammarQuizLog = [];
   SETTINGS.grammarQuizLog.push({date:todayKey(), topicId:q.topicId, correct:q.correct, total:q.order.length, pct});
   if(SETTINGS.grammarQuizLog.length>200) SETTINGS.grammarQuizLog = SETTINGS.grammarQuizLog.slice(-200);
+  // Tích hợp hệ Điểm học tập chung: +1 điểm/câu đúng, tính 1 hoạt động/ngày cho hệ chống-lười.
+  engGameAddScore(q.correct, 'Luyện ngữ pháp "'+quizTopicDisplayName(q.topicId)+'": '+q.correct+'/'+q.order.length+' đúng ('+pct+'%)');
+  engGameMarkActivity();
   saveSettings(); pushToDrive();
   renderContent();
+}
+// ---- Khóa/mở khóa Luyện ngữ pháp (bắt đầu từ A1 + 12 thì, mở dần theo điểm thành thạo) ----
+// Quy tắc mở khóa (mô hình mastery của các app học hiện đại): đạt ★ ≥80% ở mục TRƯỚC thì mục sau mở.
+//  • Cấp độ: A1 → A2 → B1 → B2 → C1 (mở A2 khi best A1 ≥80%, v.v.)
+//  • Chủ đề: 12 Thì → Cấu trúc câu → Giới từ → Ngữ pháp khác
+//  • Thi thử: mở khi đã đạt ≥80% ở A1 (chứng tỏ nắm nền tảng)
+const LGQ_LEVEL_ORDER = ['A1','A2','B1','B2','C1'];
+const LGQ_GROUP_ORDER = ['tenses','struct','prep','other'];
+function lgqBest(key){ return ((SETTINGS.grammarQuiz && SETTINGS.grammarQuiz.best) || {})[key]; }
+function lgqLevelUnlocked(lvKey){
+  const i = LGQ_LEVEL_ORDER.indexOf(lvKey);
+  if(i<=0) return true;
+  return (lgqBest('level:'+LGQ_LEVEL_ORDER[i-1])||0) >= 80;
+}
+function lgqGroupUnlocked(gKey){
+  const i = LGQ_GROUP_ORDER.indexOf(gKey);
+  if(i<=0) return true;
+  return (lgqBest(LGQ_GROUP_ORDER[i-1])||0) >= 80;
+}
+function lgqMockUnlocked(){ return (lgqBest('level:A1')||0) >= 80; }
+// ---- AI thống kê chi tiết + gợi ý (dựa trên toàn bộ lịch sử làm bài grammarQuizLog) ----
+function lgqAiStatsHtml(){
+  const log = Array.isArray(SETTINGS.grammarQuizLog) ? SETTINGS.grammarQuizLog : [];
+  if(log.length===0) return '';
+  const recent = log.slice(-5);
+  const prev = log.slice(-10,-5);
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,x)=>s+x.pct,0)/arr.length) : null;
+  const rAvg = avg(recent), pAvg = avg(prev);
+  const trend = (rAvg!==null && pAvg!==null) ? (rAvg>pAvg+3?'📈 đang tiến bộ':(rAvg<pAvg-3?'📉 đang chững lại':'➡️ ổn định')) : '';
+  // Tìm chủ đề yếu nhất: gom theo topicId, tính % đúng trung bình các lần làm (chỉ xét chủ đề đã làm ≥2 lần)
+  const byTopic = {};
+  log.forEach(l=>{ if(!byTopic[l.topicId]) byTopic[l.topicId]=[]; byTopic[l.topicId].push(l.pct); });
+  const weak = Object.entries(byTopic)
+    .filter(([,arr])=>arr.length>=2)
+    .map(([tid,arr])=>({tid, avg:Math.round(arr.reduce((s,x)=>s+x,0)/arr.length)}))
+    .filter(x=>x.avg<75)
+    .sort((a,b)=>a.avg-b.avg).slice(0,3);
+  const totalAnswered = log.reduce((s,l)=>s+l.total,0);
+  const totalCorrect = log.reduce((s,l)=>s+l.correct,0);
+  const days7 = new Set(log.filter(l=>daysBetween(parseKey(l.date), new Date())<=7).map(l=>l.date)).size;
+  let advice;
+  if(weak.length) advice = 'Ưu tiên luyện lại: ' + weak.map(w=>quizTopicDisplayName(w.tid)+' ('+w.avg+'%)').join(', ') + ' — làm mỗi mục 2-3 lượt tới khi ≥80%.';
+  else if(rAvg!==null && rAvg>=85) advice = 'Kết quả gần đây rất tốt ('+rAvg+'%) — thử tăng số câu mỗi lượt hoặc chuyển lên cấp độ/chủ đề kế tiếp để mở khóa thêm.';
+  else advice = 'Duy trì mỗi ngày ít nhất 1 lượt luyện; ưu tiên đọc kỹ phần giải thích sau mỗi câu sai để tránh lặp lại lỗi.';
+  return `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #2CDBA855;">
+    <div style="font-weight:800; font-size:13px; margin-bottom:8px;">📊 AI phân tích chi tiết</div>
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <div class="gg-scorebox"><div class="v">${totalAnswered}</div><div class="l">Câu đã làm</div></div>
+      <div class="gg-scorebox"><div class="v">${totalAnswered?Math.round(totalCorrect/totalAnswered*100):0}%</div><div class="l">Chính xác tổng</div></div>
+      <div class="gg-scorebox"><div class="v">${days7}/7</div><div class="l">Ngày luyện/tuần</div></div>
+    </div>
+    <div style="font-size:12px; color:var(--dim); line-height:1.6;">
+      ${rAvg!==null?`5 lượt gần nhất: <b style="color:var(--text);">${rAvg}%</b> ${trend}.<br>`:''}
+      🤖 <b style="color:var(--text);">Gợi ý:</b> ${escapeHtml(advice)}
+    </div>
+  </div>`;
 }
 function renderEnglishQuiz(item){
   ensureEnglishItems();
@@ -4657,36 +4717,42 @@ function renderEnglishQuiz(item){
       let mockOptions = Array.from(new Set([10,20,pace.count,30,50,totalQ].filter(n=>n>0 && n<=totalQ))).sort((a,b)=>a-b);
       if(!STATE.mockTestCount || !mockOptions.includes(STATE.mockTestCount)) STATE.mockTestCount = Math.min(pace.count, totalQ);
       const mockCountHtml = mockOptions.map(n=>`<button class="mocktest-count-btn ${n===STATE.mockTestCount?'active':''}" data-action="quiz-set-mock-count" data-count="${n}">${n===totalQ?'Tất cả':n}</button>`).join('');
-      const levelCards = CEFR_LEVELS.map(lv=>{
+      const levelCards = CEFR_LEVELS.map((lv, li)=>{
         const topicsAtLevel = GRAMMAR_TOPICS.filter(t=>t.level===lv.key);
         const n = topicsAtLevel.reduce((s,t)=>s+grammarBankFor(t.id).length,0);
         const b = best['level:'+lv.key];
         const cnt = Math.min(pace.count, n);
-        return `<div class="eng-level-pick-card compact ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="level:${lv.key}"`:''}>
-          <div class="lvl-code" style="color:${lv.color};">${lv.key}</div>
+        const unlocked = lgqLevelUnlocked(lv.key);
+        const clickable = n>0 && unlocked;
+        return `<div class="eng-level-pick-card compact ${n===0?'disabled':''} ${!unlocked?'lgq-locked':''}" ${clickable?`data-action="quiz-pick-topic" data-topic="level:${lv.key}"`:''}>
+          <div class="lvl-code" style="color:${lv.color};">${unlocked?lv.key:'🔒'}</div>
           <div class="lvl-label">${escapeHtml(lv.label)}</div>
-          <div class="lvl-count">${n===0?'Sắp có':`${cnt} câu`}</div>
-          ${b!==undefined?`<div class="lvl-best">★ ${b}%</div>`:''}
+          <div class="lvl-count">${!unlocked?`Đạt ★80% ở ${LGQ_LEVEL_ORDER[li-1]||''} để mở`:(n===0?'Sắp có':`${cnt} câu`)}</div>
+          ${b!==undefined&&unlocked?`<div class="lvl-best">★ ${b}%</div>`:''}
         </div>`;
       }).join('');
-      const groupCards = GRAMMAR_TOPIC_GROUPS.map(g=>{
+      const groupCards = GRAMMAR_TOPIC_GROUPS.map((g, gi)=>{
         const n = GRAMMAR_TOPICS.filter(t=>t.group===g.key).reduce((s,t)=>s+grammarBankFor(t.id).length,0);
         const b = best[g.key];
         const cnt = Math.min(pace.count, n);
-        return `<div class="eng-group-card compact ${n===0?'disabled':''}" ${n>0?`data-action="quiz-pick-topic" data-topic="${g.key}"`:''} style="--gcgrad:${g.grad};">
-          <div class="gc-icon">${g.icon}</div>
+        const unlocked = lgqGroupUnlocked(g.key);
+        const clickable = n>0 && unlocked;
+        const prevG = gi>0 ? GRAMMAR_TOPIC_GROUPS[gi-1].label : '';
+        return `<div class="eng-group-card compact ${n===0?'disabled':''} ${!unlocked?'lgq-locked':''}" ${clickable?`data-action="quiz-pick-topic" data-topic="${g.key}"`:''} style="--gcgrad:${g.grad};">
+          <div class="gc-icon">${unlocked?g.icon:'🔒'}</div>
           <div class="gc-name">${escapeHtml(g.label)}</div>
-          <div class="gc-desc">${escapeHtml(g.desc)}</div>
-          <div class="gc-count">${n===0?'Sắp có':`${cnt}/${n} câu`}${b!==undefined?` · ★ ${b}%`:''}</div>
+          <div class="gc-desc">${unlocked?escapeHtml(g.desc):`Đạt ★80% ở "${escapeHtml(prevG)}" để mở khóa`}</div>
+          <div class="gc-count">${n===0?'Sắp có':`${cnt}/${n} câu`}${b!==undefined&&unlocked?` · ★ ${b}%`:''}</div>
         </div>`;
       }).join('');
-      body = `${paceHtml}
-      <div class="card eng-mocktest-card">
-        <div class="mocktest-icon">🎯</div>
+      const mockOpen = lgqMockUnlocked();
+      body = `${ggScoreHeaderHtml()}${lgqAiStatsHtml()}${paceHtml}
+      <div class="card eng-mocktest-card ${!mockOpen?'lgq-locked':''}">
+        <div class="mocktest-icon">${mockOpen?'🎯':'🔒'}</div>
         <div class="mocktest-title">Thi thử</div>
-        <div class="mocktest-desc">Trộn ngẫu nhiên câu hỏi từ mọi chủ đề, mọi cấp độ (${totalQ} câu trong ngân hàng) — chọn số câu bạn muốn làm:</div>
-        <div class="mocktest-count-row">${mockCountHtml}</div>
-        <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">🎯 Bắt đầu thi thử${mixedBest!==undefined?` · Tốt nhất: ${mixedBest}%`:''}</button>
+        <div class="mocktest-desc">${mockOpen?`Trộn ngẫu nhiên câu hỏi từ mọi chủ đề, mọi cấp độ (${totalQ} câu trong ngân hàng) — chọn số câu bạn muốn làm:`:'Đạt ★ ≥80% ở cấp độ A1 để mở khóa Thi thử.'}</div>
+        ${mockOpen?`<div class="mocktest-count-row">${mockCountHtml}</div>
+        <button class="form-btn" style="width:100%;" data-action="quiz-pick-topic" data-topic="mixed">🎯 Bắt đầu thi thử${mixedBest!==undefined?` · Tốt nhất: ${mixedBest}%`:''}</button>`:''}
       </div>
       <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
       <div class="eng-level-pick-row compact">${levelCards}</div>
