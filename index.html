@@ -1178,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v70';
+const APP_VERSION = 'v71';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6271,17 +6271,25 @@ function aiCallConnect(){
   // 12 giây: nếu vẫn chưa nhận được "setupComplete" từ server trong thời gian đó, chủ động báo lỗi rõ ràng
   // thay vì để người dùng chờ vô thời hạn.
   aiCallClearConnectTimeout();
+  let aiCallOpenFired = false; // đánh dấu xem bắt tay WebSocket có hoàn tất hay không, để phân biệt 2 nguyên
+  // nhân hoàn toàn khác nhau khi hết giờ chờ: (a) mạng chặn nên chưa mở được kết nối, hay (b) đã mở kết
+  // nối thành công nhưng server không chịu trả lời "setupComplete" (thường là do quyền/khả dụng của model).
   aiCallConnectTimeoutId = setTimeout(()=>{
     aiCallConnectTimeoutId = null;
     const s = STATE.aiCallSession;
     if(s && s.status==='connecting'){
       s.status = 'error';
-      s.error = 'Kết nối quá lâu (hơn 12 giây) mà không có phản hồi từ Gemini Live. Có thể do mạng đang chặn WebSocket — thử đổi từ Wi-Fi sang 4G/5G (hoặc ngược lại) rồi gọi lại. Nếu vẫn vậy, API key có thể chưa được cấp quyền dùng model preview này.';
+      if(aiCallOpenFired){
+        s.error = 'Đã mở được kết nối WebSocket tới Gemini Live nhưng sau 12 giây vẫn không nhận được phản hồi "thiết lập xong". Nhiều khả năng API key chưa được cấp quyền dùng model preview "'+GEMINI_LIVE_MODEL+'", hoặc model này hiện chưa khả dụng cho tài khoản của bạn. Kiểm tra lại quyền của API key trong Google AI Studio, hoặc thử lại sau.';
+      } else {
+        s.error = 'Trình duyệt không mở được kết nối WebSocket tới Gemini Live sau 12 giây (mã trạng thái: '+(aiCallWs?aiCallWs.readyState:'?')+'). Rất có thể mạng hiện tại đang chặn WebSocket — thử đổi từ Wi-Fi sang 4G/5G (hoặc ngược lại) rồi gọi lại.';
+      }
       renderContent();
     }
     try{ if(aiCallWs) aiCallWs.close(); }catch(e){}
   }, 12000);
   aiCallWs.onopen = ()=>{
+    aiCallOpenFired = true;
     const s = STATE.aiCallSession; if(!s) return;
     const sys = aiCallSystemPrompt(s.mode, aiChatScenario(s.scenario));
     // QUAN TRỌNG: message đầu tiên phải bọc trong field "setup" (đúng theo BidiGenerateContentSetup của
