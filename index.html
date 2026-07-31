@@ -1178,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v72';
+const APP_VERSION = 'v73';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1592,31 +1592,82 @@ function getPlanForDate(dateObj){
   }
 
   if(isWorkday){
-    tasks.push({id:'ipa', time:'06:10', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
-    tasks.push({id:'nghe_trua', time:'12:15', dur:25, label:'Nghe podcast tiếng Anh (giờ nghỉ trưa)', cat:'tieng_anh', kind:'listening_lunch',
-      sub:['Chọn 1 video podcast ngắn ở mục Luyện nghe (Slow English Podcast, What\'s Up English, Aus English, Volka English)','Nghe thụ động khi ăn trưa/nghỉ ngơi, không cần ghi chú kỹ','Đây là lúc "nạp input" nhẹ nhàng giữa ngày làm việc dài, không tốn sức tập trung']});
+    // ---- SÁNG (05:00-06:50, trước giờ làm 7:00) ----
+    // Ngày CÓ chạy (T2/T4/T6): chạy xong giãn cơ 5', rồi IPA 20' — phát âm cần miệng/tai tỉnh táo,
+    // buổi sáng là thời điểm vàng. Ngày KHÔNG chạy (T3/T5): dậy trễ hơn 15', dành buổi sáng cho
+    // TỪ VỰNG MỚI — nghiên cứu trí nhớ cho thấy học từ mới đầu ngày + ôn lại giữa ngày và tối
+    // (spaced repetition 3 lần/ngày) giữ được từ lâu hơn hẳn học dồn 1 lần.
+    if(isGymDay){
+      tasks.push({id:'gian_co', time:'06:00', dur:8, label:'Giãn cơ sau chạy', cat:'the_luc', kind:'stretch',
+        sub:['Giãn tĩnh các nhóm cơ vừa chạy: bắp chuối, đùi trước, đùi sau, hông — mỗi nhóm 20-30 giây','Hít thở sâu, chậm để đưa nhịp tim về bình thường','Giúp giảm đau cơ trễ (DOMS) và giữ biên độ khớp cho buổi tập tạ tối nay']});
+      tasks.push({id:'ipa', time:'06:15', dur:20, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+    } else {
+      tasks.push({id:'tu_vung', time:'05:45', dur:25, label:'Từ vựng mới (Luyện từ vựng)', cat:'tieng_anh', kind:'vocab',
+        sub:['Vào mục Luyện từ vựng → học 20 từ mới của hôm nay','Đọc to từng từ + câu ví dụ (kết hợp tai-miệng giúp nhớ sâu hơn chỉ đọc thầm)','Buổi trưa và tối sẽ ôn lại đúng những từ này — đừng cố học thêm, đúng lịch là đủ']});
+      tasks.push({id:'ipa', time:'06:15', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+    }
+    // ---- TRƯA (12:15-12:50, giờ nghỉ trưa) ----
+    tasks.push({id:'nghe_trua', time:'12:15', dur:20, label:'Nghe tiếng Anh (giờ nghỉ trưa)', cat:'tieng_anh', kind:'listening_lunch',
+      sub:['Vào mục Luyện nghe → làm tiếp video/cấp độ đang mở khóa','Nghe qua tai nghe khi ăn trưa/nghỉ ngơi — "nạp input" nhẹ giữa ngày, không tốn sức tập trung','Hoàn thành câu hỏi của đoạn đang nghe cũng được tính điểm học tập']});
+    tasks.push({id:'on_tu_trua', time:'12:40', dur:10, label:'Ôn nhanh từ vựng (lần 2 trong ngày)', cat:'tieng_anh', kind:'vocab_review',
+      sub:['Mở lại Luyện từ vựng → ôn tập các từ đã học sáng nay/hôm qua','Chỉ 10 phút active recall — nhìn nghĩa đoán từ, nhìn từ đoán nghĩa','Lần ôn giữa ngày này chính là "mũi tiêm nhắc" giúp từ chuyển vào trí nhớ dài hạn']});
+    // ---- TỐI (sau giờ làm 19:00) ----
     if(isGymDay){
       tasks.push({id:'tap_ta', time:'19:15', dur:60, label:'Tập tạ (sau giờ làm)', cat:'the_luc', kind: wd===1?'gym_a':(wd===3?'gym_b':'gym_c')});
-      tasks.push({id:'shadowing', time:'20:45', dur:30, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
-      tasks.push({id:'hoc_chuyen_nganh', time:'21:15', dur:15, label:'Ôn nhanh QC/QA', cat:'chuyen_mon', kind:'study',
+      tasks.push({id:'ngu_phap_game', time:'20:30', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+        sub:['Vào mục Ngữ pháp → học tiếp chủ đề đang mở, làm bài kiểm tra vượt ải nếu đã sẵn sàng','Mỗi ngày PHẢI hoàn thành nhiệm vụ ngữ pháp — bỏ ngày sẽ bị trừ điểm học tập','Đạt 8/10 câu ở bài kiểm tra để mở khóa chủ đề tiếp theo']});
+      tasks.push({id:'shadowing', time:'21:00', dur:20, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+      tasks.push({id:'hoc_chuyen_nganh', time:'21:25', dur:15, label:'Ôn nhanh QC/QA', cat:'chuyen_mon', kind:'study',
         sub:['Xem lại 1 ghi chú/thuật ngữ QC-QA đã học','Tự hỏi-đáp nhanh bằng kỹ thuật Feynman','Ngày có tập tạ nên chỉ cần ôn ngắn — duy trì đều đặn quan trọng hơn số lượng']});
     } else {
-      tasks.push({id:'luyen_noi', time:'19:50', dur:45, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
-      tasks.push({id:'hoc_chuyen_nganh', time:'20:35', dur:40, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+      tasks.push({id:'luyen_noi', time:'19:30', dur:40, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
+      tasks.push({id:'ai_talk', time:'20:15', dur:20, label:'Hội thoại AI — phản xạ nói', cat:'tieng_anh', kind:'ai_chat',
+        sub:['Vào Hội thoại AI → gọi thoại hoặc nhắn tin theo 1 tình huống thực tế (quán cà phê, phỏng vấn...)','Nói tự nhiên, đừng sợ sai — AI sẽ sửa bằng cách nhắc lại cách nói đúng','Mục tiêu: phản xạ trả lời trong 2-3 giây, không dịch thầm trong đầu']});
+      tasks.push({id:'ngu_phap_game', time:'20:40', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+        sub:['Vào mục Ngữ pháp → học tiếp chủ đề đang mở, làm bài kiểm tra vượt ải nếu đã sẵn sàng','Mỗi ngày PHẢI hoàn thành nhiệm vụ ngữ pháp — bỏ ngày sẽ bị trừ điểm học tập','Đạt 8/10 câu ở bài kiểm tra để mở khóa chủ đề tiếp theo']});
+      tasks.push({id:'hoc_chuyen_nganh', time:'21:10', dur:35, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
         sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
-      tasks.push({id:'shadowing', time:'21:15', dur:15, label:'Shadowing nhanh', cat:'tieng_anh', kind:'shadowing'});
     }
+    tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
+      sub:['Ngưng dùng màn hình trước 30 phút — 15 phút cuối có thể ôn từ vựng lần 3 bằng cách nhớ lại trong đầu','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00 — ngủ đủ 7 tiếng là nền tảng của cả thể lực lẫn trí nhớ']});
+  } else if(wd===6){
+    // THỨ 7 — ngày phục hồi thể lực (không chạy/không tạ), dồn cho tiếng Anh sâu + chuyên môn.
+    tasks.push({id:'ipa', time:'07:45', dur:30, label:'Luyện phát âm IPA', cat:'tieng_anh', kind:'ipa'});
+    tasks.push({id:'tu_vung', time:'08:20', dur:30, label:'Từ vựng: học mới + ôn cả tuần', cat:'tieng_anh', kind:'vocab',
+      sub:['Học 20 từ mới của hôm nay','Ôn lại toàn bộ từ đã học trong tuần (chế độ ôn tập)','Từ nào quên ≥2 lần thì viết ra giấy + đặt 1 câu ví dụ của riêng bạn']});
+    tasks.push({id:'luyen_noi', time:'09:00', dur:90, label:'Luyện nói tiếng Anh (buổi sâu)', cat:'tieng_anh', kind:'speaking'});
+    tasks.push({id:'ai_talk', time:'10:40', dur:30, label:'Hội thoại AI — tình huống mới', cat:'tieng_anh', kind:'ai_chat',
+      sub:['Chọn 1-2 tình huống CHƯA thử trong Hội thoại AI','Cuối tuần có thời gian — thử gọi thoại dài hơn, chủ đề khó hơn ngày thường','Ghi lại các cách diễn đạt hay AI dùng để bắt chước']});
+    tasks.push({id:'qc_qa_sang', time:'11:30', dur:45, label:'Tìm hiểu QC/QA cùng AI', cat:'chuyen_mon', kind:'qc_ai',
+      sub:['Đặt câu hỏi/tình huống QC-QA thực tế cho AI','Ghi chú thuật ngữ và kiến thức mới','Lưu lại để ôn tập cuối tuần']});
+    tasks.push({id:'nghe_chieu', time:'15:00', dur:40, label:'Luyện nghe sâu (có câu hỏi)', cat:'tieng_anh', kind:'listening_lunch',
+      sub:['Làm trọn 1 video/cấp độ trong Luyện nghe, trả lời đầy đủ câu hỏi','Nghe chủ động: tua lại đoạn chưa rõ, chép lại 2-3 câu nghe được (dictation)','Khác với nghe thụ động buổi trưa — buổi này mới thực sự nâng trình nghe']});
+    tasks.push({id:'ngu_phap_game', time:'16:00', dur:30, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+      sub:['Học tiếp chủ đề ngữ pháp đang mở + làm bài kiểm tra vượt ải','Cuối tuần rảnh hơn — cố gắng vượt ít nhất 1 ải','Kết hợp làm thêm Luyện ngữ pháp để tăng điểm thành thạo']});
+    tasks.push({id:'shadowing', time:'18:45', dur:30, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+    tasks.push({id:'hoc_chuyen_nganh', time:'19:30', dur:90, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+      sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
     tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
       sub:['Ngưng dùng màn hình trước 30 phút','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00']});
   } else {
-    // Cuối tuần — không bị ràng buộc giờ làm, giữ các buổi luyện tập dài & sâu hơn như trước.
+    // CHỦ NHẬT — long run sáng sớm + học nhẹ + TỔNG KẾT TUẦN buổi tối (nhìn lại số liệu để tuần sau tốt hơn).
+    tasks.push({id:'gian_co', time:'06:30', dur:10, label:'Giãn cơ sau long run', cat:'the_luc', kind:'stretch',
+      sub:['Giãn kỹ hơn ngày thường vì long run mệt hơn: bắp chuối, đùi, hông, lưng dưới','Uống nước + ăn nhẹ có đạm trong 30 phút sau chạy để phục hồi cơ','Đi bộ nhẹ vài phút trước khi ngồi nghỉ hẳn']});
     tasks.push({id:'ipa', time:'07:45', dur:30, label:'Luyện phát âm IPA', cat:'tieng_anh', kind:'ipa'});
-    tasks.push({id:'luyen_noi', time:'09:00', dur:120, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
-    tasks.push({id:'qc_qa_sang', time:'11:45', dur:45, label:'Tìm hiểu QC/QA cùng AI', cat:'chuyen_mon', kind:'qc_ai',
+    tasks.push({id:'tu_vung', time:'08:20', dur:25, label:'Từ vựng mới + ôn tập', cat:'tieng_anh', kind:'vocab',
+      sub:['Học 20 từ mới của hôm nay','Ôn nhanh các từ hay quên trong tuần','Đọc to từ + câu ví dụ']});
+    tasks.push({id:'luyen_noi', time:'09:00', dur:90, label:'Luyện nói tiếng Anh (buổi sâu)', cat:'tieng_anh', kind:'speaking'});
+    tasks.push({id:'qc_qa_sang', time:'11:00', dur:45, label:'Tìm hiểu QC/QA cùng AI', cat:'chuyen_mon', kind:'qc_ai',
       sub:['Đặt câu hỏi/tình huống QC-QA thực tế cho AI','Ghi chú thuật ngữ và kiến thức mới','Lưu lại để ôn tập cuối tuần']});
-    tasks.push({id:'shadowing', time:'18:45', dur:45, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
-    tasks.push({id:'hoc_chuyen_nganh', time:'19:45', dur:90, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+    tasks.push({id:'nghe_chieu', time:'15:00', dur:40, label:'Luyện nghe sâu (có câu hỏi)', cat:'tieng_anh', kind:'listening_lunch',
+      sub:['Làm trọn 1 video/cấp độ trong Luyện nghe, trả lời đầy đủ câu hỏi','Nghe chủ động: tua lại đoạn chưa rõ, chép lại 2-3 câu nghe được (dictation)','Cố gắng đạt điểm mở khóa video/cấp độ tiếp theo']});
+    tasks.push({id:'ngu_phap_game', time:'16:00', dur:30, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+      sub:['Học tiếp chủ đề ngữ pháp đang mở + làm bài kiểm tra vượt ải','Chốt tuần: cố gắng đóng lại chủ đề đang dang dở trước khi sang tuần mới']});
+    tasks.push({id:'shadowing', time:'18:45', dur:30, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+    tasks.push({id:'hoc_chuyen_nganh', time:'19:30', dur:60, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
       sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
+    tasks.push({id:'tong_ket_tuan', time:'20:45', dur:20, label:'Tổng kết tuần', cat:'ky_luat', kind:'week_review',
+      sub:['Mở Thống kê (Lịch làm việc + Học tiếng Anh) xem tỷ lệ hoàn thành tuần này','Tự hỏi: mục nào hay bỏ nhất? Vì sao? Điều chỉnh gì cho tuần sau?','Xem điểm học tập tiếng Anh: có bị trừ điểm ngày nào không, ải nào chưa vượt được','Viết 1-2 dòng mục tiêu cụ thể cho tuần tới (ví dụ: vượt 2 ải ngữ pháp, mở khóa 1 video nghe)']});
     tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
       sub:['Ngưng dùng màn hình trước 30 phút','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00']});
   }
