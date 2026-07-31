@@ -1178,7 +1178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v67';
+const APP_VERSION = 'v68';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6231,6 +6231,14 @@ function aiCallAppendCaption(role, text){
 function aiCallHandleMessage(raw){
   let msg; try{ msg = JSON.parse(raw); }catch(e){ return; }
   const s = STATE.aiCallSession; if(!s) return;
+  // Gemini Live có thể trả lỗi dưới dạng JSON message thường (không phải qua close code) — ví dụ key
+  // không có quyền dùng model Live, hoặc config gửi lên (model/voice/...) không hợp lệ. Phải bắt riêng
+  // trường hợp này và hiện rõ nội dung lỗi thay vì để im lặng rồi WS tự đóng, khiến người dùng chỉ thấy
+  // "Đã kết thúc cuộc gọi" mà không biết vì sao.
+  if(msg.error){
+    aiCallSetError('Gemini Live báo lỗi: '+(msg.error.message || JSON.stringify(msg.error)));
+    return;
+  }
   if(msg.setupComplete){ s.status = 'listening'; renderContent(); return; }
   if(msg.serverContent){
     const sc = msg.serverContent;
@@ -6268,8 +6276,24 @@ function aiCallConnect(){
     aiCallStartMic().catch(err=>{ aiCallSetError('Không dùng được micro: '+(err&&err.message?err.message:'từ chối quyền truy cập')+'.'); });
   };
   aiCallWs.onmessage = (ev)=> aiCallHandleMessage(ev.data);
-  aiCallWs.onerror = ()=>{ aiCallSetError('Lỗi kết nối tới Gemini Live — kiểm tra API key hoặc mạng, rồi thử gọi lại.'); };
-  aiCallWs.onclose = ()=>{ const s = STATE.aiCallSession; if(s && s.status!=='ended' && s.status!=='error'){ s.status='ended'; renderContent(); } };
+  // Sự kiện 'error' của WebSocket KHÔNG mang theo lý do thật (theo chuẩn trình duyệt, ra đời vì lý do bảo
+  // mật) — lý do thật (key sai/hết quyền, model không khả dụng, config bị từ chối...) chỉ lộ ra qua code +
+  // reason của sự kiện 'close' ngay sau đó. Trước đây onclose bỏ qua code/reason nên mọi lỗi kết nối đều
+  // hiện chung chung "Đã kết thúc cuộc gọi" — không đủ để chẩn đoán. Giờ hiện rõ mã lỗi + lý do (nếu có)
+  // để biết chính xác vì sao cuộc gọi bị đóng ngay sau khi bấm gọi.
+  aiCallWs.onerror = ()=>{ /* để onclose xử lý hiển thị chi tiết — event 'error' của WS không có thông tin hữu ích */ };
+  aiCallWs.onclose = (ev)=>{
+    const s = STATE.aiCallSession; if(!s || s.status==='ended' || s.status==='error') return;
+    if(ev && ev.code && ev.code!==1000){
+      let hint = '';
+      if(ev.code===1006) hint = ' Có thể do API key chưa được cấp quyền dùng Gemini Live (model preview), key sai, hoặc mạng chặn WebSocket.';
+      s.status = 'error';
+      s.error = 'Kết nối bị đóng (mã '+ev.code+(ev.reason?': '+ev.reason:'')+').'+hint+' Kiểm tra lại API key rồi thử gọi lại — nếu vẫn lỗi, gửi ảnh chụp dòng này cho mình.';
+    } else {
+      s.status = 'ended';
+    }
+    renderContent();
+  };
 }
 // Dọn dẹp mic/WebSocket/AudioContext — dùng CHUNG cho cả 2 đường thoát: bấm nút "Kết thúc" (aiCallEnd,
 // có điều hướng navBack) và vuốt back/thoát đột ngột (popstate, xem nơi gọi trong window.addEventListener
