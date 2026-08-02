@@ -929,6 +929,22 @@
   .gg-chip.built{border-color:var(--teal); background:rgba(44,219,168,.1); cursor:default;}
   .gg-speak-word{font-size:30px; font-weight:900; text-align:center; color:var(--gold); margin:8px 0;}
   .lgq-locked{opacity:.45; filter:grayscale(.65); pointer-events:none;}
+  /* ---- Banner cấp độ Luyện nghe/Luyện nói ---- */
+  .av-banner-list{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
+  .av-banner{position:relative; display:flex; align-items:center; gap:14px; border-radius:18px; padding:16px 16px;
+    cursor:pointer; color:#fff; box-shadow:0 10px 22px -12px rgba(0,0,0,.6); overflow:hidden; transition:transform .15s;}
+  .av-banner:hover{transform:translateY(-2px);}
+  .av-banner:active{transform:scale(.98);}
+  .av-banner::after{content:''; position:absolute; right:-30px; top:-30px; width:110px; height:110px;
+    background:rgba(255,255,255,.12); border-radius:50%;}
+  .avb-icon{font-size:30px; flex-shrink:0; filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+  .avb-txt{flex:1; min-width:0; position:relative; z-index:1;}
+  .avb-txt .t{font-weight:900; font-size:14.5px; text-shadow:0 1px 3px rgba(0,0,0,.35);}
+  .avb-txt .s{font-size:10.5px; opacity:.92; margin-top:3px; line-height:1.4; text-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .avb-best{background:rgba(255,255,255,.22); border-radius:10px; padding:4px 9px; font-size:11px; font-weight:900; flex-shrink:0; position:relative; z-index:1;}
+  .video-lesson-card{position:relative;}
+  .vlc-del{position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.55);
+    border:none; color:#fff; font-size:11px; cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -938,6 +954,28 @@
   .eng-av-empty{font-size:11.5px; color:var(--dim); text-align:center; padding:12px;}
   .eng-drive-cfg{display:flex; gap:8px; margin-top:4px;}
   .eng-drive-cfg .form-btn{flex:none; padding:8px 12px; font-size:11px;}
+  /* ---- Điều chỉnh âm lượng nghe lại bản ghi (Luyện nói) ---- */
+  .speak-vol-row{display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:10px;
+    background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:7px 10px;}
+  .speak-vol-btn{width:30px; height:30px; border-radius:50%; border:1.5px solid var(--teal); background:rgba(44,219,168,.1);
+    color:var(--teal); font-size:17px; font-weight:900; line-height:1; cursor:pointer; flex-shrink:0;}
+  .speak-vol-btn:disabled{opacity:.35; cursor:default;}
+  .speak-vol-label{font-size:11.5px; color:var(--dim); flex:1; text-align:center;}
+  .speak-vol-label b{color:var(--text);}
+  /* ---- Đoạn văn dài: redesign danh sách bài đọc ---- */
+  .lp-list{display:flex; flex-direction:column; gap:10px;}
+  .lp-card{position:relative; display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border);
+    border-radius:16px; padding:13px 14px; cursor:pointer; transition:transform .15s, border-color .15s;}
+  .lp-card:hover{transform:translateY(-1px); border-color:var(--teal);}
+  .lp-card:active{transform:scale(.98);}
+  .lp-card-num{width:36px; height:36px; border-radius:11px; background:linear-gradient(135deg,#2454b0,#4FA8FF);
+    color:#fff; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow:0 6px 14px -6px rgba(36,84,176,.7);}
+  .lp-card-body{flex:1; min-width:0;}
+  .lp-card-title{font-size:13px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .lp-card-sub{font-size:10.5px; color:var(--dim); margin-top:3px;}
+  .lp-card-best{background:rgba(255,204,0,.14); border:1px solid rgba(255,204,0,.35); color:var(--gold);
+    font-size:11px; font-weight:900; border-radius:10px; padding:4px 9px; flex-shrink:0;}
 
   /* ===== Responsive desktop/laptop layout =====
      Trước đây #shell/#navbar-inner luôn bị chặn max-width:460px dù mở trên màn hình laptop rộng
@@ -1215,7 +1253,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v75';
+const APP_VERSION = 'v76';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1517,7 +1555,8 @@ function snapshotNav(){
     // pháp" (đẩy bởi openEnglishItem), khiến nhảy thẳng về "Học tiếng Anh" thay vì về màn chọn chủ đề.
     listenQuiz: STATE.listenQuiz, speakSession: STATE.speakSession, quiz: STATE.quiz, ipaDetailSym: STATE.ipaDetailSym,
     vocabSession: STATE.vocabSession, vocabBrowseTopic: STATE.vocabBrowseTopic, longPassageBrowse: STATE.longPassageBrowse,
-    ggTopic: STATE.ggTopic, ggTest: STATE.ggTest, ggTheory: STATE.ggTheory
+    ggTopic: STATE.ggTopic, ggTest: STATE.ggTest, ggTheory: STATE.ggTheory,
+    addListenVideoOpen: STATE.addListenVideoOpen
   };
 }
 function restoreNav(snap){
@@ -1534,6 +1573,7 @@ function restoreNav(snap){
   STATE.ggTopic = snap.ggTopic!==undefined ? snap.ggTopic : null;
   STATE.ggTest = snap.ggTest!==undefined ? snap.ggTest : null;
   STATE.ggTheory = snap.ggTheory!==undefined ? snap.ggTheory : false;
+  STATE.addListenVideoOpen = snap.addListenVideoOpen!==undefined ? snap.addListenVideoOpen : false;
   // Bất kỳ lần lùi/pop nào cũng coi như đã đóng "trang riêng" ngữ pháp (nếu đang mở) — vì restoreNav
   // luôn kèm renderContent() làm iframe english-grammar.html nạp lại từ đầu, quay về danh sách.
   STATE.grammarDetailOpen = false;
@@ -5845,7 +5885,8 @@ function startListenQuiz(level){
 }
 // Bắt đầu quiz nghe theo 1 video: câu hỏi lấy từ chính lesson (giữ nguyên thứ tự để bám mạch video).
 function startListenVideoQuiz(id){
-  const lesson = (VIDEO_LESSONS && (VIDEO_LESSONS.listening||[]).find(l=>l.id===id));
+  // Video giờ lấy từ kho CỦA NGƯỜI DÙNG (AI tạo câu hỏi) — danh sách dựng sẵn cũ đã gỡ bỏ theo yêu cầu.
+  const lesson = listenVideoById(id) || (VIDEO_LESSONS && (VIDEO_LESSONS.listening||[]).find(l=>l.id===id));
   if(!lesson){ showToast('⚠️','Chưa tải được bài','Vui lòng thử lại sau giây lát.'); return; }
   const order = (lesson.questions||[]).map((_,i)=>i);
   if(!STATE.listenQuiz) navForward();
@@ -5879,7 +5920,7 @@ function nextListenQuiz(){
   }
   q.finished = true;
   const pct = Math.round((q.correct/q.order.length)*100);
-  if(q.level!=='video'){ // best chỉ lưu cho các cấp độ chuẩn, không lưu riêng từng video
+  if(q.level!=='video'){
     if(!SETTINGS.listenQuiz) SETTINGS.listenQuiz = {};
     if(!SETTINGS.listenQuiz.best) SETTINGS.listenQuiz.best = {};
     const prevBest = SETTINGS.listenQuiz.best[q.level] || 0;
@@ -5887,8 +5928,17 @@ function nextListenQuiz(){
     if(!Array.isArray(SETTINGS.listenQuizLog)) SETTINGS.listenQuizLog = [];
     SETTINGS.listenQuizLog.push({date:todayKey(), level:q.level, correct:q.correct, total:q.order.length, pct});
     if(SETTINGS.listenQuizLog.length>200) SETTINGS.listenQuizLog = SETTINGS.listenQuizLog.slice(-200);
-    saveSettings(); pushToDrive();
+  } else if(q.lessonId){
+    // Lưu điểm tốt nhất RIÊNG TỪNG VIDEO — dùng làm điều kiện mở khóa video kế tiếp (★ ≥80%).
+    ensureEngGame();
+    if(!SETTINGS.engGame.videoBest) SETTINGS.engGame.videoBest = {};
+    const prevV = SETTINGS.engGame.videoBest[q.lessonId] || 0;
+    if(pct > prevV) SETTINGS.engGame.videoBest[q.lessonId] = pct;
   }
+  // Tích hợp hệ Điểm học tập chung: +1/câu đúng, tính 1 hoạt động cho hệ chống-lười.
+  engGameAddScore(q.correct, 'Luyện nghe '+(q.level==='video'?('video "'+(q.videoTitle||'')+'"'):('cấp '+q.level))+': '+q.correct+'/'+q.order.length+' đúng ('+pct+'%)');
+  engGameMarkActivity();
+  saveSettings(); pushToDrive();
   renderContent();
 }
 // Đoạn hội thoại (dữ liệu hiện chưa gắn timestamp/chỉ số dòng riêng cho từng câu hỏi) — ước lượng dòng
@@ -5963,7 +6013,7 @@ function renderListenQuizUI(){
     </div>
     <div class="card eng-quiz-card">
       ${q.videoId
-        ? `${speakVideoEmbedHtml(q.videoId, videoStartSec, videoEndSec, q.answered===null, q.replaySeed||0)}
+        ? `${speakVideoEmbedHtml(q.videoId, videoStartSec, videoEndSec, !!q.replayAuto, q.replaySeed||0)}
         <div style="display:flex; gap:8px; margin-bottom:6px;">
           <button class="form-btn cancel" data-action="listen-video-replay" style="flex:1;">🔁 Lặp lại đoạn này</button>
         </div>
@@ -6022,6 +6072,7 @@ function renderEnglishAV(item, mode){
   ensureEnglishItems();
   if(mode==='speaking'){ renderSpeakingPractice(item); return; }
   if(STATE.listenQuiz){ renderListenQuizUI(); return; }
+  if(STATE.addListenVideoOpen){ renderAddListenVideoUI(item); return; }
   if(STATE.addYtChannelOpen){ renderAddYoutubeChannelUI(item); return; }
   if(LISTENING_QUIZ===null && !listeningQuizLoading) fetchListeningQuizData();
   const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
@@ -6038,13 +6089,24 @@ function renderEnglishAV(item, mode){
     const paceHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
       <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn đang ở mức <b>${escapeHtml(pace.label)}</b>${pace.avg!==null?` (điểm gần đây ${pace.avg}%)`:''} — mỗi lượt nghe sẽ lấy khoảng <b>${pace.count} câu</b> cho vừa sức, tăng dần khi bạn tiến bộ.${levelHint?`<br>💡 ${escapeHtml(levelHint)}`:''}</div>
     </div>`;
-    const cards = ['beginner','intermediate','advanced'].map(lv=>{
+    // Banner cấp độ (thay button nhỏ nhàm chán) + mở khóa tuần tự: Cơ bản → Trung cấp → Nâng cao.
+    const bannerMeta = {
+      beginner:{icon:'🌱', grad:'linear-gradient(120deg,#1e8a6e,#2CDBA8)', tag:'Hội thoại chậm & rõ, chủ đề đời thường'},
+      intermediate:{icon:'🚀', grad:'linear-gradient(120deg,#2454b0,#4FA8FF)', tag:'Tốc độ tự nhiên, tình huống đa dạng'},
+      advanced:{icon:'🔥', grad:'linear-gradient(120deg,#8a3aa0,#FF5A6E)', tag:'Nói nhanh, từ vựng nâng cao, giọng đa dạng'}
+    };
+    const cards = ['beginner','intermediate','advanced'].map((lv,li)=>{
       const b = best[lv]; const n = (LISTENING_QUIZ[lv]||[]).length;
-      return `<div class="eng-level-pick-card compact ${n===0?'disabled':''}" ${n>0?`data-action="listen-quiz-start" data-level="${lv}"`:''}>
-        <div class="lvl-code" style="color:${AV_LEVEL_COLORS[lv]};">${LEVEL_LABELS[lv]}</div>
-        <div class="lvl-label">${AV_LEVEL_SUBLABELS[lv]}</div>
-        <div class="lvl-count">${n===0?'Sắp có':n+' câu'}</div>
-        ${b!==undefined?`<div class="lvl-best">★ ${b}%</div>`:''}
+      const unlocked = listenLevelUnlocked(lv);
+      const m = bannerMeta[lv];
+      const prevName = li===1?'Cơ bản':'Trung cấp';
+      return `<div class="av-banner ${!unlocked?'lgq-locked':''}" ${n>0&&unlocked?`data-action="listen-quiz-start" data-level="${lv}"`:''} style="background:${m.grad};">
+        <div class="avb-icon">${unlocked?m.icon:'🔒'}</div>
+        <div class="avb-txt">
+          <div class="t">${LEVEL_LABELS[lv]} · ${AV_LEVEL_SUBLABELS[lv]}</div>
+          <div class="s">${unlocked?escapeHtml(m.tag)+' · '+n+' câu':'Đạt ★ ≥80% ở cấp '+prevName+' để mở khóa'}</div>
+        </div>
+        ${b!==undefined&&unlocked?`<div class="avb-best">★ ${b}%</div>`:''}
       </div>`;
     }).join('');
     levelPickHtml = `
@@ -6056,7 +6118,7 @@ function renderEnglishAV(item, mode){
       ${ttsVoiceConfigBtnHtml()}
       ${cloudTtsUsageBarHtml()}
       <div class="eng-section-label">🎯 Chọn theo cấp độ</div>
-      <div class="eng-level-pick-row compact">${cards}</div>
+      <div class="av-banner-list">${cards}</div>
       ${videoLessonsListHtml('listening')}
       <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
   }
@@ -6968,38 +7030,143 @@ async function fetchVideoLessons(){
 // Danh sách thẻ video cho màn chọn (dùng chung cho cả Luyện nghe & Luyện nói). mode: 'listening' | 'speaking'.
 // Có thanh chip lọc theo từng kênh YouTube (thay vì chạy dọc hết tất cả video), vì số lượng video sẽ
 // tăng dần theo thời gian — bấm vào 1 kênh để chỉ xem video của kênh đó.
+// ---- Kho video luyện nghe CỦA NGƯỜI DÙNG (thay toàn bộ danh sách video dựng sẵn trước đây) ----
+// Người dùng dán link YouTube bất kỳ → AI (Gemini) xem trực tiếp video đó và tự soạn 20-30 câu hỏi,
+// mỗi câu gắn đúng mốc thời gian của đoạn tương ứng trong video. Video lưu trong SETTINGS (đồng bộ
+// Drive). Video MỞ KHÓA TUẦN TỰ: chỉ video đầu tiên mở sẵn; đạt ★ ≥80% ở video trước mới mở video sau.
+function ensureMyListenVideos(){ if(!Array.isArray(SETTINGS.myListenVideos)) SETTINGS.myListenVideos = []; return SETTINGS.myListenVideos; }
+function listenVideoById(id){ return ensureMyListenVideos().find(v=>v.id===id) || null; }
+function listenVideoBest(id){ ensureEngGame(); return (SETTINGS.engGame.videoBest||{})[id]; }
+function listenVideoUnlocked(idx){
+  const list = ensureMyListenVideos();
+  if(idx<=0) return true;
+  return (listenVideoBest(list[idx-1].id)||0) >= 80;
+}
+// Cấp độ Luyện nghe cũng mở tuần tự: Cơ bản mở sẵn; đạt ★ ≥80% cấp trước để mở cấp sau.
+function listenLevelUnlocked(lv){
+  const best = (SETTINGS.listenQuiz && SETTINGS.listenQuiz.best) || {};
+  if(lv==='beginner') return true;
+  if(lv==='intermediate') return (best.beginner||0) >= 80;
+  return (best.intermediate||0) >= 80;
+}
+function parseYoutubeVideoId(input){
+  input = (input||'').trim();
+  let m = input.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,20})/);
+  if(m) return m[1];
+  if(/^[\w-]{6,20}$/.test(input) && !/\s/.test(input)) return input;
+  return null;
+}
+// Gọi Gemini xem trực tiếp video YouTube và soạn bộ câu hỏi (JSON) — Gemini hỗ trợ nhận link YouTube
+// qua fileData.fileUri nên KHÔNG cần tải phụ đề/transcript thủ công.
+async function aiGenerateListenQuestions(videoId){
+  const apiKey = SETTINGS.geminiApiKey;
+  if(!apiKey) throw new Error('NO_KEY');
+  const prompt = `You are creating an English listening comprehension exercise for a Vietnamese learner from this YouTube video.
+Watch/listen to the video and produce STRICT JSON (no markdown) with this exact shape:
+{"title":"<video title, English>","questions":[{"start":<seconds>,"end":<seconds>,"transcript":[["Speaker","exact sentence heard"],...],"q":"<question in English about THIS segment>","opts":["A","B","C","D"],"correct":<0-3>,"explain":"<giải thích ngắn bằng tiếng Việt vì sao đáp án đúng>","translate":"<dịch câu hỏi sang tiếng Việt>","tip":"<mẹo nghe ngắn bằng tiếng Việt cho đoạn này>"}]}
+Rules:
+- Create 20 to 30 questions covering the WHOLE video in chronological order.
+- start/end MUST be accurate timestamps (seconds) of the exact segment containing the answer; keep each segment 10-40 seconds.
+- transcript: 1-4 lines actually spoken in that segment.
+- Questions test listening comprehension (what was said, why, details, inference). All questions & options in English.
+- correct is the index (0-3) of the right option. Vary its position randomly.
+Return ONLY the JSON object.`;
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents:[{role:'user', parts:[
+        {fileData:{fileUri:'https://www.youtube.com/watch?v='+videoId}},
+        {text:prompt}
+      ]}],
+      generationConfig:{temperature:0.4, maxOutputTokens:16384, responseMimeType:'application/json'}
+    })
+  });
+  if(!res.ok){
+    let msg = 'HTTP '+res.status;
+    try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('');
+  let parsed;
+  try{ parsed = JSON.parse(txt); }catch(e){
+    const m = txt.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('AI trả về dữ liệu không đúng định dạng JSON.');
+    parsed = JSON.parse(m[0]);
+  }
+  if(!parsed || !Array.isArray(parsed.questions) || parsed.questions.length<5) throw new Error('AI tạo được quá ít câu hỏi ('+((parsed&&parsed.questions)||[]).length+') — thử lại hoặc chọn video khác có lời thoại rõ hơn.');
+  // Chuyển sang đúng định dạng câu hỏi video mà engine quiz nghe đang dùng:
+  // [lines, question_en, opts, correctIdx, explain_vi, translate_vi, tip_vi, startSec, endSec]
+  const questions = parsed.questions.map(qq=>[
+    Array.isArray(qq.transcript)? qq.transcript.map(t=>Array.isArray(t)?[String(t[0]||'A'),String(t[1]||'')]:['A',String(t)]):[],
+    String(qq.q||''), (qq.opts||[]).slice(0,4).map(String), Math.max(0,Math.min(3,qq.correct|0)),
+    String(qq.explain||''), String(qq.translate||''), String(qq.tip||''),
+    Math.max(0, Math.floor(qq.start||0)), Math.max(0, Math.floor(qq.end||0))
+  ]).filter(qq=>qq[1] && qq[2].length===4);
+  return {title:String(parsed.title||'Video luyện nghe'), questions};
+}
+async function submitAddListenVideo(){
+  const inputEl = document.getElementById('listenVideoInput');
+  const raw = inputEl ? inputEl.value.trim() : '';
+  const videoId = parseYoutubeVideoId(raw);
+  if(!videoId){ STATE.addListenVideoError = 'Không nhận diện được link video. Dán dạng youtube.com/watch?v=... hoặc youtu.be/...'; renderContent(); return; }
+  if(!SETTINGS.geminiApiKey){ STATE.addListenVideoError = 'Cần Gemini API key (đã cài ở mục Hội thoại AI) để AI phân tích video.'; renderContent(); return; }
+  if(ensureMyListenVideos().some(v=>v.videoId===videoId)){ STATE.addListenVideoError = 'Video này đã có trong danh sách rồi.'; renderContent(); return; }
+  STATE.addListenVideoLoading = true; STATE.addListenVideoError = null; renderContent();
+  try{
+    const result = await aiGenerateListenQuestions(videoId);
+    const list = ensureMyListenVideos();
+    list.push({id:'ulv_'+Date.now(), videoId, title:result.title, addedAt:Date.now(), questions:result.questions});
+    saveSettings(); pushToDrive();
+    STATE.addListenVideoOpen = false;
+  }catch(e){
+    console.error(e);
+    STATE.addListenVideoError = e.message==='NO_KEY' ? 'Chưa có Gemini API key.' : ('AI không phân tích được video: '+(e.message||'lỗi không xác định')+'. Thử lại sau ít phút hoặc chọn video khác.');
+  }
+  STATE.addListenVideoLoading = false;
+  renderContent();
+}
+function deleteMyListenVideo(id){
+  const list = ensureMyListenVideos();
+  const idx = list.findIndex(v=>v.id===id);
+  if(idx>=0 && confirm('Xóa video này cùng bộ câu hỏi của nó?')){ list.splice(idx,1); saveSettings(); pushToDrive(); renderContent(); }
+}
+function renderAddListenVideoUI(item){
+  const err = STATE.addListenVideoError;
+  const loading = STATE.addListenVideoLoading;
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="listen-video-add-close">${svgIcon('back')}</div><div class="title">Thêm video luyện nghe</div></div>
+    <div class="card" style="padding:16px; margin-bottom:12px;">
+      <div style="font-size:26px; text-align:center; margin-bottom:8px;">🤖🎬</div>
+      <div style="font-size:12px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Dán link video YouTube bất kỳ — AI sẽ <b style="color:var(--text);">xem trực tiếp video</b> và tự soạn <b style="color:var(--text);">20-30 câu hỏi luyện nghe</b>, mỗi câu gắn đúng đoạn thời gian tương ứng trong video. Quá trình phân tích mất khoảng 1-3 phút tùy độ dài video.</div>
+      <input id="listenVideoInput" class="ai-chat-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="https://www.youtube.com/watch?v=..." ${loading?'disabled':''}>
+      ${err?`<div class="ai-chat-error" style="text-align:left; margin-bottom:8px;">⚠️ ${escapeHtml(err)}</div>`:''}
+      ${loading
+        ? `<div style="text-align:center; padding:12px; color:var(--gold); font-weight:700;">⏳ AI đang xem video và soạn câu hỏi... (1-3 phút, đừng rời màn hình)</div>`
+        : `<button class="form-btn eng-quiz-nextbtn" data-action="listen-video-add-submit" style="width:100%;">🤖 Phân tích video &amp; tạo câu hỏi</button>`}
+    </div>
+    <div style="font-size:10.5px; color:var(--dim2); line-height:1.6; padding:0 4px;">💡 Mẹo chọn video tốt: video có lời thoại tiếng Anh rõ, dài 3-15 phút (podcast học tiếng Anh, vlog, phỏng vấn...). Video quá dài hoặc chỉ có nhạc sẽ khó tạo câu hỏi chính xác.</div>`;
+}
 function videoLessonsListHtml(mode){
-  const fullList = VIDEO_LESSONS ? (VIDEO_LESSONS[mode]||[]) : null;
-  if(fullList===null){ if(!videoLessonsLoading) fetchVideoLessons(); return ''; }
-  if(!fullList.length) return '';
-  const action = mode==='listening' ? 'listen-video-start' : 'speak-video-start';
-  // Danh sách kênh + số video mỗi kênh, giữ nguyên thứ tự xuất hiện đầu tiên trong data.
-  const channels = [];
-  fullList.forEach(l=>{ const c=l.channel||'Khác'; if(!channels.includes(c)) channels.push(c); });
-  const activeFilter = channels.includes(videoChannelFilter) ? videoChannelFilter : 'all';
-  const list = activeFilter==='all' ? fullList : fullList.filter(l=>(l.channel||'Khác')===activeFilter);
-  const chipAll = `<div class="video-channel-chip ${activeFilter==='all'?'active':''}" data-action="video-channel-filter" data-mode="${mode}" data-channel="all">Tất cả<span class="vcc-count">${fullList.length}</span></div>`;
-  const chips = channels.map(c=>{
-    const n = fullList.filter(l=>(l.channel||'Khác')===c).length;
-    return `<div class="video-channel-chip ${activeFilter===c?'active':''}" data-action="video-channel-filter" data-mode="${mode}" data-channel="${escapeHtml(c)}">${escapeHtml(c)}<span class="vcc-count">${n}</span></div>`;
-  }).join('');
-  const addChannelCard = mode==='listening' ? `<div class="video-channel-add-card" data-action="video-channel-add-open">➕ Thêm kênh YouTube mới để luyện nghe</div>` : '';
-  const cards = list.map(l=>{
-    const meta = l.desc || (mode==='listening' ? ((l.questions||[]).length+' câu hỏi') : ((l.lines||[]).length+' câu đọc'));
-    return `<div class="video-lesson-card" data-action="${action}" data-id="${l.id}">
+  if(mode!=='listening') return '';
+  const list = ensureMyListenVideos();
+  const addCard = `<div class="video-channel-add-card" data-action="listen-video-add-open">🤖 Thêm video luyện nghe — AI tự tạo 20-30 câu hỏi</div>`;
+  const cards = list.map((l, idx)=>{
+    const unlocked = listenVideoUnlocked(idx);
+    const b = listenVideoBest(l.id);
+    return `<div class="video-lesson-card ${!unlocked?'lgq-locked':''}" ${unlocked?`data-action="listen-video-start" data-id="${l.id}"`:''}>
       <img class="vlc-thumb" src="https://img.youtube.com/vi/${l.videoId}/mqdefault.jpg" alt="" loading="lazy">
       <div class="vlc-body">
         <div class="vlc-title">${escapeHtml(l.title)}</div>
-        <div class="vlc-desc">${escapeHtml(meta)}</div>
+        <div class="vlc-desc">${!unlocked?'🔒 Đạt ★80% ở video trước để mở':((l.questions||[]).length+' câu hỏi'+(b!==undefined?' · ★ '+b+'%':''))}</div>
       </div>
-      <div class="vlc-play">▶</div>
+      ${unlocked?`<div class="vlc-play">▶</div><button class="vlc-del" data-action="listen-video-delete" data-id="${l.id}">✕</button>`:'<div class="vlc-play">🔒</div>'}
     </div>`;
   }).join('');
-  return `<div class="eng-section-label" style="margin-top:18px;">📺 Podcast luyện nghe (kênh YouTube thật)</div>
-    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video podcast thật từ Slow English Podcast, What's Up English, Aus English with Lauren, Volka English, ELLLO (English Listening Lesson Library Online) &amp; Randall's ESL Cyber Listening Lab — bấm chọn kênh muốn học, mỗi câu hỏi sẽ tự phát ĐÚNG đoạn video liên quan (không chạy hết cả video).</div>
-    <div class="video-channel-row">${chipAll}${chips}</div>
-    ${addChannelCard}
-    <div class="video-lesson-list">${cards}</div>`;
+  return `<div class="eng-section-label" style="margin-top:18px;">📺 Video luyện nghe của bạn</div>
+    <div style="font-size:11px; color:var(--dim2); line-height:1.5; margin-bottom:10px;">Video mở khóa TUẦN TỰ: hoàn thành video hiện tại với ★ ≥80% để mở video kế tiếp. Bấm vào video rồi tự bấm Phát khi sẵn sàng nghe.</div>
+    ${addCard}
+    ${list.length?`<div class="video-lesson-list">${cards}</div>`:'<div class="eng-av-empty">Chưa có video nào — thêm video đầu tiên của bạn ở nút phía trên!</div>'}`;
 }
 function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
   if(!videoId) return '';
@@ -7170,6 +7337,12 @@ function currentSpeakItem(){
 function startSpeakPractice(level){
   // level==='ipa': luyện phát âm IPA theo TỪNG TỪ ĐƠN, nội dung lấy từ getIpaPracticeBank() (tính sẵn
   // từ IPA_CHART_DATA, không cần tải mạng) — mọi level khác vẫn dùng ngân hàng đoạn văn như cũ.
+  if(level!=='ipa' && level!=='long'){
+    const i = CEFR_LEVELS.findIndex(l=>l.key===level);
+    const best = (SETTINGS.speakPractice && SETTINGS.speakPractice.best) || {};
+    const unlocked = i<=0 || (best[CEFR_LEVELS[i-1].key]||0) >= 70;
+    if(!unlocked) return; // chặn mở cấp đang khóa (phòng khi dispatch bị bỏ qua)
+  }
   const bank = level==='ipa' ? getIpaPracticeBank() : ((SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[]);
   const order = shuffleArr(bank.map((_,i)=>i)).slice(0, Math.min(15, bank.length));
   if(!STATE.speakSession) navForward(); // chỉ đẩy 1 lớp điều hướng khi thực sự MỚI vào
@@ -7496,11 +7669,39 @@ function discardSpeakPlaybackCapture(){
   if(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
 }
 let speakPlaybackAudioEl=null;
+// Khuếch đại/giảm âm lượng khi nghe lại bản ghi giọng của mình — vì mic điện thoại thường ghi
+// tiếng nói nhỏ, khó nghe rõ lại. Dùng Web Audio GainNode (chỉ tạo createMediaElementSource
+// MỘT LẦN cho cùng 1 <audio> element vì gọi lần 2 sẽ ném lỗi, nên tái sử dụng xuyên suốt phiên).
+let speakPlaybackAudioCtx=null, speakPlaybackGainNode=null, speakPlaybackSourceNode=null;
+function ensureSpeakPlaybackGain(){
+  if(!SETTINGS.speakPlaybackGain) SETTINGS.speakPlaybackGain = 1.5; // mặc định khuếch đại nhẹ (150%)
+  return SETTINGS.speakPlaybackGain;
+}
+function speakPlaybackVolumePct(){ return Math.round(ensureSpeakPlaybackGain()*100); }
+function speakPlaybackVolumeAdjust(delta){
+  const cur = ensureSpeakPlaybackGain();
+  const next = Math.max(0.5, Math.min(3, +(cur+delta).toFixed(1)));
+  SETTINGS.speakPlaybackGain = next;
+  if(speakPlaybackGainNode) speakPlaybackGainNode.gain.value = next;
+  saveSettings();
+  renderContent();
+}
 function playOwnRecording(){
   const s=STATE.speakSession; if(!s || !s.recordingUrl) return;
   stopSpeakAudio();
   if(!speakPlaybackAudioEl) speakPlaybackAudioEl = new Audio();
   speakPlaybackAudioEl.src = s.recordingUrl;
+  try{
+    if(!speakPlaybackAudioCtx) speakPlaybackAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(speakPlaybackAudioCtx.state==='suspended') speakPlaybackAudioCtx.resume().catch(()=>{});
+    if(!speakPlaybackSourceNode){
+      speakPlaybackSourceNode = speakPlaybackAudioCtx.createMediaElementSource(speakPlaybackAudioEl);
+      speakPlaybackGainNode = speakPlaybackAudioCtx.createGain();
+      speakPlaybackSourceNode.connect(speakPlaybackGainNode);
+      speakPlaybackGainNode.connect(speakPlaybackAudioCtx.destination);
+    }
+    speakPlaybackGainNode.gain.value = ensureSpeakPlaybackGain();
+  }catch(e){ /* Web Audio bị hạn chế trên 1 số trình duyệt cũ — bỏ qua, phát âm lượng gốc */ }
   speakPlaybackAudioEl.play().catch(()=>{});
 }
 // Ghi âm thật + gửi lên Google Cloud Speech-to-Text — dùng khi người dùng đã cấu hình API key
@@ -7602,7 +7803,7 @@ function stopCaptionRecognition(){
 // Chuyển audio Blob ghi được thành base64 rồi gửi lên Google Cloud Speech-to-Text (REST, xác thực
 // bằng cùng API key đang dùng cho Cloud TTS — cần bật thêm "Cloud Speech-to-Text API" cho key đó
 // trong Google Cloud Console). Trả về chuỗi chữ nhận diện được (rỗng nếu không nghe được gì).
-async function transcribeCloudStt(blob){
+async function transcribeCloudStt(blob, hintText){
   const apiKey = SETTINGS.cloudTtsApiKey;
   if(!apiKey || !blob || !blob.size) return '';
   const arrayBuf = await blob.arrayBuffer();
@@ -7610,12 +7811,19 @@ async function transcribeCloudStt(blob){
   let binary=''; const chunkSize=0x8000;
   for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
   const base64Audio = btoa(binary);
+  // Gợi ý ngữ cảnh (speechContexts) — app đã biết TRƯỚC đoạn văn người dùng đang đọc, nên gửi kèm
+  // các từ trong đó làm "phrase hint" để Cloud STT ưu tiên nhận đúng các từ hiếm/khó thay vì đoán
+  // nhầm sang từ đồng âm phổ biến hơn. Cải thiện rõ rệt độ chính xác so với nhận diện "mù" hoàn toàn.
+  // model:'latest_long' cho độ chính xác cao hơn model mặc định với câu/đoạn nói liên tục nhiều từ.
+  const config = { encoding:'WEBM_OPUS', sampleRateHertz:48000, languageCode:'en-US',
+    enableAutomaticPunctuation:false, model:'latest_long', useEnhanced:true };
+  if(hintText){
+    const words = Array.from(new Set(String(hintText).replace(/[^a-zA-Z' ]/g,' ').split(/\s+/).filter(w=>w.length>1)));
+    if(words.length) config.speechContexts = [{ phrases: words.slice(0,120), boost: 15 }];
+  }
   const res = await fetch(`https://speech.googleapis.com/v1/speech:recognize?key=${encodeURIComponent(apiKey)}`, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      config:{ encoding:'WEBM_OPUS', sampleRateHertz:48000, languageCode:'en-US', enableAutomaticPunctuation:false },
-      audio:{ content: base64Audio }
-    })
+    body: JSON.stringify({ config, audio:{ content: base64Audio } })
   });
   if(!res.ok){ const t=await res.text().catch(()=>''); throw new Error('Cloud Speech-to-Text HTTP '+res.status+' — '+t.slice(0,180)); }
   const data = await res.json();
@@ -7665,12 +7873,26 @@ function saveSpeakBest(s){
   const pb=SETTINGS.speakPractice.best[s.level]||0;
   let changed=false;
   if(s.result.overall>pb){ SETTINGS.speakPractice.best[s.level]=s.result.overall; changed=true; }
+  // Với "Đoạn văn dài" (level='long'), lưu thêm điểm tốt nhất THEO TỪNG BÀI (không chỉ điểm tổng
+  // toàn mục) để mở khóa TUẦN TỰ — bài sau chỉ mở khi bài liền trước đạt ★ ≥70đ, giống hệt cơ chế
+  // mở khóa video trong Luyện nghe (listenVideoUnlocked).
+  if(s.level==='long' && s.order && s.order.length){
+    const idx = s.order[0];
+    if(!SETTINGS.speakPractice.longBest) SETTINGS.speakPractice.longBest={};
+    const pbIdx = SETTINGS.speakPractice.longBest[idx]||0;
+    if(s.result.overall>pbIdx){ SETTINGS.speakPractice.longBest[idx]=s.result.overall; changed=true; }
+  }
   // Ghi lại MỖI lượt luyện (không chỉ điểm cao nhất) theo ngày — cùng cơ chế với grammarQuizLog/
   // listenQuizLog, phục vụ mục "Thống kê" (đếm số bài + điểm trung bình theo ngày/tháng/năm) cho cả
   // Luyện nói (level A1..C1/long) lẫn Luyện IPA phát âm (level='ipa', dùng chung engine chấm điểm này).
   if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
   SETTINGS.speakPracticeLog.push({date:todayKey(), level:s.level, overall:s.result.overall});
   if(SETTINGS.speakPracticeLog.length>300) SETTINGS.speakPracticeLog = SETTINGS.speakPracticeLog.slice(-300);
+  // Đóng góp vào hệ thống Điểm học tập chung (SETTINGS.engGame) mà Ngữ pháp/Luyện ngữ pháp/Luyện
+  // nghe đã dùng — quy đổi điểm AI overall/100 sang thang điểm 0-10 cho đồng nhất với các mục khác.
+  const lvLabel = s.level==='ipa' ? 'Luyện IPA' : (s.level==='long' ? 'Đoạn văn dài' : ('Luyện nói '+s.level));
+  engGameAddScore(Math.round(s.result.overall/10), lvLabel+': '+s.result.overall+'đ');
+  engGameMarkActivity();
   saveSettings();
   if(changed) pushToDrive();
 }
@@ -7738,7 +7960,7 @@ async function beginSpeakRecordingCloud(s, item, existingStream){
       speakSegPromises[myIndex] = (async()=>{
         if(!blob.size) return '';
         try{
-          const text = await transcribeCloudStt(blob);
+          const text = await transcribeCloudStt(blob, item && item[0]);
           speakSegTexts[myIndex] = text;
           if(!isLast) updateSegCaption();
           return text;
@@ -7912,26 +8134,40 @@ function speakScoreBar(label, v){
 // phiên luyện tuần tự kiểu "Đoạn 1/15 → Câu tiếp" giống các cấp độ CEFR ngắn, không hợp lý vì mỗi bài
 // dài ~150-200 từ, người học thường chỉ cố đọc trọn 1 bài/lượt. Giờ mỗi bài là 1 nút riêng — bấm vào
 // bài nào sẽ vào thẳng bài đó (phiên chỉ gồm 1 bài), đọc xong bấm "Hoàn thành" để quay lại danh sách.
+// Mở khóa TUẦN TỰ: bài 1 luôn mở, bài sau chỉ mở khi bài liền trước đạt ★ ≥70đ (dùng chung
+// SETTINGS.speakPractice.longBest[idx] — xem saveSpeakBest).
+function longPassageUnlocked(idx){
+  if(idx<=0) return true;
+  const lb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longBest) || {};
+  return (lb[idx-1]||0) >= 70;
+}
 function renderLongPassageList(item){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
   const bestLong = (SETTINGS.speakPractice && SETTINGS.speakPractice.best && SETTINGS.speakPractice.best.long);
+  const lb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longBest) || {};
+  const doneN = bank.filter((_,i)=>lb[i]!==undefined).length;
   const cards = bank.map((p,i)=>{
     const title = p[3] || ('Bài '+(i+1));
     const wc = (p[0]||'').trim().split(/\s+/).filter(Boolean).length;
-    return `<div class="video-lesson-card" data-action="long-passage-start" data-idx="${i}">
-      <div class="vlc-body" style="padding-left:2px;">
-        <div class="vlc-title">📖 ${escapeHtml(title)}</div>
-        <div class="vlc-desc">Bài ${i+1}/${bank.length} · ~${wc} từ</div>
+    const unlocked = longPassageUnlocked(i);
+    const b = lb[i];
+    return `<div class="lp-card ${!unlocked?'lgq-locked':''}" ${unlocked?`data-action="long-passage-start" data-idx="${i}"`:''}>
+      <div class="lp-card-num">${unlocked?(i+1):'🔒'}</div>
+      <div class="lp-card-body">
+        <div class="lp-card-title">${escapeHtml(title)}</div>
+        <div class="lp-card-sub">${unlocked?`~${wc} từ · Bài ${i+1}/${bank.length}`:'Đạt ★ ≥70đ ở bài '+i+' để mở khóa'}</div>
       </div>
-      <div class="vlc-play">▶</div>
+      ${b!==undefined?`<div class="lp-card-best">★ ${b}đ</div>`:(unlocked?'<div class="vlc-play">▶</div>':'')}
     </div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="long-passage-back">${svgIcon('back')}</div><div class="title">📖 Đoạn văn dài</div></div>
     <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
-      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Chọn 1 bài để đọc trọn — mỗi bài là 1 câu chuyện/bài nói chuyện ngắn riêng biệt, không cần đọc hết cả 15 bài trong 1 lượt. Ghi âm KHÔNG giới hạn thời gian, đọc xong tự bấm dừng để chấm điểm.${bestLong!==undefined?` Điểm cao nhất của bạn: <b>★ ${bestLong}đ</b>.`:''}</div>
+      <div style="font-size:26px; margin-bottom:6px;">📖</div>
+      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Đọc trọn từng bài — mỗi bài là 1 câu chuyện/bài nói chuyện ngắn riêng biệt. Ghi âm KHÔNG giới hạn thời gian, đọc xong tự bấm dừng để chấm điểm. Hoàn thành ★ ≥70đ để mở bài tiếp theo.${bestLong!==undefined?` Điểm cao nhất: <b>★ ${bestLong}đ</b>.`:''}</div>
+      <div style="font-size:11px; color:var(--dim2); margin-top:8px;">Đã hoàn thành ${doneN}/${bank.length} bài</div>
     </div>
-    <div class="video-lesson-list">${cards}</div>`;
+    <div class="lp-list">${cards}</div>`;
 }
 function longPassageBrowseOpen(){
   STATE.longPassageBrowse = true;
@@ -7947,6 +8183,7 @@ function longPassageBrowseClose(){
 function startLongPassage(idx){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
   if(!bank[idx]) return;
+  if(!longPassageUnlocked(idx)) return; // chặn mở bài đang khóa (phòng khi dispatch bị bỏ qua)
   if(!STATE.speakSession) navForward();
   STATE.speakSession = {level:'long', order:[idx], idx:0, showTranslate:false, result:null, recording:false};
   STATE.speakPlayback = 'idle';
@@ -7966,15 +8203,30 @@ function renderSpeakingPractice(item){
     </div>`;
   } else {
     const totalN=CEFR_LEVELS.reduce((s,lv)=>s+((SPEAKING_PRACTICE[lv.key]||[]).length),0);
-    const cards=CEFR_LEVELS.map(lv=>{
+    // Banner cấp độ (đồng bộ giao diện với Luyện nghe) + MỞ KHÓA TUẦN TỰ: đạt ★ ≥70 điểm ở cấp trước
+    // để mở cấp sau (điểm nói chấm bằng AI khắt khe hơn trắc nghiệm nên ngưỡng 70 thay vì 80).
+    const speakBannerMeta = {
+      A1:{icon:'🌱', grad:'linear-gradient(120deg,#1e8a6e,#2CDBA8)'},
+      A2:{icon:'🍀', grad:'linear-gradient(120deg,#1f9e7a,#4FD6A8)'},
+      B1:{icon:'🚀', grad:'linear-gradient(120deg,#2454b0,#4FA8FF)'},
+      B2:{icon:'⚡', grad:'linear-gradient(120deg,#6a3ab0,#B78CFF)'},
+      C1:{icon:'🔥', grad:'linear-gradient(120deg,#8a3aa0,#FF5A6E)'}
+    };
+    const speakLevelUnlocked = (i)=> i===0 || (best[CEFR_LEVELS[i-1].key]||0) >= 70;
+    const cards=CEFR_LEVELS.map((lv,i)=>{
       const b=best[lv.key]; const n=(SPEAKING_PRACTICE[lv.key]||[]).length;
-      return `<div class="eng-level-pick-card compact ${n===0?'disabled':''}" ${n>0?`data-action="speak-practice-start" data-level="${lv.key}"`:''}>
-        <div class="lvl-code" style="color:${lv.color};">${lv.key}</div>
-        <div class="lvl-label">${escapeHtml(lv.label)}</div>
-        <div class="lvl-count">${n===0?'Sắp có':n+' đoạn'}</div>
-        ${b!==undefined?`<div class="lvl-best">★ ${b}đ</div>`:''}
+      const unlocked = speakLevelUnlocked(i);
+      const m = speakBannerMeta[lv.key];
+      return `<div class="av-banner ${!unlocked?'lgq-locked':''}" ${n>0&&unlocked?`data-action="speak-practice-start" data-level="${lv.key}"`:''} style="background:${m.grad};">
+        <div class="avb-icon">${unlocked?m.icon:'🔒'}</div>
+        <div class="avb-txt">
+          <div class="t">${lv.key} · ${escapeHtml(lv.label)}</div>
+          <div class="s">${unlocked?(n===0?'Sắp có':n+' đoạn luyện đọc'):'Đạt ★ ≥70đ ở cấp '+CEFR_LEVELS[i-1].key+' để mở khóa'}</div>
+        </div>
+        ${b!==undefined&&unlocked?`<div class="avb-best">★ ${b}đ</div>`:''}
       </div>`;
     }).join('');
+    const longUnlocked = (best.A1||0) >= 70;
     const srOk = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
     levelPickHtml=`
       <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
@@ -7985,12 +8237,12 @@ function renderSpeakingPractice(item){
       ${cloudTtsUsageBarHtml()}
       ${srOk ? '' : `<div style="font-size:11.5px;color:#ffb020;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">⚠️ Thiết bị này chưa hỗ trợ nhận diện giọng nói nên phần chấm điểm có thể không hoạt động. Bạn vẫn luyện nghe/đọc theo mẫu bình thường. Khuyến nghị dùng Chrome trên Android hoặc máy tính.</div>`}
       <div class="eng-section-label">🎯 Chọn theo cấp độ (CEFR)</div>
-      <div class="eng-level-pick-row compact">${cards}</div>
-      <div class="speak-longpassage-cta" data-action="long-passage-open">
-        <div class="speak-longpassage-icon">📖</div>
+      <div class="av-banner-list">${cards}</div>
+      <div class="speak-longpassage-cta ${!longUnlocked?'lgq-locked':''}" ${longUnlocked?'data-action="long-passage-open"':''}>
+        <div class="speak-longpassage-icon">${longUnlocked?'📖':'🔒'}</div>
         <div class="speak-longpassage-body">
           <div class="speak-longpassage-name">Đoạn văn dài</div>
-          <div class="speak-longpassage-desc">Đọc to cả bài — truyện ngắn &amp; bài nói chuyện truyền cảm hứng, chủ đề đời thường (${(SPEAKING_PRACTICE.long||[]).length} bài, ~150-200 từ/bài)</div>
+          <div class="speak-longpassage-desc">${longUnlocked?`Đọc to cả bài — truyện ngắn &amp; bài nói chuyện truyền cảm hứng, chủ đề đời thường (${(SPEAKING_PRACTICE.long||[]).length} bài, ~150-200 từ/bài)`:'Đạt ★ ≥70đ ở cấp A1 để mở khóa chế độ đọc bài dài'}</div>
         </div>
       </div>
       <div style="font-size:10px; color:var(--dim2); line-height:1.6; padding:12px 4px 4px;">${AV_SOURCE_NOTE}</div>`;
@@ -8049,10 +8301,15 @@ function renderSpeakPracticeUI(){
       <div id="speak-word-meaning" style="${isIpaPractice?'text-align:center;':''}"></div>
       ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được &nbsp;·&nbsp; chạm 1 từ để nghe phát âm + nghĩa</div>' : '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">Chạm vào 1 từ bất kỳ để nghe phát âm + xem nghĩa tiếng Việt</div>'}
       ${heardHtml}
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <div style="display:flex; gap:8px; margin-bottom:${s.recordingUrl?'6px':'10px'};">
         <button class="form-btn" data-action="speak-toggle-play" style="flex:1;">${playLabel}</button>
         <button class="form-btn cancel" data-action="speak-play-own" style="flex:1;" ${s.recordingUrl?'':'disabled'}>${replayBtnLabel}</button>
       </div>
+      ${s.recordingUrl ? `<div class="speak-vol-row">
+        <button class="speak-vol-btn" data-action="speak-vol-down" ${speakPlaybackVolumePct()<=50?'disabled':''}>−</button>
+        <span class="speak-vol-label">🔊 Âm lượng nghe lại: <b>${speakPlaybackVolumePct()}%</b></span>
+        <button class="speak-vol-btn" data-action="speak-vol-up" ${speakPlaybackVolumePct()>=300?'disabled':''}>+</button>
+      </div>` : ''}
       ${recBtn}
       ${recHint}
       ${tipHtml}
@@ -9318,7 +9575,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const listenQuizStartEl = e.target.closest('[data-action="listen-quiz-start"]');
   if(listenQuizStartEl){ startListenQuiz(listenQuizStartEl.getAttribute('data-level')); return; }
   const listenVideoStartEl = e.target.closest('[data-action="listen-video-start"]');
-  if(listenVideoStartEl){ startListenVideoQuiz(listenVideoStartEl.getAttribute('data-id')); return; }
+  // Nút ✕ (xóa video) nằm BÊN TRONG thẻ video (thẻ có data-action mở video) — nếu không né ra thì bấm
+  // ✕ sẽ bị hiểu nhầm thành mở video; để closest() rơi tiếp xuống handler xóa phía dưới.
+  if(listenVideoStartEl && !e.target.closest('[data-action="listen-video-delete"]')){ startListenVideoQuiz(listenVideoStartEl.getAttribute('data-id')); return; }
   const videoChannelFilterEl = e.target.closest('[data-action="video-channel-filter"]');
   if(videoChannelFilterEl){ videoChannelFilter = videoChannelFilterEl.getAttribute('data-channel'); renderContent(); return; }
   const videoChannelAddOpenEl = e.target.closest('[data-action="video-channel-add-open"]');
@@ -9334,7 +9593,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const listenQuizReplayEl = e.target.closest('[data-action="listen-quiz-replay"]');
   if(listenQuizReplayEl){ replayListenQuiz(); return; }
   const listenVideoReplayEl = e.target.closest('[data-action="listen-video-replay"]');
-  if(listenVideoReplayEl){ const q=STATE.listenQuiz; if(q){ q.replaySeed=(q.replaySeed||0)+1; renderContent(); } return; }
+  if(listenVideoReplayEl){ const q=STATE.listenQuiz; if(q){ q.replaySeed=(q.replaySeed||0)+1; q.replayAuto=true; renderContent(); } return; }
+  // ---- Thêm video luyện nghe bằng AI ----
+  const lvAddOpenEl = e.target.closest('[data-action="listen-video-add-open"]');
+  if(lvAddOpenEl){ navForward(); STATE.addListenVideoOpen = true; STATE.addListenVideoError = null; renderContent(); window.scrollTo(0,0); return; }
+  const lvAddCloseEl = e.target.closest('[data-action="listen-video-add-close"]');
+  if(lvAddCloseEl){ STATE.addListenVideoOpen = false; renderContent(); navBack(); return; }
+  const lvAddSubmitEl = e.target.closest('[data-action="listen-video-add-submit"]');
+  if(lvAddSubmitEl){ submitAddListenVideo(); return; }
+  const lvDeleteEl = e.target.closest('[data-action="listen-video-delete"]');
+  if(lvDeleteEl){ deleteMyListenVideo(lvDeleteEl.getAttribute('data-id')); return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
   if(listenQuizToggleEl){ toggleListenPlayback(); return; }
   const listenQuizSpeedEl = e.target.closest('[data-action="listen-quiz-speed"]');
@@ -9365,6 +9633,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakTogglePlayEl){ toggleSpeakPlayback(); return; }
   const speakPlayOwnEl = e.target.closest('[data-action="speak-play-own"]');
   if(speakPlayOwnEl){ playOwnRecording(); return; }
+  const speakVolUpEl = e.target.closest('[data-action="speak-vol-up"]');
+  if(speakVolUpEl){ speakPlaybackVolumeAdjust(0.25); return; }
+  const speakVolDownEl = e.target.closest('[data-action="speak-vol-down"]');
+  if(speakVolDownEl){ speakPlaybackVolumeAdjust(-0.25); return; }
   const speakWordEl = e.target.closest('[data-action="speak-word-click"]');
   if(speakWordEl){ speakWordClick(speakWordEl.getAttribute('data-word')); return; }
   const ipaGroupEl = e.target.closest('[data-action="ipa-chart-group"]');
