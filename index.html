@@ -872,6 +872,12 @@
     padding:10px 14px; font-size:13px; color:var(--text);}
   .ai-chat-send-btn{flex-shrink:0; width:42px; height:42px; border-radius:50%; background:var(--blue); border:none;
     color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .aicall-voice-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;}
+  .aicall-voice-chip{background:var(--panel); border:1.5px solid var(--border); border-radius:12px; padding:9px 6px;
+    text-align:center; cursor:pointer;}
+  .aicall-voice-chip.active{border-color:var(--blue); background:#4F8CFF1a;}
+  .aicall-voice-name{font-size:12px; font-weight:800; color:var(--text);}
+  .aicall-voice-label{font-size:9.5px; color:var(--dim); margin-top:2px; line-height:1.3;}
   .ai-call-screen{display:flex; flex-direction:column; align-items:center; min-height:70vh; padding:20px 10px 10px; text-align:center;}
   .ai-call-top{font-size:12px; color:var(--dim); font-weight:700; letter-spacing:.5px; margin-bottom:18px;}
   .ai-call-orb{width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,#5CD6C0,#4F8CFF);
@@ -1253,7 +1259,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v76';
+const APP_VERSION = 'v77';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6458,6 +6464,31 @@ function renderEnglishSentences(item){
 // "OK" nếu câu của người học đã ổn) — giúp vừa luyện phản xạ vừa được sửa lỗi ngay trong lúc trò chuyện.
 const GEMINI_CHAT_MODEL = 'gemini-3.6-flash';
 const AICHAT_MAX_HISTORY = 14; // số lượt gần nhất gửi kèm làm ngữ cảnh, tránh phình quá nhiều token mỗi lần gọi
+// Danh sách giọng đọc AI cho "Gọi thoại trực tiếp" (Gemini Live). Gemini hỗ trợ 30 giọng prebuilt
+// dùng chung cho cả Live API lẫn Text-to-Speech, mỗi giọng có 1 "màu sắc" giọng nói khác nhau (theo tài
+// liệu chính thức ai.google.dev/gemini-api/docs/speech-generation) — chọn ra 12 giọng đa dạng nhất để
+// người dùng dễ chọn thay vì phải lướt hết 30 giọng. Trước đây bị hardcode cứng 1 giọng 'Kore' duy nhất.
+const AI_CALL_VOICES = [
+  {name:'Kore',    label:'Chắc chắn, dứt khoát'},
+  {name:'Puck',    label:'Vui tươi, sôi nổi'},
+  {name:'Charon',  label:'Điềm đạm, rành mạch'},
+  {name:'Aoede',   label:'Nhẹ nhàng, thoải mái'},
+  {name:'Fenrir',  label:'Hào hứng, năng động'},
+  {name:'Leda',    label:'Trẻ trung'},
+  {name:'Zephyr',  label:'Trong trẻo, tươi sáng'},
+  {name:'Achird',  label:'Thân thiện'},
+  {name:'Sulafat', label:'Ấm áp'},
+  {name:'Gacrux',  label:'Chững chạc'},
+  {name:'Orus',    label:'Chắc chắn'},
+  {name:'Zubenelgenubi', label:'Đời thường, tự nhiên'}
+];
+function aiCallVoiceName(){ return SETTINGS.aiCallVoiceName || 'Kore'; }
+function aiCallPickVoice(name){
+  if(!AI_CALL_VOICES.some(v=>v.name===name)) return;
+  SETTINGS.aiCallVoiceName = name;
+  saveSettings(); pushToDrive();
+  renderContent();
+}
 const AICHAT_SCENARIOS = [
   {code:'cafe', emoji:'☕', title:'Quán cà phê', sub:'Gọi món, thanh toán', grad:'linear-gradient(135deg,#C9A66E,#8B6F3E)',
     roleEn:'a friendly barista at a coffee shop', descEn:'The learner just walked up to the counter to order a drink and maybe a snack.',
@@ -6684,14 +6715,25 @@ function renderAiChatPicker(item){
     <div style="font-weight:800; font-size:14px; margin-bottom:4px;">Trò chuyện tự do</div>
     <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Nói chuyện thoải mái bất kỳ chủ đề gì với AI, giống nhắn tin với bạn bè — luyện phản xạ nghe/nói tự nhiên, không theo kịch bản.</div>
   </div>`;
+  const voiceHtml = mode==='call' ? aiCallVoicePickerHtml() : '';
   return `${englishItemBackRow(item.name)}
     ${intro}
     ${aiChatApiKeyBtnHtml()}
     ${modeSeg}
+    ${voiceHtml}
     <div class="eng-section-label">💬 Kiểu trò chuyện</div>
     ${freeCard}
     <div class="eng-section-label">🎭 Theo tình huống (${AICHAT_SCENARIOS.length} tình huống)</div>
     ${aiChatScenarioGridHtml(mode)}`;
+}
+function aiCallVoicePickerHtml(){
+  const cur = aiCallVoiceName();
+  const chips = AI_CALL_VOICES.map(v=>`<div class="aicall-voice-chip ${v.name===cur?'active':''}" data-action="aicall-pick-voice" data-voice="${v.name}">
+    <div class="aicall-voice-name">${v.name}</div>
+    <div class="aicall-voice-label">${escapeHtml(v.label)}</div>
+  </div>`).join('');
+  return `<div class="eng-section-label">🗣️ Giọng đọc AI (${AI_CALL_VOICES.length} giọng)</div>
+    <div class="aicall-voice-grid">${chips}</div>`;
 }
 function renderAiChatSessionHtml(){
   const s = STATE.aiChatSession;
@@ -6908,7 +6950,7 @@ function aiCallConnect(){
       model: 'models/'+GEMINI_LIVE_MODEL,
       generationConfig: {
         responseModalities: ['AUDIO'],
-        speechConfig: {voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}
+        speechConfig: {voiceConfig:{prebuiltVoiceConfig:{voiceName:aiCallVoiceName()}}}
       },
       systemInstruction: {parts:[{text:sys}]},
       inputAudioTranscription: {},
@@ -9507,6 +9549,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(setGeminiKeyEl){ setGeminiApiKey(); return; }
   const aichatPickerModeEl = e.target.closest('[data-action="aichat-picker-mode"]');
   if(aichatPickerModeEl){ STATE.aiChatPickerMode = aichatPickerModeEl.getAttribute('data-mode'); renderContent(); return; }
+  const aicallPickVoiceEl = e.target.closest('[data-action="aicall-pick-voice"]');
+  if(aicallPickVoiceEl){ aiCallPickVoice(aicallPickVoiceEl.getAttribute('data-voice')); return; }
   const aichatStartFreeCallEl = e.target.closest('[data-action="aichat-start-free-call"]');
   if(aichatStartFreeCallEl){ startAiCallFree(); return; }
   const aichatStartScenarioCallEl = e.target.closest('[data-action="aichat-start-scenario-call"]');
