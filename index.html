@@ -878,26 +878,42 @@
   .aicall-voice-chip.active{border-color:var(--blue); background:#4F8CFF1a;}
   .aicall-voice-name{font-size:12px; font-weight:800; color:var(--text);}
   .aicall-voice-label{font-size:9.5px; color:var(--dim); margin-top:2px; line-height:1.3;}
-  .ai-call-screen{display:flex; flex-direction:column; align-items:center; min-height:70vh; padding:20px 10px 10px; text-align:center;}
-  .ai-call-top{font-size:12px; color:var(--dim); font-weight:700; letter-spacing:.5px; margin-bottom:18px;}
-  .ai-call-orb{width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,#5CD6C0,#4F8CFF);
-    display:flex; align-items:center; justify-content:center; font-size:48px; margin-bottom:18px;
-    box-shadow:0 0 0 0 rgba(79,140,255,.4); transition:box-shadow .3s;}
-  .ai-call-orb.listening{animation:aiCallListenPulse 1.8s infinite;}
-  .ai-call-orb.speaking{animation:aiCallSpeakPulse .9s infinite;}
-  @keyframes aiCallListenPulse{0%{box-shadow:0 0 0 0 rgba(92,214,192,.4);} 70%{box-shadow:0 0 0 16px rgba(92,214,192,0);} 100%{box-shadow:0 0 0 0 rgba(92,214,192,0);}}
-  @keyframes aiCallSpeakPulse{0%{box-shadow:0 0 0 0 rgba(79,140,255,.5);} 70%{box-shadow:0 0 0 22px rgba(79,140,255,0);} 100%{box-shadow:0 0 0 0 rgba(79,140,255,0);}}
-  .ai-call-status{font-size:13px; color:var(--text); font-weight:700; margin-bottom:22px;}
-  .ai-call-captions{width:100%; max-width:420px; display:flex; flex-direction:column; gap:8px; margin-bottom:16px; flex:1;}
-  .ai-call-cap{font-size:12.5px; line-height:1.5; padding:8px 12px; border-radius:12px; text-align:left; opacity:.85;}
-  .ai-call-cap.user{background:var(--panel2); align-self:flex-end; border-bottom-right-radius:4px;}
-  .ai-call-cap.ai{background:var(--panel); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px;}
-  .ai-call-controls{display:flex; align-items:center; gap:16px; margin-top:auto; padding-top:10px;}
-  .ai-call-mute-btn{width:52px; height:52px; border-radius:50%; background:var(--panel); border:1.5px solid var(--border);
-    color:var(--text); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
-  .ai-call-mute-btn.muted{background:#ff5c5c; border-color:#ff5c5c; color:#fff;}
-  .ai-call-end-btn{padding:14px 26px; border-radius:26px; background:#ff5c5c; border:none; color:#fff;
-    font-size:14px; font-weight:800; cursor:pointer;}
+  .ai-call-screen{display:flex; flex-direction:column; align-items:center; min-height:70vh; padding:18px 10px 10px; text-align:center;}
+  .ai-call-name{font-size:19px; font-weight:900; color:var(--text); margin-bottom:3px;}
+  .ai-call-sub{font-size:11px; color:var(--dim); font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:4px;}
+  .ai-call-avatar-wrap{position:relative; width:132px; height:132px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; flex-shrink:0;}
+  .ai-call-ring{position:absolute; width:100%; height:100%; border-radius:50%; border:1.5px solid rgba(79,140,255,.4); opacity:0;}
+  .ai-call-avatar-wrap.listening .ai-call-ring{animation:aiCallRingPulse 2s infinite; border-color:rgba(92,214,192,.5);}
+  .ai-call-avatar-wrap.speaking .ai-call-ring{animation:aiCallRingPulse 1s infinite; border-color:rgba(79,140,255,.55);}
+  .ai-call-ring.r2{animation-delay:.45s !important;}
+  @keyframes aiCallRingPulse{0%{transform:scale(.86); opacity:.7;} 100%{transform:scale(1.32); opacity:0;}}
+  .ai-call-orb{position:relative; width:108px; height:108px; border-radius:50%; overflow:hidden;
+    box-shadow:0 10px 30px rgba(79,140,255,.35), 0 0 0 4px rgba(255,255,255,0.05); flex-shrink:0;}
+  .ai-call-orb svg{display:block; width:100%; height:100%;}
+  .ai-call-status{font-size:13px; color:var(--text); font-weight:700; margin-bottom:20px;}
+  .ai-call-captions{width:100%; max-width:420px; display:flex; flex-direction:column; gap:10px; margin-bottom:16px; flex:1;}
+  .ai-call-cap-row{display:flex; align-items:flex-end; gap:7px; max-width:100%;}
+  .ai-call-cap-row.user{flex-direction:row-reverse;}
+  .ai-call-cap-avatar{flex-shrink:0; width:24px; height:24px; border-radius:50%; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.3);}
+  .ai-call-cap-avatar svg{display:block; width:100%; height:100%;}
+  .ai-call-cap-bubble{max-width:80%; padding:9px 12px; border-radius:15px; font-size:12.5px; line-height:1.5; text-align:left;}
+  .ai-call-cap-bubble.ai{background:var(--panel); border:1px solid var(--border); border-bottom-left-radius:4px; color:var(--text);}
+  .ai-call-cap-bubble.user{background:linear-gradient(135deg,#4F8CFF,#3E6FE0); border-bottom-right-radius:4px; color:#fff;}
+  .ai-call-cap-text{white-space:pre-wrap; word-break:break-word;}
+  .ai-call-cap-vi{margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,201,74,.3); font-size:11.5px; color:#FFD98A; font-weight:600;}
+  .ai-call-cap-actions{margin-top:6px;}
+  .ai-call-cap-translate{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:800;
+    color:var(--teal); cursor:pointer; padding:3px 9px; border-radius:999px; background:rgba(44,219,168,0.13);}
+  .ai-call-controls{display:flex; align-items:center; justify-content:center; gap:26px; margin-top:auto; padding-top:14px;}
+  .ai-call-mute-btn{position:relative; width:56px; height:56px; border-radius:50%; background:var(--panel2); border:1.5px solid var(--border);
+    color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .ai-call-mute-btn .icon-svg svg{width:22px; height:22px;}
+  .ai-call-mute-btn.muted{background:rgba(255,90,110,0.16); border-color:var(--red); color:var(--red);}
+  .ai-call-mute-btn.muted::after{content:''; position:absolute; top:50%; left:50%; width:34px; height:2px;
+    background:var(--red); transform:translate(-50%,-50%) rotate(-45deg); border-radius:2px;}
+  .ai-call-end-btn{width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#FF5A6E,#E23B50);
+    border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    box-shadow:0 8px 20px rgba(255,90,110,.45);}
   /* ---- Ngữ pháp game: lộ trình vượt ải ---- */
   .gg-scorebar{display:flex; gap:8px; margin-bottom:12px;}
   .gg-scorebox{flex:1; background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:10px 6px; text-align:center;}
@@ -1259,7 +1275,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v77';
+const APP_VERSION = 'v78';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6867,6 +6883,55 @@ function aiCallAppendCaption(role, text){
   else { s.captions.push({role, text, done:false}); }
   if(s.captions.length>40) s.captions = s.captions.slice(-40);
 }
+// Avatar tròn dùng chung cho cả avatar lớn giữa màn hình gọi lẫn avatar nhỏ cạnh mỗi khung chữ —
+// vẽ bằng SVG (không dùng emoji) để trông giống 1 nhân vật thật/hiện đại hơn, đồng thời tự đổi màu +
+// icon theo vai trò (AI: gradient xanh ngọc-xanh dương + tai nghe ; người dùng: gradient vàng-cam + không tai nghe)
+// để người dùng phân biệt ngay ai đang nói mà không cần đọc chữ. id gradient sinh ngẫu nhiên mỗi lần gọi
+// để tránh trùng id khi có nhiều SVG cùng lúc trên trang (avatar lớn + nhiều avatar nhỏ trong danh sách chữ).
+function aiCallAvatarSvg(size, role){
+  const gid = 'aiAvG'+Math.random().toString(36).slice(2,9);
+  const isAi = role!=='user';
+  const c1 = isAi ? '#5CD6C0' : '#FFC94A';
+  const c2 = isAi ? '#4F8CFF' : '#FF8A3D';
+  const headset = isAi ? `<path d="M28 40a22 22 0 0 1 44 0" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.92"/>
+      <rect x="20" y="38" width="10" height="16" rx="5" fill="#fff" opacity="0.92"/>
+      <rect x="70" y="38" width="10" height="16" rx="5" fill="#fff" opacity="0.92"/>` : '';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <circle cx="50" cy="50" r="50" fill="url(#${gid})"/>
+    <circle cx="50" cy="42" r="16" fill="#fff" opacity="0.96"/>
+    <path d="M22 90c0-18.5 12.5-31 28-31s28 12.5 28 31" fill="#fff" opacity="0.96"/>
+    ${headset}
+  </svg>`;
+}
+// Icon "gác máy" vẽ tay bằng SVG (ống nghe điện thoại úp ngược, kiểu icon dùng trong hầu hết app gọi
+// điện hiện đại) thay cho emoji ☎️ xoay bằng CSS — để hiển thị nhất quán trên mọi thiết bị/font.
+function aiCallHangupSvg(){
+  return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3.2 12.9c3.3-3.4 6.8-5.1 8.8-5.1s5.5 1.7 8.8 5.1c.6.6.5 1.5-.1 2l-2.3 1.9c-.6.5-1.4.4-1.9-.1l-1.6-1.7c-.3-.3-.8-.5-1.3-.3-1.2.5-2.6.5-3.2 0-.5-.2-1-.1-1.3.3l-1.6 1.7c-.5.5-1.3.6-1.9.1l-2.3-1.9c-.6-.5-.7-1.4-.1-2Z" fill="currentColor"/>
+  </svg>`;
+}
+// Dịch câu AI vừa nói sang tiếng Việt khi người học bấm nút "Dịch" trên khung chữ AI — dùng MyMemory
+// (API dịch miễn phí, không cần key riêng, đã dùng sẵn ở tính năng tra nghĩa từ trong Luyện nói) thay vì
+// gọi thêm Gemini để khỏi tốn quota chat của người dùng chỉ cho việc dịch 1 câu ngắn.
+async function aiCallTranslateCaption(idx){
+  const s = STATE.aiCallSession; if(!s || !s.captions) return;
+  const c = s.captions[idx]; if(!c || c.role!=='ai') return;
+  if(c.showTranslate){ c.showTranslate = false; renderContent(); return; }
+  if(c.viText && c.viFor===c.text){ c.showTranslate = true; renderContent(); return; }
+  c.translating = true; renderContent();
+  try{
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c.text.slice(0,480))}&langpair=en|vi`);
+    const data = await res.json();
+    c.viText = (data && data.responseData && data.responseData.translatedText) ? data.responseData.translatedText : 'Không dịch được, thử lại sau.';
+  }catch(e){ c.viText = 'Lỗi mạng khi dịch, thử lại.'; }
+  c.viFor = c.text;
+  c.translating = false;
+  c.showTranslate = true;
+  renderContent();
+}
 function aiCallHandleMessage(raw){
   // QUAN TRỌNG: dữ liệu nhận về qua WebSocket có thể là chuỗi text HOẶC frame nhị phân (ArrayBuffer/Blob)
   // tùy server — trước đây code giả định luôn là string nên JSON.parse(raw) ném lỗi im lặng và bị catch
@@ -7023,24 +7088,50 @@ function startAiCallScenario(code){
   renderContent(); window.scrollTo(0,0);
   aiCallConnect();
 }
+function renderAiCallCaptionsHtml(s){
+  const list = s.captions || [];
+  const startIdx = Math.max(0, list.length-6);
+  return list.slice(-6).map((c,i)=>{
+    const idx = startIdx+i;
+    const isAi = c.role==='ai';
+    const avatarSvg = aiCallAvatarSvg(26, isAi?'ai':'user');
+    const translateBtn = isAi ? `<div class="ai-call-cap-actions"><span class="ai-call-cap-translate" data-action="aicall-cap-translate" data-idx="${idx}">${c.translating?'⏳ Đang dịch…':(c.showTranslate?'🙈 Ẩn dịch':'🌐 Dịch')}</span></div>` : '';
+    const viHtml = (isAi && c.showTranslate && c.viText) ? `<div class="ai-call-cap-vi">🇻🇳 ${escapeHtml(c.viText)}</div>` : '';
+    return `<div class="ai-call-cap-row ${c.role}">
+      <div class="ai-call-cap-avatar">${avatarSvg}</div>
+      <div class="ai-call-cap-bubble ${c.role}">
+        <div class="ai-call-cap-text">${escapeHtml(c.text)}</div>
+        ${viHtml}
+        ${translateBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderAiCallSessionHtml(){
   const s = STATE.aiCallSession;
   const sc = s.scenario ? aiChatScenario(s.scenario) : null;
   const title = sc ? sc.title : 'Trò chuyện tự do';
   const statusLabel = {connecting:'Đang kết nối…', listening:'Đang nghe bạn…', ai_speaking:'AI đang nói…', error:'Lỗi kết nối', ended:'Đã kết thúc cuộc gọi'}[s.status] || '';
-  const capHtml = (s.captions||[]).slice(-6).map(c=>`<div class="ai-call-cap ${c.role}">${c.role==='ai'?'🤖 ':'🗣️ '}${escapeHtml(c.text)}</div>`).join('');
+  const voiceInfo = AI_CALL_VOICES.find(v=>v.name===aiCallVoiceName());
+  const capHtml = renderAiCallCaptionsHtml(s);
   const errHtml = s.error ? `<div class="ai-chat-error">⚠️ ${escapeHtml(s.error)}</div>` : '';
+  const orbState = s.status==='ai_speaking' ? 'speaking' : (s.status==='listening' ? 'listening' : '');
   return `
-    <div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div><div class="title">${escapeHtml(title)}</div></div>
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div></div>
     <div class="ai-call-screen">
-      <div class="ai-call-top">📞 Gọi thoại trực tiếp</div>
-      <div class="ai-call-orb ${s.status==='ai_speaking'?'speaking':''} ${s.status==='listening'?'listening':''}">🤖</div>
+      <div class="ai-call-name">${escapeHtml(title)}</div>
+      <div class="ai-call-sub">🗣️ ${voiceInfo?escapeHtml(voiceInfo.name):'AI'} · Gemini Live thực</div>
+      <div class="ai-call-avatar-wrap ${orbState}">
+        <div class="ai-call-ring r1"></div>
+        <div class="ai-call-ring r2"></div>
+        <div class="ai-call-orb">${aiCallAvatarSvg(112,'ai')}</div>
+      </div>
       <div class="ai-call-status">${statusLabel}</div>
       <div class="ai-call-captions">${capHtml}</div>
       ${errHtml}
       <div class="ai-call-controls">
-        <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${s.muted?'🔇':'🎙️'}</button>
-        <button class="ai-call-end-btn" data-action="aicall-end">☎️ Kết thúc</button>
+        <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${svgIcon('mic')}</button>
+        <button class="ai-call-end-btn" data-action="aicall-end" title="Kết thúc">${aiCallHangupSvg()}</button>
       </div>
     </div>`;
 }
@@ -9557,6 +9648,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aichatStartScenarioCallEl){ startAiCallScenario(aichatStartScenarioCallEl.getAttribute('data-code')); return; }
   const aicallToggleMuteEl = e.target.closest('[data-action="aicall-toggle-mute"]');
   if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
+  const aicallCapTranslateEl = e.target.closest('[data-action="aicall-cap-translate"]');
+  if(aicallCapTranslateEl){ aiCallTranslateCaption(+aicallCapTranslateEl.getAttribute('data-idx')); return; }
   const aicallEndEl = e.target.closest('[data-action="aicall-end"]');
   if(aicallEndEl){ aiCallEnd(); return; }
   // ---- Ngữ pháp game (lộ trình vượt ải) ----
