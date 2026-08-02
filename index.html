@@ -1275,7 +1275,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v78';
+const APP_VERSION = 'v79';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -6955,6 +6955,20 @@ function aiCallHandleMessage(raw){
     return;
   }
   if(msg.setupComplete){ aiCallClearConnectTimeout(); s.status = 'listening'; renderContent(); return; }
+  // Gemini Live định kỳ cấp 1 "resumption handle" (khi đã bật sessionResumption ở setup message) — lưu lại
+  // để nếu bị ngắt vẫn có thể nối lại ĐÚNG mạch hội thoại cũ (AI nhớ toàn bộ ngữ cảnh trước đó) trên 1
+  // WebSocket mới, thay vì phải bắt đầu lại từ đầu.
+  if(msg.sessionResumptionUpdate){
+    const su = msg.sessionResumptionUpdate;
+    if(su.resumable && su.newHandle) s.resumeHandle = su.newHandle;
+    return;
+  }
+  // "goAway" là tín hiệu Gemini Live báo TRƯỚC vài giây rằng sắp chủ động đóng kết nối hiện tại (mỗi phiên
+  // WebSocket có giới hạn thời lượng, mặc định khoảng 15 phút) — ĐÂY LÀ NGUYÊN NHÂN THẬT của lỗi "mã 1008:
+  // Connection aborted..." mà người dùng gặp khi nói chuyện lâu ở bản trước. Cách xử lý đúng theo tài liệu
+  // Gemini Live: chủ động nối lại NGAY bằng resumption handle đã lưu, trước khi server đóng cứng — để cuộc
+  // gọi tiếp tục liền mạch, người dùng không hề nhận ra vừa bị ngắt/nối lại.
+  if(msg.goAway){ aiCallReconnect(); return; }
   if(msg.serverContent){
     const sc = msg.serverContent;
     if(sc.interrupted){ aiCallStopPlayback(); }
@@ -6974,7 +6988,18 @@ function aiCallSetError(msg){
   const s = STATE.aiCallSession; if(!s) return;
   s.status = 'error'; s.error = msg; renderContent();
 }
-function aiCallConnect(){
+// Nối lại cuộc gọi ĐANG DIỄN RA bằng resumption handle đã lưu — gọi khi nhận tín hiệu "goAway" (server báo
+// trước sắp chủ động ngắt vì phiên WebSocket đã đến giới hạn thời lượng, mặc định ~15 phút). Không đụng
+// tới mic/AudioContext đang chạy (vẫn giữ nguyên xuyên suốt), chỉ mở 1 WebSocket mới nối tiếp đúng mạch
+// hội thoại cũ nhờ resumption handle, nên người dùng không cảm nhận được cuộc gọi vừa bị "nối lại".
+function aiCallReconnect(){
+  const s = STATE.aiCallSession; if(!s) return;
+  s.reconnecting = true;
+  s.status = 'connecting'; renderContent();
+  try{ if(aiCallWs) aiCallWs.close(); }catch(e){}
+  aiCallConnect(true);
+}
+function aiCallConnect(isReconnect){
   const apiKey = SETTINGS.geminiApiKey;
   const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(apiKey)}`;
   try{ aiCallWs = new WebSocket(url); }catch(e){ aiCallSetError('Không tạo được kết nối gọi thoại.'); return; }
@@ -7011,6 +7036,12 @@ function aiCallConnect(){
     // get-started-websocket (trang đó ghi sai/không khớp schema thật, đã xác nhận qua lỗi thực tế server
     // trả về: "Unknown name \"config\": Cannot find field."). responseModalities/speechConfig cũng phải
     // nằm lồng trong generationConfig, không phải field ngang hàng với model.
+    // sessionResumption + contextWindowCompression: mỗi phiên WebSocket của Gemini Live chỉ được giữ tối
+    // đa ~15 phút rồi server chủ động ngắt (đây chính là nguyên nhân lỗi "mã 1008" khi nói chuyện lâu) —
+    // bật sessionResumption để server định kỳ cấp "handle" cho phép mở lại đúng mạch hội thoại cũ trên 1
+    // WebSocket mới (xem aiCallReconnect), và bật contextWindowCompression để không bao giờ bị đầy ngữ
+    // cảnh dù nói chuyện rất lâu. Khi đang nối lại (isReconnect), gửi kèm handle đã lưu để AI nhớ nguyên
+    // vẹn cuộc trò chuyện trước đó thay vì bắt đầu lại từ đầu.
     aiCallWs.send(JSON.stringify({setup:{
       model: 'models/'+GEMINI_LIVE_MODEL,
       generationConfig: {
@@ -7019,9 +7050,13 @@ function aiCallConnect(){
       },
       systemInstruction: {parts:[{text:sys}]},
       inputAudioTranscription: {},
-      outputAudioTranscription: {}
+      outputAudioTranscription: {},
+      sessionResumption: s.resumeHandle ? {handle:s.resumeHandle} : {},
+      contextWindowCompression: {slidingWindow:{}}
     }}));
-    aiCallStartMic().catch(err=>{ aiCallSetError('Không dùng được micro: '+(err&&err.message?err.message:'từ chối quyền truy cập')+'.'); });
+    if(!isReconnect){
+      aiCallStartMic().catch(err=>{ aiCallSetError('Không dùng được micro: '+(err&&err.message?err.message:'từ chối quyền truy cập')+'.'); });
+    }
   };
   aiCallWs.onmessage = (ev)=> aiCallHandleMessage(ev.data);
   // Sự kiện 'error' của WebSocket KHÔNG mang theo lý do thật (theo chuẩn trình duyệt, ra đời vì lý do bảo
@@ -7032,6 +7067,9 @@ function aiCallConnect(){
   aiCallWs.onerror = ()=>{ /* để onclose xử lý hiển thị chi tiết — event 'error' của WS không có thông tin hữu ích */ };
   aiCallWs.onclose = (ev)=>{
     const s = STATE.aiCallSession; if(!s || s.status==='ended' || s.status==='error') return;
+    // Đây là lượt đóng WebSocket CŨ do chính mình chủ động gọi trong aiCallReconnect() (đã mở sẵn 1
+    // WebSocket mới ngay trước đó) — không phải lỗi thật, bỏ qua để không hiện nhầm thông báo lỗi.
+    if(s.reconnecting){ s.reconnecting = false; return; }
     if(ev && ev.code && ev.code!==1000){
       let hint = '';
       if(ev.code===1006) hint = ' Có thể do API key chưa được cấp quyền dùng Gemini Live (model preview), key sai, hoặc mạng chặn WebSocket.';
