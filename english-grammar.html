@@ -125,6 +125,11 @@ details.card summary .num{display:inline-flex; align-items:center; justify-conte
 .topic-summary-card[data-grp="struct"] .topic-open-btn{background:linear-gradient(135deg,var(--purple),#8B5CF6);box-shadow:0 3px 8px rgba(139,92,246,.3);}
 .topic-summary-card[data-grp="prep"] .topic-open-btn{background:linear-gradient(135deg,var(--teal),#1FA88A);box-shadow:0 3px 8px rgba(44,219,168,.3);}
 .topic-summary-card[data-grp="other"] .topic-open-btn{background:linear-gradient(135deg,var(--orange),var(--gold));box-shadow:0 3px 8px rgba(255,138,61,.3);}
+/* Thẻ chủ đề CHƯA mở khóa (do người học chưa vượt qua các chủ đề trước ở lộ trình "Ngữ pháp") —
+   làm mờ toàn bộ nền màu, đổi viền xám, đổi nút "Xem ›" thành "🔒 Khóa" để rõ ràng không bấm được. */
+.topic-summary-card.locked{background:rgba(139,150,168,.08); border-left-color:var(--dim2); filter:grayscale(0.35); opacity:.62; cursor:not-allowed;}
+.topic-summary-card.locked:active{transform:none;}
+.topic-summary-card.locked .topic-open-btn{background:var(--dim2); box-shadow:none;}
 /* Nút loa đọc to ví dụ — chèn cạnh mỗi câu ví dụ bằng JS (addTtsButtons), dùng chung cho .exbox mọi nơi. */
 .ex-tts-btn{flex:0 0 auto; width:30px; height:30px; min-width:30px; border-radius:10px; border:1px solid var(--border);
   background:var(--panel); color:var(--blue); font-size:14px; display:inline-flex; align-items:center;
@@ -221,9 +226,41 @@ function stripTags(s){ return (s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' '
 // minh 1 giọng tiếng Anh (thay vì chỉ đặt lang) và hiện gợi ý rõ ràng nếu máy thực sự không đọc được,
 // thay vì im lặng như trước.
 let PARENT_HAS_CLOUD_TTS = false;
+// Danh sách chủ đề đã mở khóa do app cha (index.html) gửi qua — dựa trên tiến độ "vượt ải" thật của
+// người học ở lộ trình Ngữ pháp (GRAMMAR_PATH/ggStatus). null = chưa nhận được dữ liệu từ cha (ví dụ
+// mở file này độc lập để test) => mặc định KHÔNG khóa gì cả, tránh khóa nhầm khi thiếu ngữ cảnh.
+let PARENT_UNLOCKED_TOPICS = null;
 window.addEventListener('message', function(e){
-  if(e.data && e.data.type==='grammarInit'){ PARENT_HAS_CLOUD_TTS = !!e.data.hasCloudTts; }
+  if(e.data && e.data.type==='grammarInit'){
+    PARENT_HAS_CLOUD_TTS = !!e.data.hasCloudTts;
+    if(Array.isArray(e.data.unlockedTopics)) PARENT_UNLOCKED_TOPICS = e.data.unlockedTopics;
+    applyTopicLocks();
+  }
 });
+function showLockHint(){
+  let el = document.getElementById('lock-hint');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'lock-hint';
+    el.style.cssText = 'position:fixed; left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom)); z-index:200; background:rgba(255,201,74,.15); border:1px solid rgba(255,201,74,.4); color:#FFE8B0; font-size:12px; line-height:1.55; padding:11px 13px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,.35); transition:opacity .3s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = '🔒 Chủ điểm này chưa được mở khóa. Hãy hoàn thành các chủ điểm trước đó trong "Ngữ pháp" (đạt yêu cầu bài kiểm tra) để mở khóa phần lý thuyết tương ứng.';
+  el.style.opacity = '1'; el.style.display = 'block';
+  clearTimeout(showLockHint._t);
+  showLockHint._t = setTimeout(function(){ el.style.opacity = '0'; setTimeout(()=>{ el.style.display='none'; }, 300); }, 4200);
+}
+// Khóa/mở các thẻ tóm tắt chủ đề theo PARENT_UNLOCKED_TOPICS. Gọi lại sau mỗi lần cards được dựng
+// và mỗi khi nhận được cập nhật mới từ cha (postMessage có thể đến sau khi cards đã render xong).
+function applyTopicLocks(){
+  document.querySelectorAll('.topic-summary-card[data-topic]').forEach(card=>{
+    const id = card.getAttribute('data-topic');
+    const locked = Array.isArray(PARENT_UNLOCKED_TOPICS) && PARENT_UNLOCKED_TOPICS.indexOf(id) === -1;
+    card.classList.toggle('locked', locked);
+    const btn = card.querySelector('.topic-open-btn');
+    if(btn) btn.textContent = locked ? '🔒 Khóa' : 'Xem ›';
+  });
+}
 if('speechSynthesis' in window){
   try{
     window.speechSynthesis.getVoices();
@@ -544,7 +581,7 @@ function tenseCard(t, num, groupKey){
   body += practiceBtn(t.topic, t.n);
   TOPIC_BODY[t.topic] = body;
   TOPIC_TITLE[t.topic] = `${t.n} <span style="font-weight:600;color:var(--dim);font-size:11.5px;margin-left:4px;">(${t.en})</span>`;
-  return `<div class="card topic-summary-card" data-grp="${groupKey}" data-search="${searchText}" onclick="openTopicDetail('${t.topic}')">
+  return `<div class="card topic-summary-card" data-grp="${groupKey}" data-topic="${t.topic}" data-search="${searchText}" onclick="openTopicDetail('${t.topic}')">
     <div class="topic-summary-row"><span style="display:flex;align-items:center;">${t.n} <span style="font-weight:600;color:var(--dim);font-size:11px;margin-left:6px;">(${t.en})</span>${levelChip(t.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
@@ -560,6 +597,10 @@ function notifyParentNav(type){
   try{ if(window.parent && window.parent!==window) window.parent.postMessage({type}, '*'); }catch(e){}
 }
 function openTopicDetail(id){
+  if(Array.isArray(PARENT_UNLOCKED_TOPICS) && PARENT_UNLOCKED_TOPICS.indexOf(id) === -1){
+    showLockHint();
+    return;
+  }
   const view = document.getElementById('topic-detail-view');
   document.getElementById('topic-detail-title').innerHTML = TOPIC_TITLE[id] || '';
   document.getElementById('topic-detail-body').innerHTML = `<div class="card-body">${TOPIC_BODY[id] || ''}${signalsHtml(id)}${tipsHtml(id)}</div>`;
@@ -580,7 +621,7 @@ function simpleTopicCard(s, num, labelMap, grp){
   TOPIC_BODY[s.topic] = s.body + practiceBtn(s.topic, labelMap[s.topic]);
   TOPIC_TITLE[s.topic] = s.t;
   const searchText = esc((s.t+' '+stripTags(s.body)).toLowerCase());
-  return `<div class="card topic-summary-card" data-grp="${grp}" data-search="${searchText}" onclick="openTopicDetail('${s.topic}')">
+  return `<div class="card topic-summary-card" data-grp="${grp}" data-topic="${s.topic}" data-search="${searchText}" onclick="openTopicDetail('${s.topic}')">
     <div class="topic-summary-row"><span style="display:flex;align-items:center;">${s.t}${levelChip(s.topic)}</span><span class="topic-open-btn">Xem ›</span></div>
   </div>`;
 }
@@ -894,6 +935,10 @@ const OTHER = [
 ];
 const OTHER_TOPIC_LABEL = {o_articles:'Mạo từ', o_modal:'Động từ khiếm khuyết', o_gerund:'Danh động từ & động từ nguyên mẫu', o_phrasal:'Cụm động từ thông dụng', o_quantifiers:'Lượng từ', o_adj_adv:'Tính từ & Trạng từ', o_causative:'Câu bị động đặc biệt (Causative)', o_correlative:'Liên từ tương quan', o_emphasis:'Nhấn mạnh với trợ động từ'};
 document.getElementById('grp-other').innerHTML = OTHER.map((s,i)=> simpleTopicCard(s, i+1, OTHER_TOPIC_LABEL, 'other')).join('');
+// Áp khóa ngay sau khi mọi thẻ đã dựng xong — trường hợp postMessage 'grammarInit' từ cha đến
+// TRƯỚC khi iframe kịp chạy tới đây (hiếm nhưng có thể xảy ra), applyTopicLocks() gọi ở đây vẫn
+// đọc đúng PARENT_UNLOCKED_TOPICS đã được lưu sẵn.
+applyTopicLocks();
 
 function showView(id){
   document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.getAttribute('data-view')===id));
