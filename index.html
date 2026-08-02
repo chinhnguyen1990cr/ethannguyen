@@ -1304,7 +1304,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v82';
+const APP_VERSION = 'v83';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1784,7 +1784,7 @@ function getPlanForDate(dateObj){
     } else {
       tasks.push({id:'luyen_noi', time:'19:30', dur:40, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
       tasks.push({id:'ai_talk', time:'20:15', dur:20, label:'Hội thoại AI — phản xạ nói', cat:'tieng_anh', kind:'ai_chat',
-        sub:['Vào Hội thoại AI → gọi thoại hoặc nhắn tin theo 1 tình huống thực tế (quán cà phê, phỏng vấn...)','Nói tự nhiên, đừng sợ sai — AI sẽ sửa bằng cách nhắc lại cách nói đúng','Mục tiêu: phản xạ trả lời trong 2-3 giây, không dịch thầm trong đầu']});
+        sub:['Vào Hội thoại AI → gọi thoại trực tiếp theo 1 tình huống thực tế (quán cà phê, phỏng vấn...)','Nói tự nhiên, đừng sợ sai — AI sẽ sửa bằng cách nhắc lại cách nói đúng','Mục tiêu: phản xạ trả lời trong 2-3 giây, không dịch thầm trong đầu']});
       tasks.push({id:'ngu_phap_game', time:'20:40', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
         sub:['Vào mục Ngữ pháp → học tiếp chủ đề đang mở, làm bài kiểm tra vượt ải nếu đã sẵn sàng','Mỗi ngày PHẢI hoàn thành nhiệm vụ ngữ pháp — bỏ ngày sẽ bị trừ điểm học tập','Đạt 8/10 câu ở bài kiểm tra để mở khóa chủ đề tiếp theo']});
       tasks.push({id:'hoc_chuyen_nganh', time:'21:10', dur:35, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
@@ -4193,7 +4193,10 @@ function vocabPrepareCurrent(){
   s.answered = null; s.showTranslate = false; s.typedValue=''; s.scrambleSel=[]; s.isCorrectAnswer=null;
   if(!word){ s.showIntro=false; s.exType=null; s.options=[]; s.correctIdx=-1; return; }
   const p = vocabProgressFor(n);
-  s.showIntro = !p.introduced;
+  // Chỉ hiện thẻ "dạy từ" (showIntro) nếu từ CHƯA từng học VÀ CHƯA được dạy trong phiên này — tránh vừa
+  // dạy xong thẻ nghĩa lại hỏi ngay chính từ đó (quá dễ vì vừa nhìn thấy đáp án). Câu hỏi luyện tập cho
+  // từ mới học được DỜI RA XA hơn trong hàng đợi (xem vocabIntroContinue) để bắt buộc nhớ lại thật sự.
+  s.showIntro = !p.introduced && !(s.seenIntroIds && s.seenIntroIds[n]);
   const box = p.box||0;
   // Độ khó & KIỂU câu hỏi tăng dần theo mức độ thuộc (box): mới học → nhận diện bằng trắc nghiệm dễ;
   // đã quen mặt chữ → chủ động nhớ lại (xếp chữ cái / gõ từ) — nguyên lý "desirable difficulty" giúp
@@ -4249,7 +4252,26 @@ function vocabStartTopic(code){
 }
 function vocabIntroContinue(){
   const s = STATE.vocabSession; if(!s) return;
+  const n = s.ids[s.idx];
+  if(!s.seenIntroIds) s.seenIntroIds = {};
+  s.seenIntroIds[n] = true;
+  // Tối ưu chống "học xong hỏi liền": rút từ vừa dạy ra khỏi vị trí hiện tại, chèn lại vào hàng đợi ở
+  // vị trí xa hơn (chen ít nhất vài từ/câu khác ở giữa) trước khi câu hỏi luyện tập của nó xuất hiện —
+  // ép người học phải NHỚ LẠI thay vì chỉ lặp lại thứ vừa nhìn thấy vài giây trước.
+  s.ids.splice(s.idx, 1);
+  const remaining = s.ids.length - s.idx;
+  if(remaining>0){
+    const minGap = Math.min(3, remaining);
+    const maxGap = Math.min(6, remaining);
+    const gap = minGap + Math.floor(Math.random()*Math.max(1, maxGap-minGap+1));
+    const insertAt = Math.min(s.ids.length, s.idx + gap);
+    s.ids.splice(insertAt, 0, n);
+  } else {
+    // Không còn từ/câu nào khác để chen giữa (đây là mục cuối hàng đợi) — đành phải hỏi ngay, không tránh được.
+    s.ids.push(n);
+  }
   s.showIntro = false;
+  vocabPrepareCurrent();
   renderContent();
 }
 // Xử lý chung khi đã có kết quả đúng/sai cho BẤT KỲ kiểu câu hỏi nào (trắc nghiệm, xếp chữ, gõ từ)
@@ -6994,6 +7016,12 @@ function dictRecordAnswer(n, isCorrect){
     p.next = vocabDayKeyPlus(1);
   }
   dictUpdateStreak();
+  // Thêm log theo ngày (giống vocabDailyStats/sentDailyStats) để mục "Thành tích hôm nay" (độc lập với
+  // Lịch làm việc) đếm được đúng số câu chép chính tả đã luyện trong ngày, không chỉ số câu MỚI học.
+  if(!SETTINGS.dictDailyStats || typeof SETTINGS.dictDailyStats!=='object') SETTINGS.dictDailyStats = {};
+  const todayDs = todayKey();
+  const dds = SETTINGS.dictDailyStats[todayDs] || (SETTINGS.dictDailyStats[todayDs] = {answered:0, correct:0});
+  dds.answered++; if(isCorrect) dds.correct++;
   saveSettings(); pushToDrive();
 }
 function dictStats(){
@@ -7079,6 +7107,7 @@ function dictStartLevel(levelKey){
 function dictPrepareCurrent(){
   const s = STATE.dictSession; if(!s) return;
   s.answered = null; s.typedValue = ''; s.result = null; s.playCount = 0;
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
 }
 function dictTypedInput(value){
   const s = STATE.dictSession; if(!s) return;
@@ -7101,9 +7130,12 @@ function dictTypedSubmit(){
   const inputEl = document.getElementById('dictTypedInputEl');
   const liveVal = inputEl ? inputEl.value : s.typedValue;
   s.typedValue = liveVal;
-  if(!String(liveVal||'').trim()) return;
+  // Trước đây bấm Kiểm tra khi ô nhập trống chỉ âm thầm không làm gì — người dùng tưởng nút bị lỗi/liệt.
+  // Giờ báo rõ ràng để phân biệt được "chưa gõ gì" (lỗi bàn phím/gõ chưa kịp ghi nhận) với lỗi khác.
+  if(!String(liveVal||'').trim()){ showToast('✍️','Chưa gõ gì cả','Nghe câu rồi gõ lại vào ô bên trên trước khi bấm Kiểm tra.'); return; }
   const n = s.ids[s.idx];
-  const sentence = dictByN(n); if(!sentence) return;
+  const sentence = dictByN(n);
+  if(!sentence){ showToast('⚠️','Có lỗi xảy ra','Không tải được câu này — bấm quay lại rồi vào lại bài.'); return; }
   const result = dictScoreTyped(sentence[2], liveVal);
   s.answered = true; s.result = result;
   if(result.passed) s.correct++;
@@ -7113,14 +7145,25 @@ function dictTypedSubmit(){
 }
 function dictNext(){
   const s = STATE.dictSession; if(!s) return;
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   if(s.idx < s.ids.length-1){ s.idx++; dictPrepareCurrent(); renderContent(); }
   else { s.finished = true; renderContent(); }
 }
+// Xả hàng đợi đọc trước mỗi lần phát — đây là biện pháp phòng ngừa lỗi ĐÃ BIẾT của Web Speech API trên
+// Chrome/Android: sau nhiều lượt gọi speak() liên tiếp trong 1 phiên (bài chép chính tả nghe RẤT nhiều
+// lần/câu so với các mục khác), hàng đợi phát âm có thể bị "kẹt" và các lần speak() sau đó không phát ra
+// tiếng gì nữa mà không báo lỗi — cancel() trước mỗi lần phát giúp "giải phóng" hàng đợi bị kẹt này.
 function dictSpeakCurrent(slow){
   const s = STATE.dictSession; if(!s) return;
   const sentence = dictByN(s.ids[s.idx]); if(!sentence) return;
   s.playCount = (s.playCount||0)+1;
-  speakEnglishRobust(sentence[2], {rate: slow?0.55:0.92});
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  try{
+    const p = speakEnglishRobust(sentence[2], {rate: slow?0.55:0.92});
+    if(p && p.catch) p.catch(()=>{ showToast('⚠️','Không đọc được câu này','Bấm nghe lại lần nữa, hoặc thoát ra vào lại bài nếu vẫn không nghe được.'); });
+  }catch(e){
+    showToast('⚠️','Không đọc được câu này','Bấm nghe lại lần nữa, hoặc thoát ra vào lại bài nếu vẫn không nghe được.');
+  }
 }
 function dictExitSession(){ STATE.dictSession = null; renderContent(); navBack(); }
 // Tô màu bài chép của người học so với câu gốc: xanh = từ đúng (theo matchMask), đỏ/gạch chân = từ
@@ -7295,47 +7338,49 @@ function aiCallPickVoice(name){
   saveSettings(); pushToDrive();
   renderContent();
 }
+// Màu nền thẻ tình huống — CỐ Ý chọn tông TRẦM/xuống độ bão hòa (không dùng màu neon/sặc sỡ như trước)
+// theo yêu cầu người dùng, mỗi thẻ vẫn giữ 1 tông màu riêng để dễ phân biệt nhưng nhẹ nhàng, đỡ chói mắt.
 const AICHAT_SCENARIOS = [
   {code:'cafe', emoji:'☕', title:'Quán cà phê', sub:'Gọi món, thanh toán', grad:'linear-gradient(135deg,#C9A66E,#8B6F3E)',
     roleEn:'a friendly barista at a coffee shop', descEn:'The learner just walked up to the counter to order a drink and maybe a snack.',
     opener:"Hi there! Welcome in — what can I get started for you today?"},
-  {code:'restaurant', emoji:'🍽️', title:'Nhà hàng', sub:'Đặt bàn, gọi món', grad:'linear-gradient(135deg,#FF8A3D,#FFC94A)',
+  {code:'restaurant', emoji:'🍽️', title:'Nhà hàng', sub:'Đặt bàn, gọi món', grad:'linear-gradient(135deg,#C97C4B,#B5924B)',
     roleEn:'a waiter at a restaurant', descEn:'The learner has just sat down at a table and is ready to order food.',
     opener:"Good evening! Can I start you off with something to drink while you look at the menu?"},
-  {code:'hotel', emoji:'🏨', title:'Khách sạn', sub:'Nhận phòng, hỏi dịch vụ', grad:'linear-gradient(135deg,#4FA8FF,#7C6CF0)',
+  {code:'hotel', emoji:'🏨', title:'Khách sạn', sub:'Nhận phòng, hỏi dịch vụ', grad:'linear-gradient(135deg,#5C7FA8,#6B6FA0)',
     roleEn:'a hotel front-desk receptionist', descEn:'The learner is checking in at the hotel front desk.',
     opener:"Welcome to Sunview Hotel! Do you have a reservation with us tonight?"},
-  {code:'airport', emoji:'✈️', title:'Sân bay', sub:'Làm thủ tục, hải quan', grad:'linear-gradient(135deg,#2CDBA8,#1FA88A)',
+  {code:'airport', emoji:'✈️', title:'Sân bay', sub:'Làm thủ tục, hải quan', grad:'linear-gradient(135deg,#4A9483,#3D7A6E)',
     roleEn:'an airline check-in agent at the airport', descEn:'The learner is checking in for a flight at the airline counter.',
     opener:"Hello! Could I see your passport and booking reference, please?"},
-  {code:'directions', emoji:'🗺️', title:'Hỏi đường', sub:'Tìm địa điểm', grad:'linear-gradient(135deg,#B78CFF,#7C6CF0)',
+  {code:'directions', emoji:'🗺️', title:'Hỏi đường', sub:'Tìm địa điểm', grad:'linear-gradient(135deg,#8C7BAE,#6E699C)',
     roleEn:'a friendly local stranger stopped on the street', descEn:'The learner is a tourist who stopped you to ask for directions somewhere in the city.',
     opener:"Hey, you look a little lost — can I help you find something?"},
-  {code:'shopping', emoji:'🛍️', title:'Mua sắm quần áo', sub:'Hỏi size, giá, đổi trả', grad:'linear-gradient(135deg,#FF6EA8,#B06CF0)',
+  {code:'shopping', emoji:'🛍️', title:'Mua sắm quần áo', sub:'Hỏi size, giá, đổi trả', grad:'linear-gradient(135deg,#B37490,#8C6FA8)',
     roleEn:'a sales assistant at a clothing store', descEn:'The learner is browsing clothes in your store and might need help.',
     opener:"Hi! Let me know if you need a different size or color for anything."},
-  {code:'phone', emoji:'☎️', title:'Gọi điện thoại', sub:'Đặt lịch, hỏi thông tin', grad:'linear-gradient(135deg,#4F8CFF,#2CDBA8)',
+  {code:'phone', emoji:'☎️', title:'Gọi điện thoại', sub:'Đặt lịch, hỏi thông tin', grad:'linear-gradient(135deg,#5C7FA0,#4A9483)',
     roleEn:'a customer service representative answering a phone call', descEn:"The learner has called a company's hotline and you just picked up.",
     opener:"Thanks for calling, this is Alex speaking — how can I help you today?"},
   {code:'interview', emoji:'💼', title:'Phỏng vấn xin việc', sub:'Trả lời câu hỏi tuyển dụng', grad:'linear-gradient(135deg,#8891A0,#4F5A6B)',
     roleEn:'an HR interviewer conducting a job interview', descEn:'The learner is interviewing for a job at your company.',
     opener:"Thanks for coming in today. Why don't you start by telling me a bit about yourself?"},
-  {code:'coworker', emoji:'🧑‍💻', title:'Đồng nghiệp văn phòng', sub:'Trò chuyện công sở', grad:'linear-gradient(135deg,#FFC94A,#FF8A3D)',
+  {code:'coworker', emoji:'🧑‍💻', title:'Đồng nghiệp văn phòng', sub:'Trò chuyện công sở', grad:'linear-gradient(135deg,#B5924B,#C97C4B)',
     roleEn:'a friendly coworker chatting at the office', descEn:'You and the learner work together and are chatting casually before a meeting.',
     opener:"Hey! Busy morning so far? Did you catch the email about the meeting?"},
-  {code:'doctor', emoji:'🩺', title:'Khám bệnh', sub:'Mô tả triệu chứng', grad:'linear-gradient(135deg,#2CDBA8,#4FA8FF)',
+  {code:'doctor', emoji:'🩺', title:'Khám bệnh', sub:'Mô tả triệu chứng', grad:'linear-gradient(135deg,#4A9483,#5C7FA8)',
     roleEn:'a doctor doing a check-up', descEn:"The learner has come in for a doctor's appointment and you are asking about their symptoms.",
     opener:"Hi, come on in. What brings you in today — how have you been feeling?"},
-  {code:'smalltalk', emoji:'👋', title:'Làm quen bạn mới', sub:'Small talk xã giao', grad:'linear-gradient(135deg,#B06CF0,#FF6EA8)',
+  {code:'smalltalk', emoji:'👋', title:'Làm quen bạn mới', sub:'Small talk xã giao', grad:'linear-gradient(135deg,#8C6FA8,#B37490)',
     roleEn:'someone meeting the learner for the first time at a social event', descEn:'You and the learner just met at a party or event and are making small talk.',
     opener:"Hi, I don't think we've met — I'm Jamie. How do you know the host?"},
-  {code:'complaint', emoji:'😤', title:'Than phiền dịch vụ', sub:'Khiếu nại, yêu cầu xử lý', grad:'linear-gradient(135deg,#FF5C5C,#FF8A3D)',
+  {code:'complaint', emoji:'😤', title:'Than phiền dịch vụ', sub:'Khiếu nại, yêu cầu xử lý', grad:'linear-gradient(135deg,#B5615C,#C97C4B)',
     roleEn:'a customer service manager handling a complaint', descEn:'The learner is unhappy about a product or service and has come to you to complain.',
     opener:"I'm sorry to hear you're having trouble. Can you tell me exactly what happened?"},
-  {code:'taxi', emoji:'🚕', title:'Đi taxi / Grab', sub:'Chỉ đường, trò chuyện', grad:'linear-gradient(135deg,#FFC94A,#4FA8FF)',
+  {code:'taxi', emoji:'🚕', title:'Đi taxi / Grab', sub:'Chỉ đường, trò chuyện', grad:'linear-gradient(135deg,#B5924B,#5C7FA8)',
     roleEn:'a taxi driver making conversation with a passenger', descEn:'The learner just got in your cab and told you a destination.',
     opener:"Hop in! Where are you headed today?"},
-  {code:'delivery', emoji:'🛵', title:'Gọi đồ ăn / giao hàng', sub:'Đặt món qua điện thoại', grad:'linear-gradient(135deg,#2CDBA8,#FFC94A)',
+  {code:'delivery', emoji:'🛵', title:'Gọi đồ ăn / giao hàng', sub:'Đặt món qua điện thoại', grad:'linear-gradient(135deg,#4A9483,#B5924B)',
     roleEn:'a restaurant employee taking a phone order for delivery', descEn:'The learner has called your restaurant to place a delivery order.',
     opener:"Thanks for calling Golden Bowl, what would you like to order today?"}
 ];
@@ -7401,26 +7446,27 @@ function aiChatApiKeyBtnHtml(){
     : '🔑 Chưa có Gemini API key — bấm để dán key miễn phí từ Google AI Studio (bắt buộc để trò chuyện)';
   return `<div class="eng-drive-cfg" style="margin-bottom:10px;"><button class="form-btn cancel" data-action="set-gemini-key" style="width:100%; text-align:left; font-size:11.5px;">${status}</button></div>`;
 }
-function startAiChatFree(){
+// Theo yêu cầu: bỏ HẲN kiểu "trò chuyện gõ chữ" — Hội thoại AI giờ chỉ còn 1 lối duy nhất là GỌI THOẠI
+// trực tiếp (phản xạ nói thật, không có bước gõ/đợi chữ), để tập trung đúng vào luyện phản xạ nói.
+// Phần đọc/viết đã có Luyện nghe/Luyện nói lo. Cả 2 điểm vào (tự do & theo tình huống) đều mở thẳng
+// màn gọi thoại và tự kết nối ngay, không còn màn hình nhắn tin trung gian nữa.
+function aiChatBeginCall(mode, scenarioCode){
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Bấm nút "Chưa có Gemini API key" phía trên để dán key trước khi gọi.'); return; }
+  if(!aiCallSupported()){ showToast('⚠️','Thiết bị chưa hỗ trợ','Trình duyệt/thiết bị này chưa hỗ trợ gọi thoại trực tiếp (cần micro + WebSocket). Hãy dùng Chrome trên máy tính hoặc Android để luyện phần này.'); return; }
+  const sc = scenarioCode ? aiChatScenario(scenarioCode) : null;
+  const opener = sc ? sc.opener : "Hey! How's it going? What do you want to talk about today?";
   navForward();
-  const opener = "Hey! How's it going? What do you want to talk about today?";
   STATE.aiChatSession = {
-    mode:'free', scenario:null, channel:'text',
+    mode, scenario: scenarioCode||null, channel:'call',
     messages:[{role:'ai', text:opener, tip:'', raw:'EN: '+opener+'\nTIP: OK'}],
     recording:false, sending:false, error:null
   };
+  STATE.aiCallSession = {status:'connecting', error:null, muted:false, resumeHandle:null, reconnecting:false, primed:false};
   renderContent(); window.scrollTo(0,0);
+  aiCallConnect();
 }
-function startAiChatScenario(code){
-  const sc = aiChatScenario(code); if(!sc) return;
-  navForward();
-  STATE.aiChatSession = {
-    mode:'scenario', scenario:code, channel:'text',
-    messages:[{role:'ai', text:sc.opener, tip:'', raw:'EN: '+sc.opener+'\nTIP: OK'}],
-    recording:false, sending:false, error:null
-  };
-  renderContent(); window.scrollTo(0,0);
-}
+function startAiChatFree(){ aiChatBeginCall('free', null); }
+function startAiChatScenario(code){ if(!aiChatScenario(code)) return; aiChatBeginCall('scenario', code); }
 // Thoát HẲN khỏi cuộc trò chuyện (dùng chung cho cả 2 kênh Nhắn tin/Gọi thoại — vì giờ là 1 phiên
 // duy nhất, chỉ khác kênh truyền tải hiện tại) — dọn dẹp mic/ghi âm/WebSocket nếu đang mở, ghi log
 // thống kê rồi mới điều hướng lùi lại màn chọn kiểu trò chuyện.
@@ -7505,24 +7551,25 @@ function aiChatScenarioGridHtml(){
   return `<div class="eng-group-grid compact">${cards}</div>`;
 }
 // Trước đây "Gọi thoại" và "Nhắn tin" là 2 lối vào TÁCH RIÊNG (phải chọn 1 trong 2 trước khi bắt đầu) —
-// giờ hợp nhất thành 1 cuộc trò chuyện DUY NHẤT: luôn bắt đầu bằng gõ chữ (không cần xin quyền mic ngay),
-// rồi bấm nút 📞 trong màn hình trò chuyện để chuyển sang gọi thoại trực tiếp bất kỳ lúc nào — và có thể
-// bấm ⌨️ để quay lại gõ chữ giữa chừng cuộc gọi — toàn bộ nội dung đã nói được giữ nguyên xuyên suốt.
+// Trước đây có 2 lối vào TÁCH RIÊNG (Gọi thoại / Nhắn tin) rồi sau đó hợp nhất thành 1 cuộc trò chuyện
+// cho phép chuyển kênh qua lại. Theo yêu cầu người dùng, giờ bỏ HẲN kiểu gõ chữ — mục này chỉ còn tập
+// trung vào GỌI THOẠI trực tiếp để luyện phản xạ nói thật (phần đọc/viết đã có ở Luyện nghe/Luyện nói).
+// Bấm vào "Trò chuyện tự do" hoặc 1 thẻ tình huống là vào thẳng cuộc gọi, không còn màn hình chữ trung gian.
 function renderAiChatPicker(item){
   const intro = `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
-      <div style="font-size:26px; margin-bottom:6px;">🤖</div>
-      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Trò chuyện với AI để luyện phản xạ tiếng Anh — gõ chữ khi cần yên tĩnh, hoặc bấm 📞 để chuyển sang gọi thoại trực tiếp bất kỳ lúc nào trong cùng 1 cuộc trò chuyện, không cần thoát ra chọn lại. AI trả lời tự nhiên như người thật và gợi ý sửa câu bằng tiếng Việt khi bạn nói/viết chưa đúng.</div>
+      <div style="font-size:26px; margin-bottom:6px;">🎙️</div>
+      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Gọi thoại trực tiếp với AI để luyện phản xạ nói tiếng Anh — chọn 1 tình huống hoặc nói chuyện tự do, AI trả lời tự nhiên như người thật và tự sửa cách nói (recast) ngay trong câu trả lời khi bạn nói chưa đúng. Phần đọc/viết luyện ở mục Luyện nghe &amp; Luyện nói.</div>
     </div>`;
   const freeCard = `<div class="card" data-action="aichat-start-free" style="padding:16px; margin-bottom:14px; cursor:pointer; border:1px solid #4F8CFF55;">
-    <div style="font-size:26px; margin-bottom:6px;">💬</div>
-    <div style="font-weight:800; font-size:14px; margin-bottom:4px;">Trò chuyện tự do</div>
-    <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Nói chuyện thoải mái bất kỳ chủ đề gì với AI — gõ chữ hoặc gọi thoại, luyện phản xạ nghe/nói tự nhiên, không theo kịch bản.</div>
+    <div style="font-size:26px; margin-bottom:6px;">🎙️</div>
+    <div style="font-weight:800; font-size:14px; margin-bottom:4px;">Gọi thoại tự do</div>
+    <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Nói chuyện thoải mái bất kỳ chủ đề gì với AI qua giọng nói thật, luyện phản xạ nghe/nói tự nhiên, không theo kịch bản.</div>
   </div>`;
   return `${englishItemBackRow(item.name)}
     ${intro}
     ${aiChatApiKeyBtnHtml()}
     ${aiCallVoicePickerHtml()}
-    <div class="eng-section-label">💬 Kiểu trò chuyện</div>
+    <div class="eng-section-label">🎙️ Kiểu trò chuyện</div>
     ${freeCard}
     <div class="eng-section-label">🎭 Theo tình huống (${AICHAT_SCENARIOS.length} tình huống)</div>
     ${aiChatScenarioGridHtml()}`;
@@ -7533,7 +7580,7 @@ function aiCallVoicePickerHtml(){
     <div class="aicall-voice-name">${v.name}</div>
     <div class="aicall-voice-label">${escapeHtml(v.label)}</div>
   </div>`).join('');
-  return `<div class="eng-section-label">🗣️ Giọng đọc AI (${AI_CALL_VOICES.length} giọng — dùng cho cả gõ chữ lẫn gọi thoại)</div>
+  return `<div class="eng-section-label">🗣️ Giọng đọc AI (${AI_CALL_VOICES.length} giọng)</div>
     <div class="aicall-voice-gender-label">🚺 Giọng nữ</div>
     <div class="aicall-voice-grid">${chipsFor('female')}</div>
     <div class="aicall-voice-gender-label">🚹 Giọng nam</div>
@@ -7845,7 +7892,12 @@ function aiCallConnect(isReconnect){
   aiCallWs.onopen = ()=>{
     aiCallOpenFired = true;
     const s = STATE.aiCallSession; if(!s) return;
-    const sys = aiCallSystemPrompt(s.mode, aiChatScenario(s.scenario));
+    // SỬA LỖI: mode/scenario của cuộc trò chuyện nằm ở STATE.aiChatSession (phiên hội thoại tổng), KHÔNG
+    // phải STATE.aiCallSession (chỉ chứa trạng thái kết nối gọi thoại) — trước đây đọc nhầm từ
+    // STATE.aiCallSession (luôn undefined) khiến AI luôn nói chuyện tự do, bỏ qua vai diễn/tình huống đã
+    // chọn dù người dùng đã bấm vào 1 thẻ tình huống cụ thể.
+    const chatS0 = STATE.aiChatSession;
+    const sys = aiCallSystemPrompt(chatS0 && chatS0.mode, aiChatScenario(chatS0 && chatS0.scenario));
     // QUAN TRỌNG: message đầu tiên phải bọc trong field "setup" (đúng theo BidiGenerateContentSetup của
     // API reference chính thức ai.google.dev/api/live) — KHÔNG PHẢI "config" như ví dụ ở trang
     // get-started-websocket (trang đó ghi sai/không khớp schema thật, đã xác nhận qua lỗi thực tế server
@@ -7985,7 +8037,6 @@ function renderAiCallSessionHtml(){
       ${errHtml}
       <div class="ai-call-controls">
         <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${svgIcon('mic')}</button>
-        <button class="ai-call-text-btn" data-action="aicall-switch-text" title="Chuyển sang gõ chữ">⌨️</button>
         <button class="ai-call-end-btn" data-action="aicall-end" title="Kết thúc">${aiCallHangupSvg()}</button>
       </div>
     </div>`;
@@ -9641,14 +9692,14 @@ function renderLongPassageDeepFeedback(r, s, text){
   const readingPassed = sug.passed;
   const sentHtml = sug.sentencesToRedo.length ? `<div style="margin-top:10px;">
       <div style="font-size:11.5px; font-weight:800; color:#ff8080; margin-bottom:6px;">🔁 Câu cần đọc lại nguyên câu (đọc sai/thiếu quá nhiều):</div>
-      ${sug.sentencesToRedo.map((st,i)=>`<div style="display:flex; align-items:center; gap:8px; background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.25); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
-        <div style="flex:1; font-size:12px; color:var(--text); line-height:1.5;">${escapeHtml(st.text)} <span style="color:var(--dim2); font-size:10.5px;">(${st.acc}% đúng)</span></div>
-        <button class="speak-vol-btn" data-action="speak-redo-sentence" data-idx="${i}" title="Nghe lại câu này">🔊</button>
+      ${sug.sentencesToRedo.map((st,i)=>`<div style="background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.25); border-radius:10px; padding:9px 10px; margin-bottom:8px;">
+        <div style="font-size:12px; color:var(--text); line-height:1.5; margin-bottom:6px;">${escapeHtml(st.text)} <span style="color:var(--dim2); font-size:10.5px;">(${st.acc}% đúng)</span></div>
+        <button class="form-btn btn-listen" data-action="speak-redo-sentence" data-idx="${i}" style="width:100%; padding:8px;">🔊 Nghe lại câu này</button>
       </div>`).join('')}
     </div>` : '';
   const wordsHtml = sug.wordsToFix.length ? `<div style="margin-top:10px;">
-      <div style="font-size:11.5px; font-weight:800; color:var(--gold); margin-bottom:6px;">🔤 Từ cần luyện phát âm riêng:</div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px;">${sug.wordsToFix.map(w=>`<span class="speak-word" data-action="speak-word-click" data-word="${escapeHtml(w)}" style="background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:4px 9px; font-size:12px; display:inline-block;">${escapeHtml(w)}</span>`).join('')}</div>
+      <div style="font-size:11.5px; font-weight:800; color:var(--gold); margin-bottom:6px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">${sug.wordsToFix.map(w=>`<span class="speak-word" data-action="speak-word-click" data-word="${escapeHtml(w)}" style="background:var(--panel2); border:1.5px solid var(--gold); border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:700; display:inline-block; cursor:pointer;">🔊 ${escapeHtml(w)}</span>`).join('')}</div>
     </div>` : '';
   const criteriaLine = `Yêu cầu để <b>ĐẠT</b>: điểm tổng ≥${SPEAK_LONG_PASS_SCORE}đ VÀ không còn câu nào bị đọc sai quá nhiều (dưới ${SPEAK_SENTENCE_REDO_ACC}% từ đúng/câu).`;
   let quizGateHtml = '';
@@ -9742,7 +9793,11 @@ function renderSpeakPracticeUI(){
       </div>
       ${translateHtml}
       ${resultHtml}
-      <button class="form-btn eng-quiz-nextbtn" data-action="speak-next" style="width:100%; margin-top:10px;">${s.idx<s.order.length-1?'Câu tiếp →':'🏁 Hoàn thành'}</button>
+      <button class="form-btn eng-quiz-nextbtn" data-action="speak-next" style="width:100%; margin-top:10px;">${(()=>{
+        if(s.idx<s.order.length-1) return 'Câu tiếp →';
+        if(isLongPassage && r){ const sug = speakDeepSuggestions(r); return sug.passed ? '🏁 Hoàn thành' : '↩ Quay lại danh sách (chưa đạt — luyện lại các mục ở trên rồi đọc lại)'; }
+        return '🏁 Hoàn thành';
+      })()}</button>
     </div>`;
 }
 function renderEnglishNotes(item){
@@ -10061,14 +10116,20 @@ async function startIpaDeepRecording(){
     };
     window.__ipaDeepRecorder = rec;
     rec.start();
-    s.phase='recording'; s.subPhase=1; s.secLeft=60;
+    // item 3: thời lượng từng giai đoạn giờ tính theo SỐ TỪ thực tế thay vì cố định 30s/30s — danh sách
+    // dài hơn cần nhiều thời gian hơn. Giai đoạn 1 (đọc tự nhiên): ~2.2s/từ. Giai đoạn 2 (đọc chậm, ngắt
+    // 2-3s giữa các từ theo đúng yêu cầu): ~4s/từ (đọc từ ~1-1.5s + nghỉ 2-3s).
+    const nWords = (s.words||[]).length || 10;
+    s.phase1Sec = Math.max(15, Math.round(nWords*2.2));
+    s.phase2Sec = Math.max(20, Math.round(nWords*4));
+    s.phase='recording'; s.subPhase=1; s.secLeft = s.phase1Sec + s.phase2Sec;
     renderContent();
     window.__ipaDeepTimer = setInterval(()=>{
       const cur = STATE.ipaDeepSession; if(!cur || cur.phase!=='recording'){ clearInterval(window.__ipaDeepTimer); return; }
       cur.secLeft = Math.max(0, cur.secLeft-1);
-      if(cur.secLeft===30 && cur.subPhase===1){
+      if(cur.secLeft===cur.phase2Sec && cur.subPhase===1){
         cur.subPhase=2; renderContent();
-        showToast('🐢','Chuyển sang GIAI ĐOẠN 2!','Đọc lại từ đầu, thật CHẬM, tách rõ từng âm tiết — còn 30 giây.');
+        showToast('🐢','Chuyển sang GIAI ĐOẠN 2!','Đọc lại từ đầu, thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ.');
         try{ if(navigator.vibrate) navigator.vibrate([120,60,120]); }catch(e){}
         return;
       }
@@ -10099,16 +10160,19 @@ async function analyzeIpaDeepRecording(blob){
     for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
     const base64Audio = btoa(binary);
     const wordListText = (s.words||[]).map((w,i)=>(i+1)+'. '+w).join(', ');
-    const prompt = `Bạn là giáo viên phát âm tiếng Anh (IPA) cho người Việt học tiếng Anh. Người học vừa ghi âm 1 đoạn 60 giây đọc danh sách từ sau: ${wordListText}.
-Cấu trúc bản ghi: 30 giây ĐẦU đọc nối tiếp cả danh sách với tốc độ tự nhiên; 30 giây SAU đọc lại CHẬM, tách rõ từng âm tiết/âm IPA của mỗi từ.
+    const p1 = s.phase1Sec||30, p2 = s.phase2Sec||30;
+    const prompt = `Bạn là giáo viên phát âm tiếng Anh (IPA) cho người Việt học tiếng Anh. Người học vừa ghi âm đọc danh sách từ sau: ${wordListText}.
+Cấu trúc bản ghi: ${p1} giây ĐẦU đọc nối tiếp cả danh sách với tốc độ tự nhiên; ${p2} giây SAU đọc lại CHẬM, ngắt nghỉ khoảng 2-3 giây giữa mỗi từ, tách rõ từng âm tiết/âm IPA của mỗi từ.
 Hãy nghe kỹ file âm thanh và phân tích:
 1. Với TỪNG từ trong danh sách: người học phát âm đúng hay sai (nêu rõ âm IPA nào bị phát âm sai/không rõ, ví dụ nhầm /θ/ thành /s/, nuốt âm cuối, sai trọng âm...).
-2. So sánh đoạn đọc NHANH (30s đầu) và đoạn đọc CHẬM (30s sau) — đọc chậm có rõ hơn không, có giúp phát hiện lỗi mà đọc nhanh che giấu không.
+2. So sánh đoạn đọc NHANH (đầu) và đoạn đọc CHẬM (sau) — đọc chậm có rõ hơn không, có giúp phát hiện lỗi mà đọc nhanh che giấu không.
 3. Tổng kết 3-5 LỖI PHÁT ÂM chung/lặp lại nhiều nhất cần khắc phục ưu tiên.
 4. Đưa ra LỜI KHUYÊN cụ thể, thực hành được (ví dụ vị trí lưỡi/môi/luồng hơi) cho từng lỗi.
 5. CHẤM ĐIỂM tổng thể trên thang 0-100 dựa trên: độ chính xác âm IPA từng từ (40%), độ rõ trọng âm/nối âm (20%), sự tiến bộ giữa đoạn đọc chậm so với đoạn đọc nhanh (20%), độ tự nhiên/lưu loát chung (20%). Chấm nghiêm túc, KHÔNG chấm cao nếu phát âm còn nhiều lỗi rõ ràng — điểm 70+ nghĩa là đạt yêu cầu để coi là "vượt qua" bài luyện này.
 Trả lời HOÀN TOÀN bằng tiếng Việt, giọng văn khích lệ nhưng thẳng thắn, dùng tiêu đề rõ ràng cho từng phần (không dùng markdown **, chỉ dùng xuống dòng và số thứ tự đơn giản). Nếu không nghe rõ hoặc file gần như im lặng, hãy nói rõ điều đó thay vì bịa nhận xét và cho điểm 0.
-Dòng CUỐI CÙNG của câu trả lời, bắt buộc viết đúng định dạng (để hệ thống tự đọc điểm số): ĐIỂM_TỔNG: <số từ 0 đến 100>`;
+Bắt buộc có 2 dòng CUỐI CÙNG đúng định dạng sau (để hệ thống tự đọc, không thêm chữ nào khác vào 2 dòng này):
+ĐIỂM_TỔNG: <số từ 0 đến 100>
+TỪ_CẦN_LUYỆN: <liệt kê các từ trong danh sách phát âm còn SAI/CHƯA RÕ, cách nhau bởi dấu phẩy — nếu KHÔNG còn từ nào sai thì viết "không có">`;
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -10127,12 +10191,25 @@ Dòng CUỐI CÙNG của câu trả lời, bắt buộc viết đúng định d�
     const data = await res.json();
     let txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
     if(!txt) throw new Error('AI không trả về nội dung phân tích — thử ghi âm lại, đọc to và rõ hơn.');
-    // Tách điểm số ở dòng cuối (ĐIỂM_TỔNG: NN) ra khỏi phần nhận xét hiển thị, để hiện riêng thành huy hiệu điểm + đạt/chưa đạt.
+    // Tách điểm số + danh sách từ cần luyện ở 2 dòng cuối ra khỏi phần nhận xét hiển thị, để hiện riêng
+    // thành huy hiệu điểm + đạt/chưa đạt + các chip từ có thể chạm để nghe lại phát âm chuẩn (item 3:
+    // yêu cầu giống Luyện nói — chỉ đích danh CÁI GÌ cần luyện lại, không chỉ chấm điểm chung chung).
     let score = null;
     const scoreMatch = txt.match(/ĐIỂM[_\s]?TỔNG\s*[:\-]?\s*(\d{1,3})/i);
     if(scoreMatch){ score = Math.max(0, Math.min(100, parseInt(scoreMatch[1],10))); txt = txt.replace(scoreMatch[0], '').trim(); }
-    s.phase='done'; s.resultText = txt; s.score = score;
-    const passed = score!==null && score>=IPA_DEEP_PASS_SCORE;
+    let wordsToFix = [];
+    const wtfMatch = txt.match(/TỪ[_\s]?CẦN[_\s]?LUYỆN\s*[:\-]?\s*(.+)/i);
+    if(wtfMatch){
+      const raw = wtfMatch[1].trim();
+      txt = txt.replace(wtfMatch[0], '').trim();
+      if(!/không có|none|khong co/i.test(raw)){
+        wordsToFix = raw.split(/[,;]/).map(w=>w.trim()).filter(Boolean)
+          .map(w=>(s.words||[]).find(orig=>orig.toLowerCase()===w.toLowerCase()) || w) // khớp lại đúng chữ gốc trong danh sách nếu có
+          .slice(0, 10);
+      }
+    }
+    s.phase='done'; s.resultText = txt; s.score = score; s.wordsToFix = wordsToFix;
+    const passed = score!==null && score>=IPA_DEEP_PASS_SCORE && wordsToFix.length===0;
     // Ghi nhận 1 hoạt động luyện IPA vào hệ Điểm học tập chung, khuyến khích luyện đều đặn; thưởng thêm nếu đạt chuẩn.
     engGameAddScore(passed?8:5, passed?'Phân tích chuyên sâu AI — Luyện IPA (đạt chuẩn phát âm)':'Phân tích chuyên sâu AI — Luyện IPA (ghi âm 1 phút)');
     engGameMarkActivity();
@@ -10159,23 +10236,23 @@ function renderIpaDeepAnalysis(item){
       <div style="font-size:34px; margin-bottom:8px;">🔬</div>
       <div style="font-weight:800; font-size:15px; margin-bottom:8px;">Ghi âm 1 phút — phân tích chi tiết</div>
       <div style="font-size:12.5px; color:var(--dim); line-height:1.7; text-align:left;">
-        <b style="color:var(--text);">30 giây đầu:</b> đọc nối tiếp CẢ danh sách từ dưới đây, tốc độ tự nhiên, đừng dừng lại.<br>
-        <b style="color:var(--text);">30 giây sau</b> (app sẽ tự báo khi chuyển): đọc lại CHẬM RÃI, tách rõ từng âm tiết của mỗi từ.<br>
+        <b style="color:var(--text);">Giai đoạn 1:</b> đọc nối tiếp CẢ danh sách từ dưới đây, tốc độ tự nhiên, đừng dừng lại.<br>
+        <b style="color:var(--text);">Giai đoạn 2</b> (app tự nhận biết khi bạn đọc hết lượt 1 và báo chuyển): đọc lại thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ, tách rõ từng âm tiết.<br>
         Ghi âm xong, AI sẽ nghe trực tiếp và phân tích kỹ từng từ, chỉ ra chính xác âm IPA nào bạn đang phát âm sai/chưa rõ.<br>
-        <b style="color:var(--text);">Chuẩn để ĐẠT:</b> AI chấm điểm 0-100đ (độ chính xác âm IPA, trọng âm/nối âm, tiến bộ khi đọc chậm, độ tự nhiên) — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> mới coi là đạt yêu cầu, chưa đạt thì luyện lại các từ AI chỉ ra rồi ghi âm lại.
+        <b style="color:var(--text);">Chuẩn để ĐẠT (giống Luyện nói):</b> AI chấm điểm 0-100đ (độ chính xác âm IPA, trọng âm/nối âm, tiến bộ khi đọc chậm, độ tự nhiên) — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> VÀ không còn từ nào bị AI liệt vào danh sách "cần luyện lại" thì mới coi là đạt; chưa đạt thì luyện lại đúng các từ AI chỉ ra rồi ghi âm lại.
       </div>
     </div>
     <div class="card" style="padding:14px 16px;">
       <div style="font-size:12px; font-weight:800; color:var(--dim); margin-bottom:8px;">📋 Danh sách từ cần đọc</div>
       <div class="ipa-deep-word-list">${wordChips}</div>
     </div>
-    <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:12px;">🎙️ Bắt đầu ghi âm 1 phút</button>`;
+    <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:12px;">🎙️ Bắt đầu ghi âm</button>`;
   } else if(s.phase==='recording'){
     const phase1 = s.subPhase===1;
     body = `<div class="card" style="padding:22px; text-align:center;">
       <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--teal)':'var(--gold)'}; margin-bottom:6px;">${phase1?'🗣️ GIAI ĐOẠN 1 — Đọc liên tục, tự nhiên':'🐢 GIAI ĐOẠN 2 — Đọc CHẬM, tách rõ từng âm'}</div>
       <div style="font-size:44px; font-weight:800; font-family:var(--mono); color:var(--text);"><span id="ipa-deep-countdown-num">${s.secLeft}</span>s</div>
-      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc hết danh sách từ, không cần dừng giữa các từ':'Đọc lại từ đầu, thật chậm, tách từng âm tiết'}</div>
+      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc hết danh sách từ, không cần dừng giữa các từ':'Đọc lại từ đầu, thật chậm, ngắt nghỉ 2-3 giây giữa mỗi từ'}</div>
     </div>
     <div class="card" style="padding:14px 16px;">
       <div class="ipa-deep-word-list">${wordChips}</div>
@@ -10189,20 +10266,25 @@ function renderIpaDeepAnalysis(item){
     </div>`;
   } else if(s.phase==='done'){
     const hasScore = typeof s.score==='number';
-    const passed = hasScore && s.score>=IPA_DEEP_PASS_SCORE;
+    const wordsToFix = s.wordsToFix || [];
+    const passed = hasScore && s.score>=IPA_DEEP_PASS_SCORE && wordsToFix.length===0;
     const scoreCard = hasScore ? `<div class="card" style="padding:18px; text-align:center; border:1.5px solid ${passed?'var(--teal)':'#ff8080'};">
       <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em;">ĐIỂM PHÁT ÂM</div>
       <div style="font-size:40px; font-weight:800; font-family:var(--mono); color:${passed?'var(--teal)':'#ff8080'};">${s.score}<span style="font-size:16px; color:var(--dim);">/100</span></div>
-      <div style="font-size:12.5px; font-weight:700; margin-top:4px; color:${passed?'var(--teal)':'#ff8080'};">${passed?'✅ ĐẠT — vượt qua bài luyện':'❌ CHƯA ĐẠT — cần ≥ '+IPA_DEEP_PASS_SCORE+'đ'}</div>
-      ${passed?'':`<div style="font-size:11px; color:var(--dim); margin-top:6px;">Đọc kỹ nhận xét bên dưới, luyện lại các từ/âm bị chỉ ra rồi ghi âm lại để đạt chuẩn.</div>`}
+      <div style="font-size:12.5px; font-weight:700; margin-top:4px; color:${passed?'var(--teal)':'#ff8080'};">${passed?'✅ ĐẠT — vượt qua bài luyện':'❌ CHƯA ĐẠT — cần ≥ '+IPA_DEEP_PASS_SCORE+'đ và hết từ cần luyện lại'}</div>
+      ${passed?'':`<div style="font-size:11px; color:var(--dim); margin-top:6px;">Đọc kỹ nhận xét bên dưới, chạm vào từng từ ở mục "Từ cần luyện" để nghe phát âm chuẩn, luyện lại rồi ghi âm lại.</div>`}
     </div>` : '';
-    body = `${scoreCard}<div class="card" style="padding:16px;">
+    const wordsToFixCard = wordsToFix.length ? `<div class="card" style="padding:14px 16px;">
+      <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">${wordsToFix.map((w,i)=>`<button class="form-btn btn-listen" data-action="ipa-deep-word-click" data-idx="${i}" style="width:auto; padding:8px 14px; border:1.5px solid var(--gold); color:var(--gold); background:transparent;">🔊 ${escapeHtml(w)}</button>`).join('')}</div>
+    </div>` : '';
+    body = `${scoreCard}${wordsToFixCard}<div class="card" style="padding:16px;">
       <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">📋 Nhận xét chi tiết từ AI</div>
       <div style="font-size:12.5px; color:var(--text); line-height:1.75; white-space:pre-line;">${escapeHtml(s.resultText||'')}</div>
     </div>
     <div style="display:flex; gap:10px; margin-top:14px;">
       <button class="form-btn cancel" data-action="ipa-deep-retry" style="flex:1;">🔄 ${passed?'Luyện từ khác':'Ghi âm lại'}</button>
-      <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-close" style="flex:1;">✓ Xong</button>
+      <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-close" style="flex:1;">${passed?'🏁 Hoàn thành':'✓ Đóng (chưa đạt)'}</button>
     </div>`;
   } else { // error
     body = `<div class="card" style="padding:20px 16px; text-align:center;">
@@ -10747,19 +10829,27 @@ function englishModuleStatsCard(startKey, endKey){
   const allSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>inRange(r.date));
   const spLog = allSpeak.filter(r=>r.level!=='ipa');
   const ipaLog = allSpeak.filter(r=>r.level==='ipa');
-  const vocabDates = Object.keys(SETTINGS.vocabDailyStats||{}).filter(inRange);
-  let vocabAnswered=0, vocabCorrect=0;
-  vocabDates.forEach(d=>{ const v=SETTINGS.vocabDailyStats[d]; vocabAnswered+=v.answered||0; vocabCorrect+=v.correct||0; });
+  const sumDailyStats = (obj) => {
+    let answered=0, correct=0; const dates = Object.keys(obj||{}).filter(inRange);
+    dates.forEach(d=>{ const v=obj[d]; answered+=v.answered||0; correct+=v.correct||0; });
+    return {answered, correct, dateCount: dates.length};
+  };
+  const vocabAgg = sumDailyStats(SETTINGS.vocabDailyStats);
+  const sentAgg = sumDailyStats(SETTINGS.sentDailyStats);
+  const dictAgg = sumDailyStats(SETTINGS.dictDailyStats);
   const avgPct = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.pct,0)/arr.length) : null;
   const avgOverall = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.overall,0)/arr.length) : null;
+  const pctOf = agg => agg.answered ? Math.round(agg.correct/agg.answered*100) : null;
   const rows = [
     {icon:'📝', name:'Ngữ pháp', count:gLog.length, unit:'lượt thi thử', score:avgPct(gLog), c1:'#FF8A3D', c2:'#FFC94A'},
     {icon:'🎧', name:'Luyện nghe', count:lLog.length, unit:'lượt', score:avgPct(lLog), c1:'#2CDBA8', c2:'#1FA88A'},
     {icon:'🗣️', name:'Luyện nói', count:spLog.length, unit:'lượt', score:avgOverall(spLog), c1:'#FF6EA8', c2:'#B06CF0'},
     {icon:'🔤', name:'Luyện IPA', count:ipaLog.length, unit:'từ', score:avgOverall(ipaLog), c1:'#B78CFF', c2:'#7C6CF0'},
-    {icon:'📖', name:'Từ vựng', count:vocabAnswered, unit:'câu', score: vocabAnswered? Math.round(vocabCorrect/vocabAnswered*100):null, c1:'#2CDBA8', c2:'#4FA8FF'},
+    {icon:'📖', name:'Từ vựng', count:vocabAgg.answered, unit:'câu', score: pctOf(vocabAgg), c1:'#2CDBA8', c2:'#4FA8FF'},
+    {icon:'💬', name:'Câu thông dụng', count:sentAgg.answered, unit:'câu', score: pctOf(sentAgg), c1:'#FFD166', c2:'#FF8A3D'},
+    {icon:'✍️', name:'Chép chính tả', count:dictAgg.answered, unit:'câu', score: pctOf(dictAgg), c1:'#4FA8FF', c2:'#2CDBA8'},
   ];
-  const totalLessons = gLog.length + lLog.length + spLog.length + ipaLog.length + vocabDates.length;
+  const totalLessons = gLog.length + lLog.length + spLog.length + ipaLog.length + vocabAgg.dateCount + sentAgg.dateCount + dictAgg.dateCount;
   const rowsHtml = rows.map(r=>`
     <div class="modstat-row">
       <div class="modstat-ic" style="background:linear-gradient(135deg,${r.c1},${r.c2})">${r.icon}</div>
@@ -10771,6 +10861,92 @@ function englishModuleStatsCard(startKey, endKey){
   return `<div class="card"><h3>📊 Bài học theo mục${totalLessons>0?' — tổng '+totalLessons+' lượt':''}</h3>
     <div class="modstat-grid">${rowsHtml}</div>
   </div>`;
+}
+// ---- "Thành tích hôm nay" — màn hình thống kê HOÀN TOÀN ĐỘC LẬP với Lịch làm việc hằng ngày: không
+// dùng LOG/dayPctTrack (dữ liệu tick hoàn thành việc trong lịch), chỉ tổng hợp trực tiếp từ các log
+// luyện tập thật của TỪNG mục con trong Học tiếng Anh (grammarQuizLog/listenQuizLog/speakPracticeLog/
+// vocabDailyStats/sentDailyStats/dictDailyStats) — vì vậy dù người dùng không tick việc "Tiếng Anh"
+// trong Lịch làm việc, chỉ cần luyện tập thật trong các mục bên dưới là thống kê này vẫn ghi nhận đủ. ----
+function englishAchievementsTodayData(){
+  const today = todayKey();
+  const gLog = (SETTINGS.grammarQuizLog||[]).filter(r=>r.date===today);
+  const lLog = (SETTINGS.listenQuizLog||[]).filter(r=>r.date===today);
+  const allSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>r.date===today);
+  const spLog = allSpeak.filter(r=>r.level!=='ipa');
+  const ipaLog = allSpeak.filter(r=>r.level==='ipa');
+  const vocabDs = (SETTINGS.vocabDailyStats||{})[today] || {answered:0, correct:0};
+  const sentDs = (SETTINGS.sentDailyStats||{})[today] || {answered:0, correct:0};
+  const dictDs = (SETTINGS.dictDailyStats||{})[today] || {answered:0, correct:0};
+  const avgPct = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.pct,0)/arr.length) : null;
+  const avgOverall = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.overall,0)/arr.length) : null;
+  const pctOf = ds => ds.answered ? Math.round(ds.correct/ds.answered*100) : null;
+  const rows = [
+    {icon:'📝', name:'Ngữ pháp', count:gLog.length, unit:'lượt thi thử', score:avgPct(gLog), color:'#FF8A3D'},
+    {icon:'🎧', name:'Luyện nghe', count:lLog.length, unit:'lượt', score:avgPct(lLog), color:'#2CDBA8'},
+    {icon:'🗣️', name:'Luyện nói', count:spLog.length, unit:'lượt', score:avgOverall(spLog), color:'#FF6EA8'},
+    {icon:'🔤', name:'Luyện IPA', count:ipaLog.length, unit:'từ', score:avgOverall(ipaLog), color:'#B78CFF'},
+    {icon:'📖', name:'Từ vựng', count:vocabDs.answered, unit:'câu', score:pctOf(vocabDs), color:'#4FA8FF'},
+    {icon:'💬', name:'Câu thông dụng', count:sentDs.answered, unit:'câu', score:pctOf(sentDs), color:'#FFD166'},
+    {icon:'✍️', name:'Chép chính tả', count:dictDs.answered, unit:'câu', score:pctOf(dictDs), color:'#2CDBA8'},
+  ];
+  const totalExercises = rows.reduce((s,r)=>s+(r.count||0),0);
+  const scoredRows = rows.filter(r=>r.score!==null && r.count>0);
+  const overallAvg = scoredRows.length ? Math.round(scoredRows.reduce((s,r)=>s+r.score,0)/scoredRows.length) : null;
+  const newWordsToday = (vocabStats().learnedToday||0) + (sentStats().learnedToday||0) + (dictStats().learnedToday||0);
+  return {rows, totalExercises, overallAvg, newWordsToday};
+}
+function renderEnglishAchievementsToday(){
+  const data = englishAchievementsTodayData();
+  const useChart = hasChartJs();
+  const activeRows = data.rows.filter(r=>r.count>0);
+  const rowsHtml = data.rows.map(r=>`
+    <div class="modstat-row">
+      <div class="modstat-ic" style="background:${r.color}22; color:${r.color};">${r.icon}</div>
+      <div class="modstat-body">
+        <div class="modstat-name">${r.name}</div>
+        <div class="modstat-sub">${r.count} ${r.unit}${r.score!==null?' · điểm TB <b>'+r.score+'%</b>':(r.count>0?'':' · chưa luyện hôm nay')}</div>
+      </div>
+    </div>`).join('');
+  const emptyState = data.totalExercises===0 ? `<div class="metrics-empty-card">
+      <div class="ic">📊</div>
+      <div class="t">Chưa có hoạt động nào hôm nay</div>
+      <div class="d">Vào các mục luyện tập bên dưới (Ngữ pháp, Luyện nghe, Luyện nói, Luyện IPA, Từ vựng, Câu thông dụng, Chép chính tả...) để bắt đầu — thống kê ở đây sẽ tự cập nhật ngay khi bạn hoàn thành câu hỏi đầu tiên.</div>
+    </div>` : '';
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
+    ${englishSubNav()}
+    ${statsSeg('english')}
+    <div class="card" style="margin-bottom:2px;">
+      <h3 style="margin-bottom:6px;">📆 Thành tích hôm nay</h3>
+      <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Thống kê riêng cho việc luyện tập tiếng Anh trong ngày hôm nay — tính trực tiếp từ kết quả các bài luyện bên dưới, KHÔNG liên quan đến việc bạn có tick hoàn thành mục "Tiếng Anh" trong Lịch làm việc hằng ngày hay không.</div>
+    </div>
+    ${emptyState}
+    ${data.totalExercises>0 ? `
+    <div class="statgrid">
+      <div class="stat"><div class="v">${data.totalExercises}</div><div class="l">Tổng câu/lượt luyện hôm nay</div></div>
+      <div class="stat"><div class="v">${data.overallAvg!==null?data.overallAvg+'%':'—'}</div><div class="l">Điểm trung bình chung</div></div>
+      <div class="stat"><div class="v">${data.newWordsToday}</div><div class="l">Từ/câu mới học hôm nay</div></div>
+      <div class="stat"><div class="v">${activeRows.length}</div><div class="l">Mục đã luyện hôm nay</div></div>
+    </div>
+    ${useChart ? `<div class="card"><h3>Phân bổ theo mục</h3><div style="height:220px;"><canvas id="today-eng-chart"></canvas></div></div>` : ''}
+    ` : ''}
+    <div class="card"><h3>📊 Chi tiết theo mục</h3><div class="modstat-grid">${rowsHtml}</div></div>
+  `;
+  if(useChart && data.totalExercises>0){
+    try{
+      const chartRows = data.rows.filter(r=>r.count>0);
+      const ctx = document.getElementById('today-eng-chart').getContext('2d');
+      activeCharts.push(new Chart(ctx, {
+        type:'doughnut',
+        data:{ labels: chartRows.map(r=>r.icon+' '+r.name), datasets:[{ data: chartRows.map(r=>r.count), backgroundColor: chartRows.map(r=>r.color), borderColor:'#171E27', borderWidth:4, hoverOffset:6 }] },
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+          plugins:{ legend:{ position:'bottom', labels:{ color:'#C9D2DE', font:{size:10.5, weight:'600'}, padding:12, usePointStyle:true, pointStyle:'circle' } },
+            tooltip:{ backgroundColor:'#1D2531', borderColor:'#2A3341', borderWidth:1, padding:10,
+              callbacks:{ label:(c)=>{ const r=chartRows[c.dataIndex]; return r.name+': '+r.count+' '+r.unit+(r.score!==null?' · TB '+r.score+'%':''); } } } } }
+      }));
+    }catch(e){ console.error('Chart render error', e); }
+  }
+  attachStatsSegEvents();
 }
 function renderWeek(track){
   const days = []; for(let i=6;i>=0;i--){ days.push(toKey(addDays(new Date(),-i))); }
@@ -10806,7 +10982,7 @@ function renderWeek(track){
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
-    ${statsSeg()}
+    ${statsSeg(track)}
     ${chartsHtml}
     ${moduleCard}
     <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">HLV AI nhận xét</span></div>${advice.map(m=>`<p>${m}</p>`).join('')}</div>
@@ -10898,7 +11074,7 @@ function renderMonth(track){
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
-    ${statsSeg()}
+    ${statsSeg(track)}
     <div class="card"><div class="rowbtns"><button class="navbtn" data-action="month-prev">‹</button><div class="lbl">${MONTH_NAMES[m]} / ${y}</div><button class="navbtn" data-action="month-next">›</button></div>
       <div class="calgrid">${headRow}${cellsHtml}</div>
       <div class="calendar-legend">${TRACK_CATS[track].map(cat=>`<span class="cal-leg-chip"><span class="dot" style="background:${CATS[cat].hex}"></span>${CATS[cat].label}</span>`).join('')}</div>
@@ -10968,7 +11144,7 @@ function renderYear(track){
     ${renderSectionBack(titleBadge(track==='schedule'?'calendar':'chat', track==='schedule'?'#FFC94A':'#4FA8FF', track==='schedule'?'#FF8A3D':'#7C6CF0')+' '+meta.title)}
     ${track==='schedule' ? scheduleSubNav() : englishSubNav()}
     ${renderTrackHUD(track)}
-    ${statsSeg()}
+    ${statsSeg(track)}
     <div class="card"><div class="rowbtns"><button class="navbtn" data-action="year-prev">‹</button><div class="lbl">Năm ${y}</div><button class="navbtn" data-action="year-next">›</button></div>
       ${yearChartHtml}</div>
     <div class="statgrid">
@@ -10999,8 +11175,13 @@ function computeBadges(){
     {icon:'🎯', label:'Level 5', earned: levelInfo().lvl>=5},
   ];
 }
-function statsSeg(){
+function statsSeg(track){
+  // Riêng track "english" có thêm nút "Hôm nay" ở đầu — dẫn tới renderEnglishAchievementsToday(), một
+  // màn hình HOÀN TOÀN ĐỘC LẬP với dữ liệu Lịch làm việc (LOG/dayPctTrack), chỉ tổng hợp từ các log luyện
+  // tập thật sự của từng mục con trong Học tiếng Anh — theo yêu cầu tách riêng, không liên quan lịch làm việc.
+  const todayBtn = track==='english' ? `<button class="${STATE.statsView==='today'?'active':''}" data-view="today">Hôm nay</button>` : '';
   return `<div class="seg" id="stats-seg">
+    ${todayBtn}
     <button class="${STATE.statsView==='week'?'active':''}" data-view="week">Tuần</button>
     <button class="${STATE.statsView==='month'?'active':''}" data-view="month">Tháng</button>
     <button class="${STATE.statsView==='year'?'active':''}" data-view="year">Năm</button>
@@ -11012,7 +11193,10 @@ function attachStatsSegEvents(){
 
 // ================= MAIN RENDER =================
 function renderStatsFor(track){
-  if(STATE.statsView==='week') renderWeek(track);
+  // "Hôm nay" chỉ áp dụng cho track english (màn hình thành tích độc lập riêng) — nếu track khác (schedule)
+  // mà statsView vẫn đang là 'today' (do người dùng vừa chuyển từ english-stats sang), fallback về 'week'.
+  if(STATE.statsView==='today' && track==='english') renderEnglishAchievementsToday();
+  else if(STATE.statsView==='week' || (STATE.statsView==='today' && track!=='english')) renderWeek(track);
   else if(STATE.statsView==='month') renderMonth(track);
   else renderYear(track);
 }
@@ -11389,6 +11573,14 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaDeepRecordStopEl){ stopIpaDeepRecording(); return; }
   const ipaDeepRetryEl = e.target.closest('[data-action="ipa-deep-retry"]');
   if(ipaDeepRetryEl){ ipaDeepRetry(); return; }
+  const ipaDeepWordClickEl = e.target.closest('[data-action="ipa-deep-word-click"]');
+  if(ipaDeepWordClickEl){
+    const s = STATE.ipaDeepSession;
+    const idx = parseInt(ipaDeepWordClickEl.getAttribute('data-idx'),10);
+    const w = s && s.wordsToFix && s.wordsToFix[idx];
+    if(w){ try{ speechSynthesis.cancel(); }catch(e){} speakEnglishRobust(w, {rate:0.8}); }
+    return;
+  }
   const speakRecordEl = e.target.closest('[data-action="speak-record"]');
   if(speakRecordEl){
     const s=STATE.speakSession;
