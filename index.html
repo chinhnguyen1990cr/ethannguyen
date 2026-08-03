@@ -923,11 +923,15 @@
   .ai-call-cap-row.user{flex-direction:row-reverse;}
   .ai-call-cap-avatar{flex-shrink:0; width:24px; height:24px; border-radius:50%; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.3);}
   .ai-call-cap-avatar svg{display:block; width:100%; height:100%;}
-  .ai-call-cap-bubble{max-width:80%; padding:9px 12px; border-radius:15px; font-size:12.5px; line-height:1.5; text-align:left;}
+  .ai-call-cap-bubble{max-width:80%; padding:9px 12px; border-radius:15px; font-size:calc(12.5px * var(--capscale,1)); line-height:1.5; text-align:left;}
   .ai-call-cap-bubble.ai{background:var(--panel); border:1px solid var(--border); border-bottom-left-radius:4px; color:var(--text);}
   .ai-call-cap-bubble.user{background:linear-gradient(135deg,#4F8CFF,#3E6FE0); border-bottom-right-radius:4px; color:#fff;}
   .ai-call-cap-text{white-space:pre-wrap; word-break:break-word;}
-  .ai-call-cap-vi{margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,201,74,.3); font-size:11.5px; color:#FFD98A; font-weight:600;}
+  .ai-call-cap-vi{margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,201,74,.3); font-size:calc(11.5px * var(--capscale,1)); color:#FFD98A; font-weight:600;}
+  .ai-call-zoom-ctl{display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:8px;}
+  .ai-call-zoom-btn{width:28px; height:28px; border-radius:50%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; cursor:pointer;}
+  .ai-call-zoom-label{font-size:10.5px; color:var(--dim); font-weight:700; min-width:34px; text-align:center;}
   .ai-call-cap-actions{margin-top:6px;}
   .ai-call-cap-translate{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:800;
     color:var(--teal); cursor:pointer; padding:3px 9px; border-radius:999px; background:rgba(44,219,168,0.13);}
@@ -1304,7 +1308,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v84';
+const APP_VERSION = 'v85';
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -3917,8 +3921,8 @@ const ENGLISH_ITEM_KIND = {
   listening:{icon:'headphones', c1:'#2CDBA8', c2:'#1FA88A', sub:'Nghe hội thoại · chọn theo cấp độ'},
   speaking: {icon:'mic',        c1:'#FF6EA8', c2:'#B06CF0', sub:'Luyện nói & phát âm theo cấp độ'},
   ipa:      {icon:'headphones', c1:'#B78CFF', c2:'#7C6CF0', sub:'Bảng phiên âm IPA · 44 âm theo nhóm'},
-  vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3050 từ vựng · lịch học mỗi ngày + ôn tập'},
-  sentences:{icon:'chat',       c1:'#FFC94A', c2:'#FF8A3D', sub:'350 câu giao tiếp thông dụng · 20 tình huống'},
+  vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3070 từ vựng · lịch học mỗi ngày + ôn tập'},
+  sentences:{icon:'chat',       c1:'#FFC94A', c2:'#FF8A3D', sub:'370 câu giao tiếp thông dụng · 20 tình huống'},
   aichat:   {icon:'chat',       c1:'#5CD6C0', c2:'#4F8CFF', sub:'Trò chuyện phản xạ với AI · tự do hoặc theo tình huống'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
@@ -4042,6 +4046,46 @@ async function fetchVocabData(){
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
+// ---- Phiên âm IPA bên cạnh từ (item 3) ----
+// vocab-data.json (3050 từ) không có sẵn trường phiên âm — thay vì tự soạn tay 3050 phiên âm (dễ sai/
+// không nhất quán), tra cứu TỪ ĐIỂN THẬT qua Free Dictionary API (miễn phí, không cần key) mỗi khi hiện
+// 1 từ, cache lại trong bộ nhớ (kể cả kết quả rỗng khi không tìm thấy) để không gọi lại nhiều lần cho
+// cùng 1 từ trong phiên làm việc. Tra cứu KHÔNG chặn hiển thị chính — hiện từ ngay, phiên âm điền vào
+// sau khi có kết quả (hoặc tự ẩn nếu không tìm được/mất mạng).
+const vocabPhoneticCache = {};
+async function vocabFetchPhonetic(word){
+  const key = String(word||'').toLowerCase().trim();
+  if(!key) return '';
+  if(vocabPhoneticCache[key]!==undefined) return vocabPhoneticCache[key];
+  try{
+    const res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(key));
+    if(!res.ok){ vocabPhoneticCache[key] = ''; return ''; }
+    const data = await res.json();
+    let ipa = '';
+    if(Array.isArray(data)){
+      for(const entry of data){
+        if(entry && entry.phonetic){ ipa = entry.phonetic; break; }
+        if(entry && Array.isArray(entry.phonetics)){
+          const withText = entry.phonetics.find(p=>p && p.text);
+          if(withText){ ipa = withText.text; break; }
+        }
+      }
+    }
+    vocabPhoneticCache[key] = ipa;
+    return ipa;
+  }catch(e){ vocabPhoneticCache[key] = ''; return ''; }
+}
+// Gắn phiên âm vào 1 phần tử <span id="elId"> sau khi render xong (tra cứu bất đồng bộ, không chặn UI).
+function vocabAttachPhonetic(word, elId){
+  const key = String(word||'').toLowerCase().trim();
+  const apply = (ipa)=>{
+    const el = document.getElementById(elId);
+    if(!el) return; // đã chuyển màn hình khác trước khi tra cứu xong — bỏ qua an toàn
+    if(ipa){ el.textContent = ipa; el.style.display = ''; } else { el.style.display = 'none'; }
+  };
+  if(vocabPhoneticCache[key]!==undefined){ apply(vocabPhoneticCache[key]); return; }
+  vocabFetchPhonetic(word).then(apply);
+}
 const VOCAB_FORM_LABELS = {n:'Danh từ', n2:'Danh từ', n3:'Danh từ', v:'Động từ', v2:'Động từ', adj:'Tính từ', adj2:'Tính từ', adv:'Trạng từ', adv2:'Trạng từ'};
 // Hiện các dạng từ loại khác (danh từ/động từ/tính từ/trạng từ) của từ đang học, nếu dữ liệu có (word[7]).
 // Chỉ 1 phần từ vựng (lô đầu) đã có dữ liệu này — các từ còn lại sẽ được bổ sung dần ở các bản cập nhật sau.
@@ -4282,10 +4326,61 @@ function vocabFinishAnswer(isCorrect){
   s.isCorrectAnswer = isCorrect;
   if(isCorrect) s.correct++;
   vocabRecordAnswer(n, isCorrect);
-  if(!isCorrect && !s.retried[n]){
-    s.retried[n] = true;
-    s.ids.push(n); // ôn lại ngay trong phiên này để củng cố (active recall ngay sau khi sai)
+  if(!isCorrect){
+    // Ghi lại các từ trả lời sai trong phiên (không trùng lặp) — dùng để đề xuất "Ôn lại từ vừa sai"
+    // ngay trên màn kết quả cuối phiên (item 3: "học lại sẽ luyện tập và ôn lại các từ với phương
+    // pháp tối ưu" thay vì học lại y hệt từ đầu).
+    if(!Array.isArray(s.missedIds)) s.missedIds = [];
+    if(!s.missedIds.includes(n)) s.missedIds.push(n);
+    if(!s.retried[n]){
+      s.retried[n] = true;
+      s.ids.push(n); // ôn lại ngay trong phiên này để củng cố (active recall ngay sau khi sai)
+    }
   }
+}
+// "Học lại" thông minh sau khi hoàn thành 1 phiên — KHÔNG lặp lại y hệt bộ từ cũ, mà áp dụng đúng
+// phương pháp lặp lại ngắt quãng (spaced repetition) đã xây cho cả app: nếu phiên vừa rồi có từ trả
+// lời sai thì ưu tiên ôn NGAY các từ đó trước (active recall khi trí nhớ còn "nóng"); nếu không còn từ
+// nào sai thì tiếp tục đúng theo hàng đợi tối ưu (từ mới theo tần suất + từ đến hạn ôn theo Leitner đối
+// với "Từ hôm nay", hoặc trộn lại từ ưu tiên các từ ít gặp hơn đối với luyện theo chủ đề) — không đẩy
+// thêm mốc lịch sử mới (giống quy ước "Làm lại không push thêm nav" đã dùng ở Luyện ngữ pháp/vượt ải).
+function vocabRestartOptimal(){
+  const s = STATE.vocabSession; if(!s) return;
+  const missed = Array.isArray(s.missedIds) ? shuffleArr(s.missedIds.slice()) : [];
+  if(s.mode==='topic'){
+    const code = s.topic;
+    const bank = vocabWordsByTopic(code);
+    let ids;
+    if(missed.length>0){
+      const missedSet = new Set(missed);
+      const rest = shuffleArr(bank.map(w=>w[0]).filter(n=>!missedSet.has(n)));
+      ids = missed.concat(rest).slice(0, Math.min(20, bank.length));
+      showToast('🎯','Ôn lại từ vừa sai trước','Đang ưu tiên luyện lại '+missed.length+' từ bạn trả lời sai lượt trước.');
+    } else {
+      ids = shuffleArr(bank.map(w=>w[0])).slice(0, Math.min(20, bank.length));
+    }
+    STATE.vocabSession = {mode:'topic', topic:code, ids, idx:0, correct:0, finished:false, retried:{}};
+    vocabPrepareCurrent();
+    renderContent(); window.scrollTo(0,0);
+    return;
+  }
+  // mode==='daily'
+  if(missed.length>0){
+    STATE.vocabSession = {mode:'daily', topic:null, ids: missed, idx:0, correct:0, finished:false, retried:{}};
+    vocabPrepareCurrent();
+    renderContent(); window.scrollTo(0,0);
+    showToast('🎯','Ôn lại từ vừa sai','Đang luyện tập lại '+missed.length+' từ bạn trả lời sai lượt trước — trí nhớ đang "nóng" nên ôn ngay sẽ nhớ lâu hơn.');
+    return;
+  }
+  const ids = vocabBuildDailyQueue();
+  if(ids.length===0){
+    showToast('🎉','Đã xong hết hôm nay!','Bạn đã học và ôn tập đủ số từ hẹn hôm nay. Quay lại vào ngày mai nhé.');
+    vocabExitSession();
+    return;
+  }
+  STATE.vocabSession = {mode:'daily', topic:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
+  vocabPrepareCurrent();
+  renderContent(); window.scrollTo(0,0);
 }
 function vocabAnswer(optIdx){
   const s = STATE.vocabSession; if(!s || s.answered!==null) return;
@@ -4433,7 +4528,7 @@ function renderVocabTopicsGrid(){
       <div class="gc-count">Đã học ${learned}/${words.length}</div>
     </div>`;
   }).join('');
-  return `<div class="eng-section-label">📂 Duyệt tự do theo chủ đề (${topics.length} chủ đề · 3050 từ)</div>
+  return `<div class="eng-section-label">📂 Duyệt tự do theo chủ đề (${topics.length} chủ đề · 3070 từ)</div>
   <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu từ vựng…</div>'}</div>`;
 }
 function renderVocabTopicWordList(){
@@ -4466,14 +4561,29 @@ function renderVocabSession(){
   const s = STATE.vocabSession;
   if(s.finished){
     const pct = Math.round((s.correct/s.ids.length)*100);
+    const missed = Array.isArray(s.missedIds) ? s.missedIds : [];
+    const stats = vocabStats();
+    // Đề xuất ngắn gọn dựa trên kết quả phiên vừa xong — giống mô hình gợi ý AI đã dùng ở Ngữ pháp/Luyện nghe.
+    let suggestion;
+    if(pct>=90) suggestion = '🌟 Xuất sắc! Bạn đã nắm rất chắc các từ này. Hãy tiếp tục sang từ mới để mở rộng vốn từ.';
+    else if(pct>=70) suggestion = '👍 Khá tốt. Vẫn còn '+missed.length+' từ chưa chắc — nên ôn lại ngay các từ đó trước khi học từ mới.';
+    else suggestion = '💡 Kết quả này cho thấy bạn cần ôn kỹ lại nhóm từ vừa học. Đừng vội học từ mới — ôn lại '+missed.length+' từ đã sai đến khi thật nhớ sẽ hiệu quả hơn nhiều.';
+    const statsHtml = `<div class="card" style="text-align:left; margin-top:14px; padding:14px 16px; border:1px solid #2CDBA855;">
+      <div style="font-size:12px; font-weight:800; color:var(--teal); margin-bottom:8px;">📊 Thống kê tổng & đề xuất</div>
+      <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
+        Tổng đã học <b style="color:var(--text);">${stats.learned}</b>/${stats.total} từ · 🏆 thuộc lòng <b style="color:var(--text);">${stats.mastered}</b> · 🌱 đang ôn <b style="color:var(--text);">${stats.learning}</b>${stats.accuracyPct!==null?` · 🎯 độ chính xác chung <b style="color:var(--text);">${stats.accuracyPct}%</b>`:''}${stats.streak>0?` · 🔥 <b style="color:var(--text);">${stats.streak}</b> ngày liên tục`:''}
+      </div>
+      <div style="font-size:12.5px; color:var(--text); line-height:1.6; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">${suggestion}</div>
+    </div>`;
     return `<div class="card eng-quiz-result">
       <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${s.mode==='topic'?vocabTopicMeta(s.topic).label:'Từ hôm nay'}</div>
       <div class="score">${s.correct}/${s.ids.length}</div>
-      <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác</div>
+      <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác${missed.length>0?` · ${missed.length} từ cần ôn lại`:''}</div>
       <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
+        <button class="form-btn eng-quiz-nextbtn" data-action="vocab-restart-optimal">${missed.length>0?'🎯 Ôn lại từ vừa sai':'🔁 Học tiếp theo lịch tối ưu'}</button>
         <button class="form-btn cancel" data-action="vocab-exit-session">✓ Hoàn tất</button>
       </div>
-    </div>`;
+    </div>${statsHtml}`;
   }
   const n = s.ids[s.idx];
   const word = vocabWordByN(n);
@@ -4499,6 +4609,7 @@ function renderVocabSession(){
     <div class="card eng-quiz-card" style="text-align:center;">
       <div style="font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">✨ Từ mới</div>
       <div style="font-size:26px; font-weight:800; margin-bottom:4px;">${escapeHtml(word[1])}</div>
+      <div id="vocab-phonetic-intro" style="display:none; font-size:14px; color:var(--accent,#6cf); font-family:var(--mono); margin-bottom:6px;"></div>
       <div style="font-size:11px; color:var(--dim); font-family:var(--mono); margin-bottom:10px;">${escapeHtml(word[2])}</div>
       <div style="font-size:16px; color:var(--gold); font-weight:700; margin-bottom:12px;">${escapeHtml(word[4])}</div>
       ${formsHtml}
@@ -4603,6 +4714,12 @@ function renderEnglishVocab(item){
     body = vocabHomeSubNav() + (view==='daily' ? renderVocabDailyHome() : renderVocabTopicsGrid());
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
+  // Tra phiên âm cho từ đang hiện ở thẻ giới thiệu (không chặn render, điền vào sau khi có kết quả).
+  if(STATE.vocabSession && STATE.vocabSession.showIntro){
+    const n = STATE.vocabSession.ids[STATE.vocabSession.idx];
+    const w = vocabWordByN(n);
+    if(w) vocabAttachPhonetic(w[1], 'vocab-phonetic-intro');
+  }
 }
 // ---- Luyện ngữ pháp: ngân hàng trắc nghiệm 3 cấp độ ----
 // Định dạng mỗi câu: [câu hỏi, [4 đáp án], chỉ số đáp án đúng, giải thích ngắn]
@@ -5268,7 +5385,9 @@ function ggBuildTest(topicId){
     GRAMMAR_TOPICS.filter(t=>t.group===topic.group && t.id!==topicId).forEach(t=>{ bank = bank.concat(grammarBankFor(t.id)); });
   }
   bank = ggShuffle(bank).slice(0, 20);
-  const hasSR = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  // Cho phép dạng "phát âm" nếu có Cloud STT (ưu tiên, ổn định trên mọi thiết bị kể cả Android — xem
+  // ggSpeakStartCloud) HOẶC có Web Speech API làm phương án dự phòng (ggSpeakStartWebSpeech).
+  const hasSR = !!SETTINGS.cloudTtsApiKey || !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   const qs = [];
   const used = new Set();
   const take = ()=>{ for(let i=0;i<bank.length;i++){ if(!used.has(i)){ used.add(i); return bank[i]; } } return null; };
@@ -5281,14 +5400,14 @@ function ggBuildTest(topicId){
   };
   for(let i=0;i<4;i++){ const b=take(); if(b) qs.push({type:'mcq', q:b[0], opts:b[1], correct:b[2], explain:b[3], vi:b[4]}); }
   for(let i=0;i<2;i++){ const b=take(); if(b) qs.push({type:'listen', sentence:ggResolveSentence(b), q:b[0], opts:b[1], correct:b[2], explain:b[3], vi:b[4]}); }
-  for(let i=0;i<2;i++){ const b=takeShort(); if(b){ const s=ggResolveSentence(b).replace(/\s+/g,' ').trim(); qs.push({type:'order', sentence:s, words:ggShuffle(s.replace(/[.?!]$/,'').split(' ')), built:[], vi:b[4]}); } }
+  for(let i=0;i<2;i++){ const b=takeShort(); if(b){ const s=ggResolveSentence(b).replace(/\s+/g,' ').trim(); qs.push({type:'order', sentence:s, words:ggShuffle(s.replace(/[.?!]$/,'').split(' ')), built:[], vi:b[4], explain:b[3]}); } }
   { const b=take(); if(b){
       const correctS = ggResolveSentence(b);
       const others = [];
       for(let i=0;i<bank.length && others.length<3;i++){ if(!used.has(i)) others.push(ggResolveSentence(bank[i])); }
       while(others.length<3 && bank.length) others.push(ggResolveSentence(bank[Math.floor(Math.random()*bank.length)]));
       const opts = ggShuffle([correctS, ...others.slice(0,3)]);
-      qs.push({type:'translate', vi:b[4]||b[3]||'', opts, correct:opts.indexOf(correctS)});
+      qs.push({type:'translate', vi:b[4]||b[3]||'', opts, correct:opts.indexOf(correctS), explain:b[3]});
   } }
   { const b=take(); if(b){
       const word = /^[a-zA-Z']+$/.test(b[1][b[2]]) ? b[1][b[2]] : (ggResolveSentence(b).replace(/[^a-zA-Z' ]/g,'').split(' ').sort((x,y)=>y.length-x.length)[0]||'hello');
@@ -5338,29 +5457,80 @@ function ggOrderCheck(){
   if(builtS === target){ t.correct++; q.wasCorrect = true; }
   renderContent();
 }
-function ggSpeakStart(){
+// Trước đây ggSpeakStart luôn dùng Web Speech API (`new SpeechRecognition()`) trực tiếp — API này đã
+// được xác định nhiều lần (xem lịch sử sửa lỗi mic ở Luyện nói) là KHÔNG ổn định trên nhiều máy Android/
+// Chrome: hay báo lỗi/no-speech ngay lập tức hoặc bắn onend rất sớm trước khi người dùng kịp nói, khiến
+// câu hỏi "chấm sai" tức thì và có cảm giác cả câu hỏi "biến mất" (chuyển thẳng từ nút bấm sang màn kết
+// quả mà không có khoảng "đang nghe" thực sự). Toàn app đã có sẵn 1 engine ổn định hơn nhiều dùng ở
+// Luyện nói/Luyện IPA: ghi âm thật qua MediaRecorder rồi gửi lên Google Cloud Speech-to-Text
+// (transcribeCloudStt) — ưu tiên dùng lại đúng engine này ở đây khi người dùng đã cấu hình
+// SETTINGS.cloudTtsApiKey, chỉ rơi về Web Speech API (đã vá thêm phần dọn dẹp trạng thái) khi không có.
+async function ggSpeakStart(){
   const t = STATE.ggTest; if(!t || t.answered!==null || t.srState==='rec') return;
+  const q = t.qs[t.idx];
+  const canCloud = !!SETTINGS.cloudTtsApiKey && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  // Dọn dẹp bất kỳ phiên ghi âm/nhận diện nào khác đang dở dang ở nơi khác trong app (Luyện nói/Luyện
+  // IPA/Web Speech) trước khi mở phiên mới — tránh xung đột "already started" khiến rec.start() ném
+  // lỗi ngay lập tức (chính là nguyên nhân câu hỏi "biến mất" không kịp nghe).
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  try{ if(typeof stopSpeakRecognition==='function' && STATE.speakSession && STATE.speakSession.recording) stopSpeakRecognition(); }catch(e){}
+  try{ if(typeof stopIpaDeepRecording==='function') stopIpaDeepRecording(); }catch(e){}
+  if(canCloud) return ggSpeakStartCloud(t, q);
+  return ggSpeakStartWebSpeech(t, q);
+}
+async function ggSpeakStartCloud(t, q){
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS);
+  }catch(e){
+    showToast('🎤','Không lấy được quyền micro','Kiểm tra quyền Microphone cho trình duyệt/app trong Cài đặt điện thoại rồi thử lại.');
+    return;
+  }
+  let mimeType='audio/webm;codecs=opus';
+  if(!(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='audio/webm';
+  if(!(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='';
+  const recOpts = Object.assign(mimeType?{mimeType}:{}, {audioBitsPerSecond:SPEAK_AUDIO_BITRATE});
+  let rec;
+  try{ rec = new MediaRecorder(stream, recOpts); }
+  catch(e){ try{ stream.getTracks().forEach(tr=>tr.stop()); }catch(err){} ggFinishSpeak(t,q,''); return; }
+  const chunks=[];
+  rec.ondataavailable=(ev)=>{ if(ev.data && ev.data.size>0) chunks.push(ev.data); };
+  t.srState='rec'; t.srText=''; renderContent();
+  rec.onstop=async ()=>{
+    try{ stream.getTracks().forEach(tr=>tr.stop()); }catch(e){}
+    const blob = new Blob(chunks, {type: rec.mimeType || mimeType || 'audio/webm'});
+    t.srState='processing'; renderContent();
+    let heard='';
+    try{ heard = await transcribeCloudStt(blob, q.word); }catch(e){ heard=''; }
+    ggFinishSpeak(t, q, heard);
+  };
+  try{ rec.start(); }
+  catch(e){ try{ stream.getTracks().forEach(tr=>tr.stop()); }catch(err){} ggFinishSpeak(t,q,''); return; }
+  // Ghi ~2.8 giây — đủ dư cho 1 từ đơn kể cả người đọc chậm, không bắt chờ quá lâu.
+  setTimeout(()=>{ try{ if(rec.state!=='inactive') rec.stop(); }catch(e){} }, 2800);
+}
+function ggSpeakStartWebSpeech(t, q){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ ggSpeakSkip(); return; }
-  const q = t.qs[t.idx];
-  const rec = new SR();
+  let rec;
+  try{ rec = new SR(); }catch(e){ ggFinishSpeak(t,q,''); return; }
   rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=5;
   t.srState='rec'; t.srText=''; renderContent();
   let finished=false;
-  const finish=(heard)=>{
-    if(finished) return; finished=true;
-    t.srState='done'; t.srText=heard||'';
-    const target=q.word.toLowerCase().replace(/[^a-z']/g,'');
-    const ok=(heard||'').toLowerCase().split(/\s+/).some(w=>w.replace(/[^a-z']/g,'')===target);
-    t.answered='speak';
-    if(ok){ t.correct++; q.wasCorrect=true; }
-    renderContent();
-  };
+  const finish=(heard)=>{ if(finished) return; finished=true; ggFinishSpeak(t, q, heard); };
   rec.onresult=(ev)=>{ let heard=''; try{ for(let i=0;i<ev.results[0].length;i++){ heard+=' '+ev.results[0][i].transcript; } }catch(e){} finish(heard.trim()); };
   rec.onerror=()=>finish('');
-  rec.onend=()=>{ if(!finished) finish(t.srText); };
+  rec.onend=()=>{ if(!finished) finish(''); };
   try{ rec.start(); }catch(e){ finish(''); }
   setTimeout(()=>{ try{ rec.stop(); }catch(e){} }, 6000);
+}
+function ggFinishSpeak(t, q, heard){
+  t.srState='done'; t.srText=heard||'';
+  const target=(q.word||'').toLowerCase().replace(/[^a-z']/g,'');
+  const ok=(heard||'').toLowerCase().split(/\s+/).some(w=>w.replace(/[^a-z']/g,'')===target);
+  t.answered='speak';
+  if(ok){ t.correct++; q.wasCorrect=true; }
+  renderContent();
 }
 function ggSpeakSkip(){
   const t = STATE.ggTest; if(!t || t.answered!==null) return;
@@ -5516,11 +5686,12 @@ function renderGrammarTest(item){
         <button class="form-btn cancel" data-action="gg-order-undo" style="flex:1;" ${t.answered!==null?'disabled':''}>↩️ Xóa từ cuối</button>
         <button class="form-btn" data-action="gg-order-check" style="flex:1;" ${q.built.length===0||t.answered!==null?'disabled':''}>Kiểm tra</button>
       </div>
-      ${t.answered!==null?`<div class="eng-quiz-tip">${q.wasCorrect?'✅ Chính xác!':'❌ Chưa đúng.'} Câu đúng: <b>${escapeHtml(q.sentence)}</b></div>`:''}`;
+      ${t.answered!==null?`<div class="eng-quiz-tip">${q.wasCorrect?'✅ Chính xác!':'❌ Chưa đúng.'} Câu đúng: <b>${escapeHtml(q.sentence)}</b>${q.explain?'<br>💡 '+escapeHtml(q.explain):''}</div>`:''}`;
   } else if(q.type==='translate'){
     body = `<div class="gg-qtitle">🇻🇳→🇬🇧 Chọn câu tiếng Anh đúng nghĩa</div>
       <div class="gg-qtext">"${escapeHtml(q.vi)}"</div>
-      <div class="gg-opts">${q.opts.map(optBtn).join('')}</div>`;
+      <div class="gg-opts">${q.opts.map(optBtn).join('')}</div>
+      ${t.answered!==null?`<div class="eng-quiz-tip">${t.answered===q.correct?'✅ Chính xác!':'❌ Chưa đúng.'} Câu đúng: <b>${escapeHtml(q.opts[q.correct])}</b>${q.explain?'<br>💡 '+escapeHtml(q.explain):''}</div>`:''}`;
   } else if(q.type==='speak'){
     body = `<div class="gg-qtitle">🎤 Phát âm từ sau</div>
       <div class="gg-speak-word">${escapeHtml(q.word)}</div>
@@ -5528,10 +5699,12 @@ function renderGrammarTest(item){
       <button class="form-btn btn-listen" data-action="gg-speak-sample" style="width:100%; margin-bottom:8px;">🔊 Nghe mẫu</button>
       ${t.srState==='rec'
         ? `<div style="text-align:center; color:#ff5c5c; font-weight:800; padding:10px;">🎙️ Đang nghe... hãy đọc to từ trên</div>`
-        : t.answered===null
-          ? `<button class="form-btn eng-quiz-nextbtn" data-action="gg-speak-start" style="width:100%;">🎤 Bấm và đọc từ</button>
-             <button class="form-btn cancel" data-action="gg-speak-skip" style="width:100%; margin-top:8px;">Bỏ qua (tính là sai)</button>`
-          : `<div class="eng-quiz-tip">${q.wasCorrect?'✅ Phát âm được nhận diện đúng!':'❌ Chưa nhận diện được đúng từ.'} ${t.srText&&t.srText!=='(bỏ qua)'?('Máy nghe thấy: "'+escapeHtml(t.srText)+'"'):''}</div>`}`;
+        : t.srState==='processing'
+          ? `<div style="text-align:center; color:var(--dim); font-weight:700; padding:10px;">⏳ Đang nhận diện phát âm...</div>`
+          : t.answered===null
+            ? `<button class="form-btn eng-quiz-nextbtn" data-action="gg-speak-start" style="width:100%;">🎤 Bấm và đọc từ</button>
+               <button class="form-btn cancel" data-action="gg-speak-skip" style="width:100%; margin-top:8px;">Bỏ qua (tính là sai)</button>`
+            : `<div class="eng-quiz-tip">${q.wasCorrect?'✅ Phát âm được nhận diện đúng!':'❌ Chưa nhận diện được đúng từ.'} ${t.srText&&t.srText!=='(bỏ qua)'?('Máy nghe thấy: "'+escapeHtml(t.srText)+'"'):(t.srText===''?'Máy chưa nghe thấy gì rõ ràng — hãy đọc to và gần micro hơn.':'')}<br>💡 Chú ý phát âm rõ đuôi từ, trọng âm đúng vị trí và mở miệng đủ rộng khi đọc nguyên âm.</div>`}`;
   }
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="gg-test-exit">${svgIcon('back')}</div><div class="title">Vượt ải: ${escapeHtml(topic.name)}</div></div>
@@ -6581,7 +6754,10 @@ function sentPrepareCurrent(){
   s.answered = null; s.typedValue=''; s.wordSel=[]; s.isCorrectAnswer=null;
   if(!sentence){ s.showIntro=false; s.exType=null; s.options=[]; s.correctIdx=-1; return; }
   const p = sentProgressFor(n);
-  s.showIntro = !p.introduced;
+  // Chỉ hiện thẻ "học câu" (showIntro) nếu câu CHƯA từng học VÀ CHƯA được dạy trong phiên này — tránh vừa
+  // học xong câu lại hỏi ngay chính câu đó (quá dễ vì vừa nhìn thấy đáp án). Câu hỏi luyện tập cho câu
+  // mới học được DỜI RA XA hơn trong hàng đợi (xem sentIntroContinue), giống hệt cơ chế của Luyện từ vựng.
+  s.showIntro = !p.introduced && !(s.seenIntroIds && s.seenIntroIds[n]);
   const box = p.box||0;
   const wordCount = sentence[1].trim().split(/\s+/).length;
   const blank = sentBlankWord(sentence, box);
@@ -6667,7 +6843,25 @@ function sentStartCategory(code){
 }
 function sentIntroContinue(){
   const s = STATE.sentSession; if(!s) return;
-  s.showIntro = false; renderContent();
+  const n = s.ids[s.idx];
+  if(!s.seenIntroIds) s.seenIntroIds = {};
+  s.seenIntroIds[n] = true;
+  // Giống hệt cơ chế "chống học xong hỏi liền" của Luyện từ vựng: rút câu vừa dạy ra khỏi vị trí hiện tại,
+  // chèn lại vào hàng đợi ở vị trí xa hơn (chen vài câu khác ở giữa) trước khi câu hỏi luyện tập xuất hiện.
+  s.ids.splice(s.idx, 1);
+  const remaining = s.ids.length - s.idx;
+  if(remaining>0){
+    const minGap = Math.min(3, remaining);
+    const maxGap = Math.min(6, remaining);
+    const gap = minGap + Math.floor(Math.random()*Math.max(1, maxGap-minGap+1));
+    const insertAt = Math.min(s.ids.length, s.idx + gap);
+    s.ids.splice(insertAt, 0, n);
+  } else {
+    s.ids.push(n);
+  }
+  s.showIntro = false;
+  sentPrepareCurrent();
+  renderContent();
 }
 // Xử lý chung khi đã có kết quả đúng/sai cho BẤT KỲ kiểu câu hỏi nào (trắc nghiệm, ráp câu, nghe-điền từ).
 function sentFinishAnswer(isCorrect){
@@ -6800,7 +6994,7 @@ function renderSentCategoriesGrid(){
       <div class="gc-count">Đã học ${learnedN}/${items.length}</div>
     </div>`;
   }).join('');
-  return `<div class="eng-section-label">📂 Duyệt theo tình huống (${cats.length} tình huống · 350 câu)</div>
+  return `<div class="eng-section-label">📂 Duyệt theo tình huống (${cats.length} tình huống · 370 câu)</div>
   <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu…</div>'}</div>`;
 }
 function renderSentSession(){
@@ -7970,6 +8164,19 @@ function aiCallCleanupResources(){
 // dùng chung aiSessionExit() để không bị 2 nơi định nghĩa 2 cách xử lý khác nhau cho cùng 1 hành động.
 function aiCallEnd(){ aiSessionExit(); }
 function aiCallToggleMute(){ const s = STATE.aiCallSession; if(!s) return; s.muted = !s.muted; renderContent(); }
+// Phóng to/nhỏ chữ trong đoạn hội thoại (item 6) — lưu vào SETTINGS để giữ nguyên lựa chọn giữa các cuộc gọi.
+const AI_CALL_FONT_SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.7];
+function aiCallFontScale(){ return SETTINGS.aiCallFontScale || 1; }
+function aiCallZoomStep(dir){
+  const cur = aiCallFontScale();
+  let idx = AI_CALL_FONT_SCALES.reduce((best,v,i)=> Math.abs(v-cur)<Math.abs(AI_CALL_FONT_SCALES[best]-cur) ? i : best, 0);
+  idx = Math.max(0, Math.min(AI_CALL_FONT_SCALES.length-1, idx+dir));
+  SETTINGS.aiCallFontScale = AI_CALL_FONT_SCALES[idx];
+  saveSettings();
+  renderContent();
+}
+function aiCallZoomIn(){ aiCallZoomStep(1); }
+function aiCallZoomOut(){ aiCallZoomStep(-1); }
 function aiCallSupported(){ return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !!(window.AudioContext||window.webkitAudioContext) && !!window.WebSocket; }
 // Chuyển kênh TRUYỀN TẢI của cuộc trò chuyện ĐANG MỞ từ Nhắn tin sang Gọi thoại trực tiếp — KHÔNG mở
 // màn hình mới, không đẩy thêm 1 lớp điều hướng (vuốt back ở bất kỳ kênh nào cũng thoát thẳng ra màn
@@ -8033,7 +8240,12 @@ function renderAiCallSessionHtml(){
         <div class="ai-call-orb">${aiCallAvatarSvg(112,'ai')}</div>
       </div>
       <div class="ai-call-status">${statusLabel}</div>
-      <div class="ai-call-captions">${capHtml}</div>
+      <div class="ai-call-zoom-ctl">
+        <button class="ai-call-zoom-btn" data-action="aicall-zoom-out" title="Thu nhỏ chữ">A−</button>
+        <span class="ai-call-zoom-label">${Math.round(aiCallFontScale()*100)}%</span>
+        <button class="ai-call-zoom-btn" data-action="aicall-zoom-in" title="Phóng to chữ">A+</button>
+      </div>
+      <div class="ai-call-captions" style="--capscale:${aiCallFontScale()};">${capHtml}</div>
       ${errHtml}
       <div class="ai-call-controls">
         <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${svgIcon('mic')}</button>
@@ -10046,10 +10258,19 @@ function getIpaPracticeBank(){
 }
 // ---- Phân tích chuyên sâu bằng AI (ghi âm 1 phút) ----
 // Yêu cầu người dùng: luyện IPA theo TỪNG TỪ ĐƠN (1 âm) khiến máy khó nghe rõ/nhận diện khi ghi âm quá
-// ngắn. Giải pháp: ghi âm 1 LẦN LIÊN TỤC dài 60 giây — 30s đầu đọc nối tiếp cả loạt từ với tốc độ tự
-// nhiên, 30s sau đọc lại CHẬM, tách rõ từng âm tiết — rồi gửi thẳng file âm thanh (không qua bước
-// speech-to-text trung gian dễ mất âm) cho Gemini nghe trực tiếp và phân tích chi tiết từng từ/âm,
-// đưa ra nhận xét & lời khuyên bằng tiếng Việt — chính xác hơn nhiều so với chấm từng từ 1-2 giây.
+// ngắn. Giải pháp: ghi âm 1 LẦN LIÊN TỤC — rồi gửi thẳng file âm thanh (không qua bước speech-to-text
+// trung gian dễ mất âm) cho Gemini nghe trực tiếp và phân tích chi tiết từng từ/âm, đưa ra nhận xét &
+// lời khuyên bằng tiếng Việt — chính xác hơn nhiều so với chấm từng từ 1-2 giây.
+// TỐI ƯU THỨ TỰ 2 GIAI ĐOẠN (đã đổi so với bản đầu): trước đây đọc NHANH trước rồi mới đọc CHẬM sau —
+// ngược với nguyên lý luyện kỹ năng vận động (motor skill acquisition: nên luyện CHẬM & CHUẨN XÁC
+// trước để não-cơ miệng hình thành đúng "khuôn" phát âm, rồi mới tăng dần tốc độ lên tự nhiên — giống
+// cách luyện đàn/luyện thể thao, không phải làm nhanh ẩu rồi mới sửa chậm). Giờ đổi lại: Giai đoạn 1 =
+// đọc CHẬM, tách rõ từng âm (xây nền chính xác) → Giai đoạn 2 = đọc lại TỰ NHIÊN, nối tiếp, tốc độ bình
+// thường (kiểm tra xem độ chính xác có GIỮ ĐƯỢC khi tăng tốc hay không — đây mới là thước đo thực sự
+// của việc đã "thuộc" âm hay chưa, giống nguyên lý "đọc chậm-đúng → đọc nhanh-đúng" trong sư phạm ngôn
+// ngữ). Thêm bước "Nghe mẫu trước" ở màn giới thiệu (item 2): cho người học NGHE phát âm chuẩn của cả
+// danh sách trước khi tự đọc — nguyên lý "input trước output" (nghe đúng trước khi tự tạo âm) giúp tai
+// quen với âm chuẩn, giảm khả năng tự đọc sai theo thói quen cũ mà không biết.
 function ipaDeepWordList(){
   const bank = getIpaPracticeBank();
   if(bank.length===0) return [];
@@ -10067,27 +10288,59 @@ function ipaDeepWordList(){
 }
 function openIpaDeepAnalysis(){
   navForward();
+  ipaDeepRevokeRecordingUrl();
   STATE.ipaDeepSession = {phase:'intro', words: ipaDeepWordList()};
   renderContent();
   window.scrollTo(0,0);
 }
+// Cho nghe phát âm chuẩn của cả danh sách từ TRƯỚC khi tự đọc (nguyên lý "nghe input chuẩn trước khi tự
+// tạo output") — item 2: "tối ưu cách đọc giúp học hiệu quả hơn". Phát tuần tự, dừng ngay nếu người dùng
+// đã rời màn hình/đóng phiên (kiểm tra lại STATE.ipaDeepSession sau mỗi từ vì await có thể mất vài trăm ms).
+let ipaDeepPlayToken = 0;
+async function ipaDeepPlayList(){
+  const s = STATE.ipaDeepSession; if(!s || !s.words || !s.words.length) return;
+  const myToken = ++ipaDeepPlayToken;
+  s.playingList = true; renderContent();
+  for(const w of s.words){
+    if(ipaDeepPlayToken!==myToken || !STATE.ipaDeepSession) return;
+    try{ await speakEnglishRobust(w, {rate:0.85}); }catch(e){}
+    await new Promise(r=>setTimeout(r, 260));
+  }
+  if(ipaDeepPlayToken===myToken && STATE.ipaDeepSession){ STATE.ipaDeepSession.playingList = false; renderContent(); }
+}
+function ipaDeepStopPlayList(){ ipaDeepPlayToken++; const s=STATE.ipaDeepSession; if(s) s.playingList=false; try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
 function ipaDeepCleanupMedia(){
   try{ if(window.__ipaDeepRecorder && window.__ipaDeepRecorder.state!=='inactive') window.__ipaDeepRecorder.stop(); }catch(e){}
   try{ if(window.__ipaDeepStream) window.__ipaDeepStream.getTracks().forEach(t=>t.stop()); }catch(e){}
   window.__ipaDeepRecorder = null; window.__ipaDeepStream = null;
   clearInterval(window.__ipaDeepTimer); window.__ipaDeepTimer = null;
+  ipaDeepStopPlayList();
+}
+// Giải phóng URL blob của bản ghi âm cũ (nếu có) — tránh rò rỉ bộ nhớ khi mở lại/đóng phiên nhiều lần.
+function ipaDeepRevokeRecordingUrl(){
+  const s = STATE.ipaDeepSession;
+  if(s && s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
 }
 function closeIpaDeepAnalysis(){
   ipaDeepCleanupMedia();
+  ipaDeepRevokeRecordingUrl();
   STATE.ipaDeepSession = null;
   renderContent();
   navBack();
 }
 function ipaDeepRetry(){
   ipaDeepCleanupMedia();
+  ipaDeepRevokeRecordingUrl();
   const s = STATE.ipaDeepSession; if(!s) return;
   STATE.ipaDeepSession = {phase:'intro', words: s.words && s.words.length ? s.words : ipaDeepWordList()};
   renderContent();
+}
+// Nghe lại chính bản ghi âm vừa đọc (item 2: "thêm phần nghe lại âm đã đọc trước đó") — giúp người học
+// tự nghe lại và so sánh với nhận xét của AI, thay vì chỉ đọc chữ.
+function ipaDeepPlayRecording(){
+  const s = STATE.ipaDeepSession; if(!s || !s.recordingUrl) return;
+  const audio = document.getElementById('ipa-deep-playback-audio');
+  if(audio){ try{ audio.currentTime=0; audio.play(); }catch(e){} }
 }
 async function startIpaDeepRecording(){
   const s = STATE.ipaDeepSession; if(!s) return;
@@ -10117,11 +10370,12 @@ async function startIpaDeepRecording(){
     window.__ipaDeepRecorder = rec;
     rec.start();
     // item 3: thời lượng từng giai đoạn giờ tính theo SỐ TỪ thực tế thay vì cố định 30s/30s — danh sách
-    // dài hơn cần nhiều thời gian hơn. Giai đoạn 1 (đọc tự nhiên): ~2.2s/từ. Giai đoạn 2 (đọc chậm, ngắt
-    // 2-3s giữa các từ theo đúng yêu cầu): ~4s/từ (đọc từ ~1-1.5s + nghỉ 2-3s).
+    // dài hơn cần nhiều thời gian hơn. ĐÃ ĐỔI THỨ TỰ (xem ghi chú ở đầu khối "Phân tích chuyên sâu"):
+    // Giai đoạn 1 giờ là đọc CHẬM, ngắt 2-3s giữa các từ (~4s/từ) để xây nền chính xác trước; Giai đoạn 2
+    // là đọc lại TỰ NHIÊN, nối tiếp (~2.2s/từ) để kiểm tra độ chính xác có giữ được khi tăng tốc không.
     const nWords = (s.words||[]).length || 10;
-    s.phase1Sec = Math.max(15, Math.round(nWords*2.2));
-    s.phase2Sec = Math.max(20, Math.round(nWords*4));
+    s.phase1Sec = Math.max(20, Math.round(nWords*4));
+    s.phase2Sec = Math.max(15, Math.round(nWords*2.2));
     s.phase='recording'; s.subPhase=1; s.secLeft = s.phase1Sec + s.phase2Sec;
     renderContent();
     window.__ipaDeepTimer = setInterval(()=>{
@@ -10129,7 +10383,7 @@ async function startIpaDeepRecording(){
       cur.secLeft = Math.max(0, cur.secLeft-1);
       if(cur.secLeft===cur.phase2Sec && cur.subPhase===1){
         cur.subPhase=2; renderContent();
-        showToast('🐢','Chuyển sang GIAI ĐOẠN 2!','Đọc lại từ đầu, thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ.');
+        showToast('🗣️','Chuyển sang GIAI ĐOẠN 2!','Đọc lại từ đầu, nối tiếp cả danh sách với tốc độ TỰ NHIÊN — giữ nguyên độ chính xác vừa luyện ở giai đoạn chậm.');
         try{ if(navigator.vibrate) navigator.vibrate([120,60,120]); }catch(e){}
         return;
       }
@@ -10152,6 +10406,10 @@ async function analyzeIpaDeepRecording(blob){
     s.phase='error'; s.error='Không ghi được âm thanh nào — hãy thử lại và kiểm tra quyền micro.';
     renderContent(); return;
   }
+  // Giữ lại bản ghi âm để người học nghe lại (item 2: "thêm phần nghe lại âm đã đọc trước đó") — dọn
+  // URL cũ (nếu retry) trước khi tạo URL mới, tránh rò rỉ bộ nhớ.
+  ipaDeepRevokeRecordingUrl();
+  try{ s.recordingUrl = URL.createObjectURL(blob); }catch(e){ s.recordingUrl = null; }
   s.phase='analyzing'; renderContent();
   try{
     const arrayBuf = await blob.arrayBuffer();
@@ -10162,13 +10420,13 @@ async function analyzeIpaDeepRecording(blob){
     const wordListText = (s.words||[]).map((w,i)=>(i+1)+'. '+w).join(', ');
     const p1 = s.phase1Sec||30, p2 = s.phase2Sec||30;
     const prompt = `Bạn là giáo viên phát âm tiếng Anh (IPA) cho người Việt học tiếng Anh. Người học vừa ghi âm đọc danh sách từ sau: ${wordListText}.
-Cấu trúc bản ghi: ${p1} giây ĐẦU đọc nối tiếp cả danh sách với tốc độ tự nhiên; ${p2} giây SAU đọc lại CHẬM, ngắt nghỉ khoảng 2-3 giây giữa mỗi từ, tách rõ từng âm tiết/âm IPA của mỗi từ.
+Cấu trúc bản ghi (đã đổi thứ tự theo nguyên lý luyện kỹ năng "chậm-chuẩn trước, nhanh-tự nhiên sau"): ${p1} giây ĐẦU đọc CHẬM, ngắt nghỉ khoảng 2-3 giây giữa mỗi từ, tách rõ từng âm tiết/âm IPA của mỗi từ (xây nền chính xác); ${p2} giây SAU đọc lại nối tiếp cả danh sách với tốc độ TỰ NHIÊN (kiểm tra xem độ chính xác có giữ được khi tăng tốc hay không).
 Hãy nghe kỹ file âm thanh và phân tích:
 1. Với TỪNG từ trong danh sách: người học phát âm đúng hay sai (nêu rõ âm IPA nào bị phát âm sai/không rõ, ví dụ nhầm /θ/ thành /s/, nuốt âm cuối, sai trọng âm...).
-2. So sánh đoạn đọc NHANH (đầu) và đoạn đọc CHẬM (sau) — đọc chậm có rõ hơn không, có giúp phát hiện lỗi mà đọc nhanh che giấu không.
+2. So sánh đoạn đọc CHẬM (đầu) và đoạn đọc TỰ NHIÊN (sau) — độ chính xác đạt được lúc đọc chậm có GIỮ ĐƯỢC không khi chuyển sang tốc độ tự nhiên, hay bị mất đi (đây là thước đo quan trọng nhất cho biết đã thực sự "thuộc" âm hay chưa).
 3. Tổng kết 3-5 LỖI PHÁT ÂM chung/lặp lại nhiều nhất cần khắc phục ưu tiên.
 4. Đưa ra LỜI KHUYÊN cụ thể, thực hành được (ví dụ vị trí lưỡi/môi/luồng hơi) cho từng lỗi.
-5. CHẤM ĐIỂM tổng thể trên thang 0-100 dựa trên: độ chính xác âm IPA từng từ (40%), độ rõ trọng âm/nối âm (20%), sự tiến bộ giữa đoạn đọc chậm so với đoạn đọc nhanh (20%), độ tự nhiên/lưu loát chung (20%). Chấm nghiêm túc, KHÔNG chấm cao nếu phát âm còn nhiều lỗi rõ ràng — điểm 70+ nghĩa là đạt yêu cầu để coi là "vượt qua" bài luyện này.
+5. CHẤM ĐIỂM tổng thể trên thang 0-100 dựa trên: độ chính xác âm IPA từng từ (40%), độ rõ trọng âm/nối âm (20%), mức độ GIỮ ĐƯỢC độ chính xác khi chuyển từ đọc chậm sang đọc tự nhiên (20%), độ tự nhiên/lưu loát chung (20%). Chấm nghiêm túc, KHÔNG chấm cao nếu phát âm còn nhiều lỗi rõ ràng — điểm 70+ nghĩa là đạt yêu cầu để coi là "vượt qua" bài luyện này.
 Trả lời HOÀN TOÀN bằng tiếng Việt, giọng văn khích lệ nhưng thẳng thắn, dùng tiêu đề rõ ràng cho từng phần (không dùng markdown **, chỉ dùng xuống dòng và số thứ tự đơn giản). Nếu không nghe rõ hoặc file gần như im lặng, hãy nói rõ điều đó thay vì bịa nhận xét và cho điểm 0.
 Bắt buộc có 2 dòng CUỐI CÙNG đúng định dạng sau (để hệ thống tự đọc, không thêm chữ nào khác vào 2 dòng này):
 ĐIỂM_TỔNG: <số từ 0 đến 100>
@@ -10236,23 +10494,25 @@ function renderIpaDeepAnalysis(item){
       <div style="font-size:34px; margin-bottom:8px;">🔬</div>
       <div style="font-weight:800; font-size:15px; margin-bottom:8px;">Ghi âm 1 phút — phân tích chi tiết</div>
       <div style="font-size:12.5px; color:var(--dim); line-height:1.7; text-align:left;">
-        <b style="color:var(--text);">Giai đoạn 1:</b> đọc nối tiếp CẢ danh sách từ dưới đây, tốc độ tự nhiên, đừng dừng lại.<br>
-        <b style="color:var(--text);">Giai đoạn 2</b> (app tự nhận biết khi bạn đọc hết lượt 1 và báo chuyển): đọc lại thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ, tách rõ từng âm tiết.<br>
+        <b style="color:var(--text);">Bước 0 — Nghe mẫu trước:</b> bấm "🔊 Nghe mẫu cả danh sách" bên dưới để nghe phát âm chuẩn TRƯỚC khi tự đọc — tai quen với âm đúng sẽ giúp bạn đọc chính xác hơn, tránh lặp lại lỗi cũ mà không biết.<br>
+        <b style="color:var(--text);">Giai đoạn 1 — Đọc CHẬM trước:</b> đọc nối tiếp cả danh sách thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ, tách rõ từng âm tiết — xây nền phát âm chính xác trước khi tăng tốc.<br>
+        <b style="color:var(--text);">Giai đoạn 2</b> (app tự báo khi chuyển): đọc lại nối tiếp cả danh sách với tốc độ TỰ NHIÊN — kiểm tra xem độ chính xác vừa luyện có GIỮ ĐƯỢC khi đọc nhanh hơn không.<br>
         Ghi âm xong, AI sẽ nghe trực tiếp và phân tích kỹ từng từ, chỉ ra chính xác âm IPA nào bạn đang phát âm sai/chưa rõ.<br>
-        <b style="color:var(--text);">Chuẩn để ĐẠT (giống Luyện nói):</b> AI chấm điểm 0-100đ (độ chính xác âm IPA, trọng âm/nối âm, tiến bộ khi đọc chậm, độ tự nhiên) — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> VÀ không còn từ nào bị AI liệt vào danh sách "cần luyện lại" thì mới coi là đạt; chưa đạt thì luyện lại đúng các từ AI chỉ ra rồi ghi âm lại.
+        <b style="color:var(--text);">Chuẩn để ĐẠT (giống Luyện nói):</b> AI chấm điểm 0-100đ (độ chính xác âm IPA, trọng âm/nối âm, mức giữ được độ chính xác khi tăng tốc, độ tự nhiên) — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> VÀ không còn từ nào bị AI liệt vào danh sách "cần luyện lại" thì mới coi là đạt; chưa đạt thì luyện lại đúng các từ AI chỉ ra rồi ghi âm lại.
       </div>
     </div>
     <div class="card" style="padding:14px 16px;">
       <div style="font-size:12px; font-weight:800; color:var(--dim); margin-bottom:8px;">📋 Danh sách từ cần đọc</div>
       <div class="ipa-deep-word-list">${wordChips}</div>
     </div>
-    <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:12px;">🎙️ Bắt đầu ghi âm</button>`;
+    <button class="form-btn btn-listen" data-action="${s.playingList?'ipa-deep-stop-list':'ipa-deep-play-list'}" style="width:100%; margin-top:12px;">${s.playingList?'⏹️ Dừng nghe mẫu':'🔊 Nghe mẫu cả danh sách'}</button>
+    <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:10px;">🎙️ Bắt đầu ghi âm</button>`;
   } else if(s.phase==='recording'){
     const phase1 = s.subPhase===1;
     body = `<div class="card" style="padding:22px; text-align:center;">
-      <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--teal)':'var(--gold)'}; margin-bottom:6px;">${phase1?'🗣️ GIAI ĐOẠN 1 — Đọc liên tục, tự nhiên':'🐢 GIAI ĐOẠN 2 — Đọc CHẬM, tách rõ từng âm'}</div>
+      <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--gold)':'var(--teal)'}; margin-bottom:6px;">${phase1?'🐢 GIAI ĐOẠN 1 — Đọc CHẬM, tách rõ từng âm':'🗣️ GIAI ĐOẠN 2 — Đọc liên tục, tự nhiên'}</div>
       <div style="font-size:44px; font-weight:800; font-family:var(--mono); color:var(--text);"><span id="ipa-deep-countdown-num">${s.secLeft}</span>s</div>
-      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc hết danh sách từ, không cần dừng giữa các từ':'Đọc lại từ đầu, thật chậm, ngắt nghỉ 2-3 giây giữa mỗi từ'}</div>
+      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc lại từ đầu, thật chậm, ngắt nghỉ 2-3 giây giữa mỗi từ':'Đọc hết danh sách từ, không cần dừng giữa các từ, giữ đúng như lúc đọc chậm'}</div>
     </div>
     <div class="card" style="padding:14px 16px;">
       <div class="ipa-deep-word-list">${wordChips}</div>
@@ -10278,7 +10538,14 @@ function renderIpaDeepAnalysis(item){
       <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe):</div>
       <div style="display:flex; flex-wrap:wrap; gap:8px;">${wordsToFix.map((w,i)=>`<button class="form-btn btn-listen" data-action="ipa-deep-word-click" data-idx="${i}" style="width:auto; padding:8px 14px; border:1.5px solid var(--gold); color:var(--gold); background:transparent;">🔊 ${escapeHtml(w)}</button>`).join('')}</div>
     </div>` : '';
-    body = `${scoreCard}${wordsToFixCard}<div class="card" style="padding:16px;">
+    // item 2: "thêm phần nghe lại âm đã đọc trước đó" — cho nghe lại chính bản ghi âm vừa đọc để tự so
+    // sánh với nhận xét của AI, không chỉ đọc chữ suông.
+    const playbackCard = s.recordingUrl ? `<div class="card" style="padding:14px 16px;">
+      <div style="font-size:12px; font-weight:800; color:var(--dim); margin-bottom:10px;">🎧 Nghe lại bản ghi âm của bạn</div>
+      <audio id="ipa-deep-playback-audio" src="${escapeHtml(s.recordingUrl)}" style="display:none;"></audio>
+      <button class="form-btn btn-listen" data-action="ipa-deep-play-recording" style="width:100%;">▶️ Phát lại bản ghi âm vừa đọc</button>
+    </div>` : '';
+    body = `${scoreCard}${playbackCard}${wordsToFixCard}<div class="card" style="padding:16px;">
       <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">📋 Nhận xét chi tiết từ AI</div>
       <div style="font-size:12.5px; color:var(--text); line-height:1.75; white-space:pre-line;">${escapeHtml(s.resultText||'')}</div>
     </div>
@@ -10287,10 +10554,16 @@ function renderIpaDeepAnalysis(item){
       <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-close" style="flex:1;">${passed?'🏁 Hoàn thành':'✓ Đóng (chưa đạt)'}</button>
     </div>`;
   } else { // error
+    const playbackCard = s.recordingUrl ? `<div class="card" style="padding:14px 16px;">
+      <div style="font-size:12px; font-weight:800; color:var(--dim); margin-bottom:10px;">🎧 Nghe lại bản ghi âm của bạn</div>
+      <audio id="ipa-deep-playback-audio" src="${escapeHtml(s.recordingUrl)}" style="display:none;"></audio>
+      <button class="form-btn btn-listen" data-action="ipa-deep-play-recording" style="width:100%;">▶️ Phát lại bản ghi âm vừa đọc</button>
+    </div>` : '';
     body = `<div class="card" style="padding:20px 16px; text-align:center;">
       <div style="font-size:30px; margin-bottom:8px;">⚠️</div>
       <div style="font-size:12.5px; color:#ff8080; line-height:1.6;">${escapeHtml(s.error||'Đã có lỗi xảy ra.')}</div>
     </div>
+    ${playbackCard}
     <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-retry" style="width:100%; margin-top:12px;">🔄 Thử lại</button>`;
   }
   document.getElementById('content').innerHTML = backRow + body;
@@ -11344,6 +11617,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sentExitSessionEl){ sentExitSession(); return; }
   const vocabExitSessionEl = e.target.closest('[data-action="vocab-exit-session"]');
   if(vocabExitSessionEl){ vocabExitSession(); return; }
+  const vocabRestartOptimalEl = e.target.closest('[data-action="vocab-restart-optimal"]');
+  if(vocabRestartOptimalEl){ vocabRestartOptimal(); return; }
   const aichatStartFreeEl = e.target.closest('[data-action="aichat-start-free"]');
   if(aichatStartFreeEl){ startAiChatFree(); return; }
   const aichatStartScenarioEl = e.target.closest('[data-action="aichat-start-scenario"]');
@@ -11366,6 +11641,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aicallSwitchTextEl){ aiSessionSwitchToText(); return; }
   const aicallToggleMuteEl = e.target.closest('[data-action="aicall-toggle-mute"]');
   if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
+  const aicallZoomInEl = e.target.closest('[data-action="aicall-zoom-in"]');
+  if(aicallZoomInEl){ aiCallZoomIn(); return; }
+  const aicallZoomOutEl = e.target.closest('[data-action="aicall-zoom-out"]');
+  if(aicallZoomOutEl){ aiCallZoomOut(); return; }
   const aicallCapTranslateEl = e.target.closest('[data-action="aicall-cap-translate"]');
   if(aicallCapTranslateEl){ aiCallTranslateCaption(+aicallCapTranslateEl.getAttribute('data-idx')); return; }
   const aicallEndEl = e.target.closest('[data-action="aicall-end"]');
@@ -11573,6 +11852,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaDeepRecordStopEl){ stopIpaDeepRecording(); return; }
   const ipaDeepRetryEl = e.target.closest('[data-action="ipa-deep-retry"]');
   if(ipaDeepRetryEl){ ipaDeepRetry(); return; }
+  const ipaDeepPlayListEl = e.target.closest('[data-action="ipa-deep-play-list"]');
+  if(ipaDeepPlayListEl){ ipaDeepPlayList(); return; }
+  const ipaDeepStopListEl = e.target.closest('[data-action="ipa-deep-stop-list"]');
+  if(ipaDeepStopListEl){ ipaDeepStopPlayList(); renderContent(); return; }
+  const ipaDeepPlayRecordingEl = e.target.closest('[data-action="ipa-deep-play-recording"]');
+  if(ipaDeepPlayRecordingEl){ ipaDeepPlayRecording(); return; }
   const ipaDeepWordClickEl = e.target.closest('[data-action="ipa-deep-word-click"]');
   if(ipaDeepWordClickEl){
     const s = STATE.ipaDeepSession;
