@@ -708,6 +708,18 @@
   .video-channel-add-card{display:flex; align-items:center; gap:8px; background:var(--panel); border:1.5px dashed var(--border);
     border-radius:12px; padding:10px 12px; cursor:pointer; margin-bottom:10px; font-size:11.5px; font-weight:700; color:var(--dim);}
   .video-channel-add-card:active{transform:scale(0.98);}
+  /* Luyện tập shadowing: thanh 4 bước + khối đánh dấu/lặp đoạn */
+  .shadow-steps{display:flex; align-items:center; justify-content:center; margin:2px 0 14px;}
+  .shadow-step{width:26px; height:26px; border-radius:50%; background:var(--panel); border:1.5px solid var(--border);
+    color:var(--dim); font-size:11.5px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .shadow-step.active{background:linear-gradient(135deg,var(--teal),var(--blue)); border-color:transparent; color:#0E1218;}
+  .shadow-step.done{background:var(--panel2); border-color:var(--teal); color:var(--teal);}
+  .shadow-step-line{width:22px; height:2px; background:var(--border); flex:0 0 auto;}
+  .shadow-step-line.done{background:var(--teal);}
+  .shadow-loop-bar{display:flex; gap:8px; margin-top:4px;}
+  .shadow-loop-bar .form-btn{font-size:11px; padding:9px 6px;}
+  .shadow-loop-info{font-size:11px; color:var(--dim); text-align:center; margin-top:8px;}
+  .form-btn.shadow-loop-on{background:linear-gradient(135deg,#2CDBA8,#1FA88A); color:#0E1218;}
 
   .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
   .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
@@ -1308,7 +1320,29 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v85';
+const APP_VERSION = 'v86';
+// ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
+// Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
+// "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
+// THÚC THẬT SỰ (như xem hết cả video) nên tự hiện lưới "video đề xuất tiếp theo" đè lên màn hình —
+// đúng lúc người học đang cần nhìn/nghe để trả lời câu hỏi thì bị che mất, rất vướng. Với IFrame API,
+// ta tự polling thời gian phát và gọi pauseVideo() (TẠM DỪNG, không phải "kết thúc") khi chạm mốc kết
+// thúc đoạn — pauseVideo() không kích hoạt lưới gợi ý video liên quan, giữ màn hình sạch cho người học.
+let ytApiReady = false;
+let ytApiLoading = false;
+const ytApiReadyQueue = [];
+function ensureYoutubeApiLoaded(){
+  if(ytApiReady || ytApiLoading) return;
+  ytApiLoading = true;
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+}
+window.onYouTubeIframeAPIReady = function(){
+  ytApiReady = true;
+  const queued = ytApiReadyQueue.splice(0, ytApiReadyQueue.length);
+  queued.forEach(fn=>{ try{ fn(); }catch(e){ console.error('Lỗi khởi tạo YouTube player', e); } });
+};
 const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // Thứ tự Thứ-Hai-trước dùng riêng cho danh sách dọc trong đồng hồ LED ở Hub (đúng thói quen xem lịch
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
@@ -1622,7 +1656,10 @@ function snapshotNav(){
     longQuizSession: STATE.longQuizSession,
     // Nghe & chép chính tả (item 1) — 2 lớp: dictHome (màn chọn cấp độ/hôm nay, lồng trong Luyện nghe)
     // và dictSession (đang làm bài) — cùng ghi vào lịch sử để vuốt/back lùi đúng từng lớp một.
-    dictHome: STATE.dictHome, dictSession: STATE.dictSession
+    dictHome: STATE.dictHome, dictSession: STATE.dictSession,
+    // Luyện tập shadowing (mục mới) — 2 lớp: addShadowOpen (màn thêm video) và shadowSession (đang
+    // luyện 1 video theo 4 bước) — cùng lỗ hổng dạng như các mục trên nếu bỏ sót khỏi lịch sử.
+    addShadowOpen: STATE.addShadowOpen, shadowSession: STATE.shadowSession
   };
 }
 function restoreNav(snap){
@@ -1647,6 +1684,8 @@ function restoreNav(snap){
   STATE.longQuizSession = snap.longQuizSession!==undefined ? snap.longQuizSession : null;
   STATE.dictHome = snap.dictHome!==undefined ? snap.dictHome : false;
   STATE.dictSession = snap.dictSession!==undefined ? snap.dictSession : null;
+  STATE.addShadowOpen = snap.addShadowOpen!==undefined ? snap.addShadowOpen : false;
+  STATE.shadowSession = snap.shadowSession!==undefined ? snap.shadowSession : null;
   // Gọi thoại (nếu đang mở) luôn gắn liền với STATE.aiChatSession — mọi lần restore đều coi như phiên
   // gọi đã kết thúc (mic/WS đã được popstate handler dọn dẹp phía trên trước khi restoreNav chạy tới).
   STATE.aiCallSession = null;
@@ -1692,6 +1731,7 @@ window.addEventListener('popstate', ()=>{
     try{ stopListenAudio(); }catch(e){}
     try{ if(STATE.aiCallSession) aiCallCleanupResources(); }catch(e){}
     try{ if(STATE.ipaDeepSession) ipaDeepCleanupMedia(); }catch(e){}
+    try{ if(STATE.shadowSession) shadowCleanupMedia(); }catch(e){}
     const snap = NAV_STACK.pop();
     restoreNav(snap);
   }
@@ -3898,6 +3938,15 @@ function ensureEnglishItems(){
     SETTINGS.englishItems.push({id:'eng_aichat', name:'Hội thoại AI', kind:'aichat'});
     saveSettings(); pushToDrive();
   }
+  // Di trú tương tự cho mục mới "Luyện tập shadowing" — người dùng tự thêm video (YouTube hoặc link
+  // khác) rồi luyện theo 4 bước: nghe tổng quát → shadow chậm (lặp đoạn 0.75x) → shadow tốc độ tự nhiên
+  // → ghi âm & tự so sánh với bản gốc. Không phụ thuộc Gemini API key vì mục tiêu là tự luyện/tự nghe
+  // lại, không cần AI chấm điểm.
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='shadowing')){
+    SETTINGS.englishItems.push({id:'eng_shadowing', name:'Luyện tập shadowing', kind:'shadowing'});
+    saveSettings(); pushToDrive();
+  }
+  if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
   if(!SETTINGS.englishNotes || typeof SETTINGS.englishNotes!=='object') SETTINGS.englishNotes = {};
   if(!SETTINGS.grammarQuiz || typeof SETTINGS.grammarQuiz!=='object') SETTINGS.grammarQuiz = {};
   if(!SETTINGS.vocabProgress || typeof SETTINGS.vocabProgress!=='object') SETTINGS.vocabProgress = {};
@@ -3924,6 +3973,7 @@ const ENGLISH_ITEM_KIND = {
   vocab:    {icon:'book',       c1:'#2CDBA8', c2:'#4FA8FF', sub:'3070 từ vựng · lịch học mỗi ngày + ôn tập'},
   sentences:{icon:'chat',       c1:'#FFC94A', c2:'#FF8A3D', sub:'370 câu giao tiếp thông dụng · 20 tình huống'},
   aichat:   {icon:'chat',       c1:'#5CD6C0', c2:'#4F8CFF', sub:'Trò chuyện phản xạ với AI · tự do hoặc theo tình huống'},
+  shadowing:{icon:'mic',        c1:'#7C6CF0', c2:'#00C2CB', sub:'Nhại theo video của bạn · 4 bước shadowing'},
   notes:    {icon:'folder',     c1:'#8891A0', c2:'#6B7688', sub:'Ghi chú tự do'}
 };
 function renderEnglishItemRows(){
@@ -4010,6 +4060,7 @@ function renderEnglishItem(){
   if(item.kind==='vocab') return renderEnglishVocab(item);
   if(item.kind==='sentences') return renderEnglishSentences(item);
   if(item.kind==='aichat') return renderAiChat(item);
+  if(item.kind==='shadowing') return renderShadowingHome(item);
   return renderEnglishNotes(item);
 }
 // ================= LUYỆN TỪ VỰNG: 3000 từ, học theo lịch mỗi ngày (spaced repetition kiểu Leitner) =================
@@ -6188,6 +6239,7 @@ function stopListenAudio(){
   listenPlayToken++;
   if(listenAudioEl){ try{ listenAudioEl.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
+  stopListenVideoPlayer();
 }
 // ---- Phát âm 1 câu đơn cho Luyện ngữ pháp (dùng chung hạ tầng Cloud TTS với Luyện nghe) ----
 let grammarAudioEl = null;
@@ -6477,7 +6529,7 @@ function renderListenQuizUI(){
     </div>
     <div class="card eng-quiz-card">
       ${q.videoId
-        ? `${speakVideoEmbedHtml(q.videoId, videoStartSec, videoEndSec, !!q.replayAuto, q.replaySeed||0)}
+        ? `${speakVideoEmbedHtml(q.videoId)}
         <div style="display:flex; gap:8px; margin-bottom:6px;">
           <button class="form-btn cancel" data-action="listen-video-replay" style="flex:1;">🔁 Lặp lại đoạn này</button>
         </div>
@@ -6506,6 +6558,19 @@ function renderListenQuizUI(){
     <div class="kh-backrow"><div class="kh-backbtn" data-action="listen-quiz-exit">${svgIcon('back')}</div><div class="title">${q.videoId?('📺 '+escapeHtml(q.videoTitle||'Video')):'🎧 Kiểm tra nghe'}</div></div>
     ${body}
   `;
+  // Gắn (hoặc gỡ) trình phát YouTube thật SAU khi DOM đã có khung #listen-yt-player-holder — xem
+  // mountListenVideoPlayer() ở phần khai báo speakVideoEmbedHtml() để hiểu vì sao đổi khỏi cách nhúng
+  // iframe tĩnh cũ (tránh lưới gợi ý video liên quan che màn hình lúc dừng đúng đoạn câu hỏi).
+  if(!q.finished && q.videoId){
+    const curItem = currentListenItem();
+    if(curItem){
+      const autoplay = !!q.replayAuto;
+      q.replayAuto = false;
+      mountListenVideoPlayer(q.videoId, curItem[7]||0, curItem[8]||0, autoplay);
+    }
+  } else {
+    stopListenVideoPlayer();
+  }
 }
 // Nhãn hiển thị cho từng DẠNG câu hỏi luyện nghe (item 3: đa dạng cách hỏi) — giúp người học biết đang
 // luyện kỹ năng nghe nào (chi tiết/suy luận/từ vựng/ý chính/người nói/trình tự) thay vì chỉ thấy câu hỏi
@@ -8526,21 +8591,427 @@ function videoLessonsListHtml(mode){
     ${addCard}
     ${list.length?`<div class="video-lesson-list">${cards}</div>`:'<div class="eng-av-empty">Chưa có video nào — thêm video đầu tiên của bạn ở nút phía trên!</div>'}`;
 }
-function speakVideoEmbedHtml(videoId, startSec, endSec, autoplay, seed){
+// Chỉ còn 1 khung video Luyện nghe hiện diện trên màn hình tại 1 thời điểm, nên dùng chung 1 id cố định
+// cho vùng gắn YT.Player() — xem mountListenVideoPlayer()/stopListenVideoPlayer() bên dưới.
+const LISTEN_YT_HOLDER_ID = 'listen-yt-player-holder';
+function speakVideoEmbedHtml(videoId){
+  // Chỉ trả về khung chứa RỖNG — việc thực sự gắn video (qua YouTube IFrame API, có tự động dừng đúng
+  // mốc "end" bằng pauseVideo() thay vì tham số URL "end=") do mountListenVideoPlayer() đảm nhiệm, gọi
+  // NGAY SAU khi renderListenQuizUI() gán xong innerHTML (xem cuối hàm đó). Lý do đổi cách làm cũ (nhúng
+  // <iframe src="...?start&end"> tĩnh): khi video chạm đúng mốc "end=" trong URL, YouTube xem đó là VIDEO
+  // ĐÃ KẾT THÚC THẬT SỰ nên tự hiện lưới "video đề xuất tiếp theo" che lên màn hình — đúng lúc người học
+  // đang cần nhìn để trả lời câu hỏi thì bị vướng, đúng phản ánh của người dùng.
   if(!videoId) return '';
-  // startSec/endSec: chỉ phát ĐÚNG đoạn chứa câu hỏi (không chạy lan man cả video) — dùng cho Luyện
-  // nghe. autoplay: tự phát khi đổi câu hỏi. seed: đổi giá trị này để ép trình duyệt tạo lại iframe
-  // (dùng cho nút "Lặp lại đoạn này"), vì gán lại y hệt src cũ không đảm bảo phát lại từ đầu.
-  const params=[];
-  if(startSec && startSec>0) params.push('start='+Math.floor(startSec));
-  if(endSec && endSec>startSec) params.push('end='+Math.floor(endSec));
-  if(autoplay) params.push('autoplay=1');
-  params.push('rel=0'); params.push('modestbranding=1');
-  if(seed) params.push('_r='+seed);
-  const qs = '?'+params.join('&');
-  return `<div class="video-embed-wrap">
-    <iframe src="https://www.youtube.com/embed/${videoId}${qs}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  return `<div class="video-embed-wrap"><div id="${LISTEN_YT_HOLDER_ID}"></div></div>`;
+}
+let listenYtPlayer = null;
+let listenYtPollTimer = null;
+function stopListenVideoPlayer(){
+  if(listenYtPollTimer){ clearInterval(listenYtPollTimer); listenYtPollTimer = null; }
+  if(listenYtPlayer){
+    try{ if(typeof listenYtPlayer.destroy==='function') listenYtPlayer.destroy(); }catch(e){}
+    listenYtPlayer = null;
+  }
+}
+// Gắn (hoặc gắn lại) trình phát YouTube thật vào khung LISTEN_YT_HOLDER_ID vừa render — luôn hủy player
+// cũ trước để tránh 2 video cùng phát chồng tiếng khi chuyển câu/lặp lại đoạn.
+function mountListenVideoPlayer(videoId, startSec, endSec, autoplay){
+  if(!videoId) return;
+  const doMount = () => {
+    if(!document.getElementById(LISTEN_YT_HOLDER_ID)) return; // đã chuyển màn hình khác trước khi API sẵn sàng
+    stopListenVideoPlayer();
+    try{
+      listenYtPlayer = new YT.Player(LISTEN_YT_HOLDER_ID, {
+        videoId,
+        playerVars:{ start: Math.max(0, Math.floor(startSec||0)), autoplay: autoplay?1:0, rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        events:{
+          onReady:()=>{ if(autoplay){ try{ listenYtPlayer.playVideo(); }catch(e){} } },
+          onStateChange:(ev)=>{
+            if(ev.data===YT.PlayerState.PLAYING && endSec && endSec>0){
+              if(listenYtPollTimer) clearInterval(listenYtPollTimer);
+              listenYtPollTimer = setInterval(()=>{
+                try{
+                  if(listenYtPlayer && listenYtPlayer.getCurrentTime && listenYtPlayer.getCurrentTime()>=endSec){
+                    // pauseVideo() = TẠM DỪNG, khác với video tự nhiên phát hết (ended) — không kích hoạt
+                    // lưới gợi ý video liên quan của YouTube, giữ màn hình sạch để người học trả lời câu hỏi.
+                    listenYtPlayer.pauseVideo();
+                    clearInterval(listenYtPollTimer); listenYtPollTimer = null;
+                  }
+                }catch(e){}
+              }, 250);
+            }
+          }
+        }
+      });
+    }catch(e){ console.error('Lỗi gắn YouTube player Luyện nghe', e); }
+  };
+  if(window.YT && window.YT.Player){ doMount(); } else { ensureYoutubeApiLoaded(); ytApiReadyQueue.push(doMount); }
+}
+// ================= LUYỆN TẬP SHADOWING =================
+// Phương pháp "shadowing": nhại lại lời người nói bản ngữ gần như ĐỒNG THỜI (chỉ trễ khoảng 1 âm tiết),
+// luyện phản xạ ngữ điệu/trọng âm/nối âm tự nhiên — khác luyện nói thông thường (đọc lại sau khi nghe).
+// Người dùng tự thêm video (link YouTube dán trực tiếp trong app xem/lặp được, hoặc link khác mở ở tab
+// riêng) — không có transcript/câu hỏi dựng sẵn nên KHÔNG cần Gemini API key, phù hợp mọi video tự chọn.
+// Thiết kế theo 4 bước dựa trên các nguồn phương pháp shadowing phổ biến (FluentU, Live Lingua, PrepEdu,
+// PracticeMe...), gộp lại còn 4 bước thực hành (bỏ bước đọc transcript riêng vì video tự thêm thường
+// không có phụ đề sẵn):
+//   1) Nghe tổng quát — nghe/xem hết 1 lượt, KHÔNG nhại theo, để nắm nội dung/nhịp điệu trước.
+//   2) Shadow tốc độ CHẬM (0.75x) — người dùng tự đánh dấu 1 đoạn ngắn (10-30 giây) rồi lặp đoạn liên
+//      tục ở tốc độ chậm, nhại theo từng cụm từ.
+//   3) Shadow tốc độ TỰ NHIÊN (1x) — vẫn đoạn đó, tăng lên tốc độ gốc, nhại đuổi gần như đồng thời.
+//   4) Ghi âm & tự so sánh — ghi âm chính mình đang shadow, nghe lại ngay sau đó để tự đánh giá nhịp
+//      điệu/độ trôi chảy so với bản gốc (nguyên lý "self-assessment" — không cần AI chấm điểm).
+const SHADOW_STAGE_ORDER = ['listen','slow','natural','record'];
+function ensureShadowingVideos(){
+  if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
+  return SETTINGS.shadowingVideos;
+}
+function shadowStageSpeed(stage){ return stage==='slow' ? 0.75 : 1; }
+function shadowLoopSpeedLabel(stage){ return stage==='slow' ? '0.75x (chậm)' : '1x (tốc độ tự nhiên)'; }
+// ---- Danh sách & thêm video ----
+function renderShadowingHome(item){
+  ensureShadowingVideos();
+  if(STATE.shadowSession) return renderShadowingSession(item);
+  if(STATE.addShadowOpen) return renderAddShadowingUI(item);
+  const list = SETTINGS.shadowingVideos||[];
+  const cards = list.map(v=>{
+    const thumb = v.videoId
+      ? `<img class="vlc-thumb" src="https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg" alt="" loading="lazy">`
+      : `<div class="vlc-thumb" style="display:flex; align-items:center; justify-content:center; font-size:22px;">🔗</div>`;
+    return `<div class="video-lesson-card" data-action="shadow-start" data-id="${v.id}">
+      ${thumb}
+      <div class="vlc-body">
+        <div class="vlc-title">${escapeHtml(v.title)}</div>
+        <div class="vlc-desc">${v.practiceCount ? ('🗣️ Đã luyện '+v.practiceCount+' lượt') : 'Chưa luyện lần nào'}</div>
+      </div>
+      <div class="vlc-play">▶</div><button class="vlc-del" data-action="shadow-delete" data-id="${v.id}">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    ${englishItemBackRow(item.name)}
+    <div class="card" style="padding:16px; margin-bottom:14px;">
+      <div style="font-size:26px; text-align:center; margin-bottom:8px;">🗣️🎧</div>
+      <div style="font-size:12px; color:var(--dim); line-height:1.7;">
+        <b style="color:var(--text);">Shadowing</b> là kỹ thuật nhại lại lời người bản ngữ <b style="color:var(--text);">gần như đồng thời</b> — giúp luyện phản xạ ngữ điệu, trọng âm, nối âm tự nhiên. Thêm video của bạn rồi luyện qua 4 bước: 🎧 nghe tổng quát → 🐢 shadow chậm (0.75x, tự lặp 1 đoạn ngắn) → 🏃 shadow tốc độ tự nhiên → 🎙️ ghi âm &amp; tự so sánh với bản gốc.
+      </div>
+    </div>
+    <div class="video-channel-add-card" data-action="shadow-add-open">➕ Thêm video của bạn (YouTube hoặc link khác)</div>
+    ${list.length ? `<div class="video-lesson-list">${cards}</div>` : '<div class="eng-av-empty">Chưa có video nào — dán link video bạn muốn luyện shadowing ở nút phía trên để bắt đầu.</div>'}
+  `;
+}
+function renderAddShadowingUI(item){
+  const err = STATE.addShadowError;
+  const loading = STATE.addShadowLoading;
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="shadow-add-close">${svgIcon('back')}</div><div class="title">Thêm video shadowing</div></div>
+    <div class="card" style="padding:16px;">
+      <div style="font-size:12px; color:var(--dim); line-height:1.6; margin-bottom:12px;">Dán link YouTube để xem &amp; tự lặp đoạn ngay trong app, hoặc dán bất kỳ link video nào khác — app sẽ mở link đó ở tab riêng khi bạn luyện.</div>
+      <input id="shadowUrlInput" class="ai-chat-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="https://www.youtube.com/watch?v=... hoặc link khác" ${loading?'disabled':''}>
+      <input id="shadowTitleInput" class="ai-chat-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="Tên video (để trống sẽ tự lấy tên nếu là YouTube)" ${loading?'disabled':''}>
+      ${err?`<div class="ai-chat-error" style="text-align:left; margin-bottom:8px;">⚠️ ${escapeHtml(err)}</div>`:''}
+      <button class="form-btn eng-quiz-nextbtn" data-action="shadow-add-submit" style="width:100%;" ${loading?'disabled':''}>${loading?'⏳ Đang thêm...':'➕ Thêm video'}</button>
+    </div>`;
+}
+async function submitAddShadowingVideo(){
+  const urlEl = document.getElementById('shadowUrlInput');
+  const titleEl = document.getElementById('shadowTitleInput');
+  const raw = urlEl ? urlEl.value.trim() : '';
+  let title = titleEl ? titleEl.value.trim() : '';
+  if(!raw){ STATE.addShadowError = 'Vui lòng dán link video.'; renderContent(); return; }
+  const videoId = parseYoutubeVideoId(raw);
+  const list = ensureShadowingVideos();
+  if(videoId && list.some(v=>v.videoId===videoId)){ STATE.addShadowError = 'Video YouTube này đã có trong danh sách rồi.'; renderContent(); return; }
+  STATE.addShadowLoading = true; STATE.addShadowError = null; renderContent();
+  if(!title && videoId){
+    // oEmbed công khai của YouTube — có CORS, không cần API key — chỉ dùng để tự điền tên video.
+    try{
+      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v='+videoId)}&format=json`);
+      if(res.ok){ const j = await res.json(); title = (j && j.title) ? j.title : ''; }
+    }catch(e){ /* im lặng bỏ qua — người dùng có thể tự đặt tên nếu cần */ }
+  }
+  if(!title) title = videoId ? ('Video shadowing #'+(list.length+1)) : ('Link shadowing #'+(list.length+1));
+  list.push({id:'shd_'+Date.now(), videoId: videoId||null, url: raw, title, addedAt: Date.now(), practiceCount:0, lastPracticedAt:null});
+  saveSettings(); pushToDrive();
+  STATE.addShadowLoading = false; STATE.addShadowOpen = false;
+  renderContent();
+}
+function deleteShadowingVideo(id){
+  const list = ensureShadowingVideos();
+  const idx = list.findIndex(v=>v.id===id);
+  if(idx>=0 && confirm('Xóa video này khỏi danh sách luyện shadowing?')){
+    list.splice(idx,1); saveSettings(); pushToDrive(); renderContent();
+  }
+}
+// ---- Player YouTube riêng cho Shadowing (tách khỏi listenYtPlayer của Luyện nghe để không ảnh hưởng
+// lẫn nhau) — cùng dùng chung hạ tầng nạp YouTube IFrame API (ensureYoutubeApiLoaded/ytApiReadyQueue). ----
+const SHADOW_YT_HOLDER_ID = 'shadow-yt-player-holder';
+let shadowYtPlayer = null;
+let shadowLoopTimer = null;
+function stopShadowPlayer(){
+  if(shadowLoopTimer){ clearInterval(shadowLoopTimer); shadowLoopTimer = null; }
+  if(shadowYtPlayer){
+    try{ if(typeof shadowYtPlayer.destroy==='function') shadowYtPlayer.destroy(); }catch(e){}
+    shadowYtPlayer = null;
+  }
+}
+function mountShadowPlayer(videoId){
+  if(!videoId) return;
+  const doMount = () => {
+    if(!document.getElementById(SHADOW_YT_HOLDER_ID)) return; // đã chuyển màn hình khác trước khi API sẵn sàng
+    stopShadowPlayer();
+    try{
+      shadowYtPlayer = new YT.Player(SHADOW_YT_HOLDER_ID, {
+        videoId,
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        events:{ onReady:()=>{ try{ shadowYtPlayer.setPlaybackRate(shadowStageSpeed((STATE.shadowSession||{}).stage)); }catch(e){} } }
+      });
+    }catch(e){ console.error('Lỗi gắn YouTube player Shadowing', e); }
+  };
+  if(window.YT && window.YT.Player){ doMount(); } else { ensureYoutubeApiLoaded(); ytApiReadyQueue.push(doMount); }
+}
+// Vòng lặp A-B: kiểm tra mỗi 200ms, hễ chạm điểm kết thúc thì seek về điểm bắt đầu và PHÁT TIẾP (không
+// dừng) — khác cơ chế pauseVideo() của Luyện nghe vì shadowing cần nghe/nhại LIÊN TỤC không ngắt quãng.
+function shadowStartLoopWatch(){
+  if(shadowLoopTimer) clearInterval(shadowLoopTimer);
+  shadowLoopTimer = setInterval(()=>{
+    const s = STATE.shadowSession; if(!s || !s.looping || !shadowYtPlayer) return;
+    if(s.loopStart==null || s.loopEnd==null) return;
+    try{
+      const t = shadowYtPlayer.getCurrentTime();
+      if(t >= s.loopEnd){ shadowYtPlayer.seekTo(s.loopStart, true); }
+    }catch(e){}
+  }, 200);
+}
+function shadowStopLoop(){
+  if(shadowLoopTimer){ clearInterval(shadowLoopTimer); shadowLoopTimer = null; }
+  const s = STATE.shadowSession; if(s) s.looping = false;
+  try{ if(shadowYtPlayer) shadowYtPlayer.pauseVideo(); }catch(e){}
+}
+function shadowLoopInfoText(s){
+  const fmt = (t)=> t==null ? '--:--' : (Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'));
+  return `Đoạn đã đánh dấu: <b>${fmt(s.loopStart)}</b> → <b>${fmt(s.loopEnd)}</b>${(s.loopStart==null||s.loopEnd==null)?' — hãy đánh dấu 1 đoạn ngắn (10-30s) để bắt đầu lặp':''}`;
+}
+// Cập nhật riêng nút Lặp đoạn qua DOM trực tiếp (KHÔNG gọi renderContent()) — vì renderContent() sẽ vẽ
+// lại toàn bộ innerHTML #content, phá hủy khung <div id="shadow-yt-player-holder"> đang chứa YT.Player
+// đang phát, khiến video bị dừng/mất vị trí giữa lúc người dùng đang shadow theo. Các thao tác chỉ đổi
+// trạng thái nhỏ (đánh dấu điểm lặp, bật/tắt lặp, bắt đầu/dừng ghi âm) đều cập nhật DOM trực tiếp; chỉ
+// những lúc CHUYỂN BƯỚC (stage) mới gọi renderContent() (khi đó việc mount lại player mới là hợp lý).
+function shadowUpdateLoopButton(s){
+  const btn = document.querySelector('[data-action="shadow-toggle-loop"]');
+  if(!btn) return;
+  const ready = s.loopStart!=null && s.loopEnd!=null;
+  if(ready) btn.removeAttribute('disabled'); else btn.setAttribute('disabled','disabled');
+  btn.classList.toggle('shadow-loop-on', !!s.looping);
+  btn.textContent = s.looping ? '⏸ Dừng lặp đoạn' : ('🔁 Lặp đoạn ('+shadowLoopSpeedLabel(s.stage)+')');
+}
+function shadowMarkStart(){
+  const s = STATE.shadowSession; if(!s || !shadowYtPlayer) return;
+  try{ s.loopStart = shadowYtPlayer.getCurrentTime(); }catch(e){ return; }
+  if(s.loopEnd!=null && s.loopEnd<=s.loopStart) s.loopEnd = null;
+  const infoEl = document.getElementById('shadow-loop-info');
+  if(infoEl) infoEl.innerHTML = shadowLoopInfoText(s);
+  shadowUpdateLoopButton(s);
+}
+function shadowMarkEnd(){
+  const s = STATE.shadowSession; if(!s || !shadowYtPlayer) return;
+  try{ s.loopEnd = shadowYtPlayer.getCurrentTime(); }catch(e){ return; }
+  if(s.loopStart!=null && s.loopEnd<=s.loopStart) s.loopEnd = s.loopStart + 3;
+  const infoEl = document.getElementById('shadow-loop-info');
+  if(infoEl) infoEl.innerHTML = shadowLoopInfoText(s);
+  shadowUpdateLoopButton(s);
+}
+function shadowToggleLoop(){
+  const s = STATE.shadowSession; if(!s || !shadowYtPlayer) return;
+  if(s.loopStart==null || s.loopEnd==null) return;
+  if(s.looping){
+    shadowStopLoop();
+  } else {
+    s.looping = true;
+    try{ shadowYtPlayer.setPlaybackRate(shadowStageSpeed(s.stage)); shadowYtPlayer.seekTo(s.loopStart, true); shadowYtPlayer.playVideo(); }catch(e){}
+    shadowStartLoopWatch();
+  }
+  shadowUpdateLoopButton(s);
+}
+// ---- Ghi âm bước 4 (tái sử dụng SPEAK_AUDIO_CONSTRAINTS/SPEAK_AUDIO_BITRATE của Luyện nói) — cũng cập
+// nhật DOM trực tiếp thay vì renderContent() để không làm gián đoạn video/vòng lặp đang phát. ----
+function shadowRecordControlsHtml(s){
+  let html = `<div style="display:flex; gap:8px; margin:12px 0;">`;
+  html += !s.recording
+    ? `<button class="form-btn eng-quiz-nextbtn" data-action="shadow-record-start" style="flex:1;">🔴 Bắt đầu ghi âm</button>`
+    : `<button class="form-btn speak-rec-btn recording" data-action="shadow-record-stop" style="flex:1;"><span class="rec-dot"></span> Đang ghi âm — bấm để dừng</button>`;
+  html += `</div>`;
+  if(s.recordingUrl){
+    html += `<audio id="shadow-recording-audio" src="${s.recordingUrl}" style="display:none;"></audio>
+      <button class="form-btn" data-action="shadow-play-recording" style="width:100%;">▶ Nghe lại bản ghi của bạn</button>`;
+  }
+  return html;
+}
+async function shadowStartRecording(){
+  const s = STATE.shadowSession; if(!s || s.recording) return;
+  if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)){
+    showToast('⚠️','Không hỗ trợ ghi âm','Thiết bị/trình duyệt này không hỗ trợ ghi âm (MediaRecorder).');
+    return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS);
+    window.__shadowStream = stream;
+    let mimeType='audio/webm;codecs=opus';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='audio/webm';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='';
+    const rec = new MediaRecorder(stream, mimeType?{mimeType, audioBitsPerSecond:SPEAK_AUDIO_BITRATE}:undefined);
+    const chunks = [];
+    rec.ondataavailable = (ev)=>{ if(ev.data && ev.data.size) chunks.push(ev.data); };
+    rec.onstop = ()=>{
+      const blob = new Blob(chunks, {type: mimeType||'audio/webm'});
+      try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+      window.__shadowStream = null;
+      const cur = STATE.shadowSession;
+      if(cur){
+        if(cur.recordingUrl){ try{ URL.revokeObjectURL(cur.recordingUrl); }catch(e){} }
+        cur.recordingUrl = blob.size ? URL.createObjectURL(blob) : null;
+        cur.recording = false;
+        const ctrEl = document.getElementById('shadow-record-controls');
+        if(ctrEl) ctrEl.innerHTML = shadowRecordControlsHtml(cur);
+      }
+    };
+    window.__shadowRecorder = rec;
+    s.recording = true;
+    rec.start();
+    const ctrEl = document.getElementById('shadow-record-controls');
+    if(ctrEl) ctrEl.innerHTML = shadowRecordControlsHtml(s);
+  }catch(e){
+    showToast('⚠️','Không mở được micro', (e&&e.message)||'Hãy cấp quyền micro cho trình duyệt.');
+  }
+}
+function shadowStopRecording(){
+  try{ if(window.__shadowRecorder && window.__shadowRecorder.state!=='inactive') window.__shadowRecorder.stop(); }catch(e){}
+}
+function shadowPlayRecording(){
+  const audio = document.getElementById('shadow-recording-audio');
+  if(audio){ try{ audio.currentTime=0; audio.play(); }catch(e){} }
+}
+function shadowCleanupMedia(){
+  try{ if(window.__shadowRecorder && window.__shadowRecorder.state!=='inactive') window.__shadowRecorder.stop(); }catch(e){}
+  try{ if(window.__shadowStream) window.__shadowStream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  window.__shadowRecorder = null; window.__shadowStream = null;
+  shadowStopLoop();
+  stopShadowPlayer();
+}
+function shadowRevokeRecordingUrl(){
+  const s = STATE.shadowSession;
+  if(s && s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
+}
+// ---- Vòng luyện tập (4 bước) ----
+function startShadowingSession(id){
+  const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===id);
+  if(!rec) return;
+  navForward();
+  STATE.shadowSession = {vidRecId:id, stage:'listen', loopStart:null, loopEnd:null, looping:false, recording:false, recordingUrl:null};
+  renderContent(); window.scrollTo(0,0);
+}
+function shadowStageNext(){
+  const s = STATE.shadowSession; if(!s) return;
+  const idx = SHADOW_STAGE_ORDER.indexOf(s.stage);
+  if(idx<0 || idx>=SHADOW_STAGE_ORDER.length-1) return;
+  const fromStage = s.stage;
+  shadowStopLoop();
+  s.stage = SHADOW_STAGE_ORDER[idx+1];
+  // Chỉ xóa điểm lặp đã đánh dấu khi RỜI bước "nghe tổng quát" (chưa từng đánh dấu) — giữ nguyên đoạn đã
+  // đánh dấu khi đi từ "shadow chậm" → "shadow tự nhiên" → "ghi âm" vì thường luyện cùng 1 đoạn xuyên suốt.
+  if(fromStage==='listen'){ s.loopStart=null; s.loopEnd=null; }
+  renderContent();
+}
+function shadowStagePrev(){
+  const s = STATE.shadowSession; if(!s) return;
+  const idx = SHADOW_STAGE_ORDER.indexOf(s.stage);
+  if(idx<=0) return;
+  shadowStopLoop();
+  s.stage = SHADOW_STAGE_ORDER[idx-1];
+  renderContent();
+}
+function exitShadowingSession(){
+  shadowCleanupMedia();
+  shadowRevokeRecordingUrl();
+  STATE.shadowSession = null;
+  renderContent();
+  navBack();
+}
+function finishShadowingSession(){
+  const s = STATE.shadowSession; if(!s) return;
+  const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===s.vidRecId);
+  if(rec){ rec.practiceCount = (rec.practiceCount||0)+1; rec.lastPracticedAt = Date.now(); saveSettings(); pushToDrive(); }
+  engGameAddScore(6, 'Luyện tập shadowing — hoàn thành 1 lượt (4 bước)');
+  engGameMarkActivity();
+  showToast('🎉','Hoàn thành lượt shadowing!','Luyện đều mỗi ngày để phản xạ nói tự nhiên hơn nhé.');
+  shadowCleanupMedia();
+  shadowRevokeRecordingUrl();
+  STATE.shadowSession = null;
+  renderContent();
+  navBack();
+}
+function shadowExternalVideoHtml(rec){
+  return `<div class="card" style="padding:14px; text-align:center; margin-bottom:12px;">
+    <a href="${escapeHtml(rec.url)}" target="_blank" rel="noopener" class="form-btn eng-quiz-nextbtn" style="display:inline-block; text-decoration:none;">🔗 Mở video trong tab mới</a>
+    <div style="font-size:10.5px; color:var(--dim2); margin-top:8px; line-height:1.5;">Link này không phải YouTube nên không nhúng trực tiếp được — mở ở tab riêng, tự điều khiển phát/tốc độ/lặp đoạn ở đó, rồi quay lại đây khi sẵn sàng ghi âm.</div>
   </div>`;
+}
+function renderShadowingSession(item){
+  const s = STATE.shadowSession;
+  const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===s.vidRecId);
+  if(!rec){ STATE.shadowSession=null; renderShadowingHome(item); return; }
+  const isYt = !!rec.videoId;
+  const stageIdx = SHADOW_STAGE_ORDER.indexOf(s.stage);
+  const stepLabels = ['1','2','3','4'];
+  const stepsHtml = stepLabels.map((n,i)=>`${i>0?'<div class="shadow-step-line ' + (i<=stageIdx?'done':'') + '"></div>':''}<div class="shadow-step ${i===stageIdx?'active':''} ${i<stageIdx?'done':''}">${n}</div>`).join('');
+  const playerHtml = isYt ? `<div class="video-embed-wrap"><div id="${SHADOW_YT_HOLDER_ID}"></div></div>` : shadowExternalVideoHtml(rec);
+
+  let stageBody = '';
+  if(s.stage==='listen'){
+    stageBody = `<div class="card" style="padding:16px;">
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">🎧 <b style="color:var(--text)">Bước 1 — Nghe tổng quát:</b> Xem/nghe hết video (hoặc đoạn bạn định luyện) một lượt, KHÔNG nhại theo. Mục tiêu: nắm nội dung, nhịp điệu, ngữ điệu tổng thể trước khi bắt chước.</div>
+        ${playerHtml}
+        <button class="form-btn eng-quiz-nextbtn" data-action="shadow-stage-next" style="width:100%; margin-top:4px;">Đã nghe xong → Bước 2</button>
+      </div>`;
+  } else if(s.stage==='slow' || s.stage==='natural'){
+    const isSlow = s.stage==='slow';
+    stageBody = `<div class="card" style="padding:16px;">
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:10px;">🗣️ <b style="color:var(--text)">${isSlow?'Bước 2 — Shadow tốc độ chậm':'Bước 3 — Shadow tốc độ tự nhiên'}:</b> ${isSlow ? 'Đánh dấu 1 đoạn ngắn (10-30 giây) rồi bấm Lặp đoạn — đoạn sẽ tự phát lại liên tục ở tốc độ 0.75x. Nói theo NGAY SAU khi nghe từng cụm từ, tập trung vào ngữ điệu và trọng âm.' : 'Vẫn đoạn đó nhưng ở tốc độ tự nhiên (1x) — nói ĐUỔI THEO gần như đồng thời với người nói, không cần nhìn chữ.'}</div>
+        ${playerHtml}
+        ${isYt ? `<div class="shadow-loop-bar">
+          <button class="form-btn" data-action="shadow-mark-start">⏱ Đánh dấu BẮT ĐẦU</button>
+          <button class="form-btn" data-action="shadow-mark-end">⏱ Đánh dấu KẾT THÚC</button>
+        </div>
+        <div class="shadow-loop-info" id="shadow-loop-info">${shadowLoopInfoText(s)}</div>
+        <button class="form-btn ${s.looping?'shadow-loop-on':''}" data-action="shadow-toggle-loop" style="width:100%; margin-top:8px;" ${(s.loopStart==null||s.loopEnd==null)?'disabled':''}>${s.looping?'⏸ Dừng lặp đoạn':'🔁 Lặp đoạn ('+shadowLoopSpeedLabel(s.stage)+')'}</button>` : ''}
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="form-btn cancel" data-action="shadow-stage-prev" style="flex:1;">← Quay lại</button>
+          <button class="form-btn eng-quiz-nextbtn" data-action="shadow-stage-next" style="flex:2;">${isSlow?'Tiếp → Bước 3':'Tiếp → Bước 4: Ghi âm'}</button>
+        </div>
+      </div>`;
+  } else if(s.stage==='record'){
+    stageBody = `<div class="card" style="padding:16px;">
+        <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:10px;">🎙️ <b style="color:var(--text)">Bước 4 — Ghi âm &amp; tự so sánh:</b> Có thể bật lại Lặp đoạn để vừa nghe vừa ghi âm chính mình shadow theo, sau đó nghe lại bản ghi của bạn ngay sau bản gốc để tự so sánh nhịp điệu, ngữ điệu, độ trôi chảy.</div>
+        ${playerHtml}
+        ${isYt ? `<div class="shadow-loop-bar">
+          <button class="form-btn" data-action="shadow-mark-start">⏱ Đánh dấu BẮT ĐẦU</button>
+          <button class="form-btn" data-action="shadow-mark-end">⏱ Đánh dấu KẾT THÚC</button>
+        </div>
+        <div class="shadow-loop-info" id="shadow-loop-info">${shadowLoopInfoText(s)}</div>
+        <button class="form-btn ${s.looping?'shadow-loop-on':''}" data-action="shadow-toggle-loop" style="width:100%; margin-top:8px;" ${(s.loopStart==null||s.loopEnd==null)?'disabled':''}>${s.looping?'⏸ Dừng lặp đoạn':'🔁 Lặp đoạn ('+shadowLoopSpeedLabel(s.stage)+')'}</button>` : ''}
+        <div id="shadow-record-controls">${shadowRecordControlsHtml(s)}</div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="form-btn cancel" data-action="shadow-stage-prev" style="flex:1;">← Quay lại</button>
+          <button class="form-btn eng-quiz-nextbtn" data-action="shadow-session-finish" style="flex:2;">✅ Hoàn thành lượt luyện này</button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="shadow-session-exit">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
+    <div class="shadow-steps">${stepsHtml}</div>
+    ${stageBody}
+  `;
+  if(isYt) mountShadowPlayer(rec.videoId);
 }
 // ================= THÊM KÊNH YOUTUBE (Luyện nghe): dán link kênh → tự lấy danh sách video mới nhất
 // qua RSS công khai của YouTube (miễn phí, không cần API key). App CHỈ lấy danh sách video (tiêu đề,
@@ -11743,6 +12214,38 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(lvAddSubmitEl){ submitAddListenVideo(); return; }
   const lvDeleteEl = e.target.closest('[data-action="listen-video-delete"]');
   if(lvDeleteEl){ deleteMyListenVideo(lvDeleteEl.getAttribute('data-id')); return; }
+  // ---- Luyện tập shadowing ----
+  const shadowAddOpenEl = e.target.closest('[data-action="shadow-add-open"]');
+  if(shadowAddOpenEl){ navForward(); STATE.addShadowOpen = true; STATE.addShadowError = null; renderContent(); window.scrollTo(0,0); return; }
+  const shadowAddCloseEl = e.target.closest('[data-action="shadow-add-close"]');
+  if(shadowAddCloseEl){ STATE.addShadowOpen = false; renderContent(); navBack(); return; }
+  const shadowAddSubmitEl = e.target.closest('[data-action="shadow-add-submit"]');
+  if(shadowAddSubmitEl){ submitAddShadowingVideo(); return; }
+  const shadowDeleteEl = e.target.closest('[data-action="shadow-delete"]');
+  if(shadowDeleteEl){ deleteShadowingVideo(shadowDeleteEl.getAttribute('data-id')); return; }
+  const shadowStartEl = e.target.closest('[data-action="shadow-start"]');
+  // Nút ✕ (xóa) nằm bên trong thẻ video (thẻ có data-action mở phiên luyện) — né ra như các thẻ video khác.
+  if(shadowStartEl && !e.target.closest('[data-action="shadow-delete"]')){ startShadowingSession(shadowStartEl.getAttribute('data-id')); return; }
+  const shadowSessionExitEl = e.target.closest('[data-action="shadow-session-exit"]');
+  if(shadowSessionExitEl){ exitShadowingSession(); return; }
+  const shadowSessionFinishEl = e.target.closest('[data-action="shadow-session-finish"]');
+  if(shadowSessionFinishEl){ finishShadowingSession(); return; }
+  const shadowStageNextEl = e.target.closest('[data-action="shadow-stage-next"]');
+  if(shadowStageNextEl){ shadowStageNext(); return; }
+  const shadowStagePrevEl = e.target.closest('[data-action="shadow-stage-prev"]');
+  if(shadowStagePrevEl){ shadowStagePrev(); return; }
+  const shadowMarkStartEl = e.target.closest('[data-action="shadow-mark-start"]');
+  if(shadowMarkStartEl){ shadowMarkStart(); return; }
+  const shadowMarkEndEl = e.target.closest('[data-action="shadow-mark-end"]');
+  if(shadowMarkEndEl){ shadowMarkEnd(); return; }
+  const shadowToggleLoopEl = e.target.closest('[data-action="shadow-toggle-loop"]');
+  if(shadowToggleLoopEl){ shadowToggleLoop(); return; }
+  const shadowRecordStartEl = e.target.closest('[data-action="shadow-record-start"]');
+  if(shadowRecordStartEl){ shadowStartRecording(); return; }
+  const shadowRecordStopEl = e.target.closest('[data-action="shadow-record-stop"]');
+  if(shadowRecordStopEl){ shadowStopRecording(); return; }
+  const shadowPlayRecordingEl = e.target.closest('[data-action="shadow-play-recording"]');
+  if(shadowPlayRecordingEl){ shadowPlayRecording(); return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
   if(listenQuizToggleEl){ toggleListenPlayback(); return; }
   const listenQuizSpeedEl = e.target.closest('[data-action="listen-quiz-speed"]');
