@@ -2909,6 +2909,7 @@ function patternTranslate(text, lang){
 }
 
 // ---------------- Core lookup ----------------
+// lang here is always 'en' or 'zh' — nhuaTranslateTextNode/Attrs handle 'vi' (restore-original) separately.
 function nhuaLookup(text, lang){
   const trimmed = text;
   if(D[trimmed]) return lang==='en' ? D[trimmed][0] : D[trimmed][1];
@@ -2918,21 +2919,40 @@ function nhuaLookup(text, lang){
 }
 
 // ---------------- DOM walking ----------------
+// Caches the PRISTINE Vietnamese text/attr value the first time a node is visited, so switching
+// back to 'vi' (or re-translating after a prior EN/ZH pass) always works from the true original
+// instead of whatever text happens to be on the node right now (which may already be translated).
+const nhuaOriginalText = new WeakMap(); // TextNode -> original nodeValue
+const nhuaOriginalAttrs = new WeakMap(); // Element -> { attrName: originalValue }
 const NHUA_ATTRS = ['placeholder','title','aria-label'];
 function nhuaTranslateTextNode(node, lang){
-  const raw = node.nodeValue;
-  if(!raw || !raw.trim()) return;
-  const leading = raw.match(/^\s*/)[0];
-  const trailing = raw.match(/\s*$/)[0];
-  const core = raw.slice(leading.length, raw.length - trailing.length);
-  if(!core) return;
+  let original = nhuaOriginalText.get(node);
+  if(original === undefined){
+    original = node.nodeValue;
+    nhuaOriginalText.set(node, original);
+  }
+  if(!original || !original.trim()){ return; }
+  if(lang==='vi'){ node.nodeValue = original; return; }
+  const leading = original.match(/^\s*/)[0];
+  const trailing = original.match(/\s*$/)[0];
+  const core = original.slice(leading.length, original.length - trailing.length);
+  if(!core){ return; }
   const tr = nhuaLookup(core, lang);
-  if(tr!==null) node.nodeValue = leading + tr + trailing;
+  node.nodeValue = tr!==null ? (leading + tr + trailing) : original;
 }
 function nhuaTranslateAttrs(el, lang){
+  let originals = nhuaOriginalAttrs.get(el);
+  if(!originals){ originals = {}; nhuaOriginalAttrs.set(el, originals); }
   NHUA_ATTRS.forEach(a=>{
-    const v = el.getAttribute && el.getAttribute(a);
-    if(v){ const tr = nhuaLookup(v.trim(), lang); if(tr!==null) el.setAttribute(a, tr); }
+    if(!(a in originals)){
+      const cur = el.getAttribute && el.getAttribute(a);
+      if(cur) originals[a] = cur;
+    }
+    const original = originals[a];
+    if(!original) return;
+    if(lang==='vi'){ el.setAttribute(a, original); return; }
+    const tr = nhuaLookup(original.trim(), lang);
+    el.setAttribute(a, tr!==null ? tr : original);
   });
 }
 let nhuaWalkVisits = 0;
