@@ -265,6 +265,12 @@ table.big .nm{font-weight:800;}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
 .legend .lg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:600;}
 .legend .dot{width:11px;height:11px;border-radius:3px;}
+
+/* ---------- Language switcher ---------- */
+.nhua-lang-row{display:flex;gap:6px;margin-top:10px;}
+.nhua-lang-btn{flex:1;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;
+  border-radius:10px;padding:7px 4px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;}
+.nhua-lang-btn.active{background:#fff;color:var(--ink);border-color:#fff;}
 </style>
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgo8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwQjFGM0EiLz48c3RvcCBvZmZzZXQ9IjAuNiIgc3RvcC1jb2xvcj0iIzBFM0E1RiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzA4OTFCMiIvPgo8L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0idXJsKCNnKSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiM3REQzRkMiIHN0cm9rZS13aWR0aD0iMjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik0yNTYgMTUwIEwzMDAgMjI2IEwyMTIgMjI2IFoiIGZpbGw9IiM3REQzRkMiIHN0cm9rZT0ibm9uZSIvPgo8cGF0aCBkPSJNMzAwIDIyNiBMMzYwIDIyNiBMMzE2IDMwMiIvPgo8cGF0aCBkPSJNMjEyIDIyNiBMMTUyIDIyNiBMMTk2IDMwMiIvPgo8cGF0aCBkPSJNMTk2IDMwMiBMMTUyIDM4MCBMMjQwIDM4MCIgLz4KPHBhdGggZD0iTTMxNiAzMDIgTDM2MCAzODAgTDI3MiAzODAiLz4KPHBhdGggZD0iTTE1MCAzNTUgbC0xNCAyNiBsMzAgNCIgZmlsbD0iIzdERDNGQyIgc3Ryb2tlPSJub25lIi8+CjxwYXRoIGQ9Ik0zNjIgMzU1IGwxNCAyNiBsLTMwIDQiIGZpbGw9IiM3REQzRkMiIHN0cm9rZT0ibm9uZSIvPgo8L2c+CjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiM3REQzRkMiIHN0cm9rZS13aWR0aD0iMTQiIHN0cm9rZS1kYXNoYXJyYXk9IjMwIDI2IiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -277,6 +283,11 @@ table.big .nm{font-weight:800;}
   <a href="index.html" style="display:inline-block; text-decoration:none; color:inherit; font-size:13px; opacity:0.75; margin-bottom:6px;">← Về Hub</a>
   <h1><span class="logo">♻️</span> Bách Khoa Nhựa</h1>
   <div class="sub">Tra cứu · Phân biệt · So sánh 12 loại nhựa phổ biến</div>
+  <div class="nhua-lang-row" id="nhuaLangRow">
+    <button class="nhua-lang-btn" data-nhua-lang="vi">🇻🇳 VI</button>
+    <button class="nhua-lang-btn" data-nhua-lang="en">🇬🇧 EN</button>
+    <button class="nhua-lang-btn" data-nhua-lang="zh">🇨🇳 中文</button>
+  </div>
 </div>
 
 <div class="searchwrap" id="searchWrap">
@@ -412,8 +423,8 @@ const PLASTICS = [
     ],
     recycle: 5,
     videos: [
-      { t: "PET bottle production & properties", u: "https://www.youtube.com/results?search_query=PET+plastic+bottle+properties" },
-      { t: "Nhận biết nhựa PET", u: "https://www.youtube.com/results?search_query=nhựa+PET+là+gì" }
+      { t: "PET bottle production & properties", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhận biết nhựa PET", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "PET plastic bottle clear"
   },
@@ -460,8 +471,8 @@ const PLASTICS = [
     ],
     recycle: 5,
     videos: [
-      { t: "HDPE properties explained", u: "https://www.youtube.com/results?search_query=HDPE+plastic+properties" },
-      { t: "Nhựa HDPE là gì", u: "https://www.youtube.com/results?search_query=nhựa+HDPE+là+gì" }
+      { t: "HDPE properties explained", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa HDPE là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "HDPE milk jug bottle"
   },
@@ -508,8 +519,8 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "PVC manufacturing & uses", u: "https://www.youtube.com/results?search_query=PVC+plastic+manufacturing" },
-      { t: "Nhựa PVC là gì", u: "https://www.youtube.com/results?search_query=nhựa+PVC+là+gì" }
+      { t: "PVC manufacturing & uses", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PVC là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "PVC pipe fittings"
   },
@@ -555,8 +566,8 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "LDPE film & bags", u: "https://www.youtube.com/results?search_query=LDPE+plastic+film" },
-      { t: "Nhựa LDPE là gì", u: "https://www.youtube.com/results?search_query=nhựa+LDPE+là+gì" }
+      { t: "LDPE film & bags", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa LDPE là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "LDPE plastic bag film"
   },
@@ -603,7 +614,7 @@ const PLASTICS = [
     ],
     recycle: 3,
     videos: [
-      { t: "PP polypropylene explained", u: "https://www.youtube.com/results?search_query=polypropylene+PP+plastic" },
+      { t: "PP polypropylene explained", u: "https://www.youtube.com/results?search_query=SANITIZED" },
       { t: "Nhựa PP là gì", u: "https://www.youtube.com/watch?v=xlbdyHQTkjQ" }
     ],
     imgQuery: "polypropylene food container"
@@ -650,8 +661,8 @@ const PLASTICS = [
     ],
     recycle: 1,
     videos: [
-      { t: "Polystyrene & styrofoam", u: "https://www.youtube.com/results?search_query=polystyrene+styrofoam+plastic" },
-      { t: "Nhựa PS là gì", u: "https://www.youtube.com/results?search_query=nhựa+PS+polystyrene+là+gì" }
+      { t: "Polystyrene & styrofoam", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PS là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "polystyrene foam cup tray"
   },
@@ -698,8 +709,8 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "Polycarbonate impact strength", u: "https://www.youtube.com/results?search_query=polycarbonate+impact+strength" },
-      { t: "Nhựa PC polycarbonate", u: "https://www.youtube.com/results?search_query=nhựa+PC+polycarbonate+là+gì" }
+      { t: "Polycarbonate impact strength", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PC polycarbonate", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "polycarbonate water bottle sheet"
   },
@@ -746,7 +757,7 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "ABS plastic properties", u: "https://www.youtube.com/results?search_query=ABS+plastic+properties" },
+      { t: "ABS plastic properties", u: "https://www.youtube.com/results?search_query=SANITIZED" },
       { t: "Phân loại nhựa ABS", u: "https://www.youtube.com/watch?v=S8c2k7wxDu8" }
     ],
     imgQuery: "ABS plastic electronics casing"
@@ -794,8 +805,8 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "Nylon polyamide engineering", u: "https://www.youtube.com/results?search_query=nylon+polyamide+plastic+gear" },
-      { t: "Nhựa PA nylon là gì", u: "https://www.youtube.com/results?search_query=nhựa+PA+nylon+là+gì" }
+      { t: "Nylon polyamide engineering", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PA nylon là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "nylon gear fishing line"
   },
@@ -842,8 +853,8 @@ const PLASTICS = [
     ],
     recycle: 2,
     videos: [
-      { t: "Acrylic PMMA properties", u: "https://www.youtube.com/results?search_query=acrylic+PMMA+plastic+sheet" },
-      { t: "Nhựa Mica acrylic là gì", u: "https://www.youtube.com/results?search_query=nhựa+mica+acrylic+là+gì" }
+      { t: "Acrylic PMMA properties", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa Mica acrylic là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "acrylic PMMA sheet sign"
   },
@@ -890,8 +901,8 @@ const PLASTICS = [
     ],
     recycle: 1,
     videos: [
-      { t: "Polyurethane foam & elastomer", u: "https://www.youtube.com/results?search_query=polyurethane+foam+elastomer" },
-      { t: "Nhựa PU polyurethane là gì", u: "https://www.youtube.com/results?search_query=nhựa+PU+polyurethane+là+gì" }
+      { t: "Polyurethane foam & elastomer", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PU polyurethane là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "polyurethane foam mattress shoe sole"
   },
@@ -937,8 +948,8 @@ const PLASTICS = [
     ],
     recycle: 3,
     videos: [
-      { t: "PLA bioplastic 3D printing", u: "https://www.youtube.com/results?search_query=PLA+bioplastic+3D+printing" },
-      { t: "Nhựa PLA sinh học là gì", u: "https://www.youtube.com/results?search_query=nhựa+PLA+sinh+học+là+gì" }
+      { t: "PLA bioplastic 3D printing", u: "https://www.youtube.com/results?search_query=SANITIZED" },
+      { t: "Nhựa PLA sinh học là gì", u: "https://www.youtube.com/results?search_query=SANITIZED" }
     ],
     imgQuery: "PLA bioplastic straw filament"
   }
@@ -1950,6 +1961,1038 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
  }catch(e){}
 }
+
+</script>
+<script>
+// ==========================================================================
+//  I18N — VI / EN / ZH ngôn ngữ cho Bách Khoa Nhựa
+// ==========================================================================
+const NHUA_LANG_KEY = 'nhua_lang';
+let NHUA_LANG = 'vi';
+try { const s = localStorage.getItem(NHUA_LANG_KEY); if (s && ['vi','en','zh'].includes(s)) NHUA_LANG = s; } catch(e){}
+
+// D["chuỗi tiếng Việt gốc"] = ["English", "中文"]
+const D = {};
+function addD(vi, en, zh){ if(vi) D[vi] = [en, zh]; }
+
+// ---------------- Static UI chrome ----------------
+addD("← Về Hub","← Back to Hub","← 返回中心");
+addD("Bách Khoa Nhựa","Plastics Encyclopedia","塑料百科");
+addD("Tra cứu · Phân biệt · So sánh 12 loại nhựa phổ biến","Look up · Identify · Compare 12 common plastic types","查询 · 识别 · 比较12种常见塑料");
+addD("Tìm loại nhựa, sản phẩm, công dụng...","Search plastic type, product, use...","搜索塑料种类、产品、用途...");
+addD("Nhận biết đúng loại nhựa bạn đang cầm","Correctly identify the plastic you're holding","准确识别您手中的塑料");
+addD("Tra cứu nhanh đặc tính, cách phân biệt bằng mắt – bằng sản phẩm – bằng đốt thử, tiêu chuẩn kiểm nghiệm và mức độ an toàn của từng loại.","Quickly look up properties, how to tell types apart by sight, by product, and by burn test, testing standards, and the safety level of each type.","快速查阅各类塑料的特性、通过外观—产品—燃烧测试进行区分的方法、检测标准以及安全等级。");
+addD("Phân biệt nhựa","Identify plastic","识别塑料");
+addD("So sánh 2 loại","Compare 2 types","比较两种");
+addD("Không tìm thấy loại nhựa phù hợp.","No matching plastic type found.","未找到匹配的塑料类型。");
+addD("Thử từ khoá khác nhé.","Try a different keyword.","请尝试其他关键词。");
+addD("An toàn cao","High safety","高安全性");
+addD("Cần lưu ý","Needs caution","需注意");
+addD("Độc hại cao","High toxicity","高毒性");
+addD("★ = mức độ dễ tái chế","★ = ease of recycling","★ = 可回收程度");
+addD("‹ Quay lại danh sách","‹ Back to list","‹ 返回列表");
+addD("Công cụ phân biệt nhựa","Plastic identification tool","塑料识别工具");
+addD("Công cụ đưa ra phỏng đoán dựa trên đặc điểm bạn chọn. Với sản phẩm tiếp xúc thực phẩm, hãy ưu tiên đọc ký hiệu tam giác (1–7) ở đáy để chắc chắn.","This tool gives a guess based on the characteristics you choose. For products that contact food, always check the triangle symbol (1–7) on the bottom to be certain.","此工具根据您所选的特征给出推测结果。对于接触食品的产品,请优先查看底部三角形标志(1–7)以确认。");
+addD("So sánh 2 loại nhựa","Compare 2 plastic types","比较两种塑料");
+addD("Bảng so sánh tổng hợp","Summary comparison table","综合比较表");
+addD("* Số liệu tham khảo phổ biến trong công nghiệp; có thể thay đổi theo grade nhựa và phụ gia của từng nhà sản xuất. Nhấp tên loại nhựa trong bảng để mở chi tiết.","* Figures are common industry reference values; they may vary by resin grade and additives from each manufacturer. Tap a plastic name in the table to open its details.","* 数据为行业常见参考值,可能因各厂商的树脂等级和添加剂而异。点击表格中的塑料名称可查看详情。");
+addD("Cách phân biệt các loại nhựa","How to tell plastic types apart","如何区分各种塑料");
+addD("Đã lưu","Saved","已收藏");
+addD("Chưa có loại nhựa nào được lưu.","No plastic type saved yet.","尚未收藏任何塑料类型。");
+addD("Mở một loại nhựa và nhấn ngôi sao để lưu.","Open a plastic type and tap the star to save it.","打开一种塑料并点击星标即可收藏。");
+addD("Trang chủ","Home","首页");
+addD("Phân biệt","Identify","识别");
+addD("Cách nhận","How to tell","辨别方法");
+addD("So sánh","Compare","比较");
+addD("Tất cả","All","全部");
+addD("✅ An toàn thực phẩm","✅ Food-safe","✅ 食品安全");
+addD("♻️ Dễ tái chế","♻️ Easy to recycle","♻️ 易回收");
+addD("⚙️ Nhựa kỹ thuật","⚙️ Engineering plastic","⚙️ 工程塑料");
+addD("🛒 Thông dụng","🛒 Common","🛒 常见");
+addD("Tái chế ","Recycling ","回收 ");
+addD("📖 Định nghĩa & đặc điểm","📖 Definition & characteristics","📖 定义与特性");
+addD("👁️ Nhận biết bằng mắt","👁️ Identify by sight","👁️ 目视识别");
+addD("📦 Nhận biết qua sản phẩm","📦 Identify by product","📦 通过产品识别");
+addD("🔥 Nhận biết bằng đốt thử","🔥 Identify by burn test","🔥 通过燃烧测试识别");
+addD("Ngọn lửa & khói:","Flame & smoke:","火焰与烟雾:");
+addD("Thử nổi/chìm trong nước:","Float/sink test in water:","水中浮沉测试:");
+addD("⚠️ Chỉ đốt mẩu nhỏ nơi thoáng khí, tránh xa vật liệu dễ cháy. Không hít trực tiếp khói nhựa.","⚠️ Only burn a small piece in a well-ventilated area, away from flammable materials. Do not inhale plastic smoke directly.","⚠️ 只能在通风处燃烧小块样品,远离易燃物,切勿直接吸入塑料燃烧产生的烟雾。");
+addD("🔬 Đặc tính kỹ thuật","🔬 Technical properties","🔬 技术特性");
+addD("📐 Hình dạng & màu sắc","📐 Shape & color","📐 形状与颜色");
+addD("Hình dạng:","Shape:","形状:");
+addD("Màu sắc:","Color:","颜色:");
+addD("🎯 Mục đích sử dụng","🎯 Uses","🎯 用途");
+addD("🧪 Tiêu chuẩn kiểm nghiệm","🧪 Testing standards","🧪 检测标准");
+addD("Nhấn vào ▾ để xem cách kiểm tra, thiết bị và mẫu thử của từng tiêu chuẩn.","Tap ▾ to see the test method, equipment, and sample for each standard.","点击▾查看每项标准的测试方法、设备和样品。");
+addD("🖼️ Hình ảnh & video minh hoạ","🖼️ Illustrative images & videos","🖼️ 图片与视频");
+addD("Phương pháp","Method","方法");
+addD("Cách kiểm tra","Test procedure","检测方法");
+addD("Đo được gì","What it measures","测量内容");
+addD("Thiết bị","Equipment","设备");
+addD("Mẫu thử","Sample","样品");
+addD("Ghi chú","Note","备注");
+addD("‹ Câu trước","‹ Previous question","‹ 上一题");
+addD("Kết quả phỏng đoán","Guessed result","推测结果");
+addD("↺ Phân biệt lại từ đầu","↺ Start over","↺ 重新识别");
+addD("Ký hiệu RIC","RIC code","RIC 编码");
+addD("Loại","Type","类型");
+addD("Độc hại","Toxicity","毒性");
+addD("Công dụng","Use","用途");
+addD("Mã","Code","编码");
+addD("Tỷ trọng","Density","密度");
+addD("Bền kéo","Tensile strength","拉伸强度");
+addD("Chịu nhiệt","Heat resistance","耐热性");
+addD("Độ trong","Clarity","透明度");
+addD("vs","vs","对比");
+
+// ---------------- Methods view: card headers/subtitles/misc (safe standalone sentences) ----------------
+addD("1. Phân biệt bằng mắt","1. Identify by sight","1. 目视识别");
+addD("Nhanh nhất, không cần dụng cụ","Fastest, no tools needed","最快,无需工具");
+addD("2. Phân biệt qua sản phẩm","2. Identify by product","2. 通过产品识别");
+addD("Dựa vào loại đồ vật thường gặp","Based on the common item type","根据常见物品类型判断");
+addD("Mỗi loại nhựa gắn với nhóm sản phẩm đặc trưng: chai nước trong = PET; chai sữa/can đục = HDPE; ống nước/khung cửa = PVC; túi nilon/màng bọc = LDPE; hộp cơm chịu nhiệt/ống hút = PP; hộp xốp/ly dùng một lần = PS; bình 20L/kính chắn = PC; vỏ thiết bị/đồ chơi lắp ráp = ABS.","Each plastic type is linked to characteristic products: clear water bottles = PET; opaque milk bottles/jugs = HDPE; water pipes/door frames = PVC; plastic bags/cling film = LDPE; heat-resistant lunch boxes/straws = PP; foam boxes/disposable cups = PS; 20L water jugs/windshields = PC; device casings/building-block toys = ABS.","每种塑料都对应特定的产品类别:透明水瓶 = PET;不透明奶瓶/奶壶 = HDPE;水管/门框 = PVC;塑料袋/保鲜膜 = LDPE;耐热饭盒/吸管 = PP;泡沫盒/一次性杯子 = PS;20升水桶/挡风玻璃 = PC;设备外壳/积木玩具 = ABS。");
+addD("3. Phân biệt bằng đốt thử","3. Identify by burn test","3. 通过燃烧测试识别");
+addD("Chính xác hơn — cần cẩn trọng an toàn","More accurate — safety caution needed","更准确 — 需注意安全");
+addD("⚠️ Chỉ thực hiện nơi thoáng khí, tránh xa vật dễ cháy, không hít trực tiếp khói. Đặc biệt cẩn thận với PVC (khói clo độc) và PU (khói isocyanate độc).","⚠️ Only do this in a well-ventilated area, away from flammable items, and do not inhale the smoke directly. Be especially careful with PVC (toxic chlorine smoke) and PU (toxic isocyanate smoke).","⚠️ 只能在通风处操作,远离易燃物,切勿直接吸入烟雾。对PVC(有毒氯气烟雾)和PU(有毒异氰酸酯烟雾)要格外小心。");
+addD("Bảng tra cứu đốt thử nhanh","Quick burn-test reference table","快速燃烧测试参考表");
+addD("Ngọn lửa","Flame","火焰");
+addD("Khói","Smoke","烟雾");
+addD("Mùi","Smell","气味");
+addD("Khi cháy","When burning","燃烧时");
+addD("4. Thử nổi / chìm trong nước","4. Float / sink test in water","4. 水中浮沉测试");
+addD("Phân biệt theo tỷ trọng","Distinguish by density","按密度区分");
+addD("5. Kiểm nghiệm tiêu chuẩn (testing)","5. Standardized testing","5. 标准检测");
+addD("Chính xác nhất — trong phòng thí nghiệm","Most accurate — done in a lab","最精确 — 在实验室进行");
+addD("Video: Thử độ bền kéo ASTM D638","Video: ASTM D638 tensile test","视频:ASTM D638拉伸试验");
+addD("Video: Thử va đập Izod ASTM D256","Video: ASTM D256 Izod impact test","视频:ASTM D256悬臂梁冲击试验");
+addD("Video: Đo chỉ số chảy MFI","Video: Measuring melt flow index","视频:熔体流动速率测定");
+addD("Phân biệt các cặp nhựa hay nhầm lẫn","Telling apart commonly confused plastic pairs","区分容易混淆的塑料对");
+addD("Đây là những cặp nhựa trông giống nhau nhất — bảng dưới chỉ ra dấu hiệu quyết định để phân biệt chính xác.","These are the most visually similar plastic pairs — the table below shows the decisive signs for telling them apart accurately.","这些是外观最相似的塑料对 — 下表列出了准确区分它们的关键特征。");
+addD("Video phân biệt ngoài đời thực","Real-world identification videos","实际识别视频");
+addD("Kênh tiếng Việt & quốc tế","Vietnamese & international channels","越南语及国际频道");
+addD("Chọn bình nhựa an toàn — phân biệt chất liệu","Choosing a safe plastic bottle — identifying material","选择安全塑料瓶 — 识别材质");
+addD("Phân loại nhựa ABS, PP, PVC, TPU, HDPE","Classifying ABS, PP, PVC, TPU, HDPE plastics","ABS、PP、PVC、TPU、HDPE塑料分类");
+addD("Burning check — phân biệt nhựa bằng đốt","Burning check — identifying plastic by burning","燃烧检测 — 通过燃烧识别塑料");
+addD("HTV: Nhận biết mã nhựa tái chế tránh nhiễm độc","HTV: Recognizing recycling codes to avoid contamination","HTV:识别回收编码以避免中毒");
+
+// ---------------- Method paragraph blocks WITH inline <b> tags — translated as full HTML (rendered directly by renderMethods, not via DOM-walk) ----------------
+const METHOD_PARAS = {
+  m1: [
+    `Quan sát <b>độ trong suốt</b> (trong veo, trong mờ, hay đục), <b>độ bóng bề mặt</b>, <b>độ cứng/dẻo</b> khi bóp, và <b>âm thanh</b> khi gõ. Ví dụ: PET trong như thủy tinh và mỏng; HDPE đục và hơi sáp; PP trong mờ và dẻo dai; PS cứng giòn dễ nứt tạo vết trắng.`,
+    `Observe the <b>transparency</b> (clear, translucent, or opaque), <b>surface gloss</b>, <b>hardness/flexibility</b> when squeezed, and the <b>sound</b> when tapped. For example: PET is glass-clear and thin; HDPE is opaque and slightly waxy; PP is translucent and tough; PS is hard, brittle, and cracks with white stress marks.`,
+    `观察<b>透明度</b>(清澈、半透明或不透明)、<b>表面光泽</b>、挤压时的<b>硬度/柔韧性</b>,以及敲击时的<b>声音</b>。例如:PET像玻璃一样透明且薄;HDPE不透明且略带蜡质感;PP半透明且韧性好;PS坚硬易脆,断裂处会出现白色应力痕。`
+  ],
+  m3: [
+    `Đốt một mẩu nhỏ và quan sát <b>màu ngọn lửa</b>, <b>khói</b>, <b>mùi</b> và <b>hành vi khi cháy</b> (nhỏ giọt, tự tắt, sủi bọt). Đây là cách dân trong nghề hay dùng để phân biệt nhanh nhựa phế liệu.`,
+    `Burn a small piece and observe the <b>flame color</b>, <b>smoke</b>, <b>smell</b>, and <b>burning behavior</b> (dripping, self-extinguishing, bubbling). This is a method scrap-trade professionals commonly use to quickly sort plastic scrap.`,
+    `燃烧一小块样品,观察<b>火焰颜色</b>、<b>烟雾</b>、<b>气味</b>以及<b>燃烧时的表现</b>(滴落、自熄、起泡)。这是业内人士常用来快速分拣废塑料的方法。`
+  ],
+  m4: [
+    `<b>Nổi</b> (nhẹ hơn nước): PP, LDPE, HDPE và xốp PS. <b>Chìm</b> (nặng hơn nước): PET, PVC, PS đặc, PC, ABS, PA, PMMA, PLA. Cách này giúp tách nhanh nhóm polyolefin nhẹ (PE/PP) khỏi các nhựa nặng khác.`,
+    `<b>Floats</b> (lighter than water): PP, LDPE, HDPE, and foam PS. <b>Sinks</b> (heavier than water): PET, PVC, solid PS, PC, ABS, PA, PMMA, PLA. This method quickly separates the light polyolefins (PE/PP) from other, heavier plastics.`,
+    `<b>漂浮</b>(比水轻):PP、LDPE、HDPE和泡沫PS。<b>下沉</b>(比水重):PET、PVC、实心PS、PC、ABS、PA、PMMA、PLA。此方法可快速将轻质聚烯烃(PE/PP)与其他较重的塑料区分开。`
+  ],
+  m5: [
+    `Các phòng thí nghiệm xác định chính xác loại và chất lượng nhựa qua thử nghiệm chuẩn: <b>kéo (ASTM D638)</b>, <b>va đập Izod (ASTM D256)</b>, <b>chỉ số chảy MFI (ASTM D1238)</b>, <b>độ cứng Shore (ASTM D2240)</b>, và <b>quang phổ hồng ngoại FTIR</b> để nhận diện thành phần phân tử.`,
+    `Laboratories precisely determine the type and quality of plastic through standard tests: <b>tensile (ASTM D638)</b>, <b>Izod impact (ASTM D256)</b>, <b>melt flow index (ASTM D1238)</b>, <b>Shore hardness (ASTM D2240)</b>, and <b>FTIR infrared spectroscopy</b> to identify the molecular composition.`,
+    `实验室通过标准测试精确确定塑料的种类和质量:<b>拉伸试验(ASTM D638)</b>、<b>悬臂梁冲击试验(ASTM D256)</b>、<b>熔体流动速率(ASTM D1238)</b>、<b>邵氏硬度(ASTM D2240)</b>,以及<b>FTIR红外光谱</b>以识别分子组成。`
+  ]
+};
+function mp(id){ const arr = METHOD_PARAS[id]; if(!arr) return ''; const i = NHUA_LANG==='en'?1:(NHUA_LANG==='zh'?2:0); return arr[i]; }
+
+// ============ PET ============
+addD("Polyethylene Terephthalate","Polyethylene Terephthalate","聚对苯二甲酸乙二醇酯 (PET)");
+addD("An toàn khi dùng đúng cách (dùng 1 lần, ở nhiệt độ thường).","Safe when used correctly (single use, at room temperature).","正确使用时安全(一次性使用,常温下)。");
+addD("Nhựa chai nước trong suốt, nhẹ, dùng một lần phổ biến nhất.","Clear, lightweight bottle plastic, the most common single-use type.","透明、轻便的瓶装水塑料,是最常见的一次性塑料。");
+addD("PET (đôi khi viết PETE) là nhựa nhiệt dẻo thuộc họ polyester, tổng hợp từ axit terephthalic và ethylene glycol. Là polymer bán kết tinh, mạch thẳng chứa vòng thơm, cho độ bền cơ học cao và khả năng chống thấm khí (CO₂, O₂) vượt trội — lý do PET gần như là lựa chọn mặc định cho chai nước ngọt có gas. PET tồn tại ở dạng vô định hình (trong suốt, làm chai) hoặc bán kết tinh (đục, chịu nhiệt hơn — gọi là CPET). Nhược điểm lớn nhất là không chịu nhiệt cao: khi tiếp xúc nước sôi hoặc lò vi sóng, cấu trúc có thể thuỷ phân một phần, giải phóng antimony và biến dạng. Do đó chỉ nên dùng PET một lần, không tái sử dụng để đựng nước nóng hay thực phẩm axit/dầu mỡ nóng.",
+"PET (sometimes written PETE) is a thermoplastic polyester synthesized from terephthalic acid and ethylene glycol. It is a semi-crystalline polymer with a straight chain containing aromatic rings, giving high mechanical strength and outstanding gas barrier properties (CO₂, O₂) — the reason PET is almost the default choice for carbonated soft-drink bottles. PET exists in amorphous form (clear, used for bottles) or semi-crystalline form (opaque, more heat-resistant — called CPET). Its biggest drawback is poor heat resistance: exposure to boiling water or a microwave can partially hydrolyze its structure, releasing antimony and causing deformation. PET should therefore only be used once and never reused to hold hot water or hot acidic/oily food.",
+"PET(有时写作PETE)是一种热塑性聚酯,由对苯二甲酸和乙二醇合成。它是半结晶聚合物,直链结构含有芳香环,具有高机械强度和优异的气体阻隔性能(CO₂、O₂)——这正是PET几乎成为碳酸饮料瓶首选材料的原因。PET存在无定形态(透明,用于制瓶)和半结晶态(不透明,更耐热——称为CPET)两种形式。其最大缺点是不耐高温:接触沸水或微波炉加热时,结构可能部分水解,释放锑并发生变形。因此PET只应使用一次,不可重复用于盛装热水或高温酸性/油性食品。");
+addD("Trong suốt như thủy tinh, bề mặt bóng, cầm nhẹ tay.","Glass-clear and transparent, glossy surface, light in hand.","像玻璃一样透明,表面光滑,手感轻盈。");
+addD("Đáy chai thường có một chấm tròn nhỏ (vết bơm phôi) đặc trưng.","The bottle bottom usually has a small round dot (a preform injection mark).","瓶底通常有一个特征性的小圆点(注塑痕迹)。");
+addD("Bóp nhẹ kêu lách tách, có độ cứng giòn hơn so với chai HDPE.","Squeezing it makes a crackling sound; it's stiffer and more brittle than an HDPE bottle.","轻捏时会发出咔嚓声,比HDPE瓶更硬更脆。");
+addD("Rất mỏng nhưng vẫn giữ form; nhìn xuyên thấu rõ nội dung bên trong.","Very thin yet holds its shape; you can clearly see through to the contents.","非常薄但仍能保持形状;可以清楚看到内部的内容物。");
+addD("Chai nước suối, chai nước ngọt có gas.","Mineral water bottles, carbonated soft-drink bottles.","矿泉水瓶、碳酸饮料瓶。");
+addD("Chai dầu ăn, chai nước trái cây, lọ đựng gia vị trong.","Cooking oil bottles, fruit juice bottles, clear condiment jars.","食用油瓶、果汁瓶、透明调味料罐。");
+addD("Vỉ/khay nhựa trong đựng bánh, trái cây trong siêu thị.","Clear plastic blister packs/trays for pastries and fruit in supermarkets.","超市中用于糕点、水果的透明塑料吸塑盒/托盘。");
+addD("Sợi polyester trong quần áo, ruột gối, chăn bông.","Polyester fiber in clothing, pillow filling, and quilts.","服装中的聚酯纤维、枕芯、棉被。");
+addD("Cháy dễ, ngọn lửa màu vàng, có muội đen nhẹ; mùi hơi ngọt giống mùi giấy cháy. Khi cháy nhỏ giọt.","Burns easily with a yellow flame and light black soot; a faintly sweet smell like burning paper. Drips while burning.","易燃,火焰呈黄色,有轻微黑烟;气味略甜似烧纸味。燃烧时会滴落。");
+addD("Chìm trong nước (1,38–1,40 g/cm³ — nặng hơn nước).","Sinks in water (1.38–1.40 g/cm³ — heavier than water).","沉入水中(1.38–1.40 g/cm³ — 比水重)。");
+addD("Chai nước uống, chai nước ngọt có gas, chai dầu ăn, hộp đựng thực phẩm, sợi polyester dệt may, dây đai đóng gói.","Drinking water bottles, carbonated soft-drink bottles, cooking-oil bottles, food containers, polyester textile fiber, packaging straps.","饮用水瓶、碳酸饮料瓶、食用油瓶、食品容器、聚酯纺织纤维、包装捆扎带。");
+addD("Chai nước suối","Mineral water bottle","矿泉水瓶");
+addD("Chai nước ngọt","Soft-drink bottle","碳酸饮料瓶");
+addD("Hộp salad","Salad container","沙拉盒");
+addD("Vỉ trái cây","Fruit blister tray","水果吸塑盒");
+addD("Áo thun polyester","Polyester T-shirt","聚酯T恤");
+addD("Chai/lọ thổi (blow-mold), sợi (fiber), tấm màng mỏng, khay CPET chịu nhiệt.","Blow-molded bottles/jars, fiber, thin film sheets, heat-resistant CPET trays.","吹塑瓶/罐、纤维、薄膜片材、耐热CPET托盘。");
+addD("Trong suốt tự nhiên; có thể nhuộm xanh dương, xanh lá nhạt, hổ phách.","Naturally clear; can be tinted blue, light green, or amber.","天然透明;可染成蓝色、浅绿色、琥珀色。");
+
+// ============ HDPE ============
+addD("High-Density Polyethylene","High-Density Polyethylene","高密度聚乙烯 (HDPE)");
+addD("Một trong những loại nhựa an toàn nhất, không chứa BPA.","One of the safest plastics, BPA-free.","是最安全的塑料之一,不含双酚A(BPA)。");
+addD("Nhựa đục, cứng, bền — chai sữa, can, ống nước.","Opaque, hard, durable plastic — milk bottles, jugs, water pipes.","不透明、坚硬、耐用的塑料 — 奶瓶、桶、水管。");
+addD("HDPE là polyethylene mật độ cao (≥0,941 g/cm³), trùng hợp ở áp suất thấp với xúc tác Ziegler-Natta. Mạch phân tử gần như thẳng, ít nhánh, kết tinh cao (60–80%) nên cứng, bền kéo và kháng hoá chất tốt hơn LDPE. HDPE trơ hoá học, không phản ứng với axit/kiềm/dung môi ở nhiệt độ thường, không chứa BPA hay phthalates — được xem là an toàn hàng đầu cho bao bì thực phẩm và đồ dùng trẻ em. Bề mặt đục mờ đặc trưng, chịu va đập và chịu lạnh tốt (vẫn dẻo dưới 0°C). Là một trong bốn loại nhựa (cùng PET, LDPE, PP) có hệ thống tái chế hiệu quả nhất thế giới.",
+"HDPE is high-density polyethylene (≥0.941 g/cm³), polymerized at low pressure with a Ziegler-Natta catalyst. Its molecular chain is nearly straight with few branches and high crystallinity (60–80%), making it harder, stronger in tension, and more chemically resistant than LDPE. HDPE is chemically inert, does not react with acids/bases/solvents at room temperature, and contains no BPA or phthalates — considered one of the safest plastics for food packaging and children's items. It has a characteristic opaque matte surface, good impact resistance, and good cold tolerance (stays flexible below 0°C). It's one of four plastics (along with PET, LDPE, PP) with the most effective recycling systems in the world.",
+"HDPE是高密度聚乙烯(≥0.941 g/cm³),在低压下用齐格勒-纳塔催化剂聚合而成。其分子链几乎呈直线状,支链少,结晶度高(60–80%),因此比LDPE更硬、拉伸强度更高、耐化学性更好。HDPE化学性质稳定,在常温下不与酸/碱/溶剂反应,不含双酚A或邻苯二甲酸盐——被认为是食品包装和儿童用品中最安全的塑料之一。其特征是表面不透明呈哑光状,抗冲击性好,耐低温性好(0°C以下仍保持柔韧)。它是全球回收系统最有效的四种塑料之一(与PET、LDPE、PP并列)。");
+addD("Màu trắng đục hoặc màu đặc (không nhìn xuyên rõ).","Opaque white or solid colors (cannot see through clearly).","呈乳白色或纯色(无法透视)。");
+addD("Sờ vào có cảm giác hơi sáp (waxy), bề mặt mờ chứ không bóng loáng.","Feels slightly waxy to the touch; surface is matte, not glossy.","触感略带蜡质感,表面呈哑光而非光亮。");
+addD("Cứng và dày hơn PET, bóp không dễ móp, bật lại tốt.","Harder and thicker than PET; doesn't dent easily and springs back well.","比PET更硬更厚,不易被捏凹,回弹性好。");
+addD("Thường thấy ở chai/can có tay cầm, thành dày.","Commonly seen in bottles/jugs with handles and thick walls.","常见于带把手、壁厚的瓶/桶。");
+addD("Chai sữa tươi, sữa chua uống (thành đục).","Fresh-milk bottles, drinkable yogurt bottles (opaque walls).","鲜奶瓶、可饮用酸奶瓶(不透明瓶壁)。");
+addD("Can/chai dầu gội, nước rửa chén, chất tẩy rửa.","Shampoo, dish-soap, and detergent bottles/jugs.","洗发水、洗洁精、清洁剂的瓶/桶。");
+addD("Thùng phuy, thùng rác, két nhựa, thớt nhựa dày.","Drums, trash bins, plastic crates, thick cutting boards.","油桶、垃圾桶、塑料箱、厚砧板。");
+addD("Ống nước HDPE màu đen, đồ chơi trẻ em cứng.","Black HDPE water pipes, hard children's toys.","黑色HDPE水管、儿童硬质玩具。");
+addD("Cháy dễ, ngọn lửa xanh có đầu vàng, ít khói; mùi giống sáp nến/parafin. Nhỏ giọt khi cháy, tiếp tục cháy sau khi rời lửa.","Burns easily with a blue flame tipped yellow, little smoke; smells like candle wax/paraffin. Drips while burning and keeps burning after the flame source is removed.","易燃,火焰呈蓝色带黄色顶端,烟少;气味似蜡烛/石蜡。燃烧时滴落,离开火源后仍继续燃烧。");
+addD("Nổi trong nước (0,941–0,965 g/cm³ — nhẹ hơn nước).","Floats in water (0.941–0.965 g/cm³ — lighter than water).","漂浮在水中(0.941–0.965 g/cm³ — 比水轻)。");
+addD("Chai sữa, can dầu ăn, chai hoá mỹ phẩm, ống nước HDPE, thùng rác, đồ chơi trẻ em.","Milk bottles, cooking-oil jugs, cosmetic/chemical bottles, HDPE water pipes, trash bins, children's toys.","奶瓶、食用油桶、化妆品/日化瓶、HDPE水管、垃圾桶、儿童玩具。");
+addD("Chai sữa tươi","Fresh-milk bottle","鲜奶瓶");
+addD("Can dầu gội","Shampoo bottle","洗发水瓶");
+addD("Thùng phuy nhựa","Plastic drum","塑料油桶");
+addD("Ống nước","Water pipe","水管");
+addD("Thớt nhựa","Plastic cutting board","塑料砧板");
+addD("Chai/can thổi, ống cứng, tấm, màng dệt (woven).","Blow-molded bottles/jugs, rigid pipe, sheet, woven film.","吹塑瓶/桶、硬管、板材、编织膜。");
+addD("Trắng đục tự nhiên; dễ nhuộm nhiều màu (đen, xanh, đỏ...).","Naturally opaque white; easy to dye various colors (black, blue, red, etc.).","天然乳白色;易染成多种颜色(黑、蓝、红等)。");
+
+// ============ PVC ============
+addD("Polyvinyl Chloride","Polyvinyl Chloride","聚氯乙烯 (PVC)");
+addD("Chứa phụ gia nguy cơ; tránh đựng thực phẩm nóng, không đốt.","Contains risky additives; avoid hot food contact, do not burn.","含有风险添加剂;避免接触热食,切勿焚烧。");
+addD("Nhựa xây dựng: ống nước, khung cửa, dây điện — cứng hoặc dẻo.","Construction plastic: water pipes, door frames, wiring — rigid or flexible.","建筑用塑料:水管、门框、电线 — 硬质或软质。");
+addD("PVC là nhựa nhiệt dẻo gốc clo, trùng hợp từ vinyl chloride monomer. Mạch chứa clo phân cực nên PVC nguyên chất cứng, giòn. Để tạo hai dạng phổ biến — PVC cứng (uPVC: ống, khung cửa) và PVC dẻo (dây điện, màng bọc, đồ chơi mềm) — cần thêm nhiều phụ gia hoá dẻo (phthalates), chất ổn định nhiệt (đôi khi gốc chì/cadmium) và chất tạo màu. Các phụ gia này là nguồn lo ngại: một số có thể thôi nhiễm khi tiếp xúc thực phẩm nóng/dầu mỡ, và khi đốt sinh dioxin/furan cực độc. Ưu điểm: chống cháy tự nhiên (hàm lượng clo cao), kháng hoá chất và thời tiết tốt, giá rẻ — nên rất phổ biến trong xây dựng dù khó tái chế.",
+"PVC is a chlorine-based thermoplastic polymerized from vinyl chloride monomer. Its chain contains polar chlorine, so pure PVC is hard and brittle. To make the two common forms — rigid PVC (uPVC: pipes, door frames) and flexible PVC (wiring, film, soft toys) — many plasticizer additives (phthalates), heat stabilizers (sometimes lead/cadmium-based), and colorants must be added. These additives are a source of concern: some can leach out on contact with hot or oily food, and burning PVC produces extremely toxic dioxins/furans. Advantages: naturally flame-retardant (high chlorine content), good chemical and weather resistance, and low cost — making it very common in construction despite being hard to recycle.",
+"PVC是一种以氯为基础的热塑性聚合物,由氯乙烯单体聚合而成。其分子链含有极性氯原子,因此纯PVC坚硬易脆。为制成两种常见形式——硬质PVC(uPVC:管材、门框)和软质PVC(电线、薄膜、软玩具)——需要添加大量增塑剂(邻苯二甲酸盐)、热稳定剂(有时含铅/镉)和着色剂。这些添加剂令人担忧:部分成分在接触热食或油脂时可能析出,燃烧时会产生剧毒的二噁英/呋喃。优点:天然阻燃(氯含量高)、耐化学性和耐候性好、价格低廉——因此在建筑行业非常常见,尽管难以回收。");
+addD("Ống nước thường màu trắng ngà, xám hoặc xanh dương, cứng.","Water pipes are usually ivory-white, gray, or blue, and rigid.","水管通常呈米白色、灰色或蓝色,质地坚硬。");
+addD("Dạng dẻo (màng bọc, áo mưa) trong mờ, mềm dai, hơi dính tay.","The flexible form (cling film, raincoats) is translucent, soft and pliable, slightly tacky to the touch.","软质形态(保鲜膜、雨衣)呈半透明状,柔软有韧性,手感略黏。");
+addD("Nặng tay hơn PE/PP cùng kích thước (chìm nhanh trong nước).","Heavier in hand than PE/PP of the same size (sinks quickly in water).","同等大小下比PE/PP更沉手(在水中迅速下沉)。");
+addD("Bề mặt cứng gõ nghe 'cạch cạch' đanh (dạng ống).","The rigid surface makes a hard 'clack' sound when tapped (pipe form).","坚硬表面敲击时发出清脆的'咔嗒'声(管材形态)。");
+addD("Ống cấp/thoát nước PVC, phụ kiện ống (co, tê, măng sông).","PVC water-supply/drainage pipes, pipe fittings (elbows, tees, couplings).","PVC给排水管、管件(弯头、三通、套管)。");
+addD("Khung cửa nhựa lõi thép, tấm ốp trần, la-phông.","Steel-core plastic door frames, ceiling panels.","钢芯塑料门框、天花板吊顶板。");
+addD("Dây điện bọc nhựa, ống ghen luồn dây điện.","Plastic-insulated electrical wire, electrical conduit.","塑料绝缘电线、电线穿线管。");
+addD("Màng bọc thực phẩm dẻo, áo mưa, bạt, thẻ nhựa (thẻ ATM).","Flexible food cling film, raincoats, tarpaulins, plastic cards (ATM cards).","软质食品保鲜膜、雨衣、篷布、塑料卡(如ATM卡)。");
+addD("Khó cháy, rời lửa là tự tắt; ngọn lửa vàng-xanh có khói trắng; mùi hắc như clo/axit. Đầu que cháy có thể chuyển đen.","Hard to ignite, self-extinguishes when removed from flame; yellow-green flame with white smoke; a pungent smell like chlorine/acid. The burnt tip may turn black.","不易燃,离开火源即自熄;火焰呈黄绿色并伴有白烟;气味刺鼻似氯气/酸味。燃烧端可能变黑。");
+addD("Chìm nhanh trong nước (1,30–1,45 g/cm³).","Sinks quickly in water (1.30–1.45 g/cm³).","在水中迅速下沉(1.30–1.45 g/cm³)。");
+addD("Ống nước, khung cửa nhựa lõi thép, dây điện, sàn nhựa, màng bọc, đồ chơi mềm, thẻ nhựa.","Water pipes, steel-core plastic door frames, electrical wire, vinyl flooring, cling film, soft toys, plastic cards.","水管、钢芯塑料门框、电线、塑胶地板、保鲜膜、软玩具、塑料卡。");
+addD("Ống PVC","PVC pipe","PVC管");
+addD("Cửa nhựa lõi thép","Steel-core plastic door","钢芯塑料门");
+addD("Dây điện bọc nhựa","Plastic-insulated wire","塑料绝缘电线");
+addD("Tấm biển quảng cáo","Advertising signboard","广告牌板材");
+addD("Ống, tấm, profile định hình, màng, dây bọc cách điện.","Pipe, sheet, extruded profiles, film, insulated wire coating.","管材、板材、异型材、薄膜、绝缘电线包覆层。");
+addD("Trắng, xám, xanh dương (ống); trong hoặc màu tuỳ ý (dẻo).","White, gray, blue (pipes); clear or any color (flexible form).","白色、灰色、蓝色(管材);透明或任意颜色(软质形态)。");
+
+// ============ LDPE ============
+addD("Low-Density Polyethylene","Low-Density Polyethylene","低密度聚乙烯 (LDPE)");
+addD("Tương đối an toàn nhưng không nên dùng ở nhiệt độ cao.","Relatively safe but should not be used at high temperatures.","相对安全,但不宜在高温下使用。");
+addD("Nhựa túi nilon, màng bọc — mềm, dẻo, dai.","Plastic bags and cling film — soft, flexible, tough.","塑料袋、保鲜膜用塑料 — 柔软、有弹性、韧性好。");
+addD("LDPE là polyethylene mật độ thấp (0,910–0,940 g/cm³), sản xuất bằng trùng hợp gốc tự do ở áp suất rất cao. Mạch phân nhánh nhiều nên kết tinh thấp (45–55%), cho vật liệu mềm dẻo, dai, trong mờ và co giãn tốt. LDPE trơ hoá học như HDPE nhưng độ bền và chịu nhiệt thấp hơn (nóng chảy 105–115°C) nên không nên dùng trong lò vi sóng. Ưu điểm lớn là tạo được màng cực mỏng mà vẫn bền xé và kín khí — vật liệu chủ lực cho bao bì màng mỏng. Nhược điểm: nhẹ, cồng kềnh nên thu gom và tái chế túi nilon kém hiệu quả.",
+"LDPE is low-density polyethylene (0.910–0.940 g/cm³), produced by free-radical polymerization at very high pressure. Its chain is heavily branched, giving low crystallinity (45–55%) and a material that is soft, tough, translucent, and highly stretchable. LDPE is chemically inert like HDPE but has lower strength and heat resistance (melts at 105–115°C), so it should not be used in microwaves. Its main advantage is that it can form extremely thin films that are still tear-resistant and airtight — making it the go-to material for film packaging. Downside: it's light and bulky, so collecting and recycling plastic bags is relatively inefficient.",
+"LDPE是低密度聚乙烯(0.910–0.940 g/cm³),通过高压自由基聚合法生产。其分子链支链较多,结晶度较低(45–55%),因此材料柔软、有韧性、半透明且延展性好。LDPE与HDPE一样化学性质稳定,但强度和耐热性较低(熔点105–115°C),因此不宜用于微波炉。其最大优点是能制成极薄的薄膜,同时仍具备良好的抗撕裂性和气密性——是薄膜类包装的主力材料。缺点:质轻体积大,因此塑料袋的回收和再利用效率较低。");
+addD("Túi/màng mềm, trong mờ, nhăn dễ, kéo giãn được rồi mới rách.","Soft bags/film, translucent, wrinkles easily, stretches before tearing.","袋子/薄膜柔软,半透明,易起皱,拉伸后才会撕裂。");
+addD("Sờ mềm mại, hơi có cảm giác sáp, không giòn.","Soft to the touch, slightly waxy feel, not brittle.","触感柔软,略带蜡质感,不脆。");
+addD("Bóp nhàu rồi thả ra không tự bung về hình cũ (khác PP).","Once crumpled and released, it doesn't spring back to its original shape (unlike PP).","揉皱后松开不会自动恢复原状(与PP不同)。");
+addD("Chai bóp (lọ nước rửa) mềm, ấn lõm dễ.","Squeeze bottles (wash liquid bottles) are soft and easily dented.","软性挤压瓶(洗涤剂瓶)容易被按凹。");
+addD("Túi nilon siêu thị, túi đựng rác, túi zip.","Supermarket plastic bags, trash bags, zip-lock bags.","超市塑料袋、垃圾袋、密封袋。");
+addD("Màng bọc thực phẩm PE, màng chít pallet.","PE food wrap film, pallet stretch wrap.","PE食品保鲜膜、托盘缠绕膜。");
+addD("Chai bóp mềm (mật ong, nước rửa), lọ đựng mỹ phẩm bóp.","Soft squeeze bottles (honey, cleaning liquid), squeezable cosmetic bottles.","软性挤压瓶(蜂蜜、洗涤剂)、可挤压化妆品瓶。");
+addD("Bao bì hàng đông lạnh, túi đựng bánh mì.","Frozen-food packaging, bread bags.","冷冻食品包装、面包袋。");
+addD("Cháy dễ, ngọn lửa xanh đầu vàng; mùi sáp nến giống HDPE nhưng nhẹ hơn. Nhỏ giọt, cháy tiếp sau khi rời lửa.","Burns easily with a blue flame tipped yellow; a candle-wax smell like HDPE but lighter. Drips and keeps burning after the flame source is removed.","易燃,火焰呈蓝色带黄色顶端;气味似蜡烛,比HDPE更淡。滴落,离开火源后继续燃烧。");
+addD("Nổi trong nước (0,910–0,940 g/cm³ — nhẹ nhất trong nhóm PE).","Floats in water (0.910–0.940 g/cm³ — the lightest in the PE family).","漂浮在水中(0.910–0.940 g/cm³ — PE家族中最轻的)。");
+addD("Túi nilon, màng bọc thực phẩm, túi zip, bao bì hàng đông lạnh, chai bóp.","Plastic bags, food cling film, zip-lock bags, frozen-food packaging, squeeze bottles.","塑料袋、食品保鲜膜、密封袋、冷冻食品包装、挤压瓶。");
+addD("Túi siêu thị","Supermarket bag","超市购物袋");
+addD("Màng bọc PE","PE cling film","PE保鲜膜");
+addD("Túi đựng rác","Trash bag","垃圾袋");
+addD("Bao bì may mặc","Garment packaging","服装包装袋");
+addD("Màng mỏng (film), túi, chai bóp mềm, lớp phủ.","Thin film, bags, soft squeeze bottles, coatings.","薄膜、袋子、软性挤压瓶、涂层。");
+addD("Trong mờ tự nhiên; dễ in màu.","Naturally translucent; easy to print colors on.","天然半透明;易于印刷上色。");
+
+// ============ PP ============
+addD("Polypropylene","Polypropylene","聚丙烯 (PP)");
+addD("An toàn nhất cho thực phẩm — chịu nhiệt, quay lò vi sóng được.","The safest for food — heat-resistant, microwave-safe.","对食品最安全 — 耐热,可用于微波炉。");
+addD("Nhựa hộp cơm chịu nhiệt, ống hút, nắp chai.","Heat-resistant lunch-box plastic, straws, bottle caps.","耐热饭盒塑料、吸管、瓶盖。");
+addD("PP là nhựa nhiệt dẻo họ polyolefin, trùng hợp từ propylene. Đặc tính nổi bật nhất là chịu mỏi cực tốt — gập đi gập lại hàng chục nghìn lần tại một điểm (bản lề sống) mà không gãy, nên dùng làm nắp hộp có bản lề liền. Nhiệt độ nóng chảy cao (160–170°C) giúp PP là loại nhựa phổ thông duy nhất quay lò vi sóng và rửa máy rửa chén an toàn. PP trơ hoá học, không chứa BPA, được xem là một trong những lựa chọn an toàn nhất cho hộp thực phẩm và bình sữa. Nhược điểm: độ cứng và độ trong kém hơn PET, dễ oxy hoá dưới tia UV nếu thiếu phụ gia ổn định.",
+"PP is a polyolefin thermoplastic polymerized from propylene. Its standout property is excellent fatigue resistance — it can be flexed tens of thousands of times at the same point (a living hinge) without breaking, which is why it's used for hinged box lids. Its high melting point (160–170°C) makes PP the only common plastic that is both microwave-safe and dishwasher-safe. PP is chemically inert, BPA-free, and considered one of the safest choices for food containers and baby bottles. Downsides: it's less rigid and less clear than PET, and can oxidize under UV light if it lacks stabilizing additives.",
+"PP是一种聚烯烃类热塑性塑料,由丙烯聚合而成。其最突出的特性是极佳的抗疲劳性能——同一点可反复弯折数万次(整体铰链)而不断裂,因此常用于制作一体式铰链盒盖。其熔点较高(160–170°C),使PP成为唯一可安全用于微波炉加热和洗碗机清洗的常见塑料。PP化学性质稳定,不含双酚A,被认为是食品容器和奶瓶最安全的选择之一。缺点:硬度和透明度不如PET,若缺乏稳定剂添加剂,在紫外线下容易氧化。");
+addD("Trong mờ hoặc đục, bề mặt bóng mượt hơn PE.","Translucent or opaque, with a smoother, glossier surface than PE.","半透明或不透明,表面比PE更光滑亮泽。");
+addD("Cứng nhưng vẫn dẻo — bẻ gập bản lề không gãy, bật lại tốt.","Rigid yet flexible — a hinge can be folded without breaking and springs back well.","坚硬但仍具韧性 — 铰链反复弯折不断裂,回弹性好。");
+addD("Gõ vào nghe thanh, âm cao hơn PE.","Makes a clear, higher-pitched sound than PE when tapped.","敲击时声音清脆,音调比PE高。");
+addD("Nắp chai vặn thường làm bằng PP (có bản lề hoặc ren).","Screw-on bottle caps are usually made of PP (hinged or threaded).","旋盖瓶盖通常由PP制成(带铰链或螺纹)。");
+addD("Hộp cơm/hộp đựng thực phẩm ghi 'microwave safe'.","Lunch boxes/food containers labeled 'microwave safe'.","标有'可微波'字样的饭盒/食品容器。");
+addD("Ống hút, nắp chai nước, nắp lọ có bản lề.","Straws, water-bottle caps, hinged jar lids.","吸管、瓶盖、带铰链的罐盖。");
+addD("Ghế nhựa, rổ rá, xô chậu, thau nhựa.","Plastic chairs, baskets, buckets, basins.","塑料椅、篮筐、水桶、塑料盆。");
+addD("Bao dệt PP (bao đựng gạo), thảm nhựa, khẩu trang không dệt.","Woven PP sacks (rice bags), plastic mats, non-woven face masks.","PP编织袋(米袋)、塑料地垫、无纺布口罩。");
+addD("Cháy dễ, ngọn lửa xanh đầu vàng; mùi giống dầu/sáp nhưng hắc nhẹ hơn PE. Nhỏ giọt trong, cháy tiếp sau khi rời lửa.","Burns easily with a blue flame tipped yellow; smells like oil/wax but slightly more pungent than PE. Drips clear and keeps burning after the flame source is removed.","易燃,火焰呈蓝色带黄色顶端;气味似油/蜡,但比PE略刺鼻。滴落透明液滴,离开火源后继续燃烧。");
+addD("Nổi trong nước (0,895–0,920 g/cm³ — nhẹ nhất trong các nhựa thông dụng).","Floats in water (0.895–0.920 g/cm³ — the lightest among common plastics).","漂浮在水中(0.895–0.920 g/cm³ — 常见塑料中最轻)。");
+addD("Hộp thực phẩm dùng lò vi sóng, ống hút, nắp chai, bao bì dệt, nội thất nhựa, linh kiện ô tô.","Microwave-safe food containers, straws, bottle caps, woven packaging, plastic furniture, automotive parts.","可微波食品容器、吸管、瓶盖、编织包装、塑料家具、汽车零件。");
+addD("Hộp cơm PP","PP lunch box","PP饭盒");
+addD("Ống hút","Straw","吸管");
+addD("Ghế nhựa","Plastic chair","塑料椅");
+addD("Bao bì bánh kẹo","Snack/candy packaging","糖果零食包装");
+addD("Thảm trải sàn","Floor mat","地垫");
+addD("Hộp đúc phun, ống hút, sợi dệt (nonwoven), nắp chai, tấm danpla.","Injection-molded containers, straws, nonwoven fiber, bottle caps, corrugated plastic sheets.","注塑容器、吸管、无纺布纤维、瓶盖、中空塑料板。");
+addD("Trắng trong tự nhiên; nhuộm màu đa dạng.","Naturally translucent white; dyed in a wide variety of colors.","天然呈半透明白色;可染成多种颜色。");
+
+// ============ PS ============
+addD("Polystyrene","Polystyrene","聚苯乙烯 (PS)");
+addD("Thôi nhiễm styrene khi gặp nhiệt/dầu mỡ nóng — tránh đựng đồ nóng.","Leaches styrene when exposed to heat/hot oil — avoid hot contents.","接触高温/热油时会析出苯乙烯 — 避免盛装热食。");
+addD("Nhựa hộp xốp, ly nhựa dùng một lần — rẻ, nhẹ, giòn.","Foam-box and disposable-cup plastic — cheap, light, brittle.","泡沫盒、一次性杯子用塑料 — 便宜、轻便、易脆。");
+addD("PS trùng hợp từ styrene, có vòng benzen gắn bên nên cứng, giòn, trong suốt ở dạng nguyên chất (GPPS). Pha cao su polybutadiene tạo HIPS — đục nhưng dẻo dai hơn (vỏ thiết bị, đồ chơi). Dạng bọt (foam) rất phổ biến: EPS (xốp hạt — hộp xốp, chống sốc) và XPS (xốp đùn — tấm cách nhiệt). Bọt khí chiếm 95–98% thể tích nên cực nhẹ và cách nhiệt tốt. Về an toàn, PS có thể thôi nhiễm styrene (chất nghi gây ung thư ở liều cao) khi tiếp xúc thực phẩm nóng, dầu mỡ, axit/cồn — không nên dùng hộp xốp đựng canh nóng hay đồ chiên. Rất khó tái chế, dễ vỡ vụn thành vi nhựa.",
+"PS is polymerized from styrene, whose pendant benzene ring makes it hard, brittle, and transparent in its pure form (GPPS). Blending in polybutadiene rubber creates HIPS — opaque but tougher (device casings, toys). Foam forms are very common: EPS (bead foam — foam boxes, shock protection) and XPS (extruded foam — insulation boards). Air bubbles make up 95–98% of the volume, making it extremely light and a good insulator. Regarding safety, PS can leach styrene (suspected carcinogen at high doses) when in contact with hot food, oil, acid, or alcohol — foam boxes should not be used for hot soup or fried food. It's very hard to recycle and easily crumbles into microplastics.",
+"PS由苯乙烯聚合而成,其侧链苯环使纯品(GPPS)呈坚硬、易脆、透明状态。加入聚丁二烯橡胶可制成HIPS——不透明但韧性更好(用于设备外壳、玩具)。泡沫形态非常常见:EPS(珠粒发泡——泡沫盒、防震材料)和XPS(挤出发泡——保温板)。气泡占体积的95–98%,因此极轻且保温性好。在安全性方面,PS接触热食、油脂、酸/酒精时可能析出苯乙烯(高剂量下疑似致癌物)——不应用泡沫盒盛装热汤或油炸食品。PS很难回收,容易碎裂成微塑料。");
+addD("Dạng xốp: trắng, siêu nhẹ, bóp nghe 'kít kít', dễ vỡ vụn.","Foam form: white, ultra-light, makes a squeaking sound when squeezed, crumbles easily.","泡沫形态:白色,超轻,挤压时发出'吱吱'声,容易碎裂。");
+addD("Dạng cứng trong (GPPS): trong veo nhưng giòn, gõ nghe 'coong', dễ nứt.","Clear rigid form (GPPS): crystal-clear but brittle, makes a 'clink' sound when tapped, cracks easily.","透明硬质形态(GPPS):晶莹剔透但易脆,敲击时发出'叮'声,容易开裂。");
+addD("Ly/hộp dùng một lần rất nhẹ, thành mỏng, bẻ 'rắc' gãy giòn.","Disposable cups/boxes are very light with thin walls; they snap with a brittle 'crack'.","一次性杯子/盒子非常轻,壁薄,弯折时会发出脆响'咔'一声断裂。");
+addD("Bẻ gãy tạo vết trắng đục ở chỗ gãy (stress whitening).","Breaking creates a white, opaque mark at the fracture point (stress whitening).","断裂处会出现白色不透明痕迹(应力发白现象)。");
+addD("Hộp xốp cơm, ly xốp, khay xốp đựng thịt/trứng.","Foam lunch boxes, foam cups, foam trays for meat/eggs.","泡沫饭盒、泡沫杯、肉/蛋泡沫托盘。");
+addD("Ly nhựa trong cứng dùng một lần, muỗng/dĩa nhựa giòn.","Clear rigid disposable cups, brittle plastic spoons/forks.","透明硬质一次性杯子、易脆塑料勺/叉。");
+addD("Vỏ đĩa CD/DVD, vỏ hộp bút, mô hình.","CD/DVD cases, pen-box casings, model kits.","CD/DVD盒、笔盒外壳、模型。");
+addD("Tấm xốp EPS cách nhiệt, mút xốp chèn hàng.","EPS insulation foam boards, packing foam padding.","EPS保温泡沫板、填充泡沫垫。");
+addD("Cháy dễ, ngọn lửa vàng cam có nhiều muội đen bay lên; mùi hắc ngọt đặc trưng của styrene. Sủi và cháy mạnh.","Burns easily with an orange-yellow flame giving off lots of black soot; a distinctive pungent-sweet styrene smell. Bubbles and burns vigorously.","易燃,火焰呈橙黄色并冒出大量黑烟;气味刺鼻带甜,是苯乙烯的特征气味。起泡且燃烧剧烈。");
+addD("Dạng đặc chìm (1,04–1,09); dạng xốp EPS nổi (rất nhẹ).","Solid form sinks (1.04–1.09); EPS foam form floats (very light).","实心形态下沉(1.04–1.09);EPS泡沫形态漂浮(非常轻)。");
+addD("Hộp xốp đựng thức ăn, ly dùng một lần, khay trứng, cách nhiệt xây dựng, vỏ thiết bị điện tử.","Foam food containers, disposable cups, egg trays, building insulation, electronic device casings.","泡沫食品容器、一次性杯子、蛋托、建筑保温材料、电子设备外壳。");
+addD("Hộp xốp cơm","Foam lunch box","泡沫饭盒");
+addD("Ly cà phê nhựa","Plastic coffee cup","塑料咖啡杯");
+addD("Khay xốp trứng","Foam egg tray","泡沫蛋托");
+addD("Tấm xốp EPS","EPS foam board","EPS泡沫板");
+addD("Hộp xốp (foam), ly/khay đúc, tấm cách nhiệt, vỏ đúc phun cứng.","Foam boxes, molded cups/trays, insulation boards, rigid injection-molded casings.","泡沫盒、模制杯/托盘、保温板、硬质注塑外壳。");
+addD("Trắng (xốp), trong suốt hoặc màu (nhựa cứng).","White (foam), clear or colored (rigid plastic).","白色(泡沫),透明或彩色(硬质塑料)。");
+
+// ============ PC ============
+addD("Polycarbonate","Polycarbonate","聚碳酸酯 (PC)");
+addD("Nhóm 7 – Nhựa khác","Group 7 – Other plastics","第7类 – 其他塑料");
+addD("Một số dòng chứa BPA; lưu ý khi gặp nhiệt cao/trầy xước.","Some grades contain BPA; use caution with high heat/scratches.","部分产品含双酚A;高温/划伤时需注意。");
+addD("Nhựa trong siêu bền: bình 20L, kính chắn, mũ bảo hiểm.","Ultra-durable clear plastic: 20L water jugs, windshields, helmets.","超耐用透明塑料:20升水桶、挡风玻璃、头盔。");
+addD("Nhiệt dẻo (kỹ thuật)","Thermoplastic (engineering)","热塑性(工程塑料)");
+addD("Polycarbonate là nhựa kỹ thuật tổng hợp từ Bisphenol-A (BPA) và phosgene. Là một trong những nhựa trong suốt có độ bền va đập cao nhất — Izod có khía gấp hàng chục lần PS hay PMMA. Truyền sáng ~90% (gần bằng thủy tinh) nhưng nhẹ hơn ~2 lần, nên dùng làm kính chắn gió, mũ bảo hiểm, kính chống đạn, tấm lợp lấy sáng, và từng phổ biến trong bình nước 20L. Tuy nhiên PC gốc BPA có thể thôi nhiễm BPA (chất giống hormone estrogen) khi trầy xước, gặp nhiệt cao hoặc chất tẩy mạnh — nhiều hãng đã chuyển sang PC không BPA hoặc Tritan. Kháng UV và một số dung môi kém, cần phụ gia khi dùng ngoài trời.",
+"Polycarbonate is an engineering plastic synthesized from Bisphenol-A (BPA) and phosgene. It is one of the toughest transparent plastics — its notched Izod impact strength is dozens of times higher than PS or PMMA. It transmits ~90% of light (close to glass) but is about 2 times lighter, so it's used for windshields, helmets, bulletproof glass, skylight sheeting, and was once common for 20L water jugs. However, BPA-based PC can leach BPA (an estrogen-mimicking chemical) when scratched, exposed to high heat, or strong detergents — many manufacturers have switched to BPA-free PC or Tritan. It has poor UV and solvent resistance, requiring additives for outdoor use.",
+"聚碳酸酯是一种由双酚A(BPA)和光气合成的工程塑料。它是透明塑料中抗冲击性最强的品种之一——其缺口悬臂梁冲击强度是PS或PMMA的数十倍。透光率约90%(接近玻璃),但重量约轻2倍,因此常用于挡风玻璃、头盔、防弹玻璃、采光板,过去也常用于20升水桶。然而,含BPA的PC在划伤、遇高温或强力清洁剂时可能析出BPA(一种类雌激素物质)——许多厂商已改用无BPA的PC或Tritan材料。其耐紫外线和部分溶剂性能较差,户外使用需添加稳定剂。");
+addD("Trong veo như thủy tinh nhưng nhẹ và rất khó vỡ.","Crystal-clear like glass but light and very hard to break.","像玻璃一样晶莹剔透,但更轻且极难破碎。");
+addD("Ném xuống đất không vỡ (khác PMMA/PS giòn dễ nứt).","Doesn't break when dropped on the ground (unlike brittle PMMA/PS).","摔到地上不会破碎(不同于易脆裂的PMMA/PS)。");
+addD("Bề mặt cứng, gõ nghe chắc; thành thường dày (bình nước).","Hard surface, makes a solid sound when tapped; usually thick-walled (water jugs).","表面坚硬,敲击声扎实;壁通常较厚(水桶)。");
+addD("Uốn cong nhẹ được mà không gãy.","Can be bent slightly without breaking.","可轻微弯曲而不断裂。");
+addD("Bình nước uống 20L (bình úp máy nóng lạnh).","20L drinking water jugs (for water dispensers).","20升饮用水桶(用于饮水机)。");
+addD("Kính chắn gió xe máy, kính mũ bảo hiểm, kính bảo hộ.","Motorcycle windshields, helmet visors, safety glasses.","摩托车挡风玻璃、头盔镜片、防护眼镜。");
+addD("Vỏ đèn LED, chao đèn, tấm lợp lấy sáng polycarbonate.","LED light covers, lamp shades, polycarbonate skylight sheeting.","LED灯罩、灯具外壳、聚碳酸酯采光板。");
+addD("Đĩa Blu-ray, vỏ điện thoại trong, thiết bị y tế.","Blu-ray discs, clear phone cases, medical devices.","蓝光光盘、透明手机壳、医疗器械。");
+addD("Khó cháy, ngọn lửa vàng nhiều muội đen; mùi hắc ngọt của phenol. Sủi bọt, tự tắt chậm.","Hard to ignite, yellow flame with lots of black soot; a pungent-sweet phenol smell. Bubbles and self-extinguishes slowly.","不易燃,火焰呈黄色并伴有大量黑烟;气味刺鼻带甜,似苯酚味。起泡,缓慢自熄。");
+addD("Chìm trong nước (1,20–1,22 g/cm³).","Sinks in water (1.20–1.22 g/cm³).","沉入水中(1.20–1.22 g/cm³)。");
+addD("Bình nước 20L, kính chắn gió/mũ bảo hiểm, kính bảo hộ, vỏ đèn LED, thiết bị y tế, linh kiện điện tử.","20L water jugs, windshields/helmet visors, safety glasses, LED light covers, medical devices, electronic components.","20升水桶、挡风玻璃/头盔镜片、防护眼镜、LED灯罩、医疗器械、电子元件。");
+addD("Bình nước 20L","20L water jug","20升水桶");
+addD("Kính chắn gió","Windshield","挡风玻璃");
+addD("Mắt kính bảo hộ","Safety glasses","防护眼镜");
+addD("Vỏ máy chiếu","Projector casing","投影仪外壳");
+addD("Tấm, đúc phun trong suốt, ống, vỏ đúc kỹ thuật.","Sheet, clear injection molding, tubing, engineering-molded casings.","板材、透明注塑件、管材、工程模制外壳。");
+addD("Trong suốt không màu, có thể nhuộm màu trong.","Clear and colorless; can be tinted transparent colors.","无色透明;可染成透明色。");
+
+// ============ ABS ============
+addD("Acrylonitrile Butadiene Styrene","Acrylonitrile Butadiene Styrene","丙烯腈丁二烯苯乙烯 (ABS)");
+addD("Không đốt/gia công quá nóng (phát thải khói, mùi).","Do not burn or overheat during processing (releases fumes, odor).","切勿焚烧或过度加热加工(会释放烟雾和异味)。");
+addD("Nhựa vỏ thiết bị, đồ chơi Lego, mũ bảo hiểm — cứng, bề mặt đẹp.","Device-casing plastic, Lego toys, helmets — rigid, attractive surface.","设备外壳、乐高玩具、头盔用塑料 — 坚硬,表面美观。");
+addD("ABS là đồng trùng hợp ghép của ba monomer: Acrylonitrile (bền hoá chất, cứng bề mặt), Butadiene (bền va đập, dẻo dai) và Styrene (cứng, dễ gia công). Cấu trúc gồm hạt cao su phân tán trong nền SAN cứng. ABS nổi tiếng gia công tuyệt vời: đúc phun bề mặt bóng đẹp, sắc nét, dễ sơn/dán/mạ crôm — phần lớn chi tiết nhựa mạ crôm trên xe hơi, tay nắm cửa là ABS. Cũng là vật liệu in 3D FDM hàng đầu. Nhược điểm: kém bền UV (ố vàng, giòn khi dùng ngoài trời), kháng hoá chất trung bình, dễ bị acetone tấn công.",
+"ABS is a graft copolymer of three monomers: acrylonitrile (chemical resistance, surface hardness), butadiene (impact resistance, toughness), and styrene (rigidity, ease of processing). Its structure consists of rubber particles dispersed in a rigid SAN matrix. ABS is renowned for excellent processability: injection molding gives a glossy, sharp surface that's easy to paint, glue, or chrome-plate — most chrome-plated plastic parts on cars and door handles are ABS. It's also a leading FDM 3D-printing material. Downsides: poor UV resistance (yellows and becomes brittle outdoors), moderate chemical resistance, and vulnerability to attack by acetone.",
+"ABS是由三种单体接枝共聚而成:丙烯腈(耐化学性、表面硬度)、丁二烯(抗冲击性、韧性)和苯乙烯(刚性、易加工)。其结构由分散在坚硬SAN基体中的橡胶颗粒组成。ABS以出色的可加工性著称:注塑成型表面光滑亮丽、轮廓清晰,易于喷漆/粘接/电镀铬——汽车和门把手上大多数电镀铬塑料件都是ABS制成。它也是主流的FDM 3D打印材料。缺点:耐紫外线性差(户外使用会发黄变脆)、耐化学性中等、容易受丙酮侵蚀。");
+addD("Đục hoàn toàn, bề mặt bóng đẹp, mịn, cảm giác cao cấp.","Fully opaque, glossy and smooth surface, a premium feel.","完全不透明,表面光滑亮丽,手感高级。");
+addD("Cứng chắc, gõ nghe đanh; va đập không dễ vỡ như PS.","Rigid and solid, makes a crisp sound when tapped; doesn't break as easily as PS on impact.","坚固结实,敲击声清脆;不像PS那样容易碎裂。");
+addD("Thường thấy ở vỏ nhựa thiết bị điện tử, đồ chơi lắp ráp.","Commonly seen in electronic device casings and building-block toys.","常见于电子设备外壳、积木玩具。");
+addD("Nhỏ acetone lên bề mặt sẽ mềm/dính (cách test đặc trưng).","A drop of acetone on the surface makes it soft/tacky (a characteristic test).","滴一滴丙酮在表面会变软/发黏(特征性测试方法)。");
+addD("Vỏ laptop, vỏ TV, vỏ máy tính, vỏ máy hút bụi.","Laptop casings, TV casings, computer casings, vacuum-cleaner casings.","笔记本电脑外壳、电视外壳、电脑外壳、吸尘器外壳。");
+addD("Gạch đồ chơi lắp ráp (Lego), mô hình lắp ghép.","Building-block toys (Lego), assembly model kits.","积木玩具(乐高)、拼装模型。");
+addD("Mũ bảo hiểm, tay nắm/chi tiết nội thất ô tô.","Helmets, car door handles/interior trim parts.","头盔、汽车门把手/内饰件。");
+addD("Sợi in 3D ABS, vỏ ổ điện, phụ kiện đồ điện.","ABS 3D-printing filament, electrical outlet covers, electrical fittings.","ABS 3D打印线材、电源插座外壳、电器配件。");
+addD("Cháy được, ngọn lửa vàng nhiều muội đen dày; mùi hắc ngọt cao su cháy. Cháy tiếp, sủi và cong.","Burns with a yellow flame and thick black soot; a pungent-sweet burnt-rubber smell. Keeps burning, bubbles, and warps.","可燃,火焰呈黄色并伴有浓密黑烟;气味刺鼻带甜,似橡胶燃烧味。持续燃烧,起泡并卷曲变形。");
+addD("Chìm trong nước (1,03–1,07 g/cm³).","Sinks in water (1.03–1.07 g/cm³).","沉入水中(1.03–1.07 g/cm³)。");
+addD("Vỏ thiết bị điện tử, đồ chơi lắp ráp, mũ bảo hiểm, phụ tùng ô tô nội thất, sợi in 3D.","Electronic device casings, building-block toys, helmets, automotive interior parts, 3D-printing filament.","电子设备外壳、积木玩具、头盔、汽车内饰件、3D打印线材。");
+addD("Vỏ laptop","Laptop casing","笔记本电脑外壳");
+addD("Gạch đồ chơi","Building-block toy","积木玩具");
+addD("Mũ bảo hiểm","Helmet","头盔");
+addD("Tay nắm cửa ô tô","Car door handle","汽车门把手");
+addD("Đúc phun chi tiết phức tạp, tấm, sợi in 3D.","Injection molding of complex parts, sheet, 3D-printing filament.","复杂零件注塑、板材、3D打印线材。");
+addD("Đa dạng: trắng, đen, và các màu pastel/rực rỡ.","Wide variety: white, black, and pastel/vivid colors.","颜色多样:白色、黑色以及柔和色/鲜艳色。");
+
+// ============ PA (Nylon) ============
+addD("Polyamide (Nylon)","Polyamide (Nylon)","聚酰胺(尼龙, PA)");
+addD("An toàn, ít phụ gia độc; lưu ý hút ẩm ảnh hưởng cơ tính.","Safe, few toxic additives; note that moisture absorption affects mechanical properties.","安全,有毒添加剂少;需注意吸湿会影响机械性能。");
+addD("Nhựa kỹ thuật thay kim loại: bánh răng, ổ trục, dây cước.","Engineering plastic that replaces metal: gears, bearings, fishing line.","替代金属的工程塑料:齿轮、轴承、钓鱼线。");
+addD("Polyamide (Nylon) chứa liên kết amide lặp lại, tổng hợp qua trùng ngưng (PA66) hoặc trùng hợp mở vòng (PA6). Liên kết hydro mạnh giữa các mạch cho độ kết tinh cao, bền kéo và bền mỏi vượt trội, hệ số ma sát và độ mài mòn tốt nhất trong nhóm nhựa thông dụng — đủ thay kim loại trong chi tiết chuyển động. Đặc điểm cần lưu ý: hút ẩm 1,5–3% từ không khí, làm thay đổi kích thước, độ cứng, độ bền va đập theo môi trường (nylon khô giòn hơn, nylon ẩm dẻo dai hơn). Không chứa phụ gia độc hại đáng kể, dùng phổ biến cho bao bì thực phẩm nhiều lớp và dệt may (vải dù, tất, đồ bơi).",
+"Polyamide (Nylon) contains repeating amide linkages, synthesized by condensation polymerization (PA66) or ring-opening polymerization (PA6). Strong hydrogen bonding between chains gives high crystallinity and outstanding tensile and fatigue strength, with the best friction coefficient and wear resistance among common plastics — good enough to replace metal in moving parts. A key characteristic: it absorbs 1.5–3% moisture from the air, which changes its dimensions, hardness, and impact strength depending on environment (dry nylon is more brittle, moist nylon is tougher). It contains no significant toxic additives and is widely used in multilayer food packaging and textiles (parachute fabric, socks, swimwear).",
+"聚酰胺(尼龙)含有重复的酰胺键,通过缩聚(PA66)或开环聚合(PA6)合成。链间强氢键使其结晶度高,拉伸强度和抗疲劳性能优异,摩擦系数和耐磨性在常见塑料中最佳——足以在运动部件中替代金属。需注意的特性:会从空气中吸收1.5–3%的水分,导致尺寸、硬度、抗冲击性随环境变化(干燥尼龙更脆,潮湿尼龙更韧)。不含明显有毒添加剂,广泛用于多层食品包装和纺织品(伞布、袜子、泳装)。");
+addD("Màu trắng ngà hoặc đen, đục, bề mặt hơi trơn nhẵn (như sáp cứng).","Ivory-white or black, opaque, slightly smooth surface (like hard wax).","呈米白色或黑色,不透明,表面略微光滑(似硬蜡质感)。");
+addD("Rất dai, cứng, khó bẻ gãy; chi tiết cơ khí chính xác.","Very tough and rigid, hard to break; used for precision mechanical parts.","非常坚韧、坚硬,难以折断;用于精密机械零件。");
+addD("Sợi nylon (dây cước) trong, dai, kéo căng không đứt dễ.","Nylon fiber (fishing line) is clear, tough, and doesn't snap easily when stretched.","尼龙纤维(钓鱼线)透明、坚韧,拉伸时不易断裂。");
+addD("Dùa/mài thử: dai, chịu mài mòn tốt, không vụn giòn.","Scratch/abrasion test: tough, wears well, doesn't crumble.","刮擦/摩擦测试:坚韧,耐磨性好,不易碎裂。");
+addD("Bánh răng nhựa, ổ trục, bạc đạn, con lăn.","Plastic gears, bearings, bushings, rollers.","塑料齿轮、轴承、衬套、滚轮。");
+addD("Dây cước câu cá, dây rút nhựa (lạt nhựa), bàn chải.","Fishing line, plastic cable ties, toothbrush/hairbrush bristles.","钓鱼线、塑料扎带、刷子。");
+addD("Ống dẫn nhiên liệu ô tô, vít-ốc nhựa kỹ thuật.","Automotive fuel lines, engineering plastic screws/bolts.","汽车燃油管、工程塑料螺丝。");
+addD("Vải dù, áo khoác gió, tất, đồ bơi, đế giày thể thao.","Parachute fabric, windbreaker jackets, socks, swimwear, sports shoe soles.","伞布、风衣、袜子、泳装、运动鞋底。");
+addD("Cháy chậm, ngọn lửa xanh đầu vàng, ít khói; mùi khét đặc trưng như tóc/sừng cháy hoặc cần tây. Sủi bọt, nhỏ giọt, rời lửa tự tắt dần.","Burns slowly with a blue flame tipped yellow, little smoke; a distinctive burnt smell like hair/horn or celery. Bubbles, drips, and gradually self-extinguishes when the flame source is removed.","缓慢燃烧,火焰呈蓝色带黄色顶端,烟少;有特征性焦味,似烧焦的毛发/角质或芹菜味。起泡、滴落,离开火源后逐渐自熄。");
+addD("Chìm trong nước (1,09–1,16 g/cm³).","Sinks in water (1.09–1.16 g/cm³).","沉入水中(1.09–1.16 g/cm³)。");
+addD("Bánh răng, ổ trục, bạc đạn, ống dẫn nhiên liệu ô tô, dây câu cá, vải dù, đế giày thể thao.","Gears, bearings, bushings, automotive fuel lines, fishing line, parachute fabric, sports shoe soles.","齿轮、轴承、衬套、汽车燃油管、钓鱼线、伞布、运动鞋底。");
+addD("Bánh răng máy","Machine gear","机械齿轮");
+addD("Ống dẫn nhiên liệu","Fuel line","燃油管");
+addD("Dây cước câu cá","Fishing line","钓鱼线");
+addD("Vải dù","Parachute fabric","伞布");
+addD("Đúc phun chi tiết cơ khí, sợi, màng, thanh gia công CNC.","Injection-molded mechanical parts, fiber, film, CNC-machined rod stock.","注塑机械零件、纤维、薄膜、CNC加工棒材。");
+addD("Trắng ngà tự nhiên, đen (phổ biến trong kỹ thuật).","Naturally ivory-white, black (common in engineering applications).","天然米白色,黑色(工程应用中常见)。");
+
+// ============ PMMA ============
+addD("Poly(methyl methacrylate) – Mica/Acrylic","Poly(methyl methacrylate) – Acrylic","聚甲基丙烯酸甲酯 – 亚克力 (PMMA)");
+addD("An toàn, ổn định hoá học tốt.","Safe, good chemical stability.","安全,化学稳定性好。");
+addD("Kính Mica/Acrylic: trong hơn thủy tinh, làm bảng hiệu, bể cá.","Acrylic/Mica sheet: clearer than glass, used for signs and fish tanks.","亚克力板:比玻璃更透明,用于招牌、鱼缸。");
+addD("PMMA (kính Mica/Acrylic) là nhựa nhiệt dẻo vô định hình từ methyl methacrylate. Hoàn toàn vô định hình nên truyền sáng >92% — cao hơn cả thủy tinh thường (~90%) — và nhẹ chỉ bằng nửa thủy tinh. So với PC: PMMA cứng bề mặt hơn (chống trầy tốt), kháng UV/thời tiết vượt trội (không ố vàng), nhưng giòn hơn nhiều và va đập kém — dễ nứt vỡ thành mảnh sắc khi va mạnh (PC chỉ biến dạng). Gia công cơ khí tốt (cắt, khoan, đánh bóng, uốn nhiệt), dán ghép bằng dung môi để tạo khối lớn liền mạch (bể cá). Trơ, ổn định, không BPA, an toàn cho tiếp xúc thực phẩm gián tiếp và y tế (răng giả).",
+"PMMA (Acrylic/Mica sheet) is an amorphous thermoplastic made from methyl methacrylate. Being fully amorphous, it transmits >92% of light — higher than ordinary glass (~90%) — and is only half the weight of glass. Compared with PC: PMMA has a harder surface (better scratch resistance) and much better UV/weather resistance (doesn't yellow), but is far more brittle with poor impact resistance — it shatters into sharp fragments on hard impact (PC just deforms). It machines well (cutting, drilling, polishing, heat bending) and can be solvent-welded into large seamless assemblies (fish tanks). It's inert, stable, BPA-free, and safe for indirect food contact and medical use (dentures).",
+"PMMA(亚克力板)是一种由甲基丙烯酸甲酯制成的无定形热塑性塑料。由于完全无定形,其透光率>92%——高于普通玻璃(约90%)——且重量仅为玻璃的一半。与PC相比:PMMA表面更硬(抗刮擦性更好)、耐紫外线/耐候性更佳(不发黄),但更脆、抗冲击性差——受到强烈撞击时会碎裂成锋利的碎片(而PC只会变形)。机械加工性能好(切割、钻孔、抛光、热弯),可用溶剂粘合制成大型无缝结构(鱼缸)。化学惰性、稳定、不含双酚A,可安全用于间接接触食品及医疗用途(假牙)。");
+addD("Trong veo, sáng lấp lánh hơn cả thủy tinh, cạnh sắc trong.","Crystal-clear, sparkles even more than glass, with clear sharp edges.","晶莹剔透,光泽比玻璃更闪亮,边缘锐利透明。");
+addD("Cứng bề mặt, khó trầy nhưng gõ mạnh dễ nứt vỡ (giòn).","Hard surface, hard to scratch, but cracks easily when struck hard (brittle).","表面坚硬,不易刮伤,但用力敲击容易碎裂(易脆)。");
+addD("Tấm phẳng dày, cạnh cắt bóng như gương.","Thick flat sheets with mirror-polished cut edges.","厚平板,切割边缘光亮如镜。");
+addD("Nhẹ hơn thủy tinh rõ rệt khi cầm cùng kích thước.","Noticeably lighter than glass for the same size when held.","同等大小下手感明显比玻璃轻。");
+addD("Bảng hiệu Mica quảng cáo, chữ nổi mica.","Acrylic advertising signs, raised acrylic lettering.","亚克力广告招牌、亚克力立体字。");
+addD("Bể cá acrylic, hộp trưng bày sản phẩm trong.","Acrylic fish tanks, clear product display cases.","亚克力鱼缸、透明产品展示盒。");
+addD("Tấm chắn giọt bắn, vách ngăn trong, mặt đồng hồ.","Splash guards, clear partitions, watch/clock faces.","防飞沫挡板、透明隔断、表盘。");
+addD("Thấu kính đèn, đèn hậu xe, tấm ốp trang trí trong.","Light lenses, vehicle taillights, decorative clear panels.","灯具透镜、车辆尾灯、装饰透明面板。");
+addD("Cháy dễ, ngọn lửa vàng-xanh trong, ít muội; mùi ngọt trái cây đặc trưng (giống kẹo). Cháy tiếp, có tiếng lách tách nhẹ.","Burns easily with a clear yellow-blue flame, little soot; a distinctive sweet fruity smell (like candy). Keeps burning with a light crackling sound.","易燃,火焰呈清澈的黄蓝色,烟少;有特征性的水果甜味(似糖果味)。持续燃烧,伴有轻微噼啪声。");
+addD("Chìm trong nước (1,17–1,20 g/cm³).","Sinks in water (1.17–1.20 g/cm³).","沉入水中(1.17–1.20 g/cm³)。");
+addD("Tấm kính Mica trang trí/quảng cáo, bể cá, kính chắn, tấm ốp nội thất, thấu kính đèn LED.","Decorative/advertising acrylic sheet, fish tanks, guard shields, interior panels, LED light lenses.","装饰/广告亚克力板、鱼缸、防护挡板、室内面板、LED灯具透镜。");
+addD("Bảng hiệu Mica","Acrylic sign","亚克力招牌");
+addD("Bể cá acrylic","Acrylic fish tank","亚克力鱼缸");
+addD("Hộp trưng bày","Display case","展示盒");
+addD("Tấm chắn giọt bắn","Splash guard","防飞沫挡板");
+addD("Tấm phẳng/uốn cong, đúc phun, thanh trong suốt.","Flat/curved sheets, injection molding, clear rods.","平板/弯曲板材、注塑件、透明棒材。");
+addD("Trong suốt không màu; nhuộm màu trong hoặc đục theo yêu cầu.","Clear and colorless; can be tinted transparent or opaque colors as needed.","无色透明;可根据需求染成透明色或不透明色。");
+
+// ============ PU ============
+addD("Polyurethane","Polyurethane","聚氨酯 (PU)");
+addD("Isocyanate cần kiểm soát trong sản xuất; thành phẩm tương đối an toàn.","Isocyanates require control during manufacturing; finished products are relatively safe.","生产过程中需控制异氰酸酯;成品相对安全。");
+addD("Nhựa đa dạng: nệm mút, đế giày, bánh xe, sơn phủ.","A versatile plastic: foam mattresses, shoe soles, wheels, coatings.","用途广泛的塑料:泡沫床垫、鞋底、轮子、涂料。");
+addD("Đa dạng (có loại nhiệt rắn)","Varies (some grades are thermoset)","多样(部分为热固性)");
+addD("Polyurethane là họ vật liệu rất rộng, từ phản ứng giữa polyol và isocyanate tạo liên kết urethane. Bằng cách đổi tỷ lệ và chất tạo bọt, tạo ra vô số dạng: bọt mềm (nệm, mút), bọt cứng cách nhiệt (panel tủ lạnh), elastomer đặc bền mài mòn (bánh xe, đế giày), sợi đàn hồi (spandex/lycra), sơn phủ và keo dán. Không có bộ thông số cố định — độ cứng trải dài từ rất mềm đến rất cứng. Ưu điểm chung: đàn hồi, phục hồi hình dạng và chịu mài mòn tốt (dạng elastomer). Isocyanate chưa phản ứng (trong sản xuất) gây kích ứng hô hấp, cần kiểm soát chặt; thành phẩm đã đóng rắn tương đối an toàn. Kém bền UV (ố vàng), rất khó tái chế (nhiệt rắn dạng bọt).",
+"Polyurethane is a very broad family of materials formed by the reaction between a polyol and an isocyanate, creating a urethane linkage. By varying the ratio and blowing agents, countless forms can be made: soft foam (mattresses, cushions), rigid insulating foam (refrigerator panels), tough abrasion-resistant elastomers (wheels, shoe soles), elastic fiber (spandex/lycra), coatings, and adhesives. There's no fixed set of properties — hardness ranges from very soft to very hard. Common advantages: elasticity, good shape recovery, and good wear resistance (elastomer form). Unreacted isocyanate (during manufacturing) irritates the respiratory tract and requires strict control; the cured finished product is relatively safe. It has poor UV resistance (yellows) and is very hard to recycle (thermoset foam forms).",
+"聚氨酯是一个非常广泛的材料家族,由多元醇与异氰酸酯反应生成氨基甲酸酯键。通过改变配比和发泡剂,可制成各种形态:软质泡沫(床垫、坐垫)、硬质保温泡沫(冰箱隔热板)、耐磨弹性体(轮子、鞋底)、弹性纤维(氨纶/莱卡)、涂料和粘合剂。没有固定的性能参数——硬度从非常柔软到非常坚硬不等。共同优点:弹性好、形状恢复能力强、耐磨性好(弹性体形态)。未反应的异氰酸酯(生产过程中)会刺激呼吸道,需严格控制;固化后的成品相对安全。耐紫外线性差(会发黄),非常难回收(热固性泡沫形态)。");
+addD("Bọt mềm: xốp, đàn hồi, ấn lõm rồi bung lại (nệm, mút ghế).","Soft foam: porous, elastic, springs back after being pressed (mattresses, cushions).","软质泡沫:多孔、有弹性,按压后能回弹(床垫、坐垫)。");
+addD("Elastomer đặc: dẻo như cao su nhưng bền hơn (bánh xe, đế giày).","Solid elastomer: rubbery flexibility but more durable (wheels, shoe soles).","实心弹性体:像橡胶一样柔韧但更耐用(轮子、鞋底)。");
+addD("Màu vàng nhạt/kem tự nhiên (bọt), dễ ố vàng theo thời gian.","Naturally light yellow/cream color (foam), yellows easily over time.","天然呈淡黄色/米色(泡沫),随时间容易变黄。");
+addD("Đàn hồi tốt, kéo giãn rồi phục hồi nhanh.","Good elasticity, quickly recovers shape after being stretched.","弹性好,拉伸后能迅速恢复形状。");
+addD("Nệm mút, mút ghế sofa, gối mút hoạt tính.","Foam mattresses, sofa cushions, memory-foam pillows.","泡沫床垫、沙发坐垫、记忆棉枕头。");
+addD("Đế giày thể thao (sneaker), lót giày êm.","Sports shoe soles (sneakers), cushioned insoles.","运动鞋底(运动鞋)、舒适鞋垫。");
+addD("Bánh xe đẩy hàng/pallet, con lăn PU.","Trolley/pallet wheels, PU rollers.","手推车/托盘轮子、PU滚轮。");
+addD("Tấm cách nhiệt panel PU, sơn phủ sàn, keo dán, xốp foam xịt.","PU insulation panels, floor coatings, adhesives, spray foam.","PU保温隔热板、地板涂料、粘合剂、喷涂泡沫。");
+addD("Cháy nhanh, ngọn lửa vàng sáng nhiều muội; mùi hắc gắt đặc trưng (isocyanate) rất khó chịu. Bọt cháy co rúm nhanh.","Burns quickly with a bright yellow flame and lots of soot; a distinctive harsh, pungent (isocyanate) smell that's very unpleasant. Foam shrivels quickly when burning.","燃烧迅速,火焰明黄色并伴有大量黑烟;有刺鼻的特征性异氰酸酯气味,非常难闻。泡沫燃烧时迅速卷缩。");
+addD("Bọt rất nhẹ nổi; elastomer đặc chìm (1,05–1,25 g/cm³).","Foam floats (very light); solid elastomer sinks (1.05–1.25 g/cm³).","泡沫漂浮(非常轻);实心弹性体下沉(1.05–1.25 g/cm³)。");
+addD("Nệm mút, đế giày thể thao, bánh xe đẩy, cách nhiệt tủ lạnh, sơn phủ bảo vệ, keo dán công nghiệp.","Foam mattresses, sports shoe soles, trolley wheels, refrigerator insulation, protective coatings, industrial adhesives.","泡沫床垫、运动鞋底、手推车轮子、冰箱保温、防护涂料、工业粘合剂。");
+addD("Nệm mút xốp","Foam mattress","泡沫床垫");
+addD("Đế giày sneaker","Sneaker sole","运动鞋底");
+addD("Bánh xe pallet","Pallet wheel","托盘轮");
+addD("Tấm cách nhiệt PU","PU insulation panel","PU保温板");
+addD("Bọt mềm/cứng, elastomer đúc, sơn phủ, keo dán.","Soft/rigid foam, molded elastomer, coatings, adhesives.","软质/硬质泡沫、模制弹性体、涂料、粘合剂。");
+addD("Vàng nhạt, trắng kem (bọt); nhuộm màu (elastomer).","Light yellow, cream white (foam); dyed colors (elastomer).","淡黄色、米白色(泡沫);染色(弹性体)。");
+
+// ============ PLA ============
+addD("Polylactic Acid","Polylactic Acid","聚乳酸 (PLA)");
+addD("Nhóm 7 – Nhựa sinh học","Group 7 – Bioplastic","第7类 – 生物塑料");
+addD("Nguồn gốc sinh học, an toàn thực phẩm, phân hủy được trong điều kiện phù hợp.","Bio-based, food-safe, biodegradable under the right conditions.","生物基来源,食品安全,在适当条件下可降解。");
+addD("Nhựa sinh học từ tinh bột: ống hút, ly, sợi in 3D.","Starch-based bioplastic: straws, cups, 3D-printing filament.","来自淀粉的生物塑料:吸管、杯子、3D打印线材。");
+addD("Nhiệt dẻo (sinh học)","Thermoplastic (bio-based)","热塑性(生物基)");
+addD("PLA là nhựa sinh học từ axit lactic lên men từ tinh bột thực vật (ngô, sắn, mía). Về hoá học vẫn là polyester như PET, nhưng khác cốt lõi ở nguồn nguyên liệu tái tạo được và khả năng phân hủy sinh học thành CO₂, nước, sinh khối trong điều kiện ủ compost công nghiệp (≥58°C) trong vài tháng. Lưu ý: PLA hầu như KHÔNG phân hủy trong tự nhiên thông thường (chôn lấp, môi trường biển ở nhiệt độ phòng) — điểm thường bị hiểu nhầm. Cơ tính: cứng, trong như PET nhưng giòn hơn, nhiệt độ biến dạng thấp (55–65°C) nên dễ mềm/biến dạng khi để trong xe hơi nóng. An toàn thực phẩm tuyệt đối (dùng cả làm chỉ khâu tự tiêu y tế), không BPA. Được ưa chuộng cho sản phẩm dùng một lần thân thiện môi trường và in 3D.",
+"PLA is a bioplastic made from lactic acid fermented from plant starch (corn, cassava, sugarcane). Chemically it's still a polyester like PET, but its core difference is a renewable raw-material source and the ability to biodegrade into CO₂, water, and biomass under industrial composting conditions (≥58°C) over several months. Note: PLA almost does NOT decompose in ordinary natural settings (landfill, ocean environment at room temperature) — a commonly misunderstood point. Mechanically, it's rigid and clear like PET but more brittle, with a low heat-deflection temperature (55–65°C), so it softens/deforms easily if left in a hot car. It's absolutely food-safe (even used for self-dissolving medical sutures) and BPA-free. It's favored for eco-friendly disposable products and 3D printing.",
+"PLA是一种由植物淀粉(玉米、木薯、甘蔗)发酵产生的乳酸制成的生物塑料。化学上它仍属于聚酯类,与PET类似,但核心区别在于原料可再生,并能在工业堆肥条件(≥58°C)下经数月分解为二氧化碳、水和生物质。需注意:PLA在普通自然环境(填埋场、常温海洋环境)中几乎不会分解——这是一个常被误解的点。力学性能上,它像PET一样坚硬透明,但更脆,热变形温度较低(55–65°C),因此放在炎热车内容易软化变形。它绝对食品安全(甚至可用作医用可吸收缝合线),不含双酚A。因其环保特性,常用于一次性用品和3D打印。");
+addD("Trong hoặc hơi ngả vàng nhẹ, bề mặt bóng như PET.","Clear or slightly yellowish, with a glossy surface like PET.","透明或略带淡黄色,表面光泽似PET。");
+addD("Cứng, giòn hơn PET; bẻ dễ gãy 'rắc' hơn là dai.","Rigid, more brittle than PET; snaps with a 'crack' rather than bending.","坚硬,比PET更脆;弯折时容易'咔'一声断裂而非弯曲。");
+addD("Sợi in 3D PLA nhiều màu, cầm cứng, thơm nhẹ khi in.","PLA 3D-printing filament comes in many colors, feels rigid, and has a faint pleasant smell while printing.","PLA 3D打印线材颜色多样,手感坚硬,打印时有淡淡香味。");
+addD("Thường in nhãn 'sinh học/compostable/phân hủy'.","Usually labeled 'bio-based/compostable/biodegradable'.","通常标注'生物基/可堆肥/可降解'字样。");
+addD("Ống hút sinh học, ly cà phê phân hủy (nhãn xanh).","Bio-based straws, compostable coffee cups (green-labeled).","生物吸管、可降解咖啡杯(绿色标签)。");
+addD("Hộp/khay đựng salad sinh học, dao-thìa-nĩa phân hủy.","Bio-based salad containers/trays, compostable cutlery.","生物沙拉盒/托盘、可降解刀叉勺。");
+addD("Sợi in 3D PLA (filament phổ biến nhất cho máy in gia đình).","PLA 3D-printing filament (the most popular filament for home printers).","PLA 3D打印线材(家用打印机最常用的线材)。");
+addD("Màng phủ nông nghiệp phân hủy, chỉ khâu tự tiêu y tế.","Biodegradable agricultural mulch film, self-dissolving medical sutures.","可降解农用地膜、医用可吸收缝合线。");
+addD("Cháy dễ, ngọn lửa vàng, ít muội; mùi ngọt như đường/bắp rang cháy (khác hẳn mùi dầu của PE/PP). Nhỏ giọt.","Burns easily with a yellow flame, little soot; a sweet smell like burnt sugar/popcorn (quite different from the oily smell of PE/PP). Drips.","易燃,火焰呈黄色,烟少;气味香甜似焦糖/爆米花味(与PE/PP的油味完全不同)。会滴落。");
+addD("Chìm trong nước (1,24–1,26 g/cm³).","Sinks in water (1.24–1.26 g/cm³).","沉入水中(1.24–1.26 g/cm³)。");
+addD("Sợi in 3D, ly/ống hút/hộp dùng một lần thân thiện môi trường, màng bọc phân hủy, chỉ khâu y tế tự tiêu.","3D-printing filament, eco-friendly disposable cups/straws/containers, biodegradable film, self-dissolving medical sutures.","3D打印线材、环保一次性杯子/吸管/容器、可降解薄膜、医用可吸收缝合线。");
+addD("Ống hút sinh học","Bio-based straw","生物吸管");
+addD("Ly cà phê phân hủy","Compostable coffee cup","可降解咖啡杯");
+addD("Sợi in 3D PLA","PLA 3D-printing filament","PLA 3D打印线材");
+addD("Hộp salad sinh học","Bio-based salad container","生物沙拉盒");
+addD("Sợi in 3D (filament), màng, ly/hộp đúc, ống hút.","3D-printing filament, film, molded cups/containers, straws.","3D打印线材、薄膜、模制杯子/容器、吸管。");
+addD("Trong suốt tự nhiên; sợi in 3D nhiều màu.","Naturally clear; 3D-printing filament comes in many colors.","天然透明;3D打印线材颜色多样。");
+
+// ---------------- Props table: KEY labels ----------------
+addD("Khối lượng riêng","Density","密度");
+addD("Độ bền kéo","Tensile strength","拉伸强度");
+addD("Nhiệt độ nóng chảy","Melting point","熔点");
+addD("Nhiệt độ chịu được","Heat resistance","耐热温度");
+addD("Độ trong suốt","Transparency","透明度");
+addD("Chịu va đập","Impact resistance","抗冲击性");
+addD("Kháng hoá chất","Chemical resistance","耐化学性");
+addD("Tái chế","Recyclability","可回收性");
+addD("Độ cứng","Hardness","硬度");
+addD("Chống cháy","Flame resistance","阻燃性");
+addD("Độ giãn dài khi đứt","Elongation at break","断裂伸长率");
+addD("Va đập Izod (có khía)","Notched Izod impact","缺口悬臂梁冲击强度");
+addD("Kháng tia UV","UV resistance","耐紫外线性");
+addD("Gia công","Processability","加工性能");
+addD("Độ hút ẩm","Moisture absorption","吸湿率");
+addD("Chịu mài mòn","Abrasion resistance","耐磨性");
+addD("Độ truyền sáng","Light transmittance","透光率");
+addD("Kháng UV / thời tiết","UV / weather resistance","耐紫外线/耐候性");
+addD("Độ cứng bề mặt","Surface hardness","表面硬度");
+addD("Nhiệt độ biến dạng","Heat deflection temperature","热变形温度");
+addD("Phân hủy sinh học","Biodegradability","生物降解性");
+addD("Độ giòn","Brittleness","脆性");
+addD("Cách âm - cách nhiệt","Sound & heat insulation","隔音隔热");
+addD("Độ đàn hồi","Elasticity","弹性");
+
+// ---------------- Props table: VALUE phrases with words ----------------
+addD("Cao (trong như thủy tinh)","High (clear like glass)","高(像玻璃一样透明)");
+addD("Trung bình, giòn khi lạnh","Medium, brittle when cold","中等,遇冷变脆");
+addD("Tốt với axit loãng, kém với kiềm mạnh","Good with dilute acids, poor with strong bases","对稀酸耐受好,对强碱耐受差");
+addD("Rất phổ biến (mã 1)","Very common (code 1)","非常常见(编码1)");
+addD("Đục mờ (opaque)","Opaque","不透明");
+addD("Rất tốt, chịu lạnh tốt","Very good, good cold tolerance","非常好,耐低温性好");
+addD("Rất tốt (axit, kiềm, dung môi)","Very good (acids, bases, solvents)","非常好(耐酸、碱、溶剂)");
+addD("Rất phổ biến (mã 2)","Very common (code 2)","非常常见(编码2)");
+addD("40–60 MPa (cứng) / 10–25 (dẻo)","40–60 MPa (rigid) / 10–25 (flexible)","40–60 MPa(硬质)/ 10–25(软质)");
+addD("Shore D 65-85 / Shore A 70-95","Shore D 65-85 / Shore A 70-95","邵氏硬度D 65-85 / A 70-95");
+addD("Tự tắt (nhờ clo)","Self-extinguishing (due to chlorine)","自熄(因含氯)");
+addD("Trong hoặc đục tuỳ phụ gia","Clear or opaque depending on additives","透明或不透明,取决于添加剂");
+addD("Hạn chế (mã 3)","Limited (code 3)","有限(编码3)");
+addD("Mờ trong (translucent)","Translucent","半透明");
+addD("Khó (mã 4)","Difficult (code 4)","困难(编码4)");
+addD("Mờ đến bán trong","Translucent to semi-clear","半透明至半透光");
+addD("Tốt, chịu mỏi rất tốt","Good, excellent fatigue resistance","良好,抗疲劳性极佳");
+addD("Tốt nhưng ít thu gom (mã 5)","Good but rarely collected (code 5)","良好但回收率低(编码5)");
+addD("1,04–1,09 (đặc) / 0,01–0,03 (xốp)","1.04–1.09 (solid) / 0.01–0.03 (foam)","1.04–1.09(实心)/ 0.01–0.03(泡沫)");
+addD("35 – 50 MPa (GPPS)","35 – 50 MPa (GPPS)","35 – 50 MPa(GPPS)");
+addD("Cao (GPPS) / đục (HIPS, EPS)","High (GPPS) / opaque (HIPS, EPS)","高(GPPS)/ 不透明(HIPS、EPS)");
+addD("Kém (GPPS giòn) / khá (HIPS)","Poor (GPPS is brittle) / fair (HIPS)","差(GPPS易脆)/ 尚可(HIPS)");
+addD("Rất tốt (xốp EPS/XPS)","Very good (EPS/XPS foam)","非常好(EPS/XPS泡沫)");
+addD("Kém với dung môi hữu cơ","Poor with organic solvents","对有机溶剂耐受差");
+addD("Rất cao (~90%)","Very high (~90%)","非常高(约90%)");
+addD("Trung bình (cần phụ gia)","Medium (needs additives)","中等(需添加剂)");
+addD("Kém với kiềm mạnh, dung môi","Poor with strong bases, solvents","对强碱、溶剂耐受差");
+addD("Rất tốt, bề mặt bóng, dễ mạ crôm","Very good, glossy surface, easy to chrome-plate","非常好,表面光亮,易于电镀铬");
+addD("PA6/PA66","PA6/PA66","PA6/PA66");
+addD("Cao (1,5 – 3%)","High (1.5 – 3%)","高(1.5–3%)");
+addD("Rất tốt, ma sát thấp","Very good, low friction","非常好,摩擦系数低");
+addD("Tốt với dầu mỡ, dung môi","Good with oils, solvents","对油脂、溶剂耐受好");
+addD("> 92% — hơn thủy tinh thường","> 92% — higher than ordinary glass","> 92% — 高于普通玻璃");
+addD("Rất tốt, không ố vàng","Very good, does not yellow","非常好,不会发黄");
+addD("Cao, chống trầy tốt","High, good scratch resistance","高,抗刮擦性好");
+addD("Thấp, dễ nứt vỡ","Low, cracks easily","低,容易开裂");
+addD("Shore A 10–95 tuỳ công thức","Shore A 10–95 depending on formulation","邵氏硬度A 10–95,视配方而定");
+addD("Rất tốt, phục hồi nhanh","Very good, recovers quickly","非常好,恢复迅速");
+addD("Rất tốt (dạng bọt)","Very good (foam form)","非常好(泡沫形态)");
+addD("Tốt (dạng elastomer)","Good (elastomer form)","好(弹性体形态)");
+addD("Kém, dễ ố vàng","Poor, yellows easily","差,容易发黄");
+addD("Rất khó (mã 7)","Very difficult (code 7)","非常困难(编码7)");
+addD("≈ 55 – 65 °C (khá thấp)","≈ 55 – 65 °C (fairly low)","约55–65°C(偏低)");
+addD("Cao, tương tự PET","High, similar to PET","高,与PET相似");
+addD("Có (cần ủ công nghiệp ≥58°C)","Yes (requires industrial composting ≥58°C)","是(需工业堆肥≥58°C)");
+addD("Khá giòn, giãn dài thấp","Fairly brittle, low elongation","较脆,伸长率低");
+addD("Compost công nghiệp (mã 7)","Industrial compost (code 7)","工业堆肥(编码7)");
+
+// ---------------- Standards column short labels (dedup with prop keys where applicable) ----------------
+addD("Độ nhớt đặc trưng (IV)","Intrinsic viscosity (IV)","特性粘度(IV)");
+addD("Tỷ trọng","Density","密度");
+addD("Độ nhớt PET","PET viscosity","PET粘度");
+addD("Va đập Izod","Izod impact","悬臂梁冲击强度");
+addD("Chỉ số chảy MFI","Melt flow index (MFI)","熔体流动速率(MFI)");
+addD("Ống PVC","PVC pipe","PVC管材");
+addD("Độ bền kéo màng mỏng","Film tensile strength","薄膜拉伸强度");
+addD("Độ bền xé (Elmendorf)","Tear strength (Elmendorf)","撕裂强度(埃莱曼道夫法)");
+addD("MFI","MFI","熔体流动速率");
+addD("Độ bền uốn","Flexural strength","弯曲强度");
+addD("Tỷ trọng xốp","Foam density","泡沫密度");
+addD("Va đập Izod có khía","Notched Izod impact","缺口悬臂梁冲击强度");
+addD("Nhiệt độ biến dạng (HDT)","Heat deflection temperature (HDT)","热变形温度(HDT)");
+addD("HDT","HDT","热变形温度");
+addD("Hấp thụ nước","Water absorption","吸水率");
+addD("Độ nhớt tương đối","Relative viscosity","相对粘度");
+addD("Chiết suất quang học","Optical refractive index","光学折射率");
+addD("Tính chất bọt xốp mềm","Flexible foam properties","软质泡沫性能");
+addD("Độ bền kéo elastomer","Elastomer tensile strength","弹性体拉伸强度");
+addD("Độ cứng Shore A/D","Shore A/D hardness","邵氏硬度A/D");
+addD("Tỷ trọng bọt","Foam density","泡沫密度");
+addD("Khả năng phân hủy compost","Compostability","堆肥可降解性");
+addD("Phân hủy sinh học hiếu khí","Aerobic biodegradation","好氧生物降解");
+
+// ---------------- Video titles (Vietnamese ones only; English titles left as-is) ----------------
+addD("Nhận biết nhựa PET","Identifying PET plastic","识别PET塑料");
+addD("Nhựa HDPE là gì","What is HDPE plastic","什么是HDPE塑料");
+addD("Nhựa PVC là gì","What is PVC plastic","什么是PVC塑料");
+addD("Nhựa LDPE là gì","What is LDPE plastic","什么是LDPE塑料");
+addD("Nhựa PS là gì","What is PS plastic","什么是PS塑料");
+addD("Nhựa PC polycarbonate","PC (polycarbonate) plastic","PC聚碳酸酯塑料");
+addD("Phân loại nhựa ABS","Classifying ABS plastic","ABS塑料分类");
+addD("Nhựa PA nylon là gì","What is PA (nylon) plastic","什么是PA(尼龙)塑料");
+addD("Nhựa Mica acrylic là gì","What is acrylic (Mica) plastic","什么是亚克力塑料");
+addD("Nhựa PU polyurethane là gì","What is PU (polyurethane) plastic","什么是PU(聚氨酯)塑料");
+addD("Nhựa PLA sinh học là gì","What is PLA bioplastic","什么是PLA生物塑料");
+
+// ---------------- IDENTIFY_TREE ----------------
+addD("Bước chắc chắn nhất: có ký hiệu tam giác với số (1–7) ở đáy/thành sản phẩm không?","The most reliable step: is there a triangle symbol with a number (1–7) on the bottom/side of the product?","最可靠的一步:产品底部/侧面是否有带数字(1–7)的三角形标志?");
+addD("Đây là cách chính xác 100%. Nếu không có, công cụ sẽ hỏi các dấu hiệu vật lý để phỏng đoán.","This method is 100% accurate. If there's no symbol, the tool will ask about physical characteristics to make a guess.","此方法100%准确。如果没有标志,工具将询问物理特征来进行推测。");
+addD("Có — tôi đọc được số","Yes — I can read the number","有 — 我能读出数字");
+addD("Không có / không đọc được","No / can't read it","没有/无法读取");
+addD("Số bên trong tam giác là số mấy?","What number is inside the triangle?","三角形内是数字几?");
+addD("① số 1","① number 1","①数字1");
+addD("② số 2","② number 2","②数字2");
+addD("③ số 3","③ number 3","③数字3");
+addD("④ số 4","④ number 4","④数字4");
+addD("⑤ số 5","⑤ number 5","⑤数字5");
+addD("⑥ số 6","⑥ number 6","⑥数字6");
+addD("⑦ số 7 (hoặc OTHER)","⑦ number 7 (or OTHER)","⑦数字7(或OTHER)");
+addD("Số 7 gồm nhiều loại nhựa kỹ thuật. Sản phẩm gần nhất với mô tả nào?","Code 7 covers many engineering plastics. Which description is closest to your product?","编码7包含多种工程塑料。您的产品最接近哪种描述?");
+addD("Chọn theo công dụng thực tế của sản phẩm bạn đang cầm.","Choose based on the actual use of the product you're holding.","根据您手中产品的实际用途来选择。");
+addD("Bình nước 20L / kính chắn / kính bảo hộ trong, rất khó vỡ","20L water jug / windshield / clear safety glasses, very hard to break","20升水桶/挡风玻璃/透明防护眼镜,非常难破碎");
+addD("Vỏ thiết bị điện tử / đồ chơi lắp ráp, đục bóng đẹp","Electronic device casing / building-block toys, opaque and glossy","电子设备外壳/积木玩具,不透明且光亮");
+addD("Bánh răng / dây cước / vải dù, dai bền mài mòn","Gears / fishing line / parachute fabric, tough and wear-resistant","齿轮/钓鱼线/伞布,坚韧耐磨");
+addD("Tấm trong như kính (Mica), giòn dễ nứt","Glass-clear sheet (Acrylic), brittle and cracks easily","像玻璃一样透明的板材(亚克力),易脆易裂");
+addD("Nệm mút / đế giày / bánh xe đàn hồi","Foam mattress / shoe sole / elastic wheels","泡沫床垫/鞋底/弹性轮子");
+addD("Ống hút/ly ghi nhãn 'sinh học / phân hủy / compostable'","Straw/cup labeled 'bio-based / biodegradable / compostable'","标有'生物基/可降解/可堆肥'字样的吸管/杯子");
+addD("Sản phẩm thuộc nhóm hình dạng nào?","What shape category does the product belong to?","产品属于哪种形状类别?");
+addD("Chọn nhóm gần nhất — mỗi nhóm sẽ có các câu hỏi phân biệt riêng.","Choose the closest group — each group has its own set of identifying questions.","选择最接近的类别 — 每个类别都有各自的识别问题。");
+addD("Chai / lọ / can","Bottle / jar / jug","瓶子/罐子/桶");
+addD("Túi / màng mỏng mềm","Bag / soft thin film","袋子/柔软薄膜");
+addD("Hộp / ly / khay cứng","Rigid box / cup / tray","硬质盒子/杯子/托盘");
+addD("Xốp / bọt nhẹ","Foam / light bubble material","泡沫/轻质材料");
+addD("Tấm trong suốt như kính","Glass-clear sheet","像玻璃一样透明的板材");
+addD("Chi tiết cứng / kỹ thuật / cơ khí","Rigid / engineering / mechanical part","硬质/工程/机械零件");
+addD("Quan sát độ trong và độ cứng của chai/lọ:","Observe the clarity and rigidity of the bottle/jar:","观察瓶子/罐子的透明度和硬度:");
+addD("Đục, hơi sáp, dày (chai sữa, can) → nổi trên nước","Opaque, slightly waxy, thick (milk bottle, jug) → floats in water","不透明、略带蜡质感、较厚(奶瓶、水桶)→漂浮在水中");
+addD("Mềm, bóp lõm dễ, thành mỏng dẻo (chai bóp)","Soft, dents easily when squeezed, thin flexible walls (squeeze bottle)","柔软、容易被捏凹、壁薄有弹性(挤压瓶)");
+addD("Trong suốt, mỏng, nhẹ, giữ form","Transparent, thin, light, holds its shape","透明、薄、轻,能保持形状");
+addD("Trong veo, rất dày & cứng, khó vỡ (bình 20L)","Crystal-clear, very thick & rigid, hard to break (20L jug)","晶莹剔透、非常厚且坚硬、难以破碎(20升水桶)");
+addD("Chai trong này là PET hay PVC? Kiểm tra 2 dấu hiệu:","Is this clear bottle PET or PVC? Check 2 signs:","这个透明瓶子是PET还是PVC?检查两个特征:");
+addD("PET và PVC trong rất giống nhau nhưng khác hẳn về an toàn — cần phân biệt kỹ.","Clear PET and PVC look very similar but differ greatly in safety — careful identification is needed.","透明的PET和PVC外观非常相似,但安全性完全不同 — 需要仔细区分。");
+addD("Đáy có chấm tròn ở giữa; bấm móng tay KHÔNG để vết trắng","Bottom has a round dot in the center; pressing a fingernail on it leaves NO white mark","瓶底中央有一个圆点;用指甲按压不会留下白色痕迹");
+addD("Đáy có đường hàn vạch thẳng; bấm móng tay ĐỂ vết trắng; đốt tự tắt mùi clo","Bottom has a straight weld line; pressing a fingernail leaves a white mark; self-extinguishes when burned with a chlorine smell","瓶底有直线焊接痕迹;用指甲按压会留下白色痕迹;燃烧时自熄并有氯气味");
+addD("Túi/màng mỏng đó có đặc điểm gì?","What are the characteristics of this bag/thin film?","这个袋子/薄膜有什么特征?");
+addD("Mềm, co giãn, vò nhàu giữ nếp không bung lại (túi nilon)","Soft, stretchy, holds wrinkles when crumpled and doesn't spring back (plastic bag)","柔软、有弹性,揉皱后保持折痕不会回弹(塑料袋)");
+addD("Dệt từ sợi bản dẹt (bao gạo, bao dứa, bao xi măng)","Woven from flat fiber strands (rice bags, woven sacks, cement bags)","由扁平纤维编织而成(米袋、编织袋、水泥袋)");
+addD("Màng trong, dai, hơi dính tay (màng bọc thực phẩm)","Clear, tough film, slightly tacky to the touch (food cling film)","透明、有韧性的薄膜,手感略黏(食品保鲜膜)");
+addD("Màng trong giòn, sột soạt, gói hoa/quà","Clear, crinkly, brittle film for wrapping flowers/gifts","透明、易脆、有沙沙声的薄膜,用于包花/礼物");
+addD("Màng bọc trong dính: đốt một mẩu nhỏ (nơi thoáng, cẩn thận) — phản ứng ra sao?","Tacky clear cling film: burn a small piece (in a ventilated area, carefully) — how does it react?","粘性透明保鲜膜:燃烧一小块(在通风处,小心操作)——反应如何?");
+addD("Đây là cách chắc chắn nhất để tách màng PVC (cần tránh) khỏi màng PE an toàn.","This is the most reliable way to separate PVC film (to avoid) from safe PE film.","这是区分PVC薄膜(应避免)和安全PE薄膜最可靠的方法。");
+addD("Cháy dễ, tiếp tục cháy, nhỏ giọt, mùi sáp nến","Burns easily, keeps burning, drips, smells like candle wax","易燃,持续燃烧,滴落,气味似蜡烛");
+addD("Khó cháy, rời lửa TỰ TẮT, khói trắng, mùi hắc như clo","Hard to ignite, SELF-EXTINGUISHES when removed from flame, white smoke, pungent chlorine smell","不易燃,离开火源会自熄,产生白烟,有刺鼻的氯气味");
+addD("Hộp/ly/khay cứng đó — thử bẻ nhẹ một góc:","For this rigid box/cup/tray — try bending a corner slightly:","对于这个硬质盒子/杯子/托盘 — 尝试轻轻弯折一角:");
+addD("Trong mờ, dẻo dai, bẻ cong KHÔNG gãy, thường ghi 'microwave safe'","Translucent, tough, bends WITHOUT breaking, usually labeled 'microwave safe'","半透明、有韧性,弯曲不会断裂,通常标有'可微波'字样");
+addD("Trong cứng nhưng GIÒN, bẻ 'rắc' gãy, tạo vết trắng","Clear and rigid but BRITTLE, snaps with a 'crack', leaves a white mark","透明坚硬但易脆,弯折时会'咔'一声断裂,留下白色痕迹");
+addD("Đục, bóng đẹp, cứng chắc, va đập không vỡ (vỏ thiết bị)","Opaque, glossy, rigid and solid, doesn't break on impact (device casing)","不透明、光亮、坚固,受冲击不易破碎(设备外壳)");
+addD("Đục, hơi sáp, nhẹ, nổi trên nước (hộp cơm rẻ)","Opaque, slightly waxy, light, floats in water (cheap lunch box)","不透明、略带蜡质感、轻,漂浮在水中(廉价饭盒)");
+addD("Vật xốp/bọt đó ra sao?","What is this foam/porous material like?","这个泡沫材料是什么样的?");
+addD("Trắng, cứng giòn, kêu 'kít kít', dễ vỡ thành hạt (hộp xốp, mút chèn)","White, hard and brittle, makes a 'squeaking' sound, crumbles into beads (foam boxes, packing foam)","白色、坚硬易脆,发出'吱吱'声,容易碎成颗粒(泡沫盒、填充泡沫)");
+addD("Mềm, đàn hồi, ấn lõm rồi bung lại (nệm, mút ghế, mút loa)","Soft, elastic, springs back after being pressed (mattresses, cushions, speaker foam)","柔软、有弹性,按压后能回弹(床垫、坐垫、音箱海绵)");
+addD("Tấm trong như kính này thử va đập / bẻ:","For this glass-clear sheet, try an impact/bending test:","对于这块透明如玻璃的板材,尝试冲击/弯折测试:");
+addD("PC và PMMA đều trong như kính nhưng ứng xử va đập trái ngược nhau.","PC and PMMA both look glass-clear but behave oppositely under impact.","PC和PMMA外观都像玻璃一样透明,但受冲击时的表现截然相反。");
+addD("Rất khó vỡ, uốn cong được, ném/gõ mạnh không sao","Very hard to break, can be bent, unharmed by being thrown/struck hard","非常难破碎,可以弯曲,用力抛掷/敲击也没事");
+addD("Cứng bề mặt (khó trầy) nhưng GIÒN, gõ mạnh nứt vỡ mảnh sắc, cạnh sáng như pha lê","Hard surface (hard to scratch) but BRITTLE, cracks into sharp fragments when struck hard, edges shine like crystal","表面坚硬(不易刮伤)但易脆,用力敲击会碎裂成锋利碎片,边缘如水晶般闪亮");
+addD("Mỏng, dẻo, trong — dùng làm vỉ/khay đóng gói","Thin, flexible, clear — used for blister packs/packaging trays","薄、柔韧、透明 — 用于吸塑包装/托盘");
+addD("Chi tiết kỹ thuật/cơ khí đó — thử thả vào nước & quan sát:","For this engineering/mechanical part — try dropping it in water and observing:","对于这个工程/机械零件 — 尝试放入水中观察:");
+addD("Thử nổi/chìm giúp tách nhanh nhóm nhựa nặng.","The float/sink test quickly separates the heavier plastics.","浮沉测试可快速区分较重的塑料。");
+addD("CHÌM; rất dai cứng, chịu mài mòn (bánh răng, ổ trục, dây cước)","SINKS; very tough and rigid, wear-resistant (gears, bearings, fishing line)","下沉;非常坚韧,耐磨(齿轮、轴承、钓鱼线)");
+addD("CHÌM; cứng nặng tay, gõ đanh (ống nước, khung cửa)","SINKS; hard and heavy, makes a solid sound when tapped (water pipes, door frames)","下沉;坚硬沉重,敲击声扎实(水管、门框)");
+addD("CHÌM; đục bóng đẹp, mạ crôm được (vỏ nhựa cao cấp)","SINKS; opaque and glossy, can be chrome-plated (premium plastic casings)","下沉;不透明且光亮,可电镀铬(高级塑料外壳)");
+addD("CHÌM; trong như kính, giòn (tấm Mica)","SINKS; glass-clear, brittle (Acrylic sheet)","下沉;像玻璃一样透明,易脆(亚克力板)");
+addD("NỔI; dẻo, hơi sáp, nhẹ (chi tiết nhựa thường)","FLOATS; flexible, slightly waxy, light (ordinary plastic part)","漂浮;柔韧、略带蜡质感、轻(普通塑料件)");
+
+// ---------------- BURN_GUIDE ----------------
+addD("Xanh, đầu vàng","Blue, yellow tip","蓝色,顶端黄色");
+addD("Ít khói","Little smoke","烟少");
+addD("Sáp nến / parafin","Candle wax / paraffin","蜡烛/石蜡味");
+addD("Nhỏ giọt, cháy tiếp","Drips, keeps burning","滴落,持续燃烧");
+addD("Dầu, hắc nhẹ","Oily, slightly pungent","油味,略刺鼻");
+addD("Nhỏ giọt trong","Drips clear","滴落透明液滴");
+addD("Vàng","Yellow","黄色");
+addD("Muội đen nhẹ","Light black soot","轻微黑烟");
+addD("Ngọt như giấy cháy","Sweet like burning paper","似烧纸的甜味");
+addD("Nhỏ giọt","Drips","滴落");
+addD("Vàng-xanh","Yellow-green","黄绿色");
+addD("Khói trắng","White smoke","白烟");
+addD("Hắc như clo","Pungent like chlorine","刺鼻的氯气味");
+addD("Tự tắt khi rời lửa","Self-extinguishes when removed from flame","离开火源自熄");
+addD("Vàng cam","Orange-yellow","橙黄色");
+addD("Nhiều muội đen","Lots of black soot","大量黑烟");
+addD("Ngọt hắc (styrene)","Pungent-sweet (styrene)","刺鼻带甜(苯乙烯味)");
+addD("Sủi, cháy mạnh","Bubbles, burns vigorously","起泡,剧烈燃烧");
+addD("Khét như tóc/sừng","Burnt smell like hair/horn","似烧焦毛发/角质的焦味");
+addD("Sủi bọt, tự tắt dần","Bubbles, gradually self-extinguishes","起泡,逐渐自熄");
+addD("Vàng-xanh trong","Clear yellow-blue","清澈的黄蓝色");
+addD("Ít muội","Little soot","烟灰少");
+addD("Ngọt trái cây","Sweet, fruity","水果甜味");
+addD("Lách tách nhẹ","Light crackling","轻微噼啪声");
+addD("Hắc ngọt (phenol)","Pungent-sweet (phenol)","刺鼻带甜(苯酚味)");
+addD("Sủi, tự tắt chậm","Bubbles, slowly self-extinguishes","起泡,缓慢自熄");
+addD("Vàng sáng","Bright yellow","明黄色");
+addD("Nhiều muội","Lots of soot","烟灰多");
+addD("Hắc gắt khó chịu","Harshly pungent, unpleasant","刺鼻难闻");
+addD("Co rúm nhanh","Shrivels quickly","迅速卷缩");
+addD("Ngọt như bắp rang","Sweet like popcorn","似爆米花的甜味");
+
+// ---------------- CONFUSION_PAIRS ----------------
+addD("PET vs PS trong (GPPS)","PET vs Clear PS (GPPS)","PET 对比 透明PS(GPPS)");
+addD("Cả hai đều trong suốt, dễ nhầm ở ly/hộp dùng một lần.","Both are transparent, easily confused in disposable cups/containers.","两者都是透明的,在一次性杯子/容器中容易混淆。");
+addD("Bẻ cong","Bending","弯折");
+addD("PET dai, cong lại được, khó gãy","PET is tough, can be bent, hard to break","PET有韧性,可弯曲,不易断裂");
+addD("PS giòn, bẻ 'rắc' gãy ngay, tạo vết trắng đục","PS is brittle, snaps immediately with a 'crack', leaves an opaque white mark","PS易脆,立即'咔'一声断裂,留下白色不透明痕迹");
+addD("Bóp/vò","Squeezing/crumpling","挤压/揉搓");
+addD("Kêu lách tách, đàn hồi","Crackling sound, elastic","发出咔嗒声,有弹性");
+addD("Cứng đơ, nứt vỡ","Rigid, cracks","僵硬,易开裂");
+addD("Đốt thử","Burn test","燃烧测试");
+addD("Lửa vàng, muội nhẹ, mùi ngọt như giấy","Yellow flame, light soot, sweet smell like paper","黄色火焰,轻微黑烟,似纸张的甜味");
+addD("Lửa vàng cam, nhiều muội đen bay, mùi ngọt hắc styrene","Orange-yellow flame, lots of floating black soot, pungent-sweet styrene smell","橙黄色火焰,大量黑烟飘散,刺鼻带甜的苯乙烯味");
+addD("Nước","Water test","水测试");
+addD("Chìm (1,38)","Sinks (1.38)","下沉(1.38)");
+addD("Chìm (1,05) — chìm chậm hơn PET","Sinks (1.05) — sinks slower than PET","下沉(1.05)— 比PET下沉更慢");
+addD("HDPE vs PP","HDPE vs PP","HDPE 对比 PP");
+addD("Hai polyolefin đều nhẹ (nổi nước), hơi sáp, dễ nhầm ở nắp, hộp, chai.","Both polyolefins are light (float in water) and slightly waxy, easily confused in caps, boxes, and bottles.","这两种聚烯烃都很轻(漂浮在水中)且略带蜡质感,在瓶盖、盒子、瓶子中容易混淆。");
+addD("Độ trong","Clarity","透明度");
+addD("Đục hơn, ngả trắng sữa","More opaque, milky white tint","更不透明,呈乳白色");
+addD("Trong mờ hơn, bóng hơn","More translucent, glossier","更半透明,更有光泽");
+addD("Bản lề gập","Folding hinge","折叠铰链");
+addD("Gập nhiều lần dễ nứt trắng","Cracks white after repeated folding","反复折叠后容易出现白色裂纹");
+addD("Gập bản lề sống hàng nghìn lần không gãy (nắp lật PP)","A living hinge can be folded thousands of times without breaking (PP flip-top caps)","整体铰链可反复折叠数千次而不断裂(PP翻盖)");
+addD("Âm khi gõ","Sound when tapped","敲击声");
+addD("Trầm, đục","Low-pitched, dull","低沉、浑浊");
+addD("Thanh, cao hơn","Clear, higher-pitched","清脆,音调更高");
+addD("Mùi sáp nến rõ","Distinct candle-wax smell","明显的蜡烛气味");
+addD("Mùi dầu hắc nhẹ hơn","Slightly less pungent oily smell","油味略淡");
+addD("Nổi lấp lửng (0,95)","Floats just below the surface (0.95)","半浮半沉(0.95)");
+addD("Nổi cao hơn (0,90 — nhẹ nhất)","Floats higher (0.90 — the lightest)","漂得更高(0.90 — 最轻)");
+addD("PC vs PMMA (Mica/Acrylic)","PC vs PMMA (Acrylic)","PC 对比 PMMA(亚克力)");
+addD("Cả hai đều là tấm trong suốt như kính, hay nhầm ở tấm lợp, vách ngăn.","Both are glass-clear sheets, often confused in roofing panels and partitions.","两者都是透明如玻璃的板材,常在屋顶板和隔断中被混淆。");
+addD("Va đập","Impact test","冲击测试");
+addD("Rất khó vỡ, ném không sao (chống đạn)","Very hard to break, unharmed when thrown (bulletproof-grade)","非常难破碎,抛掷也没事(防弹级)");
+addD("Giòn, gõ mạnh nứt vỡ mảnh sắc","Brittle, cracks into sharp fragments when struck hard","易脆,用力敲击会碎裂成锋利碎片");
+addD("Uốn cong được không gãy","Can be bent without breaking","可弯曲而不断裂");
+addD("Cứng, bẻ gãy giòn","Rigid, breaks with a brittle snap","坚硬,脆性断裂");
+addD("Cạnh cắt","Cut edge","切割边缘");
+addD("Hơi ngả xanh/xám","Slightly greenish/gray tint","略带绿色/灰色");
+addD("Trong veo, cạnh sáng như pha lê","Crystal-clear, edges shine like crystal","晶莹剔透,边缘如水晶般闪亮");
+addD("Muội đen nhiều, mùi hắc phenol, tự tắt","Lots of black soot, pungent phenol smell, self-extinguishes","大量黑烟,刺鼻苯酚味,自熄");
+addD("Cháy tiếp, mùi ngọt trái cây, lách tách","Keeps burning, sweet fruity smell, crackling","持续燃烧,水果甜味,噼啪作响");
+addD("Trầy xước","Scratching","刮擦");
+addD("Dễ trầy hơn","Scratches more easily","更容易刮伤");
+addD("Cứng bề mặt, khó trầy hơn","Harder surface, more scratch-resistant","表面更硬,更耐刮擦");
+addD("PVC trong vs PET","Clear PVC vs PET","透明PVC 对比 PET");
+addD("Chai/màng PVC trong dễ nhầm với PET — nhưng khác hẳn về an toàn.","Clear PVC bottles/film are easily confused with PET — but differ greatly in safety.","透明PVC瓶子/薄膜容易与PET混淆 — 但安全性完全不同。");
+addD("Đáy chai","Bottle bottom","瓶底");
+addD("Đường hàn dạng vạch thẳng, hơi ngả xanh","Straight weld-line mark, slightly greenish tint","直线焊接痕迹,略带绿色");
+addD("Chấm tròn ở giữa đáy, trong hơn","Round dot in the center of the bottom, clearer","瓶底中央有圆点,更透明");
+addD("Móng tay bấm","Fingernail press","指甲按压");
+addD("Để lại vết trắng (móng bấm hằn)","Leaves a white mark (fingernail imprint)","留下白色痕迹(指甲压痕)");
+addD("Không để vết trắng rõ","Does not leave a clear white mark","不会留下明显的白色痕迹");
+addD("KHÓ cháy, tự tắt, khói trắng, mùi clo hắc","HARD to ignite, self-extinguishes, white smoke, pungent chlorine smell","不易燃,自熄,白烟,刺鼻氯气味");
+addD("Dễ cháy, nhỏ giọt, mùi ngọt","Easy to ignite, drips, sweet smell","易燃,滴落,甜味");
+addD("An toàn","Safety","安全性");
+addD("Không nên đựng thực phẩm/đồ nóng","Should not be used for hot food/drinks","不应用于盛装热食/热饮");
+addD("Đựng nước nguội 1 lần thì an toàn","Safe for single use with cool water","一次性盛装凉水是安全的");
+addD("ABS vs HIPS (nhựa vỏ thiết bị)","ABS vs HIPS (device-casing plastics)","ABS 对比 HIPS(设备外壳塑料)");
+addD("Cả hai đều đục, làm vỏ thiết bị, dễ nhầm.","Both are opaque and used for device casings, easily confused.","两者都不透明,用于设备外壳,容易混淆。");
+addD("Bền dai, khó nứt","Tough and durable, hard to crack","坚韧耐用,不易开裂");
+addD("Kém dai hơn, dễ nứt hơn","Less tough, cracks more easily","韧性较差,更容易开裂");
+addD("Nhỏ acetone","Acetone drop test","丙酮滴落测试");
+addD("Bề mặt mềm/dính rõ (test đặc trưng ABS)","Surface clearly softens/becomes tacky (characteristic ABS test)","表面明显变软/发黏(ABS特征测试)");
+addD("Ít phản ứng hơn","Reacts less","反应较小");
+addD("Muội đen dày, mùi cao su-styrene hắc","Thick black soot, pungent rubber-styrene smell","浓密黑烟,刺鼻的橡胶-苯乙烯味");
+addD("Muội đen, mùi ngọt styrene rõ","Black soot, distinct sweet styrene smell","黑烟,明显的苯乙烯甜味");
+addD("Bề mặt","Surface","表面");
+addD("Bóng đẹp, mịn cao cấp, mạ crôm được","Glossy, smooth, premium feel, can be chrome-plated","光亮、细腻、质感高级,可电镀铬");
+addD("Bóng nhưng kém sang hơn","Glossy but less premium-looking","光亮但质感较差");
+addD("PA (Nylon) vs PP","PA (Nylon) vs PP","PA(尼龙)对比 PP");
+addD("Chi tiết kỹ thuật trắng đục dễ nhầm giữa Nylon và PP.","Opaque white engineering parts are easily confused between Nylon and PP.","不透明白色工程零件在尼龙和PP之间容易混淆。");
+addD("Chìm (1,14)","Sinks (1.14)","下沉(1.14)");
+addD("Nổi (0,90)","Floats (0.90)","漂浮(0.90)");
+addD("Độ dai/cứng","Toughness/hardness","韧性/硬度");
+addD("Rất cứng, dai, chịu mài mòn cao","Very rigid, tough, highly wear-resistant","非常坚硬,韧性好,高度耐磨");
+addD("Dẻo hơn, mềm hơn","More flexible, softer","更柔韧、更软");
+addD("Mùi khét như tóc/sừng cháy, tự tắt dần","Burnt smell like hair/horn, gradually self-extinguishes","似烧焦毛发/角质的焦味,逐渐自熄");
+addD("Mùi dầu/sáp, cháy tiếp","Oily/waxy smell, keeps burning","油/蜡味,持续燃烧");
+addD("Trơn nhẵn như sáp cứng","Smooth like hard wax","光滑如硬蜡");
+addD("Hơi sáp, mềm hơn","Slightly waxy, softer","略带蜡质感,更软");
+
+// ---------------- TEST_METHODS (expandable technical detail) ----------------
+addD("Thử độ bền kéo (Tensile Test)","Tensile Test","拉伸试验");
+addD("Kẹp mẫu nhựa hình quả tạ (dog-bone) vào hai ngàm của máy kéo nén vạn năng, kéo giãn với tốc độ không đổi (thường 5–50 mm/phút) cho đến khi mẫu đứt.","Clamp a dog-bone shaped plastic sample between the two jaws of a universal testing machine and stretch it at a constant rate (typically 5–50 mm/min) until it breaks.","将狗骨形塑料样品夹在万能材料试验机的两个夹具之间,以恒定速度(通常5–50毫米/分钟)拉伸直至样品断裂。");
+addD("Độ bền kéo (MPa), độ giãn dài khi đứt (%), mô-đun đàn hồi (modulus).","Tensile strength (MPa), elongation at break (%), elastic modulus.","拉伸强度(MPa)、断裂伸长率(%)、弹性模量。");
+addD("Máy kéo nén vạn năng (UTM) + extensometer đo giãn dài.","Universal testing machine (UTM) + extensometer to measure elongation.","万能材料试验机(UTM)+ 引伸计测量伸长率。");
+addD("Mẫu dog-bone Type I dày 3,2 mm theo khuôn tiêu chuẩn.","Type I dog-bone sample, 3.2 mm thick, per standard mold.","I型狗骨形样品,厚度3.2毫米,按标准模具制作。");
+addD("Tương đương ISO 527.","Equivalent to ISO 527.","等同于ISO 527。");
+addD("Bản ISO của phép thử kéo: kẹp mẫu dog-bone và kéo đều đến đứt để dựng đường cong ứng suất–biến dạng.","The ISO version of the tensile test: clamp a dog-bone sample and stretch it steadily to failure to build a stress–strain curve.","拉伸试验的ISO版本:夹持狗骨形样品并匀速拉伸至断裂,以绘制应力-应变曲线。");
+addD("Ứng suất kéo, độ giãn dài, mô-đun Young.","Tensile stress, elongation, Young's modulus.","拉伸应力、伸长率、杨氏模量。");
+addD("Máy kéo nén vạn năng (UTM).","Universal testing machine (UTM).","万能材料试验机(UTM)。");
+addD("Mẫu 1A/1B đúc phun theo ISO 527-2.","Injection-molded Type 1A/1B sample per ISO 527-2.","按ISO 527-2标准注塑成型的1A/1B型样品。");
+addD("Tương đương ASTM D638.","Equivalent to ASTM D638.","等同于ASTM D638。");
+addD("Thử va đập Izod (Impact Test)","Izod Impact Test","悬臂梁冲击试验");
+addD("Kẹp đứng mẫu có khía chữ V, cho búa con lắc đập vào; đo năng lượng búa mất đi khi phá gãy mẫu — phản ánh độ dai va đập.","Clamp a V-notched sample vertically and strike it with a pendulum hammer; measure the energy lost by the hammer breaking the sample — reflecting impact toughness.","将带V型缺口的样品垂直夹持,用摆锤冲击;测量摆锤破坏样品所损失的能量——反映抗冲击韧性。");
+addD("Năng lượng hấp thụ (J/m hoặc kJ/m²).","Absorbed energy (J/m or kJ/m²).","吸收能量(J/m或kJ/m²)。");
+addD("Máy va đập con lắc Izod/Charpy có khắc khía.","Izod/Charpy pendulum impact tester with notching tool.","带缺口加工工具的Izod/Charpy摆锤冲击试验机。");
+addD("Thanh 63,5 × 12,7 mm, khía V sâu 2,54 mm.","Bar 63.5 × 12.7 mm, with a 2.54 mm deep V-notch.","63.5×12.7毫米试条,V型缺口深度2.54毫米。");
+addD("Tương đương ISO 180 (Izod) / ISO 179 (Charpy).","Equivalent to ISO 180 (Izod) / ISO 179 (Charpy).","等同于ISO 180(Izod)/ ISO 179(Charpy)。");
+addD("Bản ISO của phép va đập Izod: con lắc đập mẫu kẹp đứng có khía, đo năng lượng phá gãy.","The ISO version of the Izod impact test: a pendulum strikes a vertically clamped notched sample, measuring the energy needed to break it.","悬臂梁冲击试验的ISO版本:摆锤冲击垂直夹持的缺口样品,测量破坏所需能量。");
+addD("Độ bền va đập Izod (kJ/m²).","Izod impact strength (kJ/m²).","悬臂梁冲击强度(kJ/m²)。");
+addD("Máy va đập con lắc.","Pendulum impact tester.","摆锤冲击试验机。");
+addD("Mẫu có khía theo ISO 180.","Notched sample per ISO 180.","按ISO 180标准制作的缺口样品。");
+addD("Tương đương ASTM D256.","Equivalent to ASTM D256.","等同于ASTM D256。");
+addD("Chỉ số chảy MFI (Melt Flow Index)","Melt Flow Index (MFI)","熔体流动速率(MFI)");
+addD("Nung chảy nhựa trong xy-lanh ở nhiệt độ chuẩn, ép qua lỗ khuôn (die) dưới tải trọng chuẩn; cân khối lượng nhựa chảy ra trong 10 phút.","Melt the plastic in a cylinder at a standard temperature, extrude it through a die under a standard load, and weigh the amount that flows out in 10 minutes.","在标准温度下将塑料在料筒中熔化,在标准载荷下通过模口挤出;称量10分钟内流出的塑料质量。");
+addD("MFI/MFR (g/10 phút) — đặc trưng độ nhớt và độ dài mạch polymer.","MFI/MFR (g/10 min) — characterizes viscosity and polymer chain length.","MFI/MFR(g/10分钟)——反映粘度和聚合物链长特性。");
+addD("Máy đo chỉ số chảy (melt flow indexer) có tải trọng chuẩn (VD 2,16 kg).","Melt flow indexer with standard load weight (e.g., 2.16 kg).","带标准砝码(如2.16千克)的熔体流动速率测定仪。");
+addD("Nhựa dạng hạt/bột ~5 g.","Plastic pellets/powder, ~5 g.","塑料粒料/粉末,约5克。");
+addD("Tương đương ISO 1133.","Equivalent to ISO 1133.","等同于ISO 1133。");
+addD("Chỉ số chảy MFR (Melt Flow Rate)","Melt Flow Rate (MFR)","熔体流动速率(MFR)");
+addD("Bản ISO của phép đo MFI: ép nhựa nóng chảy qua khuôn dưới tải chuẩn, cân lượng chảy theo thời gian.","The ISO version of the MFI test: extrude molten plastic through a die under a standard load and weigh the flow amount over time.","MFI测定的ISO版本:在标准载荷下将熔融塑料通过模口挤出,按时间称量流出量。");
+addD("MFR (g/10 phút).","MFR (g/10 min).","MFR(g/10分钟)。");
+addD("Máy đo chỉ số chảy.","Melt flow indexer.","熔体流动速率测定仪。");
+addD("Nhựa dạng hạt ~5 g.","Plastic pellets, ~5 g.","塑料粒料,约5克。");
+addD("Tương đương ASTM D1238.","Equivalent to ASTM D1238.","等同于ASTM D1238。");
+addD("Thử độ bền uốn (Flexural Test)","Flexural Test","弯曲试验");
+addD("Đặt thanh mẫu lên hai gối đỡ, ép lực xuống điểm giữa (uốn 3 điểm) cho đến khi mẫu gãy hoặc đạt độ võng chuẩn.","Place a bar sample on two supports and apply force to the midpoint (3-point bending) until the sample breaks or reaches a standard deflection.","将试条样品放置在两个支座上,对中点施加压力(三点弯曲)直至样品断裂或达到标准挠度。");
+addD("Độ bền uốn (MPa), mô-đun uốn.","Flexural strength (MPa), flexural modulus.","弯曲强度(MPa)、弯曲模量。");
+addD("Máy kéo nén vạn năng gá bộ uốn 3 điểm.","Universal testing machine fitted with a 3-point bend fixture.","装有三点弯曲夹具的万能材料试验机。");
+addD("Thanh chữ nhật 127 × 12,7 × 3,2 mm.","Rectangular bar, 127 × 12.7 × 3.2 mm.","矩形试条,127×12.7×3.2毫米。");
+addD("Tương đương ISO 178.","Equivalent to ISO 178.","等同于ISO 178。");
+addD("Bản ISO: ép lực vào giữa thanh mẫu đặt trên hai gối đỡ.","ISO version: apply force to the midpoint of a bar sample placed on two supports.","ISO版本:对放置在两个支座上的试条中点施加压力。");
+addD("Độ bền uốn, mô-đun uốn.","Flexural strength, flexural modulus.","弯曲强度、弯曲模量。");
+addD("Máy uốn 3 điểm.","3-point bend tester.","三点弯曲试验机。");
+addD("Thanh 80 × 10 × 4 mm.","Bar, 80 × 10 × 4 mm.","试条,80×10×4毫米。");
+addD("Tương đương ASTM D790.","Equivalent to ASTM D790.","等同于ASTM D790。");
+addD("Đo độ cứng Shore (Durometer)","Shore Hardness Test (Durometer)","邵氏硬度测试(硬度计)");
+addD("Ấn đầu kim durometer chuẩn lên bề mặt nhựa; độ lún của kim quy đổi ra thang độ cứng (Shore A cho nhựa mềm/cao su, Shore D cho nhựa cứng).","Press a standard durometer indenter onto the plastic surface; the indentation depth converts to a hardness scale (Shore A for soft plastic/rubber, Shore D for hard plastic).","将标准硬度计压针压入塑料表面;压入深度换算为硬度值(邵氏A用于软质塑料/橡胶,邵氏D用于硬质塑料)。");
+addD("Độ cứng Shore A hoặc Shore D (0–100).","Shore A or Shore D hardness (0–100).","邵氏A或邵氏D硬度值(0–100)。");
+addD("Đồng hồ đo độ cứng Shore (durometer).","Shore hardness durometer.","邵氏硬度计。");
+addD("Mẫu phẳng dày tối thiểu 6 mm.","Flat sample at least 6 mm thick.","平面样品,厚度至少6毫米。");
+addD("Tương đương ISO 868.","Equivalent to ISO 868.","等同于ISO 868。");
+addD("Bản ISO của phép đo độ cứng Shore bằng đầu ấn durometer.","The ISO version of the Shore hardness test using a durometer indenter.","使用硬度计压针测量邵氏硬度的ISO版本。");
+addD("Độ cứng Shore A/D.","Shore A/D hardness.","邵氏A/D硬度。");
+addD("Durometer.","Durometer.","硬度计。");
+addD("Mẫu phẳng đủ dày.","Sufficiently thick flat sample.","足够厚的平面样品。");
+addD("Tương đương ASTM D2240.","Equivalent to ASTM D2240.","等同于ASTM D2240。");
+addD("Nhiệt độ biến dạng nhiệt (HDT)","Heat Deflection Temperature (HDT)","热变形温度(HDT)");
+addD("Nhúng mẫu chịu tải uốn cố định vào bể dầu gia nhiệt tăng dần; ghi nhiệt độ tại đó mẫu võng thêm 0,25 mm — nhiệt độ chịu tải tối đa.","Immerse a sample under a fixed bending load in an oil bath with gradually increasing temperature; record the temperature at which the sample deflects an additional 0.25 mm — the maximum load-bearing temperature.","将承受固定弯曲载荷的样品浸入温度逐渐升高的油浴中;记录样品挠度增加0.25毫米时的温度——即最大承载温度。");
+addD("HDT (°C) ở tải 0,45 hoặc 1,8 MPa.","HDT (°C) at 0.45 or 1.8 MPa load.","HDT(°C),载荷为0.45或1.8 MPa。");
+addD("Máy HDT/VICAT với bể gia nhiệt.","HDT/VICAT tester with heating bath.","带加热槽的HDT/VICAT测试仪。");
+addD("Thanh mẫu tiêu chuẩn.","Standard bar sample.","标准试条样品。");
+addD("Tương đương ISO 75.","Equivalent to ISO 75.","等同于ISO 75。");
+addD("Bản ISO của phép đo HDT: mẫu chịu tải uốn trong bể gia nhiệt tăng dần đến độ võng chuẩn.","The ISO version of the HDT test: a sample under bending load in a gradually heated bath until reaching a standard deflection.","HDT测定的ISO版本:样品在逐渐升温的浴中承受弯曲载荷直至达到标准挠度。");
+addD("HDT (°C).","HDT (°C).","HDT(°C)。");
+addD("Máy HDT.","HDT tester.","HDT测试仪。");
+addD("Tương đương ASTM D648.","Equivalent to ASTM D648.","等同于ASTM D648。");
+addD("Thử khả năng chống cháy (Flammability)","Flammability Test","阻燃性测试");
+addD("Đốt mẫu ở phương ngang (HB) hoặc đứng (V-0/V-1/V-2); đo thời gian tự tắt, tốc độ lan cháy và hiện tượng nhỏ giọt bắt lửa.","Burn the sample horizontally (HB) or vertically (V-0/V-1/V-2); measure self-extinguishing time, flame-spread rate, and flaming drip behavior.","水平(HB)或垂直(V-0/V-1/V-2)方式燃烧样品;测量自熄时间、火焰蔓延速度和滴落起火现象。");
+addD("Xếp hạng chống cháy: HB, V-2, V-1, V-0 (V-0 tốt nhất).","Flammability rating: HB, V-2, V-1, V-0 (V-0 is best).","阻燃等级:HB、V-2、V-1、V-0(V-0最佳)。");
+addD("Buồng đốt tiêu chuẩn UL với đầu đốt Bunsen.","Standard UL burn chamber with Bunsen burner.","配备本生灯的标准UL燃烧箱。");
+addD("Thanh mẫu theo chiều thử.","Bar sample oriented per test direction.","按测试方向放置的试条样品。");
+addD("Liên quan IEC 60695-11-10.","Related to IEC 60695-11-10.","相关标准:IEC 60695-11-10。");
+addD("Thử độ hấp thụ nước (Water Absorption)","Water Absorption Test","吸水率测试");
+addD("Cân mẫu khô, ngâm trong nước cất theo thời gian/nhiệt độ chuẩn, cân lại; tính phần trăm khối lượng nước hấp thụ.","Weigh a dry sample, soak it in distilled water for a standard time/temperature, weigh it again, and calculate the percentage of water absorbed.","称量干燥样品,在标准时间/温度下浸泡于蒸馏水中,再次称重;计算吸水质量百分比。");
+addD("% khối lượng nước hấp thụ.","% water absorbed by mass.","吸水质量百分比。");
+addD("Cân phân tích + bể ngâm kiểm soát nhiệt.","Analytical balance + temperature-controlled soaking bath.","分析天平 + 恒温浸泡槽。");
+addD("Đĩa/thanh mẫu sấy khô trước.","Pre-dried disc/bar sample.","预先烘干的圆片/试条样品。");
+addD("Tương đương ISO 62.","Equivalent to ISO 62.","等同于ISO 62。");
+addD("Bản ISO: ngâm mẫu và cân chênh lệch khối lượng để tính lượng nước hấp thụ.","ISO version: soak the sample and weigh the mass difference to calculate water absorption.","ISO版本:浸泡样品并称量质量差以计算吸水量。");
+addD("% hấp thụ nước.","% water absorption.","吸水率百分比。");
+addD("Mẫu sấy khô.","Dried sample.","烘干样品。");
+addD("Tương đương ASTM D570.","Equivalent to ASTM D570.","等同于ASTM D570。");
+addD("Đo tỷ trọng (Density)","Density Test","密度测试");
+addD("Cân mẫu trong không khí rồi cân khi ngâm trong nước (nguyên lý Archimedes); tính tỷ trọng từ chênh lệch.","Weigh the sample in air, then weigh it submerged in water (Archimedes' principle); calculate density from the difference.","在空气中称量样品,然后浸入水中称量(阿基米德原理);根据差值计算密度。");
+addD("Khối lượng riêng (g/cm³).","Density (g/cm³).","密度(g/cm³)。");
+addD("Cân tỷ trọng (bộ cân thủy tĩnh).","Density balance (hydrostatic weighing kit).","密度天平(静水称重装置)。");
+addD("Mẫu rắn bất kỳ đủ nhỏ.","Any sufficiently small solid sample.","任何足够小的固体样品。");
+addD("Tương đương ISO 1183.","Equivalent to ISO 1183.","等同于ISO 1183。");
+addD("Bản ISO: xác định khối lượng riêng bằng cân thủy tĩnh hoặc cột gradient tỷ trọng.","ISO version: determine density using hydrostatic weighing or a density gradient column.","ISO版本:使用静水称重法或密度梯度柱测定密度。");
+addD("Mẫu rắn.","Solid sample.","固体样品。");
+addD("Tương đương ASTM D792.","Equivalent to ASTM D792.","等同于ASTM D792。");
+addD("Đo tỷ trọng bằng cột gradient","Density Gradient Column Test","密度梯度柱测试");
+addD("Thả mẫu vào cột chất lỏng có tỷ trọng biến thiên theo chiều cao; vị trí mẫu dừng lại cho biết tỷ trọng chính xác.","Drop the sample into a liquid column with density varying by height; the position where it stops indicates its exact density.","将样品放入密度随高度变化的液柱中;样品停留的位置可精确指示其密度。");
+addD("Khối lượng riêng (g/cm³) độ chính xác cao.","High-precision density (g/cm³).","高精度密度(g/cm³)。");
+addD("Cột gradient tỷ trọng.","Density gradient column.","密度梯度柱。");
+addD("Mảnh nhựa nhỏ.","Small plastic chip.","小块塑料样品。");
+addD("Liên quan ISO 1183.","Related to ISO 1183.","相关标准:ISO 1183。");
+addD("Đo độ nhớt đặc trưng (IV) của PET","PET Intrinsic Viscosity (IV) Test","PET特性粘度(IV)测试");
+addD("Hoà tan PET trong dung môi chuẩn, đo thời gian chảy qua nhớt kế mao quản so với dung môi thuần; tính độ nhớt đặc trưng phản ánh độ dài mạch (phân tử lượng).","Dissolve PET in a standard solvent, measure its flow time through a capillary viscometer relative to the pure solvent, and calculate the intrinsic viscosity, which reflects chain length (molecular weight).","将PET溶解于标准溶剂中,用毛细管粘度计测量其相对于纯溶剂的流动时间;计算特性粘度以反映链长(分子量)。");
+addD("IV (dL/g) — quyết định PET dùng cho chai, sợi hay film.","IV (dL/g) — determines whether PET is used for bottles, fiber, or film.","IV值(dL/g)——决定PET用于瓶子、纤维还是薄膜。");
+addD("Nhớt kế mao quản + bể ổn nhiệt.","Capillary viscometer + constant-temperature bath.","毛细管粘度计 + 恒温水浴。");
+addD("PET hoà tan trong dung môi.","PET dissolved in solvent.","溶解于溶剂中的PET。");
+addD("Liên quan ISO 1628-5.","Related to ISO 1628-5.","相关标准:ISO 1628-5。");
+addD("Đo độ nhớt dung dịch PET","PET Solution Viscosity Test","PET溶液粘度测试");
+addD("Bản ISO: đo độ nhớt dung dịch PET bằng nhớt kế mao quản để suy ra phân tử lượng.","ISO version: measure PET solution viscosity with a capillary viscometer to infer molecular weight.","ISO版本:用毛细管粘度计测量PET溶液粘度以推算分子量。");
+addD("Độ nhớt (dL/g).","Viscosity (dL/g).","粘度(dL/g)。");
+addD("Nhớt kế mao quản.","Capillary viscometer.","毛细管粘度计。");
+addD("PET hoà tan.","Dissolved PET.","溶解的PET。");
+addD("Liên quan ASTM D4603.","Related to ASTM D4603.","相关标准:ASTM D4603。");
+addD("Đo chiết suất quang học","Optical Refractive Index Test","光学折射率测试");
+addD("Chiếu tia sáng qua mẫu và đo góc khúc xạ bằng khúc xạ kế để xác định chiết suất — quan trọng với nhựa quang học như PMMA.","Shine light through the sample and measure the refraction angle with a refractometer to determine the refractive index — important for optical plastics like PMMA.","让光线穿过样品,用折射仪测量折射角以确定折射率——对PMMA等光学塑料尤为重要。");
+addD("Chiết suất (n).","Refractive index (n).","折射率(n)。");
+addD("Khúc xạ kế Abbe.","Abbe refractometer.","阿贝折射仪。");
+addD("Mẫu phẳng đánh bóng.","Polished flat sample.","抛光平面样品。");
+addD("Tương đương ISO 489.","Equivalent to ISO 489.","等同于ISO 489。");
+addD("Bản ISO của phép đo chiết suất bằng khúc xạ kế.","The ISO version of the refractive index test using a refractometer.","使用折射仪测量折射率的ISO版本。");
+addD("Mẫu phẳng.","Flat sample.","平面样品。");
+addD("Tương đương ASTM D542.","Equivalent to ASTM D542.","等同于ASTM D542。");
+addD("Thử kéo màng mỏng (Film Tensile)","Film Tensile Test","薄膜拉伸试验");
+addD("Phiên bản dành cho màng/tấm mỏng: kẹp dải màng và kéo đến đứt để đo bền kéo và độ giãn của màng.","A version for thin film/sheet: clamp a film strip and stretch it to failure to measure its tensile strength and elongation.","适用于薄膜/薄片的版本:夹持薄膜条并拉伸至断裂,测量其拉伸强度和伸长率。");
+addD("Độ bền kéo màng (MPa), độ giãn dài (%).","Film tensile strength (MPa), elongation (%).","薄膜拉伸强度(MPa)、伸长率(%)。");
+addD("Máy kéo với ngàm kẹp màng.","Tensile tester with film-gripping jaws.","配备薄膜夹具的拉伸试验机。");
+addD("Dải màng mỏng cắt chuẩn.","Standard-cut thin film strip.","按标准裁切的薄膜条。");
+addD("Tương đương ISO 527-3.","Equivalent to ISO 527-3.","等同于ISO 527-3。");
+addD("Bản ISO: kéo dải màng/tấm mỏng đến đứt.","ISO version: stretch a thin film/sheet strip to failure.","ISO版本:将薄膜/薄片条拉伸至断裂。");
+addD("Bền kéo, độ giãn màng.","Film tensile strength, elongation.","薄膜拉伸强度、伸长率。");
+addD("Máy kéo ngàm màng.","Film-gripping tensile tester.","带薄膜夹具的拉伸试验机。");
+addD("Dải màng.","Film strip.","薄膜条。");
+addD("Tương đương ASTM D882.","Equivalent to ASTM D882.","等同于ASTM D882。");
+addD("Thử độ bền xé màng (Elmendorf)","Tear Strength Test (Elmendorf)","撕裂强度测试(埃莱曼道夫法)");
+addD("Dùng con lắc xé rách màng đã cắt sẵn vết; đo năng lượng cần để xé tiếp — phản ánh độ dai xé của màng.","Use a pendulum to tear a pre-notched film; measure the energy needed to continue tearing — reflecting the film's tear toughness.","用摆锤撕裂预先切口的薄膜;测量继续撕裂所需的能量——反映薄膜的撕裂韧性。");
+addD("Lực xé (gram-lực / mN).","Tear force (gram-force / mN).","撕裂力(克力/mN)。");
+addD("Máy xé con lắc Elmendorf.","Elmendorf pendulum tear tester.","埃莱曼道夫摆锤撕裂试验机。");
+addD("Màng có vết cắt chuẩn.","Film with a standard cut.","带标准切口的薄膜。");
+addD("Liên quan ISO 6383-2.","Related to ISO 6383-2.","相关标准:ISO 6383-2。");
+addD("Đo độ nhớt tương đối của Nylon","Nylon Relative Viscosity Test","尼龙相对粘度测试");
+addD("Hoà tan nylon trong axit formic, đo độ nhớt tương đối bằng nhớt kế để suy ra phân tử lượng.","Dissolve nylon in formic acid and measure its relative viscosity with a viscometer to infer molecular weight.","将尼龙溶解于甲酸中,用粘度计测量相对粘度以推算分子量。");
+addD("Độ nhớt tương đối (RV).","Relative viscosity (RV).","相对粘度(RV)。");
+addD("Nylon hoà tan.","Dissolved nylon.","溶解的尼龙。");
+addD("Liên quan ISO 307.","Related to ISO 307.","相关标准:ISO 307。");
+addD("Thử tính chất bọt xốp mềm (Foam)","Flexible Foam Properties Test","软质泡沫性能测试");
+addD("Bộ phép thử cho bọt PU mềm: đo độ cứng nén (IFD), độ bền kéo, độ giãn, độ hồi phục sau nén và mật độ.","A test suite for flexible PU foam: measures compression hardness (IFD), tensile strength, elongation, compression recovery, and density.","软质PU泡沫的测试套件:测量压缩硬度(IFD)、拉伸强度、伸长率、压缩回弹性和密度。");
+addD("IFD, bền kéo, độ hồi phục, mật độ bọt.","IFD, tensile strength, recovery, foam density.","IFD、拉伸强度、回弹性、泡沫密度。");
+addD("Máy nén/kéo chuyên cho foam.","Dedicated compression/tensile tester for foam.","专用泡沫压缩/拉伸试验机。");
+addD("Khối bọt cắt chuẩn.","Standard-cut foam block.","按标准裁切的泡沫块。");
+addD("Liên quan ISO 2439 / ISO 1798.","Related to ISO 2439 / ISO 1798.","相关标准:ISO 2439 / ISO 1798。");
+addD("Thử kéo cao su / elastomer","Rubber/Elastomer Tensile Test","橡胶/弹性体拉伸试验");
+addD("Kéo mẫu elastomer (như PU đặc) đến đứt để đo độ bền kéo và độ giãn rất lớn đặc trưng của vật liệu đàn hồi.","Stretch an elastomer sample (like solid PU) to failure to measure the very large tensile strength and elongation characteristic of elastic materials.","将弹性体样品(如实心PU)拉伸至断裂,以测量弹性材料特有的极大拉伸强度和伸长率。");
+addD("Bền kéo (MPa), độ giãn dài khi đứt (%).","Tensile strength (MPa), elongation at break (%).","拉伸强度(MPa)、断裂伸长率(%)。");
+addD("Máy kéo với ngàm cao su.","Tensile tester with rubber-gripping jaws.","配备橡胶夹具的拉伸试验机。");
+addD("Mẫu quả tạ dạng dập.","Die-cut dog-bone sample.","冲压成型的狗骨形样品。");
+addD("Tương đương ISO 37.","Equivalent to ISO 37.","等同于ISO 37。");
+addD("Bản ISO: kéo mẫu elastomer đến đứt đo bền kéo và độ giãn.","ISO version: stretch an elastomer sample to failure to measure tensile strength and elongation.","ISO版本:将弹性体样品拉伸至断裂以测量拉伸强度和伸长率。");
+addD("Bền kéo, độ giãn.","Tensile strength, elongation.","拉伸强度、伸长率。");
+addD("Máy kéo.","Tensile tester.","拉伸试验机。");
+addD("Mẫu dập quả tạ.","Die-cut dog-bone sample.","冲压成型的狗骨形样品。");
+addD("Tương đương ASTM D412.","Equivalent to ASTM D412.","等同于ASTM D412。");
+addD("Đo tỷ trọng bọt xốp","Foam Density Test","泡沫密度测试");
+addD("Cân khối bọt có thể tích xác định để tính khối lượng riêng biểu kiến của xốp.","Weigh a foam block of known volume to calculate the apparent density of the foam.","称量已知体积的泡沫块以计算泡沫的表观密度。");
+addD("Mật độ biểu kiến (kg/m³).","Apparent density (kg/m³).","表观密度(kg/m³)。");
+addD("Cân + dụng cụ đo thể tích.","Balance + volume-measuring tool.","天平 + 体积测量工具。");
+addD("Khối bọt cắt vuông.","Square-cut foam block.","方形切割泡沫块。");
+addD("Dùng cho PS-E, PU foam.","Used for EPS, PU foam.","用于EPS、PU泡沫。");
+addD("Chứng nhận phân hủy compost công nghiệp","Industrial Compostability Certification","工业堆肥可降解认证");
+addD("Bộ tiêu chí xác nhận nhựa phân hủy sinh học hoàn toàn trong điều kiện ủ compost công nghiệp: phân rã, chuyển hoá sinh học và không để lại độc tính.","A set of criteria confirming a plastic fully biodegrades under industrial composting conditions: disintegration, biological conversion, and no residual toxicity.","一套确认塑料在工业堆肥条件下完全生物降解的标准:崩解、生物转化,且不留有毒残留物。");
+addD("Đạt/không đạt chứng nhận compostable.","Pass/fail compostable certification.","通过/未通过可堆肥认证。");
+addD("Buồng ủ compost kiểm soát + phân tích khí.","Controlled composting chamber + gas analysis.","受控堆肥舱 + 气体分析。");
+addD("Sản phẩm PLA/PBAT.","PLA/PBAT product.","PLA/PBAT产品。");
+addD("Liên quan EN 13432.","Related to EN 13432.","相关标准:EN 13432。");
+addD("Đo phân hủy sinh học hiếu khí","Aerobic Biodegradation Test","好氧生物降解测试");
+addD("Ủ mẫu trong điều kiện hiếu khí có kiểm soát, đo lượng CO₂ sinh ra theo thời gian để tính phần trăm phân hủy sinh học.","Incubate the sample under controlled aerobic conditions and measure the CO₂ generated over time to calculate the percentage of biodegradation.","在受控好氧条件下培养样品,测量随时间产生的二氧化碳量以计算生物降解百分比。");
+addD("% phân hủy sinh học theo thời gian.","% biodegradation over time.","随时间变化的生物降解百分比。");
+addD("Hệ đo CO₂ (respirometer).","CO₂ measurement system (respirometer).","二氧化碳测量系统(呼吸计)。");
+addD("Mẫu nghiền nhỏ.","Finely ground sample.","细磨样品。");
+addD("Tương đương ISO 14855.","Equivalent to ISO 14855.","等同于ISO 14855。");
+addD("Bản ISO: đo CO₂ thoát ra khi ủ compost để xác định mức phân hủy sinh học.","ISO version: measure CO₂ released during composting to determine the level of biodegradation.","ISO版本:测量堆肥过程中释放的二氧化碳以确定生物降解程度。");
+addD("% phân hủy sinh học.","% biodegradation.","生物降解百分比。");
+addD("Respirometer.","Respirometer.","呼吸计。");
+addD("Mẫu nghiền.","Ground sample.","磨碎样品。");
+addD("Tương đương ASTM D5338.","Equivalent to ASTM D5338.","等同于ASTM D5338。");
+addD("Tiêu chuẩn vật liệu ống PVC","PVC Pipe Material Standard","PVC管材标准");
+addD("Quy định phân loại và yêu cầu kỹ thuật cho hạt/vật liệu PVC cứng dùng ép đùn ống.","Specifies the classification and technical requirements for rigid PVC compound/material used to extrude pipe.","规定用于挤出管材的硬质PVC粒料/材料的分类和技术要求。");
+addD("Phân loại grade, chỉ tiêu cơ-lý.","Grade classification, mechanical/physical criteria.","等级分类、机械物理性能指标。");
+addD("Bộ phép thử cơ lý tổng hợp.","Combined mechanical/physical test suite.","综合机械物理测试套件。");
+addD("Hạt/ống PVC.","PVC pellets/pipe.","PVC粒料/管材。");
+addD("Chuẩn vật liệu PVC-U.","PVC-U material standard.","PVC-U材料标准。");
+
+// ---------------- Regex patterns for dynamic composed strings ----------------
+const P = [
+  { re: /^Bước \d+$/, f: (m,lang)=> lang==='en' ? m.replace('Bước','Step') : m.replace('Bước','第') + '步' },
+  { re: /^Tái chế (★+☆*)$/, f: (m,lang,g)=> (lang==='en'?'Recycling ':'回收 ') + g[1] },
+  { re: /^Xem chi tiết đầy đủ (.+) ›$/, f: (m,lang,g)=> lang==='en' ? `View full details for ${g[1]} ›` : `查看${g[1]}完整详情 ›` },
+  { re: /^Chi tiết (.+)$/, f: (m,lang,g)=> lang==='en' ? `Details ${g[1]}` : `${g[1]}详情` },
+  { re: /^Xem hình ảnh sản phẩm (.+) thực tế$/, f: (m,lang,g)=> lang==='en' ? `View real-world images of ${g[1]}` : `查看${g[1]}实物图片` },
+];
+function patternTranslate(text, lang){
+  for(const p of P){
+    const g = text.match(p.re);
+    if(g) return p.f(text, lang, g);
+  }
+  return null;
+}
+
+// ---------------- Core lookup ----------------
+function nhuaLookup(text, lang){
+  const trimmed = text;
+  if(D[trimmed]) return lang==='en' ? D[trimmed][0] : D[trimmed][1];
+  const pat = patternTranslate(trimmed, lang);
+  if(pat!==null) return pat;
+  return null;
+}
+
+// ---------------- DOM walking ----------------
+const NHUA_ATTRS = ['placeholder','title','aria-label'];
+function nhuaTranslateTextNode(node, lang){
+  const raw = node.nodeValue;
+  if(!raw || !raw.trim()) return;
+  const leading = raw.match(/^\s*/)[0];
+  const trailing = raw.match(/\s*$/)[0];
+  const core = raw.slice(leading.length, raw.length - trailing.length);
+  if(!core) return;
+  const tr = nhuaLookup(core, lang);
+  if(tr!==null) node.nodeValue = leading + tr + trailing;
+}
+function nhuaTranslateAttrs(el, lang){
+  NHUA_ATTRS.forEach(a=>{
+    const v = el.getAttribute && el.getAttribute(a);
+    if(v){ const tr = nhuaLookup(v.trim(), lang); if(tr!==null) el.setAttribute(a, tr); }
+  });
+}
+function nhuaWalk(root, lang){
+  if(!root) return;
+  if(root.nodeType === Node.TEXT_NODE){ nhuaTranslateTextNode(root, lang); return; }
+  if(root.nodeType !== Node.ELEMENT_NODE) return;
+  if(root.tagName==='SCRIPT' || root.tagName==='STYLE') return;
+  nhuaTranslateAttrs(root, lang);
+  for(let child = root.firstChild; child; child = child.nextSibling){
+    nhuaWalk(child, lang);
+  }
+}
+
+let nhuaObserver = null;
+function nhuaSetup(){
+  if(nhuaObserver) return;
+  nhuaObserver = new MutationObserver(muts=>{
+    if(NHUA_LANG==='vi') return;
+    muts.forEach(m=>{
+      m.addedNodes && m.addedNodes.forEach(n=> nhuaWalk(n, NHUA_LANG));
+      if(m.type==='characterData' && m.target) nhuaTranslateTextNode(m.target, NHUA_LANG);
+    });
+  });
+  nhuaObserver.observe(document.body, { childList:true, subtree:true, characterData:true });
+}
+
+function nhuaRerenderAll(){
+  // Re-run every render function so content is regenerated fresh in Vietnamese,
+  // then re-translated by the walk below (avoids double-translation issues).
+  try{ renderChips(); }catch(e){}
+  try{ renderList(); }catch(e){}
+  try{ if(document.getElementById('view-fav').classList.contains('active')) renderFavs(); }catch(e){}
+  try{ if(currentShort) openDetail(currentShort); }catch(e){}
+  try{ iqHistory = []; renderIdentify(IDENTIFY_TREE.start); }catch(e){}
+  try{ fillCompareSelects(); renderCompare(); }catch(e){}
+  try{ renderBigTable(); }catch(e){}
+  try{ renderMethods(); }catch(e){}
+}
+
+function setNhuaLang(lang){
+  if(!['vi','en','zh'].includes(lang)) return;
+  NHUA_LANG = lang;
+  try{ localStorage.setItem(NHUA_LANG_KEY, lang); }catch(e){}
+  nhuaRerenderAll();
+  nhuaWalk(document.body, NHUA_LANG);
+  nhuaUpdatePickerUI();
+}
+function nhuaUpdatePickerUI(){
+  document.querySelectorAll('.nhua-lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-nhua-lang')===NHUA_LANG);
+  });
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.nhua-lang-btn');
+  if(btn){ setNhuaLang(btn.getAttribute('data-nhua-lang')); }
+});
+
+nhuaSetup();
+if(NHUA_LANG!=='vi'){ nhuaRerenderAll(); nhuaWalk(document.body, NHUA_LANG); }
+nhuaUpdatePickerUI();
 
 </script>
 </body>
