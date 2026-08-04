@@ -1320,7 +1320,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v94';
+const APP_VERSION = 'v95';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2458,7 +2458,8 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[]}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic'}, loaded);
+    if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
@@ -9344,21 +9345,24 @@ function scoreSpeaking(target, heard, durationSec, confidence){
 }
 // Chuẩn ĐẠT cho "Đoạn văn dài" — cùng mốc dùng để mở khóa bài tiếp theo (longPassageUnlocked), để
 // tránh 2 tiêu chuẩn khác nhau gây khó hiểu. Ngoài điểm tổng, còn yêu cầu KHÔNG còn câu nào bị đọc
-// sai quá nhiều (dưới ngưỡng SPEAK_SENTENCE_REDO_ACC) — đúng yêu cầu "đọc nguyên lại đoạn nào bị sai".
-// Hạ từ 70/60 xuống 60/45 (theo phản hồi người dùng: đoạn văn dài + chấm bằng nhận diện giọng nói cục
-// bộ vốn khó đạt điểm cao do nhiễu/lỗi nhận diện — tiêu chuẩn cũ quá khắt khe so với trình độ trung
-// cấp của người học, khiến gần như câu nào cũng bị gắn cờ "đọc sai".
-const SPEAK_LONG_PASS_SCORE = 60;
-const SPEAK_SENTENCE_REDO_ACC = 45;
+// sai quá nhiều (dưới ngưỡng speakSentenceRedoAcc()) — đúng yêu cầu "đọc nguyên lại đoạn nào bị sai".
+// Theo phản hồi người dùng: chấm bằng nhận diện giọng nói cục bộ vốn khó đạt điểm cao do nhiễu/lỗi
+// nhận diện, và người học có trình độ khác nhau — nên thay vì 1 mốc cố định, người dùng tự chọn 1
+// trong 2 MỨC ĐỘ CHẤM (SETTINGS.speakGradeLevel, chọn ở màn "Đoạn văn dài" — xem renderLongPassageList):
+// 'basic' (🇻🇳 Cơ bản, mặc định) — tiêu chuẩn nhẹ nhàng hơn, phù hợp người Việt học tiếng Anh nói chung;
+// 'advanced' (🌍 Nâng cao) — tiêu chuẩn khắt khe hơn, gần chuẩn người bản xứ, cho người muốn thử thách cao hơn.
+function speakGradeLevel(){ return SETTINGS.speakGradeLevel==='advanced' ? 'advanced' : 'basic'; }
+function speakLongPassScore(){ return speakGradeLevel()==='advanced' ? 75 : 60; }
+function speakSentenceRedoAcc(){ return speakGradeLevel()==='advanced' ? 60 : 45; }
 // Đề xuất "luyện lại cái gì" dựa trên chính dữ liệu chấm điểm đã có sẵn (matchMask theo từ + theo câu)
 // — không cần gọi thêm AI ngoài (nhanh, luôn hoạt động kể cả không có mạng/API key), nhưng vẫn được
 // gọi là "AI đề xuất" trong giao diện để nhất quán cách gọi với các gợi ý thuật toán khác trong app
 // (ví dụ "🤖 AI gợi ý" ở Luyện nghe cũng là quy tắc tính toán, không phải gọi LLM).
 function speakDeepSuggestions(r){
   if(!r) return null;
-  const sentencesToRedo = (r.sentenceScores||[]).filter(s=>s.wordCount>=3 && s.acc<SPEAK_SENTENCE_REDO_ACC);
+  const sentencesToRedo = (r.sentenceScores||[]).filter(s=>s.wordCount>=3 && s.acc<speakSentenceRedoAcc());
   const wordsToFix = (r.missed||[]).slice(0,10);
-  const passed = r.overall>=SPEAK_LONG_PASS_SCORE && sentencesToRedo.length===0;
+  const passed = r.overall>=speakLongPassScore() && sentencesToRedo.length===0;
   return {sentencesToRedo, wordsToFix, passed};
 }
 // Tô màu trực tiếp lên đoạn văn gốc: xanh cho từ đã nhận diện đúng (theo matchMask, tính theo LCS
@@ -10023,7 +10027,7 @@ function longPassageUnlocked(idx){
   if(idx<=0) return true;
   const lb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longBest) || {};
   const lqb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longQuizBest) || {};
-  return (lb[idx-1]||0) >= SPEAK_LONG_PASS_SCORE && (lqb[idx-1]||0) >= LONG_QUIZ_PASS_COUNT;
+  return (lb[idx-1]||0) >= speakLongPassScore() && (lqb[idx-1]||0) >= LONG_QUIZ_PASS_COUNT;
 }
 // ---- Luyện nói CEFR: mở khóa TUẦN TỰ theo từng CHẶNG nhỏ trong 1 cấp độ ----
 // Trước đây bấm vào 1 cấp độ (A1..C1, ~100 đoạn/cấp) sẽ vào thẳng 1 phiên luyện random 15 đoạn bất kỳ
@@ -10131,18 +10135,31 @@ function renderLongPassageList(item){
       <div class="lp-card-num">${unlocked?(i+1):'🔒'}</div>
       <div class="lp-card-body">
         <div class="lp-card-title">${escapeHtml(title)}</div>
-        <div class="lp-card-sub">${unlocked?`~${wc} từ · Bài ${i+1}/${bank.length}`:'Đạt ★ ≥70đ + bài ôn tập ≥8/10 ở bài '+i+' để mở khóa'}</div>
+        <div class="lp-card-sub">${unlocked?`~${wc} từ · Bài ${i+1}/${bank.length}`:'Đạt ★ ≥'+speakLongPassScore()+'đ + bài ôn tập ≥8/10 ở bài '+i+' để mở khóa'}</div>
       </div>
       ${b!==undefined?`<div class="lp-card-best">★ ${b}đ</div>`:(unlocked?'<div class="vlc-play">▶</div>':'')}
     </div>`;
   }).join('');
+  // Chọn MỨC ĐỘ CHẤM AI (item mới): 🇻🇳 Cơ bản (mặc định, chấm dễ hơn — phù hợp trình độ trung cấp) hoặc
+  // 🌍 Nâng cao (chấm khắt khe hơn, gần chuẩn người bản xứ) — áp dụng cho cả điểm ĐẠT toàn bài, câu bị
+  // gắn cờ cần đọc lại, và điểm ĐẠT khi đọc lại riêng từng câu/từ (xem speakGradeLevel()).
+  const curLevel = speakGradeLevel();
+  const levelPickHtml = `<div class="card" style="padding:14px; margin-bottom:14px;">
+      <div style="font-size:11.5px; font-weight:800; color:var(--text); margin-bottom:8px;">🎯 Mức độ chấm điểm AI</div>
+      <div style="display:flex; gap:8px;">
+        <button class="form-btn ${curLevel==='basic'?'':'cancel'}" data-action="speak-grade-level" data-level="basic" style="flex:1; padding:9px; font-size:12px; ${curLevel==='basic'?'':'opacity:0.6;'}">🇻🇳 Cơ bản</button>
+        <button class="form-btn ${curLevel==='advanced'?'':'cancel'}" data-action="speak-grade-level" data-level="advanced" style="flex:1; padding:9px; font-size:12px; ${curLevel==='advanced'?'':'opacity:0.6;'}">🌍 Nâng cao</button>
+      </div>
+      <div style="font-size:10.5px; color:var(--dim2); margin-top:8px; line-height:1.5;">${curLevel==='advanced'?'Chấm khắt khe hơn, gần chuẩn người bản xứ — thử thách cao hơn.':'Chấm dễ hơn, phù hợp người Việt học tiếng Anh trình độ trung cấp — chỉ cần nói đúng, đủ ý, người nghe hiểu được.'}</div>
+    </div>`;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="long-passage-back">${svgIcon('back')}</div><div class="title">📖 Đoạn văn dài</div></div>
     <div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
       <div style="font-size:26px; margin-bottom:6px;">📖</div>
-      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Đọc trọn từng bài — mỗi bài là 1 câu chuyện/bài nói chuyện ngắn riêng biệt. Ghi âm KHÔNG giới hạn thời gian, đọc xong tự bấm dừng để chấm điểm. Hoàn thành ★ ≥70đ để mở bài tiếp theo.${bestLong!==undefined?` Điểm cao nhất: <b>★ ${bestLong}đ</b>.`:''}</div>
+      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Đọc trọn từng bài — mỗi bài là 1 câu chuyện/bài nói chuyện ngắn riêng biệt. Ghi âm KHÔNG giới hạn thời gian, đọc xong tự bấm dừng để chấm điểm. Hoàn thành ★ ≥${speakLongPassScore()}đ để mở bài tiếp theo.${bestLong!==undefined?` Điểm cao nhất: <b>★ ${bestLong}đ</b>.`:''}</div>
       <div style="font-size:11px; color:var(--dim2); margin-top:8px;">Đã hoàn thành ${doneN}/${bank.length} bài</div>
     </div>
+    ${levelPickHtml}
     <a href="https://www.youtube.com/channel/UCdOonoBiuIyZecwakmmR3zw/videos" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:10px; background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:14px; text-decoration:none;">
       <div style="font-size:20px;">🎥</div>
       <div style="flex:1; font-size:11.5px; color:var(--dim); line-height:1.5;"><b style="color:var(--text);">Nghe giọng đọc thật</b> — kênh <b>BOOKISH ENGLISH 2.0</b> (truyền cảm hứng cho các bài trên) có nhiều video đọc truyện/đoạn văn giọng người thật, chủ đề tương tự. Bấm để xem trên YouTube.</div>
@@ -10161,6 +10178,16 @@ function longPassageBrowseClose(){
   STATE.longPassageBrowse = false;
   renderContent();
   navBack();
+}
+// Lưu mức độ chấm điểm AI ('basic'/'advanced') người dùng chọn ở màn danh sách Đoạn văn dài — đồng bộ
+// qua Drive như các cấu hình khác, áp dụng ngay cho phiên đang mở (nếu có) và mọi lần chấm sau này.
+function setSpeakGradeLevel(level){
+  const lv = level==='advanced' ? 'advanced' : 'basic';
+  if(SETTINGS.speakGradeLevel===lv) return;
+  SETTINGS.speakGradeLevel = lv;
+  saveSettings(); pushToDrive();
+  showToast(lv==='advanced'?'🌍':'🇻🇳', lv==='advanced'?'Đã chuyển sang Nâng cao':'Đã chuyển sang Cơ bản', lv==='advanced'?'Chấm điểm khắt khe hơn, gần chuẩn người bản xứ.':'Chấm điểm dễ hơn, phù hợp trình độ trung cấp.');
+  renderContent();
 }
 function startLongPassage(idx){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
@@ -10249,7 +10276,7 @@ correct là chỉ số (0-3) của đáp án đúng trong mảng options. Trong 
     }
   }
   if(STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx){
-    STATE.longQuizSession.loading=false; STATE.longQuizSession.error = 'Không tạo được bài ôn tập: '+((lastErr&&lastErr.message)||'lỗi không xác định')+'. Thử lại sau.';
+    STATE.longQuizSession.loading=false; STATE.longQuizSession.error = 'Không tạo được bài ôn tập. '+geminiFriendlyError((lastErr&&lastErr.message), 'bấm tạo bài ôn tập lại');
     renderContent();
   }
 }
@@ -10409,7 +10436,7 @@ function renderLongPassageDeepFeedback(r, s, text){
   // cần đọc lại đúng câu/từ bị gắn cờ thay vì phải đọc lại từ đầu cả đoạn văn để "ĐẠT bài đọc".
   const remainingSentIdx = sug.sentencesToRedo.map((st,i)=>i).filter(i=>!s.fixedSet.sentences[i]);
   const remainingWordIdx = sug.wordsToFix.map((w,j)=>j).filter(j=>!s.fixedSet.words[speakFixKeyWord(sug.wordsToFix[j])]);
-  const readingPassed = r.overall>=SPEAK_LONG_PASS_SCORE && remainingSentIdx.length===0;
+  const readingPassed = r.overall>=speakLongPassScore() && remainingSentIdx.length===0;
   // Render nút "🎙️ Đọc lại ... để AI chấm điểm" theo trạng thái ghi âm/kết quả hiện tại của mục đó
   // (s.fixAttempts) — đổi thành nút Dừng khi đang ghi, hiện "đang chấm" khi đang chờ Gemini, và hiện
   // nhận xét ngắn + mời thử lại nếu lần ghi trước CHƯA ĐẠT.
@@ -10443,7 +10470,7 @@ function renderLongPassageDeepFeedback(r, s, text){
         ${fixBtnHtml('word', j, attempt)}
       </div>`; }).join('')}
     </div>` : '';
-  const criteriaLine = `Yêu cầu để <b>ĐẠT</b>: điểm tổng ≥${SPEAK_LONG_PASS_SCORE}đ VÀ không còn câu nào bị đọc sai quá nhiều (dưới ${SPEAK_SENTENCE_REDO_ACC}% từ đúng/câu). Có thể bấm "🎙️ Đọc lại... để AI chấm điểm" cho TỪNG câu/từ bị gắn cờ thay vì phải đọc lại cả đoạn.`;
+  const criteriaLine = `Mức độ chấm: <b>${speakGradeLevel()==='advanced'?'🌍 Nâng cao':'🇻🇳 Cơ bản'}</b> (đổi ở màn danh sách Đoạn văn dài). Yêu cầu để <b>ĐẠT</b>: điểm tổng ≥${speakLongPassScore()}đ VÀ không còn câu nào bị đọc sai quá nhiều (dưới ${speakSentenceRedoAcc()}% từ đúng/câu). Có thể bấm "🎙️ Đọc lại... để AI chấm điểm" cho TỪNG câu/từ bị gắn cờ thay vì phải đọc lại cả đoạn.`;
   let quizGateHtml = '';
   if(readingPassed){
     if(quizPassed){
@@ -10475,10 +10502,10 @@ function speakRedoSentence(i){
 // s.fixedSet{sentences:{idx:true}, words:{'từ đã chuẩn hoá':true}} đánh dấu mục nào đã được AI xác
 // nhận ĐẠT — renderLongPassageDeepFeedback dùng để lọc ra danh sách còn phải luyện + tính lại trạng
 // thái ĐẠT hiệu lực mà KHÔNG cần sửa hàm speakDeepSuggestions() gốc.
-// Hạ từ 70 xuống 55 (theo phản hồi người dùng: đọc lại 1 câu/từ đã bị gắn cờ là khó nhất trong cả bài,
-// và người học ở đây là người Việt trình độ trung cấp — không phải người bản ngữ — nên tiêu chuẩn ĐẠT
-// cần thực tế hơn: ưu tiên "nói đúng, nghe hiểu được, đủ từ" thay vì đòi hỏi phát âm hoàn hảo.
-const SPEAK_FIX_PASS_SCORE = 55;
+// Cũng theo 2 MỨC ĐỘ CHẤM speakGradeLevel() như speakLongPassScore()/speakSentenceRedoAcc() ở trên:
+// 'basic' (mặc định, 55đ) ưu tiên thực tế — "nói đúng, nghe hiểu được, đủ từ" cho người Việt trình độ
+// trung cấp; 'advanced' (70đ) đòi hỏi khắt khe hơn, gần chuẩn người bản xứ.
+function speakFixPassScore(){ return speakGradeLevel()==='advanced' ? 70 : 55; }
 function speakFixEnsure(s){
   if(!s.fixAttempts) s.fixAttempts = {sentences:{}, words:{}};
   if(!s.fixedSet) s.fixedSet = {sentences:{}, words:{}};
@@ -10548,16 +10575,20 @@ async function analyzeSpeakFixRecording(blob, kind, key, targetText){
     let binary=''; const chunkSize=0x8000;
     for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
     const base64Audio = btoa(binary);
+    const isAdvanced = speakGradeLevel()==='advanced';
+    const standardLine = isAdvanced
+      ? 'Chấm theo TIÊU CHUẨN NÂNG CAO, gần chuẩn người bản xứ — đòi hỏi phát âm rõ ràng, đúng trọng âm/ngữ điệu, không lẫn âm, không nuốt âm cuối, nghe tự nhiên. Chỉ cho ĐẠT khi thực sự đạt mức đó; đừng dễ dãi.'
+      : 'Chấm theo TIÊU CHUẨN CƠ BẢN, PHÙ HỢP TRÌNH ĐỘ TRUNG CẤP của người Việt học tiếng Anh (KHÔNG phải người bản ngữ, KHÔNG đòi hỏi hoàn hảo) — mục tiêu là "nói được, nghe hiểu được, đủ ý". Cho ĐẠT nếu nói đúng phần lớn nội dung, người nghe hiểu được, dù còn giọng Việt hoặc ngập ngừng nhẹ.';
     const prompt = kind==='sentence'
-      ? `Bạn là giáo viên tiếng Anh thân thiện, đang chấm bài LUYỆN ĐỌC LẠI 1 CÂU (không phải cả đoạn) cho một người Việt học tiếng Anh ở trình độ TRUNG CẤP (không phải người bản ngữ, không phải học viên chuyên ngành phát âm) — câu này vốn đã là câu KHÓ NHẤT trong bài vì lần đọc trước bị đánh giá đọc sai/thiếu quá nhiều từ.
+      ? `Bạn là giáo viên tiếng Anh thân thiện, đang chấm bài LUYỆN ĐỌC LẠI 1 CÂU (không phải cả đoạn) — câu này vốn đã là câu KHÓ NHẤT trong bài vì lần đọc trước bị đánh giá đọc sai/thiếu quá nhiều từ.
 Câu cần đọc: "${targetText}"
-Hãy nghe kỹ file âm thanh đính kèm, đối chiếu với câu trên và chấm với TIÊU CHUẨN THỰC TẾ, PHÙ HỢP TRÌNH ĐỘ TRUNG CẤP — mục tiêu là "nói được, nghe hiểu được, đủ ý", KHÔNG phải phát âm chuẩn như người bản xứ hay hoàn hảo 100%. Cho ĐẠT nếu: nói đúng phần lớn từ quan trọng trong câu, người nghe hiểu được nội dung, dù còn giọng Việt, ngập ngừng nhẹ, hoặc lệch nhẹ 1-2 từ không quan trọng. Chỉ cho CHƯA ĐẠT nếu thiếu/sai nhiều từ chính, hoặc câu gần như không thể hiểu được.
+Hãy nghe kỹ file âm thanh đính kèm, đối chiếu với câu trên. ${standardLine}
 Trả lời ngắn gọn 1-2 câu bằng tiếng Việt, giọng khích lệ: nhận xét cụ thể từ nào cần chú ý (nếu có) hoặc khen ngắn gọn nếu tốt.
 Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
 KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
 ĐIỂM: <số từ 0 đến 100>`
-      : `Bạn là giáo viên phát âm tiếng Anh (IPA) thân thiện, đang chấm bài LUYỆN PHÁT ÂM LẠI 1 TỪ ĐƠN: "${targetText}" cho một người Việt học tiếng Anh trình độ TRUNG CẤP (không phải người bản ngữ).
-Hãy nghe kỹ file âm thanh đính kèm và chấm với TIÊU CHUẨN THỰC TẾ — cho ĐẠT nếu từ phát âm đủ RÕ để người bản xứ nhận ra đúng từ đó (dù còn giọng Việt hoặc chưa hoàn hảo về trọng âm/ngữ điệu), chỉ cho CHƯA ĐẠT nếu phát âm sai đến mức có thể gây hiểu nhầm sang từ khác hoặc không nhận ra được từ.
+      : `Bạn là giáo viên phát âm tiếng Anh (IPA) thân thiện, đang chấm bài LUYỆN PHÁT ÂM LẠI 1 TỪ ĐƠN: "${targetText}".
+Hãy nghe kỹ file âm thanh đính kèm. ${standardLine}
 Trả lời ngắn gọn 1 câu bằng tiếng Việt, giọng khích lệ: nêu rõ âm nào còn sai (nếu có) hoặc khen ngắn gọn nếu tốt.
 Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
 KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
@@ -10586,7 +10617,7 @@ KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
     let score = null;
     const sMatch = txt.match(/ĐIỂM\s*[:\-]?\s*(\d{1,3})/i);
     if(sMatch){ score = Math.max(0, Math.min(100, parseInt(sMatch[1],10))); txt = txt.replace(sMatch[0],'').trim(); }
-    const passed = verdict===true || (verdict===null && score!==null && score>=SPEAK_FIX_PASS_SCORE);
+    const passed = verdict===true || (verdict===null && score!==null && score>=speakFixPassScore());
     bucket[key] = {phase:'done', passed, score, feedback:txt};
     if(passed){
       const fixedBucket = kind==='sentence' ? s.fixedSet.sentences : s.fixedSet.words;
@@ -10605,15 +10636,17 @@ KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
 // Diễn giải lỗi kỹ thuật từ Gemini (đặc biệt lỗi 429 "hết hạn mức gọi API/phút" rất hay gặp ở API key
 // miễn phí khi bấm ghi âm liên tục nhiều câu/từ) thành thông báo tiếng Việt dễ hiểu, có hướng dẫn cụ
 // thể thay vì hiện nguyên văn thông báo lỗi kỹ thuật (HTTP 429, RESOURCE_EXHAUSTED...) khó hiểu.
-function speakFixFriendlyError(rawMsg){
+function geminiFriendlyError(rawMsg, retryActionText){
   const msg = rawMsg || 'lỗi không xác định';
+  const action = retryActionText || 'thử lại';
   if(/429|RESOURCE_EXHAUSTED|quota/i.test(msg)){
     const wait = msg.match(/retry in ([\d.]+)\s*s/i);
     const waitSec = wait ? Math.ceil(parseFloat(wait[1])) : null;
-    return `⏳ Đã dùng hết hạn mức gọi AI miễn phí trong phút này (API key Gemini miễn phí có giới hạn số lần/phút).${waitSec?` Hãy đợi khoảng ${waitSec} giây`:' Hãy đợi khoảng 1 phút'} rồi bấm ghi âm lại — không phải lỗi ghi âm, chỉ cần chờ 1 chút.`;
+    return `⏳ Đã dùng hết hạn mức gọi AI miễn phí trong phút này (API key Gemini miễn phí có giới hạn số lần/phút).${waitSec?` Hãy đợi khoảng ${waitSec} giây`:' Hãy đợi khoảng 1 phút'} rồi ${action} — không phải lỗi, chỉ cần chờ 1 chút.`;
   }
-  return 'AI không chấm được: '+msg+'. Thử lại sau ít phút.';
+  return 'AI xử lý lỗi: '+msg+'. Thử lại sau ít phút.';
 }
+function speakFixFriendlyError(rawMsg){ return geminiFriendlyError(rawMsg, 'bấm ghi âm lại'); }
 function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
   const item=currentSpeakItem();
@@ -12482,6 +12515,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(longPassageOpenEl){ longPassageBrowseOpen(); return; }
   const longPassageBackEl = e.target.closest('[data-action="long-passage-back"]');
   if(longPassageBackEl){ longPassageBrowseClose(); return; }
+  const speakGradeLevelEl = e.target.closest('[data-action="speak-grade-level"]');
+  if(speakGradeLevelEl){ setSpeakGradeLevel(speakGradeLevelEl.getAttribute('data-level')); return; }
   const longPassageStartEl = e.target.closest('[data-action="long-passage-start"]');
   if(longPassageStartEl){ startLongPassage(parseInt(longPassageStartEl.getAttribute('data-idx'),10)||0); return; }
   const speakRedoSentEl = e.target.closest('[data-action="speak-redo-sentence"]');
