@@ -1320,7 +1320,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v92';
+const APP_VERSION = 'v93';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9868,6 +9868,11 @@ function beginSpeakRecording(){
   speakSegRecorder=null; speakSegStopping=false; speakSegPromises=[]; speakSegTexts=[]; speakCaptionHasText=false;
   if(speakSegTimerHandle){ clearTimeout(speakSegTimerHandle); speakSegTimerHandle=null; }
   s.recording=true; s.result=null; s.usingCloudStt=useCloud; speakRecogStart=Date.now();
+  // Bắt đầu 1 lượt đọc TOÀN BỘ đoạn văn mới → xóa sạch trạng thái "đã sửa từng câu/từ riêng lẻ" của
+  // lượt trước (s.fixedSet/s.fixAttempts, xem startSpeakFixRecording) vì kết quả chấm mới (s.result)
+  // sẽ tính lại danh sách câu/từ cần luyện từ đầu, không còn khớp với chỉ số của lượt cũ.
+  s.fixedSet = {sentences:{}, words:{}};
+  s.fixAttempts = {sentences:{}, words:{}};
   // "Đoạn văn dài" (level==='long', ~150-200 từ/bài) KHÔNG áp dụng giới hạn thời gian đọc như các đoạn
   // ngắn khác — trước đây estimateSpeakDurationSec() bị chặn trần ở 50 giây (Math.min(50,...)), quá
   // ngắn để đọc trọn 1 bài dài, khiến app tự cắt ngang giữa chừng dù người dùng chưa đọc xong. Với đoạn
@@ -10392,22 +10397,50 @@ function renderSpeakingPractice(item){
 function renderLongPassageDeepFeedback(r, s, text){
   const sug = speakDeepSuggestions(r);
   s.lastSuggestions = sug;
+  speakFixEnsure(s);
   const idx = (s.order && s.order.length) ? s.order[0] : null;
   const quizBest = (idx!==null && SETTINGS.speakPractice && SETTINGS.speakPractice.longQuizBest) ? SETTINGS.speakPractice.longQuizBest[idx] : undefined;
   const quizPassed = quizBest!==undefined && quizBest>=LONG_QUIZ_PASS_COUNT;
-  const readingPassed = sug.passed;
-  const sentHtml = sug.sentencesToRedo.length ? `<div style="margin-top:10px;">
+  // "Đã sửa xong" tính theo s.fixedSet — được cập nhật khi AI (Gemini) chấm ĐẠT cho từng câu/từ được
+  // ghi âm lại RIÊNG LẺ (xem startSpeakFixRecording/analyzeSpeakFixRecording) — nhờ vậy người học chỉ
+  // cần đọc lại đúng câu/từ bị gắn cờ thay vì phải đọc lại từ đầu cả đoạn văn để "ĐẠT bài đọc".
+  const remainingSentIdx = sug.sentencesToRedo.map((st,i)=>i).filter(i=>!s.fixedSet.sentences[i]);
+  const remainingWordIdx = sug.wordsToFix.map((w,j)=>j).filter(j=>!s.fixedSet.words[speakFixKeyWord(sug.wordsToFix[j])]);
+  const readingPassed = r.overall>=SPEAK_LONG_PASS_SCORE && remainingSentIdx.length===0;
+  // Render nút "🎙️ Đọc lại ... để AI chấm điểm" theo trạng thái ghi âm/kết quả hiện tại của mục đó
+  // (s.fixAttempts) — đổi thành nút Dừng khi đang ghi, hiện "đang chấm" khi đang chờ Gemini, và hiện
+  // nhận xét ngắn + mời thử lại nếu lần ghi trước CHƯA ĐẠT.
+  const fixBtnHtml = (kind, key, attempt)=>{
+    if(attempt && attempt.phase==='recording'){
+      return `<button class="form-btn speak-rec-btn recording" data-action="speak-fix-stop" style="width:100%; margin-top:6px;"><span class="rec-dot"></span> Dừng &amp; chấm điểm ngay</button>`;
+    }
+    if(attempt && attempt.phase==='analyzing'){
+      return `<div style="text-align:center; font-size:11.5px; color:var(--dim); margin-top:6px;">🤖 AI đang chấm điểm bản ghi âm...</div>`;
+    }
+    let feedbackHtml = '';
+    if(attempt && attempt.phase==='error'){
+      feedbackHtml = `<div style="font-size:11px; color:#ff8080; margin-top:6px; line-height:1.5;">⚠️ ${escapeHtml(attempt.error||'Lỗi không xác định')}</div>`;
+    } else if(attempt && attempt.phase==='done' && !attempt.passed){
+      feedbackHtml = `<div style="font-size:11px; color:#ffb37a; margin-top:6px; line-height:1.5;">🤖 ${escapeHtml(attempt.feedback||'')}${(attempt.score!==null&&attempt.score!==undefined)?` (${attempt.score}đ)`:''} — chưa đạt, hãy thử ghi âm lại.</div>`;
+    }
+    return `<button class="form-btn eng-quiz-nextbtn" data-action="speak-fix-record" data-kind="${kind}" data-key="${key}" style="width:100%; margin-top:6px; padding:8px;">🎙️ Đọc lại ${kind==='sentence'?'câu':'từ'} này để AI chấm điểm</button>${feedbackHtml}`;
+  };
+  const sentHtml = remainingSentIdx.length ? `<div style="margin-top:10px;">
       <div style="font-size:11.5px; font-weight:800; color:#ff8080; margin-bottom:6px;">🔁 Câu cần đọc lại nguyên câu (đọc sai/thiếu quá nhiều):</div>
-      ${sug.sentencesToRedo.map((st,i)=>`<div style="background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.25); border-radius:10px; padding:9px 10px; margin-bottom:8px;">
+      ${remainingSentIdx.map(i=>{ const st=sug.sentencesToRedo[i]; const attempt=s.fixAttempts.sentences[i]; return `<div style="background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.25); border-radius:10px; padding:9px 10px; margin-bottom:8px;">
         <div style="font-size:12px; color:var(--text); line-height:1.5; margin-bottom:6px;">${escapeHtml(st.text)} <span style="color:var(--dim2); font-size:10.5px;">(${st.acc}% đúng)</span></div>
         <button class="form-btn btn-listen" data-action="speak-redo-sentence" data-idx="${i}" style="width:100%; padding:8px;">🔊 Nghe lại câu này</button>
-      </div>`).join('')}
+        ${fixBtnHtml('sentence', i, attempt)}
+      </div>`; }).join('')}
     </div>` : '';
-  const wordsHtml = sug.wordsToFix.length ? `<div style="margin-top:10px;">
-      <div style="font-size:11.5px; font-weight:800; color:var(--gold); margin-bottom:6px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe):</div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px;">${sug.wordsToFix.map(w=>`<span class="speak-word" data-action="speak-word-click" data-word="${escapeHtml(w)}" style="background:var(--panel2); border:1.5px solid var(--gold); border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:700; display:inline-block; cursor:pointer;">🔊 ${escapeHtml(w)}</span>`).join('')}</div>
+  const wordsHtml = remainingWordIdx.length ? `<div style="margin-top:10px;">
+      <div style="font-size:11.5px; font-weight:800; color:var(--gold); margin-bottom:6px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe, hoặc ghi âm để AI chấm):</div>
+      ${remainingWordIdx.map(j=>{ const w=sug.wordsToFix[j]; const attempt=s.fixAttempts.words[j]; return `<div style="background:var(--panel2); border:1.5px solid var(--gold); border-radius:10px; padding:8px 10px; margin-bottom:8px;">
+        <span class="speak-word" data-action="speak-word-click" data-word="${escapeHtml(w)}" style="font-size:12.5px; font-weight:700; cursor:pointer;">🔊 ${escapeHtml(w)}</span>
+        ${fixBtnHtml('word', j, attempt)}
+      </div>`; }).join('')}
     </div>` : '';
-  const criteriaLine = `Yêu cầu để <b>ĐẠT</b>: điểm tổng ≥${SPEAK_LONG_PASS_SCORE}đ VÀ không còn câu nào bị đọc sai quá nhiều (dưới ${SPEAK_SENTENCE_REDO_ACC}% từ đúng/câu).`;
+  const criteriaLine = `Yêu cầu để <b>ĐẠT</b>: điểm tổng ≥${SPEAK_LONG_PASS_SCORE}đ VÀ không còn câu nào bị đọc sai quá nhiều (dưới ${SPEAK_SENTENCE_REDO_ACC}% từ đúng/câu). Có thể bấm "🎙️ Đọc lại... để AI chấm điểm" cho TỪNG câu/từ bị gắn cờ thay vì phải đọc lại cả đoạn.`;
   let quizGateHtml = '';
   if(readingPassed){
     if(quizPassed){
@@ -10428,6 +10461,140 @@ function speakRedoSentence(i){
   const s = STATE.speakSession; if(!s || !s.lastSuggestions) return;
   const st = s.lastSuggestions.sentencesToRedo[i]; if(!st) return;
   speakEnglishRobust(st.text, {rate:0.85});
+}
+// ============ Đọc lại RIÊNG từng câu/từ bị gắn cờ (thay vì đọc lại cả đoạn) ============
+// Tái sử dụng đúng pattern ghi âm + gọi Gemini chấm điểm của "Phân tích chuyên sâu IPA"
+// (startIpaDeepRecording/analyzeIpaDeepRecording) nhưng thu gọn phạm vi vào ĐÚNG 1 câu hoặc 1 từ
+// đang cần sửa, để người học không phải đọc lại từ đầu cả đoạn văn dài chỉ vì sai vài câu/từ.
+// s.fixAttempts{sentences:{idx:{phase,score,feedback,passed,error}}, words:{idx:{...}}} lưu trạng
+// thái ghi âm/kết quả của TỪNG mục theo chỉ số trong sug.sentencesToRedo/sug.wordsToFix (chỉ tồn tại
+// trong phiên hiện tại, session-scoped, KHÔNG lưu SETTINGS).
+// s.fixedSet{sentences:{idx:true}, words:{'từ đã chuẩn hoá':true}} đánh dấu mục nào đã được AI xác
+// nhận ĐẠT — renderLongPassageDeepFeedback dùng để lọc ra danh sách còn phải luyện + tính lại trạng
+// thái ĐẠT hiệu lực mà KHÔNG cần sửa hàm speakDeepSuggestions() gốc.
+const SPEAK_FIX_PASS_SCORE = 70;
+function speakFixEnsure(s){
+  if(!s.fixAttempts) s.fixAttempts = {sentences:{}, words:{}};
+  if(!s.fixedSet) s.fixedSet = {sentences:{}, words:{}};
+  return s;
+}
+function speakFixKeyWord(w){ return (w||'').trim().toLowerCase(); }
+async function startSpeakFixRecording(kind, key){
+  const s = STATE.speakSession; if(!s || !s.lastSuggestions) return;
+  speakFixEnsure(s);
+  if(window.__speakFixRecorder && window.__speakFixRecorder.state!=='inactive') return; // đang ghi âm mục khác, chưa dừng
+  let targetText = null;
+  if(kind==='sentence'){ const st = s.lastSuggestions.sentencesToRedo[key]; if(!st) return; targetText = st.text; }
+  else { const w = s.lastSuggestions.wordsToFix[key]; if(!w) return; targetText = w; }
+  const bucket = kind==='sentence' ? s.fixAttempts.sentences : s.fixAttempts.words;
+  if(!SETTINGS.geminiApiKey){
+    showToast('⚠️','Thiếu Gemini API key','Cần cấu hình Gemini API key (mục Hội thoại AI trong Cài đặt) để AI chấm điểm được.');
+    return;
+  }
+  if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)){
+    showToast('⚠️','Không hỗ trợ ghi âm','Thiết bị/trình duyệt này không hỗ trợ MediaRecorder.');
+    return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS);
+    window.__speakFixStream = stream;
+    let mimeType='audio/webm;codecs=opus';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='audio/webm';
+    if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mimeType))) mimeType='';
+    const rec = new MediaRecorder(stream, mimeType?{mimeType, audioBitsPerSecond:96000}:undefined);
+    const chunks = [];
+    rec.ondataavailable = (ev)=>{ if(ev.data && ev.data.size) chunks.push(ev.data); };
+    rec.onstop = ()=>{
+      const blob = new Blob(chunks, {type: mimeType||'audio/webm'});
+      try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+      window.__speakFixStream = null; window.__speakFixRecorder = null;
+      analyzeSpeakFixRecording(blob, kind, key, targetText);
+    };
+    window.__speakFixRecorder = rec;
+    rec.start();
+    bucket[key] = {phase:'recording'};
+    renderContent();
+    // Tự dừng an toàn nếu quên bấm "Dừng": câu tối đa 20s, từ đơn tối đa 8s.
+    const maxSec = kind==='sentence' ? 20 : 8;
+    window.__speakFixTimer = setTimeout(()=>{ stopSpeakFixRecording(); }, maxSec*1000);
+  }catch(e){
+    bucket[key] = {phase:'error', error:(e&&e.message)?e.message:'Không mở được microphone — hãy cấp quyền micro cho trình duyệt.'};
+    renderContent();
+  }
+}
+function stopSpeakFixRecording(){
+  clearTimeout(window.__speakFixTimer); window.__speakFixTimer = null;
+  try{ if(window.__speakFixRecorder && window.__speakFixRecorder.state!=='inactive') window.__speakFixRecorder.stop(); }catch(e){}
+}
+async function analyzeSpeakFixRecording(blob, kind, key, targetText){
+  const s = STATE.speakSession; if(!s) return;
+  speakFixEnsure(s);
+  const bucket = kind==='sentence' ? s.fixAttempts.sentences : s.fixAttempts.words;
+  if(!blob || !blob.size){
+    bucket[key] = {phase:'error', error:'Không ghi được âm thanh nào — hãy thử lại và kiểm tra quyền micro.'};
+    renderContent(); return;
+  }
+  bucket[key] = {phase:'analyzing'};
+  renderContent();
+  try{
+    const arrayBuf = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuf);
+    let binary=''; const chunkSize=0x8000;
+    for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
+    const base64Audio = btoa(binary);
+    const prompt = kind==='sentence'
+      ? `Bạn là giáo viên tiếng Anh chuyên nghiệp, đang chấm bài LUYỆN ĐỌC LẠI 1 CÂU (không phải cả đoạn) vì lần đọc trước bị đánh giá đọc sai/thiếu quá nhiều từ trong câu này.
+Câu cần đọc: "${targetText}"
+Hãy nghe kỹ file âm thanh đính kèm, đối chiếu với câu trên và đánh giá NGHIÊM TÚC nhưng công bằng (không đòi hỏi phát âm hoàn hảo như người bản xứ — chỉ cần đọc ĐÚNG từ, ĐỦ từ, RÕ RÀNG, không nuốt âm/bỏ sót từ quan trọng là ĐẠT).
+Trả lời ngắn gọn 1-2 câu bằng tiếng Việt: nhận xét cụ thể từ nào đọc sai/thiếu (nếu có) hoặc khen ngắn gọn nếu tốt.
+Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
+KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
+ĐIỂM: <số từ 0 đến 100>`
+      : `Bạn là giáo viên phát âm tiếng Anh (IPA) chuyên nghiệp, đang chấm bài LUYỆN PHÁT ÂM LẠI 1 TỪ ĐƠN: "${targetText}".
+Hãy nghe kỹ file âm thanh đính kèm và đánh giá NGHIÊM TÚC nhưng công bằng xem người học phát âm từ này đã ĐÚNG và RÕ chưa (đúng âm IPA, đúng trọng âm) — không đòi hỏi hoàn hảo như người bản xứ.
+Trả lời ngắn gọn 1 câu bằng tiếng Việt: nêu rõ âm nào còn sai (nếu có) hoặc khen ngắn gọn nếu tốt.
+Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
+KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
+ĐIỂM: <số từ 0 đến 100>`;
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[
+          {inlineData:{mimeType:(blob.type||'audio/webm'), data:base64Audio}},
+          {text:prompt}
+        ]}],
+        generationConfig:{temperature:0.2, maxOutputTokens:512}
+      })
+    });
+    if(!res.ok){
+      let msg = 'HTTP '+res.status;
+      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    let txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
+    if(!txt) throw new Error('AI không trả về nội dung — thử ghi âm lại, đọc to và rõ hơn.');
+    let verdict = null;
+    const vMatch = txt.match(/KẾT[_\s]?QUẢ\s*[:\-]?\s*(CHƯA\s*ĐẠT|CHUA\s*DAT|ĐẠT|DAT)/i);
+    if(vMatch){ verdict = /CHƯA|CHUA/i.test(vMatch[1]) ? false : true; txt = txt.replace(vMatch[0],'').trim(); }
+    let score = null;
+    const sMatch = txt.match(/ĐIỂM\s*[:\-]?\s*(\d{1,3})/i);
+    if(sMatch){ score = Math.max(0, Math.min(100, parseInt(sMatch[1],10))); txt = txt.replace(sMatch[0],'').trim(); }
+    const passed = verdict===true || (verdict===null && score!==null && score>=SPEAK_FIX_PASS_SCORE);
+    bucket[key] = {phase:'done', passed, score, feedback:txt};
+    if(passed){
+      const fixedBucket = kind==='sentence' ? s.fixedSet.sentences : s.fixedSet.words;
+      const fixKey = kind==='sentence' ? key : speakFixKeyWord(targetText);
+      fixedBucket[fixKey] = true;
+      showToast('✅', kind==='sentence' ? 'Đã đọc đạt câu này!' : 'Đã phát âm đạt từ này!', 'Không cần luyện lại mục này nữa.');
+      try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
+    }
+    renderContent();
+  }catch(e){
+    console.error(e);
+    bucket[key] = {phase:'error', error:'AI không chấm được: '+(e.message||'lỗi không xác định')+'. Thử lại sau ít phút.'};
+    renderContent();
+  }
 }
 function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
@@ -12301,6 +12468,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(longPassageStartEl){ startLongPassage(parseInt(longPassageStartEl.getAttribute('data-idx'),10)||0); return; }
   const speakRedoSentEl = e.target.closest('[data-action="speak-redo-sentence"]');
   if(speakRedoSentEl){ speakRedoSentence(parseInt(speakRedoSentEl.getAttribute('data-idx'),10)||0); return; }
+  const speakFixRecordEl = e.target.closest('[data-action="speak-fix-record"]');
+  if(speakFixRecordEl){ startSpeakFixRecording(speakFixRecordEl.getAttribute('data-kind'), parseInt(speakFixRecordEl.getAttribute('data-key'),10)||0); return; }
+  const speakFixStopEl = e.target.closest('[data-action="speak-fix-stop"]');
+  if(speakFixStopEl){ stopSpeakFixRecording(); return; }
   const lpQuizStartEl = e.target.closest('[data-action="long-passage-quiz-start"]');
   if(lpQuizStartEl){ startLongPassageQuiz(parseInt(lpQuizStartEl.getAttribute('data-idx'),10)||0); return; }
   const lpQuizRetryEl = e.target.closest('[data-action="long-passage-quiz-retry"]');
