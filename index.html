@@ -1320,7 +1320,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v93';
+const APP_VERSION = 'v94';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9342,11 +9342,14 @@ function scoreSpeaking(target, heard, durationSec, confidence){
   });
   return {wordAcc, pron, intonation:paceScore, overall, missed:missed.slice(0,8), heard, wps, matchMask, sentenceScores};
 }
-// Chuẩn ĐẠT cho "Đoạn văn dài" — cùng mốc 70đ đã dùng để mở khóa bài tiếp theo (longPassageUnlocked),
-// để tránh 2 tiêu chuẩn khác nhau gây khó hiểu. Ngoài điểm tổng, còn yêu cầu KHÔNG còn câu nào bị đọc
+// Chuẩn ĐẠT cho "Đoạn văn dài" — cùng mốc dùng để mở khóa bài tiếp theo (longPassageUnlocked), để
+// tránh 2 tiêu chuẩn khác nhau gây khó hiểu. Ngoài điểm tổng, còn yêu cầu KHÔNG còn câu nào bị đọc
 // sai quá nhiều (dưới ngưỡng SPEAK_SENTENCE_REDO_ACC) — đúng yêu cầu "đọc nguyên lại đoạn nào bị sai".
-const SPEAK_LONG_PASS_SCORE = 70;
-const SPEAK_SENTENCE_REDO_ACC = 60;
+// Hạ từ 70/60 xuống 60/45 (theo phản hồi người dùng: đoạn văn dài + chấm bằng nhận diện giọng nói cục
+// bộ vốn khó đạt điểm cao do nhiễu/lỗi nhận diện — tiêu chuẩn cũ quá khắt khe so với trình độ trung
+// cấp của người học, khiến gần như câu nào cũng bị gắn cờ "đọc sai".
+const SPEAK_LONG_PASS_SCORE = 60;
+const SPEAK_SENTENCE_REDO_ACC = 45;
 // Đề xuất "luyện lại cái gì" dựa trên chính dữ liệu chấm điểm đã có sẵn (matchMask theo từ + theo câu)
 // — không cần gọi thêm AI ngoài (nhanh, luôn hoạt động kể cả không có mạng/API key), nhưng vẫn được
 // gọi là "AI đề xuất" trong giao diện để nhất quán cách gọi với các gợi ý thuật toán khác trong app
@@ -10020,7 +10023,7 @@ function longPassageUnlocked(idx){
   if(idx<=0) return true;
   const lb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longBest) || {};
   const lqb = (SETTINGS.speakPractice && SETTINGS.speakPractice.longQuizBest) || {};
-  return (lb[idx-1]||0) >= 70 && (lqb[idx-1]||0) >= LONG_QUIZ_PASS_COUNT;
+  return (lb[idx-1]||0) >= SPEAK_LONG_PASS_SCORE && (lqb[idx-1]||0) >= LONG_QUIZ_PASS_COUNT;
 }
 // ---- Luyện nói CEFR: mở khóa TUẦN TỰ theo từng CHẶNG nhỏ trong 1 cấp độ ----
 // Trước đây bấm vào 1 cấp độ (A1..C1, ~100 đoạn/cấp) sẽ vào thẳng 1 phiên luyện random 15 đoạn bất kỳ
@@ -10472,7 +10475,10 @@ function speakRedoSentence(i){
 // s.fixedSet{sentences:{idx:true}, words:{'từ đã chuẩn hoá':true}} đánh dấu mục nào đã được AI xác
 // nhận ĐẠT — renderLongPassageDeepFeedback dùng để lọc ra danh sách còn phải luyện + tính lại trạng
 // thái ĐẠT hiệu lực mà KHÔNG cần sửa hàm speakDeepSuggestions() gốc.
-const SPEAK_FIX_PASS_SCORE = 70;
+// Hạ từ 70 xuống 55 (theo phản hồi người dùng: đọc lại 1 câu/từ đã bị gắn cờ là khó nhất trong cả bài,
+// và người học ở đây là người Việt trình độ trung cấp — không phải người bản ngữ — nên tiêu chuẩn ĐẠT
+// cần thực tế hơn: ưu tiên "nói đúng, nghe hiểu được, đủ từ" thay vì đòi hỏi phát âm hoàn hảo.
+const SPEAK_FIX_PASS_SCORE = 55;
 function speakFixEnsure(s){
   if(!s.fixAttempts) s.fixAttempts = {sentences:{}, words:{}};
   if(!s.fixedSet) s.fixedSet = {sentences:{}, words:{}};
@@ -10543,16 +10549,16 @@ async function analyzeSpeakFixRecording(blob, kind, key, targetText){
     for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
     const base64Audio = btoa(binary);
     const prompt = kind==='sentence'
-      ? `Bạn là giáo viên tiếng Anh chuyên nghiệp, đang chấm bài LUYỆN ĐỌC LẠI 1 CÂU (không phải cả đoạn) vì lần đọc trước bị đánh giá đọc sai/thiếu quá nhiều từ trong câu này.
+      ? `Bạn là giáo viên tiếng Anh thân thiện, đang chấm bài LUYỆN ĐỌC LẠI 1 CÂU (không phải cả đoạn) cho một người Việt học tiếng Anh ở trình độ TRUNG CẤP (không phải người bản ngữ, không phải học viên chuyên ngành phát âm) — câu này vốn đã là câu KHÓ NHẤT trong bài vì lần đọc trước bị đánh giá đọc sai/thiếu quá nhiều từ.
 Câu cần đọc: "${targetText}"
-Hãy nghe kỹ file âm thanh đính kèm, đối chiếu với câu trên và đánh giá NGHIÊM TÚC nhưng công bằng (không đòi hỏi phát âm hoàn hảo như người bản xứ — chỉ cần đọc ĐÚNG từ, ĐỦ từ, RÕ RÀNG, không nuốt âm/bỏ sót từ quan trọng là ĐẠT).
-Trả lời ngắn gọn 1-2 câu bằng tiếng Việt: nhận xét cụ thể từ nào đọc sai/thiếu (nếu có) hoặc khen ngắn gọn nếu tốt.
+Hãy nghe kỹ file âm thanh đính kèm, đối chiếu với câu trên và chấm với TIÊU CHUẨN THỰC TẾ, PHÙ HỢP TRÌNH ĐỘ TRUNG CẤP — mục tiêu là "nói được, nghe hiểu được, đủ ý", KHÔNG phải phát âm chuẩn như người bản xứ hay hoàn hảo 100%. Cho ĐẠT nếu: nói đúng phần lớn từ quan trọng trong câu, người nghe hiểu được nội dung, dù còn giọng Việt, ngập ngừng nhẹ, hoặc lệch nhẹ 1-2 từ không quan trọng. Chỉ cho CHƯA ĐẠT nếu thiếu/sai nhiều từ chính, hoặc câu gần như không thể hiểu được.
+Trả lời ngắn gọn 1-2 câu bằng tiếng Việt, giọng khích lệ: nhận xét cụ thể từ nào cần chú ý (nếu có) hoặc khen ngắn gọn nếu tốt.
 Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
 KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
 ĐIỂM: <số từ 0 đến 100>`
-      : `Bạn là giáo viên phát âm tiếng Anh (IPA) chuyên nghiệp, đang chấm bài LUYỆN PHÁT ÂM LẠI 1 TỪ ĐƠN: "${targetText}".
-Hãy nghe kỹ file âm thanh đính kèm và đánh giá NGHIÊM TÚC nhưng công bằng xem người học phát âm từ này đã ĐÚNG và RÕ chưa (đúng âm IPA, đúng trọng âm) — không đòi hỏi hoàn hảo như người bản xứ.
-Trả lời ngắn gọn 1 câu bằng tiếng Việt: nêu rõ âm nào còn sai (nếu có) hoặc khen ngắn gọn nếu tốt.
+      : `Bạn là giáo viên phát âm tiếng Anh (IPA) thân thiện, đang chấm bài LUYỆN PHÁT ÂM LẠI 1 TỪ ĐƠN: "${targetText}" cho một người Việt học tiếng Anh trình độ TRUNG CẤP (không phải người bản ngữ).
+Hãy nghe kỹ file âm thanh đính kèm và chấm với TIÊU CHUẨN THỰC TẾ — cho ĐẠT nếu từ phát âm đủ RÕ để người bản xứ nhận ra đúng từ đó (dù còn giọng Việt hoặc chưa hoàn hảo về trọng âm/ngữ điệu), chỉ cho CHƯA ĐẠT nếu phát âm sai đến mức có thể gây hiểu nhầm sang từ khác hoặc không nhận ra được từ.
+Trả lời ngắn gọn 1 câu bằng tiếng Việt, giọng khích lệ: nêu rõ âm nào còn sai (nếu có) hoặc khen ngắn gọn nếu tốt.
 Bắt buộc có 2 dòng CUỐI đúng định dạng sau (không thêm chữ khác vào 2 dòng này):
 KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
 ĐIỂM: <số từ 0 đến 100>`;
@@ -10592,9 +10598,21 @@ KẾT_QUẢ: <ĐẠT hoặc CHƯA ĐẠT>
     renderContent();
   }catch(e){
     console.error(e);
-    bucket[key] = {phase:'error', error:'AI không chấm được: '+(e.message||'lỗi không xác định')+'. Thử lại sau ít phút.'};
+    bucket[key] = {phase:'error', error: speakFixFriendlyError(e.message)};
     renderContent();
   }
+}
+// Diễn giải lỗi kỹ thuật từ Gemini (đặc biệt lỗi 429 "hết hạn mức gọi API/phút" rất hay gặp ở API key
+// miễn phí khi bấm ghi âm liên tục nhiều câu/từ) thành thông báo tiếng Việt dễ hiểu, có hướng dẫn cụ
+// thể thay vì hiện nguyên văn thông báo lỗi kỹ thuật (HTTP 429, RESOURCE_EXHAUSTED...) khó hiểu.
+function speakFixFriendlyError(rawMsg){
+  const msg = rawMsg || 'lỗi không xác định';
+  if(/429|RESOURCE_EXHAUSTED|quota/i.test(msg)){
+    const wait = msg.match(/retry in ([\d.]+)\s*s/i);
+    const waitSec = wait ? Math.ceil(parseFloat(wait[1])) : null;
+    return `⏳ Đã dùng hết hạn mức gọi AI miễn phí trong phút này (API key Gemini miễn phí có giới hạn số lần/phút).${waitSec?` Hãy đợi khoảng ${waitSec} giây`:' Hãy đợi khoảng 1 phút'} rồi bấm ghi âm lại — không phải lỗi ghi âm, chỉ cần chờ 1 chút.`;
+  }
+  return 'AI không chấm được: '+msg+'. Thử lại sau ít phút.';
 }
 function renderSpeakPracticeUI(){
   const s=STATE.speakSession; if(!s){ renderContent(); return; }
