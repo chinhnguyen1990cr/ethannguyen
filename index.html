@@ -720,17 +720,6 @@
   .shadow-loop-bar .form-btn{font-size:11px; padding:9px 6px;}
   .shadow-loop-info{font-size:11px; color:var(--dim); text-align:center; margin-top:8px;}
   .form-btn.shadow-loop-on{background:linear-gradient(135deg,#2CDBA8,#1FA88A); color:#0E1218;}
-  /* Đa ngôn ngữ (i18n): bộ chọn ngôn ngữ trong Thông tin cá nhân + hiển thị chế độ Mix (xếp chồng 3 dòng) */
-  .lang-pick-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-  .lang-pick-btn{background:var(--panel2); border:1.5px solid var(--border); color:var(--text);
-    border-radius:12px; padding:11px 8px; font-size:12.5px; font-weight:700; cursor:pointer;}
-  .lang-pick-btn:active{transform:scale(0.97);}
-  .lang-pick-btn.active{background:linear-gradient(135deg,var(--teal),var(--blue)); border-color:transparent; color:#0E1218;}
-  .i18n-mix{display:inline-flex; flex-direction:column; line-height:1.25; vertical-align:middle; text-align:inherit;}
-  .i18n-mix .i18n-vi{}
-  .i18n-mix .i18n-en{font-size:0.76em; opacity:.78; font-weight:600;}
-  .i18n-mix .i18n-zh{font-size:0.76em; opacity:.68; font-weight:600;}
-
   .eng-group-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
   .eng-group-card{position:relative; border-radius:18px; padding:16px 14px; overflow:hidden; cursor:pointer;
     min-height:116px; background:var(--gcgrad); color:#fff; display:flex; flex-direction:column; justify-content:flex-end;
@@ -1287,197 +1276,6 @@ const CATS = {
 const CAT_ICON_SVG = { the_luc:'run', tieng_anh:'chat', chuyen_mon:'book', ky_luat:'moon', giai_tri:'gamepad' };
 function catIconHtml(cat){ return `<span class="cat-icon-sm" style="color:${CATS[cat].hex}">${ICONS[CAT_ICON_SVG[cat]]||''}</span>`; }
 
-// ================= ĐA NGÔN NGỮ (i18n): Việt / English / 中文 / Mix (xếp chồng cả 3) =================
-// KIẾN TRÚC: thay vì sửa hàng trăm hàm render (mỗi hàm tự dựng chuỗi HTML tiếng Việt riêng — rủi ro sửa
-// sai rất cao nếu đụng vào từng nơi), dùng 1 bộ máy dịch TẬP TRUNG: mọi hàm render vẫn luôn tạo HTML
-// tiếng Việt như cũ (KHÔNG đổi gì ở logic render) — sau đó i18nWalk() quét lại text hiển thị thật trong
-// DOM, tra cứu từng đoạn trong I18N_DICT (khớp chính xác chuỗi tĩnh) hoặc I18N_PATTERNS (khớp mẫu có số
-// động, ví dụ "12 câu hỏi", "3/5 hôm nay") rồi thay thế TẠI CHỖ theo SETTINGS.language. Một MutationObserver
-// theo dõi toàn bộ <body> nên tự áp dụng cho MỌI màn hình — kể cả các màn thêm sau này — miễn chuỗi đó có
-// trong từ điển, không cần sửa từng hàm render khi thêm ngôn ngữ mới.
-// ĐỔI NGÔN NGỮ: chỉ cần renderContent() lại — màn hình hiện tại được DỰNG LẠI HOÀN TOÀN MỚI từ nguồn
-// tiếng Việt gốc (nguồn không đổi), rồi bộ máy dịch áp ngôn ngữ mới lên bản dựng mới đó. Nhờ vậy không
-// cần lưu "bản gốc" của từng text node — luôn có sẵn nguồn tiếng Việt thật mỗi lần render.
-// GIỚI HẠN: ngân hàng nội dung học tiếng Anh thật (câu hỏi ngữ pháp/nghe/nói/từ vựng — vốn dĩ đã là tiếng
-// Anh cần học) và các bài viết dài tự soạn (Kinh nghiệm kiểm hàng, phương pháp chi tiết) KHÔNG nằm trong
-// từ điển này (khối lượng quá lớn để dịch tự động chính xác) — các phần này vẫn hiển thị nguyên văn.
-const I18N_DICT = {
-  // ---- Hub / điều hướng chung ----
-  'Danh mục':['Categories','分类'], 'Thêm danh mục':['Add category','添加分类'],
-  'Lịch làm việc':['Daily Schedule','日程安排'], 'Lịch làm việc hàng ngày':['Daily Schedule','每日日程'],
-  'Học tiếng Anh':['Learn English','学英语'], 'Kiểm hàng':['Quality Check','质检'],
-  'Kinh nghiệm kiểm hàng':['QC Experience Notes','质检经验'],
-  'Giải trí':['Entertainment','娱乐'], 'Nhạc · Tử vi · Video':['Music · Horoscope · Video','音乐·星座·视频'],
-  'Playlist nhạc':['Music playlist','音乐播放列表'],
-  'Thông tin cá nhân':['Profile','个人信息'], 'Thông tin cá nhân & chỉ số cơ thể':['Profile & body metrics','个人信息与身体指标'],
-  'Tài khoản':['Account','账户'], 'Đổi ảnh bìa':['Change cover photo','更换封面照片'],
-  'Tải lại từ Drive':['Reload from Drive','从云端重新加载'], 'Đăng nhập bằng Google':['Sign in with Google','使用谷歌登录'],
-  'Đăng xuất':['Sign out','退出登录'], 'Đăng nhập':['Sign in','登录'],
-  'Chưa đăng nhập Google':['Not signed in to Google','尚未登录谷歌'], 'Đã kết nối':['Connected','已连接'],
-  'Đang đồng bộ...':['Syncing...','同步中...'], 'Chưa đồng bộ':['Not synced','尚未同步'], 'Đã đồng bộ':['Synced','已同步'],
-  'Hồ sơ':['Profile','档案'],
-  // ---- Sub-nav dùng lại ở nhiều màn (Lịch làm việc / Học tiếng Anh) ----
-  'Hôm nay':['Today','今天'], 'Tuần':['Week','周'], 'Tháng':['Month','月'], 'Năm':['Year','年'],
-  'Thống kê':['Statistics','统计'], 'Phương pháp':['Methods','方法'], 'Chỉ số':['Metrics','指标'],
-  'Chỉ số cá nhân':['Personal metrics','个人指标'],
-  // ---- Nút hành động dùng chung khắp app ----
-  'Lưu':['Save','保存'], 'Hủy':['Cancel','取消'], 'Xóa':['Delete','删除'], 'Sửa':['Edit','编辑'],
-  'Sửa tên':['Rename','重命名'], 'Đổi tên':['Rename','重命名'], 'Đóng':['Close','关闭'], 'Thêm':['Add','添加'],
-  'Quay lại':['Back','返回'], 'Bắt đầu':['Start','开始'], 'Tiếp tục':['Continue','继续'], 'Xác nhận':['Confirm','确认'],
-  'Bỏ qua':['Skip','跳过'], 'Thử lại':['Try again','重试'], 'Làm lại':['Redo','重做'], 'Kiểm tra':['Check','检查'],
-  'Hoàn thành':['Complete','完成'], 'Đã hoàn thành':['Completed','已完成'], 'Lưu thông tin':['Save info','保存信息'],
-  'Lưu ghi chú':['Save note','保存笔记'], 'Xóa mục':['Delete item','删除项目'], 'Thêm mục mới':['Add new item','添加新项目'],
-  'Tên mục mới:':['New item name:','新项目名称:'], 'Đổi tên mục:':['Rename item:','重命名项目:'],
-  'Ghi chú':['Notes','笔记'], 'Ghi chú tự do':['Free notes','自由笔记'],
-  'Nghe':['Listen','听'], 'Dịch':['Translate','翻译'], 'Nghe lại':['Listen again','重新听'],
-  'Nghe phát âm':['Listen to pronunciation','听发音'], 'Ẩn dịch':['Hide translation','隐藏翻译'],
-  'Dịch nghĩa':['Show translation','显示翻译'], 'Đổi chủ đề':['Change topic','更改主题'],
-  'Xem kết quả':['View results','查看结果'], 'Câu tiếp':['Next sentence','下一句'], 'Từ tiếp':['Next word','下一个单词'],
-  'Câu tiếp →':['Next sentence →','下一句 →'], 'Từ tiếp →':['Next word →','下一个单词 →'],
-  // ---- Cài đặt / Thông tin cá nhân (renderProfile) ----
-  'Hình nền ứng dụng':['App background','应用背景'], 'Chọn hình nền':['Choose background','选择背景'],
-  'Đổi hình nền':['Change background','更改背景'], 'Bỏ nền':['Remove background','移除背景'],
-  'Họ tên':['Full name','姓名'], 'Tuổi':['Age','年龄'], 'Nam':['Male','男'], 'Nữ':['Female','女'],
-  'Cân nặng (kg)':['Weight (kg)','体重（公斤）'], 'Chiều cao (cm)':['Height (cm)','身高（厘米）'],
-  'Đề xuất theo chỉ số cơ thể':['Recommendations from body metrics','根据身体指标的建议'],
-  'Ngôn ngữ':['Language','语言'], 'Ngôn ngữ ứng dụng':['App language','应用语言'],
-  'Tiếng Việt':['Vietnamese','越南语'], 'Tiếng Anh':['English','英语'], 'Tiếng Trung':['Chinese','中文'],
-  'Hiện cả 3 (Mix)':['Show all 3 (Mix)','三语同显 (混合)'],
-  // ---- Kinh nghiệm kiểm hàng (renderKhCategories + ghi chú) ----
-  'Tiêu đề, ví dụ: Lỗi cong vênh gỗ tự nhiên':['Title, e.g.: Natural wood warping defect','标题，例如：天然木材翘曲缺陷'],
-  'Nội dung kinh nghiệm, tiêu chuẩn kiểm tra, lỗi thường gặp...':['QC notes, inspection standards, common defects...','质检经验、检验标准、常见缺陷...'],
-  'Xóa danh mục':['Delete category','删除分类'],
-  // ---- Học tiếng Anh: tên các mục con (ENGLISH_ITEM_KIND) ----
-  'Ngữ pháp':['Grammar','语法'], 'Luyện ngữ pháp':['Grammar Practice','语法练习'],
-  'Luyện nghe':['Listening Practice','听力练习'], 'Luyện nói':['Speaking Practice','口语练习'],
-  'Luyện IPA':['IPA Practice','国际音标练习'], 'Luyện tập phát âm IPA':['IPA Pronunciation Drill','国际音标发音训练'],
-  'Luyện từ vựng':['Vocabulary Practice','词汇练习'], 'Câu thông dụng':['Common Sentences','常用句子'],
-  'Hội thoại AI':['AI Conversation','AI对话'], 'Luyện tập shadowing':['Shadowing Practice','跟读练习'],
-  'Từ hôm nay':['From today','从今天开始'], 'Nghe & chép chính tả':['Listening Dictation','听写练习'],
-  'Thi thử':['Mock Test','模拟测试'],
-  // ---- Shadowing (mục vừa thêm) ----
-  'Thêm video shadowing':['Add shadowing video','添加跟读视频'],
-  'Thêm video của bạn (YouTube hoặc link khác)':['Add your video (YouTube or other link)','添加您的视频（YouTube或其他链接）'],
-  'Chưa luyện lần nào':['Not practiced yet','尚未练习'],
-  'Đã nghe xong → Bước 2':['Done listening → Step 2','听完了 → 第2步'],
-  'Hoàn thành lượt luyện này':['Finish this practice session','完成本次练习'],
-  'Bắt đầu ghi âm':['Start recording','开始录音'],
-  'Nghe lại bản ghi của bạn':['Play back your recording','回放您的录音'],
-  'Mở video trong tab mới':['Open video in new tab','在新标签页打开视频'],
-  '← Quay lại':['← Back','← 返回'],
-  // ---- Chung: trạng thái/nhãn nhỏ tái sử dụng nhiều ----
-  'Đang tải dữ liệu…':['Loading data…','正在加载数据…'],
-  'Câu hỏi':['Question','问题'], 'Đáp án':['Answer','答案'], 'Điểm':['Score','分数'], 'Cấp độ':['Level','等级'],
-  'Chủ đề':['Topic','主题'], 'Video':['Video','视频'], 'Tất cả':['All','全部'],
-};
-// ---- Mẫu cho chuỗi có số/giá trị động (khớp theo regex, giữ nguyên số) ----
-const I18N_PATTERNS = [
-  [/^(\d+)\/(\d+) hôm nay$/, m=>[`${m[1]}/${m[2]} today`, `今天 ${m[1]}/${m[2]}`]],
-  [/^(\d+) ghi chú$/, m=>[`${m[1]} notes`, `${m[1]}条笔记`]],
-  [/^(\d+) câu hỏi$/, m=>[`${m[1]} questions`, `${m[1]}题`]],
-  [/^(\d+) câu$/, m=>[`${m[1]} sentences`, `${m[1]}句`]],
-  [/^(\d+) từ$/, m=>[`${m[1]} words`, `${m[1]}个单词`]],
-  [/^(\d+) lượt$/, m=>[`${m[1]} times`, `${m[1]}次`]],
-  [/^(\d+) video$/, m=>[`${m[1]} videos`, `${m[1]}个视频`]],
-  [/^Đã luyện (\d+) lượt$/, m=>[`Practiced ${m[1]} times`, `已练习${m[1]}次`]],
-  [/^🗣️ Đã luyện (\d+) lượt$/, m=>[`🗣️ Practiced ${m[1]} times`, `🗣️ 已练习${m[1]}次`]],
-];
-function i18nLookup(text){
-  const key = text==null ? '' : String(text).trim();
-  if(!key) return null;
-  if(I18N_DICT[key]) return I18N_DICT[key];
-  for(let i=0;i<I18N_PATTERNS.length;i++){
-    const m = key.match(I18N_PATTERNS[i][0]);
-    if(m) return I18N_PATTERNS[i][1](m);
-  }
-  return null;
-}
-function i18nCurrentLang(){ return (SETTINGS && SETTINGS.language) || 'vi'; }
-// Dịch 1 Text node tại chỗ theo ngôn ngữ hiện tại. Với 'mix', KHÔNG thể nhét nhiều dòng vào 1 Text node
-// (Text node chỉ chứa chuỗi thuần) — phải thay Text node bằng 1 <span> chứa 3 dòng con, chèn lại đúng vị
-// trí trong parent. Việc thay thế không gây lặp vô hạn: các dòng con (en/zh) không khớp bất kỳ khóa nào
-// trong I18N_DICT (từ điển chỉ có khóa tiếng Việt) nên lần quét kế tiếp bỏ qua tự nhiên.
-function i18nTranslateTextNode(node){
-  if(!node || node.nodeType!==3) return;
-  const parent = node.parentNode;
-  if(!parent || parent.nodeType!==1) return;
-  const tag = parent.tagName;
-  if(tag==='SCRIPT' || tag==='STYLE' || tag==='TEXTAREA') return;
-  if(parent.classList && parent.classList.contains('i18n-mix')) return; // đã là wrapper mix, bỏ qua chính nó
-  const lang = i18nCurrentLang();
-  if(lang==='vi') return; // mặc định — không đụng gì, không rủi ro
-  const original = node.textContent;
-  const hit = i18nLookup(original);
-  if(!hit) return;
-  const [en, zh] = hit;
-  if(lang==='en'){ if(node.textContent!==en) node.textContent = en; return; }
-  if(lang==='zh'){ if(node.textContent!==zh) node.textContent = zh; return; }
-  if(lang==='mix'){
-    const wrap = document.createElement('span');
-    wrap.className = 'i18n-mix';
-    const l1 = document.createElement('span'); l1.className='i18n-vi'; l1.textContent = original.trim();
-    const l2 = document.createElement('span'); l2.className='i18n-en'; l2.textContent = en;
-    const l3 = document.createElement('span'); l3.className='i18n-zh'; l3.textContent = zh;
-    wrap.appendChild(l1); wrap.appendChild(l2); wrap.appendChild(l3);
-    parent.replaceChild(wrap, node);
-  }
-}
-const I18N_ATTRS = ['placeholder','title'];
-function i18nTranslateElementAttrs(el){
-  if(!el || el.nodeType!==1) return;
-  const lang = i18nCurrentLang();
-  if(lang==='vi') return;
-  I18N_ATTRS.forEach(attr=>{
-    const val = el.getAttribute && el.getAttribute(attr);
-    if(!val) return;
-    const hit = i18nLookup(val);
-    if(!hit) return;
-    const [en, zh] = hit;
-    el.setAttribute(attr, lang==='zh' ? zh : en); // mix: dùng bản Anh cho attribute (tooltip/placeholder không xếp chồng được)
-  });
-}
-// Quét toàn bộ 1 subtree (dùng khi khởi tạo + trong callback MutationObserver): duyệt mọi Text node và
-// mọi Element (để dịch placeholder/title) bên trong root.
-function i18nWalk(root){
-  if(!root) return;
-  if(i18nCurrentLang()==='vi') return;
-  if(root.nodeType===3){ i18nTranslateTextNode(root); return; }
-  if(root.nodeType!==1) return;
-  i18nTranslateElementAttrs(root);
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-  const nodes = [];
-  let n; while((n = walker.nextNode())) nodes.push(n);
-  nodes.forEach(i18nTranslateTextNode);
-  const els = root.querySelectorAll ? root.querySelectorAll('[placeholder],[title]') : [];
-  els.forEach(i18nTranslateElementAttrs);
-}
-let i18nObserver = null;
-function i18nSetup(){
-  if(i18nObserver) return;
-  i18nObserver = new MutationObserver(muts=>{
-    if(i18nCurrentLang()==='vi') return;
-    muts.forEach(m=>{
-      if(m.type==='childList'){
-        m.addedNodes.forEach(n=>i18nWalk(n));
-      } else if(m.type==='characterData'){
-        i18nTranslateTextNode(m.target);
-      } else if(m.type==='attributes'){
-        i18nTranslateElementAttrs(m.target);
-      }
-    });
-  });
-  const root = document.body;
-  i18nObserver.observe(root, {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:I18N_ATTRS});
-}
-// Đổi ngôn ngữ đang dùng: lưu lựa chọn + đồng bộ Drive, rồi render lại màn hình HIỆN TẠI (dựng lại từ
-// nguồn tiếng Việt gốc — xem giải thích kiến trúc ở đầu khối) để bộ máy dịch áp ngôn ngữ mới lên toàn bộ.
-function setAppLanguage(lang){
-  if(!['vi','en','zh','mix'].includes(lang)) return;
-  SETTINGS.language = lang;
-  saveSettings();
-  renderContent();
-  i18nWalk(document.body); // đảm bảo dịch luôn phần chrome ngoài #content (banner, modal đang mở, v.v.)
-}
 // Giáo án chạy bộ Run-Walk kiểu Couch-to-10K cho người mới bắt đầu: tăng khối lượng dần theo tuần (~10%/tuần),
 // chỉ chuyển sang chạy liên tục sau khi đã có nền tảng hiếu khí — an toàn hơn cho khớp gối/hông và giảm áp lực lên lưng dưới.
 const RUN_PHASES = [
@@ -1522,7 +1320,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v87';
+const APP_VERSION = 'v91';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2660,8 +2458,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], language:'vi'}, loaded);
-    if(!['vi','en','zh','mix'].includes(SETTINGS.language)) SETTINGS.language = 'vi';
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[]}, loaded);
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
     if(!Array.isArray(SETTINGS.musicPlaylist)) SETTINGS.musicPlaylist = [];
@@ -11745,16 +11542,6 @@ function renderProfile(){
       <button class="form-btn submit" style="width:100%; margin-top:12px;" data-action="save-profile">💾 Lưu thông tin</button>
     </div>
     <div class="card">
-      <h3>🌐 Ngôn ngữ ứng dụng</h3>
-      <div style="font-size:11px; color:var(--dim); margin-bottom:10px; line-height:1.5;">Chọn ngôn ngữ hiển thị cho toàn bộ giao diện app. Chế độ "Mix" hiện đồng thời cả 3 ngôn ngữ xếp chồng cho mỗi nhãn/tiêu đề.</div>
-      <div class="lang-pick-grid">
-        <button class="lang-pick-btn ${i18nCurrentLang()==='vi'?'active':''}" data-action="set-language" data-lang="vi">🇻🇳 Tiếng Việt</button>
-        <button class="lang-pick-btn ${i18nCurrentLang()==='en'?'active':''}" data-action="set-language" data-lang="en">🇬🇧 English</button>
-        <button class="lang-pick-btn ${i18nCurrentLang()==='zh'?'active':''}" data-action="set-language" data-lang="zh">🇨🇳 中文</button>
-        <button class="lang-pick-btn ${i18nCurrentLang()==='mix'?'active':''}" data-action="set-language" data-lang="mix">🌐 Mix cả 3</button>
-      </div>
-    </div>
-    <div class="card">
       <h3>Hình nền ứng dụng</h3>
       <div style="font-size:11px; color:var(--dim); margin-bottom:10px; line-height:1.5;">Tùy chỉnh hình nền hiển thị phía sau toàn bộ ứng dụng.</div>
       <div style="display:flex; gap:8px;">
@@ -12641,9 +12428,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
 
   const saveProfileEl = e.target.closest('[data-action="save-profile"]');
   if(saveProfileEl){ saveProfile(); return; }
-  const setLangEl = e.target.closest('[data-action="set-language"]');
-  if(setLangEl){ setAppLanguage(setLangEl.getAttribute('data-lang')); return; }
-
   const driveSigninEl = e.target.closest('[data-action="drive-signin"]');
   if(driveSigninEl){ STATE.acctMenuOpen = false; driveSignIn(); return; }
   const driveSignoutEl = e.target.closest('[data-action="drive-signout"]');
@@ -12822,7 +12606,6 @@ if('serviceWorker' in navigator){
   });
 }
 
-i18nSetup();
 (async function init(){
   try{ await loadAll(); }catch(e){ console.error('Init storage error', e); }
   lastKnownLevel = levelInfo().lvl;
