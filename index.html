@@ -1320,7 +1320,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v91';
+const APP_VERSION = 'v92';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10183,43 +10183,66 @@ async function startLongPassageQuiz(idx){
   renderContent();
   window.scrollTo(0,0);
   if(questions){ STATE.longQuizSession.questions = questions; STATE.longQuizSession.loading=false; renderContent(); return; }
-  try{
-    const prompt = `Dựa vào đoạn văn tiếng Anh sau, soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm (4 đáp án) bằng tiếng Anh để kiểm tra người học đã hiểu nội dung, từ vựng và ngữ pháp trong bài chưa. Trộn đều 3 dạng: hiểu nội dung (comprehension), nghĩa từ vựng xuất hiện trong bài (vocabulary), cấu trúc ngữ pháp dùng trong bài (grammar). Chỉ 1 đáp án đúng mỗi câu.
+  const prompt = `Dựa vào đoạn văn tiếng Anh sau, soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm (4 đáp án) bằng tiếng Anh để kiểm tra người học đã hiểu nội dung, từ vựng và ngữ pháp trong bài chưa. Trộn đều 3 dạng: hiểu nội dung (comprehension), nghĩa từ vựng xuất hiện trong bài (vocabulary), cấu trúc ngữ pháp dùng trong bài (grammar). Chỉ 1 đáp án đúng mỗi câu.
 ĐOẠN VĂN:
 """${passage[0]}"""
 Trả lời DUY NHẤT 1 mảng JSON hợp lệ, không thêm chữ nào khác, không dùng markdown code fence, đúng định dạng:
 [{"q":"câu hỏi tiếng Anh","options":["A","B","C","D"],"correct":0,"explain":"giải thích ngắn gọn bằng tiếng Việt vì sao đáp án đó đúng"}]
-correct là chỉ số (0-3) của đáp án đúng trong mảng options.`;
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:0.4, maxOutputTokens:3072}})
-    });
-    if(!res.ok){
-      let msg = 'HTTP '+res.status;
-      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
-      throw new Error(msg);
-    }
-    const data = await res.json();
-    let txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
-    txt = txt.replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+correct là chỉ số (0-3) của đáp án đúng trong mảng options. Trong mọi chuỗi text, KHÔNG xuống dòng thật và KHÔNG dùng dấu ngoặc kép " bên trong nội dung (dùng dấu nháy đơn ' nếu cần trích dẫn) — để đảm bảo JSON hợp lệ.`;
+  // Parse cứng cáp: Gemini thỉnh thoảng trả JSON hơi lỗi (dấu ngoặc kép chưa escape, bị cắt cụt do hết
+  // token...). Thử parse toàn bộ → thử cắt đúng đoạn [...] → cuối cùng "vớt" từng object {...} hợp lệ
+  // riêng lẻ (schema không có object lồng nhau nên regex không tham lam là đủ an toàn).
+  function parseQuizJson(raw){
+    let txt = (raw||'').trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();
     const jStart = txt.indexOf('['); const jEnd = txt.lastIndexOf(']');
-    if(jStart===-1 || jEnd===-1) throw new Error('AI không trả về đúng định dạng JSON.');
-    const parsed = JSON.parse(txt.slice(jStart, jEnd+1));
-    if(!Array.isArray(parsed) || parsed.length===0) throw new Error('AI không tạo được câu hỏi nào.');
-    questions = parsed.filter(q=>q && q.q && Array.isArray(q.options) && q.options.length>=2 && typeof q.correct==='number').slice(0, LONG_QUIZ_QUESTIONS);
-    if(!questions.length) throw new Error('Câu hỏi AI trả về không hợp lệ.');
-    SETTINGS.speakPractice.longQuizBank[idx] = questions;
-    saveSettings(); pushToDrive();
-    if(STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx){
-      STATE.longQuizSession.questions = questions; STATE.longQuizSession.loading=false;
-      renderContent();
+    const tryParse = (s)=>{ try{ const p = JSON.parse(s); return Array.isArray(p) ? p : null; }catch(e){ return null; } };
+    let parsed = tryParse(txt);
+    if(!parsed && jStart!==-1 && jEnd!==-1 && jEnd>jStart) parsed = tryParse(txt.slice(jStart, jEnd+1));
+    if(!parsed){
+      // Vớt từng object {...} riêng lẻ còn nguyên vẹn (bỏ qua object bị cắt cụt/lỗi ở giữa).
+      const chunk = jStart!==-1 ? txt.slice(jStart) : txt;
+      const objs = chunk.match(/\{(?:[^{}]|\n)*?\}/g) || [];
+      const salvaged = [];
+      objs.forEach(o=>{ try{ salvaged.push(JSON.parse(o)); }catch(e){} });
+      if(salvaged.length) parsed = salvaged;
     }
-  }catch(e){
-    console.error('Lỗi tạo bài ôn tập AI', e);
-    if(STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx){
-      STATE.longQuizSession.loading=false; STATE.longQuizSession.error = 'Không tạo được bài ôn tập: '+(e.message||'lỗi không xác định')+'. Thử lại sau.';
-      renderContent();
+    if(!parsed || parsed.length===0) throw new Error('AI không trả về đúng định dạng JSON.');
+    return parsed;
+  }
+  const MAX_ATTEMPTS = 2;
+  let lastErr = null;
+  for(let attempt=1; attempt<=MAX_ATTEMPTS; attempt++){
+    try{
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:0.4, maxOutputTokens:4096, responseMimeType:'application/json'}})
+      });
+      if(!res.ok){
+        let msg = 'HTTP '+res.status;
+        try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
+        throw new Error(msg);
+      }
+      const data = await res.json();
+      const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('');
+      const parsed = parseQuizJson(txt);
+      const valid = parsed.filter(q=>q && q.q && Array.isArray(q.options) && q.options.length>=2 && typeof q.correct==='number').slice(0, LONG_QUIZ_QUESTIONS);
+      if(!valid.length) throw new Error('Câu hỏi AI trả về không hợp lệ.');
+      questions = valid;
+      SETTINGS.speakPractice.longQuizBank[idx] = questions;
+      saveSettings(); pushToDrive();
+      if(STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx){
+        STATE.longQuizSession.questions = questions; STATE.longQuizSession.loading=false;
+        renderContent();
+      }
+      return;
+    }catch(e){
+      lastErr = e;
+      console.error('Lỗi tạo bài ôn tập AI (lần '+attempt+')', e);
     }
+  }
+  if(STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx){
+    STATE.longQuizSession.loading=false; STATE.longQuizSession.error = 'Không tạo được bài ôn tập: '+((lastErr&&lastErr.message)||'lỗi không xác định')+'. Thử lại sau.';
+    renderContent();
   }
 }
 function longPassageQuizAnswer(i){
