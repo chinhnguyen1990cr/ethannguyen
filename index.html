@@ -1411,7 +1411,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v99';
+const APP_VERSION = 'v100';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2518,7 +2518,12 @@ async function callGeminiOnce(prompt){
   if(!apiKey) throw new Error('NO_KEY');
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:0.9, maxOutputTokens:160} })
+    // thinkingConfig.thinkingBudget:0 tắt bước "suy nghĩ nội bộ" của model — nếu không tắt, phần trả lời
+    // thật có thể bị cắt cụt (chỉ còn vài ký tự rác như ".\n *") vì maxOutputTokens bị dùng hết cho phần
+    // suy nghĩ ẩn trước khi tới câu trả lời thật. Ghép TẤT CẢ các phần text trả về (không chỉ phần đầu)
+    // để tránh mất nội dung nếu model vẫn trả về nhiều đoạn.
+    body: JSON.stringify({ contents:[{role:'user', parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.9, maxOutputTokens:300, thinkingConfig:{thinkingBudget:0}} })
   });
   if(!res.ok){
     const t = await res.text().catch(()=>'');
@@ -2529,12 +2534,16 @@ async function callGeminiOnce(prompt){
   }
   const data = await res.json();
   const cand = data.candidates && data.candidates[0];
-  const raw = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
-  if(!raw) throw new Error('EMPTY');
+  const parts = (cand && cand.content && cand.content.parts) || [];
+  const raw = parts.filter(p=>p && p.text && !p.thought).map(p=>p.text).join('').trim();
+  if(!raw || raw.length<8) throw new Error('EMPTY');
   return raw.trim();
 }
 async function petGenerateReward(idx, force){
   const p = ensurePet();
+  // Tự sửa dữ liệu cũ bị lỗi (bản trước tắt tính năng "thinking" của Gemini chưa đúng cách nên có thể
+  // đã lưu lại phần thưởng bị cắt cụt còn vài ký tự rác, vd ".\n *") — coi như chưa có, tạo lại.
+  if(p.rewards[idx] && p.rewards[idx].text && p.rewards[idx].text.trim().length<8) delete p.rewards[idx];
   if(p.rewards[idx] && !force) return p.rewards[idx];
   const stage = PET_STAGES[idx];
   const fallback = { text: PET_FALLBACK_REWARDS[idx] || PET_FALLBACK_REWARDS[0], ai:false };
