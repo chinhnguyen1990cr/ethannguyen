@@ -1411,7 +1411,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v100';
+const APP_VERSION = 'v101';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2596,7 +2596,10 @@ function renderPetDetail(){
       </div>
     </div>`;
   }).join('');
-  const rewardObj = SETTINGS.pet.rewards[st.idx];
+  // Coi phần thưởng đã lưu là "chưa có" nếu text quá ngắn/rác (dữ liệu cũ từ trước khi sửa lỗi Gemini
+  // "thinking" cắt cụt câu trả lời) — để tự động sinh lại thay vì hiển thị mãi nội dung hỏng.
+  let rewardObj = SETTINGS.pet.rewards[st.idx];
+  if(rewardObj && (!rewardObj.text || rewardObj.text.trim().length<8)) rewardObj = null;
   const rewardHtml = rewardObj
     ? `<div class="pet-reward-card"><div class="pet-reward-label">🎁 Phần thưởng bất ngờ${rewardObj.ai?' (AI đề xuất)':''}</div><div class="pet-reward-text">${escapeHtml(rewardObj.text)}</div>
         <button class="form-btn cancel" data-action="pet-regen-reward" style="margin-top:8px; font-size:11px;">🔄 Xin lời khuyên khác</button></div>`
