@@ -1011,6 +1011,8 @@
   .video-lesson-card{position:relative;}
   .vlc-del{position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.55);
     border:none; color:#fff; font-size:11px; cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center;}
+  .vlc-regen{position:absolute; top:6px; right:32px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.55);
+    border:none; color:#fff; font-size:11px; cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center;}
   .eng-av-src{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;}
   .eng-av-src h4{font-size:12.5px; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .eng-av-link{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px;
@@ -1320,7 +1322,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v96';
+const APP_VERSION = 'v97';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -1811,6 +1813,10 @@ function getPlanForDate(dateObj){
       tasks.push({id:'tu_vung', time:'05:45', dur:25, label:'Từ vựng mới (Luyện từ vựng)', cat:'tieng_anh', kind:'vocab',
         sub:['Vào mục Luyện từ vựng → học 20 từ mới của hôm nay','Đọc to từng từ + câu ví dụ (kết hợp tai-miệng giúp nhớ sâu hơn chỉ đọc thầm)','Buổi trưa và tối sẽ ôn lại đúng những từ này — đừng cố học thêm, đúng lịch là đủ']});
       tasks.push({id:'ipa', time:'06:15', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+      // Ngày không chạy/tập tạ (T3/T5) vẫn PHẢI có vận động nhẹ — tránh 2 ngày liên tiếp hoàn toàn
+      // ít vận động. 15' đi bộ nhanh/giãn cơ vừa đủ trong khoảng trống trước giờ làm 7:00.
+      tasks.push({id:'the_luc_nhe', time:'06:40', dur:15, label:'Vận động nhẹ (đi bộ nhanh/giãn cơ)', cat:'the_luc', kind:'light_active',
+        sub:['Ngày này không chạy bền/tập tạ nặng, nhưng vẫn nên vận động nhẹ 15 phút: đi bộ nhanh, giãn cơ toàn thân, hoặc vài động tác hít đất/plank tại nhà','Mục tiêu là duy trì thói quen vận động mỗi ngày — không cần đổ mồ hôi nhiều','Có thể gộp với lúc chuẩn bị đi làm nếu tiện']});
     }
     // ---- TRƯA (12:15-12:50, giờ nghỉ trưa) ----
     tasks.push({id:'nghe_trua', time:'12:15', dur:20, label:'Nghe tiếng Anh (giờ nghỉ trưa)', cat:'tieng_anh', kind:'listening_lunch',
@@ -1837,7 +1843,11 @@ function getPlanForDate(dateObj){
     tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
       sub:['Ngưng dùng màn hình trước 30 phút — 15 phút cuối có thể ôn từ vựng lần 3 bằng cách nhớ lại trong đầu','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00 — ngủ đủ 7 tiếng là nền tảng của cả thể lực lẫn trí nhớ']});
   } else if(wd===6){
-    // THỨ 7 — ngày phục hồi thể lực (không chạy/không tạ), dồn cho tiếng Anh sâu + chuyên môn.
+    // THỨ 7 — ngày phục hồi thể lực (không chạy bền/không tập tạ nặng), dồn cho tiếng Anh sâu + chuyên
+    // môn. Vẫn cần 1 buổi vận động NHẸ (đi bộ/đạp xe/yoga) để không đứt quãng vận động — "phục hồi"
+    // khác với "hoàn toàn không vận động".
+    tasks.push({id:'the_luc_nhe', time:'07:15', dur:25, label:'Vận động phục hồi nhẹ (đi bộ/đạp xe/giãn cơ)', cat:'the_luc', kind:'active_recovery',
+      sub:['Thứ 7 là ngày phục hồi — không chạy bền/tập tạ nặng, nhưng vẫn nên vận động nhẹ 20-25 phút: đi bộ, đạp xe nhẹ, yoga hoặc giãn cơ toàn thân','Vận động nhẹ giúp máu lưu thông, giảm đau nhức cơ sau các buổi tập nặng trong tuần — tốt hơn nằm yên hoàn toàn','Không cần đo tốc độ/quãng đường, mục tiêu chỉ là cử động cơ thể']});
     tasks.push({id:'ipa', time:'07:45', dur:30, label:'Luyện phát âm IPA', cat:'tieng_anh', kind:'ipa'});
     tasks.push({id:'tu_vung', time:'08:20', dur:30, label:'Từ vựng: học mới + ôn cả tuần', cat:'tieng_anh', kind:'vocab',
       sub:['Học 20 từ mới của hôm nay','Ôn lại toàn bộ từ đã học trong tuần (chế độ ôn tập)','Từ nào quên ≥2 lần thì viết ra giấy + đặt 1 câu ví dụ của riêng bạn']});
@@ -1889,6 +1899,30 @@ function getPlanForKey(key){
 }
 function isRestDay(dateObj){ return [2,4,6].includes(dateObj.getDay()); }
 function isDayOff(key){ return !!(LOG[key] && LOG[key].dayOff); }
+// Trước đây bấm "ngày nghỉ" sẽ XÓA SẠCH lịch hôm đó (0 việc, chỉ tính XP cố định) — người dùng phản
+// ánh nên "phân bổ lịch thông minh hơn" thay vì bỏ trắng, để các việc quan trọng (tiếng Anh, chuyên
+// môn) vẫn được duy trì đều đặn dù nhẹ nhàng hơn. buildRestDayPlan(): lấy lịch bình thường của ngày đó,
+// BỎ HẲN các bài chạy bộ/tập tạ nặng (đúng tinh thần "nghỉ" thể lực), rút ngắn ~35% thời lượng các việc
+// còn lại (làm nhẹ đi, không bỏ hẳn), và luôn đảm bảo có ít nhất 1 việc vận động rất nhẹ (đi bộ/giãn cơ)
+// để không "nghỉ" hoàn toàn — đồng bộ với chủ trương "mỗi ngày đều có vận động" ở getPlanForDate().
+const HEAVY_EXERCISE_KINDS = ['run_easy','run_interval','run_easy2','run_long','gym_a','gym_b','gym_c'];
+function buildRestDayPlan(key){
+  const base = getPlanForKey(key);
+  const out = [];
+  let hasLight = false;
+  base.forEach(t=>{
+    if(HEAVY_EXERCISE_KINDS.includes(t.kind)) return; // bỏ hẳn chạy/tạ nặng — đúng tinh thần ngày nghỉ
+    if(t.cat==='the_luc') hasLight = true;
+    if(t.kind==='sleep' || t.kind==='custom'){ out.push(t); return; }
+    const shrunk = Math.max(10, Math.round(t.dur*0.65/5)*5);
+    out.push(Object.assign({}, t, {dur:shrunk, label:'🌿 '+t.label}));
+  });
+  if(!hasLight){
+    out.push({id:'the_luc_nghi', time:'07:00', dur:15, label:'🌿 Vận động rất nhẹ (đi bộ thong thả)', cat:'the_luc', kind:'rest_light',
+      sub:['Ngày nghỉ không có nghĩa là nằm yên hoàn toàn — 10-15 phút đi bộ nhẹ nhàng giúp cơ thể phục hồi tốt hơn','Không cần gắng sức, đi với tốc độ thoải mái — có thể vừa đi vừa nghe tiếng Anh']});
+  }
+  return out.sort((a,b)=> a.time.localeCompare(b.time));
+}
 function toggleDayOff(key){
   if(!LOG[key]) LOG[key] = {tasks:{}};
   LOG[key].dayOff = !LOG[key].dayOff;
@@ -2120,7 +2154,10 @@ function renderCustomTaskSub(t){
 // ================= DATA HELPERS =================
 function dayRecord(key){ return LOG[key] || {tasks:{}}; }
 function dayPlanInfo(key){
-  const plan = getPlanForKey(key); const rec = dayRecord(key);
+  // Ngày được đánh dấu nghỉ dùng lịch đã "rút gọn thông minh" (buildRestDayPlan) thay vì lịch bình
+  // thường — vẫn còn việc để hoàn thành (nhẹ hơn), không phải danh sách rỗng như trước đây.
+  const plan = isDayOff(key) ? buildRestDayPlan(key) : getPlanForKey(key);
+  const rec = dayRecord(key);
   const done = plan.filter(t=>rec.tasks[t.id]).length;
   return {plan, rec, done, total:plan.length};
 }
@@ -2133,13 +2170,23 @@ const FAIL_XP_PENALTY = Math.round(XP_PER_TASK*0.4);
 function failedCountForList(list, rec){ return list.filter(t=>rec.failed && rec.failed[t.id] && !rec.tasks[t.id]).length; }
 function dayPct(key){ if(isDayOff(key)) return 100; const {done,total} = dayPlanInfo(key); return total>0 ? Math.round(done/total*100) : 0; }
 function dayXP(key){
-  if(isDayOff(key)) return REST_DAY_XP;
   const {plan, rec, done, total} = dayPlanInfo(key);
+  // Ngày nghỉ: lịch đã rút gọn (buildRestDayPlan) vẫn có vài việc nhẹ có thể hoàn thành để cộng thêm
+  // XP, nhưng KHÔNG BAO GIỜ thấp hơn REST_DAY_XP cố định trước đây — nghỉ ngơi không bị "phạt điểm".
+  if(isDayOff(key)){
+    if(total===0) return REST_DAY_XP;
+    const base = done*XP_PER_TASK + (done===total?PERFECT_BONUS:0);
+    return Math.max(REST_DAY_XP, base - failedCountForList(plan, rec)*FAIL_XP_PENALTY);
+  }
   if(total===0) return 0;
   const base = done*XP_PER_TASK + (done===total?PERFECT_BONUS:0);
   return Math.max(0, base - failedCountForList(plan, rec)*FAIL_XP_PENALTY);
 }
-function dayMaxXP(key){ if(isDayOff(key)) return REST_DAY_XP; const {total} = dayPlanInfo(key); return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0; }
+function dayMaxXP(key){
+  const {total} = dayPlanInfo(key);
+  if(isDayOff(key)) return Math.max(REST_DAY_XP, total>0 ? total*XP_PER_TASK+PERFECT_BONUS : REST_DAY_XP);
+  return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0;
+}
 // Quét việc của HÔM NAY, tự đánh dấu "không hoàn thành" cho việc nào đã trễ quá 30 phút mà
 // vẫn chưa tick xong — ghi vào LOG của ngày đó để có dữ liệu lịch sử/thống kê lâu dài.
 const AUTO_FAIL_MINUTES = 30;
@@ -3342,8 +3389,8 @@ function renderDayWheel(key, filterCat, size){
   const gid = 'dwc'+Math.random().toString(36).slice(2,8);
   return `<div class="daywheel-wrap">
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-      <text x="${cx}" y="13" text-anchor="middle" font-size="13">☀️</text>
-      <text x="${cx}" y="${size-3}" text-anchor="middle" font-size="12">🌙</text>
+      <text x="${cx}" y="13" text-anchor="middle" font-size="13">🌙</text>
+      <text x="${cx}" y="${size-3}" text-anchor="middle" font-size="12">☀️</text>
       ${wedges}
       ${pointer}
       <circle cx="${cx}" cy="${cy}" r="${(r0-4).toFixed(1)}" fill="url(#${gid})"/>
@@ -4296,13 +4343,18 @@ function vocabPrepareCurrent(){
   const box = p.box||0;
   // Độ khó & KIỂU câu hỏi tăng dần theo mức độ thuộc (box): mới học → nhận diện bằng trắc nghiệm dễ;
   // đã quen mặt chữ → chủ động nhớ lại (xếp chữ cái / gõ từ) — nguyên lý "desirable difficulty" giúp
-  // nhớ SÂU hơn nhiều so với chỉ luôn chọn 1 trong 4 đáp án có sẵn.
+  // nhớ SÂU hơn nhiều so với chỉ luôn chọn 1 trong 4 đáp án có sẵn. Item 6: thêm "listen_en_vi" (nghe
+  // từ qua TTS rồi chọn nghĩa, KHÔNG hiện chữ) — trước đây Luyện từ vựng chưa có dạng nghe nào cả, nay
+  // đa dạng thêm kỹ năng nghe giống hệt Câu thông dụng đã có.
   let types = ['mc_en_vi','mc_vi_en'];
   if(vocabExampleHasWord(word)) types.push('fill_blank');
+  if(box>=1) types.push('listen_en_vi');
   if(box>=2) types.push('unscramble');
   if(box>=3 && word[1].replace(/\s+/g,'').length>=3) types.push('type_en');
-  const exType = types[(s.idx + box) % types.length];
-  s.exType = exType;
+  // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
+  // công thức cố định trước đây — cảm giác đa dạng thật sự thay vì luôn ra đúng 1 kiểu dự đoán được.
+  const exType = pickVariedType(types, s.lastExType);
+  s.exType = exType; s.lastExType = exType;
   if(exType==='unscramble'){
     s.scrambleLetters = vocabScrambleLetters(word[1]);
     s.scrambleSel = [];
@@ -4314,7 +4366,7 @@ function vocabPrepareCurrent(){
   }
   const distractors = vocabPickDistractorWords(word, 3);
   let correctText, optTexts;
-  if(exType==='mc_en_vi'){
+  if(exType==='mc_en_vi' || exType==='listen_en_vi'){
     correctText = word[4];
     optTexts = distractors.map(w=>w[4]);
   } else if(exType==='fill_blank'){
@@ -4722,7 +4774,11 @@ function renderVocabSession(){
   }
   const questionText = s.exType==='mc_en_vi' ? `${word[1]} (${word[2]}) nghĩa là gì?`
     : s.exType==='fill_blank' ? `Điền từ còn thiếu: "${vocabBlankSentence(word)}"`
+    : s.exType==='listen_en_vi' ? `🔊 Nghe từ vừa phát, chọn đúng nghĩa tiếng Việt`
     : `Từ tiếng Anh nào có nghĩa: "${word[4]}"?`;
+  // Item 6: dạng "listen_en_vi" KHÔNG hiện chữ tiếng Anh — chỉ có nút phát âm, buộc luyện nghe thật sự
+  // thay vì đọc chữ rồi đoán nghĩa (tự động phát 1 lần khi vào câu, có nút nghe lại).
+  const listenBtnHtml = s.exType==='listen_en_vi' ? `<div class="eng-quiz-actions" style="justify-content:center; margin-bottom:12px;"><button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe từ (bấm trước khi chọn)</button></div>` : '';
   const optLetters = ['A','B','C','D'];
   const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
   const opts = s.options.map((opt,i)=>{
@@ -4741,6 +4797,7 @@ function renderVocabSession(){
   return `${progressWrap}
   <div class="card eng-quiz-card">
     <div class="eng-quiz-q">${escapeHtml(questionText)}</div>
+    ${listenBtnHtml}
     ${opts}
     ${s.answered!==null ? `
       <div class="eng-quiz-explain">💡 ${escapeHtml(word[5])}</div>
@@ -4960,6 +5017,16 @@ async function fetchGrammarQuizBank(){
 }
 function grammarBankFor(topicId){ return (GRAMMAR_QUIZ_BANK && GRAMMAR_QUIZ_BANK[topicId]) || []; }
 function shuffleArr(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// Item 6: chọn NGẪU NHIÊN kiểu bài tập trong số các kiểu đã mở khóa (thay vì công thức cố định
+// types[(idx+box)%types.length] — luôn ra đúng 1 kiểu y hệt cho cùng 1 từ/câu ở cùng mức box, dễ đoán
+// trước và cảm giác lặp lại). Vẫn tránh lặp lại ĐÚNG kiểu vừa làm ở câu ngay trước đó (nếu có kiểu khác
+// để chọn) để cảm giác đa dạng rõ rệt hơn qua từng câu, dùng chung cho cả Luyện từ vựng & Câu thông dụng.
+function pickVariedType(types, lastType){
+  if(!types || types.length<=1) return types && types[0];
+  const pool = types.filter(t=>t!==lastType);
+  const arr = pool.length ? pool : types;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
 // ---- AI đề xuất số câu mỗi lượt luyện tập, dựa trên phong độ luyện ngữ pháp gần đây ----
 // (dùng cùng dữ liệu SETTINGS.grammarQuizLog mà buildAdviceTrack('english') đã phân tích, để nhất
 // quán với phần "AI đánh giá" ở Thống kê — coi đây là "phương pháp học" AI gợi ý cho từng lượt).
@@ -5153,13 +5220,14 @@ function lgqAiStatsHtml(){
   const avg = arr => arr.length ? Math.round(arr.reduce((s,x)=>s+x.pct,0)/arr.length) : null;
   const rAvg = avg(recent), pAvg = avg(prev);
   const trend = (rAvg!==null && pAvg!==null) ? (rAvg>pAvg+3?'📈 đang tiến bộ':(rAvg<pAvg-3?'📉 đang chững lại':'➡️ ổn định')) : '';
-  // Tìm chủ đề yếu nhất: gom theo topicId, tính % đúng trung bình các lần làm (chỉ xét chủ đề đã làm ≥2 lần)
+  // Tìm chủ đề yếu nhất: dùng điểm "thành thạo" trọng số gần đây (grammarTopicMastery) thay vì trung
+  // bình cộng đơn giản — lần làm gần nhất phản ánh đúng trình độ HIỆN TẠI hơn lần làm nhiều tuần trước.
   const byTopic = {};
   log.forEach(l=>{ if(!byTopic[l.topicId]) byTopic[l.topicId]=[]; byTopic[l.topicId].push(l.pct); });
-  const weak = Object.entries(byTopic)
-    .filter(([,arr])=>arr.length>=2)
-    .map(([tid,arr])=>({tid, avg:Math.round(arr.reduce((s,x)=>s+x,0)/arr.length)}))
-    .filter(x=>x.avg<75)
+  const weak = Object.keys(byTopic)
+    .filter(tid=>byTopic[tid].length>=2)
+    .map(tid=>({tid, avg:grammarTopicMastery(tid)}))
+    .filter(x=>x.avg!==null && x.avg<75)
     .sort((a,b)=>a.avg-b.avg).slice(0,3);
   const totalAnswered = log.reduce((s,l)=>s+l.total,0);
   const totalCorrect = log.reduce((s,l)=>s+l.correct,0);
@@ -5179,6 +5247,64 @@ function lgqAiStatsHtml(){
       ${rAvg!==null?`5 lượt gần nhất: <b style="color:var(--text);">${rAvg}%</b> ${trend}.<br>`:''}
       🤖 <b style="color:var(--text);">Gợi ý:</b> ${escapeHtml(advice)}
     </div>
+  </div>`;
+}
+// ---- Điểm "thành thạo" theo trọng số gần đây (thay vì trung bình cộng đơn giản) ----
+// Lần làm bài gần đây nhất được tính trọng số cao hơn lần làm 3 tháng trước — phản ánh đúng việc kiến
+// thức có thể bị QUÊN DẦN theo thời gian dù trước đó từng làm tốt, thay vì coi mọi lần làm ngang nhau.
+function grammarTopicMastery(tid){
+  const log = Array.isArray(SETTINGS.grammarQuizLog) ? SETTINGS.grammarQuizLog : [];
+  const attempts = log.filter(l=>l.topicId===tid);
+  if(!attempts.length) return null;
+  let wSum=0, sSum=0;
+  attempts.forEach((a,i)=>{ const w = Math.pow(1.35, i); wSum+=w; sSum+=w*a.pct; });
+  return Math.round(sSum/wSum);
+}
+// ---- Lộ trình đề xuất: quyết định BƯỚC TIẾP THEO người học nên làm, ưu tiên theo thứ tự:
+// 1) Ôn lại chủ đề đã học nhưng đang "quên dần" (mastery < 65%) — tránh xây kiến thức mới trên nền yếu.
+// 2) Học tiếp chủ đề kế tiếp CHƯA vượt qua trong lộ trình 38 chủ đề (GRAMMAR_PATH), nếu đã mở khóa.
+// 3) Nếu chủ đề tiếp theo CHƯA mở khóa, báo rõ cần vượt ải nào trước.
+// 4) Nếu đã vượt hết lộ trình, gợi ý ôn tổng hợp (Thi thử) định kỳ để giữ phong độ.
+function grammarRoadmap(){
+  ensureEngGame();
+  const gPassed = SETTINGS.engGame.gPassed || {};
+  const log = Array.isArray(SETTINGS.grammarQuizLog) ? SETTINGS.grammarQuizLog : [];
+  const weakReview = GRAMMAR_PATH
+    .filter(tid=> gPassed[tid]!==undefined && log.filter(l=>l.topicId===tid).length>=2)
+    .map(tid=>({tid, mastery:grammarTopicMastery(tid)}))
+    .filter(x=>x.mastery!==null && x.mastery<65)
+    .sort((a,b)=>a.mastery-b.mastery);
+  if(weakReview.length){
+    const w = weakReview[0];
+    return {action:'review', tid:w.tid, mastery:w.mastery,
+      reason:`Độ chính xác gần đây của "${quizTopicDisplayName(w.tid)}" đã giảm còn ${w.mastery}% — nên ôn lại trước khi học tiếp để không bị hổng kiến thức nền.`};
+  }
+  const nextIdx = GRAMMAR_PATH.findIndex(tid=>!gPassed[tid]);
+  if(nextIdx!==-1){
+    const tid = GRAMMAR_PATH[nextIdx];
+    const unlocked = ggIsUnlocked(tid);
+    return {action: unlocked?'advance':'locked', tid, mastery:grammarTopicMastery(tid),
+      reason: unlocked
+        ? `Chủ đề tiếp theo trong lộ trình 38 chủ đề — đã mở khóa, sẵn sàng học và làm bài kiểm tra vượt ải.`
+        : `Cần vượt qua chủ đề trước đó trong lộ trình để mở khóa "${quizTopicDisplayName(tid)}".`};
+  }
+  return {action:'done', tid:null, mastery:null, reason:'Bạn đã hoàn thành toàn bộ 38 chủ đề trong lộ trình! Duy trì bằng Thi thử tổng hợp định kỳ để không quên kiến thức.'};
+}
+function grammarRoadmapCardHtml(){
+  const r = grammarRoadmap();
+  const total = GRAMMAR_PATH.length;
+  const gPassed = (SETTINGS.engGame && SETTINGS.engGame.gPassed) || {};
+  const passedCount = GRAMMAR_PATH.filter(tid=>gPassed[tid]!==undefined).length;
+  const pct = Math.round(passedCount/total*100);
+  const icon = r.action==='review' ? '🔁' : (r.action==='advance' ? '➡️' : (r.action==='locked' ? '🔒' : '🏆'));
+  const btn = (r.tid && r.action!=='locked') ? `<button class="form-btn" data-action="grammar-roadmap-go" data-tid="${r.tid}" style="margin-top:10px; width:100%;">${r.action==='review'?'🔁 Ôn lại ngay':'➡️ Học tiếp'}</button>` : '';
+  return `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid var(--gold)55;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div style="font-weight:800; font-size:13px;">🎯 Lộ trình đề xuất</div>
+      <div style="font-size:11px; color:var(--dim);">${passedCount}/${total} chủ đề (${pct}%)</div>
+    </div>
+    <div style="font-size:12px; color:var(--dim); line-height:1.6;">${icon} ${escapeHtml(r.reason)}</div>
+    ${btn}
   </div>`;
 }
 function renderEnglishQuiz(item){
@@ -5234,7 +5360,7 @@ function renderEnglishQuiz(item){
         </div>`;
       }).join('');
       const mockOpen = lgqMockUnlocked();
-      body = `${ggScoreHeaderHtml()}${lgqAiStatsHtml()}${paceHtml}
+      body = `${ggScoreHeaderHtml()}${grammarRoadmapCardHtml()}${lgqAiStatsHtml()}${paceHtml}
       <div class="card eng-mocktest-card ${!mockOpen?'lgq-locked':''}">
         <div class="mocktest-icon">${mockOpen?'🎯':'🔒'}</div>
         <div class="mocktest-title">Thi thử</div>
@@ -5660,6 +5786,7 @@ function renderGrammarPath(item){
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
     ${ggScoreHeaderHtml()}
+    ${grammarRoadmapCardHtml()}
     <div class="card" style="padding:12px 14px; margin-bottom:12px; font-size:11.5px; color:var(--dim); line-height:1.6;">
       🎮 <b style="color:var(--text);">Lộ trình vượt ải:</b> học lý thuyết chủ đề đang mở ⭐ → làm bài kiểm tra 10 câu (trắc nghiệm, nghe-điền, sắp xếp câu, dịch, phát âm) → đúng <b style="color:var(--gold);">≥8/10</b> để mở khóa chủ đề tiếp theo. Bỏ ngày học sẽ bị <b style="color:#ff8080;">trừ điểm lũy tiến</b> và chỉ tiêu mỗi ngày sẽ tăng lên!
     </div>
@@ -6832,13 +6959,18 @@ function sentPrepareCurrent(){
   // TRONG HỘI THOẠI (chọn câu đáp phù hợp với 1 lời thoại mở đầu) — mức khó nhất vì đòi hỏi hiểu ĐÚNG
   // NGỮ CẢNH dùng câu chứ không chỉ nhớ nghĩa, đúng yêu cầu "câu thông dụng quá dễ, cần nghe chọn/hội
   // thoại để nhớ lâu hơn" (item 5).
+  // Item 6: thêm "type_en" (gõ lại cả câu tiếng Anh sau khi nghe/đọc nghĩa) cho box cao nhất — mức nhớ
+  // chủ động sâu nhất, giống hệt "type_en" đã có ở Luyện từ vựng, áp dụng cho câu ngắn để không quá khó gõ.
   let types = ['mc_en_vi','mc_vi_en'];
   if(box>=1) types.push('listen_choice');
   if(box>=2 && wordCount>=3 && wordCount<=9) types.push('unscramble_words');
   if(box>=3 && blank) types.push('listen_fill');
   if(box>=4) types.push('dialogue');
-  const exType = types[(s.idx + box) % types.length];
-  s.exType = exType;
+  if(box>=5 && wordCount<=8) types.push('type_en');
+  // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
+  // công thức cố định trước đây.
+  const exType = pickVariedType(types, s.lastExType);
+  s.exType = exType; s.lastExType = exType;
   if(exType==='unscramble_words'){
     s.wordTiles = sentScrambleWords(sentence[1]);
     s.wordSel = [];
@@ -6847,6 +6979,10 @@ function sentPrepareCurrent(){
   if(exType==='listen_fill'){
     s.blankWord = blank.word;
     s.blankSentence = blank.blanked;
+    s.typedValue = '';
+    return;
+  }
+  if(exType==='type_en'){
     s.typedValue = '';
     return;
   }
@@ -6983,9 +7119,13 @@ function sentTypedSubmit(){
   const liveVal = inputEl ? inputEl.value : s.typedValue;
   s.typedValue = liveVal;
   if(!String(liveVal||'').trim()) return;
-  const norm = (x)=>String(x||'').trim().toLowerCase().replace(/[^a-z']/g,'');
+  // Item 6: "type_en" so khớp với CẢ CÂU (bỏ dấu câu, khoảng trắng thừa) thay vì chỉ 1 từ như listen_fill.
+  const norm = (x)=>String(x||'').trim().toLowerCase().replace(/[^a-z0-9' ]/g,'').replace(/\s+/g,' ').trim();
+  const n = s.ids[s.idx];
+  const sentence = sentByN(n);
+  const target = s.exType==='type_en' ? (sentence && sentence[1]) : s.blankWord;
   s.answered = true;
-  sentFinishAnswer(norm(liveVal)===norm(s.blankWord));
+  sentFinishAnswer(norm(liveVal)===norm(target));
   renderContent();
 }
 function sentNext(){
@@ -7134,6 +7274,25 @@ function renderSentSession(){
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(s.blankWord)}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[1])}</div>
+      <div class="eng-quiz-actions">
+        <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe lại</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>`}
+    </div>`;
+  } else if(s.exType==='type_en'){
+    // Item 6: gõ lại cả câu tiếng Anh — mức nhớ chủ động cao nhất, chỉ mở khi đã thuộc kỹ (box>=5).
+    const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
+    body = `<div class="card eng-quiz-card" style="text-align:center;">
+      <div class="eng-quiz-q" style="text-align:center;">⌨️ Gõ lại câu tiếng Anh có nghĩa:</div>
+      <div style="font-size:15px; color:var(--gold); font-weight:700; margin:8px 0 14px;">🇻🇳 ${escapeHtml(sentence[4])}</div>
+      <input id="sentTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="Gõ cả câu tiếng Anh…" value="${escapeHtml(s.typedValue||'')}"
+        ${s.answered!==null?'disabled':''}
+        oninput="sentTypedInput(this.value)" onchange="sentTypedInput(this.value)" onblur="sentTypedInput(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault(); sentTypedSubmit();}">
+      ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
+      <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(sentence[1])}`}</div>
+      <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[2])}</div>
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe lại</button>
       </div>
@@ -8555,6 +8714,25 @@ function deleteMyListenVideo(id){
   const idx = list.findIndex(v=>v.id===id);
   if(idx>=0 && confirm('Xóa video này cùng bộ câu hỏi của nó?')){ list.splice(idx,1); saveSettings(); pushToDrive(); renderContent(); }
 }
+// Tạo lại MỘT BỘ CÂU HỎI MỚI cho video đã có (thay vì dùng mãi bộ cũ đã cache từ lúc thêm video) —
+// hữu ích khi người học đã luyện video này nhiều lần và muốn thử thách mới, vẫn bám sát đúng nội dung
+// video thật (AI xem lại video) nhưng random hóa lại toàn bộ câu hỏi/góc nhìn.
+async function regenListenVideoQuestions(id){
+  const list = ensureMyListenVideos();
+  const v = list.find(x=>x.id===id); if(!v) return;
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Vào Cài đặt → Hội thoại AI để nhập Gemini API key trước.'); return; }
+  STATE.listenVideoRegenId = id; renderContent();
+  try{
+    const result = await aiGenerateListenQuestions(v.videoId);
+    v.questions = result.questions;
+    saveSettings(); pushToDrive();
+    showToast('🔄','Đã tạo bộ câu hỏi mới!','Câu hỏi mới bám sát nội dung video, khác với bộ trước.');
+  }catch(e){
+    console.error(e);
+    showToast('⚠️','Không tạo được câu hỏi mới', geminiFriendlyError(e.message, 'bấm tạo lại'));
+  }
+  STATE.listenVideoRegenId = null; renderContent();
+}
 function renderAddListenVideoUI(item){
   const err = STATE.addListenVideoError;
   const loading = STATE.addListenVideoLoading;
@@ -8578,13 +8756,14 @@ function videoLessonsListHtml(mode){
   const cards = list.map((l, idx)=>{
     const unlocked = listenVideoUnlocked(idx);
     const b = listenVideoBest(l.id);
-    return `<div class="video-lesson-card ${!unlocked?'lgq-locked':''}" ${unlocked?`data-action="listen-video-start" data-id="${l.id}"`:''}>
+    const regenning = STATE.listenVideoRegenId===l.id;
+    return `<div class="video-lesson-card ${!unlocked?'lgq-locked':''}" ${unlocked && !regenning?`data-action="listen-video-start" data-id="${l.id}"`:''}>
       <img class="vlc-thumb" src="https://img.youtube.com/vi/${l.videoId}/mqdefault.jpg" alt="" loading="lazy">
       <div class="vlc-body">
         <div class="vlc-title">${escapeHtml(l.title)}</div>
-        <div class="vlc-desc">${!unlocked?'🔒 Đạt ★80% ở video trước để mở':(!l.watched?'👀 Xem qua video trước · '+((l.questions||[]).length+' câu hỏi'):((l.questions||[]).length+' câu hỏi'+(b!==undefined?' · ★ '+b+'%':'')))}</div>
+        <div class="vlc-desc">${regenning?'🤖 Đang tạo bộ câu hỏi mới...':(!unlocked?'🔒 Đạt ★80% ở video trước để mở':(!l.watched?'👀 Xem qua video trước · '+((l.questions||[]).length+' câu hỏi'):((l.questions||[]).length+' câu hỏi'+(b!==undefined?' · ★ '+b+'%':''))))}</div>
       </div>
-      ${unlocked?`<div class="vlc-play">▶</div><button class="vlc-del" data-action="listen-video-delete" data-id="${l.id}">✕</button>`:'<div class="vlc-play">🔒</div>'}
+      ${unlocked&&!regenning?`<div class="vlc-play">▶</div><button class="vlc-regen" data-action="listen-video-regen" data-id="${l.id}" title="Tạo bộ câu hỏi mới">🔄</button><button class="vlc-del" data-action="listen-video-delete" data-id="${l.id}">✕</button>`:'<div class="vlc-play">🔒</div>'}
     </div>`;
   }).join('');
   return `<div class="eng-section-label" style="margin-top:18px;">📺 Video luyện nghe của bạn</div>
@@ -8667,6 +8846,7 @@ function ensureShadowingVideos(){
   if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
   return SETTINGS.shadowingVideos;
 }
+function shadowFmtSec(sec){ sec=Math.max(0,Math.floor(sec||0)); const m=Math.floor(sec/60), s=sec%60; return m+':'+String(s).padStart(2,'0'); }
 function shadowStageSpeed(stage){ return stage==='slow' ? 0.75 : 1; }
 function shadowLoopSpeedLabel(stage){ return stage==='slow' ? '0.75x (chậm)' : '1x (tốc độ tự nhiên)'; }
 // ---- Danh sách & thêm video ----
@@ -8693,7 +8873,7 @@ function renderShadowingHome(item){
     <div class="card" style="padding:16px; margin-bottom:14px;">
       <div style="font-size:26px; text-align:center; margin-bottom:8px;">🗣️🎧</div>
       <div style="font-size:12px; color:var(--dim); line-height:1.7;">
-        <b style="color:var(--text);">Shadowing</b> là kỹ thuật nhại lại lời người bản ngữ <b style="color:var(--text);">gần như đồng thời</b> — giúp luyện phản xạ ngữ điệu, trọng âm, nối âm tự nhiên. Thêm video của bạn rồi luyện qua 4 bước: 🎧 nghe tổng quát → 🐢 shadow chậm (0.75x, tự lặp 1 đoạn ngắn) → 🏃 shadow tốc độ tự nhiên → 🎙️ ghi âm &amp; tự so sánh với bản gốc.
+        <b style="color:var(--text);">Shadowing</b> là kỹ thuật nhại lại lời người bản ngữ <b style="color:var(--text);">gần như đồng thời</b> — giúp luyện phản xạ ngữ điệu, trọng âm, nối âm tự nhiên. Thêm video của bạn rồi luyện qua 4 bước: 🎧 nghe tổng quát (AI gợi ý sẵn các đoạn nên luyện + phong cách giọng cần bắt chước) → 🐢 shadow chậm (0.75x, tự lặp 1 đoạn ngắn) → 🏃 shadow tốc độ tự nhiên → 🎙️ ghi âm &amp; để AI nhận xét cách nói của bạn.
       </div>
     </div>
     <div class="video-channel-add-card" data-action="shadow-add-open">➕ Thêm video của bạn (YouTube hoặc link khác)</div>
@@ -8734,6 +8914,83 @@ async function submitAddShadowingVideo(){
   list.push({id:'shd_'+Date.now(), videoId: videoId||null, url: raw, title, addedAt: Date.now(), practiceCount:0, lastPracticedAt:null});
   saveSettings(); pushToDrive();
   STATE.addShadowLoading = false; STATE.addShadowOpen = false;
+  renderContent();
+}
+// Item 7: AI phân tích video (chỉ dùng link YouTube, KHÔNG tải/gọi lại lời thoại gốc) và đề xuất các
+// ĐOẠN nên luyện shadowing (mốc thời gian + độ khó + phong cách giọng nói cần bắt chước) — CỐ Ý không
+// yêu cầu AI chép lại nguyên văn lời thoại/lyric của video (tránh vi phạm bản quyền với video nhạc/độc
+// quyền bất kỳ mà người dùng tự thêm vào — không kiểm soát được nguồn). Việc "nghe & nhại theo" bản chất
+// của shadowing vốn dựa vào TAI người học tự nghe trực tiếp từ video thật, không cần hiện chữ mới luyện
+// được — nên thiết kế này còn ĐÚNG phương pháp hơn so với vừa nghe vừa đọc chữ.
+async function aiGenerateShadowSegments(videoId){
+  const apiKey = SETTINGS.geminiApiKey;
+  if(!apiKey) throw new Error('NO_KEY');
+  const prompt = `You are an English speaking coach preparing a SHADOWING practice plan from this YouTube video for a Vietnamese learner.
+Watch/listen to the whole video and produce STRICT JSON (no markdown) with this exact shape:
+{"segments":[{"start":<seconds>,"end":<seconds>,"label":"<short 4-10 word English description of WHAT is happening/being talked about in this segment, e.g. \\"introducing the main topic\\", \\"giving three quick tips\\", \\"excited reaction to good news\\" — a PARAPHRASE, never the exact words spoken>","difficulty":<1-3, 1=easy pace/simple words,3=fast/complex>,"styleHint":"<tiếng Việt: mô tả ngắn gọn PHONG CÁCH GIỌNG NÓI cần bắt chước ở đoạn này — tốc độ, cảm xúc, cách nhấn nhá, ví dụ 'giọng phấn khích, nói nhanh, lên giọng cuối câu' hoặc 'trầm, chậm rãi, nghiêm túc, ngắt nghỉ rõ ràng'>"}]}
+CRITICAL RULE: The "label" field must NEVER contain verbatim quotes or transcribed sentences from the video's audio — only your own short paraphrased description of the topic/action. Do not output any field containing exact transcribed dialogue, captions, or lyrics under any circumstances.
+Rules:
+- Pick 6 to 12 segments spread across the WHOLE video, in chronological order, each typically 8-25 seconds long — good self-contained chunks for shadowing practice (natural phrase/sentence boundaries, not mid-word cuts).
+- Vary difficulty and styleHint realistically based on how that part is actually delivered (pace, tone, emotion) so the learner has a genuine target to aim their delivery at.
+Return ONLY the JSON object.`;
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents:[{role:'user', parts:[
+        {fileData:{fileUri:'https://www.youtube.com/watch?v='+videoId}},
+        {text:prompt}
+      ]}],
+      generationConfig:{temperature:0.4, maxOutputTokens:4096, responseMimeType:'application/json'}
+    })
+  });
+  if(!res.ok){
+    let msg = 'HTTP '+res.status;
+    try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('');
+  let parsed;
+  try{ parsed = JSON.parse(txt); }catch(e){
+    const m = txt.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('AI trả về dữ liệu không đúng định dạng JSON.');
+    parsed = JSON.parse(m[0]);
+  }
+  if(!parsed || !Array.isArray(parsed.segments) || !parsed.segments.length) throw new Error('AI không đề xuất được đoạn nào — thử lại hoặc chọn video khác.');
+  return parsed.segments.map(sg=>({
+    start: Math.max(0, Math.floor(sg.start||0)),
+    end: Math.max(0, Math.floor(sg.end||0)),
+    label: String(sg.label||'').slice(0,140),
+    difficulty: Math.max(1, Math.min(3, sg.difficulty|0 || 1)),
+    styleHint: String(sg.styleHint||'').slice(0,200)
+  })).filter(sg=>sg.end>sg.start).slice(0,12);
+}
+async function ensureShadowSegments(rec, force){
+  if(!rec.videoId) return [];
+  if(!force && Array.isArray(rec.aiSegments) && rec.aiSegments.length) return rec.aiSegments;
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Vào Cài đặt → Hội thoại AI để nhập Gemini API key trước khi dùng gợi ý AI.'); return rec.aiSegments||[]; }
+  STATE.shadowSegLoading = true; renderContent();
+  try{
+    const segs = await aiGenerateShadowSegments(rec.videoId);
+    rec.aiSegments = segs;
+    saveSettings(); pushToDrive();
+    return segs;
+  }catch(e){
+    console.error(e);
+    showToast('⚠️','Không tạo được gợi ý', geminiFriendlyError(e.message, 'bấm tạo lại'));
+    return rec.aiSegments||[];
+  }finally{
+    STATE.shadowSegLoading = false; renderContent();
+  }
+}
+// Chọn nhanh 1 đoạn AI gợi ý làm đoạn lặp shadowing hiện tại — thay cho việc phải tự bấm "Đánh dấu
+// BẮT ĐẦU/KẾT THÚC" bằng tai, đồng thời seek video tới đúng vị trí đó luôn.
+function shadowPickAiSegment(idx){
+  const s = STATE.shadowSession; if(!s) return;
+  const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===s.vidRecId); if(!rec) return;
+  const seg = (rec.aiSegments||[])[idx]; if(!seg) return;
+  s.loopStart = seg.start; s.loopEnd = seg.end; s.activeSegIdx = idx;
+  try{ if(shadowYtPlayer && shadowYtPlayer.seekTo) shadowYtPlayer.seekTo(seg.start, true); }catch(e){}
   renderContent();
 }
 function deleteShadowingVideo(id){
@@ -8845,6 +9102,25 @@ function shadowRecordControlsHtml(s){
     html += `<audio id="shadow-recording-audio" src="${s.recordingUrl}" style="display:none;"></audio>
       <button class="form-btn" data-action="shadow-play-recording" style="width:100%;">▶ Nghe lại bản ghi của bạn</button>`;
   }
+  // Item 7: AI nghe bản ghi CỦA CHÍNH NGƯỜI HỌC (không cần audio gốc video, vốn không lấy được từ iframe
+  // YouTube) rồi nhận xét cách nói (phát âm, ngữ điệu, nhịp điệu, mức khớp với phong cách mục tiêu ở đoạn
+  // AI gợi ý) — đúng yêu cầu "đảm bảo từ ngữ, ngữ điệu, âm thanh, biểu cảm, cảm xúc tương đối với mức đề
+  // xuất" mà KHÔNG cần hiển thị/chép lại nguyên văn lời thoại của video.
+  if(s.recordingUrl && s.recordingBlob){
+    if(s.aiFeedbackLoading){
+      html += `<div style="text-align:center; padding:12px; font-size:12px; color:var(--gold);">🤖 AI đang nghe và nhận xét cách nói của bạn...</div>`;
+    } else if(s.aiFeedbackText){
+      const hasScore = typeof s.aiFeedbackScore==='number';
+      html += `<div class="card" style="padding:14px 16px; margin-top:4px;">
+        ${hasScore?`<div style="text-align:center; margin-bottom:8px;"><span style="font-size:28px; font-weight:800; color:${s.aiFeedbackScore>=70?'var(--teal)':'#ff8080'};">${s.aiFeedbackScore}</span><span style="font-size:13px; color:var(--dim);">/100</span></div>`:''}
+        <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:8px;">🤖 AI nhận xét cách nói</div>
+        <div style="font-size:12.5px; color:var(--text); line-height:1.7; white-space:pre-line;">${escapeHtml(s.aiFeedbackText)}</div>
+      </div>
+      <button class="form-btn btn-listen" data-action="shadow-ai-feedback" style="width:100%; margin-top:8px;">🔄 Nhận xét lại (đã ghi âm lại)</button>`;
+    } else {
+      html += `<button class="form-btn btn-listen" data-action="shadow-ai-feedback" style="width:100%;">🤖 AI nhận xét cách nói của bạn</button>`;
+    }
+  }
   return html;
 }
 async function shadowStartRecording(){
@@ -8870,7 +9146,11 @@ async function shadowStartRecording(){
       if(cur){
         if(cur.recordingUrl){ try{ URL.revokeObjectURL(cur.recordingUrl); }catch(e){} }
         cur.recordingUrl = blob.size ? URL.createObjectURL(blob) : null;
+        cur.recordingBlob = blob.size ? blob : null;
         cur.recording = false;
+        // Ghi âm mới → xóa nhận xét AI cũ của lượt trước (nếu có) để không hiển thị nhầm nhận xét của
+        // bản ghi cũ cho bản ghi mới vừa tạo.
+        cur.aiFeedbackText = null; cur.aiFeedbackScore = null;
         const ctrEl = document.getElementById('shadow-record-controls');
         if(ctrEl) ctrEl.innerHTML = shadowRecordControlsHtml(cur);
       }
@@ -8891,6 +9171,67 @@ function shadowPlayRecording(){
   const audio = document.getElementById('shadow-recording-audio');
   if(audio){ try{ audio.currentTime=0; audio.play(); }catch(e){} }
 }
+// Item 7: AI nghe CHÍNH bản ghi âm của người học (không cần âm thanh gốc video — không lấy được từ
+// iframe YouTube) và nhận xét cách nói: phát âm, ngữ điệu, nhịp điệu, và mức khớp với "styleHint" (phong
+// cách/cảm xúc mục tiêu) của đoạn AI đã gợi ý ở Bước 1, nếu người học có chọn 1 đoạn gợi ý.
+async function shadowAnalyzeRecording(){
+  const s = STATE.shadowSession; if(!s || !s.recordingBlob) return;
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Cần API key','Vào Cài đặt → Hội thoại AI để nhập Gemini API key trước.'); return; }
+  const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===s.vidRecId);
+  const seg = (rec && Array.isArray(rec.aiSegments) && s.activeSegIdx!=null) ? rec.aiSegments[s.activeSegIdx] : null;
+  const styleHint = seg && seg.styleHint ? seg.styleHint : 'giọng tự nhiên, rõ ràng, ngữ điệu lên xuống đúng kiểu người bản ngữ, không đọc đều đều';
+  s.aiFeedbackLoading = true;
+  const ctrEl0 = document.getElementById('shadow-record-controls');
+  if(ctrEl0) ctrEl0.innerHTML = shadowRecordControlsHtml(s);
+  try{
+    const arrayBuf = await s.recordingBlob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuf);
+    let binary=''; const chunkSize=0x8000;
+    for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
+    const base64Audio = btoa(binary);
+    const prompt = `Bạn là giáo viên tiếng Anh chấm bài luyện "shadowing" (nhại lại lời người bản ngữ gần như đồng thời) cho người Việt học tiếng Anh.
+Đây là bản ghi âm người học VỪA đọc nhại theo 1 đoạn video tiếng Anh (bạn KHÔNG có audio gốc của video, chỉ nghe bản ghi của người học). Phong cách/cảm xúc giọng nói CẦN đạt ở đoạn này: "${styleHint}".
+Hãy nghe kỹ bản ghi âm và đánh giá:
+1. Phát âm có rõ ràng, đúng không (chỉ ra lỗi cụ thể nếu nghe được, ví dụ nuốt âm cuối, sai trọng âm).
+2. Ngữ điệu, nhịp điệu, nối âm có tự nhiên như người bản ngữ hay bị đều đều/rời rạc.
+3. Mức độ khớp với PHONG CÁCH/CẢM XÚC mục tiêu nêu trên (tốc độ, cảm xúc, cách nhấn nhá).
+4. Độ trôi chảy chung — có ngập ngừng, vấp, ngắt quãng bất thường không.
+Đưa ra 3-5 nhận xét cụ thể, thực hành được, giọng văn khích lệ nhưng thẳng thắn. CHỈ nhận xét về CÁCH NÓI, không cần chép lại nguyên văn lời người học nói.
+Trả lời HOÀN TOÀN bằng tiếng Việt. Bắt buộc dòng CUỐI CÙNG đúng định dạng: ĐIỂM: <số từ 0 đến 100>`;
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[
+          {inlineData:{mimeType:(s.recordingBlob.type||'audio/webm'), data:base64Audio}},
+          {text:prompt}
+        ]}],
+        generationConfig:{temperature:0.3, maxOutputTokens:1024}
+      })
+    });
+    if(!res.ok){
+      let msg = 'HTTP '+res.status;
+      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(e){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    let txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
+    if(!txt) throw new Error('AI không trả về nội dung phân tích — thử ghi âm lại, đọc to và rõ hơn.');
+    let score = null;
+    const m = txt.match(/ĐIỂM\s*[:\-]?\s*(\d{1,3})/i);
+    if(m){ score = Math.max(0, Math.min(100, parseInt(m[1],10))); txt = txt.replace(m[0],'').trim(); }
+    s.aiFeedbackText = txt; s.aiFeedbackScore = score;
+    engGameAddScore(4, 'Luyện shadowing — AI nhận xét cách nói');
+    engGameMarkActivity();
+    saveSettings();
+  }catch(e){
+    console.error(e);
+    showToast('⚠️','Không phân tích được', geminiFriendlyError(e.message, 'bấm nhận xét lại'));
+  }finally{
+    s.aiFeedbackLoading = false;
+    const ctrEl = document.getElementById('shadow-record-controls');
+    if(ctrEl) ctrEl.innerHTML = shadowRecordControlsHtml(s);
+  }
+}
 function shadowCleanupMedia(){
   try{ if(window.__shadowRecorder && window.__shadowRecorder.state!=='inactive') window.__shadowRecorder.stop(); }catch(e){}
   try{ if(window.__shadowStream) window.__shadowStream.getTracks().forEach(t=>t.stop()); }catch(e){}
@@ -8907,7 +9248,7 @@ function startShadowingSession(id){
   const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===id);
   if(!rec) return;
   navForward();
-  STATE.shadowSession = {vidRecId:id, stage:'listen', loopStart:null, loopEnd:null, looping:false, recording:false, recordingUrl:null};
+  STATE.shadowSession = {vidRecId:id, stage:'listen', loopStart:null, loopEnd:null, looping:false, recording:false, recordingUrl:null, recordingBlob:null, activeSegIdx:null, aiFeedbackText:null, aiFeedbackScore:null, aiFeedbackLoading:false};
   renderContent(); window.scrollTo(0,0);
 }
 function shadowStageNext(){
@@ -8966,13 +9307,45 @@ function renderShadowingSession(item){
   const stepsHtml = stepLabels.map((n,i)=>`${i>0?'<div class="shadow-step-line ' + (i<=stageIdx?'done':'') + '"></div>':''}<div class="shadow-step ${i===stageIdx?'active':''} ${i<stageIdx?'done':''}">${n}</div>`).join('');
   const playerHtml = isYt ? `<div class="video-embed-wrap"><div id="${SHADOW_YT_HOLDER_ID}"></div></div>` : shadowExternalVideoHtml(rec);
 
+  // Item 7: thẻ gợi ý đoạn luyện shadowing do AI phân tích video đề xuất — CHỈ hiện mốc thời gian + mô tả
+  // ngắn PARAPHRASE (không phải nguyên văn lời thoại) + phong cách giọng nói cần bắt chước, để người học
+  // chọn nhanh 1 đoạn thay vì tự dò bằng tai. Chỉ áp dụng cho video YouTube (mới seek/loop được).
+  let aiSegHtml = '';
+  if(isYt){
+    if(STATE.shadowSegLoading){
+      aiSegHtml = `<div class="card" style="padding:16px; text-align:center; margin-top:12px;"><div style="font-size:12.5px; color:var(--gold);">🤖 AI đang phân tích video để gợi ý đoạn luyện...</div></div>`;
+    } else if(Array.isArray(rec.aiSegments) && rec.aiSegments.length){
+      const rows = rec.aiSegments.map((sg,i)=>{
+        const active = s.activeSegIdx===i;
+        const diffLabel = ['','Dễ','Vừa','Khó'][sg.difficulty]||'Vừa';
+        const diffColor = sg.difficulty>=3?'#ff8080':(sg.difficulty===2?'var(--gold)':'var(--teal)');
+        return `<div class="card" style="padding:12px 14px; margin-bottom:8px; border:1.5px solid ${active?'var(--gold)':'var(--border)'};" data-action="shadow-pick-ai-seg" data-idx="${i}">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+            <div style="font-size:12.5px; font-weight:700;">⏱ ${shadowFmtSec(sg.start)}–${shadowFmtSec(sg.end)}</div>
+            <div style="font-size:10.5px; font-weight:800; color:${diffColor};">${diffLabel}</div>
+          </div>
+          <div style="font-size:12px; color:var(--text); margin-bottom:4px;">${escapeHtml(sg.label)}</div>
+          <div style="font-size:11px; color:var(--dim); font-style:italic;">🎭 ${escapeHtml(sg.styleHint)}</div>
+          ${active?'<div style="font-size:10.5px; color:var(--gold); font-weight:700; margin-top:6px;">✓ Đang chọn đoạn này</div>':''}
+        </div>`;
+      }).join('');
+      aiSegHtml = `<div style="margin-top:12px;">
+        <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:8px;">🤖 AI gợi ý ${rec.aiSegments.length} đoạn nên luyện (bấm 1 đoạn để chọn, sẽ tự áp dụng ở Bước 2 &amp; 3)</div>
+        ${rows}
+        <div data-action="shadow-regen-ai-seg" style="text-align:center; font-size:11px; color:var(--dim); text-decoration:underline; cursor:pointer; margin-top:4px;">🔄 Tạo gợi ý khác</div>
+      </div>`;
+    } else {
+      aiSegHtml = `<button class="form-btn btn-listen" data-action="shadow-gen-ai-seg" style="width:100%; margin-top:12px;">🤖 AI gợi ý đoạn nên luyện</button>`;
+    }
+  }
   let stageBody = '';
   if(s.stage==='listen'){
     stageBody = `<div class="card" style="padding:16px;">
         <div style="font-size:13px; color:var(--dim); line-height:1.6; margin-bottom:12px;">🎧 <b style="color:var(--text)">Bước 1 — Nghe tổng quát:</b> Xem/nghe hết video (hoặc đoạn bạn định luyện) một lượt, KHÔNG nhại theo. Mục tiêu: nắm nội dung, nhịp điệu, ngữ điệu tổng thể trước khi bắt chước.</div>
         ${playerHtml}
         <button class="form-btn eng-quiz-nextbtn" data-action="shadow-stage-next" style="width:100%; margin-top:4px;">Đã nghe xong → Bước 2</button>
-      </div>`;
+      </div>
+      ${aiSegHtml}`;
   } else if(s.stage==='slow' || s.stage==='natural'){
     const isSlow = s.stage==='slow';
     stageBody = `<div class="card" style="padding:16px;">
@@ -9192,6 +9565,7 @@ function nextSpeakPractice(){
   if(s.recordingUrl){ try{ URL.revokeObjectURL(s.recordingUrl); }catch(e){} s.recordingUrl=null; }
   if(s.idx < s.order.length-1){
     s.idx++; s.showTranslate=false; s.result=null; s.recording=false; STATE.speakPlayback='idle';
+    s.paraOpen=null; s.paraVi=null; s.paraViLoaded=false; s.paraViLoading=false;
     renderContent();
   } else {
     finishSpeakBatchIfAny(s);
@@ -9385,6 +9759,78 @@ function speakHighlightTarget(text, matchMask){
     }
   }
   return out;
+}
+// ---- "Đoạn văn dài": tách đoạn văn tiếng Anh thành từng đoạn nhỏ (ngăn cách bởi dòng trống) để hiển
+// thị bản dịch ngay bên dưới từng đoạn (thay vì 1 nút dịch cho cả bài) — dễ theo dõi, bấm là thấy ngay. ----
+function longPassageParagraphs(text){
+  return (text||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+}
+// Chưa có API key hoặc gọi AI lỗi: chia tạm bản dịch gốc (1 khối) theo tỉ lệ độ dài từng đoạn tiếng Anh
+// — không hoàn hảo 100% nhưng vẫn xem được ngay, không cần chờ mạng.
+function longPassageViParagraphsFallback(paragraphs, fullVi){
+  if(paragraphs.length<=1) return [fullVi||''];
+  const totalLen = paragraphs.reduce((s,p)=>s+p.length,0) || 1;
+  const sentences = (fullVi||'').split(/(?<=[.!?…])\s+/).filter(Boolean);
+  if(!sentences.length) return paragraphs.map(()=>fullVi||'');
+  let sIdx=0;
+  return paragraphs.map((p,i)=>{
+    const isLast = i===paragraphs.length-1;
+    const share = isLast ? Math.max(0, sentences.length-sIdx) : Math.max(1, Math.round(sentences.length * (p.length/totalLen)));
+    const chunk = sentences.slice(sIdx, sIdx+share);
+    sIdx += chunk.length;
+    return chunk.join(' ') || fullVi || '';
+  });
+}
+// Lấy bản dịch tách đoạn — ưu tiên bản đã nhờ AI dịch tách đoạn chính xác lưu cache (chỉ gọi AI ĐÚNG 1
+// LẦN cho mỗi bài, dùng lại mãi mãi kể cả các lần luyện lại sau, không tốn thêm lượt gọi API mỗi lần mở
+// bài). Nếu chưa có API key hoặc gọi lỗi, dùng ngay bản chia tạm theo tỉ lệ để không phải chờ.
+async function ensureLongPassageViParagraphs(idx){
+  const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
+  const item = bank[idx]; if(!item) return [];
+  const paragraphs = longPassageParagraphs(item[0]);
+  if(paragraphs.length<=1) return [item[1]||''];
+  if(!SETTINGS.speakPractice) SETTINGS.speakPractice = {};
+  if(!SETTINGS.speakPractice.longParaVi) SETTINGS.speakPractice.longParaVi = {};
+  const cached = SETTINGS.speakPractice.longParaVi[idx];
+  if(Array.isArray(cached) && cached.length===paragraphs.length) return cached;
+  if(SETTINGS.geminiApiKey){
+    try{
+      const prompt = `Đây là 1 đoạn văn tiếng Anh luyện đọc, đã chia sẵn thành đúng ${paragraphs.length} đoạn. Hãy dịch CHÍNH XÁC, tự nhiên sang tiếng Việt từng đoạn một, giữ đúng thứ tự, không gộp không tách thêm đoạn nào. Trả lời DUY NHẤT 1 mảng JSON gồm đúng ${paragraphs.length} chuỗi (không thêm chữ nào khác, không dùng markdown code fence):\n\n` +
+        paragraphs.map((p,i)=>`Đoạn ${i+1}:\n"""${p}"""`).join('\n\n');
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:0.3, maxOutputTokens:2048, responseMimeType:'application/json'}})
+      });
+      if(res.ok){
+        const data = await res.json();
+        const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('');
+        let clean = (txt||'').trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+        const jStart = clean.indexOf('['); const jEnd = clean.lastIndexOf(']');
+        if(jStart!==-1 && jEnd!==-1 && jEnd>jStart) clean = clean.slice(jStart, jEnd+1);
+        const parsed = JSON.parse(clean);
+        if(Array.isArray(parsed) && parsed.length===paragraphs.length){
+          SETTINGS.speakPractice.longParaVi[idx] = parsed;
+          saveSettings(); pushToDrive();
+          return parsed;
+        }
+      }
+    }catch(e){ console.error('Dịch tách đoạn thất bại, dùng bản chia tạm:', e); }
+  }
+  return longPassageViParagraphsFallback(paragraphs, item[1]||'');
+}
+// Bật/tắt xem bản dịch của 1 đoạn cụ thể (không đụng đến các đoạn khác) — nếu đang loading thì bỏ qua.
+function speakToggleParaTranslate(pidx){
+  const s = STATE.speakSession; if(!s || s.level!=='long') return;
+  if(!s.paraOpen) s.paraOpen = {};
+  s.paraOpen[pidx] = !s.paraOpen[pidx];
+  if(s.paraOpen[pidx] && !s.paraViLoaded){
+    s.paraViLoading = true; renderSpeakPracticeUI();
+    ensureLongPassageViParagraphs(s.order[s.idx]).then(arr=>{
+      s.paraVi = arr; s.paraViLoaded = true; s.paraViLoading = false; renderSpeakPracticeUI();
+    });
+    return;
+  }
+  renderSpeakPracticeUI();
 }
 // ---- Bấm vào 1 từ trong câu: đọc to từ đó + tra nhanh nghĩa tiếng Việt ----
 function speakSingleWord(word){
@@ -10203,7 +10649,7 @@ function startLongPassage(idx){
 // dung/từ vựng/ngữ pháp của chính bài văn vừa đọc (không dùng ngân hàng câu hỏi cố định, vì mỗi bài có
 // nội dung khác nhau hoàn toàn) — chỉ soạn 1 LẦN cho mỗi bài rồi lưu lại (SETTINGS.speakPractice.
 // longQuizBank[idx]) để làm lại nhiều lần không tốn thêm lượt gọi API và câu hỏi nhất quán giữa các lần.
-async function startLongPassageQuiz(idx){
+async function startLongPassageQuiz(idx, forceNew){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
   const passage = bank[idx]; if(!passage) return;
   if(!SETTINGS.geminiApiKey){
@@ -10212,13 +10658,26 @@ async function startLongPassageQuiz(idx){
   }
   if(!SETTINGS.speakPractice) SETTINGS.speakPractice = {};
   if(!SETTINGS.speakPractice.longQuizBank) SETTINGS.speakPractice.longQuizBank = {};
-  let questions = SETTINGS.speakPractice.longQuizBank[idx];
-  navForward();
-  STATE.longQuizSession = {passageIdx:idx, questions:null, qidx:0, correct:0, answered:null, loading:!questions};
+  let questions = forceNew ? null : SETTINGS.speakPractice.longQuizBank[idx];
+  // showPassage giữ nguyên khi bấm "Đổi bộ câu hỏi khác" từ chính màn quiz (forceNew), nhưng luôn tắt
+  // khi mở bài ôn tập mới từ danh sách.
+  const keepShowPassage = forceNew && STATE.longQuizSession && STATE.longQuizSession.passageIdx===idx ? STATE.longQuizSession.showPassage : false;
+  if(!forceNew) navForward();
+  STATE.longQuizSession = {passageIdx:idx, questions:null, qidx:0, correct:0, answered:null, loading:!questions, showPassage:keepShowPassage};
   renderContent();
   window.scrollTo(0,0);
   if(questions){ STATE.longQuizSession.questions = questions; STATE.longQuizSession.loading=false; renderContent(); return; }
-  const prompt = `Dựa vào đoạn văn tiếng Anh sau, soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm (4 đáp án) bằng tiếng Anh để kiểm tra người học đã hiểu nội dung, từ vựng và ngữ pháp trong bài chưa. Trộn đều 3 dạng: hiểu nội dung (comprehension), nghĩa từ vựng xuất hiện trong bài (vocabulary), cấu trúc ngữ pháp dùng trong bài (grammar). Chỉ 1 đáp án đúng mỗi câu.
+  // Mỗi lần soạn câu hỏi, xáo nhẹ góc độ khai thác (đổi trọng tâm dạng câu hỏi + số ví dụ chi tiết cần hỏi)
+  // để 2 lần bấm "Đổi bộ câu hỏi khác" liên tiếp cho ra bộ câu hỏi KHÁC NHAU thật sự dù cùng 1 bài văn,
+  // thay vì AI trả lại gần như y hệt lần trước.
+  const angleSeed = Math.floor(Math.random()*4);
+  const angleHint = [
+    'Ưu tiên khai thác các CHI TIẾT CỤ THỂ, số liệu, tên riêng xuất hiện trong bài.',
+    'Ưu tiên hỏi về Ý CHÍNH, thông điệp, cảm xúc/thái độ của người viết trong bài.',
+    'Ưu tiên hỏi về TỪ VỰNG khó/hay và CỤM TỪ xuất hiện trong bài, kèm 1-2 câu về suy luận (inference) không nói thẳng trong bài.',
+    'Ưu tiên hỏi về CẤU TRÚC NGỮ PHÁP các câu dùng trong bài (thì, mệnh đề, so sánh...) và trình tự sự việc/logic bài viết.'
+  ][angleSeed];
+  const prompt = `Dựa vào đoạn văn tiếng Anh sau, soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm (4 đáp án) bằng tiếng Anh để kiểm tra người học đã hiểu nội dung, từ vựng và ngữ pháp trong bài chưa. Trộn đều 3 dạng: hiểu nội dung (comprehension), nghĩa từ vựng xuất hiện trong bài (vocabulary), cấu trúc ngữ pháp dùng trong bài (grammar). ${angleHint} Chỉ 1 đáp án đúng mỗi câu.${forceNew?' Đây là lần soạn LẠI bộ câu hỏi cho bài này — hãy tạo bộ câu hỏi khác hẳn cách hỏi thông thường, tránh trùng ý với 1 bộ câu hỏi cơ bản đã có trước đó.':''}
 ĐOẠN VĂN:
 """${passage[0]}"""
 Trả lời DUY NHẤT 1 mảng JSON hợp lệ, không thêm chữ nào khác, không dùng markdown code fence, đúng định dạng:
@@ -10333,6 +10792,15 @@ function longPassageQuizExit(){
 function renderLongPassageQuizUI(){
   const q = STATE.longQuizSession; if(!q){ renderContent(); return; }
   const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="long-passage-quiz-exit">${svgIcon('back')}</div><div class="title">📝 Bài ôn tập</div></div>`;
+  // Đính kèm đoạn văn gốc (thu gọn) để người học không phải nhớ lòng nội dung khi làm bài — bấm là xem
+  // lại ngay. Cũng cho phép "Đổi bộ câu hỏi khác" bất cứ lúc nào để luyện lại với câu hỏi mới, khác lần
+  // trước, khi muốn đọc/luyện lại cùng 1 bài nhiều lần.
+  const passageItem = ((SPEAKING_PRACTICE&&SPEAKING_PRACTICE.long)||[])[q.passageIdx];
+  const passageToolsHtml = (!q.loading && passageItem) ? `<div style="display:flex; gap:14px; justify-content:center; margin-bottom:12px; flex-wrap:wrap;">
+      <span data-action="long-passage-quiz-toggle-passage" style="font-size:11.5px; color:var(--teal); font-weight:700; cursor:pointer;">${q.showPassage?'🙈 Ẩn đoạn văn gốc':'📖 Xem lại đoạn văn gốc'}</span>
+      ${!q.loading ? `<span data-action="long-passage-quiz-regen" data-idx="${q.passageIdx}" style="font-size:11.5px; color:var(--gold); font-weight:700; cursor:pointer;">🔄 Đổi bộ câu hỏi khác</span>` : ''}
+    </div>
+    ${q.showPassage ? `<div class="card" style="padding:14px 16px; margin-bottom:12px; max-height:260px; overflow-y:auto;"><div style="font-size:12.5px; line-height:1.7; white-space:pre-line; color:var(--dim);">${escapeHtml(passageItem[0])}</div></div>` : ''}` : '';
   let body;
   if(q.loading){
     body = `<div class="card" style="padding:30px 16px; text-align:center;"><div style="font-size:30px; margin-bottom:8px;">🤖</div><div style="font-weight:700; color:var(--gold);">${q.waitMsg ? escapeHtml(q.waitMsg) : 'AI đang soạn câu hỏi theo đúng nội dung bài vừa đọc...'}</div></div>`;
@@ -10345,8 +10813,9 @@ function renderLongPassageQuizUI(){
       <div style="font-size:13px;color:var(--dim);margin-bottom:4px;">Kết quả bài ôn tập</div>
       <div class="score">${q.correct}/${q.questions.length}</div>
       <div style="font-size:13px;color:${passed?'var(--teal)':'#ff8080'};margin-top:4px; font-weight:700;">${passed?'✅ Đạt — bài tiếp theo đã mở khóa!':'❌ Chưa đạt — cần ≥'+LONG_QUIZ_PASS_COUNT+'/'+q.questions.length}</div>
-      <div style="display:flex;gap:10px;margin-top:18px;justify-content:center;">
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:center; flex-wrap:wrap;">
         ${!passed?`<button class="form-btn" data-action="long-passage-quiz-retry" data-idx="${q.passageIdx}">↺ Làm lại</button>`:''}
+        <button class="form-btn" data-action="long-passage-quiz-regen" data-idx="${q.passageIdx}">🔄 Đổi bộ câu hỏi khác</button>
         <button class="form-btn cancel" data-action="long-passage-quiz-exit">Thoát</button>
       </div>
     </div>`;
@@ -10378,7 +10847,12 @@ function renderLongPassageQuizUI(){
       ${q.answered!==null ? `<button class="form-btn eng-quiz-nextbtn" data-action="long-passage-quiz-next" style="width:100%; margin-top:8px;">${q.qidx<q.questions.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>` : ''}
     </div>`;
   }
-  document.getElementById('content').innerHTML = backRow + body;
+  document.getElementById('content').innerHTML = backRow + passageToolsHtml + body;
+}
+function longPassageQuizTogglePassage(){
+  const q = STATE.longQuizSession; if(!q) return;
+  q.showPassage = !q.showPassage;
+  renderLongPassageQuizUI();
 }
 function renderSpeakingPractice(item){
   if(STATE.longQuizSession){ renderLongPassageQuizUI(); return; }
@@ -10690,7 +11164,30 @@ function renderSpeakPracticeUI(){
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
   const recHint = `<div style="font-size:10.5px; color:var(--dim2); line-height:1.5; margin-top:6px; text-align:center;">${isLongPassage ? 'Bấm micro rồi đọc to, rõ cả bài — đoạn dài nên KHÔNG giới hạn thời gian, đọc xong bấm nút để chấm điểm.' : 'Bấm micro rồi đọc to, rõ cả đoạn — app sẽ tự dừng và chấm điểm khi hết giờ (không cần bấm lại).'} Cần cho phép quyền micro.${SETTINGS.cloudTtsApiKey ? ' Đang dùng Google Cloud Speech-to-Text (ổn định trên mọi thiết bị).' : ' Đang dùng nhận diện giọng nói có sẵn của trình duyệt — nếu điện thoại báo lỗi liên tục, hãy cấu hình Google Cloud API key ở nút giọng đọc phía trên để chuyển sang ghi âm ổn định hơn.'}</div>
     <div style="font-size:9px; color:var(--dim2); opacity:0.6; text-align:center; margin-top:4px;">${APP_VERSION}</div>`;
-  const translateHtml = (translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
+  // Đoạn văn dài có nhiều đoạn (ngăn cách dòng trống): hiển thị bản dịch NGAY DƯỚI từng đoạn tiếng Anh,
+  // bấm là thấy dịch của đúng đoạn đó — thay vì 1 nút dịch chung cho cả bài dài khó theo dõi.
+  const lpParagraphs = isLongPassage ? longPassageParagraphs(text) : [];
+  const lpMultiPara = isLongPassage && lpParagraphs.length>1;
+  let passageBodyHtml;
+  if(lpMultiPara){
+    const htmlParas = speakHighlightTarget(text, r?r.matchMask:null).split(/\n\s*\n/);
+    passageBodyHtml = htmlParas.map((ph,i)=>{
+      const open = !!(s.paraOpen && s.paraOpen[i]);
+      let viBlock = '';
+      if(open){
+        const viTxt = s.paraViLoading ? '⏳ Đang dịch…' : escapeHtml((s.paraVi&&s.paraVi[i])||'');
+        viBlock = `<div class="eng-quiz-translate" style="margin-top:6px;">🇻🇳 ${viTxt}</div>`;
+      }
+      return `<div class="lp-para" style="margin-bottom:16px;">
+        <div style="white-space:pre-line;">${ph}</div>
+        <div class="lp-para-translate-btn" data-action="speak-para-translate-toggle" data-pidx="${i}" style="display:inline-block; margin-top:6px; font-size:11px; color:var(--teal); font-weight:700; cursor:pointer;">${open?'🙈 Ẩn dịch đoạn này':'🇻🇳 Dịch đoạn này'}</div>
+        ${viBlock}
+      </div>`;
+    }).join('');
+  } else {
+    passageBodyHtml = speakHighlightTarget(text, r?r.matchMask:null);
+  }
+  const translateHtml = (!lpMultiPara && translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
   const heardHtml = r ? `<div class="speak-heard-line" style="font-size:11.5px;color:var(--dim);margin:-4px 0 10px;line-height:1.5;">👂 <b>Máy nghe được:</b> “${escapeHtml(r.heard||'(không rõ)')}”</div>` : '';
   let resultHtml='';
@@ -10716,7 +11213,7 @@ function renderSpeakPracticeUI(){
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
     <div class="card eng-quiz-card">
-      <div class="eng-quiz-q" style="${isIpaPractice ? 'text-align:center; white-space:pre-line; font-size:34px; font-weight:800; padding:22px 10px; letter-spacing:.3px;' : 'text-align:left; white-space:pre-line;'}">${speakHighlightTarget(text, r?r.matchMask:null)}</div>
+      <div class="eng-quiz-q" style="${isIpaPractice ? 'text-align:center; white-space:pre-line; font-size:34px; font-weight:800; padding:22px 10px; letter-spacing:.3px;' : (lpMultiPara ? 'text-align:left;' : 'text-align:left; white-space:pre-line;')}">${passageBodyHtml}</div>
       <div id="speak-word-meaning" style="${isIpaPractice?'text-align:center;':''}"></div>
       ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được &nbsp;·&nbsp; chạm 1 từ để nghe phát âm + nghĩa</div>' : '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">Chạm vào 1 từ bất kỳ để nghe phát âm + xem nghĩa tiếng Việt</div>'}
       ${heardHtml}
@@ -10733,7 +11230,7 @@ function renderSpeakPracticeUI(){
       ${recHint}
       ${tipHtml}
       <div class="eng-quiz-actions" style="margin-top:10px;">
-        ${translateVi ? `<button class="form-btn btn-translate" data-action="speak-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
+        ${(!lpMultiPara && translateVi) ? `<button class="form-btn btn-translate" data-action="speak-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch nghĩa'}</button>` : ''}
       </div>
       ${translateHtml}
       ${resultHtml}
@@ -11018,26 +11515,37 @@ function ipaDeepWordList(){
   }
   return picked;
 }
+// Item 5: trước đây mỗi phiên bắt 1 lần ghi âm LIÊN TỤC cả 10 từ (đọc chậm cả 10 rồi đọc tự nhiên cả
+// 10) — dồn cục, khó biết chính xác từ nào sai vì AI phải tự khớp giọng đọc với đúng vị trí từ trong 1
+// bản ghi dài. Đổi mới: mỗi VÒNG chỉ đọc + ghi âm ĐÚNG 1 TỪ (đọc chậm rồi đọc tự nhiên NGAY từ đó), AI
+// phân tích cực sát riêng từ đó rồi mới sang từ kế — vẫn luyện đủ 1 bộ (mặc định 10 từ) trong 1 phiên
+// nhưng theo kiểu "chuyên sâu từng từ, phản hồi ngay" (interleaved, immediate feedback) — theo khoa học
+// học tập, phản hồi ngay sau từng đơn vị nhỏ giúp ghi nhớ và sửa lỗi tốt hơn nhiều so với phản hồi dồn ở
+// cuối 1 khối lớn. Người học cũng có thể luyện lại đúng 1 từ yếu mà không phải làm lại cả bộ.
+function ipaDeepCurrentWord(s){ s = s || STATE.ipaDeepSession; return s && s.queue ? s.queue[s.qIdx] : null; }
 function openIpaDeepAnalysis(){
   navForward();
   ipaDeepRevokeRecordingUrl();
-  STATE.ipaDeepSession = {phase:'intro', words: ipaDeepWordList()};
+  STATE.ipaDeepSession = {phase:'intro', queue: ipaDeepWordList(), qIdx:0, results:[]};
   renderContent();
   window.scrollTo(0,0);
 }
-// Cho nghe phát âm chuẩn của cả danh sách từ TRƯỚC khi tự đọc (nguyên lý "nghe input chuẩn trước khi tự
-// tạo output") — item 2: "tối ưu cách đọc giúp học hiệu quả hơn". Phát tuần tự, dừng ngay nếu người dùng
-// đã rời màn hình/đóng phiên (kiểm tra lại STATE.ipaDeepSession sau mỗi từ vì await có thể mất vài trăm ms).
+// Luyện tiếp bộ 10 từ MỚI (khác lần trước nhờ jitter ngẫu nhiên trong ipaDeepWordList) sau khi vừa xong 1 bộ.
+function ipaDeepRestartSet(){
+  ipaDeepCleanupMedia();
+  ipaDeepRevokeRecordingUrl();
+  STATE.ipaDeepSession = {phase:'intro', queue: ipaDeepWordList(), qIdx:0, results:[]};
+  renderContent();
+  window.scrollTo(0,0);
+}
+// Cho nghe phát âm chuẩn của từ hiện tại TRƯỚC khi tự đọc (nguyên lý "nghe input chuẩn trước khi tự tạo
+// output") — chỉ 1 từ mỗi lần nên không cần phát tuần tự nhiều từ như trước nữa.
 let ipaDeepPlayToken = 0;
 async function ipaDeepPlayList(){
-  const s = STATE.ipaDeepSession; if(!s || !s.words || !s.words.length) return;
+  const s = STATE.ipaDeepSession; const w = ipaDeepCurrentWord(s); if(!s || !w) return;
   const myToken = ++ipaDeepPlayToken;
   s.playingList = true; renderContent();
-  for(const w of s.words){
-    if(ipaDeepPlayToken!==myToken || !STATE.ipaDeepSession) return;
-    try{ await speakEnglishRobust(w, {rate:0.85}); }catch(e){}
-    await new Promise(r=>setTimeout(r, 260));
-  }
+  try{ await speakEnglishRobust(w, {rate:0.85}); }catch(e){}
   if(ipaDeepPlayToken===myToken && STATE.ipaDeepSession){ STATE.ipaDeepSession.playingList = false; renderContent(); }
 }
 function ipaDeepStopPlayList(){ ipaDeepPlayToken++; const s=STATE.ipaDeepSession; if(s) s.playingList=false; try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
@@ -11060,11 +11568,41 @@ function closeIpaDeepAnalysis(){
   renderContent();
   navBack();
 }
+// Luyện lại ĐÚNG 1 từ hiện tại (không phải làm lại cả bộ) — giữ nguyên queue/qIdx/results đã có.
 function ipaDeepRetry(){
   ipaDeepCleanupMedia();
   ipaDeepRevokeRecordingUrl();
   const s = STATE.ipaDeepSession; if(!s) return;
-  STATE.ipaDeepSession = {phase:'intro', words: s.words && s.words.length ? s.words : ipaDeepWordList()};
+  const queue = (s.queue && s.queue.length) ? s.queue : ipaDeepWordList();
+  STATE.ipaDeepSession = {phase:'intro', queue, qIdx: s.qIdx||0, results: s.results||[]};
+  renderContent();
+}
+// Hoàn tất từ hiện tại → chuyển sang từ kế tiếp trong bộ, hoặc kết thúc phiên nếu đã hết.
+function ipaDeepNextWord(){
+  ipaDeepCleanupMedia();
+  ipaDeepRevokeRecordingUrl();
+  const s = STATE.ipaDeepSession; if(!s) return;
+  if(s.qIdx < s.queue.length-1){
+    STATE.ipaDeepSession = {phase:'intro', queue:s.queue, qIdx:s.qIdx+1, results:s.results||[]};
+    renderContent();
+    window.scrollTo(0,0);
+  } else {
+    ipaDeepFinishSession();
+  }
+}
+// Kết thúc cả phiên (đã luyện hết bộ từ) — cộng Điểm học tập DỰA TRÊN kết quả tổng hợp của cả bộ, thay
+// vì cộng lẻ theo từng từ (tránh cộng dồn quá nhiều điểm chỉ vì bây giờ chia nhỏ theo từng vòng).
+function ipaDeepFinishSession(){
+  const s = STATE.ipaDeepSession; if(!s) return;
+  const results = (s.results||[]).filter(Boolean);
+  const avg = results.length ? Math.round(results.reduce((sum,r)=>sum+(r.score||0),0)/results.length) : 0;
+  const passedCount = results.filter(r=>r.passed).length;
+  const allPassed = results.length>0 && passedCount===results.length;
+  engGameAddScore(allPassed?8:5, `Phân tích chuyên sâu AI — Luyện IPA (${passedCount}/${results.length} từ đạt, TB ${avg}đ)`);
+  engGameMarkActivity();
+  saveSettings();
+  s.phase = 'sessionDone';
+  s.avgScore = avg; s.passedCount = passedCount;
   renderContent();
 }
 // Nghe lại chính bản ghi âm vừa đọc (item 2: "thêm phần nghe lại âm đã đọc trước đó") — giúp người học
@@ -11101,13 +11639,11 @@ async function startIpaDeepRecording(){
     };
     window.__ipaDeepRecorder = rec;
     rec.start();
-    // item 3: thời lượng từng giai đoạn giờ tính theo SỐ TỪ thực tế thay vì cố định 30s/30s — danh sách
-    // dài hơn cần nhiều thời gian hơn. ĐÃ ĐỔI THỨ TỰ (xem ghi chú ở đầu khối "Phân tích chuyên sâu"):
-    // Giai đoạn 1 giờ là đọc CHẬM, ngắt 2-3s giữa các từ (~4s/từ) để xây nền chính xác trước; Giai đoạn 2
-    // là đọc lại TỰ NHIÊN, nối tiếp (~2.2s/từ) để kiểm tra độ chính xác có giữ được khi tăng tốc không.
-    const nWords = (s.words||[]).length || 10;
-    s.phase1Sec = Math.max(20, Math.round(nWords*4));
-    s.phase2Sec = Math.max(15, Math.round(nWords*2.2));
+    // Item 5: giờ mỗi vòng chỉ ghi âm ĐÚNG 1 TỪ (không phải cả bộ 10 từ) nên thời lượng rút ngắn nhiều —
+    // Giai đoạn 1 đọc CHẬM 1 từ (~5s đủ để tách rõ từng âm), Giai đoạn 2 đọc lại TỰ NHIÊN 1 từ (~3s).
+    // Vòng lặp nhanh hơn hẳn (8s/từ thay vì phải đọc liền một hơi cả bộ) giúp tập trung sâu vào từng từ.
+    s.phase1Sec = 5;
+    s.phase2Sec = 3;
     s.phase='recording'; s.subPhase=1; s.secLeft = s.phase1Sec + s.phase2Sec;
     renderContent();
     window.__ipaDeepTimer = setInterval(()=>{
@@ -11149,20 +11685,17 @@ async function analyzeIpaDeepRecording(blob){
     let binary=''; const chunkSize=0x8000;
     for(let i=0;i<bytes.length;i+=chunkSize){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunkSize)); }
     const base64Audio = btoa(binary);
-    const wordListText = (s.words||[]).map((w,i)=>(i+1)+'. '+w).join(', ');
-    const p1 = s.phase1Sec||30, p2 = s.phase2Sec||30;
-    const prompt = `Bạn là giáo viên phát âm tiếng Anh (IPA) cho người Việt học tiếng Anh. Người học vừa ghi âm đọc danh sách từ sau: ${wordListText}.
-Cấu trúc bản ghi (đã đổi thứ tự theo nguyên lý luyện kỹ năng "chậm-chuẩn trước, nhanh-tự nhiên sau"): ${p1} giây ĐẦU đọc CHẬM, ngắt nghỉ khoảng 2-3 giây giữa mỗi từ, tách rõ từng âm tiết/âm IPA của mỗi từ (xây nền chính xác); ${p2} giây SAU đọc lại nối tiếp cả danh sách với tốc độ TỰ NHIÊN (kiểm tra xem độ chính xác có giữ được khi tăng tốc hay không).
-Hãy nghe kỹ file âm thanh và phân tích:
-1. Với TỪNG từ trong danh sách: người học phát âm đúng hay sai (nêu rõ âm IPA nào bị phát âm sai/không rõ, ví dụ nhầm /θ/ thành /s/, nuốt âm cuối, sai trọng âm...).
-2. So sánh đoạn đọc CHẬM (đầu) và đoạn đọc TỰ NHIÊN (sau) — độ chính xác đạt được lúc đọc chậm có GIỮ ĐƯỢC không khi chuyển sang tốc độ tự nhiên, hay bị mất đi (đây là thước đo quan trọng nhất cho biết đã thực sự "thuộc" âm hay chưa).
-3. Tổng kết 3-5 LỖI PHÁT ÂM chung/lặp lại nhiều nhất cần khắc phục ưu tiên.
-4. Đưa ra LỜI KHUYÊN cụ thể, thực hành được (ví dụ vị trí lưỡi/môi/luồng hơi) cho từng lỗi.
-5. CHẤM ĐIỂM tổng thể trên thang 0-100 dựa trên: độ chính xác âm IPA từng từ (40%), độ rõ trọng âm/nối âm (20%), mức độ GIỮ ĐƯỢC độ chính xác khi chuyển từ đọc chậm sang đọc tự nhiên (20%), độ tự nhiên/lưu loát chung (20%). Chấm nghiêm túc, KHÔNG chấm cao nếu phát âm còn nhiều lỗi rõ ràng — điểm 70+ nghĩa là đạt yêu cầu để coi là "vượt qua" bài luyện này.
-Trả lời HOÀN TOÀN bằng tiếng Việt, giọng văn khích lệ nhưng thẳng thắn, dùng tiêu đề rõ ràng cho từng phần (không dùng markdown **, chỉ dùng xuống dòng và số thứ tự đơn giản). Nếu không nghe rõ hoặc file gần như im lặng, hãy nói rõ điều đó thay vì bịa nhận xét và cho điểm 0.
-Bắt buộc có 2 dòng CUỐI CÙNG đúng định dạng sau (để hệ thống tự đọc, không thêm chữ nào khác vào 2 dòng này):
-ĐIỂM_TỔNG: <số từ 0 đến 100>
-TỪ_CẦN_LUYỆN: <liệt kê các từ trong danh sách phát âm còn SAI/CHƯA RÕ, cách nhau bởi dấu phẩy — nếu KHÔNG còn từ nào sai thì viết "không có">`;
+    const word = ipaDeepCurrentWord(s) || '';
+    const p1 = s.phase1Sec||5, p2 = s.phase2Sec||3;
+    const prompt = `Bạn là giáo viên phát âm tiếng Anh (IPA) cho người Việt học tiếng Anh. Người học vừa ghi âm đọc ĐÚNG 1 TỪ "${word}" hai lượt liên tiếp: ${p1} giây ĐẦU đọc thật CHẬM, tách rõ từng âm tiết/âm IPA (xây nền chính xác); ${p2} giây SAU đọc lại với tốc độ TỰ NHIÊN (kiểm tra độ chính xác có giữ được khi tăng tốc hay không).
+Hãy nghe kỹ file âm thanh và phân tích riêng cho từ "${word}":
+1. Phát âm đúng hay sai — nêu rõ âm IPA nào bị phát âm sai/không rõ (ví dụ nhầm /θ/ thành /s/, nuốt âm cuối, sai trọng âm...), nếu đúng thì khen cụ thể điểm làm tốt.
+2. So sánh lượt đọc CHẬM và lượt đọc TỰ NHIÊN — độ chính xác có GIỮ ĐƯỢC không khi chuyển sang tốc độ tự nhiên.
+3. LỜI KHUYÊN cụ thể, thực hành được (vị trí lưỡi/môi/luồng hơi) nếu còn lỗi.
+4. CHẤM ĐIỂM trên thang 0-100 dựa trên: độ chính xác âm IPA (50%), trọng âm/nối âm (20%), mức GIỮ ĐƯỢC độ chính xác khi đọc tự nhiên (20%), độ tự nhiên/lưu loát (10%). Chấm nghiêm túc, điểm 70+ nghĩa là đạt.
+Trả lời HOÀN TOÀN bằng tiếng Việt, ngắn gọn (3-6 câu), giọng văn khích lệ nhưng thẳng thắn, không dùng markdown **. Nếu không nghe rõ hoặc file gần như im lặng, hãy nói rõ điều đó thay vì bịa nhận xét và cho điểm 0.
+Bắt buộc dòng CUỐI CÙNG đúng định dạng sau (để hệ thống tự đọc, không thêm chữ nào khác vào dòng này):
+ĐIỂM: <số từ 0 đến 100>`;
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -11181,28 +11714,19 @@ TỪ_CẦN_LUYỆN: <liệt kê các từ trong danh sách phát âm còn SAI/CH
     const data = await res.json();
     let txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
     if(!txt) throw new Error('AI không trả về nội dung phân tích — thử ghi âm lại, đọc to và rõ hơn.');
-    // Tách điểm số + danh sách từ cần luyện ở 2 dòng cuối ra khỏi phần nhận xét hiển thị, để hiện riêng
-    // thành huy hiệu điểm + đạt/chưa đạt + các chip từ có thể chạm để nghe lại phát âm chuẩn (item 3:
-    // yêu cầu giống Luyện nói — chỉ đích danh CÁI GÌ cần luyện lại, không chỉ chấm điểm chung chung).
+    // Tách điểm số ở dòng cuối ra khỏi phần nhận xét hiển thị, để hiện riêng thành huy hiệu điểm + đạt/chưa
+    // đạt — giờ chỉ phân tích 1 từ/lần nên không cần danh sách "từ cần luyện" nhiều từ như bản cũ nữa.
     let score = null;
-    const scoreMatch = txt.match(/ĐIỂM[_\s]?TỔNG\s*[:\-]?\s*(\d{1,3})/i);
+    const scoreMatch = txt.match(/ĐIỂM\s*[:\-]?\s*(\d{1,3})/i);
     if(scoreMatch){ score = Math.max(0, Math.min(100, parseInt(scoreMatch[1],10))); txt = txt.replace(scoreMatch[0], '').trim(); }
-    let wordsToFix = [];
-    const wtfMatch = txt.match(/TỪ[_\s]?CẦN[_\s]?LUYỆN\s*[:\-]?\s*(.+)/i);
-    if(wtfMatch){
-      const raw = wtfMatch[1].trim();
-      txt = txt.replace(wtfMatch[0], '').trim();
-      if(!/không có|none|khong co/i.test(raw)){
-        wordsToFix = raw.split(/[,;]/).map(w=>w.trim()).filter(Boolean)
-          .map(w=>(s.words||[]).find(orig=>orig.toLowerCase()===w.toLowerCase()) || w) // khớp lại đúng chữ gốc trong danh sách nếu có
-          .slice(0, 10);
-      }
-    }
-    s.phase='done'; s.resultText = txt; s.score = score; s.wordsToFix = wordsToFix;
-    const passed = score!==null && score>=IPA_DEEP_PASS_SCORE && wordsToFix.length===0;
-    // Ghi nhận 1 hoạt động luyện IPA vào hệ Điểm học tập chung, khuyến khích luyện đều đặn; thưởng thêm nếu đạt chuẩn.
-    engGameAddScore(passed?8:5, passed?'Phân tích chuyên sâu AI — Luyện IPA (đạt chuẩn phát âm)':'Phân tích chuyên sâu AI — Luyện IPA (ghi âm 1 phút)');
-    engGameMarkActivity();
+    s.phase='done'; s.resultText = txt; s.score = score;
+    const passed = score!==null && score>=IPA_DEEP_PASS_SCORE;
+    // Không cộng Điểm học tập ở đây nữa — dồn lại cộng 1 LẦN khi hoàn tất cả bộ (ipaDeepFinishSession),
+    // tránh cộng dồn quá nhiều điểm chỉ vì giờ chia nhỏ theo từng từ thay vì cả bộ như trước. Ghi vào
+    // ĐÚNG vị trí qIdx (không push thêm) để nếu người dùng bấm "Ghi âm lại" cho cùng 1 từ, kết quả MỚI
+    // sẽ thay thế kết quả cũ thay vì cộng dồn thành 2 lần tính cho cùng 1 từ.
+    s.results = s.results || [];
+    s.results[s.qIdx] = {word: ipaDeepCurrentWord(s), score, passed};
     if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
     if(score!==null){
       SETTINGS.speakPracticeLog.push({date:todayKey(), level:'ipa', overall:score});
@@ -11219,56 +11743,57 @@ TỪ_CẦN_LUYỆN: <liệt kê các từ trong danh sách phát âm còn SAI/CH
 function renderIpaDeepAnalysis(item){
   const s = STATE.ipaDeepSession; if(!s){ renderContent(); return; }
   const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="ipa-deep-close">${svgIcon('back')}</div><div class="title">🔬 Phân tích chuyên sâu AI</div></div>`;
-  const wordChips = (s.words||[]).map((w,i)=>`<span class="ipa-deep-word-chip">${i+1}. ${escapeHtml(w)}</span>`).join('');
+  const total = (s.queue||[]).length || 1;
+  const word = ipaDeepCurrentWord(s) || '';
+  // Item 5: mỗi vòng giờ chỉ tập trung ĐÚNG 1 TỪ — thanh tiến trình "Từ N/10" thay cho danh sách 10 từ
+  // dồn cục như trước, giúp người học thấy rõ mình đang ở đâu trong cả bộ và có phản hồi ngay từng từ.
+  const progressHtml = (s.phase!=='sessionDone') ? `<div class="eng-quiz-progress-wrap">
+      <div class="eng-quiz-progress-top">
+        <span class="eng-quiz-progress-badge count">Từ ${s.qIdx+1}/${total}</span>
+      </div>
+      <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${Math.round((s.qIdx/total)*100)}%;"></div></div>
+    </div>` : '';
   let body;
   if(s.phase==='intro'){
-    body = `<div class="card" style="padding:18px; text-align:center;">
-      <div style="font-size:34px; margin-bottom:8px;">🔬</div>
-      <div style="font-weight:800; font-size:15px; margin-bottom:8px;">Ghi âm 1 phút — phân tích chi tiết</div>
-      <div style="font-size:12.5px; color:var(--dim); line-height:1.7; text-align:left;">
-        <b style="color:var(--text);">Bước 0 — Nghe mẫu trước:</b> bấm "🔊 Nghe mẫu cả danh sách" bên dưới để nghe phát âm chuẩn TRƯỚC khi tự đọc — tai quen với âm đúng sẽ giúp bạn đọc chính xác hơn, tránh lặp lại lỗi cũ mà không biết.<br>
-        <b style="color:var(--text);">Giai đoạn 1 — Đọc CHẬM trước:</b> đọc nối tiếp cả danh sách thật CHẬM, ngắt nghỉ 2-3 giây giữa mỗi từ, tách rõ từng âm tiết — xây nền phát âm chính xác trước khi tăng tốc.<br>
-        <b style="color:var(--text);">Giai đoạn 2</b> (app tự báo khi chuyển): đọc lại nối tiếp cả danh sách với tốc độ TỰ NHIÊN — kiểm tra xem độ chính xác vừa luyện có GIỮ ĐƯỢC khi đọc nhanh hơn không.<br>
-        Ghi âm xong, AI sẽ nghe trực tiếp và phân tích kỹ từng từ, chỉ ra chính xác âm IPA nào bạn đang phát âm sai/chưa rõ.<br>
-        <b style="color:var(--text);">Chuẩn để ĐẠT (giống Luyện nói):</b> AI chấm điểm 0-100đ (độ chính xác âm IPA, trọng âm/nối âm, mức giữ được độ chính xác khi tăng tốc, độ tự nhiên) — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> VÀ không còn từ nào bị AI liệt vào danh sách "cần luyện lại" thì mới coi là đạt; chưa đạt thì luyện lại đúng các từ AI chỉ ra rồi ghi âm lại.
+    body = `<div class="card" style="padding:22px; text-align:center;">
+      <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em; margin-bottom:6px;">TỪ ĐANG LUYỆN</div>
+      <div style="font-size:38px; font-weight:800; color:var(--text); letter-spacing:.3px;">${escapeHtml(word)}</div>
+    </div>
+    <div class="card" style="padding:16px; text-align:left;">
+      <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
+        <b style="color:var(--text);">Bước 0 — Nghe mẫu trước:</b> bấm "🔊 Nghe mẫu" để nghe phát âm chuẩn TRƯỚC khi tự đọc.<br>
+        <b style="color:var(--text);">Giai đoạn 1 (${s.phase1Sec||5}s) — Đọc CHẬM:</b> đọc từ này thật chậm, tách rõ từng âm tiết — xây nền chính xác.<br>
+        <b style="color:var(--text);">Giai đoạn 2 (${s.phase2Sec||3}s)</b> (app tự báo khi chuyển): đọc lại từ này với tốc độ TỰ NHIÊN — kiểm tra độ chính xác có GIỮ ĐƯỢC không.<br>
+        Ghi âm xong, AI phân tích ngay riêng từ này rồi bạn chuyển sang từ tiếp theo.<br>
+        <b style="color:var(--text);">Chuẩn ĐẠT:</b> AI chấm 0-100đ — cần <b style="color:var(--teal);">≥ ${IPA_DEEP_PASS_SCORE}đ</b> mới coi là đạt từ này; chưa đạt thì bấm "Ghi âm lại" luyện tiếp đúng từ đó.
       </div>
     </div>
-    <div class="card" style="padding:14px 16px;">
-      <div style="font-size:12px; font-weight:800; color:var(--dim); margin-bottom:8px;">📋 Danh sách từ cần đọc</div>
-      <div class="ipa-deep-word-list">${wordChips}</div>
-    </div>
-    <button class="form-btn btn-listen" data-action="${s.playingList?'ipa-deep-stop-list':'ipa-deep-play-list'}" style="width:100%; margin-top:12px;">${s.playingList?'⏹️ Dừng nghe mẫu':'🔊 Nghe mẫu cả danh sách'}</button>
+    <button class="form-btn btn-listen" data-action="${s.playingList?'ipa-deep-stop-list':'ipa-deep-play-list'}" style="width:100%; margin-top:12px;">${s.playingList?'⏹️ Dừng':'🔊 Nghe mẫu'}</button>
     <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:10px;">🎙️ Bắt đầu ghi âm</button>`;
   } else if(s.phase==='recording'){
     const phase1 = s.subPhase===1;
     body = `<div class="card" style="padding:22px; text-align:center;">
-      <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--gold)':'var(--teal)'}; margin-bottom:6px;">${phase1?'🐢 GIAI ĐOẠN 1 — Đọc CHẬM, tách rõ từng âm':'🗣️ GIAI ĐOẠN 2 — Đọc liên tục, tự nhiên'}</div>
+      <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em; margin-bottom:4px;">TỪ ĐANG LUYỆN</div>
+      <div style="font-size:30px; font-weight:800; color:var(--text); margin-bottom:10px;">${escapeHtml(word)}</div>
+      <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--gold)':'var(--teal)'}; margin-bottom:6px;">${phase1?'🐢 GIAI ĐOẠN 1 — Đọc CHẬM, tách rõ từng âm':'🗣️ GIAI ĐOẠN 2 — Đọc TỰ NHIÊN'}</div>
       <div style="font-size:44px; font-weight:800; font-family:var(--mono); color:var(--text);"><span id="ipa-deep-countdown-num">${s.secLeft}</span>s</div>
-      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc lại từ đầu, thật chậm, ngắt nghỉ 2-3 giây giữa mỗi từ':'Đọc hết danh sách từ, không cần dừng giữa các từ, giữ đúng như lúc đọc chậm'}</div>
-    </div>
-    <div class="card" style="padding:14px 16px;">
-      <div class="ipa-deep-word-list">${wordChips}</div>
+      <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc thật chậm, tách rõ từng âm tiết của từ này':'Đọc lại đúng từ này với tốc độ tự nhiên'}</div>
     </div>
     <button class="form-btn speak-rec-btn recording" data-action="ipa-deep-record-stop" style="width:100%; margin-top:12px;"><span class="rec-dot"></span> Dừng sớm &amp; phân tích ngay</button>`;
   } else if(s.phase==='analyzing'){
     body = `<div class="card" style="padding:30px 16px; text-align:center;">
       <div style="font-size:34px; margin-bottom:10px;">🤖</div>
-      <div style="font-weight:700; color:var(--gold);">AI đang nghe và phân tích bản ghi âm...</div>
-      <div style="font-size:11.5px; color:var(--dim); margin-top:6px;">Việc này có thể mất khoảng 10-30 giây, đừng rời màn hình.</div>
+      <div style="font-weight:700; color:var(--gold);">AI đang nghe và phân tích từ "${escapeHtml(word)}"...</div>
+      <div style="font-size:11.5px; color:var(--dim); margin-top:6px;">Chỉ 1 từ nên thường nhanh hơn nhiều so với phân tích cả bộ — đừng rời màn hình.</div>
     </div>`;
   } else if(s.phase==='done'){
     const hasScore = typeof s.score==='number';
-    const wordsToFix = s.wordsToFix || [];
-    const passed = hasScore && s.score>=IPA_DEEP_PASS_SCORE && wordsToFix.length===0;
+    const passed = hasScore && s.score>=IPA_DEEP_PASS_SCORE;
+    const isLastWord = s.qIdx>=total-1;
     const scoreCard = hasScore ? `<div class="card" style="padding:18px; text-align:center; border:1.5px solid ${passed?'var(--teal)':'#ff8080'};">
-      <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em;">ĐIỂM PHÁT ÂM</div>
+      <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em;">ĐIỂM PHÁT ÂM "${escapeHtml(word).toUpperCase()}"</div>
       <div style="font-size:40px; font-weight:800; font-family:var(--mono); color:${passed?'var(--teal)':'#ff8080'};">${s.score}<span style="font-size:16px; color:var(--dim);">/100</span></div>
-      <div style="font-size:12.5px; font-weight:700; margin-top:4px; color:${passed?'var(--teal)':'#ff8080'};">${passed?'✅ ĐẠT — vượt qua bài luyện':'❌ CHƯA ĐẠT — cần ≥ '+IPA_DEEP_PASS_SCORE+'đ và hết từ cần luyện lại'}</div>
-      ${passed?'':`<div style="font-size:11px; color:var(--dim); margin-top:6px;">Đọc kỹ nhận xét bên dưới, chạm vào từng từ ở mục "Từ cần luyện" để nghe phát âm chuẩn, luyện lại rồi ghi âm lại.</div>`}
-    </div>` : '';
-    const wordsToFixCard = wordsToFix.length ? `<div class="card" style="padding:14px 16px;">
-      <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">🔤 Từ cần luyện phát âm riêng (chạm để nghe):</div>
-      <div style="display:flex; flex-wrap:wrap; gap:8px;">${wordsToFix.map((w,i)=>`<button class="form-btn btn-listen" data-action="ipa-deep-word-click" data-idx="${i}" style="width:auto; padding:8px 14px; border:1.5px solid var(--gold); color:var(--gold); background:transparent;">🔊 ${escapeHtml(w)}</button>`).join('')}</div>
+      <div style="font-size:12.5px; font-weight:700; margin-top:4px; color:${passed?'var(--teal)':'#ff8080'};">${passed?'✅ ĐẠT':'❌ CHƯA ĐẠT — cần ≥ '+IPA_DEEP_PASS_SCORE+'đ'}</div>
     </div>` : '';
     // item 2: "thêm phần nghe lại âm đã đọc trước đó" — cho nghe lại chính bản ghi âm vừa đọc để tự so
     // sánh với nhận xét của AI, không chỉ đọc chữ suông.
@@ -11277,13 +11802,29 @@ function renderIpaDeepAnalysis(item){
       <audio id="ipa-deep-playback-audio" src="${escapeHtml(s.recordingUrl)}" style="display:none;"></audio>
       <button class="form-btn btn-listen" data-action="ipa-deep-play-recording" style="width:100%;">▶️ Phát lại bản ghi âm vừa đọc</button>
     </div>` : '';
-    body = `${scoreCard}${playbackCard}${wordsToFixCard}<div class="card" style="padding:16px;">
+    body = `${scoreCard}${playbackCard}<div class="card" style="padding:16px;">
       <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">📋 Nhận xét chi tiết từ AI</div>
       <div style="font-size:12.5px; color:var(--text); line-height:1.75; white-space:pre-line;">${escapeHtml(s.resultText||'')}</div>
     </div>
     <div style="display:flex; gap:10px; margin-top:14px;">
-      <button class="form-btn cancel" data-action="ipa-deep-retry" style="flex:1;">🔄 ${passed?'Luyện từ khác':'Ghi âm lại'}</button>
-      <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-close" style="flex:1;">${passed?'🏁 Hoàn thành':'✓ Đóng (chưa đạt)'}</button>
+      <button class="form-btn cancel" data-action="ipa-deep-retry" style="flex:1;">🔄 Ghi âm lại</button>
+      <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-next-word" style="flex:1;">${isLastWord?'🏁 Xem kết quả cả bộ':'Từ tiếp theo →'}</button>
+    </div>`;
+  } else if(s.phase==='sessionDone'){
+    const results = (s.results||[]).filter(Boolean);
+    const rowsHtml = results.map(r=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+        <span style="font-size:13px; font-weight:700;">${escapeHtml(r.word)}</span>
+        <span style="font-size:12.5px; font-weight:800; color:${r.passed?'var(--teal)':'#ff8080'};">${typeof r.score==='number'?r.score+'đ':'—'} ${r.passed?'✅':'❌'}</span>
+      </div>`).join('');
+    body = `<div class="card" style="padding:20px; text-align:center;">
+      <div style="font-size:34px; margin-bottom:8px;">🏁</div>
+      <div style="font-weight:800; font-size:15px; margin-bottom:4px;">Hoàn thành bộ ${results.length} từ</div>
+      <div style="font-size:13px; color:var(--dim);">${s.passedCount||0}/${results.length} từ đạt · Điểm TB ${s.avgScore||0}đ</div>
+    </div>
+    <div class="card" style="padding:14px 16px;">${rowsHtml}</div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="form-btn cancel" data-action="ipa-deep-restart-set" style="flex:1;">🔄 Luyện bộ từ khác</button>
+      <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-close" style="flex:1;">✓ Đóng</button>
     </div>`;
   } else { // error
     const playbackCard = s.recordingUrl ? `<div class="card" style="padding:14px 16px;">
@@ -11298,7 +11839,7 @@ function renderIpaDeepAnalysis(item){
     ${playbackCard}
     <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-retry" style="width:100%; margin-top:12px;">🔄 Thử lại</button>`;
   }
-  document.getElementById('content').innerHTML = backRow + body;
+  document.getElementById('content').innerHTML = backRow + progressHtml + body;
 }
 // Mỗi âm giờ là 1 ô tròn/bo góc nhỏ gọn, màu sáng sinh động (không còn thẻ lớn kèm chữ) — bấm vào
 // để CHUYỂN TỚI TRANG RIÊNG của âm đó, có video hướng dẫn, sơ đồ khẩu hình, mẹo phát âm và ví dụ.
@@ -11553,16 +12094,12 @@ function renderToday(){
       <span>${dayOff?'🌴':'☀️'}</span><span>${dayOff? 'Hôm nay đang là ngày nghỉ — bấm để quay lại lịch bình thường' : 'Đánh dấu hôm nay là ngày nghỉ, xả stress'}</span>
     </div>`;
 
-  if(dayOff){
-    document.getElementById('content').innerHTML = renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày') + scheduleSubNav() + renderTrackHUD('schedule') + toggleRow + `
-      <div class="card rest-day-card" style="text-align:center; padding:36px 20px;">
-        <div style="font-size:46px; margin-bottom:12px;">🌴</div>
-        <div style="font-size:15px; font-weight:700; margin-bottom:8px;">Hôm nay là ngày nghỉ ngơi</div>
-        <div style="font-size:12.5px; color:var(--dim); line-height:1.6; max-width:280px; margin:0 auto;">Không sao cả — nghỉ ngơi, xả stress cũng là một phần quan trọng của hành trình. Ngày này sẽ không tính vào thống kê hoàn thành và không làm đứt chuỗi ngày liên tiếp của bạn.</div>
-      </div>`;
-    renderNav(); renderHUD();
-    return;
-  }
+  const restDayIntro = dayOff ? `
+      <div class="card rest-day-card" style="text-align:center; padding:22px 20px;">
+        <div style="font-size:38px; margin-bottom:8px;">🌴</div>
+        <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Hôm nay là ngày nghỉ ngơi</div>
+        <div style="font-size:12px; color:var(--dim); line-height:1.6; max-width:320px; margin:0 auto;">Ngày này KHÔNG tính vào thống kê hoàn thành và không làm đứt chuỗi ngày liên tiếp, dù bạn có làm việc bên dưới hay không. Lịch đã được <b>tự động rút gọn ~35%</b> và bỏ hẳn phần chạy bộ/tập tạ nặng — chỉ còn vài việc nhẹ để duy trì thói quen tiếng Anh/chuyên môn nếu bạn muốn, cộng thêm XP nếu hoàn thành.</div>
+      </div>` : '';
 
   const {plan, rec, done, total} = dayPlanInfo(key);
   const xp = dayXP(key); const maxXp = dayMaxXP(key);
@@ -11607,9 +12144,28 @@ function renderToday(){
     ${scheduleSubNav()}
     ${renderTrackHUD('schedule')}
     ${toggleRow}
-    ${workBanner}
-    ${restBanner}
-    <div class="ringcard" id="ringcard">${renderDayWheel(key, null, 180)}<div class="legend">${legend}</div></div>
+    ${restDayIntro}
+    ${dayOff ? '' : workBanner}
+    ${dayOff ? '' : restBanner}
+    ${(()=>{
+      // Item 8: bỏ vòng tròn 24h ("ringcard") khỏi màn hình Hôm nay — vòng tròn cỡ nhỏ khó đọc chính xác
+      // và dễ gây cảm giác "không khớp số liệu" (đặc biệt ngày nghỉ luôn hiện 100% dù lịch đã rút gọn).
+      // Thay bằng 1 thanh tiến độ ĐƠN GIẢN, con số done/total/% hiện rõ ràng ngay trên cùng — nhìn phát
+      // biết ngay chính xác đã làm bao nhiêu, không cần đoán qua hình vẽ. Thống kê nhiều ngày/tuần/tháng
+      // đầy đủ, đẹp hơn thì đã có riêng màn "Thống kê" (nút bên dưới dẫn thẳng tới đó).
+      const pctToday = total>0 ? Math.round(done/total*100) : 0;
+      return `<div class="card" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:700; color:var(--text);">📋 Tiến độ hôm nay</div>
+          <div style="font-size:17px; font-weight:800; color:var(--gold); font-family:var(--mono);">${done}/${total} <span style="font-size:12px; color:var(--dim);">· ${pctToday}%</span></div>
+        </div>
+        <div style="height:10px; border-radius:6px; background:var(--panel2); overflow:hidden;">
+          <div style="height:100%; width:${Math.max(pctToday,total>0&&done>0?4:0)}%; background:linear-gradient(90deg,var(--gold),#FF8A3D); border-radius:6px; transition:width .4s ease;"></div>
+        </div>
+        ${legend?`<div class="legend" style="margin-top:12px;">${legend}</div>`:''}
+        <div data-action="hub-open" data-target="stats" style="margin-top:14px; text-align:center; font-size:11.5px; color:var(--teal); font-weight:700; cursor:pointer;">📊 Xem thống kê đầy đủ (tuần/tháng/năm) →</div>
+      </div>`;
+    })()}
     <div class="card" style="text-align:center;">
       <h3 style="margin-bottom:6px;">XP hôm nay</h3>
       <div style="font-family:var(--mono); font-weight:800; font-size:22px; color:var(--gold);">${xp} / ${maxXp}</div>
@@ -12384,6 +12940,15 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // ---- Ngữ pháp game (lộ trình vượt ải) ----
   const ggOpenTopicEl = e.target.closest('[data-action="gg-open-topic"]');
   if(ggOpenTopicEl){ navForward(); STATE.ggTopic = ggOpenTopicEl.getAttribute('data-tid'); renderContent(); window.scrollTo(0,0); return; }
+  // "Học tiếp"/"Ôn lại ngay" từ thẻ Lộ trình đề xuất (Luyện ngữ pháp) — nhảy thẳng sang màn "Ngữ pháp"
+  // (nơi chứa lộ trình vượt ải gamified GRAMMAR_PATH) và mở đúng chủ đề được gợi ý.
+  const grammarRoadmapGoEl = e.target.closest('[data-action="grammar-roadmap-go"]');
+  if(grammarRoadmapGoEl){
+    ensureEnglishItems();
+    const gItem = (SETTINGS.englishItems||[]).find(i=>i.kind==='grammar');
+    if(gItem){ navForward(); STATE.activeEnglishItem = gItem.id; STATE.ggTopic = grammarRoadmapGoEl.getAttribute('data-tid'); STATE.ggTest=null; STATE.ggTheory=false; renderContent(); window.scrollTo(0,0); }
+    return;
+  }
   const ggTopicBackEl = e.target.closest('[data-action="gg-topic-back"]');
   if(ggTopicBackEl){ STATE.ggTopic = null; renderContent(); navBack(); return; }
   const ggOpenTheoryEl = e.target.closest('[data-action="gg-open-theory"]');
@@ -12441,9 +13006,11 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const listenQuizStartEl = e.target.closest('[data-action="listen-quiz-start"]');
   if(listenQuizStartEl){ startListenQuiz(listenQuizStartEl.getAttribute('data-level')); return; }
   const listenVideoStartEl = e.target.closest('[data-action="listen-video-start"]');
-  // Nút ✕ (xóa video) nằm BÊN TRONG thẻ video (thẻ có data-action mở video) — nếu không né ra thì bấm
-  // ✕ sẽ bị hiểu nhầm thành mở video; để closest() rơi tiếp xuống handler xóa phía dưới.
-  if(listenVideoStartEl && !e.target.closest('[data-action="listen-video-delete"]')){ openListenVideoWatch(listenVideoStartEl.getAttribute('data-id')); return; }
+  // Nút ✕ (xóa video) và 🔄 (tạo câu hỏi mới) nằm BÊN TRONG thẻ video (thẻ có data-action mở video) —
+  // nếu không né ra thì bấm sẽ bị hiểu nhầm thành mở video; để closest() rơi tiếp xuống handler bên dưới.
+  if(listenVideoStartEl && !e.target.closest('[data-action="listen-video-delete"]') && !e.target.closest('[data-action="listen-video-regen"]')){ openListenVideoWatch(listenVideoStartEl.getAttribute('data-id')); return; }
+  const listenVideoRegenEl = e.target.closest('[data-action="listen-video-regen"]');
+  if(listenVideoRegenEl){ regenListenVideoQuestions(listenVideoRegenEl.getAttribute('data-id')); return; }
   const listenVideoWatchCloseEl = e.target.closest('[data-action="listen-video-watch-close"]');
   if(listenVideoWatchCloseEl){ closeListenVideoWatch(); return; }
   const listenVideoWatchStartEl = e.target.closest('[data-action="listen-video-watch-start"]');
@@ -12507,6 +13074,22 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(shadowRecordStopEl){ shadowStopRecording(); return; }
   const shadowPlayRecordingEl = e.target.closest('[data-action="shadow-play-recording"]');
   if(shadowPlayRecordingEl){ shadowPlayRecording(); return; }
+  const shadowGenAiSegEl = e.target.closest('[data-action="shadow-gen-ai-seg"]');
+  if(shadowGenAiSegEl){
+    const s0 = STATE.shadowSession; const rec0 = s0 && (SETTINGS.shadowingVideos||[]).find(v=>v.id===s0.vidRecId);
+    if(rec0) ensureShadowSegments(rec0, false);
+    return;
+  }
+  const shadowRegenAiSegEl = e.target.closest('[data-action="shadow-regen-ai-seg"]');
+  if(shadowRegenAiSegEl){
+    const s0 = STATE.shadowSession; const rec0 = s0 && (SETTINGS.shadowingVideos||[]).find(v=>v.id===s0.vidRecId);
+    if(rec0) ensureShadowSegments(rec0, true);
+    return;
+  }
+  const shadowPickAiSegEl = e.target.closest('[data-action="shadow-pick-ai-seg"]');
+  if(shadowPickAiSegEl){ shadowPickAiSegment(parseInt(shadowPickAiSegEl.getAttribute('data-idx'),10)); return; }
+  const shadowAiFeedbackEl = e.target.closest('[data-action="shadow-ai-feedback"]');
+  if(shadowAiFeedbackEl){ shadowAnalyzeRecording(); return; }
   const listenQuizToggleEl = e.target.closest('[data-action="listen-quiz-toggle"]');
   if(listenQuizToggleEl){ toggleListenPlayback(); return; }
   const listenQuizSpeedEl = e.target.closest('[data-action="listen-quiz-speed"]');
@@ -12559,6 +13142,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(lpQuizNextEl){ longPassageQuizNext(); return; }
   const lpQuizExitEl = e.target.closest('[data-action="long-passage-quiz-exit"]');
   if(lpQuizExitEl){ longPassageQuizExit(); return; }
+  const lpQuizTogglePassageEl = e.target.closest('[data-action="long-passage-quiz-toggle-passage"]');
+  if(lpQuizTogglePassageEl){ longPassageQuizTogglePassage(); return; }
+  const lpQuizRegenEl = e.target.closest('[data-action="long-passage-quiz-regen"]');
+  if(lpQuizRegenEl){ startLongPassageQuiz(parseInt(lpQuizRegenEl.getAttribute('data-idx'),10)||0, true); return; }
   const dictHomeOpenEl = e.target.closest('[data-action="dict-home-open"]');
   if(dictHomeOpenEl){ dictHomeOpen(); return; }
   const dictHomeCloseEl = e.target.closest('[data-action="dict-home-close"]');
@@ -12622,6 +13209,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaDeepRecordStopEl){ stopIpaDeepRecording(); return; }
   const ipaDeepRetryEl = e.target.closest('[data-action="ipa-deep-retry"]');
   if(ipaDeepRetryEl){ ipaDeepRetry(); return; }
+  const ipaDeepNextWordEl = e.target.closest('[data-action="ipa-deep-next-word"]');
+  if(ipaDeepNextWordEl){ ipaDeepNextWord(); return; }
+  const ipaDeepRestartSetEl = e.target.closest('[data-action="ipa-deep-restart-set"]');
+  if(ipaDeepRestartSetEl){ ipaDeepRestartSet(); return; }
   const ipaDeepPlayListEl = e.target.closest('[data-action="ipa-deep-play-list"]');
   if(ipaDeepPlayListEl){ ipaDeepPlayList(); return; }
   const ipaDeepStopListEl = e.target.closest('[data-action="ipa-deep-stop-list"]');
@@ -12644,6 +13235,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const speakToggleTransEl = e.target.closest('[data-action="speak-toggle-translate"]');
   if(speakToggleTransEl){ speakToggleTranslate(); return; }
+  const speakParaTransEl = e.target.closest('[data-action="speak-para-translate-toggle"]');
+  if(speakParaTransEl){ speakToggleParaTranslate(parseInt(speakParaTransEl.getAttribute('data-pidx'),10)); return; }
   const speakNextEl = e.target.closest('[data-action="speak-next"]');
   if(speakNextEl){ nextSpeakPractice(); return; }
   const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
