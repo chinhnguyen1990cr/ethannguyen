@@ -1411,7 +1411,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v101';
+const APP_VERSION = 'v102';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2513,6 +2513,15 @@ const PET_FALLBACK_REWARDS = [
   'Phượng Hoàng Lửa tái sinh cùng bạn — hãy chia sẻ thành quả này với ai đó, niềm vui nhân đôi khi được chia sẻ!',
   'Thần Long Tối Thượng đã giáng thế! Bạn đã đi một chặng đường rất dài — hãy tự thưởng cho mình một điều gì đó đặc biệt.',
 ];
+// Kiểm tra "nội dung thật" thay vì chỉ đếm độ dài chuỗi — bản trả lời hỏng của Gemini (do bước
+// "thinking" bị cắt cụt) thường chỉ còn dấu câu/khoảng trắng/xuống dòng (vd ".\n        *"), độ dài
+// thô có thể vẫn khá dài nhưng gần như không có chữ cái thật nào. Đếm số ký tự chữ cái (kể cả có dấu
+// tiếng Việt) — một câu trả lời hợp lệ luôn có rất nhiều chữ cái, còn rác thì gần như bằng 0.
+function petRewardTextValid(text){
+  if(!text) return false;
+  const letters = (text.match(/[a-zA-ZÀ-ỹ]/g)||[]).length;
+  return letters >= 15;
+}
 async function callGeminiOnce(prompt){
   const apiKey = SETTINGS.geminiApiKey;
   if(!apiKey) throw new Error('NO_KEY');
@@ -2536,14 +2545,14 @@ async function callGeminiOnce(prompt){
   const cand = data.candidates && data.candidates[0];
   const parts = (cand && cand.content && cand.content.parts) || [];
   const raw = parts.filter(p=>p && p.text && !p.thought).map(p=>p.text).join('').trim();
-  if(!raw || raw.length<8) throw new Error('EMPTY');
+  if(!petRewardTextValid(raw)) throw new Error('EMPTY');
   return raw.trim();
 }
 async function petGenerateReward(idx, force){
   const p = ensurePet();
   // Tự sửa dữ liệu cũ bị lỗi (bản trước tắt tính năng "thinking" của Gemini chưa đúng cách nên có thể
   // đã lưu lại phần thưởng bị cắt cụt còn vài ký tự rác, vd ".\n *") — coi như chưa có, tạo lại.
-  if(p.rewards[idx] && p.rewards[idx].text && p.rewards[idx].text.trim().length<8) delete p.rewards[idx];
+  if(p.rewards[idx] && !petRewardTextValid(p.rewards[idx].text)) delete p.rewards[idx];
   if(p.rewards[idx] && !force) return p.rewards[idx];
   const stage = PET_STAGES[idx];
   const fallback = { text: PET_FALLBACK_REWARDS[idx] || PET_FALLBACK_REWARDS[0], ai:false };
@@ -2599,7 +2608,7 @@ function renderPetDetail(){
   // Coi phần thưởng đã lưu là "chưa có" nếu text quá ngắn/rác (dữ liệu cũ từ trước khi sửa lỗi Gemini
   // "thinking" cắt cụt câu trả lời) — để tự động sinh lại thay vì hiển thị mãi nội dung hỏng.
   let rewardObj = SETTINGS.pet.rewards[st.idx];
-  if(rewardObj && (!rewardObj.text || rewardObj.text.trim().length<8)) rewardObj = null;
+  if(rewardObj && !petRewardTextValid(rewardObj.text)) rewardObj = null;
   const rewardHtml = rewardObj
     ? `<div class="pet-reward-card"><div class="pet-reward-label">🎁 Phần thưởng bất ngờ${rewardObj.ai?' (AI đề xuất)':''}</div><div class="pet-reward-text">${escapeHtml(rewardObj.text)}</div>
         <button class="form-btn cancel" data-action="pet-regen-reward" style="margin-top:8px; font-size:11px;">🔄 Xin lời khuyên khác</button></div>`
