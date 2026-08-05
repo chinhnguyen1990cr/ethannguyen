@@ -280,24 +280,93 @@
     background:none; border:none; color:var(--dim2); cursor:pointer;}
   .navitem .ic{font-size:18px;} .navitem .t{font-size:9.5px; font-weight:700;} .navitem.active{color:var(--gold);}
 
-  /* ============ HUB HOME — đồng hồ gọn, nền bản đồ thế giới dạng chấm kéo dài toàn khung:
-     giờ:phút lớn dễ đọc bên trái (font số thường, không phải 7-đoạn), ngày/tháng bên dưới,
-     nhãn Thứ ở góc phải. Khung thấp, chỉ 1 hàng, để danh mục bên dưới vẫn hiện đủ. ============ */
-  .hub-clock-card{position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px;
-    margin-top:12px; padding:13px 16px; min-height:56px; border-radius:18px; overflow:hidden;
+  /* ============ HUB HOME — đồng hồ hiện đại, nền bản đồ thế giới dạng chấm kéo dài toàn khung:
+     Thứ/ngày/tháng/năm đầy đủ + giờ:phút lớn dùng font hiện đại phía trên, bên dưới là 2 "chip"
+     truy cập nhanh (Lịch làm việc / Học tiếng Anh) kèm tiến độ hôm nay ngay trên mặt đồng hồ. ============ */
+  .hub-clock-card{position:relative; display:flex; flex-direction:column; gap:12px;
+    margin-top:12px; padding:18px 18px 16px; border-radius:22px; overflow:hidden;
     background:linear-gradient(120deg,#0B2036 0%,#0E3654 55%,#0A2A44 100%);
-    box-shadow:0 10px 22px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);}
-  .hub-clock-map{position:absolute; inset:0; width:100%; height:100%; opacity:.4;}
+    box-shadow:0 12px 26px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.06);}
+  .hub-clock-map{position:absolute; inset:0; width:100%; height:100%; opacity:.35;}
   .hub-clock-map circle{fill:#6FE0D0;}
-  .hub-clock-scrim{position:absolute; inset:0; background:linear-gradient(100deg, rgba(9,24,40,.2) 0%, rgba(9,24,40,.82) 78%);}
-  .hub-clock-left{position:relative; z-index:1; min-width:0;}
-  .hub-clock-time{font-family:var(--mono); font-size:26px; font-weight:800; color:#fff; letter-spacing:.5px; line-height:1.1;}
-  .hub-clock-date{font-size:11px; font-weight:700; color:rgba(255,255,255,.78); margin-top:3px;}
-  .hub-clock-right{position:relative; z-index:1; display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;}
-  .hub-clock-day-badge{font-size:10.5px; font-weight:800; color:#fff; background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.22); border-radius:8px; padding:3px 9px; letter-spacing:.03em;}
-  .hub-clock-md{font-size:10px; color:rgba(255,255,255,.68); font-weight:700;}
+  .hub-clock-scrim{position:absolute; inset:0; background:linear-gradient(160deg, rgba(9,24,40,.35) 0%, rgba(9,24,40,.86) 85%);}
+  .hub-clock-top{position:relative; z-index:1; display:flex; align-items:flex-start; justify-content:space-between;}
+  .hub-clock-left{min-width:0;}
+  .hub-clock-weekday{font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#6FE0D0;}
+  .hub-clock-time{font-family:'Segoe UI',var(--mono); font-size:38px; font-weight:800; color:#fff; letter-spacing:.5px;
+    line-height:1.15; margin-top:2px; background:linear-gradient(90deg,#fff,#CFEFFF); -webkit-background-clip:text; background-clip:text;}
+  .hub-clock-time span{animation:clockColonBlink 2s ease-in-out infinite;}
+  @keyframes clockColonBlink{0%,45%{opacity:1;}50%,95%{opacity:.82;}100%{opacity:1;}}
+  .hub-clock-date{font-size:12px; font-weight:700; color:rgba(255,255,255,.82); margin-top:4px; letter-spacing:.02em;}
+  .hub-clock-quicklinks{position:relative; z-index:1; display:flex; gap:8px;}
+  .hub-clock-qlink{flex:1; display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:14px; cursor:pointer;
+    background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(4px);
+    transition:background .15s ease;}
+  .hub-clock-qlink:active{background:rgba(255,255,255,.18);}
+  .hub-clock-qlink .ic{width:28px; height:28px; border-radius:9px; background:rgba(255,255,255,.14); display:flex;
+    align-items:center; justify-content:center; flex-shrink:0;}
+  .hub-clock-qlink .ic svg{width:15px; height:15px;}
+  .hub-clock-qlink .ql-info{min-width:0;}
+  .hub-clock-qlink .ql-name{font-size:10.5px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .hub-clock-qlink .ql-stat{font-size:9.5px; font-weight:700; color:rgba(255,255,255,.68); margin-top:1px;}
   .hub-grid{margin-top:18px;}
+  /* ============ LINH THÚ TIẾN HÓA (Pet Evolution) — thẻ gọn trên Hub + màn chi tiết ============ */
+  .pet-card{position:relative; display:flex; align-items:center; gap:12px; margin-top:12px; padding:12px 14px;
+    border-radius:18px; border:1px solid var(--border); cursor:pointer;}
+  .pet-avatar-wrap{position:relative; width:52px; height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .pet-avatar-wrap.large{width:96px; height:96px; margin:0 auto;}
+  .pet-avatar{font-size:28px; position:relative; z-index:2; filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));}
+  .pet-avatar.large{font-size:52px;}
+  .pet-card-info{flex:1; min-width:0;}
+  .pet-card-name{font-size:13px; font-weight:800; color:var(--text);}
+  .pet-new-badge{font-size:8.5px; font-weight:800; color:#0A2A44; background:linear-gradient(90deg,#FFC94A,#FF8A3D);
+    border-radius:6px; padding:1px 5px; letter-spacing:.04em; vertical-align:middle;}
+  .pet-card-sub{font-size:10.5px; color:var(--dim); margin-top:2px;}
+  .pet-bar-track{height:6px; border-radius:4px; background:var(--border); overflow:hidden; margin-top:6px;}
+  .pet-bar-track.large{height:8px; margin-top:10px; max-width:260px; margin-left:auto; margin-right:auto;}
+  .pet-bar-fill{height:100%; border-radius:4px; transition:width .3s ease;}
+  .pet-card-arrow{font-size:20px; color:var(--dim2); flex-shrink:0;}
+  .pet-hero-card{border-radius:20px; padding:22px 16px; text-align:center; border:1px solid var(--border);}
+  .pet-hero-name{font-size:17px; font-weight:800; color:var(--text); margin-top:12px;}
+  .pet-hero-desc{font-size:11.5px; color:var(--dim); line-height:1.6; margin-top:6px; max-width:320px; margin-left:auto; margin-right:auto;}
+  .pet-hero-xp{font-size:10.5px; font-weight:700; color:var(--dim2); margin-top:8px;}
+  .pet-reward-card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-top:14px;}
+  .pet-reward-label{font-size:11px; font-weight:800; color:var(--gold);}
+  .pet-reward-text{font-size:12px; line-height:1.6; color:var(--text); margin-top:6px;}
+  .pet-journey-list{display:flex; flex-direction:column; gap:8px;}
+  .pet-journey-item{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; opacity:.45;}
+  .pet-journey-item.unlocked{opacity:1;}
+  .pet-journey-item.current{background:var(--border); opacity:1;}
+  .pet-journey-icon{width:34px; height:34px; border-radius:10px; background:var(--border); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+  .pet-journey-name{font-size:12px; font-weight:700; color:var(--text);}
+  .pet-journey-xp{font-size:10px; color:var(--dim2); margin-top:1px;}
+  /* Hiệu ứng hào quang theo từng cấp — càng tiến hóa cao càng lộng lẫy */
+  .aura-soft{filter:drop-shadow(0 0 8px var(--pet-c1));}
+  .aura-pulse{animation:petPulse 2.2s ease-in-out infinite;}
+  @keyframes petPulse{0%,100%{filter:drop-shadow(0 0 6px var(--pet-c1));}50%{filter:drop-shadow(0 0 16px var(--pet-c1));}}
+  .aura-sparkle{animation:petPulse 2.2s ease-in-out infinite;}
+  .aura-ring::before{content:'';position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid transparent; border-top-color:var(--pet-c1); border-right-color:var(--pet-c2);
+    animation:petSpin 3s linear infinite;}
+  .aura-ring.gold::before{border-top-color:#FFC94A; border-right-color:var(--pet-c1);}
+  @keyframes petSpin{to{transform:rotate(360deg);}}
+  .aura-flame{animation:petPulse 1.6s ease-in-out infinite;}
+  .aura-flame::before{content:'';position:absolute; inset:-8px; border-radius:50%;
+    background:radial-gradient(circle, var(--pet-c1), transparent 70%); opacity:.22; animation:petPulse 1.6s ease-in-out infinite;}
+  .aura-divine::before{content:'';position:absolute; inset:-10px; border-radius:50%;
+    border:2px solid transparent; border-top-color:var(--pet-c1); border-right-color:var(--pet-c2);
+    border-bottom-color:var(--pet-c1); animation:petSpin 2.4s linear infinite;}
+  .aura-divine{animation:petPulse 1.8s ease-in-out infinite;}
+  .pet-particle{position:absolute; width:4px; height:4px; border-radius:50%; background:var(--pet-c1);
+    top:50%; left:50%; animation:petTwinkle 2.4s ease-in-out infinite; opacity:0;}
+  .pet-particle.p0{animation-delay:0s; transform:translate(-26px,-18px);}
+  .pet-particle.p1{animation-delay:.3s; transform:translate(22px,-22px);}
+  .pet-particle.p2{animation-delay:.6s; transform:translate(28px,14px);}
+  .pet-particle.p3{animation-delay:.9s; transform:translate(-22px,20px);}
+  .pet-particle.p4{animation-delay:1.2s; transform:translate(0,-30px);}
+  .pet-particle.p5{animation-delay:1.5s; transform:translate(0,30px);}
+  @keyframes petTwinkle{0%,100%{opacity:0; transform:scale(.4) translate(var(--tx,0),var(--ty,0));}50%{opacity:1; transform:scale(1.1) translate(var(--tx,0),var(--ty,0));}}
   .menu-card{background:var(--panel); border:1px solid var(--border); border-radius:22px; overflow:hidden;
     box-shadow:0 10px 24px rgba(0,0,0,0.22);}
   .menu-card-heading{display:flex; align-items:center; gap:8px; padding:14px 18px 4px; font-size:10.5px; font-weight:700;
@@ -591,6 +660,26 @@
   .eng-item-chev{color:var(--dim); font-size:20px; font-weight:700; flex-shrink:0; line-height:1;}
   .eng-item-add{display:flex; align-items:center; justify-content:center; gap:8px; padding:13px; border-radius:16px;
     border:1.5px dashed var(--border); color:var(--dim); font-size:13px; font-weight:700; margin-top:2px; cursor:pointer;}
+  /* ============ Kế hoạch học tiếng Anh mỗi ngày (English Daily Study Planner) ============ */
+  .eplan-list{display:flex; flex-direction:column; gap:8px;}
+  .eplan-item{display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border);
+    border-radius:16px; padding:12px; cursor:pointer; transition:transform .1s ease;}
+  .eplan-item:active{transform:scale(0.98);}
+  .eplan-item.done{opacity:.55;}
+  .eplan-item-icon{width:40px; height:40px; border-radius:12px; flex-shrink:0; display:flex; align-items:center;
+    justify-content:center; color:#fff; box-shadow:0 3px 8px rgba(0,0,0,0.22);}
+  .eplan-item-icon .icon-svg{width:19px; height:19px; display:block;}
+  .eplan-item-body{flex:1; min-width:0;}
+  .eplan-item-name{font-size:13.5px; font-weight:800; color:var(--text);}
+  .eplan-item-sub{font-size:10px; color:var(--dim); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .eplan-item-status{font-size:11px; font-weight:700; color:var(--teal); flex-shrink:0;}
+  .eplan-item.done .eplan-item-status{color:var(--dim2);}
+  .eplan-week{display:flex; flex-direction:column; gap:6px;}
+  .eplan-day{display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:10px; background:var(--panel2);}
+  .eplan-day.today{background:linear-gradient(90deg,#4FA8FF22,#7C6CF011); border:1px solid #4FA8FF44;}
+  .eplan-day-wd{font-size:10.5px; font-weight:800; color:var(--dim2); width:28px; flex-shrink:0;}
+  .eplan-day.today .eplan-day-wd{color:#4FA8FF;}
+  .eplan-day-focus{font-size:11.5px; font-weight:600; color:var(--text);}
   /* Cấp độ Cơ bản/Trung cấp/Nâng cao — dùng chung cho Luyện ngữ pháp, Luyện nghe, Luyện nói. */
   .eng-level-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px;}
   .eng-level-card{background:var(--panel); border:1.5px solid var(--border); border-radius:14px; padding:12px 6px;
@@ -1322,7 +1411,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v97';
+const APP_VERSION = 'v99';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -1350,6 +1439,8 @@ const WD = ['CN','T2','T3','T4','T5','T6','T7'];
 // kiểu "Mon..Sun" của đồng hồ để bàn thật) — chuyển từ getDay() (0=CN) sang chỉ số trong mảng này.
 const WD_MON_FIRST = ['T2','T3','T4','T5','T6','T7','CN'];
 const MONTH_NAMES = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
+// Tên Thứ đầy đủ (0=CN theo getDay()) — dùng cho đồng hồ Hub bản redesign, hiển thị ngày tháng rõ ràng hơn.
+const WD_FULL = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 
 const IPA_GROUPS = [
   {title:'Nguyên âm đơn', items:[['iː','sheep'],['ɪ','ship'],['e','bed'],['æ','cat'],['ʌ','cup'],['ɑː','car'],['ɒ','hot'],['ɔː','door'],['ʊ','book'],['uː','food'],['ɜː','bird'],['ə','about']]},
@@ -2367,6 +2458,159 @@ function computeBadgesTrack(track){
     {icon:'📅', label:'30 ngày theo dõi', earned: dates.length>=30},
     {icon:'👑', label:'Đạt Level 5', earned: lvl>=5},
   ];
+}
+// ================= LINH THÚ TIẾN HÓA (Pet Evolution) =================
+// Thú cưng "linh thú" tiến hóa qua 8 giai đoạn lấy cảm hứng kiếm hiệp/thần thoại, dùng ĐIỂM TÍCH LŨY
+// kết hợp từ CẢ 2 nguồn: XP Lịch làm việc (totalXPTrack('schedule')) + Điểm học tập tiếng Anh
+// (SETTINGS.engGame.score — cộng dồn từ Ngữ pháp/Luyện nghe/Luyện nói/IPA/Shadowing/Đoạn văn dài).
+// engGame.score có thể bị TRỪ khi bỏ ngày học nhiều ngày liên tiếp — để linh thú không bao giờ
+// "tiến hóa ngược" (trải nghiệm xấu cho 1 con pet), ta chỉ lưu lại MỐC CAO NHẤT từng đạt được
+// (SETTINGS.pet.maxXP), tăng dần vĩnh viễn theo thời gian, không bao giờ giảm.
+const PET_STAGES = [
+  {icon:'🥚', name:'Trứng Linh Thú', minXP:0,     color:'#8B96A8', color2:'#5A6478', aura:'aura-none',   desc:'Một quả trứng kỳ lạ đang ấp ủ linh khí bên trong — hãy chăm chỉ học tập &amp; rèn luyện để đánh thức nó dậy.'},
+  {icon:'🐣', name:'Yêu Tinh Sơ Sinh', minXP:250,  color:'#B8D98D', color2:'#7FAE5C', aura:'aura-soft',   desc:'Linh thú vừa nở, còn non nớt nhưng đầy tò mò — mỗi buổi học đều giúp nó lớn nhanh hơn.'},
+  {icon:'🦊', name:'Hồ Ly Tinh', minXP:700,        color:'#FF8A3D', color2:'#FF5A6E', aura:'aura-pulse',  desc:'Đã hấp thụ đủ linh khí để hóa hình hồ ly tinh nhanh nhẹn, tinh ranh trong truyền thuyết.'},
+  {icon:'🐺', name:'Lang Linh Vệ', minXP:1500,     color:'#4FA8FF', color2:'#2CDBA8', aura:'aura-sparkle',desc:'Tu luyện thành sói linh vệ, bắt đầu mang khí chất chiến binh kiếm hiệp uy dũng.'},
+  {icon:'🐉', name:'Long Tử Nhập Môn', minXP:3000, color:'#7C6CF0', color2:'#4FA8FF', aura:'aura-ring',   desc:'Đột phá cảnh giới, hóa thân thành rồng con — khởi đầu con đường tu luyện thành thần long.'},
+  {icon:'🐲', name:'Thanh Long Tu Luyện', minXP:5500, color:'#2CDBA8', color2:'#0891B2', aura:'aura-ring gold', desc:'Thanh Long trong truyền thuyết, linh khí bao phủ toàn thân, uy lực ngày một mạnh mẽ.'},
+  {icon:'🔥', name:'Phượng Hoàng Lửa', minXP:9000, color:'#FF6EA8', color2:'#FFC94A', aura:'aura-flame',  desc:'Trải qua thử thách khắc nghiệt, tái sinh thành Phượng Hoàng Lửa rực rỡ huy hoàng.'},
+  {icon:'👑', name:'Thần Long Tối Thượng', minXP:14000, color:'#FFC94A', color2:'#FF8A3D', aura:'aura-divine', desc:'Cảnh giới tối thượng — Thần Long huyền thoại, đồng hành cùng bạn trên mọi chặng đường chinh phục.'},
+];
+function petCombinedXP(){ return totalXPTrack('schedule') + Math.max(0, (SETTINGS.engGame && SETTINGS.engGame.score) || 0); }
+function ensurePet(){
+  if(!SETTINGS.pet || typeof SETTINGS.pet !== 'object') SETTINGS.pet = {maxXP:0, lastSeenStageIdx:0, rewards:{}};
+  const p = SETTINGS.pet;
+  if(typeof p.maxXP!=='number') p.maxXP = 0;
+  if(typeof p.lastSeenStageIdx!=='number') p.lastSeenStageIdx = 0;
+  if(!p.rewards || typeof p.rewards!=='object') p.rewards = {};
+  ensureEngGame();
+  const cur = petCombinedXP();
+  if(cur > p.maxXP){ p.maxXP = cur; saveSettings(); }
+  return p;
+}
+function petStageIdxFor(xp){ let idx = 0; for(let i=0;i<PET_STAGES.length;i++){ if(xp >= PET_STAGES[i].minXP) idx = i; } return idx; }
+function petState(){
+  const p = ensurePet();
+  const idx = petStageIdxFor(p.maxXP);
+  const stage = PET_STAGES[idx];
+  const next = PET_STAGES[idx+1] || null;
+  const xpInStage = p.maxXP - stage.minXP;
+  const xpForNext = next ? next.minXP - stage.minXP : 0;
+  const pct = next ? Math.min(100, Math.round(xpInStage/xpForNext*100)) : 100;
+  return { xp:p.maxXP, idx, stage, next, xpInStage, xpForNext, pct, justEvolved: idx > p.lastSeenStageIdx, isMax: !next };
+}
+function petMarkSeen(){
+  const p = ensurePet(); const idx = petStageIdxFor(p.maxXP);
+  if(idx > p.lastSeenStageIdx){ p.lastSeenStageIdx = idx; saveSettings(); pushToDrive(); }
+}
+const PET_FALLBACK_REWARDS = [
+  'Chúc mừng linh thú của bạn vừa hé mở! Hãy tiếp tục học đều mỗi ngày để nó sớm nở thành hình nhé.',
+  'Yêu tinh nhỏ rất thích những buổi học đều đặn — thử đặt mục tiêu học liên tục 3 ngày không nghỉ xem sao!',
+  'Hồ ly tinh tặng bạn một mẹo nhỏ: học 20 phút mỗi ngày hiệu quả hơn học dồn 2 tiếng 1 lần/tuần đấy.',
+  'Sói linh vệ khuyên bạn: hãy thử thách bản thân với 1 kỹ năng tiếng Anh còn yếu nhất trong tuần này.',
+  'Rồng con đã tỉnh giấc! Đây là lúc thích hợp để đặt một mục tiêu lớn hơn cho tháng tới.',
+  'Thanh Long ban tặng linh khí: hãy dành 1 ngày cuối tuần để ôn tập tổng hợp mọi kỹ năng đã học.',
+  'Phượng Hoàng Lửa tái sinh cùng bạn — hãy chia sẻ thành quả này với ai đó, niềm vui nhân đôi khi được chia sẻ!',
+  'Thần Long Tối Thượng đã giáng thế! Bạn đã đi một chặng đường rất dài — hãy tự thưởng cho mình một điều gì đó đặc biệt.',
+];
+async function callGeminiOnce(prompt){
+  const apiKey = SETTINGS.geminiApiKey;
+  if(!apiKey) throw new Error('NO_KEY');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:0.9, maxOutputTokens:160} })
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=>'');
+    let msg = 'HTTP '+res.status;
+    try{ const j = JSON.parse(t); if(j && j.error && j.error.message) msg = 'HTTP '+res.status+': '+j.error.message; }
+    catch(e){ if(t) msg += ' — '+t.slice(0,200); }
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const cand = data.candidates && data.candidates[0];
+  const raw = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
+  if(!raw) throw new Error('EMPTY');
+  return raw.trim();
+}
+async function petGenerateReward(idx, force){
+  const p = ensurePet();
+  if(p.rewards[idx] && !force) return p.rewards[idx];
+  const stage = PET_STAGES[idx];
+  const fallback = { text: PET_FALLBACK_REWARDS[idx] || PET_FALLBACK_REWARDS[0], ai:false };
+  if(!SETTINGS.geminiApiKey){ p.rewards[idx] = fallback; saveSettings(); return fallback; }
+  try{
+    const prompt = `Bạn là một linh thú kiếm hiệp/thần thoại tên "${stage.name}" (${stage.desc}) trong 1 app tự học tiếng Anh & rèn luyện thói quen. Người dùng vừa giúp bạn tiến hóa lên giai đoạn này nhờ chăm chỉ học tập/rèn luyện. Hãy viết lời chúc mừng kèm 1 phần thưởng bất ngờ (1 lời khuyên hoặc thử thách nhỏ, cụ thể, tạo động lực) bằng tiếng Việt, giọng văn ấm áp, dí dỏm, phong cách kiếm hiệp/thần thoại nhẹ nhàng phù hợp hình tượng linh thú. Chỉ trả về đúng 2-3 câu, không quá 60 từ, không dùng markdown.`;
+    const text = await callGeminiOnce(prompt);
+    const result = { text, ai:true };
+    p.rewards[idx] = result; saveSettings(); pushToDrive();
+    return result;
+  }catch(e){
+    p.rewards[idx] = fallback; saveSettings();
+    return fallback;
+  }
+}
+function petAuraParticlesHtml(auraClass){
+  if(/aura-sparkle|aura-flame|aura-divine/.test(auraClass)){
+    const n = /aura-divine/.test(auraClass) ? 10 : 6;
+    let html = ''; for(let i=0;i<n;i++) html += `<span class="pet-particle p${i%6}"></span>`;
+    return html;
+  }
+  return '';
+}
+function renderPetCard(){
+  const st = petState(); const stage = st.stage;
+  return `<div class="pet-card" data-action="hub-open" data-target="pet" style="border-color:${stage.color}44; background:linear-gradient(135deg,${stage.color}1c,${stage.color2}0c);">
+    <div class="pet-avatar-wrap ${stage.aura}" style="--pet-c1:${stage.color}; --pet-c2:${stage.color2};">
+      ${petAuraParticlesHtml(stage.aura)}
+      <div class="pet-avatar">${stage.icon}</div>
+    </div>
+    <div class="pet-card-info">
+      <div class="pet-card-name">${stage.name}${st.justEvolved?' <span class="pet-new-badge">MỚI!</span>':''}</div>
+      <div class="pet-card-sub">${st.isMax ? 'Đã đạt cảnh giới tối thượng ✨' : `Còn ${(st.xpForNext-st.xpInStage).toLocaleString('vi-VN')} điểm để tiến hóa`}</div>
+      <div class="pet-bar-track"><div class="pet-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${stage.color},${stage.color2});"></div></div>
+    </div>
+    <div class="pet-card-arrow">›</div>
+  </div>`;
+}
+function renderPetDetail(){
+  petMarkSeen();
+  const st = petState(); const stage = st.stage;
+  const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🐉 Linh Thú của bạn</div></div>`;
+  const journey = PET_STAGES.map((s,i)=>{
+    const unlocked = i <= st.idx;
+    return `<div class="pet-journey-item ${unlocked?'unlocked':'locked'} ${i===st.idx?'current':''}">
+      <div class="pet-journey-icon" style="${unlocked?`background:linear-gradient(135deg,${s.color}33,${s.color2}22); border-color:${s.color}55;`:''}">${unlocked?s.icon:'🔒'}</div>
+      <div class="pet-journey-info">
+        <div class="pet-journey-name">${unlocked?s.name:'???'}</div>
+        <div class="pet-journey-xp">${s.minXP.toLocaleString('vi-VN')} điểm</div>
+      </div>
+    </div>`;
+  }).join('');
+  const rewardObj = SETTINGS.pet.rewards[st.idx];
+  const rewardHtml = rewardObj
+    ? `<div class="pet-reward-card"><div class="pet-reward-label">🎁 Phần thưởng bất ngờ${rewardObj.ai?' (AI đề xuất)':''}</div><div class="pet-reward-text">${escapeHtml(rewardObj.text)}</div>
+        <button class="form-btn cancel" data-action="pet-regen-reward" style="margin-top:8px; font-size:11px;">🔄 Xin lời khuyên khác</button></div>`
+    : `<div class="pet-reward-card"><button class="form-btn" data-action="pet-regen-reward">🎁 Nhận phần thưởng bất ngờ từ AI</button></div>`;
+  document.getElementById('content').innerHTML = `
+    ${backRow}
+    <div class="pet-hero-card" style="background:linear-gradient(135deg,${stage.color}22,${stage.color2}10);">
+      <div class="pet-avatar-wrap large ${stage.aura}" style="--pet-c1:${stage.color}; --pet-c2:${stage.color2};">
+        ${petAuraParticlesHtml(stage.aura)}
+        <div class="pet-avatar large">${stage.icon}</div>
+      </div>
+      <div class="pet-hero-name">${stage.name}</div>
+      <div class="pet-hero-desc">${stage.desc}</div>
+      <div class="pet-bar-track large"><div class="pet-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${stage.color},${stage.color2});"></div></div>
+      <div class="pet-hero-xp">${st.isMax ? `${st.xp.toLocaleString('vi-VN')} điểm — Cảnh giới tối thượng` : `${st.xpInStage.toLocaleString('vi-VN')}/${st.xpForNext.toLocaleString('vi-VN')} điểm tới ${st.next.name}`}</div>
+    </div>
+    ${rewardHtml}
+    <div class="card" style="margin-top:14px;">
+      <h3 style="margin-bottom:4px;">🗺️ Hành trình tiến hóa</h3>
+      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:10px; line-height:1.5;">Điểm tích lũy = XP Lịch làm việc hằng ngày + Điểm học tập Tiếng Anh (tính theo mốc cao nhất từng đạt — linh thú không bao giờ "tiến hóa ngược").</div>
+      <div class="pet-journey-list">${journey}</div>
+    </div>`;
+  if(!rewardObj) petGenerateReward(st.idx, false).then(()=>{ if(STATE.tab==='pet') renderContent(); });
 }
 // Phân tích dựa hoàn toàn trên LOG thực tế (đọc lại mỗi lần render — không cache), gồm cả
 // các việc bị tự động đánh dấu "không hoàn thành" (rec.failed) để đánh giá đúng thực chất,
@@ -3512,23 +3756,32 @@ function renderHub(){
       </div>
     </div>`;
   const now = new Date();
-  const todayMonIdx = (now.getDay()+6)%7; // getDay(): 0=CN → quy về chỉ số trong WD_MON_FIRST (0=T2)
   const clockHtml = `
     <div class="hub-clock-card">
       ${worldMapSvg()}
       <div class="hub-clock-scrim"></div>
-      <div class="hub-clock-left">
-        <div class="hub-clock-time" id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</div>
-        <div class="hub-clock-date">${WD[now.getDay()]}, ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}</div>
+      <div class="hub-clock-top">
+        <div class="hub-clock-left">
+          <div class="hub-clock-weekday">${WD_FULL[now.getDay()]}</div>
+          <div class="hub-clock-time"><span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span></div>
+          <div class="hub-clock-date">${pad(now.getDate())} Tháng ${now.getMonth()+1} · ${now.getFullYear()}</div>
+        </div>
       </div>
-      <div class="hub-clock-right">
-        <div class="hub-clock-day-badge">${WD_MON_FIRST[todayMonIdx]}</div>
-        <div class="hub-clock-md">Th${now.getMonth()+1} · ${now.getDate()}</div>
+      <div class="hub-clock-quicklinks">
+        <div class="hub-clock-qlink" data-action="hub-open" data-target="today">
+          <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
+          <div class="ql-info"><div class="ql-name">Lịch làm việc</div><div class="ql-stat">${schedDone}/${schedTotal} hôm nay</div></div>
+        </div>
+        <div class="hub-clock-qlink" data-action="hub-open" data-target="english">
+          <div class="ic">${svgIcon('chat','color:#fff;')}</div>
+          <div class="ql-info"><div class="ql-name">Học tiếng Anh</div><div class="ql-stat">${eng.done}/${eng.total} hôm nay</div></div>
+        </div>
       </div>
     </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
     ${clockHtml}
+    ${renderPetCard()}
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
       <div class="cat-grid">
@@ -4058,9 +4311,104 @@ function renderEnglish(){
 function englishSubNav(){
   return `<div class="seg" id="english-seg">
     <button class="${STATE.tab==='english'?'active':''}" data-action="hub-open" data-target="english">Hôm nay</button>
+    <button class="${STATE.tab==='english-planner'?'active':''}" data-action="hub-open" data-target="english-planner">Kế hoạch</button>
     <button class="${STATE.tab==='english-stats'?'active':''}" data-action="hub-open" data-target="english-stats">Thống kê</button>
     <button class="${STATE.tab==='english-methods'?'active':''}" data-action="hub-open" data-target="english-methods">Phương pháp</button>
   </div>`;
+}
+// ================= KẾ HOẠCH HỌC TIẾNG ANH MỖI NGÀY (Daily Study Planner) =================
+// Đề xuất mỗi ngày nên học 2 mục (đủ để tiến bộ, không quá tải), xoay vòng theo thứ trong tuần,
+// xen kẽ kỹ năng "input" (nghe/từ vựng) và "output" (nói/ngữ pháp) — nguyên lý interleaving giúp
+// ghi nhớ tốt hơn học dồn 1 kỹ năng liên tục. Chủ Nhật dành để ôn tập tổng hợp thay vì học mới
+// (ôn tập ngắt quãng — spaced repetition). Hoàn toàn độc lập với "Lịch làm việc hằng ngày" gốc,
+// chỉ mượn Ý TƯỞNG tổ chức lịch, áp dụng riêng cho các mục trong Học tiếng Anh.
+const ENGLISH_PLAN_ROTATION = [
+  { focus:'Ôn tập tổng hợp', kinds:['quiz','vocab'], note:'Chủ Nhật nên dành để ôn lại kiến thức trong tuần thay vì học nội dung mới — ôn tập ngắt quãng giúp ghi nhớ lâu dài hơn nhồi nhét liên tục.' },
+  { focus:'Ngữ pháp & Từ vựng', kinds:['grammar','vocab'], note:'Đầu tuần ưu tiên xây nền tảng: học lý thuyết ngữ pháp mới + từ vựng mới — đầu tuần thường tỉnh táo nhất để tiếp thu kiến thức mới.' },
+  { focus:'Luyện nghe & Chép chính tả', kinds:['listening','vocab'], note:'Tập trung kỹ năng NGHE (input) trước khi luyện nói — vào mục Luyện nghe có thể chuyển sang chế độ "Nghe & chép chính tả" để luyện sâu hơn.' },
+  { focus:'Luyện nói & IPA', kinds:['speaking','ipa'], note:'Chuyển sang luyện phát âm/nói (output) — vận dụng đúng từ vựng và ngữ pháp đã ôn đầu tuần.' },
+  { focus:'Từ vựng & Câu giao tiếp', kinds:['vocab','sentences'], note:'Giữa tuần bổ sung thêm từ vựng mới + câu giao tiếp thực tế để mở rộng vốn ngôn ngữ tự nhiên.' },
+  { focus:'Thi thử Ngữ pháp & Shadowing', kinds:['quiz','shadowing'], note:'Kiểm tra lại kiến thức ngữ pháp trong tuần bằng bài thi thử + luyện shadowing để cải thiện ngữ điệu tự nhiên.' },
+  { focus:'Hội thoại AI & Đoạn văn dài', kinds:['aichat','speaking'], note:'Cuối tuần luyện phản xạ hội thoại thực tế với AI + đọc đoạn văn dài (trong mục Luyện nói) để tổng hợp mọi kỹ năng đã luyện.' },
+];
+function englishPlanForToday(){
+  ensureEnglishItems();
+  const rot = ENGLISH_PLAN_ROTATION[new Date().getDay()];
+  const items = SETTINGS.englishItems || [];
+  const todayAct = englishActivityForDate(todayKey());
+  const nameToKind = {'Ngữ pháp':'quiz','Luyện nghe':'listening','Luyện nói':'speaking','Luyện IPA':'ipa','Từ vựng':'vocab','Câu thông dụng':'sentences','Chép chính tả':'listening'};
+  const doneKinds = new Set();
+  todayAct.rows.forEach(r=>{ if(r.count>0 && nameToKind[r.name]) doneKinds.add(nameToKind[r.name]); });
+  const core = rot.kinds.map(k=>{
+    const item = items.find(i=>i.kind===k);
+    if(!item) return null;
+    return { item, kind:k, meta:ENGLISH_ITEM_KIND[k]||ENGLISH_ITEM_KIND.notes, done:doneKinds.has(k) };
+  }).filter(Boolean);
+  return { rot, core };
+}
+function englishWeakestModuleRecent(){
+  const keys = []; let d = new Date();
+  for(let i=0;i<14;i++){ keys.push(toKey(d)); d = addDays(d,-1); }
+  const sums = {};
+  keys.forEach(k=>{
+    englishActivityForDate(k).rows.forEach(r=>{
+      if(r.score!==null && r.count>0){
+        if(!sums[r.name]) sums[r.name] = {sum:0,n:0,icon:r.icon};
+        sums[r.name].sum += r.score; sums[r.name].n++;
+      }
+    });
+  });
+  let weakest = null;
+  Object.keys(sums).forEach(name=>{
+    const avg = sums[name].sum/sums[name].n;
+    if(sums[name].n>=2 && (!weakest || avg < weakest.avg)) weakest = {name, avg:Math.round(avg), icon:sums[name].icon};
+  });
+  return weakest;
+}
+function renderEnglishPlanner(){
+  const {rot, core} = englishPlanForToday();
+  const weakest = englishWeakestModuleRecent();
+  const goal = engGameGoalToday();
+  const doneCount = core.filter(c=>c.done).length;
+  const weekRow = ENGLISH_PLAN_ROTATION.map((r,i)=>{
+    const isToday = i === new Date().getDay();
+    return `<div class="eplan-day ${isToday?'today':''}">
+      <div class="eplan-day-wd">${WD[i]}</div>
+      <div class="eplan-day-focus">${r.focus}</div>
+    </div>`;
+  }).join('');
+  const coreHtml = core.length ? core.map(c=>{
+    return `<div class="eplan-item ${c.done?'done':''}" data-action="open-english-item" data-itemid="${c.item.id}">
+      <div class="eplan-item-icon" style="background:linear-gradient(135deg,${c.meta.c1},${c.meta.c2});">${svgIcon(c.meta.icon)}</div>
+      <div class="eplan-item-body">
+        <div class="eplan-item-name">${escapeHtml(c.item.name)}</div>
+        <div class="eplan-item-sub">${c.meta.sub}</div>
+      </div>
+      <div class="eplan-item-status">${c.done?'✓ Đã học':'Bắt đầu ›'}</div>
+    </div>`;
+  }).join('') : `<div class="card"><div class="eng-av-empty">Chưa có đủ dữ liệu mục học để đề xuất — hãy thêm mục trong "Hôm nay" trước.</div></div>`;
+  const bonusHtml = weakest ? `<div class="card" style="margin-top:14px; border-color:#FF8A3D44;">
+    <div style="font-size:11px; font-weight:800; color:#FF8A3D;">💡 Gợi ý ôn thêm (tùy chọn)</div>
+    <div style="font-size:12px; color:var(--dim); margin-top:4px; line-height:1.6;">${weakest.icon} <b>${escapeHtml(weakest.name)}</b> đang có điểm trung bình thấp nhất gần đây (${weakest.avg}%) — nếu còn thời gian, hãy ôn thêm mục này để cải thiện.</div>
+  </div>` : '';
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Kế hoạch học hôm nay')}
+    ${englishSubNav()}
+    <div class="card" style="background:linear-gradient(135deg,#4FA8FF14,#7C6CF00a); border-color:#4FA8FF44;">
+      <div style="font-size:11px; font-weight:800; color:#4FA8FF; letter-spacing:.04em; text-transform:uppercase;">Trọng tâm hôm nay</div>
+      <div style="font-size:16px; font-weight:800; color:var(--text); margin-top:4px;">${rot.focus}</div>
+      <div style="font-size:11.5px; color:var(--dim); line-height:1.6; margin-top:6px;">${rot.note}</div>
+      <div style="font-size:10.5px; color:var(--dim2); margin-top:8px;">Đã hoàn thành ${doneCount}/${core.length} mục đề xuất hôm nay${goal>1?` · Chỉ tiêu tối thiểu hôm nay: ${goal} hoạt động`:''}</div>
+    </div>
+    <div class="menu-card-heading" style="padding:14px 2px 8px;">📋 Đề xuất cho hôm nay (2 mục — tránh quá tải)</div>
+    <div class="eplan-list">${coreHtml}</div>
+    ${bonusHtml}
+    <div class="card" style="margin-top:14px;">
+      <h3 style="margin-bottom:10px;">🗓️ Lịch xoay vòng trong tuần</h3>
+      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:10px; line-height:1.5;">Mỗi ngày tập trung 2 kỹ năng khác nhau, xen kẽ giữa "input" (nghe/từ vựng) và "output" (nói/ngữ pháp) để tránh quá tải mà vẫn đảm bảo hiệu quả ghi nhớ lâu dài.</div>
+      <div class="eplan-week">${weekRow}</div>
+    </div>
+  `;
 }
 function openEnglishItem(id){
   navForward();
@@ -12428,16 +12776,19 @@ function englishModuleStatsCard(startKey, endKey){
 // luyện tập thật của TỪNG mục con trong Học tiếng Anh (grammarQuizLog/listenQuizLog/speakPracticeLog/
 // vocabDailyStats/sentDailyStats/dictDailyStats) — vì vậy dù người dùng không tick việc "Tiếng Anh"
 // trong Lịch làm việc, chỉ cần luyện tập thật trong các mục bên dưới là thống kê này vẫn ghi nhận đủ. ----
-function englishAchievementsTodayData(){
-  const today = todayKey();
-  const gLog = (SETTINGS.grammarQuizLog||[]).filter(r=>r.date===today);
-  const lLog = (SETTINGS.listenQuizLog||[]).filter(r=>r.date===today);
-  const allSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>r.date===today);
+// Tổng hợp hoạt động luyện tập tiếng Anh THẬT cho 1 NGÀY BẤT KỲ (không chỉ hôm nay) — hàm dùng chung
+// cho cả "Hôm nay" lẫn các biểu đồ Tuần/Tháng/Năm mới của Thống kê Học tiếng Anh, để toàn bộ khu vực
+// này tách biệt HOÀN TOÀN khỏi LOG/dayXPTrack (dữ liệu tick việc trong Lịch làm việc hằng ngày) —
+// tránh trùng lặp thông tin giữa 2 bảng thống kê vốn phản ánh 2 việc khác nhau.
+function englishActivityForDate(dateKey){
+  const gLog = (SETTINGS.grammarQuizLog||[]).filter(r=>r.date===dateKey);
+  const lLog = (SETTINGS.listenQuizLog||[]).filter(r=>r.date===dateKey);
+  const allSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>r.date===dateKey);
   const spLog = allSpeak.filter(r=>r.level!=='ipa');
   const ipaLog = allSpeak.filter(r=>r.level==='ipa');
-  const vocabDs = (SETTINGS.vocabDailyStats||{})[today] || {answered:0, correct:0};
-  const sentDs = (SETTINGS.sentDailyStats||{})[today] || {answered:0, correct:0};
-  const dictDs = (SETTINGS.dictDailyStats||{})[today] || {answered:0, correct:0};
+  const vocabDs = (SETTINGS.vocabDailyStats||{})[dateKey] || {answered:0, correct:0};
+  const sentDs = (SETTINGS.sentDailyStats||{})[dateKey] || {answered:0, correct:0};
+  const dictDs = (SETTINGS.dictDailyStats||{})[dateKey] || {answered:0, correct:0};
   const avgPct = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.pct,0)/arr.length) : null;
   const avgOverall = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.overall,0)/arr.length) : null;
   const pctOf = ds => ds.answered ? Math.round(ds.correct/ds.answered*100) : null;
@@ -12453,6 +12804,70 @@ function englishAchievementsTodayData(){
   const totalExercises = rows.reduce((s,r)=>s+(r.count||0),0);
   const scoredRows = rows.filter(r=>r.score!==null && r.count>0);
   const overallAvg = scoredRows.length ? Math.round(scoredRows.reduce((s,r)=>s+r.score,0)/scoredRows.length) : null;
+  return {rows, totalExercises, overallAvg};
+}
+function englishExerciseCountForDate(dateKey){ return englishActivityForDate(dateKey).totalExercises; }
+// Chuỗi ngày luyện tập tiếng Anh THẬT — đếm lùi từ hôm nay (hoặc từ hôm qua nếu hôm nay chưa luyện gì),
+// chỉ cần có ÍT NHẤT 1 lượt luyện thật trong ngày. Hoàn toàn không liên quan tới việc có tick ô "Tiếng Anh"
+// trong Lịch làm việc hằng ngày hay không — đây là chuỗi RIÊNG của việc học tiếng Anh.
+function englishRealStreak(){
+  let d = new Date(); let key = toKey(d);
+  if(englishExerciseCountForDate(key)===0){ d = addDays(d,-1); key = toKey(d); }
+  let streak = 0;
+  for(let i=0;i<730;i++){
+    if(englishExerciseCountForDate(key) > 0){ streak++; d = addDays(d,-1); key = toKey(d); }
+    else break;
+  }
+  return streak;
+}
+// Gộp hoạt động luyện tập thật qua NHIỀU ngày (tuần/tháng/năm) — dùng cho các thẻ tổng số lượt/điểm TB/
+// số ngày có luyện tập ở Tuần/Tháng/Năm của Thống kê Học tiếng Anh, hoàn toàn từ log luyện tập thật.
+function englishActivitySummaryForRange(keys){
+  let totalExercises=0, daysActive=0, scoreSum=0, scoreCount=0;
+  keys.forEach(k=>{
+    const {totalExercises:t, overallAvg} = englishActivityForDate(k);
+    totalExercises += t;
+    if(t>0) daysActive++;
+    if(overallAvg!==null){ scoreSum += overallAvg; scoreCount++; }
+  });
+  const overallAvg = scoreCount ? Math.round(scoreSum/scoreCount) : null;
+  return {totalExercises, daysActive, overallAvg};
+}
+// Nhận xét ngắn cho Thống kê Học tiếng Anh — dựa hoàn toàn trên dữ liệu luyện tập thật (summary ở trên),
+// KHÔNG dùng buildAdviceTrack (vốn đọc LOG/dayInfoTrack của Lịch làm việc hằng ngày).
+function englishStatsAdvice(summary){
+  const msgs = [];
+  if(summary.totalExercises===0){
+    msgs.push('Chưa có lượt luyện tập nào trong khoảng thời gian này — hãy bắt đầu với Ngữ pháp hoặc Từ vựng, chỉ vài phút mỗi ngày cũng tạo được thói quen tốt.');
+    return msgs;
+  }
+  msgs.push(`Bạn đã hoàn thành ${summary.totalExercises} lượt luyện tập${summary.overallAvg!==null?', điểm trung bình '+summary.overallAvg+'%':''}.`);
+  if(summary.overallAvg!==null && summary.overallAvg<60) msgs.push('Điểm trung bình còn thấp — nên ôn lại lý thuyết trước khi luyện tiếp để cải thiện độ chính xác.');
+  else if(summary.overallAvg!==null && summary.overallAvg>=85) msgs.push('Kết quả rất tốt! Có thể thử tăng độ khó hoặc chuyển sang mục luyện tập khác để đa dạng kỹ năng.');
+  return msgs;
+}
+// Thẻ tiêu đề DÙNG CHUNG cho cả 4 tab (Hôm nay/Tuần/Tháng/Năm) của Thống kê Học tiếng Anh — thay thế
+// hẳn renderTrackHUD('english') (vốn tính Level/Streak/XP từ việc tick ô lịch, trùng khái niệm với
+// Thống kê của Lịch làm việc hằng ngày). Điểm & chuỗi ở đây tính từ engGame — hệ điểm học tập riêng,
+// cộng dồn qua kết quả luyện tập thật ở Ngữ pháp/Luyện nghe/Luyện nói/IPA/Shadowing.
+function englishStatsHeaderCard(){
+  ensureEngGame();
+  const streak = englishRealStreak();
+  const score = SETTINGS.engGame.score;
+  return `<div class="card" style="padding:14px 16px; margin-bottom:14px; background:linear-gradient(135deg,#4FA8FF14,#7C6CF00a); border-color:#4FA8FF44;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="width:42px; height:44px; border-radius:10px; background:#4FA8FF22; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px;">🧠</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13px; font-weight:800; color:var(--text);">Điểm học tập: <span style="color:#4FA8FF;">${score}</span></div>
+        <div style="font-size:10.5px; color:var(--dim); margin-top:2px;">🔥 ${streak} ngày luyện tập liên tiếp</div>
+      </div>
+    </div>
+    <div style="font-size:10px; color:var(--dim2); margin-top:8px; line-height:1.5;">Tính riêng từ kết quả luyện tập thật (Ngữ pháp, Luyện nghe, Luyện nói, IPA, Từ vựng, Câu thông dụng, Chép chính tả, Shadowing) — độc lập hoàn toàn với Lịch làm việc hằng ngày, không trùng dữ liệu.</div>
+  </div>`;
+}
+function englishAchievementsTodayData(){
+  const today = todayKey();
+  const {rows, totalExercises, overallAvg} = englishActivityForDate(today);
   const newWordsToday = (vocabStats().learnedToday||0) + (sentStats().learnedToday||0) + (dictStats().learnedToday||0);
   return {rows, totalExercises, overallAvg, newWordsToday};
 }
@@ -12477,6 +12892,7 @@ function renderEnglishAchievementsToday(){
     ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
     ${statsSeg('english')}
+    ${englishStatsHeaderCard()}
     <div class="card" style="margin-bottom:2px;">
       <h3 style="margin-bottom:6px;">📆 Thành tích hôm nay</h3>
       <div style="font-size:11.5px; color:var(--dim); line-height:1.5;">Thống kê riêng cho việc luyện tập tiếng Anh trong ngày hôm nay — tính trực tiếp từ kết quả các bài luyện bên dưới, KHÔNG liên quan đến việc bạn có tick hoàn thành mục "Tiếng Anh" trong Lịch làm việc hằng ngày hay không.</div>
@@ -12509,7 +12925,11 @@ function renderEnglishAchievementsToday(){
   }
   attachStatsSegEvents();
 }
+// Thống kê Học tiếng Anh (Tuần/Tháng/Năm) giờ có bộ hàm render RIÊNG (renderEnglishWeek/Month/Year bên
+// dưới) — hoàn toàn dựa trên log luyện tập thật, không đụng tới LOG/dayXPTrack/renderTrackHUD của Lịch
+// làm việc hằng ngày, để 2 bảng thống kê không còn trùng lặp thông tin/dữ liệu như trước.
 function renderWeek(track){
+  if(track==='english') return renderEnglishWeek();
   const days = []; for(let i=6;i>=0;i--){ days.push(toKey(addDays(new Date(),-i))); }
   const today = todayKey();
   const advice = buildAdviceTrack(days, track);
@@ -12611,6 +13031,7 @@ function dayCellTitle(key, track){
   return cats.map(c=>`${CATS[c.cat].label}: ${c.done}/${c.total}`).join(' · ');
 }
 function renderMonth(track){
+  if(track==='english') return renderEnglishMonth();
   const y=STATE.statsYear, m=STATE.statsMonth; const cells=getMonthMatrix(y,m); const today=todayKey();
   const meta = TRACK_META[track];
   const headRow = WD.slice(1).concat(WD[0]).map(w=>`<div class="calhead">${w}</div>`).join('');
@@ -12679,6 +13100,7 @@ function renderMonth(track){
   }
 }
 function renderYear(track){
+  if(track==='english') return renderEnglishYear();
   const y=STATE.statsYear; let yearTrackedKeys=[]; const monthAvgs=[]; const meta = TRACK_META[track];
   for(let m=0;m<12;m++){
     const daysInMonth=new Date(y,m+1,0).getDate(); let sum=0,count=0;
@@ -12718,6 +13140,142 @@ function renderYear(track){
         <div class="badge ${b.earned?'earned':''}"><div class="ic">${b.icon}</div><div class="t">${b.label}</div></div>`).join('')}</div></div>
     ${moduleCard}
     <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">HLV AI nhận xét</span></div>${advice.map(mm=>`<p>${mm}</p>`).join('')}</div>
+  `;
+  attachStatsSegEvents();
+  document.querySelector('[data-action="year-prev"]').onclick=()=>{ STATE.statsYear--; renderContent(); };
+  document.querySelector('[data-action="year-next"]').onclick=()=>{ STATE.statsYear++; renderContent(); };
+}
+// ================= THỐNG KÊ HỌC TIẾNG ANH — ĐỘC LẬP HOÀN TOÀN VỚI LỊCH LÀM VIỆC =================
+// 3 hàm dưới đây thay thế nhánh track==='english' cũ trong renderWeek/Month/Year (vốn dùng chung
+// renderTrackHUD/weekbars/dayXPTrack — dữ liệu tick việc trong lịch). Toàn bộ số liệu ở đây tính từ
+// log luyện tập thật (englishActivityForDate/englishActivitySummaryForRange) nên 2 bảng thống kê
+// "Lịch làm việc hằng ngày" và "Học tiếng Anh" giờ phản ánh 2 việc khác nhau, không còn trùng dữ liệu.
+function renderEnglishWeek(){
+  const days = []; for(let i=6;i>=0;i--){ days.push(toKey(addDays(new Date(),-i))); }
+  const perDay = days.map(k=>({key:k, count: englishExerciseCountForDate(k)}));
+  const maxCount = Math.max(1, ...perDay.map(d=>d.count));
+  const bars = perDay.map(({key:k,count})=>{
+    const d = parseKey(k); const pct = Math.round(count/maxCount*100);
+    return `<div class="wbar-col">
+      <div class="wbar-pct" style="color:#4FA8FF">${count}</div>
+      <div class="wbar-track" style="background:#4FA8FF22;"><div class="wbar-fill" style="height:${Math.max(pct,count>0?6:0)}%; background:#4FA8FF;"></div></div>
+      <div class="wbar-day">${WD[d.getDay()]}</div><div class="wbar-date">${pad(d.getDate())}/${pad(d.getMonth()+1)}</div></div>`;
+  }).join('');
+  const summary = englishActivitySummaryForRange(days);
+  const moduleCard = englishModuleStatsCard(days[0], days[6]);
+  const advice = englishStatsAdvice(summary);
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
+    ${englishSubNav()}
+    ${statsSeg('english')}
+    ${englishStatsHeaderCard()}
+    <div class="card"><h3>7 ngày gần nhất — số lượt luyện mỗi ngày</h3><div class="weekbars">${bars}</div></div>
+    <div class="statgrid">
+      <div class="stat"><div class="v">${summary.totalExercises}</div><div class="l">Tổng lượt luyện tuần này</div></div>
+      <div class="stat"><div class="v">${summary.overallAvg!==null?summary.overallAvg+'%':'—'}</div><div class="l">Điểm trung bình</div></div>
+      <div class="stat"><div class="v">${summary.daysActive}/7</div><div class="l">Ngày có luyện tập</div></div>
+    </div>
+    ${moduleCard}
+    <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">Nhận xét</span></div>${advice.map(m=>`<p>${m}</p>`).join('')}</div>
+  `;
+  attachStatsSegEvents();
+}
+function renderEnglishMonth(){
+  const y=STATE.statsYear, m=STATE.statsMonth; const cells=getMonthMatrix(y,m); const today=todayKey();
+  const headRow = WD.slice(1).concat(WD[0]).map(w=>`<div class="calhead">${w}</div>`).join('');
+  const monthKeys=[]; cells.forEach(d=>{ if(d!==null) monthKeys.push(y+'-'+pad(m+1)+'-'+pad(d)); });
+  const counts = {}; let maxCount=0;
+  monthKeys.forEach(k=>{ const c = englishExerciseCountForDate(k); counts[k]=c; if(c>maxCount) maxCount=c; });
+  const cellsHtml = cells.map(d=>{
+    if(d===null) return `<div class="calcell empty"></div>`;
+    const key = y+'-'+pad(m+1)+'-'+pad(d); const isToday = key===today;
+    const c = counts[key]||0;
+    const pct = maxCount>0 ? Math.round(c/maxCount*100) : 0;
+    const bg = c>0 ? heatColor(Math.max(pct,15)) : 'var(--panel2)';
+    const title = c>0 ? c+' lượt luyện' : 'Chưa luyện';
+    return `<div class="calcell ${isToday?'today':''}" style="background:${bg};" title="${title}">${d}</div>`;
+  }).join('');
+  const summary = englishActivitySummaryForRange(monthKeys);
+  const moduleCard = englishModuleStatsCard(monthKeys[0], monthKeys[monthKeys.length-1]);
+  const advice = englishStatsAdvice(summary);
+  const useChart = hasChartJs();
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
+    ${englishSubNav()}
+    ${statsSeg('english')}
+    ${englishStatsHeaderCard()}
+    <div class="card"><div class="rowbtns"><button class="navbtn" data-action="month-prev">‹</button><div class="lbl">${MONTH_NAMES[m]} / ${y}</div><button class="navbtn" data-action="month-next">›</button></div>
+      <div class="calgrid">${headRow}${cellsHtml}</div>
+      <div class="calendar-legend"><span class="cal-leg-chip"><span class="dot" style="background:#4FA8FF"></span>Có luyện tập (càng đậm càng luyện nhiều)</span></div>
+    </div>
+    <div class="statgrid">
+      <div class="stat"><div class="v">${summary.totalExercises}</div><div class="l">Tổng lượt luyện trong tháng</div></div>
+      <div class="stat"><div class="v">${summary.overallAvg!==null?summary.overallAvg+'%':'—'}</div><div class="l">Điểm trung bình</div></div>
+      <div class="stat"><div class="v">${summary.daysActive}</div><div class="l">Ngày có luyện tập</div></div>
+      <div class="stat"><div class="v">${monthKeys.length}</div><div class="l">Số ngày trong tháng</div></div>
+    </div>
+    ${useChart ? `<div class="card"><h3>Xu hướng theo ngày</h3><div style="height:150px;"><canvas id="eng-month-trend-chart"></canvas></div></div>` : ''}
+    ${moduleCard}
+    <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">Nhận xét</span></div>${advice.map(mm=>`<p>${mm}</p>`).join('')}</div>
+  `;
+  attachStatsSegEvents();
+  document.querySelector('[data-action="month-prev"]').onclick=()=>{ STATE.statsMonth--; if(STATE.statsMonth<0){STATE.statsMonth=11;STATE.statsYear--;} renderContent(); };
+  document.querySelector('[data-action="month-next"]').onclick=()=>{ STATE.statsMonth++; if(STATE.statsMonth>11){STATE.statsMonth=0;STATE.statsYear++;} renderContent(); };
+  if(useChart){
+    try{
+      const dayNums=[]; const dayVals=[];
+      monthKeys.forEach(k=>{ const d=parseKey(k); dayNums.push(d.getDate()); dayVals.push(counts[k]>0?counts[k]:null); });
+      const ctx = document.getElementById('eng-month-trend-chart').getContext('2d');
+      const grad = ctx.createLinearGradient(0,0,0,150);
+      grad.addColorStop(0,'#4FA8FF66'); grad.addColorStop(1,'#4FA8FF00');
+      activeCharts.push(new Chart(ctx, {
+        type:'line',
+        data:{ labels: dayNums, datasets:[{ data: dayVals, borderColor:'#4FA8FF', backgroundColor:grad, fill:true, tension:0.3,
+          spanGaps:true, pointRadius:2.5, pointBackgroundColor:'#4FA8FF', borderWidth:2 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1D2531', borderColor:'#2A3341', borderWidth:1, padding:8,
+            callbacks:{ title:(items)=>'Ngày '+items[0].label, label:(c)=> c.parsed.y+' lượt' } } },
+          scales:{ y:{ beginAtZero:true, ticks:{color:'#8B96A8', font:{size:9}}, grid:{color:'#232C3A'}},
+                   x:{ ticks:{color:'#8B96A8', font:{size:8.5}, maxTicksLimit:10}, grid:{display:false} } } }
+      }));
+    }catch(e){ console.error('Chart render error', e); }
+  }
+}
+function renderEnglishYear(){
+  const y=STATE.statsYear; const monthCounts=[]; let yearActiveKeys=[];
+  for(let m=0;m<12;m++){
+    const daysInMonth=new Date(y,m+1,0).getDate(); let sum=0;
+    for(let d=1;d<=daysInMonth;d++){ const key=y+'-'+pad(m+1)+'-'+pad(d); const c=englishExerciseCountForDate(key); sum+=c; if(c>0) yearActiveKeys.push(key); }
+    monthCounts.push(sum);
+  }
+  const maxMonth = Math.max(1, ...monthCounts);
+  const summary = englishActivitySummaryForRange(yearActiveKeys);
+  const bestMonthIdx = monthCounts.reduce((best,v,i,arr)=> v>arr[best]?i:best, 0);
+  const bestMonth = monthCounts[bestMonthIdx]>0 ? MONTH_NAMES[bestMonthIdx] : '—';
+  const moduleCard = englishModuleStatsCard(y+'-01-01', y+'-12-31');
+  const advice = englishStatsAdvice(summary);
+  const yearChartHtml = `<div class="yearbars">${monthCounts.map((cnt,m)=>{
+    const pct = Math.round(cnt/maxMonth*100);
+    return `<div class="ybar-col">
+      <div class="ybar-pct" style="color:#4FA8FF">${cnt}</div>
+      <div class="ybar-track" style="background:#4FA8FF22;"><div class="ybar-fill" style="height:${Math.max(pct,cnt>0?6:0)}%; background:#4FA8FF;"></div></div>
+      <div class="ybar-lbl">${MONTH_NAMES[m]}</div></div>`;
+  }).join('')}</div>`;
+  document.getElementById('content').innerHTML = `
+    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
+    ${englishSubNav()}
+    ${statsSeg('english')}
+    ${englishStatsHeaderCard()}
+    <div class="card"><div class="rowbtns"><button class="navbtn" data-action="year-prev">‹</button><div class="lbl">Năm ${y}</div><button class="navbtn" data-action="year-next">›</button></div>
+      ${yearChartHtml}</div>
+    <div class="statgrid">
+      <div class="stat"><div class="v">${summary.totalExercises}</div><div class="l">Tổng lượt luyện trong năm</div></div>
+      <div class="stat"><div class="v">${summary.overallAvg!==null?summary.overallAvg+'%':'—'}</div><div class="l">Điểm trung bình</div></div>
+      <div class="stat"><div class="v">${bestMonth}</div><div class="l">Tháng luyện nhiều nhất</div></div>
+      <div class="stat"><div class="v">${summary.daysActive}</div><div class="l">Ngày có luyện tập trong năm</div></div>
+    </div>
+    ${moduleCard}
+    <div class="advice"><div class="hdr"><span class="ic">🧠</span><span class="t">Nhận xét</span></div>${advice.map(mm=>`<p>${mm}</p>`).join('')}</div>
   `;
   attachStatsSegEvents();
   document.querySelector('[data-action="year-prev"]').onclick=()=>{ STATE.statsYear--; renderContent(); };
@@ -12779,6 +13337,8 @@ function renderContent(){
   else if(STATE.tab==='entertainment') renderEntertainment();
   else if(STATE.tab==='ent-music') renderMusicPlaylist();
   else if(STATE.tab==='customcat') renderCustomCat();
+  else if(STATE.tab==='pet') renderPetDetail();
+  else if(STATE.tab==='english-planner') renderEnglishPlanner();
   renderNav(); renderHUD();
 }
 
@@ -12799,6 +13359,13 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const bgResetEl = e.target.closest('[data-action="bg-reset"]');
   if(bgResetEl){ SETTINGS.appBackground=null; saveSettings(); applyAppBackground(); renderContent(); return; }
 
+  const petRegenEl = e.target.closest('[data-action="pet-regen-reward"]');
+  if(petRegenEl){
+    petRegenEl.textContent = '⏳ Đang xin lời khuyên...'; petRegenEl.disabled = true;
+    const st = petState();
+    petGenerateReward(st.idx, true).then(()=>{ if(STATE.tab==='pet') renderContent(); });
+    return;
+  }
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
   if(hubOpenEl){
     const target = hubOpenEl.getAttribute('data-target');
