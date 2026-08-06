@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v111';
+const APP_VERSION = 'v112';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2676,6 +2676,7 @@ const PET_FORMS = [
   ['🌟','Hỗn Độn Thánh Thể','Trở về trạng thái nguyên sơ nhất của vạn vật, vừa hư vừa thực.'],
   ['👑','Thiên Đạo Chí Tôn','Đứng trên cùng cửu thiên, tên khắc vào bia đá vạn cổ không phai.'],
 ];
+const PET_SUBS = ['Sơ Kỳ','Trung Kỳ','Hậu Kỳ','Đại Thành','Viên Mãn'];
 const PET_MAX_LEVEL = PET_FORMS.length; // 50 cấp = 50 hình thái
 function petRealmOf(idx){ return PET_REALMS[Math.min(PET_REALMS.length-1, Math.floor(idx/PET_SUBS.length))]; }
 function petFormOf(idx){ return PET_FORMS[Math.max(0, Math.min(PET_FORMS.length-1, idx))]; }
@@ -14113,6 +14114,21 @@ function renderStatsFor(track){
 function renderContent(){
   _renderDepth++;
   try{ renderContentInner(); }
+  catch(err){
+    // Không để một lỗi vẽ màn hình làm kẹt cả app (đặc biệt ở bước đăng nhập/đồng bộ).
+    console.error('renderContent error:', err);
+    try{
+      const el = document.getElementById('content');
+      if(el && !el.innerHTML.trim()){
+        el.innerHTML = `<div class="card" style="margin:16px;">
+          <h3 style="margin-bottom:8px;">⚠️ Có lỗi khi hiển thị màn hình</h3>
+          <div style="font-size:12px; color:var(--dim2); line-height:1.6; margin-bottom:10px;">Dữ liệu của bạn vẫn an toàn. Bạn có thể quay về trang chính rồi thử lại.</div>
+          <div style="font-size:10.5px; color:var(--dim2); word-break:break-word; margin-bottom:12px;">${escapeHtml(String(err && err.message || err))}</div>
+          <button class="form-btn" data-action="hub-open" data-target="hub">🏠 Về trang chính</button>
+        </div>`;
+      }
+    }catch(_){}
+  }
   finally{ _renderDepth--; }
 }
 function renderContentInner(){
