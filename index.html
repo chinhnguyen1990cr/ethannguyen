@@ -301,6 +301,27 @@
   .hub-clock-quicklinks{position:relative; z-index:1; display:flex; gap:8px;}
   .hub-clock-lists{position:relative; z-index:1; display:flex; flex-direction:column; gap:8px;}
   /* ---- Thống kê hoạt động học tiếng Anh trong ngày (đầu màn hình Học tiếng Anh) ---- */
+  /* ---- Nghỉ giữa hiệp + bộ chọn cường độ học ---- */
+  .study-rest{text-align:center; padding:22px 18px;}
+  .study-rest-ic{font-size:34px; margin-bottom:8px;}
+  .study-rest-title{font-size:15px; font-weight:800; color:var(--text);}
+  .study-rest-sub{font-size:12px; color:var(--dim); margin-top:5px;}
+  .study-rest-sub b{color:var(--teal);}
+  .study-rest-track{height:6px; border-radius:4px; background:var(--border); overflow:hidden; margin:12px auto 6px; max-width:260px;}
+  .study-rest-fill{height:100%; border-radius:4px; background:linear-gradient(90deg,#4FA8FF,#2CDBA8); transition:width .3s ease;}
+  .study-rest-prog{font-size:10.5px; color:var(--dim2);}
+  .study-rest-tip{font-size:11px; color:var(--dim); line-height:1.65; margin:14px 0 16px; text-align:left;
+    background:rgba(255,201,74,.08); border:1px solid rgba(255,201,74,.25); border-radius:12px; padding:10px 12px;}
+  .study-rest-tip b{color:var(--gold);}
+  .study-mode-row{display:grid; grid-template-columns:repeat(3,1fr); gap:7px;}
+  .study-mode-btn{background:rgba(0,0,0,.22); border:1px solid var(--border); border-radius:12px; padding:9px 6px;
+    text-align:center; cursor:pointer; transition:all .15s ease;}
+  .study-mode-btn.on{border-color:#4FA8FF; background:rgba(79,168,255,.14);}
+  .study-mode-btn .smb-label{font-size:12px; font-weight:800; color:var(--text);}
+  .study-mode-btn.on .smb-label{color:#4FA8FF;}
+  .study-mode-btn .smb-hint{font-size:8.5px; color:var(--dim2); margin-top:2px; line-height:1.25;}
+  .study-mode-note{font-size:10.5px; color:var(--dim); line-height:1.65; margin-top:10px;}
+  .study-mode-note b{color:var(--text);}
   .etoday-card{background:linear-gradient(160deg, rgba(79,168,255,.10), rgba(124,108,240,.04));
     border:1px solid rgba(79,168,255,.28); border-radius:18px; padding:14px 14px 12px; margin-bottom:14px;}
   .etoday-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:11px;}
@@ -1497,7 +1518,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v104';
+const APP_VERSION = 'v105';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -4643,6 +4664,89 @@ function englishSubNav(){
     <button class="${STATE.tab==='english-methods'?'active':''}" data-action="hub-open" data-target="english-methods">Phương pháp</button>
   </div>`;
 }
+// ================= CƯỜNG ĐỘ HỌC & CHIA HIỆP (Study Load Engine) =================
+// VẤN ĐỀ CŨ: mỗi ngày app dồn 45 lượt Từ vựng + 35 Câu thông dụng + 25 Chép chính tả = 105 lượt, chưa
+// kể Ngữ pháp/Nghe/Nói. Một phiên dài như vậy vừa ngốn thời gian vừa phản tác dụng: sau khoảng 10-15 câu
+// liên tục, khả năng chú ý và ghi nhớ tụt rất nhanh (hiệu ứng quá tải nhận thức), người học chỉ còn bấm
+// cho xong. Nguyên tắc áp dụng ở đây:
+//   1. HỌC NGẮN NHƯNG ĐỀU hơn học dồn — cùng một tổng số câu, chia nhỏ ra nhiều lần luôn nhớ lâu hơn.
+//   2. ÔN TRƯỚC, HỌC MỚI SAU — 60% mỗi phiên là từ/câu tới hạn ôn (giá trị cao nhất), 40% là nội dung mới.
+//   3. CHIA HIỆP — cứ hết một hiệp là dừng lại một nhịp, cho não kịp củng cố và cho người học quyền dừng
+//      đúng lúc thay vì bỏ ngang giữa chừng (bỏ ngang khiến phần đã học cũng không được ghi nhận).
+//   4. TỰ CO GIÃN — nhìn kết quả 7 ngày gần nhất: làm tốt thì tăng nhẹ, làm đuối thì giảm bớt.
+const STUDY_MODES = {
+  short:  {key:'short',  label:'Ngắn',  hint:'10–15 phút/ngày', vocab:8,  sent:8,  dict:6,  batch:6},
+  medium: {key:'medium', label:'Vừa',   hint:'20–30 phút/ngày', vocab:12, sent:12, dict:9,  batch:7},
+  long:   {key:'long',   label:'Dài',   hint:'trên 30 phút/ngày',vocab:18, sent:18, dict:14, batch:9},
+};
+function studyMode(){
+  const k = SETTINGS.studyMode;
+  return STUDY_MODES[k] || STUDY_MODES.long;
+}
+function setStudyMode(k){
+  if(!STUDY_MODES[k]) return;
+  SETTINGS.studyMode = k;
+  // Xóa cache khối lượng của hôm nay để mức mới có hiệu lực ngay, không phải chờ sang ngày mới.
+  SETTINGS.vocabDailyCache = null; SETTINGS.sentDailyCache = null; SETTINGS.dictDailyCache = null;
+  saveSettings(); pushToDrive(); renderContent();
+}
+// Hệ số co giãn theo kết quả thật 7 ngày gần nhất — không hỏi người dùng, tự nhìn số liệu mà điều chỉnh.
+function studyLoadFactor(){
+  let sum = 0, n = 0, d = new Date();
+  for(let i=0;i<7;i++){
+    d = addDays(d,-1);
+    const a = englishActivityForDate(toKey(d));
+    if(a.overallAvg !== null){ sum += a.overallAvg; n++; }
+  }
+  if(!n) return 1;
+  const avg = sum/n;
+  if(avg >= 85) return 1.2;
+  if(avg >= 70) return 1;
+  if(avg >= 55) return 0.85;
+  return 0.7;
+}
+function studyLoadNote(){
+  const f = studyLoadFactor();
+  if(f >= 1.2) return 'Kết quả 7 ngày qua rất tốt — khối lượng được tăng nhẹ để bạn không bị nhàm.';
+  if(f >= 1)   return 'Kết quả 7 ngày qua ổn định — giữ nguyên khối lượng tiêu chuẩn.';
+  if(f >= 0.85)return 'Điểm gần đây hơi thấp — đã giảm bớt khối lượng để bạn tập trung làm chắc từng câu.';
+  return 'Điểm gần đây còn thấp — khối lượng đã giảm mạnh, ưu tiên làm ít mà chắc rồi tăng dần trở lại.';
+}
+// Tổng số câu cho một mục trong ngày, đã nhân hệ số co giãn. min 4 để ngày nào cũng có việc để làm.
+function studyQuota(kind){
+  const base = studyMode()[kind] || 10;
+  return Math.max(4, Math.round(base * studyLoadFactor()));
+}
+// Tách quota thành phần ÔN (tới hạn) và phần MỚI theo tỉ lệ 60/40 — ôn tập luôn được ưu tiên vì đó là
+// phần quyết định việc kiến thức có ở lại lâu dài hay không.
+function studyDueQuota(kind){ return Math.max(2, Math.round(studyQuota(kind)*0.6)); }
+function studyNewQuota(kind){ return Math.max(2, studyQuota(kind) - studyDueQuota(kind)); }
+function studyBatchSize(){ return studyMode().batch; }
+// Đã học hết một hiệp chưa? (còn câu phía sau thì mới cần nghỉ)
+function studyShouldRest(s){
+  const b = studyBatchSize();
+  return s && s.idx > 0 && s.idx % b === 0 && s.idx < s.ids.length;
+}
+// Thẻ "nghỉ giữa hiệp" — chốt lại kết quả hiệp vừa xong và cho quyền dừng đúng lúc.
+function studyRestCardHtml(s, title){
+  const done = s.idx;
+  const total = s.ids.length;
+  const pct = Math.round(done/total*100);
+  const acc = done ? Math.round((s.correct/done)*100) : 0;
+  const roundNo = Math.ceil(done/studyBatchSize());
+  const totalRounds = Math.ceil(total/studyBatchSize());
+  const praise = acc>=85 ? 'Hiệp này bạn làm rất tốt.' : (acc>=60 ? 'Hiệp này bạn làm ổn.' : 'Hiệp này hơi khó với bạn — không sao, sai là cách nhớ lâu nhất.');
+  return `<div class="card study-rest">
+    <div class="study-rest-ic">☕</div>
+    <div class="study-rest-title">Nghỉ giữa hiệp — hiệp ${roundNo}/${totalRounds}</div>
+    <div class="study-rest-sub">${praise} Đúng <b>${s.correct}/${done}</b> câu (${acc}%).</div>
+    <div class="study-rest-track"><div class="study-rest-fill" style="width:${pct}%;"></div></div>
+    <div class="study-rest-prog">Đã xong ${done}/${total} câu của ${escapeHtml(title)} hôm nay</div>
+    <div class="study-rest-tip">💡 Dừng lại vài chục giây rồi học tiếp sẽ nhớ tốt hơn là làm một mạch. Nếu hôm nay bận, bấm "Dừng hôm nay" — phần đã học <b>vẫn được ghi nhận đầy đủ</b>, không mất tiến độ.</div>
+    <button class="form-btn" data-action="study-rest-continue">▶️ Học tiếp một hiệp nữa</button>
+    <button class="form-btn cancel" data-action="study-rest-stop" style="margin-top:8px;">✓ Dừng hôm nay tại đây</button>
+  </div>`;
+}
 // ================= KẾ HOẠCH HỌC TIẾNG ANH MỖI NGÀY (Daily Study Planner) =================
 // Đề xuất mỗi ngày nên học 2 mục (đủ để tiến bộ, không quá tải), xoay vòng theo thứ trong tuần,
 // xen kẽ kỹ năng "input" (nghe/từ vựng) và "output" (nói/ngữ pháp) — nguyên lý interleaving giúp
@@ -4726,6 +4830,16 @@ function renderEnglishPlanner(){
       <div style="font-size:16px; font-weight:800; color:var(--text); margin-top:4px;">${rot.focus}</div>
       <div style="font-size:11.5px; color:var(--dim); line-height:1.6; margin-top:6px;">${rot.note}</div>
       <div style="font-size:10.5px; color:var(--dim2); margin-top:8px;">Đã hoàn thành ${doneCount}/${core.length} mục đề xuất hôm nay${goal>1?` · Chỉ tiêu tối thiểu hôm nay: ${goal} hoạt động`:''}</div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3 style="margin-bottom:4px;">⚙️ Cường độ học mỗi ngày</h3>
+      <div style="font-size:10.5px; color:var(--dim2); line-height:1.55; margin-bottom:9px;">Chọn mức phù hợp với quỹ thời gian thật của bạn. Mỗi phiên đều được chia thành từng hiệp ${studyBatchSize()} câu, hết hiệp có điểm nghỉ để bạn dừng đúng lúc thay vì bỏ ngang.</div>
+      <div class="study-mode-row">${Object.keys(STUDY_MODES).map(k=>{
+        const m = STUDY_MODES[k]; const on = studyMode().key===k;
+        return `<div class="study-mode-btn ${on?'on':''}" data-action="set-study-mode" data-mode="${k}">
+          <div class="smb-label">${m.label}</div><div class="smb-hint">${m.hint}</div></div>`;
+      }).join('')}</div>
+      <div class="study-mode-note">Hôm nay: <b>${studyQuota('vocab')}</b> từ vựng · <b>${studyQuota('sent')}</b> câu thông dụng · <b>${studyQuota('dict')}</b> câu chép chính tả — trong đó 60% là ôn lại nội dung tới hạn, 40% là nội dung mới.<br>${studyLoadNote()}</div>
     </div>
     <div class="menu-card-heading" style="padding:14px 2px 8px;">📋 Đề xuất cho hôm nay (2 mục — tránh quá tải)</div>
     <div class="eplan-list">${coreHtml}</div>
@@ -4965,9 +5079,9 @@ function vocabBuildDailyQueue(){
   const due = Object.keys(prog).map(k=>parseInt(k,10))
     .filter(n=>prog[n].introduced && prog[n].next && prog[n].next<=today)
     .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
-    .slice(0, 25);
+    .slice(0, studyDueQuota('vocab'));
   const dueSet = new Set(due);
-  const newCount = Math.max(0, SETTINGS.vocabDailyNew||20);
+  const newCount = studyNewQuota('vocab');
   const newWords = [];
   const total = (VOCAB_DATA && VOCAB_DATA.words.length) || 3000;
   for(let n=1; n<=total && newWords.length<newCount; n++){
@@ -5221,6 +5335,7 @@ function vocabNext(){
   if(s.idx < s.ids.length-1){
     s.idx++;
     vocabPrepareCurrent();
+    if(studyShouldRest(s)) s.resting = true;
     renderContent();
   } else {
     s.finished = true;
@@ -5338,6 +5453,7 @@ function renderVocabTopicWordList(){
 }
 function renderVocabSession(){
   const s = STATE.vocabSession;
+  if(s.resting) return `${englishItemBackRow('Luyện từ vựng')}${studyRestCardHtml(s,'Luyện từ vựng')}`;
   if(s.finished){
     const pct = Math.round((s.correct/s.ids.length)*100);
     const missed = Array.isArray(s.missedIds) ? s.missedIds : [];
@@ -7562,9 +7678,9 @@ function sentBuildDailyQueue(){
   const due = Object.keys(prog).map(k=>parseInt(k,10))
     .filter(n=>prog[n].introduced && prog[n].next && prog[n].next<=today)
     .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
-    .slice(0, 20);
+    .slice(0, studyDueQuota('sent'));
   const dueSet = new Set(due);
-  const newCount = Math.max(0, SETTINGS.sentDailyNew||15);
+  const newCount = studyNewQuota('sent');
   const newOnes = [];
   const total = (COMMON_SENT_DATA && COMMON_SENT_DATA.sentences.length) || 300;
   for(let n=1; n<=total && newOnes.length<newCount; n++){
@@ -7805,7 +7921,7 @@ function sentTypedSubmit(){
 }
 function sentNext(){
   const s = STATE.sentSession; if(!s) return;
-  if(s.idx < s.ids.length-1){ s.idx++; sentPrepareCurrent(); renderContent(); }
+  if(s.idx < s.ids.length-1){ s.idx++; sentPrepareCurrent(); if(studyShouldRest(s)) s.resting = true; renderContent(); }
   else { s.finished = true; renderContent(); }
 }
 function sentSpeakCurrent(){
@@ -7880,6 +7996,7 @@ function renderSentCategoriesGrid(){
 }
 function renderSentSession(){
   const s = STATE.sentSession;
+  if(s.resting) return `${englishItemBackRow('Câu thông dụng')}${studyRestCardHtml(s,'Câu thông dụng')}`;
   if(s.finished){
     const pct = Math.round((s.correct/s.ids.length)*100);
     return `${englishItemBackRow('Câu thông dụng')}
@@ -8155,9 +8272,9 @@ function dictBuildDailyQueue(){
   const due = pool.map(s=>s[0])
     .filter(n=>prog[n] && prog[n].introduced && prog[n].next && prog[n].next<=today)
     .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
-    .slice(0, 15);
+    .slice(0, studyDueQuota('dict'));
   const dueSet = new Set(due);
-  const newCount = 10;
+  const newCount = studyNewQuota('dict');
   const newOnes = [];
   for(const s of pool){
     if(newOnes.length>=newCount) break;
@@ -8240,7 +8357,7 @@ function dictTypedSubmit(){
 function dictNext(){
   const s = STATE.dictSession; if(!s) return;
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
-  if(s.idx < s.ids.length-1){ s.idx++; dictPrepareCurrent(); renderContent(); }
+  if(s.idx < s.ids.length-1){ s.idx++; dictPrepareCurrent(); if(studyShouldRest(s)) s.resting = true; renderContent(); }
   else { s.finished = true; renderContent(); }
 }
 // Xả hàng đợi đọc trước mỗi lần phát — đây là biện pháp phòng ngừa lỗi ĐÃ BIẾT của Web Speech API trên
@@ -8340,6 +8457,7 @@ function dictSessionBackRow(){
 }
 function renderDictSession(){
   const s = STATE.dictSession;
+  if(s.resting){ document.getElementById('content').innerHTML = `${dictSessionBackRow()}${studyRestCardHtml(s,'Chép chính tả')}`; return; }
   if(s.finished){
     const pct = Math.round((s.correct/s.ids.length)*100);
     document.getElementById('content').innerHTML = `${dictSessionBackRow()}
@@ -13777,6 +13895,23 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const bgResetEl = e.target.closest('[data-action="bg-reset"]');
   if(bgResetEl){ SETTINGS.appBackground=null; saveSettings(); applyAppBackground(); renderContent(); return; }
 
+  // Nghỉ giữa hiệp: học tiếp / dừng hôm nay (dùng chung cho Từ vựng, Câu thông dụng, Chép chính tả)
+  const restContEl = e.target.closest('[data-action="study-rest-continue"]');
+  if(restContEl){
+    const cur = (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
+    if(cur){ cur.resting = false; renderContent(); }
+    return;
+  }
+  const restStopEl = e.target.closest('[data-action="study-rest-stop"]');
+  if(restStopEl){
+    const cur = (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
+    // Dừng sớm: cắt danh sách còn lại để phần kết quả tính đúng trên số câu ĐÃ LÀM, không bị chia cho
+    // tổng số câu dự kiến (nếu không, dừng giữa chừng sẽ hiện điểm thấp oan dù làm đúng hết).
+    if(cur){ cur.ids = cur.ids.slice(0, cur.idx); cur.resting = false; cur.finished = true; renderContent(); }
+    return;
+  }
+  const studyModeEl = e.target.closest('[data-action="set-study-mode"]');
+  if(studyModeEl){ setStudyMode(studyModeEl.getAttribute('data-mode')); return; }
   const petRegenEl = e.target.closest('[data-action="pet-regen-reward"]');
   if(petRegenEl){
     petRegenEl.textContent = '⏳ Đang xin lời khuyên...'; petRegenEl.disabled = true;
