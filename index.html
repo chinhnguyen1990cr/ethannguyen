@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v110';
+const APP_VERSION = 'v111';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3161,7 +3161,7 @@ const DRIVE_CLIENT_ID = '438067366099-o15mbeitrs9ovunf511bianherq61r4n.apps.goog
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_NAME = 'rlmn-hub-data.json';
 let driveTokenClient=null, driveAccessToken=null, driveTokenExpiry=0, driveFileId=null;
-let driveUserEmail=null, driveSyncing=false, driveSilentTimer=null;
+let driveUserEmail=null, driveSyncing=false, driveSilentTimer=null, driveSyncStartedAt=0, driveSyncErr=null;
 // driveSyncOk: null = chưa đồng bộ lần nào, true = lần gần nhất thành công, false = lần gần nhất lỗi
 // (ví dụ do ảnh nền/banner quá nặng khiến request bị từ chối) — hiển thị dưới tên trong banner.
 let driveSyncOk = null;
@@ -3218,14 +3218,19 @@ async function onDriveTokenResponse(resp){
   // không chặn phần đồng bộ dữ liệu chính chạy ngay lập tức.
   fetchDriveUserEmail().catch(()=>{}).then(()=>{ if(STATE.tab!=='authgate') renderContent(); });
   if(!wasConnected){
-    driveSyncing = true; renderContent();
+    driveSyncing = true; driveSyncStartedAt = Date.now(); renderContent();
     try{
-      await ensureDriveFile();
-      await pullFromDrive();
+      // Giới hạn 45 giây cho TOÀN BỘ bước đồng bộ đầu tiên. Hết giờ thì bỏ qua và vào thẳng app —
+      // thà vào app với dữ liệu đang có trên máy còn hơn đứng chờ vô tận không làm gì được.
+      await withTimeout((async ()=>{ await ensureDriveFile(); await pullFromDrive(); })(), 45000);
       // KHÔNG ghi đè driveSyncOk ở đây — pullFromDrive() đã tự set true/false chính xác theo
       // kết quả thật; ghi đè cứng thành true trước đây khiến banner luôn báo "Đã đồng bộ" dù
       // lần đồng bộ đó thực ra bị lỗi (đây là nguyên nhân chính khiến trạng thái hiển thị sai).
-    }catch(e){ console.error('Drive init error', e); driveSyncOk = false; }
+    }catch(e){
+      console.error('Drive init error', e);
+      driveSyncOk = false;
+      driveSyncErr = /timeout/i.test(String(e && e.message)) ? 'Đồng bộ quá lâu nên đã bỏ qua để bạn vào app được ngay. Dữ liệu trên máy vẫn nguyên vẹn — vào Thông tin cá nhân bấm "Tải lại từ Drive" để thử lại.' : null;
+    }
     driveLastSyncAt = Date.now();
     driveSyncing = false;
   }
@@ -3323,7 +3328,12 @@ async function pullFromDrive(){
       }catch(e){}
     }
     if(data.kiemhang){ try{ KIEMHANG = JSON.parse(data.kiemhang) || {}; }catch(e){} }
-    saveLog(); saveSettings(); saveKiemHang();
+    // Chỉ lưu XUỐNG MÁY, TUYỆT ĐỐI không đẩy ngược lên Drive: dữ liệu này VỪA tải về từ chính Drive nên
+    // đẩy lên lại là gửi đi vài MB y hệt một cách vô ích — đây là một trong những lý do bước "Đang đồng
+    // bộ" kéo dài lê thê rồi treo trên điện thoại.
+    _suppressDrivePush = true;
+    try{ saveLog(); saveSettings(); saveKiemHang(); }
+    finally{ _suppressDrivePush = false; }
     driveSyncOk = true;
     driveLastSyncAt = Date.now();
   } else {
@@ -3331,7 +3341,14 @@ async function pullFromDrive(){
   }
 }
 let driveSaveTimer=null;
+// Cờ tạm chặn đẩy dữ liệu lên Drive (dùng khi vừa TẢI VỀ xong — xem pullFromDrive).
+let _suppressDrivePush = false;
+// Ghi chú: dùng lại hàm withTimeout(promise, ms) đã có sẵn ở phần STORAGE phía trên — nó ném lỗi
+// mang chữ "timeout". Các lời gọi Drive trước đây KHÔNG có giới hạn thời gian nào: mạng điện thoại chập
+// chờn giữa chừng khi đang tải/gửi vài MB là lời gọi treo vô thời hạn, app đứng im mãi ở màn "Đang đồng
+// bộ" mà không có đường thoát.
 function pushToDrive(){
+  if(_suppressDrivePush) return;
   if(!driveAccessToken) return;
   clearTimeout(driveSaveTimer);
   driveSaveTimer = setTimeout(()=>{ driveSaveTimer=null; pushToDriveNow(); }, 900);
@@ -4066,7 +4083,11 @@ function renderAuthGate(){
       <div class="authgate-sub">Đăng nhập Google để đồng bộ tiến độ, cấp độ và huy hiệu của bạn trên mọi thiết bị.</div>
       <div class="authgate-card">${
         driveSyncing
-          ? `<div class="card" style="text-align:center;"><div style="font-size:12px; color:var(--dim);">Đang đồng bộ với Google Drive...</div></div>`
+          ? `<div class="card" style="text-align:center;">
+                <div style="font-size:12px; color:var(--dim); line-height:1.6;">Đang đồng bộ với Google Drive...</div>
+                <div style="font-size:10.5px; color:var(--dim2); margin-top:6px; line-height:1.55;">Nếu dữ liệu của bạn có ảnh bìa/ảnh nền thì lần đầu có thể mất tới một phút. Tối đa 45 giây, sau đó app tự vào thẳng.</div>
+                <button class="form-btn cancel" style="margin-top:12px;" data-action="skip-sync">⏭️ Vào app ngay, đồng bộ sau</button>
+              </div>`
           : connected
             ? `<div class="card" style="text-align:center;">
                 <div style="font-size:13px; font-weight:700;">${driveUserEmail || 'Đã kết nối Google Drive'}</div>
@@ -14149,6 +14170,15 @@ document.getElementById('content').addEventListener('click',(e)=>{
     // Dừng sớm: cắt danh sách còn lại để phần kết quả tính đúng trên số câu ĐÃ LÀM, không bị chia cho
     // tổng số câu dự kiến (nếu không, dừng giữa chừng sẽ hiện điểm thấp oan dù làm đúng hết).
     if(cur){ cur.ids = cur.ids.slice(0, cur.idx); cur.resting = false; cur.finished = true; renderContent(); }
+    return;
+  }
+  const skipSyncEl = e.target.closest('[data-action="skip-sync"]');
+  if(skipSyncEl){
+    // Cho người dùng chủ động bỏ qua bước đồng bộ — không bao giờ để họ bị nhốt ở màn hình chờ.
+    driveSyncing = false; driveSyncOk = false;
+    driveSyncErr = 'Bạn đã bỏ qua đồng bộ. Dữ liệu trên máy vẫn đầy đủ — khi nào rảnh vào Thông tin cá nhân bấm "Tải lại từ Drive".';
+    if(STATE.tab==='authgate') STATE.tab = 'hub';
+    renderContent();
     return;
   }
   const hubTabEl = e.target.closest('[data-action="hub-today-tab"]');
