@@ -1497,7 +1497,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v103';
+const APP_VERSION = 'v104';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2611,12 +2611,18 @@ function petLevelThreshold(idx){
 // ---- ĐIỂM TIẾN HÓA: LẤY TỪ CẢ HAI MỤC + CHUỖI NGÀY, CÓ THƯỞNG VÀ CÓ TRỪ ----
 const PET_STREAK_BONUS = 12;   // mỗi ngày trong chuỗi liên tiếp (mỗi mục) cộng thêm
 const PET_MISS_PENALTY = 8;    // mỗi việc trong Lịch làm việc bị bỏ lỡ sẽ bị trừ
+// Chỉ tính việc bỏ lỡ trong 30 NGÀY GẦN NHẤT. Nếu cộng dồn toàn bộ lịch sử, một người dùng lâu năm sẽ
+// mang theo hàng trăm lượt bỏ lỡ từ nhiều tháng trước và bị trừ vĩnh viễn — linh thú không bao giờ lớn
+// nổi dù hiện tại đang học rất chăm. Giới hạn 30 ngày giúp hình phạt phản ánh đúng giai đoạn gần đây và
+// luôn có cơ hội "chuộc lỗi" bằng cách làm tốt trở lại.
+const PET_MISS_WINDOW_DAYS = 30;
 function petMissedTaskCount(){
-  let n = 0;
-  Object.keys(LOG).forEach(k=>{
-    const r = LOG[k];
+  let n = 0, d = new Date();
+  for(let i=0;i<PET_MISS_WINDOW_DAYS;i++){
+    const r = LOG[toKey(d)];
     if(r && r.failed) n += Object.keys(r.failed).filter(id => !(r.tasks && r.tasks[id])).length;
-  });
+    d = addDays(d,-1);
+  }
   return n;
 }
 // Bảng phân bổ điểm minh bạch — hiện nguyên văn trong màn hình linh thú để người dùng biết mình đang
@@ -2629,8 +2635,13 @@ function petPointParts(){
   const engStreak = englishRealStreak();
   const streakBonus = (schedStreak + engStreak) * PET_STREAK_BONUS;
   const missed = petMissedTaskCount();
-  const penalty = missed * PET_MISS_PENALTY;
-  const total = Math.max(0, sched + eng + streakBonus - penalty);
+  const earned = sched + eng + streakBonus;
+  // Chặn trần hình phạt ở 25% tổng điểm kiếm được. Lý do: XP Lịch làm việc (dayXP) VỐN ĐÃ tự trừ mỗi
+  // việc bỏ lỡ rồi, nên nếu ở đây trừ thêm toàn phần là phạt hai lần cho cùng một lỗi — ngày đầu dùng
+  // app đã thấy "−96 điểm" trong khi chưa kịp kiếm điểm nào. Trần 25% giữ cho hình phạt vẫn có sức nặng
+  // và luôn nhìn thấy được, nhưng không bao giờ nuốt trọn thành quả người dùng đã bỏ công ra.
+  const penalty = Math.min(missed * PET_MISS_PENALTY, Math.round(earned * 0.25));
+  const total = Math.max(0, earned - penalty);
   return {sched, eng, schedStreak, engStreak, streakBonus, missed, penalty, total};
 }
 function petCombinedXP(){ return petPointParts().total; }
@@ -2789,8 +2800,8 @@ function renderPetDetail(){
     <div class="pet-score-row"><span>📅 XP Lịch làm việc hằng ngày</span><b class="plus">+${P.sched.toLocaleString('vi-VN')}</b></div>
     <div class="pet-score-row"><span>🗣️ Điểm học tiếng Anh</span><b class="plus">+${P.eng.toLocaleString('vi-VN')}</b></div>
     <div class="pet-score-row"><span>🔥 Thưởng chuỗi ngày (${P.schedStreak} + ${P.engStreak} ngày × ${PET_STREAK_BONUS})</span><b class="plus">+${P.streakBonus.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-row"><span>⚠️ Việc bỏ lỡ trong lịch (${P.missed} việc × ${PET_MISS_PENALTY})</span><b class="minus">−${P.penalty.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-note">Mọi hành động hoàn thành đúng yêu cầu ở <b>Lịch làm việc</b> và <b>Học tiếng Anh</b> đều nuôi linh khí cho linh thú; việc để quá giờ mà không hoàn thành sẽ hao tổn linh khí.</div>
+    <div class="pet-score-row"><span>⚠️ Việc bỏ lỡ ${PET_MISS_WINDOW_DAYS} ngày gần đây (${P.missed} việc)</span><b class="minus">−${P.penalty.toLocaleString('vi-VN')}</b></div>
+    <div class="pet-score-note">Mọi hành động hoàn thành đúng yêu cầu ở <b>Lịch làm việc</b> và <b>Học tiếng Anh</b> đều nuôi linh khí cho linh thú; việc để quá giờ mà không hoàn thành sẽ hao tổn linh khí. Hình phạt chỉ tính trong ${PET_MISS_WINDOW_DAYS} ngày gần nhất và không bao giờ vượt quá 25% điểm bạn đã kiếm được — làm tốt trở lại là hồi phục ngay.</div>
   </div>`;
   const paceCard = `<div class="pet-pace-card">
     <div class="pet-pace-title">🔮 Thiên đạo luận nhịp: ${pace.t}</div>
