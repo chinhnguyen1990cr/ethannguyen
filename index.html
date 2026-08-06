@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v108';
+const APP_VERSION = 'v109';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2708,7 +2708,7 @@ function petPaceFactor(){
   // không làm gì sai — trải nghiệm rất tệ. Đi từ từ giúp mốc luôn bám nhịp thật mà không giật cục.
   const prev = (typeof p.pace === 'number') ? p.pace : f;
   f = Math.max(prev-0.05, Math.min(prev+0.05, f));
-  p.pace = Math.round(Math.max(0.5, Math.min(1.5, f))*100)/100; p.paceDate = today; saveSettings();
+  p.pace = Math.round(Math.max(0.5, Math.min(1.5, f))*100)/100; p.paceDate = today; saveSettingsAfterRender();
   return p.pace;
 }
 function petPaceLabel(){
@@ -2785,7 +2785,7 @@ function petState(){
   // chứ không phải vì thang mốc vừa được nâng lên khi người dùng học chăm hơn. Vì vậy lưu lại cả cảnh
   // giới cao nhất (peakIdx) lẫn số điểm tại thời điểm đó (peakXp): còn giữ đủ điểm thì còn giữ cảnh giới.
   if(typeof p.peakXp !== 'number') p.peakXp = 0;
-  if(idx > p.peakIdx){ p.peakIdx = idx; p.peakXp = xp; saveSettings(); }
+  if(idx > p.peakIdx){ p.peakIdx = idx; p.peakXp = xp; saveSettingsAfterRender(); }
   else if(xp >= p.peakXp){ idx = p.peakIdx; }
   // Còn lại: điểm đã thực sự tụt xuống dưới mức từng đạt (bị trừ do bỏ lỡ việc) → giữ nguyên cảnh giới
   // sống theo điểm hiện tại, và hiện cảnh báo "linh khí đang hao tổn" để người dùng biết lý do.
@@ -3133,7 +3133,27 @@ async function loadAll(){
 }
 let saveTimer=null;
 function saveLog(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ storageSet('progress-log', JSON.stringify(LOG)).catch(e=>console.error(e)); }, 150); pushToDrive(); }
-function saveSettings(){ storageSet('progress-settings', JSON.stringify(SETTINGS)).catch(e=>console.error(e)); pushToDrive(); }
+// ================= CHỐNG TREO APP KHI ĐANG VẼ MÀN HÌNH =================
+// NGUYÊN NHÂN GỐC của lỗi "đăng nhập xong đứng luôn ở màn Đang đồng bộ": saveSettings() phải
+// JSON.stringify TOÀN BỘ SETTINGS — trong đó có ảnh bìa và ảnh nền lưu dạng base64, có thể nặng vài MB —
+// rồi lên lịch đẩy lên Google Drive. Nếu hàm này bị gọi NGAY TRONG lúc dựng giao diện, mỗi lần vẽ lại
+// màn hình là một lần "đóng băng" luồng chính để nén vài MB, cộng thêm một lượt ghi Drive. Ngay sau khi
+// đăng nhập, dữ liệu thật vừa tải về là lớn nhất, nên lần vẽ đầu tiên đó treo cứng — người dùng thấy
+// màn hình đứng im ở bước đồng bộ.
+// CÁCH SỬA (áp dụng cho TOÀN APP, không chỉ chỗ gây lỗi): trong lúc đang vẽ màn hình, mọi yêu cầu lưu
+// đều được dồn lại và chỉ thực hiện MỘT LẦN sau khi vẽ xong. Dữ liệu vẫn được lưu đầy đủ, chỉ khác là
+// không còn chặn giao diện.
+let _renderDepth = 0;
+let _pendingSaveTimer = null;
+function saveSettingsAfterRender(){
+  if(_pendingSaveTimer) return;
+  _pendingSaveTimer = setTimeout(()=>{ _pendingSaveTimer = null; saveSettings(); }, 800);
+}
+function saveSettings(){
+  if(_renderDepth > 0){ saveSettingsAfterRender(); return; }
+  storageSet('progress-settings', JSON.stringify(SETTINGS)).catch(e=>console.error(e));
+  pushToDrive();
+}
 function saveKiemHang(){ storageSet('kiemhang-data', JSON.stringify(KIEMHANG)).catch(e=>console.error(e)); pushToDrive(); }
 
 // ================= GOOGLE DRIVE CLOUD SYNC =================
@@ -14070,6 +14090,11 @@ function renderStatsFor(track){
   else renderYear(track);
 }
 function renderContent(){
+  _renderDepth++;
+  try{ renderContentInner(); }
+  finally{ _renderDepth--; }
+}
+function renderContentInner(){
   destroyCharts();
   if(STATE.tab==='authgate') renderAuthGate();
   else if(STATE.tab==='hub') renderHub();
