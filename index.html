@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v112';
+const APP_VERSION = 'v114';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3219,21 +3219,27 @@ async function onDriveTokenResponse(resp){
   // không chặn phần đồng bộ dữ liệu chính chạy ngay lập tức.
   fetchDriveUserEmail().catch(()=>{}).then(()=>{ if(STATE.tab!=='authgate') renderContent(); });
   if(!wasConnected){
-    driveSyncing = true; driveSyncStartedAt = Date.now(); renderContent();
-    try{
-      // Giới hạn 45 giây cho TOÀN BỘ bước đồng bộ đầu tiên. Hết giờ thì bỏ qua và vào thẳng app —
-      // thà vào app với dữ liệu đang có trên máy còn hơn đứng chờ vô tận không làm gì được.
-      await withTimeout((async ()=>{ await ensureDriveFile(); await pullFromDrive(); })(), 45000);
-      // KHÔNG ghi đè driveSyncOk ở đây — pullFromDrive() đã tự set true/false chính xác theo
-      // kết quả thật; ghi đè cứng thành true trước đây khiến banner luôn báo "Đã đồng bộ" dù
-      // lần đồng bộ đó thực ra bị lỗi (đây là nguyên nhân chính khiến trạng thái hiển thị sai).
-    }catch(e){
-      console.error('Drive init error', e);
-      driveSyncOk = false;
-      driveSyncErr = /timeout/i.test(String(e && e.message)) ? 'Đồng bộ quá lâu nên đã bỏ qua để bạn vào app được ngay. Dữ liệu trên máy vẫn nguyên vẹn — vào Thông tin cá nhân bấm "Tải lại từ Drive" để thử lại.' : null;
-    }
-    driveLastSyncAt = Date.now();
-    driveSyncing = false;
+    // Đăng nhập xong là VÀO THẲNG APP — không còn màn hình chờ đồng bộ chặn ở giữa. Việc kéo dữ liệu
+    // từ Drive chạy ngầm phía sau; trạng thái hiển thị ngay dưới tên trong banner trang chủ, nên người
+    // dùng vẫn biết đang đồng bộ tới đâu mà không phải đứng nhìn màn hình quay.
+    if(STATE.tab==='authgate') STATE.tab = 'hub';
+    driveSyncing = true; driveSyncStartedAt = Date.now();
+    renderContent();
+    (async ()=>{
+      try{
+        // Giới hạn 45 giây cho toàn bộ bước đồng bộ đầu tiên — quá lâu thì bỏ qua, dữ liệu trên máy vẫn dùng được.
+        await withTimeout((async ()=>{ await ensureDriveFile(); await pullFromDrive(); })(), 45000);
+        // KHÔNG ghi đè driveSyncOk ở đây — pullFromDrive() đã tự set true/false chính xác theo kết quả thật.
+      }catch(e){
+        console.error('Drive init error', e);
+        driveSyncOk = false;
+        driveSyncErr = /timeout/i.test(String(e && e.message)) ? 'Đồng bộ quá lâu nên đã bỏ qua. Dữ liệu trên máy vẫn nguyên vẹn — vào Thông tin cá nhân bấm "Tải lại từ Drive" để thử lại.' : null;
+      }
+      driveLastSyncAt = Date.now();
+      driveSyncing = false;
+      renderContent();
+    })();
+    return;
   }
   if(STATE.tab==='authgate') STATE.tab = 'hub';
   renderContent();
@@ -5005,6 +5011,80 @@ function englishPlanForToday(){
     return { item, kind:k, meta:ENGLISH_ITEM_KIND[k]||ENGLISH_ITEM_KIND.notes, done:doneKinds.has(k) };
   }).filter(Boolean);
   return { rot, core };
+}
+// ================= KHỐI LƯỢNG HỌC MỖI NGÀY =================
+// Thay vì cố định số câu (gây quá tải, học mà không ngấm), mỗi phiên được cắt theo 3 mức thời gian thật,
+// TỰ CO GIÃN theo phong độ 7 ngày gần nhất, và chia thành từng hiệp nhỏ có điểm nghỉ để người học dừng
+// đúng lúc thay vì bỏ ngang giữa chừng.
+const STUDY_MODES = {
+  short:  {key:'short',  label:'Ngắn', hint:'10–15 phút/ngày',   vocab:8,  sent:8,  dict:6,  batch:6},
+  medium: {key:'medium', label:'Vừa',  hint:'20–30 phút/ngày',   vocab:12, sent:12, dict:9,  batch:7},
+  long:   {key:'long',   label:'Dài',  hint:'trên 30 phút/ngày', vocab:18, sent:18, dict:14, batch:9},
+};
+function studyMode(){ return STUDY_MODES[SETTINGS.studyMode] || STUDY_MODES.long; }
+function setStudyMode(key){
+  if(!STUDY_MODES[key]) return;
+  SETTINGS.studyMode = key;
+  saveSettings();
+  renderContent();
+}
+// Điểm trung bình 7 ngày gần nhất của riêng 3 mục chấm điểm theo câu (Từ vựng, Câu thông dụng, Chép
+// chính tả) — thước đo "hôm nay nên nâng hay hạ tải", không bị nhiễu bởi các mục khác.
+function studyRecentAvg(){
+  const scores = [];
+  let d = new Date();
+  for(let i=0;i<7;i++){
+    d = addDays(d,-1);
+    const act = englishActivityForDate(toKey(d));
+    act.rows.forEach(r=>{
+      if((r.name==='Từ vựng' || r.name==='Câu thông dụng' || r.name==='Chép chính tả') && r.count>0 && r.score!==null) scores.push(r.score);
+    });
+  }
+  if(!scores.length) return null;
+  return Math.round(scores.reduce((s,x)=>s+x,0)/scores.length);
+}
+function studyLoadFactor(){
+  const avg = studyRecentAvg();
+  if(avg===null) return 1;   // chưa có dữ liệu → giữ đúng mức người dùng chọn
+  if(avg>=85) return 1.2;    // đang rất chắc bài → cho thêm
+  if(avg>=70) return 1;
+  if(avg>=55) return 0.85;   // hơi đuối → giảm nhẹ
+  return 0.7;                // sai nhiều → giảm mạnh để học kỹ lại
+}
+function studyQuota(kind){
+  const m = studyMode();
+  const base = m[kind] || m.vocab;
+  return Math.max(4, Math.round(base * studyLoadFactor()));
+}
+// 60% mỗi phiên là nội dung TỚI HẠN ÔN (giữ cho vốn cũ không rơi rụng), 40% là nội dung MỚI (để vẫn tiến).
+function studyDueQuota(kind){ return Math.max(2, Math.round(studyQuota(kind)*0.6)); }
+function studyNewQuota(kind){ return Math.max(2, studyQuota(kind) - studyDueQuota(kind)); }
+function studyBatchSize(){ return studyMode().batch; }
+function studyShouldRest(s){
+  return !!(s && Array.isArray(s.ids) && s.idx>0 && s.idx % studyBatchSize()===0 && s.idx < s.ids.length);
+}
+function studyLoadNote(){
+  const avg = studyRecentAvg();
+  const f = studyLoadFactor();
+  if(avg===null) return 'Chưa đủ dữ liệu 7 ngày nên app đang giữ đúng mức bạn chọn. Học vài hôm nữa app sẽ tự co giãn theo phong độ thật.';
+  if(f>1) return `Điểm 7 ngày gần đây <b>${avg}%</b> — bạn đang chắc bài nên app tăng nhẹ khối lượng.`;
+  if(f===1) return `Điểm 7 ngày gần đây <b>${avg}%</b> — khối lượng đang vừa sức, giữ nguyên.`;
+  if(f>=0.85) return `Điểm 7 ngày gần đây <b>${avg}%</b> — app giảm bớt bài để bạn kịp ngấm.`;
+  return `Điểm 7 ngày gần đây <b>${avg}%</b> — app giảm mạnh khối lượng, ưu tiên học kỹ phần đang sai.`;
+}
+function studyRestCardHtml(s, title){
+  const done = s.idx, total = (s.ids||[]).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  return `<div class="card study-rest">
+    <div class="study-rest-ic">☕</div>
+    <div class="study-rest-title">Hết một hiệp — nghỉ chút nhé</div>
+    <div class="study-rest-sub">Bạn vừa xong <b>${done}</b> câu ${escapeHtml(String(title||'').toLowerCase())}.</div>
+    <div class="study-rest-track"><div class="study-rest-fill" style="width:${pct}%;"></div></div>
+    <div class="study-rest-prog">${done}/${total} câu · ${pct}%</div>
+    <div class="study-rest-tip">Nghỉ 30–60 giây giữa hiệp giúp não chuyển phần vừa học vào trí nhớ dài hạn. Học <b>ngắn nhưng đều</b> ăn đứt học dồn một buổi thật dài rồi nghỉ nhiều ngày.</div>
+    <button class="form-btn" data-action="study-rest-continue" style="margin-bottom:8px;">▶️ Học tiếp một hiệp nữa</button>
+    <button class="form-btn cancel" data-action="study-rest-stop">✅ Dừng hôm nay tại đây</button>
+  </div>`;
 }
 function englishWeakestModuleRecent(){
   const keys = []; let d = new Date();
@@ -7332,9 +7412,23 @@ function speakLine(text, rate, pitch){
     }catch(e){ resolve(); }
   });
 }
+// Cầu dao ngắt cho Google Cloud (TTS + nhận dạng giọng nói). Khi API key bị Google chặn theo tên miền
+// (lỗi 403 API_KEY_HTTP_REFERRER_BLOCKED — hay gặp sau khi đổi tên miền app), trước đây app cứ gọi lại
+// hàng chục lần rồi im lặng không đọc/không nghe gì, người dùng không biết vì sao. Giờ chặn ngay từ lần
+// đầu, báo đúng việc cần làm, và tự rơi xuống giọng đọc sẵn có của máy để vẫn học được.
+let cloudKeyBlocked = false, cloudKeyBlockedWarned = false;
+function noteCloudKeyBlocked(bodyText){
+  if(!/API_KEY_HTTP_REFERRER_BLOCKED|are blocked|PERMISSION_DENIED/i.test(String(bodyText||''))) return false;
+  cloudKeyBlocked = true;
+  if(!cloudKeyBlockedWarned){
+    cloudKeyBlockedWarned = true;
+    showToast('🔑','API key đang bị Google chặn', 'Key Google Cloud của bạn chỉ cho phép tên miền cũ. Vào Google Cloud Console → Credentials → API key → Website restrictions, thêm tên miền hiện tại của app. Tạm thời app dùng giọng đọc sẵn có của máy.');
+  }
+  return true;
+}
 async function fetchCloudTtsAudioUrl(text, voiceName, speedMul, isSsml){
   const apiKey = SETTINGS.cloudTtsApiKey;
-  if(!apiKey) return null;
+  if(!apiKey || cloudKeyBlocked) return null;
   speedMul = speedMul || 1;
   const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent((isSsml?'ssml':'text')+'|'+voiceName+'|'+speedMul+'|'+text);
   if('caches' in window){
@@ -7352,7 +7446,11 @@ async function fetchCloudTtsAudioUrl(text, voiceName, speedMul, isSsml){
       audioConfig:{audioEncoding:'MP3', speakingRate: Math.max(0.5, Math.min(2, 0.95*speedMul))}
     })
   });
-  if(!res.ok) throw new Error('Cloud TTS HTTP '+res.status);
+  if(!res.ok){
+    const body = await res.text().catch(()=>'' );
+    if(res.status===403 && noteCloudKeyBlocked(body)) return null;  // trả null → tự dùng giọng máy
+    throw new Error('Cloud TTS HTTP '+res.status);
+  }
   const data = await res.json();
   if(!data.audioContent) throw new Error('Cloud TTS: thiếu audioContent');
   recordCloudTtsUsage(text.length);
@@ -11268,7 +11366,11 @@ async function transcribeCloudStt(blob, hintText){
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ config, audio:{ content: base64Audio } })
   });
-  if(!res.ok){ const t=await res.text().catch(()=>''); throw new Error('Cloud Speech-to-Text HTTP '+res.status+' — '+t.slice(0,180)); }
+  if(!res.ok){
+    const t=await res.text().catch(()=>'');
+    if(res.status===403 && noteCloudKeyBlocked(t)) return '';  // key bị chặn tên miền → rơi xuống Web Speech
+    throw new Error('Cloud Speech-to-Text HTTP '+res.status+' — '+t.slice(0,180));
+  }
   const data = await res.json();
   return (data.results||[]).map(r=> (r.alternatives && r.alternatives[0]) ? r.alternatives[0].transcript : '').join(' ').trim();
 }
@@ -14118,8 +14220,10 @@ function renderContent(){
     // Không để một lỗi vẽ màn hình làm kẹt cả app (đặc biệt ở bước đăng nhập/đồng bộ).
     console.error('renderContent error:', err);
     try{
+      // Luôn thay bằng thẻ báo lỗi: màn hình đứng im (còn nguyên thẻ "Đang tải...") khiến người dùng
+      // tưởng app treo và không biết làm gì tiếp — thà hiện lỗi rõ ràng kèm lối thoát.
       const el = document.getElementById('content');
-      if(el && !el.innerHTML.trim()){
+      if(el){
         el.innerHTML = `<div class="card" style="margin:16px;">
           <h3 style="margin-bottom:8px;">⚠️ Có lỗi khi hiển thị màn hình</h3>
           <div style="font-size:12px; color:var(--dim2); line-height:1.6; margin-bottom:10px;">Dữ liệu của bạn vẫn an toàn. Bạn có thể quay về trang chính rồi thử lại.</div>
