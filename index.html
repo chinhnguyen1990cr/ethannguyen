@@ -10,13 +10,21 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Ethan Nguyễn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Be Vietnam Pro: font hiện đại, trẻ trung, hỗ trợ ĐẦY ĐỦ dấu tiếng Việt (chữ ữ, ậ, ỹ... không bị vỡ
+     như nhiều font Latin khác). Nếu offline/không tải được, tự rơi về font hệ thống ở --sans. -->
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0E1218; --panel:#171E27; --panel2:#1D2531; --border:#2A3341;
     --text:#EDF2F7; --dim:#8B96A8; --dim2:#5C6779;
     --gold:#FFC94A; --orange:#FF8A3D; --blue:#4FA8FF; --teal:#2CDBA8; --red:#FF5A6E;
     --mono: ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --sans: "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    /* Font riêng cho SỐ (đồng hồ, điểm, thời gian): dùng chữ số đều bề ngang (tabular) để số không
+       nhảy qua nhảy lại mỗi giây, và nét đậm khỏe hơn cho cảm giác trẻ trung. */
+    --num: "Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,sans-serif;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
@@ -283,30 +291,57 @@
   /* ============ HUB HOME — đồng hồ hiện đại, nền bản đồ thế giới dạng chấm kéo dài toàn khung:
      Thứ/ngày/tháng/năm đầy đủ + giờ:phút lớn dùng font hiện đại phía trên, bên dưới là 2 "chip"
      truy cập nhanh (Lịch làm việc / Học tiếng Anh) kèm tiến độ hôm nay ngay trên mặt đồng hồ. ============ */
-  .hub-clock-card{position:relative; display:flex; flex-direction:column; gap:12px;
-    margin-top:12px; padding:18px 18px 16px; border-radius:22px; overflow:hidden;
-    background:linear-gradient(120deg,#0B2036 0%,#0E3654 55%,#0A2A44 100%);
-    box-shadow:0 12px 26px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.06);}
-  .hub-clock-map{position:absolute; inset:0; width:100%; height:100%; opacity:.35;}
-  .hub-clock-map circle{fill:#6FE0D0;}
-  .hub-clock-scrim{position:absolute; inset:0; background:linear-gradient(160deg, rgba(9,24,40,.35) 0%, rgba(9,24,40,.86) 85%);}
-  .hub-clock-top{position:relative; z-index:1; display:flex; align-items:flex-start; justify-content:space-between;}
-  .hub-clock-left{min-width:0;}
-  .hub-clock-weekday{font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#6FE0D0;}
-  .hub-clock-time{font-family:'Segoe UI',var(--mono); font-size:38px; font-weight:800; color:#fff; letter-spacing:.5px;
-    line-height:1.15; margin-top:2px; background:linear-gradient(90deg,#fff,#CFEFFF); -webkit-background-clip:text; background-clip:text;}
-  .hub-clock-time span{animation:clockColonBlink 2s ease-in-out infinite;}
-  @keyframes clockColonBlink{0%,45%{opacity:1;}50%,95%{opacity:.82;}100%{opacity:1;}}
-  .hub-clock-date{font-size:12px; font-weight:700; color:rgba(255,255,255,.82); margin-top:4px; letter-spacing:.02em;}
+  /* Đồng hồ kiểu mới: nền gradient tím-xanh trẻ trung + 2 quầng sáng chuyển động chậm, giờ nằm CÙNG
+     HÀNG với vòng tiến độ ngày (thay vì xếp chồng) nên chiều cao giảm gần một nửa — cả trang chủ vừa
+     đúng một khung điện thoại. */
+  .hub-clock-card{position:relative; display:flex; flex-direction:column; gap:9px;
+    margin-top:10px; padding:13px 14px 11px; border-radius:24px; overflow:hidden;
+    background:linear-gradient(125deg,#2A1B4D 0%,#14304F 48%,#0E2A3E 100%);
+    box-shadow:0 10px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);}
+  .hub-clock-blob{position:absolute; border-radius:50%; filter:blur(26px); opacity:.55; pointer-events:none;}
+  .hub-clock-blob.b1{width:150px; height:150px; top:-56px; left:-34px;
+    background:radial-gradient(circle,#7C5BFF 0%,transparent 70%); animation:blobFloat1 11s ease-in-out infinite;}
+  .hub-clock-blob.b2{width:130px; height:130px; bottom:-52px; right:-26px;
+    background:radial-gradient(circle,#25D0C0 0%,transparent 70%); animation:blobFloat2 13s ease-in-out infinite;}
+  @keyframes blobFloat1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(16px,14px) scale(1.14);}}
+  @keyframes blobFloat2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-14px,-12px) scale(1.1);}}
+  .hub-clock-top{position:relative; z-index:1; display:flex; align-items:center; gap:12px;}
+  .hub-clock-left{min-width:0; flex:1;}
+  .hub-clock-weekday{font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+    color:#7CE7DA; display:flex; align-items:center; gap:5px;}
+  .hub-clock-weekday::before{content:''; width:5px; height:5px; border-radius:50%; background:#2CDBA8;
+    box-shadow:0 0 8px #2CDBA8; animation:livePulse 2s ease-in-out infinite;}
+  @keyframes livePulse{0%,100%{opacity:1; transform:scale(1);}50%{opacity:.45; transform:scale(.75);}}
+  .hub-clock-time{font-family:var(--num); font-size:40px; font-weight:900; letter-spacing:-1.2px;
+    line-height:1; margin-top:3px; font-variant-numeric:tabular-nums;
+    background:linear-gradient(96deg,#FFFFFF 10%,#B9E8FF 46%,#C6B4FF 92%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .hub-clock-time span{animation:clockColonBlink 1.6s ease-in-out infinite;}
+  @keyframes clockColonBlink{0%,42%{opacity:1;}50%,92%{opacity:.25;}100%{opacity:1;}}
+  .hub-clock-date{font-size:11px; font-weight:600; color:rgba(255,255,255,.7); margin-top:3px;}
+  /* Vòng tiến độ: phần ngày đã trôi qua + số việc còn lại ở giữa */
+  .hub-clock-ring{position:relative; width:66px; height:66px; flex-shrink:0;}
+  .hub-clock-ring svg{width:100%; height:100%; transform:rotate(-90deg);}
+  .hub-clock-ring .rtrack{fill:none; stroke:rgba(255,255,255,.13); stroke-width:6;}
+  .hub-clock-ring .rfill{fill:none; stroke:url(#hcRingGrad); stroke-width:6; stroke-linecap:round;
+    transition:stroke-dashoffset .6s ease;}
+  .hub-clock-ring .rc{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:0;}
+  .hub-clock-ring .rc .n{font-family:var(--num); font-size:16px; font-weight:900; color:#fff; line-height:1;
+    font-variant-numeric:tabular-nums;}
+  .hub-clock-ring .rc .l{font-size:7.5px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.06em;
+    text-transform:uppercase; margin-top:2px;}
   .hub-clock-quicklinks{position:relative; z-index:1; display:flex; gap:8px;}
-  .hub-today{position:relative; z-index:1; background:rgba(10,14,22,.5); border:1px solid rgba(255,255,255,.09);
-    border-radius:14px; padding:7px 8px 6px; backdrop-filter:blur(4px);}
-  .hub-today-tabs{display:flex; gap:5px; margin-bottom:6px;}
+  .hub-today{position:relative; z-index:1; background:rgba(8,12,20,.46); border:1px solid rgba(255,255,255,.1);
+    border-radius:15px; padding:6px 8px 5px; backdrop-filter:blur(6px);}
+  .hub-today-tabs{display:flex; gap:5px; margin-bottom:5px;}
   .htt{flex:1; text-align:center; font-size:10px; font-weight:700; color:rgba(255,255,255,.55);
-    padding:5px 4px; border-radius:9px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    padding:5px 4px; border-radius:10px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    transition:background .18s ease, color .18s ease;}
   .htt b{font-weight:800;}
-  .htt.on{background:rgba(255,255,255,.13); color:#fff;}
-  .hub-today-body{display:flex; flex-direction:column; gap:3px; min-height:60px; cursor:pointer;}
+  .htt.on{background:linear-gradient(120deg,rgba(124,91,255,.5),rgba(37,208,192,.42)); color:#fff;
+    box-shadow:0 2px 8px rgba(124,91,255,.25);}
+  .hub-today-body{display:flex; flex-direction:column; gap:2px; min-height:46px; cursor:pointer;}
   .hub-task{display:flex; align-items:center; gap:6px; font-size:10.5px; color:rgba(255,255,255,.72); line-height:1.35; padding:1px 0;}
   .hub-task .ht-mark{width:11px; flex-shrink:0; font-size:9.5px; color:rgba(255,255,255,.4);}
   .hub-task .ht-time{flex-shrink:0; font-size:9.5px; font-weight:700; color:rgba(255,255,255,.45); font-variant-numeric:tabular-nums;}
@@ -318,10 +353,25 @@
   .hub-task.now{color:#fff; font-weight:700;} .hub-task.now .ht-mark{color:#FFC94A;}
   .hub-task.empty{color:rgba(255,255,255,.4); font-style:italic;}
   .hub-task.more{color:rgba(255,255,255,.5); font-size:9.5px; padding-left:17px;}
-  /* Đồng hồ thu gọn để màn hình chính vừa một khung điện thoại */
-  .hub-clock-card{padding-bottom:10px;}
-  .hub-clock-time{font-size:34px !important; line-height:1.05 !important;}
-  .hub-clock-top{margin-bottom:8px !important;}
+  /* ---- THU GỌN TOÀN TRANG CHỦ ĐỂ VỪA ĐÚNG MỘT KHUNG ĐIỆN THOẠI ----
+     Trước đây phải cuộn mới thấy hết 4 danh mục. Giảm đều chiều cao của banner, thẻ thần tướng và
+     thẻ danh mục; ở màn hình thấp (<=740px) giảm thêm một nấc nữa. */
+  .pet-card{padding:9px 12px !important; margin-top:9px !important;}
+  .pet-avatar-wrap{width:44px !important; height:44px !important;}
+  .cat-grid{gap:9px !important;}
+  .cat-card{min-height:92px !important; padding:12px !important; border-radius:18px !important;}
+  .cat-card .ic{width:30px !important; height:30px !important;}
+  .cat-card .ic svg{width:16px !important; height:16px !important;}
+  .hub-grid .menu-card-heading{padding:0 2px 7px !important;}
+  .add-cat-pill{margin-top:9px !important;}
+  @media (max-height:740px){
+    .hub-clock-time{font-size:34px;}
+    .hub-clock-ring{width:58px; height:58px;}
+    .hub-clock-card{padding:11px 13px 9px; gap:7px;}
+    .cat-card{min-height:84px !important; padding:11px !important;}
+    .pet-avatar-wrap{width:40px !important; height:40px !important;}
+    .hub-today-body{min-height:40px;}
+  }
   /* ---- "Học hôm nay" — buổi học liền mạch + Kho luyện tập ---- */
   .tf-card{background:linear-gradient(160deg, rgba(255,201,74,.12), rgba(255,138,61,.04));
     border:1px solid rgba(255,201,74,.32); border-radius:18px; padding:14px 14px 12px; margin-bottom:14px;}
@@ -1562,7 +1612,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v117';
+const APP_VERSION = 'v118';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -4419,13 +4469,13 @@ function hubTodayCompact(){
     // Chỉ hiện các việc ĐÁNG CHÚ Ý (chưa xong / đang tới giờ), không liệt kê lại việc đã hoàn thành —
     // việc đã xong không cần chiếm chỗ trên màn hình chính nữa.
     const pending = plan.filter(t=>!rec.tasks[t.id]);
-    rows = pending.slice(0,4).map(t=>{
+    rows = pending.slice(0,3).map(t=>{
       const isFail = rec.failed && rec.failed[t.id];
       const isNow = !isFail && toMin(t.time) <= nowMin && toMin(t.time)+(t.dur||30) >= nowMin;
       return `<div class="hub-task ${isFail?'fail':(isNow?'now':'')}"><span class="ht-mark">${isFail?'✕':'○'}</span><span class="ht-time">${escapeHtml(t.time||'')}</span><span class="ht-label">${escapeHtml(t.label||'')}</span></div>`;
     }).join('');
     if(!pending.length) rows = `<div class="hub-task empty">🎉 Đã xong hết việc hôm nay</div>`;
-    else if(pending.length>4) rows += `<div class="hub-task more">+${pending.length-4} việc nữa · bấm để xem tất cả</div>`;
+    else if(pending.length>3) rows += `<div class="hub-task more">+${pending.length-3} việc nữa · bấm để xem tất cả</div>`;
   } else {
     const doneRows = act.rows.filter(r=>r.count>0).slice(0,3).map(r=>
       `<div class="hub-task done"><span class="ht-mark">✓</span><span class="ht-ic">${r.icon}</span><span class="ht-label">${escapeHtml(r.name)}</span><span class="ht-meta">${r.count} ${r.unit}</span></div>`).join('');
@@ -4477,15 +4527,36 @@ function renderHub(){
       </div>
     </div>`;
   const now = new Date();
+  // Vòng tròn bên phải đồng hồ: phần vòng sáng = tỉ lệ công việc hôm nay đã hoàn thành; số ở giữa là
+  // số việc CÒN LẠI — nhìn một cái là biết hôm nay còn nợ bao nhiêu, không cần mở màn hình khác.
+  const remainTasks = Math.max(0, schedTotal - schedDone);
+  const ringPct = schedTotal ? Math.round(schedDone/schedTotal*100) : 0;
+  const R = 27, CIRC = 2*Math.PI*R;
   const clockHtml = `
     <div class="hub-clock-card">
-      ${worldMapSvg()}
-      <div class="hub-clock-scrim"></div>
+      <div class="hub-clock-blob b1"></div>
+      <div class="hub-clock-blob b2"></div>
       <div class="hub-clock-top">
         <div class="hub-clock-left">
           <div class="hub-clock-weekday">${WD_FULL[now.getDay()]}</div>
           <div class="hub-clock-time"><span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span></div>
-          <div class="hub-clock-date">${pad(now.getDate())} Tháng ${now.getMonth()+1} · ${now.getFullYear()}</div>
+          <div class="hub-clock-date">Ngày ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
+        </div>
+        <div class="hub-clock-ring" data-action="hub-open" data-target="today" title="Tiến độ công việc hôm nay">
+          <svg viewBox="0 0 64 64">
+            <defs>
+              <linearGradient id="hcRingGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#7C5BFF"/><stop offset="0.55" stop-color="#4FA8FF"/><stop offset="1" stop-color="#2CDBA8"/>
+              </linearGradient>
+            </defs>
+            <circle class="rtrack" cx="32" cy="32" r="${R}"/>
+            <circle class="rfill" cx="32" cy="32" r="${R}"
+              stroke-dasharray="${CIRC.toFixed(1)}" stroke-dashoffset="${(CIRC*(1-ringPct/100)).toFixed(1)}"/>
+          </svg>
+          <div class="rc">
+            <div class="n">${remainTasks}</div>
+            <div class="l">${remainTasks? 'còn lại':'xong'}</div>
+          </div>
         </div>
       </div>
       ${hubTodayCompact()}
