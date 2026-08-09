@@ -624,6 +624,11 @@
   .pet-zoom-story{margin-top:9px; font-size:12.5px; line-height:1.7; color:var(--dim); font-style:italic;}
   .pet-zoom-skill{margin-top:13px; display:flex; align-items:flex-start; gap:9px; text-align:left; padding:11px 13px; border-radius:15px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:12px; line-height:1.6; color:var(--fg);}
   .pet-zoom-skill .pzs-ic{font-size:18px; flex:0 0 auto;}
+  .track-hud.slim{padding:10px 14px; cursor:pointer;}
+  .track-hud.slim .track-hud-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .track-hud-streak-big{font-size:12.5px; color:var(--fg); font-weight:600;}
+  .track-hud-streak-big b{font-family:var(--num,var(--mono)); font-size:15px;}
+  .track-hud-pet{font-size:11.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52%;}
   .pet-card-skill{margin-top:5px; font-size:10px; color:var(--dim2); line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .pet-form-ic{font-size:19px; line-height:1.15; height:38px; display:flex; align-items:center; justify-content:center;}
   .pet-form-lv{font-size:8px; font-weight:800; color:var(--dim2); margin-top:2px;}
@@ -1731,7 +1736,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v121';
+const APP_VERSION = 'v124';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2988,170 +2993,638 @@ function petSkillBannerHtml(){
   }
   return `<div class="pet-skill-banner"><span class="psb-ic">${s.icon}</span><span class="psb-tx"><b>${escapeHtml(s.name)}</b> — ${escapeHtml(s.text)}${left}</span></div>`;
 }
-// Hình hiển thị của một cấp = ẢNH VẼ của đại cảnh giới đó (nếu đã có file), nếu chưa có thì tự động
-// rơi về hình SVG vẽ bằng code. Nhờ vậy app luôn chạy được ngay cả khi chưa bỏ ảnh nào vào, và mỗi lần
-// bạn thêm một file ảnh là cảnh giới đó đẹp lên ngay, không cần sửa code.
-// Tên file cần đặt: pet-realm-1.png ... pet-realm-10.png (đặt cùng thư mục với index.html).
-// SỐ ẢNH KHÔNG CỐ ĐỊNH: lúc mở app, hệ thống tự dò xem trong thư mục có bao nhiêu file pet-realm-N.png
-// (N = 1,2,3...) rồi CHIA ĐỀU số ảnh đó cho 100 cấp. Có 10 ảnh thì cứ 10 cấp đổi hình một lần; thêm thành
-// 20 ảnh thì 5 cấp đổi một lần — chỉ cần thả thêm file ảnh vào, KHÔNG phải sửa dòng code nào.
-let PET_ART_COUNT = 0;
+// ẢNH RIÊNG CHO TỪNG CẤP (tùy chọn): nếu trong thư mục có file `pet-lv-1.png` … `pet-lv-100.png` thì
+// cấp đó sẽ dùng ẢNH thay cho hình vẽ. KHÔNG bắt buộc — không có file nào thì cả 100 cấp vẫn hiện đủ
+// 100 con vật khác nhau nhờ bộ vẽ SVG bên dưới. Đây là chỗ để sau này bạn muốn thay con nào bằng ảnh
+// đẹp hơn thì chỉ cần thả đúng một file vào, không phải sửa code.
+// (Bộ ảnh cũ `pet-realm-N.png` đã ngưng dùng: nó là hình chiến tướng dùng chung cho cả 10 cấp một
+// cảnh giới, không còn hợp với yêu cầu "mỗi cấp một linh thú riêng".)
+const PET_ART_MAP = {};   // { chỉ số cấp: true } — cấp nào đã dò thấy có file ảnh
 let _petArtProbed = false;
-function petArtIndex(idx){
-  if(!PET_ART_COUNT) return 0;
-  const per = PET_MAX_LEVEL / PET_ART_COUNT;
-  return Math.max(1, Math.min(PET_ART_COUNT, Math.floor(Math.max(0,idx)/per)+1));
-}
+function petArtIndex(idx){ return PET_ART_MAP[idx] ? (idx+1) : 0; }
 async function probePetArt(){
   if(_petArtProbed) return; _petArtProbed = true;
-  let found = 0, miss = 0;
-  // Dừng sau 3 lần liên tiếp không thấy file — đủ an toàn nếu bạn lỡ đánh số cách quãng 1 nấc.
-  for(let i=1; i<=80 && miss<3; i++){
+  let found = 0;
+  for(let i=0; i<PET_MAX_LEVEL; i++){
     const ok = await new Promise(res=>{
       const im = new Image();
       im.onload = ()=>res(true); im.onerror = ()=>res(false);
-      im.src = 'pet-realm-'+i+'.png';
+      im.src = 'pet-lv-'+(i+1)+'.png';
     });
-    if(ok){ found = i; miss = 0; } else { miss++; }
+    if(ok){ PET_ART_MAP[i] = true; found++; }
   }
-  PET_ART_COUNT = found;
   if(found && (STATE.tab==='pet' || STATE.tab==='hub')) renderContent();
 }
 function petFormVisual(idx){
   const n = petArtIndex(idx);
   return `<span class="pet-visual">`
-    + `<span class="pet-art-fb">${petWarriorSvg(idx)}</span>`
-    + (n ? `<img class="pet-art" src="pet-realm-${n}.png" alt="" loading="lazy" decoding="async" onerror="this.remove();">` : '')
+    + `<span class="pet-art-fb">${petBeastSvg(idx)}</span>`
+    + (n ? `<img class="pet-art" src="pet-lv-${n}.png" alt="" loading="lazy" decoding="async" onerror="this.remove();">` : '')
     + `</span>`;
 }
 
-// ================= HÌNH THÁI THẦN TƯỚNG — VẼ BẰNG SVG NHIỀU LỚP =================
-// Thay vì mỗi cấp một emoji (emoji không có hình "chiến binh cưỡi ngựa trời", và 100 emoji khác nhau
-// thì không thể hiện được sự NÂNG CẤP liên tục), toàn bộ hình thái được VẼ bằng SVG ghép nhiều lớp:
-// ngựa trời + giáp + mũ + áo choàng + vũ khí + cánh + hào quang + lửa vó. Mỗi lớp có nhiều bậc, và bậc
-// của từng lớp tăng dần theo cấp — nên nhìn cấp 1 với cấp 100 là hai nhân vật hoàn toàn khác nhau, mà
-// mỗi lần lên cấp vẫn thấy rõ MỘT thứ vừa được nâng cấp thêm. Không cần bất kỳ file ảnh nào.
-function petTiers(idx){
-  idx = Math.max(0, Math.min(PET_MAX_LEVEL-1, idx|0));
-  const realm = Math.floor(idx/PET_SUBS.length);   // 0..9 — quyết định bảng màu + bậc giáp
-  const step  = idx % PET_SUBS.length;             // 0..9 — tầng trong cảnh giới
+// ================= 100 LINH THÚ — SVG CHIBI, MỖI CẤP MỘT CON HOÀN TOÀN KHÁC =================
+// Bốn thứ cùng lúc làm nên sự khác biệt giữa 100 con, không con nào trùng con nào:
+//   1) MÀU RIÊNG TỪNG CẤP — không còn cảnh 10 con cùng cảnh giới chung một màu. Mỗi cấp có tông màu
+//      riêng lấy theo góc vàng 137.5° nên hai cấp liền nhau lệch hẳn nhau về màu; chỉ pha nhẹ màu
+//      cảnh giới để vẫn nhận ra mình đang ở tầng nào.
+//   2) BỘ HÌNH RIÊNG THEO LOÀI — 22 khung xương khác nhau (rùa, cua, cáo, rồng, phượng...).
+//   3) TÓC / BỜM — 8 kiểu: mái ngố, chỏm, tóc dài, tóc dựng, xoăn, tết bím, mào, xù.
+//   4) VÂN / VẨY TRÊN THÂN + KIỂU ĐUÔI + PHỤ KIỆN — 9 kiểu vân (vẩy, sọc, đốm, xoáy, sao, giáp,
+//      khoang, thoi, tàn nhang), 9 kiểu đuôi (bông, lông vũ, mũi giáo, lửa, lá, pha lê, khoang, vây),
+//      9 phụ kiện (chuông, nơ, ngọc trán, lá, mây, vòng sáng, khăn, hoa).
+// Cấu hình: [loài, sừng, tầng cánh, số đuôi, bờm, chi tiết loài, tóc, vân, kiểu đuôi, phụ kiện]
+const PET_BEAST_CFG = [
+  ['egg',0,0,0,0,'crack','none','spot','plain','bell'],
+  ['grub',0,0,0,0,'','afro','none','ringed','none'],
+  ['avian',0,1,1,0,'beak','spiky','ring','spade','scarf'],
+  ['bug',0,2,0,0,'','none','swirl','fin','none'],
+  ['serpent',0,0,1,0,'','curl','scale','flame','leaf'],
+  ['reptile',1,0,1,0,'','none','diamond','fluff','none'],
+  ['turtle',0,0,1,0,'shell','none','star','leaf','bell'],
+  ['arachnid',0,0,1,0,'sting','none','stripe','feather','none'],
+  ['arachnid',0,0,0,0,'web','none','fleck','crystal','scarf'],
+  ['crustacean',0,0,0,0,'claw','none','plate','plain','none'],
+  ['cephalopod',0,0,0,0,'tent','none','spot','ringed','leaf'],
+  ['cephalopod',1,0,0,0,'tent','none','none','spade','none'],
+  ['fish',0,0,1,0,'fin','crest','ring','fin','bell'],
+  ['fish',1,0,1,0,'fin','tuft','swirl','flame','none'],
+  ['fish',0,0,1,0,'spike','braid','scale','fluff','scarf'],
+  ['fish',0,0,1,0,'big','fringe','diamond','fin','none'],
+  ['reptile',0,0,1,0,'jaw','afro','star','feather','leaf'],
+  ['ungulate',0,0,1,1,'neck','spiky','stripe','crystal','none'],
+  ['dragon',1,0,1,1,'','braid','fleck','spade','bell'],
+  ['amphibian',0,0,0,0,'','spiky','plate','ringed','none'],
+  ['rodent',0,0,1,0,'','curl','spot','spade','scarf'],
+  ['rodent',0,0,1,0,'longear','none','none','fin','none'],
+  ['rodent',0,0,1,0,'spike','spiky','ring','flame','leaf'],
+  ['bat',0,2,1,0,'','curl','swirl','fluff','none'],
+  ['canine',0,0,1,0,'','long','scale','fluff','bell'],
+  ['canine',0,0,9,0,'','crest','diamond','feather','none'],
+  ['feline',0,0,2,1,'yinyang','tuft','star','crystal','scarf'],
+  ['feline',0,0,1,1,'stripe','braid','stripe','fluff','none'],
+  ['feline',0,0,1,0,'spot','fringe','fleck','ringed','leaf'],
+  ['feline',0,0,1,1,'mane','curl','plate','spade','none'],
+  ['ungulate',2,0,1,1,'tusk','tuft','spot','fin','bell'],
+  ['ungulate',1,0,1,0,'plate','braid','none','flame','none'],
+  ['ungulate',0,0,1,1,'big','fringe','ring','fluff','scarf'],
+  ['ungulate',0,0,1,1,'trunk','curl','swirl','leaf','none'],
+  ['ungulate',0,0,1,0,'','none','scale','feather','leaf'],
+  ['ungulate',2,0,1,1,'','spiky','diamond','crystal','none'],
+  ['ungulate',0,0,1,1,'antler','afro','star','plain','bell'],
+  ['ungulate',1,0,1,0,'antler','long','stripe','ringed','none'],
+  ['dragon',2,0,1,1,'','curl','fleck','spade','scarf'],
+  ['dragon',2,0,1,1,'claw','none','plate','spade','none'],
+  ['avian',0,2,2,0,'beak','long','spot','flame','leaf'],
+  ['avian',0,1,1,0,'owl','crest','none','fluff','none'],
+  ['avian',1,1,3,0,'plume','tuft','ring','feather','bell'],
+  ['avian',0,2,1,0,'crane','braid','swirl','feather','none'],
+  ['phoenix',0,2,3,0,'','long','scale','crystal','scarf'],
+  ['spirit',1,0,0,0,'bolt','braid','diamond','plain','none'],
+  ['spirit',0,2,0,0,'swirl','fringe','star','ringed','leaf'],
+  ['spirit',0,0,0,0,'star','curl','stripe','spade','none'],
+  ['egg',0,0,0,0,'orb','none','fleck','fin','bell'],
+  ['spirit',1,0,0,0,'seal','spiky','plate','flame','none'],
+  ['dragon',2,1,1,1,'','afro','spot','fluff','scarf'],
+  ['canine',1,0,1,0,'moon','long','none','fluff','none'],
+  ['demon',2,0,0,0,'mask','braid','ring','feather','leaf'],
+  ['phoenix',0,2,3,0,'flame','long','swirl','crystal','none'],
+  ['turtle',1,0,1,0,'shellsnake','none','scale','plain','bell'],
+  ['kirin',2,0,1,0,'bolt','none','diamond','ringed','none'],
+  ['kirin',1,0,1,1,'cloud','spiky','star','spade','scarf'],
+  ['serpent',1,0,1,0,'nine','fringe','stripe','plain','none'],
+  ['demon',3,0,1,0,'maw','long','fleck','flame','leaf'],
+  ['spirit',2,2,0,0,'chaos','afro','plate','fluff','none'],
+  ['phoenix',0,2,3,0,'jade','spiky','spot','feather','bell'],
+  ['feline',0,0,2,0,'ghost','crest','none','feather','none'],
+  ['ungulate',0,1,1,1,'wind','spiky','ring','crystal','scarf'],
+  ['fish',0,1,1,0,'star','spiky','swirl','fin','none'],
+  ['avian',0,3,2,0,'void','none','scale','ringed','leaf'],
+  ['ungulate',2,0,1,1,'star','crest','diamond','spade','none'],
+  ['canine',1,0,9,0,'moon','none','star','fluff','bell'],
+  ['amphibian',1,0,0,0,'moon','crest','stripe','flame','none'],
+  ['avian',0,2,2,0,'sun','crest','fleck','fluff','scarf'],
+  ['spirit',2,2,0,0,'twin','long','plate','leaf','none'],
+  ['kirin',2,0,1,0,'flame','braid','spot','feather','leaf'],
+  ['dragon',2,2,1,1,'flame','tuft','none','crystal','none'],
+  ['dragon',2,1,1,1,'blood','braid','ring','spade','bell'],
+  ['phoenix',0,3,3,0,'flame','tuft','swirl','ringed','none'],
+  ['dragon',3,2,1,1,'dark','curl','scale','spade','scarf'],
+  ['dragon',2,2,1,1,'holy','none','diamond','spade','none'],
+  ['ungulate',2,1,1,0,'bolt','braid','star','flame','leaf'],
+  ['avian',0,2,2,0,'blade','crest','stripe','fluff','none'],
+  ['dragon',1,0,1,1,'earth','long','fleck','spade','bell'],
+  ['fish',0,0,1,0,'abyss','curl','plate','feather','none'],
+  ['kirin',2,1,1,1,'star','fringe','spot','crystal','scarf'],
+  ['dragon',2,2,1,1,'ring','braid','none','spade','none'],
+  ['kirin',3,1,1,0,'holy','none','ring','ringed','leaf'],
+  ['avian',0,3,3,0,'gold','spiky','swirl','spade','none'],
+  ['phoenix',1,3,3,0,'jade','fringe','scale','feather','bell'],
+  ['dragon',3,2,1,0,'ancient','spiky','diamond','flame','none'],
+  ['feline',2,1,1,1,'holy','afro','star','fluff','scarf'],
+  ['turtle',2,0,1,0,'shellsnake','none','stripe','leaf','none'],
+  ['phoenix',1,3,3,0,'flame','afro','fleck','feather','leaf'],
+  ['dragon',2,2,1,1,'jade','tuft','plate','crystal','none'],
+  ['dragon',3,2,1,1,'bolt','braid','spot','spade','bell'],
+  ['phoenix',1,3,3,0,'kalpa','tuft','none','ringed','none'],
+  ['turtle',2,1,1,0,'holy','none','ring','spade','scarf'],
+  ['dragon',3,4,1,1,'holy','none','swirl','spade','none'],
+  ['kirin',3,2,1,0,'chaos','long','scale','flame','leaf'],
+  ['feline',3,2,1,1,'gold','afro','diamond','fluff','none'],
+  ['kirin',3,2,1,1,'seal','tuft','star','flame','bell'],
+  ['dragon',3,3,1,0,'gold','crest','stripe','feather','none'],
+  ['dragon',3,4,1,1,'genesis','tuft','fleck','crystal','scarf'],
+  ['dragon',3,4,1,1,'supreme','braid','plate','spade','none'],
+];
+// --- tiện ích màu ---
+function _pHex(c){ c = c.replace('#',''); if(c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)]; }
+function _pMix(a,b,t){ const A=_pHex(a), B=_pHex(b); const f=(i)=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0'); return '#'+f(0)+f(1)+f(2); }
+function _pLight(c,t){ return _pMix(c,'#FFFFFF',t); }
+function _pDark(c,t){ return _pMix(c,'#140E22',t); }
+function _pHsl(h,s,l){
+  h=((h%360)+360)%360; s/=100; l/=100;
+  const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l);
+  const f=n=>{ const v=l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1))); return Math.round(v*255).toString(16).padStart(2,'0'); };
+  return '#'+f(0)+f(8)+f(4);
+}
+
+// ---- KHUÔN MẶT CHIBI ----
+function _pbFace(cx, cy, o){
+  o = o || {};
+  const er = o.er || 6.5, gap = o.gap || 10;
+  const eye = (x)=>`<ellipse cx="${x}" cy="${cy}" rx="${er*0.82}" ry="${er}" fill="#20182E"/>`
+    + `<circle cx="${x-er*0.3}" cy="${cy-er*0.36}" r="${er*0.34}" fill="#FFFFFF"/>`
+    + `<circle cx="${x+er*0.26}" cy="${cy+er*0.34}" r="${er*0.17}" fill="#FFFFFF" opacity=".85"/>`;
+  let out = eye(cx-gap) + eye(cx+gap);
+  if(o.blush !== false){
+    out += `<ellipse cx="${cx-gap-er*1.5}" cy="${cy+er*0.95}" rx="${er*0.72}" ry="${er*0.44}" fill="#FF8FA6" opacity=".5"/>`
+        +  `<ellipse cx="${cx+gap+er*1.5}" cy="${cy+er*0.95}" rx="${er*0.72}" ry="${er*0.44}" fill="#FF8FA6" opacity=".5"/>`;
+  }
+  const my = cy + er*1.5;
+  if(o.mouth === 'w') out += `<path d="M${cx-4} ${my} q2 3 4 0 q2 3 4 0" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+  else if(o.mouth === 'open') out += `<ellipse cx="${cx}" cy="${my+1}" rx="3.4" ry="2.8" fill="#E4557A"/>`;
+  else if(o.mouth === 'fang') out += `<path d="M${cx-5} ${my} q5 5 10 0 z" fill="#3A2340"/><path d="M${cx-4} ${my} l1.8 3 l1.8 -3 z" fill="#FFF"/><path d="M${cx+0.4} ${my} l1.8 3 l1.8 -3 z" fill="#FFF"/>`;
+  else if(o.mouth === 'beak') out += '';
+  else out += `<path d="M${cx-3.4} ${my} q3.4 3.4 6.8 0" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+  return out;
+}
+// ---- TÓC: 8 kiểu, vẽ theo vị trí + bán kính đầu của từng loài ----
+function _pbHair(type, hx, hy, hr, c, c2){
+  if(!type || type==='none') return '';
+  const top = hy - hr;
+  switch(type){
+    case 'fringe': // mái ngố che trán
+      return `<path d="M${hx-hr*0.95} ${hy-hr*0.25} C${hx-hr} ${top-2} ${hx+hr} ${top-2} ${hx+hr*0.95} ${hy-hr*0.25} C${hx+hr*0.5} ${hy-hr*0.55} ${hx+hr*0.2} ${hy-hr*0.2} ${hx} ${hy-hr*0.5} C${hx-hr*0.2} ${hy-hr*0.2} ${hx-hr*0.5} ${hy-hr*0.55} ${hx-hr*0.95} ${hy-hr*0.25} Z" fill="${c}"/>`;
+    case 'tuft': // chỏm tóc nhỏ vểnh lên
+      return `<path d="M${hx-5} ${top+3} C${hx-9} ${top-11} ${hx+3} ${top-15} ${hx+2} ${top-6} C${hx+8} ${top-12} ${hx+12} ${top-3} ${hx+5} ${top+3} Z" fill="${c}"/>`;
+    case 'long': // tóc dài xoã hai bên
+      return `<path d="M${hx-hr*0.9} ${hy-hr*0.3} C${hx-hr*1.35} ${hy+hr*0.9} ${hx-hr*1.1} ${hy+hr*1.7} ${hx-hr*0.75} ${hy+hr*1.9} C${hx-hr*0.85} ${hy+hr*0.9} ${hx-hr*0.8} ${hy+hr*0.2} ${hx-hr*0.6} ${hy-hr*0.4} Z" fill="${c}"/>`
+           + `<path d="M${hx+hr*0.9} ${hy-hr*0.3} C${hx+hr*1.35} ${hy+hr*0.9} ${hx+hr*1.1} ${hy+hr*1.7} ${hx+hr*0.75} ${hy+hr*1.9} C${hx+hr*0.85} ${hy+hr*0.9} ${hx+hr*0.8} ${hy+hr*0.2} ${hx+hr*0.6} ${hy-hr*0.4} Z" fill="${c}"/>`
+           + `<path d="M${hx-hr*0.9} ${hy-hr*0.2} C${hx-hr*0.8} ${top-3} ${hx+hr*0.8} ${top-3} ${hx+hr*0.9} ${hy-hr*0.2} C${hx+hr*0.4} ${hy-hr*0.6} ${hx-hr*0.4} ${hy-hr*0.6} ${hx-hr*0.9} ${hy-hr*0.2} Z" fill="${c}"/>`;
+    case 'spiky': // tóc dựng gai
+      return `<g fill="${c}">` + [0,1,2,3,4].map(i=>{
+          const x = hx - hr*0.75 + i*hr*0.375, h = 12 + (i%2?7:0);
+          return `<path d="M${x-5} ${top+5} L${x + (i-2)*2.2} ${top+5-h} L${x+5} ${top+5} Z"/>`;
+        }).join('') + `</g>`;
+    case 'curl': // xoăn lọn tròn
+      return `<g fill="${c}">` + [0,1,2,3].map(i=>`<circle cx="${hx-hr*0.7+i*hr*0.47}" cy="${top+4-(i%2?5:0)}" r="${6.5-(i%2?1:0)}"/>`).join('')
+           + `</g><path d="M${hx-hr*0.8} ${hy-hr*0.35} C${hx-hr*0.7} ${top+1} ${hx+hr*0.7} ${top+1} ${hx+hr*0.8} ${hy-hr*0.35} Z" fill="${c}"/>`;
+    case 'braid': // tết bím hai bên
+      return `<path d="M${hx-hr*0.85} ${hy-hr*0.3} C${hx-hr*0.8} ${top-2} ${hx+hr*0.8} ${top-2} ${hx+hr*0.85} ${hy-hr*0.3} C${hx+hr*0.4} ${hy-hr*0.62} ${hx-hr*0.4} ${hy-hr*0.62} ${hx-hr*0.85} ${hy-hr*0.3} Z" fill="${c}"/>`
+           + `<g fill="${c2}">` + [0,1,2].map(i=>`<circle cx="${hx-hr*1.05}" cy="${hy+hr*0.15+i*8}" r="${5.5-i*0.7}"/><circle cx="${hx+hr*1.05}" cy="${hy+hr*0.15+i*8}" r="${5.5-i*0.7}"/>`).join('') + `</g>`;
+    case 'crest': // mào dựng giữa đỉnh đầu
+      return `<path d="M${hx} ${top-16} C${hx-8} ${top-8} ${hx-9} ${top+1} ${hx-7} ${top+4} L${hx+7} ${top+4} C${hx+9} ${top+1} ${hx+8} ${top-8} ${hx} ${top-16} Z" fill="${c}"/>`
+           + `<path d="M${hx} ${top-16} C${hx-3} ${top-7} ${hx-3} ${top+1} ${hx-2} ${top+4} L${hx+3} ${top+4} C${hx+3} ${top} ${hx+3} ${top-8} ${hx} ${top-16} Z" fill="${c2}" opacity=".75"/>`;
+    case 'afro': // xù tròn quanh đỉnh
+      return `<g fill="${c}">` + [0,1,2,3,4,5,6].map(i=>{
+          const a = (-170 + i*23)*Math.PI/180;
+          return `<circle cx="${(hx+Math.cos(a)*hr*0.95).toFixed(1)}" cy="${(hy+Math.sin(a)*hr*0.95).toFixed(1)}" r="8"/>`;
+        }).join('') + `</g>`;
+  }
+  return '';
+}
+// ---- VÂN / VẨY TRÊN THÂN: cắt gọn trong vùng thân của từng loài ----
+function _pbPattern(type, b, c, c2, uid){
+  if(!type || type==='none') return {clip:'', marks:''};
+  const {x,y,rx,ry} = b;
+  let inner = '';
+  if(type==='scale'){
+    for(let row=0; row<4; row++) for(let col=0; col<6; col++){
+      const px = x - rx + col*(rx*2/5.5) + (row%2 ? rx/5.5 : 0);
+      const py = y - ry*0.5 + row*(ry*0.52);
+      inner += `<path d="M${px} ${py} a5 5 0 0 1 10 0 z" fill="${c}" opacity=".55"/>`;
+    }
+  } else if(type==='stripe'){
+    for(let i=0;i<5;i++) inner += `<path d="M${x-rx+i*(rx*2/4.4)} ${y-ry} q6 ${ry} 0 ${ry*2}" stroke="${c}" stroke-width="5" fill="none" opacity=".5"/>`;
+  } else if(type==='spot'){
+    [[-0.5,-0.35],[0.15,-0.5],[0.6,-0.1],[-0.6,0.3],[0.1,0.35],[0.55,0.55],[-0.15,0.05]].forEach(p=>{
+      inner += `<circle cx="${x+p[0]*rx}" cy="${y+p[1]*ry}" r="${4.6}" fill="${c}" opacity=".5"/>`;
+    });
+  } else if(type==='swirl'){
+    inner += `<path d="M${x} ${y} m-12 0 a12 12 0 1 1 12 12 a7 7 0 1 1 -7 -7" stroke="${c}" stroke-width="3.4" fill="none" opacity=".55" stroke-linecap="round"/>`;
+    inner += `<path d="M${x+rx*0.55} ${y-ry*0.4} m-7 0 a7 7 0 1 1 7 7" stroke="${c}" stroke-width="2.6" fill="none" opacity=".45" stroke-linecap="round"/>`;
+  } else if(type==='star'){
+    [[-0.45,-0.4],[0.35,-0.25],[0,0.25],[0.55,0.45],[-0.5,0.4]].forEach(p=>{
+      const sx=x+p[0]*rx, sy=y+p[1]*ry;
+      inner += `<path d="M${sx} ${sy-5} l1.7 3.6 l3.9 .5 l-2.9 2.7 l.8 3.9 l-3.5 -1.9 l-3.5 1.9 l.8 -3.9 l-2.9 -2.7 l3.9 -.5 z" fill="${c}" opacity=".7"/>`;
+    });
+  } else if(type==='plate'){
+    for(let i=0;i<4;i++) inner += `<rect x="${x-rx*0.75}" y="${y-ry*0.7+i*(ry*0.45)}" width="${rx*1.5}" height="${ry*0.3}" rx="${ry*0.15}" fill="${c}" opacity=".4"/>`;
+  } else if(type==='ring'){
+    for(let i=0;i<4;i++) inner += `<ellipse cx="${x}" cy="${y-ry*0.6+i*(ry*0.5)}" rx="${rx*0.95}" ry="${ry*0.16}" fill="none" stroke="${c}" stroke-width="4.4" opacity=".45"/>`;
+  } else if(type==='diamond'){
+    for(let i=0;i<3;i++) inner += `<path d="M${x} ${y-ry*0.6+i*(ry*0.6)} l9 9 l-9 9 l-9 -9 z" fill="${c}" opacity=".5"/>`;
+  } else if(type==='fleck'){
+    for(let i=0;i<14;i++){
+      const a=i*137.5*Math.PI/180, rr=0.25+((i*7)%10)/13;
+      inner += `<circle cx="${(x+Math.cos(a)*rx*rr).toFixed(1)}" cy="${(y+Math.sin(a)*ry*rr).toFixed(1)}" r="${2 + (i%3)*0.7}" fill="${c2}" opacity=".55"/>`;
+    }
+  }
   return {
-    idx, realm, step,
-    armor:  realm,                                              // 0..9 — độ dày & ánh kim của giáp
-    weapon: Math.min(9, Math.floor(idx/10)),                    // 0..9 — gậy → kiếm → thương → kích → thần binh
-    wings:  idx>=94 ? 4 : idx>=69 ? 3 : idx>=44 ? 2 : idx>=21 ? 1 : 0,  // cánh ngựa trời mọc dần
-    horn:   idx>=14,      // sừng độc giác
-    halo:   idx>=37,      // hào quang sau lưng
-    hoofFire: idx>=31,    // lửa dưới vó
-    maneFire: idx>=54,    // bờm hóa lửa
-    cape:   idx>=7,       // áo choàng
-    crown:  idx>=79,      // đế miện
-    plume:  idx>=24,      // chóp mũ
+    clip: `<clipPath id="${uid}c"><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></clipPath>`,
+    marks: `<g clip-path="url(#${uid}c)">${inner}</g>`
   };
 }
-let _petSvgSeq = 0;
-// Bảng ánh kim của giáp theo bậc — từ da thú/đồng thô lên tới kim quang thần khí.
-const PET_METAL = ['#6B6472','#77707E','#7E8794','#8A93A6','#9AA6BC','#B3AEC8','#C6B79A','#DCC58C','#EFDC9C','#FFF0BE'];
-const PET_METAL_DK = ['#33303C','#3A3644','#3E4550','#454C5C','#4B5468','#585670','#6B6250','#7C6C46','#8C7C4C','#9C8B58'];
-function petWarriorSvg(idx, extraCls){
-  const t = petTiers(idx);
-  const r = PET_REALMS[Math.min(PET_REALMS.length-1, t.realm)];
-  const c1 = r.c1, c2 = r.c2;
-  const mt = PET_METAL[t.armor], mtD = PET_METAL_DK[t.armor];
-  const u = 'pw'+(++_petSvgSeq);
-  // ---- CÁNH NGỰA TRỜI: 0-4 tầng, mỗi tầng thêm một lớp lông vũ dài hơn và sáng hơn ----
-  let wings = '';
-  if(t.wings>0){
-    const layers = [
-      'M52 62 C38 50 24 46 12 50 C24 54 34 60 44 68 Z',
-      'M52 60 C36 44 20 36 6 38 C20 46 32 54 44 64 Z',
-      'M52 58 C34 38 16 26 2 26 C18 38 32 48 44 60 Z',
-      'M52 56 C32 32 12 16 0 14 C16 30 30 42 44 56 Z',
-    ].slice(0, t.wings);
-    wings = layers.map((d,i)=>`<path d="${d}" fill="url(#${u}wg)" opacity="${0.92-i*0.13}"/>`).join('')
-          + layers.map((d,i)=>`<path d="${d}" fill="none" stroke="${c1}" stroke-width="0.9" opacity="${0.5-i*0.08}"/>`).join('');
+// ---- PHỤ KIỆN: dấu nhận dạng nhỏ, đặt ở cổ hoặc trán ----
+function _pbAcc(type, hx, hy, hr, c, c2){
+  const ny = hy + hr*0.98;  // ngang cổ
+  switch(type){
+    case 'bell':   return `<path d="M${hx-16} ${ny} q16 9 32 0" stroke="#C0392B" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="${hx}" cy="${ny+6}" r="5.4" fill="#FFD166"/><circle cx="${hx}" cy="${ny+7.6}" r="1.6" fill="#8A6A12"/>`;
+    case 'ribbon': return `<g fill="#FF6E8A"><path d="M${hx-14} ${ny-2} l-11 -6 l0 12 z"/><path d="M${hx+14} ${ny-2} l11 -6 l0 12 z"/><circle cx="${hx}" cy="${ny-1}" r="5"/></g>`;
+    case 'gem':    return `<path d="M${hx} ${hy-hr*0.62} l6 6 l-6 7 l-6 -7 z" fill="${_pLight(c,.35)}"/><path d="M${hx} ${hy-hr*0.62} l6 6 l-6 0 z" fill="#FFFFFF" opacity=".55"/>`;
+    case 'leaf':   return `<path d="M${hx+hr*0.55} ${hy-hr*0.85} c8 -9 17 -8 19 -3 c-6 6 -14 8 -19 3 z" fill="#5CD68A"/><path d="M${hx+hr*0.55} ${hy-hr*0.85} l17 -4" stroke="#2F8F55" stroke-width="1.4"/>`;
+    case 'cloud':  return `<g fill="#FFFFFF" opacity=".55"><ellipse cx="${hx-24}" cy="${ny+16}" rx="13" ry="6"/><ellipse cx="${hx+24}" cy="${ny+16}" rx="13" ry="6"/></g>`;
+    case 'halo':   return `<ellipse cx="${hx}" cy="${hy-hr-7}" rx="17" ry="5" fill="none" stroke="#FFE08A" stroke-width="3.4" opacity=".9"/>`;
+    case 'scarf':  return `<path d="M${hx-17} ${ny-2} q17 11 34 0 l0 7 q-17 10 -34 0 z" fill="${c2}"/><path d="M${hx+13} ${ny+5} l9 14 l-8 2 z" fill="${c2}"/>`;
+    case 'flower': return `<g fill="#FF8FC0" transform="translate(${hx+hr*0.72},${hy-hr*0.72})">${[0,1,2,3,4].map(i=>{const a=i*72*Math.PI/180;return `<ellipse cx="${(Math.cos(a)*5).toFixed(1)}" cy="${(Math.sin(a)*5).toFixed(1)}" rx="4" ry="3"/>`;}).join('')}<circle r="2.8" fill="#FFD166"/></g>`;
   }
-  // ---- HÀO QUANG SAU LƯNG ----
-  const halo = t.halo ? `<circle cx="58" cy="34" r="${16+Math.min(8,(t.idx-37)/8)}" fill="none" stroke="url(#${u}hl)" stroke-width="2.2" opacity=".85"/>
-      <circle cx="58" cy="34" r="${11+Math.min(6,(t.idx-37)/10)}" fill="${c1}" opacity=".13"/>` : '';
-  // ---- LỬA DƯỚI VÓ NGỰA ----
-  const hoofFire = t.hoofFire ? `<g opacity=".9">
-      <path d="M36 100 q-4 -8 0 -13 q3 6 6 2 q2 7 -6 11 Z" fill="url(#${u}fr)"/>
-      <path d="M52 103 q-4 -8 0 -13 q3 6 6 2 q2 7 -6 11 Z" fill="url(#${u}fr)"/>
-      <path d="M84 92 q-4 -8 0 -13 q3 6 6 2 q2 7 -6 11 Z" fill="url(#${u}fr)"/>
-    </g>` : '';
-  // ---- BỜM NGỰA: thường → hóa lửa ở cảnh giới cao ----
-  const mane = t.maneFire
-    ? `<path d="M72 60 C76 48 80 40 88 32 C86 42 88 46 92 44 C90 52 86 58 80 64 Z" fill="url(#${u}fr)"/>`
-    : `<path d="M72 60 C76 50 80 42 87 35 C85 44 86 50 89 50 C86 56 82 60 78 63 Z" fill="${c1}" opacity=".75"/>`;
-  // ---- SỪNG ĐỘC GIÁC ----
-  const horn = t.horn ? `<path d="M96 34 L104 18 L99 33 Z" fill="url(#${u}mg)"/><path d="M96 34 L104 18" stroke="${c1}" stroke-width="1" opacity=".8"/>` : '';
-  // ---- VŨ KHÍ: 10 bậc, cán luôn có, đầu binh khí đổi hẳn kiểu ----
-  const wHeads = [
-    `<path d="M74 12 l5 3 -5 6 -5 -6 Z" fill="${mt}"/>`,                                        // gậy đầu bịt
-    `<path d="M70 10 q10 2 10 9 q-10 2 -10 -9 Z" fill="${mt}"/>`,                               // rìu nhỏ
-    `<path d="M74 6 l3 5 -3 12 -3 -12 Z" fill="url(#${u}mg)"/>`,                                // kiếm ngắn
-    `<path d="M74 2 l3.5 6 -3.5 17 -3.5 -17 Z" fill="url(#${u}mg)"/><rect x="69" y="24" width="10" height="2.4" rx="1" fill="${mtD}"/>`, // kiếm dài
-    `<path d="M74 0 l3 7 -3 18 -3 -18 Z" fill="url(#${u}mg)"/><path d="M68 12 q6 4 12 0" stroke="${mtD}" stroke-width="1.6" fill="none"/>`, // thương
-    `<path d="M74 0 l3 7 -3 18 -3 -18 Z" fill="url(#${u}mg)"/><path d="M77 10 q9 2 7 10 q-6 -2 -7 -6 Z" fill="${mt}"/>`, // kích
-    `<path d="M70 4 q12 6 8 22 q-8 -4 -10 -12 Z" fill="url(#${u}mg)"/>`,                        // đại đao
-    `<path d="M74 -2 l4 8 -4 20 -4 -20 Z" fill="url(#${u}mg)"/><circle cx="74" cy="26" r="3.2" fill="${c1}"/>`, // thần thương
-    `<path d="M74 -4 l4.5 9 -4.5 22 -4.5 -22 Z" fill="url(#${u}mg)"/><path d="M66 8 q8 6 16 0" stroke="${c1}" stroke-width="2" fill="none" opacity=".9"/>`, // thánh kiếm
-    `<path d="M74 -6 l5 10 -5 24 -5 -24 Z" fill="url(#${u}mg)"/><circle cx="74" cy="30" r="4.5" fill="none" stroke="${c1}" stroke-width="1.6"/><path d="M64 6 q10 8 20 0" stroke="${c1}" stroke-width="2.2" fill="none"/>`, // thiên đạo thần binh
-  ];
-  const weapon = `<g>
-      <rect x="72.4" y="14" width="3.2" height="46" rx="1.5" fill="${mtD}" transform="rotate(14 74 36)"/>
-      <g transform="rotate(14 74 36)">${wHeads[t.weapon]}</g>
-    </g>`;
-  // ---- ÁO CHOÀNG ----
-  const cape = t.cape ? `<path d="M50 44 C40 54 36 70 38 84 C46 76 52 64 54 52 Z" fill="url(#${u}cp)" opacity=".9"/>` : '';
-  // ---- MŨ GIÁP + CHÓP MŨ + ĐẾ MIỆN ----
-  const crown = t.crown
-    ? `<path d="M50 22 l3 -7 3 5 3 -8 3 8 3 -5 3 7 Z" fill="url(#${u}mg)"/>`
-    : '';
-  const plume = t.plume ? `<path d="M58 20 q7 -10 3 -18 q7 6 4 18 Z" fill="${c1}" opacity=".9"/>` : '';
-  const helm = `<path d="M50 32 q8 -12 16 0 q-2 8 -8 9 q-6 -1 -8 -9 Z" fill="url(#${u}mg)"/>
-      <path d="M52 33 q6 -3 12 0 l0 3 q-6 3 -12 0 Z" fill="${mtD}" opacity=".85"/>`;
-  return `<svg viewBox="0 0 120 116" class="pet-svg ${extraCls||''}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="${u}bd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>
-      <linearGradient id="${u}mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mt}"/><stop offset="1" stop-color="${mtD}"/></linearGradient>
-      <linearGradient id="${u}wg" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}" stop-opacity=".95"/><stop offset="1" stop-color="${c1}" stop-opacity=".15"/></linearGradient>
-      <linearGradient id="${u}cp" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}" stop-opacity=".6"/></linearGradient>
-      <linearGradient id="${u}fr" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c1}"/><stop offset="0.6" stop-color="#FFC96B"/><stop offset="1" stop-color="#FFF3C4" stop-opacity=".9"/></linearGradient>
-      <radialGradient id="${u}hl"><stop offset="0" stop-color="${c1}" stop-opacity="0"/><stop offset="1" stop-color="${c1}"/></radialGradient>
-    </defs>
-    <ellipse cx="60" cy="108" rx="40" ry="5.5" fill="${c1}" opacity=".18"/>
-    ${halo}
-    ${wings}
-    <path d="M34 66 C22 70 14 82 12 96 C22 86 30 80 38 78 Z" fill="url(#${u}bd)" opacity=".95"/>
-    <g>
-      <path d="M40 78 l-4 22 6 0 4 -20 Z" fill="url(#${u}bd)"/>
-      <path d="M54 80 l-2 23 6 0 2 -21 Z" fill="url(#${u}bd)"/>
-      <path d="M78 70 q10 6 8 18 l-6 0 q0 -10 -8 -14 Z" fill="url(#${u}bd)"/>
-      <path d="M86 62 q12 2 12 14 l-6 1 q0 -9 -8 -10 Z" fill="url(#${u}bd)"/>
-      <ellipse cx="58" cy="72" rx="27" ry="14" fill="url(#${u}bd)"/>
-      <path d="M74 62 C82 56 88 46 92 36 l7 3 C96 50 90 62 82 70 Z" fill="url(#${u}bd)"/>
-      <path d="M92 36 q10 -4 14 2 q-2 7 -9 8 q-6 0 -8 -4 Z" fill="url(#${u}bd)"/>
-      <circle cx="100" cy="39" r="1.5" fill="#0B0A12" opacity=".85"/>
-      ${horn}
-      ${mane}
-      <path d="M40 66 q18 -7 34 0 q-2 6 -6 7 q-14 4 -24 -1 Z" fill="url(#${u}mg)" opacity="${0.35+t.armor*0.06}"/>
-    </g>
-    ${cape}
-    <g>
-      <path d="M52 62 q6 4 12 0 l-2 -8 -8 0 Z" fill="url(#${u}bd)"/>
-      <path d="M50 40 q8 -6 16 0 q2 12 -2 18 q-6 3 -12 0 q-4 -6 -2 -18 Z" fill="url(#${u}mg)"/>
-      <path d="M56 42 q4 -2 6 0 l0 14 q-3 2 -6 0 Z" fill="${c1}" opacity=".5"/>
-      <path d="M64 46 q10 -4 12 -10 l4 3 q-4 9 -14 12 Z" fill="url(#${u}mg)"/>
-      ${helm}
-      ${plume}
-      ${crown}
-    </g>
-    ${weapon}
-    ${hoofFire}
+  return '';
+}
+// ---- CÁNH ----
+function _pbWings(n,c,c2,style,y){
+  if(!n) return '';
+  y = y || 62; let out = '';
+  for(let i=n-1;i>=0;i--){
+    const col = _pMix(c2, c, 0.4 + i*0.18), sc = 1 + i*0.26;
+    const d = style==='bat'
+      ? 'M0 0 C-13 -12 -28 -13 -36 -6 C-27 -4 -23 3 -21 9 C-17 3 -11 2 -7 5 C-5 1 -2 0 0 0 Z'
+      : 'M0 0 C-13 -11 -28 -13 -37 -6 C-26 -1 -12 5 -2 7 Z';
+    out += `<g transform="translate(50,${y}) scale(${sc})"><path d="${d}" fill="${col}"/></g>`;
+    out += `<g transform="translate(70,${y}) scale(${-sc},${sc})"><path d="${d}" fill="${col}"/></g>`;
+  }
+  return out;
+}
+// ---- ĐUÔI: 9 kiểu khác hẳn nhau ----
+function _pbTails(n,style,c,c2,ox,oy){
+  if(!n) return '';
+  ox = ox||60; oy = oy||80;
+  let out = ''; const cnt = Math.min(9,n);
+  for(let i=0;i<cnt;i++){
+    const sp = cnt===1 ? 0 : (i-(cnt-1)/2);
+    const ang = sp * (cnt>=5 ? 17 : 26);
+    const L = cnt>=5 ? 32 : 36;
+    const col = _pMix(c, c2, 0.08 + Math.abs(sp)*0.09);
+    const g = (inner)=>`<g transform="translate(${ox},${oy}) rotate(${ang})">${inner}</g>`;
+    if(style==='fluff') out += g(`<path d="M0 0 C-8 -12 -8 -${L*0.72} 0 -${L} C8 -${L*0.72} 8 -12 0 0 Z" fill="${col}"/><path d="M0 -${L} C-4 -${L*0.76} -4 -${L*0.5} 0 -${L*0.46} C4 -${L*0.5} 4 -${L*0.76} 0 -${L} Z" fill="${_pLight(col,.5)}"/>`);
+    else if(style==='feather') out += g(`<path d="M0 0 C-5 -16 -4 -${L} 0 -${L+9} C4 -${L} 5 -16 0 0 Z" fill="${col}"/><circle cx="0" cy="-${L+3}" r="4" fill="${_pLight(col,.55)}"/>`);
+    else if(style==='spade') out += g(`<path d="M0 0 C-3.4 -14 -3.4 -${L*0.8} 0 -${L*0.85} C3.4 -${L*0.8} 3.4 -14 0 0 Z" fill="${col}"/><path d="M0 -${L+11} l8 11 l-8 7 l-8 -7 z" fill="${_pLight(col,.3)}"/>`);
+    else if(style==='flame') out += g(`<path d="M0 0 C-9 -14 -2 -22 -3 -${L*0.8} C4 -${L*0.6} 9 -${L*0.5} 6 -14 C4 -6 2 -2 0 0 Z" fill="${col}"/><path d="M0 -${L*0.55} C-4 -${L*0.72} 0 -${L*0.9} 1 -${L+4} C4 -${L*0.85} 4 -${L*0.6} 0 -${L*0.55} Z" fill="#FFD166" opacity=".75"/>`);
+    else if(style==='leaf') out += g(`<path d="M0 0 C-4 -13 -4 -${L*0.7} 0 -${L*0.8} C4 -${L*0.7} 4 -13 0 0 Z" fill="${col}"/><path d="M0 -${L*0.8} c-11 -3 -13 -12 -11 -16 c9 1 13 8 11 16 z" fill="#5CD68A"/><path d="M0 -${L*0.8} c11 -3 13 -12 11 -16 c-9 1 -13 8 -11 16 z" fill="#4BC47A"/>`);
+    else if(style==='crystal') out += g(`<path d="M0 0 C-3 -12 -3 -${L*0.7} 0 -${L*0.75} C3 -${L*0.7} 3 -12 0 0 Z" fill="${col}"/><path d="M0 -${L+8} l7 10 l-7 9 l-7 -9 z" fill="${_pLight(col,.45)}" opacity=".9"/><path d="M0 -${L+8} l7 10 l-7 0 z" fill="#FFFFFF" opacity=".5"/>`);
+    else if(style==='ringed') out += g(`<path d="M0 0 C-4.5 -13 -4.5 -${L*0.8} 0 -${L} C4.5 -${L*0.8} 4.5 -13 0 0 Z" fill="${col}"/>` + [0,1,2].map(k=>`<rect x="-5" y="${-12-k*9}" width="10" height="4.4" rx="2" fill="${_pDark(col,.35)}" opacity=".8"/>`).join(''));
+    else if(style==='fin') out += g(`<path d="M0 0 C-6 -12 -16 -${L*0.7} -10 -${L} C-4 -${L*0.75} 4 -${L*0.75} 10 -${L} C16 -${L*0.7} 6 -12 0 0 Z" fill="${col}"/><g stroke="${_pLight(col,.45)}" stroke-width="1.4" opacity=".7"><path d="M-5 -16 L-7 -${L*0.85} M0 -18 L0 -${L*0.9} M5 -16 L7 -${L*0.85}"/></g>`);
+    else out += g(`<path d="M0 0 C-4.5 -13 -4.5 -${L*0.8} 0 -${L} C4.5 -${L*0.8} 4.5 -13 0 0 Z" fill="${col}"/>`);
+  }
+  return out;
+}
+// ---- SỪNG ----
+function _pbHorns(n,cx,cy,c,dk){
+  if(!n) return '';
+  if(n===1) return `<path d="M${cx} ${cy-13} C${cx-2.6} ${cy-5} ${cx-3.4} ${cy-1} ${cx-3} ${cy+1} L${cx+3} ${cy+1} C${cx+3.4} ${cy-1} ${cx+2.6} ${cy-5} ${cx} ${cy-13} Z" fill="${c}"/><path d="M${cx} ${cy-13} L${cx+1} ${cy+1} L${cx+3} ${cy+1} Z" fill="${dk}" opacity=".4"/>`;
+  if(n===2) return `<path d="M${cx-9} ${cy+2} C${cx-16} ${cy-4} ${cx-15} ${cy-12} ${cx-8} ${cy-14} C${cx-10} ${cy-8} ${cx-8} ${cy-3} ${cx-4} ${cy+1} Z" fill="${c}"/>`
+    + `<path d="M${cx+9} ${cy+2} C${cx+16} ${cy-4} ${cx+15} ${cy-12} ${cx+8} ${cy-14} C${cx+10} ${cy-8} ${cx+8} ${cy-3} ${cx+4} ${cy+1} Z" fill="${c}"/>`;
+  return `<path d="M${cx-8} ${cy+1} C${cx-17} ${cy-6} ${cx-18} ${cy-17} ${cx-10} ${cy-21} C${cx-12} ${cy-13} ${cx-8} ${cy-8} ${cx-3} ${cy} Z" fill="${c}"/>`
+    + `<path d="M${cx+8} ${cy+1} C${cx+17} ${cy-6} ${cx+18} ${cy-17} ${cx+10} ${cy-21} C${cx+12} ${cy-13} ${cx+8} ${cy-8} ${cx+3} ${cy} Z" fill="${c}"/>`
+    + `<path d="M${cx-13} ${cy-10} L${cx-21} ${cy-14} M${cx+13} ${cy-10} L${cx+21} ${cy-14}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+}
+let _petBeastSeq = 0;
+// ================= BỘ VẼ CHÍNH =================
+function petBeastSvg(idx, extraCls){
+  idx = Math.max(0, Math.min(PET_BEAST_CFG.length-1, idx|0));
+  const cfg = PET_BEAST_CFG[idx];
+  const plan=cfg[0], nHorn=cfg[1], nWing=cfg[2], nTail=cfg[3], mane=cfg[4], extra=cfg[5];
+  const hair=cfg[6], patt=cfg[7], tailStyle=cfg[8], accType=cfg[9];
+  const realm = Math.floor(idx/10), step = idx % 10;
+  const r = PET_REALMS[Math.min(PET_REALMS.length-1, realm)];
+  // MÀU RIÊNG TỪNG CẤP: góc vàng 137.5° cho hai cấp liền nhau lệch hẳn tông; độ tươi và độ sáng cũng
+  // xoay vòng để không con nào trùng con nào. Pha 22% màu cảnh giới để vẫn thấy được mình đang ở tầng nào.
+  const hue = (idx*137.508 + 18) % 360;
+  const sat = 52 + (idx%5)*8;
+  const lit = 62 + ((idx*3)%4)*5;
+  const own = _pHsl(hue, sat, lit);
+  const base  = _pMix(own, r.c1, 0.22);
+  const belly = _pLight(base, 0.44);
+  const dk    = _pDark(base, 0.42);
+  const acc   = _pMix(_pHsl((hue+42)%360, sat+16, 44), r.c2, 0.18);
+  const mark  = _pDark(base, 0.30);                 // màu vân trên thân
+  const hairC = _pMix(_pHsl((hue+186)%360, sat+12, 52), r.c1, 0.15);  // tóc màu bổ túc → nổi bật
+  const glow  = r.c1;
+  const paw   = _pDark(base, 0.16);
+  const u = 'pb'+(++_petBeastSeq);
+  let back='', art='', props='';
+  let HX=60, HY=48, HR=26;            // tâm + bán kính ĐẦU (để đặt tóc, sừng, phụ kiện)
+  let BODY={x:60,y:80,rx:22,ry:18};   // vùng THÂN (để phủ vân/vẩy)
+
+  // ---------- 22 BỘ HÌNH RIÊNG ----------
+  if(plan==='egg'){
+    HX=60; HY=66; HR=31; BODY={x:60,y:66,rx:30,ry:36};
+    art = `<ellipse cx="60" cy="66" rx="31" ry="37" fill="${base}"/>`
+      + `<ellipse cx="49" cy="52" rx="10" ry="14" fill="#FFFFFF" opacity=".3"/>`
+      + (extra==='crack'
+          ? `<path d="M36 66 L48 58 L43 72 L57 64 L52 80 L66 71 L62 84" stroke="${dk}" stroke-width="3" fill="none" stroke-linejoin="round"/>`
+          : `<circle cx="60" cy="66" r="20" fill="${_pLight(glow,.35)}" opacity=".45"/><circle cx="60" cy="66" r="11" fill="#FFF" opacity=".7"/>`)
+      + `<path d="M60 30 C56 22 60 15 66 16 C64 22 64 27 62 31 Z" fill="${_pMix(acc,glow,.5)}"/>`
+      + _pbFace(60, 66, {er:6.5, gap:11, mouth:'w'});
+  }
+  else if(plan==='grub'){
+    HX=52; HY=60; HR=27; BODY={x:80,y:78,rx:22,ry:13};
+    art = [3,2,1,0].map(i=>`<ellipse cx="${72+i*8}" cy="${74+i*3}" rx="${15-i*2.6}" ry="${13-i*2.2}" fill="${i%2?_pLight(base,.14):base}"/>`).join('')
+      + `<circle cx="52" cy="60" r="27" fill="${base}"/>`
+      + `<path d="M40 40 C36 28 30 22 24 21" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="23" cy="20" r="4" fill="${acc}"/>`
+      + `<path d="M64 40 C68 28 74 22 80 21" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="81" cy="20" r="4" fill="${acc}"/>`
+      + _pbFace(52, 62, {er:6.8, gap:11, mouth:'smile'});
+  }
+  else if(plan==='bug'){
+    HX=60; HY=44; HR=21; BODY={x:60,y:70,rx:8,ry:17};
+    back = `<ellipse cx="34" cy="50" rx="24" ry="18" fill="${_pMix(base,acc,.3)}" transform="rotate(-20 34 50)"/>`
+      + `<ellipse cx="86" cy="50" rx="24" ry="18" fill="${_pMix(base,acc,.3)}" transform="rotate(20 86 50)"/>`
+      + `<ellipse cx="40" cy="76" rx="17" ry="13" fill="${_pMix(base,glow,.45)}" transform="rotate(-16 40 76)"/>`
+      + `<ellipse cx="80" cy="76" rx="17" ry="13" fill="${_pMix(base,glow,.45)}" transform="rotate(16 80 76)"/>`
+      + `<g fill="#FFFFFF" opacity=".45"><circle cx="30" cy="46" r="5"/><circle cx="90" cy="46" r="5"/><circle cx="38" cy="78" r="3.4"/><circle cx="82" cy="78" r="3.4"/></g>`
+      + `<g fill="${acc}" opacity=".55"><circle cx="40" cy="56" r="3.4"/><circle cx="80" cy="56" r="3.4"/></g>`;
+    art = `<ellipse cx="60" cy="70" rx="8" ry="17" fill="${dk}"/>`
+      + `<circle cx="60" cy="44" r="21" fill="${base}"/>`
+      + `<path d="M50 27 C46 16 40 12 35 12" stroke="${dk}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="34" cy="11" r="3.6" fill="${acc}"/>`
+      + `<path d="M70 27 C74 16 80 12 85 12" stroke="${dk}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="86" cy="11" r="3.6" fill="${acc}"/>`
+      + _pbFace(60, 46, {er:6, gap:9, mouth:'smile'});
+  }
+  else if(plan==='serpent'){
+    HX=60; HY=44; HR=23; BODY={x:60,y:80,rx:32,ry:15};
+    art = `<path d="M60 60 C26 62 24 92 54 94 C82 96 96 84 92 74 C88 66 74 64 62 68" fill="none" stroke="${base}" stroke-width="17" stroke-linecap="round"/>`
+      + `<path d="M46 88 C62 94 80 90 86 80" fill="none" stroke="${belly}" stroke-width="7" stroke-linecap="round" opacity=".6"/>`
+      + `<ellipse cx="60" cy="44" rx="24" ry="21" fill="${base}"/>`
+      + `<path d="M60 62 l0 8 l-4 -4 z" fill="#FF6E8A"/>`
+      + (extra==='nine' ? `<g fill="${_pMix(base,acc,.4)}">${[0,1,2].map(i=>`<ellipse cx="${42+i*18}" cy="24" rx="8" ry="11"/>`).join('')}</g>` : '')
+      + _pbFace(60, 46, {er:6.4, gap:10, mouth:'w'});
+  }
+  else if(plan==='reptile'){
+    HX=58; HY=44; HR=24; BODY={x:60,y:76,rx:27,ry:15};
+    art = `<g fill="${paw}"><ellipse cx="38" cy="88" rx="9" ry="6"/><ellipse cx="82" cy="88" rx="9" ry="6"/></g>`
+      + `<path d="M92 78 C106 74 108 62 100 54" stroke="${base}" stroke-width="9" fill="none" stroke-linecap="round"/>`
+      + `<ellipse cx="60" cy="76" rx="28" ry="16" fill="${base}"/>`
+      + `<g fill="${acc}">${[0,1,2,3,4].map(i=>`<path d="M${42+i*9} 62 l4.5 -9 l4.5 9 z"/>`).join('')}</g>`
+      + `<ellipse cx="58" cy="44" rx="25" ry="20" fill="${base}"/>`
+      + `<path d="M34 48 C20 48 16 54 20 58 C26 61 36 58 40 54 Z" fill="${_pLight(base,.12)}"/>`
+      + (extra==='jaw' ? `<g fill="#FFF"><path d="M22 54 l2 4 l2 -4 z"/><path d="M28 55 l2 4 l2 -4 z"/><path d="M34 55 l2 4 l2 -4 z"/></g>` : '')
+      + `<circle cx="24" cy="50" r="1.8" fill="#20182E"/>`
+      + _pbFace(62, 44, {er:6.4, gap:10, mouth:'smile'});
+  }
+  else if(plan==='turtle'){
+    HX=60; HY=86; HR=20; BODY={x:60,y:64,rx:33,ry:24};
+    art = `<g fill="${paw}"><ellipse cx="30" cy="88" rx="11" ry="7" transform="rotate(-18 30 88)"/><ellipse cx="90" cy="88" rx="11" ry="7" transform="rotate(18 90 88)"/></g>`
+      + `<path d="M96 74 C108 72 110 64 104 60" stroke="${base}" stroke-width="7" fill="none" stroke-linecap="round"/>`
+      + `<path d="M22 74 A38 32 0 0 1 98 74 Z" fill="${_pDark(base,.26)}"/>`
+      + `<path d="M27 74 A33 27 0 0 1 93 74 Z" fill="${_pMix(base,acc,.3)}"/>`
+      + `<g fill="none" stroke="${_pDark(base,.45)}" stroke-width="1.8" opacity=".85"><path d="M60 47 L60 74 M38 66 L82 66 M42 54 L48 74 M78 54 L72 74"/></g>`
+      + `<ellipse cx="60" cy="86" rx="20" ry="15" fill="${base}"/>`
+      + (extra==='shellsnake' ? `<path d="M100 66 C114 60 114 44 102 40 C94 37 88 43 92 48" stroke="${acc}" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="93" cy="49" r="3.4" fill="${dk}"/>` : '')
+      + _pbFace(60, 86, {er:5.6, gap:9, mouth:'smile'});
+  }
+  else if(plan==='arachnid'){
+    HX=60; HY=48; HR=21; BODY={x:60,y:80,rx:22,ry:18};
+    back = `<g stroke="${dk}" stroke-width="3.4" fill="none" stroke-linecap="round">`
+      + [0,1,2,3].map(i=>`<path d="M46 ${62+i*5} C30 ${54+i*7} 20 ${60+i*8} 18 ${74+i*6}"/><path d="M74 ${62+i*5} C90 ${54+i*7} 100 ${60+i*8} 102 ${74+i*6}"/>`).join('')
+      + `</g>`;
+    props = extra==='web' ? `<g stroke="${_pLight(glow,.45)}" stroke-width="1" fill="none" opacity=".3"><circle cx="60" cy="60" r="46"/><circle cx="60" cy="60" r="32"/><path d="M60 14 L60 106 M14 60 L106 60 M28 28 L92 92 M92 28 L28 92"/></g>` : '';
+    art = `<ellipse cx="60" cy="80" rx="23" ry="19" fill="${base}"/>`
+      + `<path d="M52 74 l8 -6 l8 6 l-8 8 z" fill="${acc}" opacity=".75"/>`
+      + `<circle cx="60" cy="48" r="21" fill="${_pLight(base,.1)}"/>`
+      + (extra==='sting' ? `<path d="M82 72 C100 64 104 44 94 32" stroke="${base}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M94 32 l-6 -10 l11 3 z" fill="${acc}"/>` : '')
+      + `<g fill="#20182E"><circle cx="50" cy="42" r="2.6"/><circle cx="70" cy="42" r="2.6"/></g>`
+      + _pbFace(60, 50, {er:6, gap:9.5, mouth:'w'});
+  }
+  else if(plan==='crustacean'){
+    HX=60; HY=58; HR=26; BODY={x:60,y:62,rx:38,ry:18};
+    art = `<g stroke="${paw}" stroke-width="4" fill="none" stroke-linecap="round"><path d="M36 80 L24 92 M48 84 L42 96 M72 84 L78 96 M84 80 L96 92"/></g>`
+      + `<g fill="${_pDark(base,.08)}"><path d="M28 58 C12 50 4 58 10 68 C16 76 28 72 30 64 Z"/><path d="M92 58 C108 50 116 58 110 68 C104 76 92 72 90 64 Z"/></g>`
+      + `<path d="M18 66 A42 30 0 0 1 102 66 A42 22 0 0 1 18 66 Z" fill="${base}"/>`
+      + `<ellipse cx="60" cy="60" rx="26" ry="10" fill="${_pLight(base,.3)}" opacity=".5"/>`
+      + `<g stroke="${base}" stroke-width="4" fill="none" stroke-linecap="round"><path d="M50 44 L48 28 M70 44 L72 28"/></g>`
+      + `<circle cx="48" cy="26" r="7" fill="${_pLight(base,.2)}"/><circle cx="72" cy="26" r="7" fill="${_pLight(base,.2)}"/>`
+      + `<circle cx="48" cy="26" r="3.4" fill="#20182E"/><circle cx="72" cy="26" r="3.4" fill="#20182E"/>`
+      + `<circle cx="46.6" cy="24.6" r="1.4" fill="#FFF"/><circle cx="70.6" cy="24.6" r="1.4" fill="#FFF"/>`
+      + `<path d="M54 68 q6 5 12 0" stroke="#20182E" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+      + `<ellipse cx="42" cy="70" rx="5" ry="3" fill="#FF8FA6" opacity=".5"/><ellipse cx="78" cy="70" rx="5" ry="3" fill="#FF8FA6" opacity=".5"/>`;
+  }
+  else if(plan==='cephalopod'){
+    HX=60; HY=50; HR=30; BODY={x:60,y:82,rx:32,ry:18};
+    art = `<g fill="${base}">` + [0,1,2,3,4,5].map(i=>{
+        const x = 32 + i*11.2, sw = i%2 ? 1 : -1;
+        return `<path d="M${x} 70 C${x-6*sw} 84 ${x+8*sw} 90 ${x+3*sw} 102 C${x+10*sw} 90 ${x+11*sw} 78 ${x+7} 70 Z" opacity="${0.72+(i%2)*0.24}"/>`;
+      }).join('') + `</g>`
+      + `<g fill="${acc}" opacity=".7">${[0,1,2,3].map(i=>`<circle cx="${38+i*15}" cy="90" r="2.8"/>`).join('')}</g>`
+      + `<path d="M28 62 C28 32 92 32 92 62 C92 74 28 74 28 62 Z" fill="${base}"/>`
+      + `<ellipse cx="46" cy="44" rx="10" ry="7" fill="#FFFFFF" opacity=".28"/>`
+      + _pbFace(60, 54, {er:7, gap:12, mouth:'w'});
+  }
+  else if(plan==='fish'){
+    HX=56; HY=56; HR=27; BODY={x:56,y:66,rx:30,ry:25};
+    props = `<g fill="#FFFFFF" opacity=".28"><circle cx="24" cy="30" r="5"/><circle cx="16" cy="46" r="3"/><circle cx="30" cy="18" r="2.4"/></g>`;
+    back = `<path d="M84 66 C104 44 116 52 114 68 C112 84 100 90 84 78 Z" fill="${_pMix(base,acc,.45)}"/>`;
+    art = `<path d="M58 34 C64 20 76 18 80 26 C70 30 64 38 62 44 Z" fill="${_pMix(base,acc,.5)}"/>`
+      + `<ellipse cx="56" cy="64" rx="32" ry="27" fill="${base}"/>`
+      + `<ellipse cx="50" cy="74" rx="20" ry="13" fill="${belly}" opacity=".7"/>`
+      + `<path d="M38 80 C30 92 38 100 48 94 Z" fill="${_pMix(base,acc,.4)}"/>`
+      + (extra==='spike' ? `<g fill="${acc}">${[0,1,2,3,4,5].map(i=>`<path d="M${34+i*10} 44 l3.4 -9 l3.4 9 z"/>`).join('')}</g>` : '')
+      + _pbFace(54, 60, {er:7, gap:12, mouth:'open'});
+  }
+  else if(plan==='amphibian'){
+    HX=60; HY=52; HR=28; BODY={x:60,y:76,rx:34,ry:24};
+    art = `<g fill="${paw}"><ellipse cx="26" cy="92" rx="13" ry="7"/><ellipse cx="94" cy="92" rx="13" ry="7"/></g>`
+      + `<ellipse cx="60" cy="74" rx="36" ry="26" fill="${base}"/>`
+      + `<ellipse cx="60" cy="82" rx="23" ry="16" fill="${belly}" opacity=".8"/>`
+      + `<circle cx="42" cy="46" r="15" fill="${base}"/><circle cx="78" cy="46" r="15" fill="${base}"/>`
+      + `<circle cx="42" cy="46" r="9.5" fill="#FFFFFF"/><circle cx="78" cy="46" r="9.5" fill="#FFFFFF"/>`
+      + `<circle cx="42" cy="47" r="5.4" fill="#20182E"/><circle cx="78" cy="47" r="5.4" fill="#20182E"/>`
+      + `<circle cx="40" cy="44" r="2.2" fill="#FFF"/><circle cx="76" cy="44" r="2.2" fill="#FFF"/>`
+      + `<path d="M42 66 q18 12 36 0" stroke="#20182E" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
+      + `<ellipse cx="30" cy="66" rx="7" ry="4" fill="#FF8FA6" opacity=".5"/><ellipse cx="90" cy="66" rx="7" ry="4" fill="#FF8FA6" opacity=".5"/>`
+      + (extra==='moon' ? `<circle cx="60" cy="20" r="8" fill="${_pLight(glow,.45)}" opacity=".8"/>` : '');
+  }
+  else if(plan==='rodent'){
+    HX=60; HY=52; HR=27; BODY={x:60,y:82,rx:20,ry:17};
+    const longEar = extra==='longear';
+    back = longEar
+      ? `<g fill="${base}"><ellipse cx="44" cy="16" rx="7.5" ry="21" transform="rotate(-10 44 16)"/><ellipse cx="76" cy="16" rx="7.5" ry="21" transform="rotate(10 76 16)"/></g>`
+        + `<g fill="#FFB3C4" opacity=".8"><ellipse cx="44" cy="18" rx="3.8" ry="14" transform="rotate(-10 44 18)"/><ellipse cx="76" cy="18" rx="3.8" ry="14" transform="rotate(10 76 18)"/></g>`
+      : `<g fill="${base}"><circle cx="36" cy="28" r="14"/><circle cx="84" cy="28" r="14"/></g><g fill="#FFB3C4" opacity=".8"><circle cx="36" cy="28" r="8"/><circle cx="84" cy="28" r="8"/></g>`;
+    art = `<ellipse cx="60" cy="82" rx="21" ry="18" fill="${base}"/><ellipse cx="60" cy="86" rx="13" ry="11" fill="${belly}" opacity=".8"/>`
+      + `<g fill="${paw}"><ellipse cx="47" cy="96" rx="6.5" ry="4"/><ellipse cx="73" cy="96" rx="6.5" ry="4"/></g>`
+      + `<circle cx="60" cy="52" r="27" fill="${base}"/>`
+      + `<circle cx="60" cy="60" r="3" fill="#FF8FA6"/>`
+      + (extra==='spike' ? `<g fill="${acc}">${[0,1,2,3,4,5,6].map(i=>`<path d="M${40+i*7} 78 l3 -14 l3 14 z"/>`).join('')}</g>` : '')
+      + _pbFace(60, 50, {er:7, gap:11, mouth:'w'});
+  }
+  else if(plan==='bat'){
+    HX=60; HY=50; HR=25; BODY={x:60,y:80,rx:17,ry:16};
+    back = `<g fill="${base}"><path d="M42 26 L32 4 L54 20 Z"/><path d="M78 26 L88 4 L66 20 Z"/></g>`
+      + `<g fill="#FFB3C4" opacity=".7"><path d="M44 25 L38 12 L52 22 Z"/><path d="M76 25 L82 12 L68 22 Z"/></g>`;
+    art = `<ellipse cx="60" cy="80" rx="17" ry="16" fill="${base}"/><ellipse cx="60" cy="83" rx="10" ry="10" fill="${belly}" opacity=".75"/>`
+      + `<circle cx="60" cy="50" r="25" fill="${base}"/>`
+      + _pbFace(60, 48, {er:6.6, gap:10.5, mouth:'fang'});
+  }
+  else if(plan==='canine'){
+    HX=60; HY=50; HR=26; BODY={x:60,y:82,rx:21,ry:17};
+    back = `<g fill="${base}"><path d="M40 30 L30 6 L54 22 Z"/><path d="M80 30 L90 6 L66 22 Z"/></g>`
+      + `<g fill="${_pMix(belly,acc,.35)}"><path d="M42 29 L36 14 L52 24 Z"/><path d="M78 29 L84 14 L68 24 Z"/></g>`;
+    art = `<ellipse cx="60" cy="82" rx="22" ry="18" fill="${base}"/><ellipse cx="60" cy="87" rx="13" ry="11" fill="${belly}" opacity=".75"/>`
+      + `<g fill="${paw}"><ellipse cx="46" cy="96" rx="7" ry="4.6"/><ellipse cx="74" cy="96" rx="7" ry="4.6"/></g>`
+      + `<circle cx="60" cy="50" r="26" fill="${base}"/>`
+      + `<path d="M46 56 C46 68 74 68 74 56 C74 50 46 50 46 56 Z" fill="${belly}" opacity=".7"/>`
+      + `<path d="M60 55 l-4.6 4 h9.2 z" fill="#20182E"/><path d="M60 59 v4" stroke="#20182E" stroke-width="1.6"/>`
+      + (extra==='moon' ? `<circle cx="60" cy="14" r="7.5" fill="${_pLight(glow,.5)}" opacity=".85"/>` : '')
+      + _pbFace(60, 47, {er:6.4, gap:11, mouth:'none'});
+  }
+  else if(plan==='feline'){
+    HX=60; HY=50; HR=27; BODY={x:60,y:84,rx:22,ry:15};
+    back = (mane ? `<circle cx="60" cy="50" r="34" fill="${_pMix(acc,glow,.5)}"/><g fill="${_pMix(acc,glow,.3)}">${[0,1,2,3,4,5,6,7].map(i=>{const a=i*45*Math.PI/180;return `<circle cx="${(60+Math.cos(a)*33).toFixed(1)}" cy="${(50+Math.sin(a)*33).toFixed(1)}" r="9"/>`;}).join('')}</g>` : '')
+      + `<g fill="${base}"><path d="M40 30 L36 8 L56 24 Z"/><path d="M80 30 L84 8 L64 24 Z"/></g>`
+      + `<g fill="#FFB3C4" opacity=".75"><path d="M42 29 L40 15 L53 25 Z"/><path d="M78 29 L80 15 L67 25 Z"/></g>`;
+    art = `<ellipse cx="60" cy="84" rx="23" ry="16" fill="${base}"/><ellipse cx="60" cy="88" rx="13" ry="9" fill="${belly}" opacity=".75"/>`
+      + `<g fill="${paw}"><ellipse cx="46" cy="96" rx="7" ry="4.4"/><ellipse cx="74" cy="96" rx="7" ry="4.4"/></g>`
+      + `<circle cx="60" cy="50" r="27" fill="${base}"/>`
+      + `<path d="M60 56 l-4 3.6 h8 z" fill="#FF8FA6"/><path d="M60 60 q-4 5 -8 2 M60 60 q4 5 8 2" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`
+      + `<g stroke="${dk}" stroke-width="1.4" stroke-linecap="round" opacity=".85"><path d="M44 56 L30 52 M44 60 L30 62 M76 56 L90 52 M76 60 L90 62"/></g>`
+      + (extra==='yinyang' ? `<path d="M60 23 A27 27 0 0 1 60 77 A13.5 13.5 0 0 0 60 50 A13.5 13.5 0 0 1 60 23 Z" fill="#FFFFFF" opacity=".16"/>` : '')
+      + _pbFace(60, 47, {er:6.6, gap:11, mouth:'none'});
+  }
+  else if(plan==='ungulate'){
+    HX=60; HY=48; HR=26; BODY={x:60,y:78,rx:27,ry:18};
+    back = `<g fill="${base}"><ellipse cx="36" cy="34" rx="9" ry="13" transform="rotate(-28 36 34)"/><ellipse cx="84" cy="34" rx="9" ry="13" transform="rotate(28 84 34)"/></g>`
+      + (mane ? `<path d="M40 32 C26 48 26 72 38 86 C46 70 46 48 40 32 Z" fill="${_pMix(hairC,glow,.3)}"/>` : '')
+      + (extra==='antler' ? `<g stroke="${acc}" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M48 26 L40 8 M46 18 L32 14 M44 12 L40 2"/><path d="M72 26 L80 8 M74 18 L88 14 M76 12 L80 2"/></g>` : '');
+    art = `<ellipse cx="60" cy="78" rx="28" ry="19" fill="${base}"/><ellipse cx="60" cy="84" rx="17" ry="11" fill="${belly}" opacity=".7"/>`
+      + `<g fill="${paw}"><rect x="41" y="90" width="9" height="13" rx="4"/><rect x="70" y="90" width="9" height="13" rx="4"/></g>`
+      + `<ellipse cx="60" cy="48" rx="26" ry="24" fill="${base}"/>`
+      + `<ellipse cx="60" cy="60" rx="12" ry="9" fill="${_pMix(belly,acc,.3)}"/>`
+      + `<circle cx="56" cy="59" r="2" fill="#20182E"/><circle cx="64" cy="59" r="2" fill="#20182E"/>`
+      + (extra==='trunk' ? `<path d="M60 66 C57 82 63 92 57 102" stroke="${base}" stroke-width="11" fill="none" stroke-linecap="round"/>` : '')
+      + (extra==='tusk' ? `<g fill="#F6F0E2"><path d="M46 62 C40 70 40 78 46 80 L49 72 Z"/><path d="M74 62 C80 70 80 78 74 80 L71 72 Z"/></g>` : '')
+      + (extra==='plate' ? `<path d="M60 24 l-5 12 h10 z" fill="${acc}"/>` : '')
+      + _pbFace(60, 44, {er:6, gap:12, mouth:'none'});
+  }
+  else if(plan==='kirin'){
+    HX=60; HY=48; HR=25; BODY={x:60,y:78,rx:26,ry:18};
+    back = `<g fill="${base}"><ellipse cx="36" cy="34" rx="8" ry="12" transform="rotate(-30 36 34)"/><ellipse cx="84" cy="34" rx="8" ry="12" transform="rotate(30 84 34)"/></g>`
+      + `<path d="M38 32 C22 50 22 76 36 90 C46 72 46 48 38 32 Z" fill="${_pMix(hairC,glow,.28)}"/>`
+      + `<circle cx="60" cy="56" r="44" fill="none" stroke="${_pLight(glow,.4)}" stroke-width="1.8" opacity=".4"/>`;
+    props = `<g fill="${_pLight(acc,.35)}" opacity=".6">${[[22,84],[98,84],[30,96],[90,96]].map(pp=>`<path d="M${pp[0]} ${pp[1]} c-5 -8 0 -13 0 -17 c3 5 8 8 5 14 c-1 3 -3 3 -5 3 z"/>`).join('')}</g>`;
+    art = `<ellipse cx="60" cy="78" rx="27" ry="19" fill="${base}"/><ellipse cx="60" cy="84" rx="16" ry="11" fill="${belly}" opacity=".7"/>`
+      + `<g fill="${acc}" opacity=".8">${[0,1,2,3].map(i=>`<path d="M${47+i*9} 62 l4 -8 l4 8 z"/>`).join('')}</g>`
+      + `<g fill="${_pLight(glow,.25)}"><rect x="42" y="90" width="9" height="13" rx="4"/><rect x="69" y="90" width="9" height="13" rx="4"/></g>`
+      + `<ellipse cx="60" cy="48" rx="25" ry="23" fill="${base}"/>`
+      + `<ellipse cx="60" cy="60" rx="10" ry="7.5" fill="${_pMix(belly,acc,.35)}"/>`
+      + `<circle cx="57" cy="59" r="1.8" fill="#20182E"/><circle cx="63" cy="59" r="1.8" fill="#20182E"/>`
+      + _pbFace(60, 44, {er:6, gap:11.5, mouth:'none'});
+  }
+  else if(plan==='avian'){
+    HX=60; HY=42; HR=25; BODY={x:60,y:76,rx:25,ry:24};
+    art = `<g stroke="${_pMix(acc,'#FFC94A',.5)}" stroke-width="3.4" stroke-linecap="round"><path d="M52 96 L50 104 M68 96 L70 104"/><path d="M46 104 L56 104 M64 104 L74 104"/></g>`
+      + `<ellipse cx="60" cy="76" rx="26" ry="25" fill="${base}"/>`
+      + `<ellipse cx="60" cy="82" rx="15" ry="15" fill="${belly}" opacity=".75"/>`
+      + `<ellipse cx="34" cy="74" rx="9" ry="14" fill="${_pMix(base,acc,.3)}" transform="rotate(-14 34 74)"/>`
+      + `<ellipse cx="86" cy="74" rx="9" ry="14" fill="${_pMix(base,acc,.3)}" transform="rotate(14 86 74)"/>`
+      + `<circle cx="60" cy="42" r="25" fill="${base}"/>`
+      + `<path d="M60 50 l-8 6 l8 7 l8 -7 z" fill="${_pMix(acc,'#FFC94A',.6)}"/>`
+      + (extra==='owl' ? `<g fill="none" stroke="${acc}" stroke-width="2.4" opacity=".65"><circle cx="50" cy="40" r="11"/><circle cx="70" cy="40" r="11"/></g><g fill="${base}"><path d="M42 22 L38 8 L52 20 Z"/><path d="M78 22 L82 8 L68 20 Z"/></g>` : '')
+      + (extra==='crane' ? `<path d="M60 22 C58 10 66 2 78 3" stroke="${base}" stroke-width="8" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="20" rx="6" ry="4" fill="#FF5A6E" opacity=".85"/>` : '')
+      + (extra==='sun' ? `<circle cx="60" cy="12" r="10" fill="#FFD166" opacity=".8"/>` : '')
+      + _pbFace(60, 40, {er:6.4, gap:11, mouth:'beak'});
+  }
+  else if(plan==='phoenix'){
+    HX=60; HY=44; HR=22; BODY={x:60,y:74,rx:20,ry:22};
+    back = `<g>${[0,1,2].map(i=>`<path d="M60 ${84-i*7} C${24-i*8} ${62-i*7} ${28-i*6} ${22-i*9} 60 ${10-i*7} C${92+i*6} ${22-i*9} ${96+i*8} ${62-i*7} 60 ${84-i*7} Z" fill="${_pMix(acc, glow, .25+i*0.25)}" opacity=".5"/>`).join('')}</g>`;
+    art = `<g stroke="${_pMix(acc,'#FFC94A',.5)}" stroke-width="3" stroke-linecap="round"><path d="M53 92 L51 100 M67 92 L69 100"/></g>`
+      + `<ellipse cx="60" cy="74" rx="21" ry="22" fill="${base}"/>`
+      + `<ellipse cx="60" cy="79" rx="12" ry="13" fill="${belly}" opacity=".7"/>`
+      + `<circle cx="60" cy="44" r="22" fill="${base}"/>`
+      + `<path d="M60 51 l-7 5 l7 6 l7 -6 z" fill="${_pMix(acc,'#FFC94A',.65)}"/>`
+      + _pbFace(60, 42, {er:6.2, gap:10.5, mouth:'beak'});
+  }
+  else if(plan==='dragon'){
+    HX=60; HY=42; HR=26; BODY={x:60,y:84,rx:34,ry:15};
+    art = `<path d="M60 68 C30 70 22 92 50 98 C80 104 100 90 96 78" fill="none" stroke="${base}" stroke-width="16" stroke-linecap="round"/>`
+      + `<path d="M46 90 C62 98 84 94 90 82" fill="none" stroke="${belly}" stroke-width="6" stroke-linecap="round" opacity=".6"/>`
+      + `<g fill="${acc}">${[0,1,2,3,4].map(i=>`<path d="M${38+i*11} 70 l4.6 -10 l4.6 10 z"/>`).join('')}</g>`
+      + `<g fill="${paw}"><ellipse cx="38" cy="100" rx="8" ry="5"/><ellipse cx="86" cy="96" rx="8" ry="5"/></g>`
+      + (mane ? `<path d="M36 34 C22 46 22 62 34 70 C40 56 40 44 36 34 Z" fill="${_pMix(hairC,glow,.25)}"/>` : '')
+      + `<ellipse cx="60" cy="42" rx="27" ry="23" fill="${base}"/>`
+      + `<ellipse cx="60" cy="55" rx="14" ry="10" fill="${_pMix(belly,acc,.3)}"/>`
+      + `<circle cx="55" cy="54" r="2" fill="#20182E"/><circle cx="65" cy="54" r="2" fill="#20182E"/>`
+      + `<path d="M50 60 q10 7 20 0" stroke="#20182E" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+      + `<path d="M40 44 C28 40 20 42 14 50" stroke="${_pLight(acc,.35)}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+      + `<path d="M80 44 C92 40 100 42 106 50" stroke="${_pLight(acc,.35)}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+      + _pbFace(60, 40, {er:6.2, gap:12, mouth:'none'});
+  }
+  else if(plan==='spirit'){
+    HX=60; HY=56; HR=24; BODY={x:60,y:56,rx:23,ry:23};
+    props = `<g fill="#FFFFFF" opacity=".7">${[[24,32],[96,38],[30,92],[92,88],[60,10]].map(pp=>`<path d="M${pp[0]} ${pp[1]-6} l2 4.4 l4.6 .6 l-3.4 3.2 l.9 4.6 l-4.1 -2.2 l-4.1 2.2 l.9 -4.6 l-3.4 -3.2 l4.6 -.6 z"/>`).join('')}</g>`;
+    art = `<path d="M34 76 C34 96 50 104 60 104 C70 104 86 96 86 76 C80 86 68 88 60 88 C52 88 40 86 34 76 Z" fill="${base}" opacity=".6"/>`
+      + `<circle cx="60" cy="56" r="32" fill="${_pLight(glow,.3)}" opacity=".28"/>`
+      + `<circle cx="60" cy="56" r="24" fill="${base}"/>`
+      + `<circle cx="50" cy="46" r="7" fill="#FFFFFF" opacity=".35"/>`
+      + `<g fill="none" stroke="${_pLight(acc,.4)}" stroke-width="1.8" opacity=".65"><ellipse cx="60" cy="56" rx="40" ry="14"/><ellipse cx="60" cy="56" rx="40" ry="14" transform="rotate(58 60 56)"/></g>`
+      + (extra==='bolt' ? `<path d="M66 14 L50 42 L60 42 L52 66 L76 34 L64 34 Z" fill="${_pLight(acc,.4)}" opacity=".9"/>` : '')
+      + _pbFace(60, 56, {er:6.8, gap:11, mouth:'w'});
+  }
+  else { // demon
+    HX=60; HY=58; HR=28; BODY={x:60,y:80,rx:28,ry:22};
+    art = `<path d="M32 60 C24 88 44 104 60 104 C76 104 96 88 88 60 Z" fill="${base}"/>`
+      + `<path d="M32 60 C46 52 74 52 88 60 C74 56 46 56 32 60 Z" fill="${_pLight(base,.2)}"/>`
+      + `<g fill="#FFFFFF" opacity=".95">${[0,1,2,3,4].map(i=>`<path d="M${44+i*9} 74 l4 10 l4 -10 z"/>`).join('')}</g>`
+      + `<path d="M44 84 q16 12 32 0" stroke="#20182E" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>`
+      + `<path d="M38 50 L54 44 M82 50 L66 44" stroke="#20182E" stroke-width="3.4" stroke-linecap="round"/>`
+      + `<g fill="#20182E"><ellipse cx="48" cy="56" rx="6" ry="7"/><ellipse cx="72" cy="56" rx="6" ry="7"/></g>`
+      + `<g fill="${_pLight(acc,.55)}"><circle cx="48" cy="56" r="3"/><circle cx="72" cy="56" r="3"/></g>`
+      + (extra==='maw' ? `<ellipse cx="60" cy="88" rx="13" ry="8" fill="#E4557A" opacity=".7"/>` : '');
+  }
+
+  // ---------- LỚP DÙNG CHUNG ----------
+  const wingY = (plan==='bat'||plan==='avian'||plan==='phoenix') ? 70 : 64;
+  const tailY = (plan==='canine'||plan==='feline') ? 86 : (plan==='avian'||plan==='phoenix') ? 88 : 80;
+  back = _pbWings(nWing, base, acc, plan==='bat'?'bat':'feather', wingY)
+       + _pbTails(nTail, tailStyle, base, acc, 60, tailY) + back;
+  const pat = _pbPattern(patt, BODY, mark, _pLight(acc,.3), u);
+  const hairArt = _pbHair(hair, HX, HY, HR, hairC, _pLight(hairC,.3));
+  const hornY = HY - HR + (plan==='turtle' ? 14 : 2);
+  const horns = _pbHorns(nHorn, HX, hornY, _pLight(acc,.4), dk);
+  const accArt = _pbAcc(accType, HX, HY, HR, acc, _pMix(acc,hairC,.4));
+  const halo = realm>=4 ? `<circle cx="60" cy="54" r="${44+realm}" fill="none" stroke="${_pLight(glow,.4)}" stroke-width="${1.4+realm*0.24}" opacity=".${realm>=8?6:4}"/>` : '';
+  const sparks = realm>=6 ? `<g fill="${_pLight(glow,.45)}" opacity=".9">${[[18,26],[104,34],[22,96],[102,92],[60,6]].map((pp,i)=>`<circle cx="${pp[0]}" cy="${pp[1]}" r="${1.8+(i%2)*1.4}"/>`).join('')}</g>` : '';
+
+  return `<svg class="pet-svg ${extraCls||''}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(petLevelName(idx))}">
+    <defs><radialGradient id="${u}g" cx="50%" cy="44%" r="62%">
+      <stop offset="0%" stop-color="${_pLight(own,.4)}" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
+    </radialGradient>${pat.clip}</defs>
+    <circle cx="60" cy="58" r="58" fill="url(#${u}g)"/>
+    ${halo}${props}${back}
+    <ellipse cx="60" cy="106" rx="27" ry="5" fill="#000" opacity=".2"/>
+    ${art}${pat.marks}
+    ${hairArt}${horns}${accArt}${sparks}
   </svg>`;
 }
+function petWarriorSvg(idx, extraCls){ return petBeastSvg(idx, extraCls); }
 
 // ---- AI ĐÁNH GIÁ NHỊP HỌC ĐỂ ĐẶT MỐC TIẾN HÓA HỢP LÝ ----
 // Mốc điểm KHÔNG cố định cứng nhắc: mỗi ngày hệ thống tự chấm "nhịp tu luyện" 14 ngày gần nhất (số lượt
@@ -3600,17 +4073,16 @@ function buildAdviceTrack(dateKeys, track){
   return msgs;
 }
 function renderTrackHUD(track){
-  const li = levelInfoTrack(track); const tier = tierFor(li.lvl); const streak = computeStreakTrack(track); const meta = TRACK_META[track];
-  return `<div class="track-hud" style="border-color:${meta.hex}44; background:linear-gradient(135deg,${meta.hex}14,${meta.hex2}0a);">
+  // ĐÃ BỎ Level/XP: điểm số nay chỉ còn MỘT nơi duy nhất là Linh Thú (điểm tu luyện), tránh việc người
+  // dùng phải nhìn hai hệ thống điểm song song cho cùng một hành động. Thanh này giờ chỉ hiển thị
+  // chuỗi ngày liên tiếp — thứ duy nhất ở đây không phải là điểm — và dẫn thẳng sang màn Linh Thú.
+  const streak = computeStreakTrack(track); const meta = TRACK_META[track];
+  const st = petState();
+  return `<div class="track-hud slim" style="border-color:${meta.hex}44; background:linear-gradient(135deg,${meta.hex}14,${meta.hex2}0a);" data-action="hub-open" data-target="pet">
     <div class="track-hud-top">
-      <div class="track-hud-emblem" style="color:${meta.hex};">${tierEmblemSvg(tier)}</div>
-      <div class="track-hud-info">
-        <div class="track-hud-name">${tier.name} · Lv${li.lvl}</div>
-        <div class="track-hud-streak">🔥 ${streak} ngày liên tiếp</div>
-      </div>
-      <div class="track-hud-xp">${li.cur}<span>/${li.next} XP</span></div>
+      <div class="track-hud-streak-big">🔥 <b>${streak}</b> ngày liên tiếp</div>
+      <div class="track-hud-pet" style="color:${st.color};">🐉 ${escapeHtml(st.name)} · Cấp ${st.lv} ›</div>
     </div>
-    <div class="track-hud-bar"><div class="track-hud-fill" style="width:${(li.cur/li.next*100)}%; background:linear-gradient(90deg,${meta.hex},${meta.hex2});"></div></div>
   </div>`;
 }
 
@@ -4660,7 +5132,7 @@ function renderAuthGate(){
       }</div>
       <div class="authgate-feats">
         <div class="authgate-feat"><span class="ic">☁️</span> Đồng bộ dữ liệu tự động lên Google Drive</div>
-        <div class="authgate-feat"><span class="ic">🎮</span> Theo dõi Level, XP và chuỗi ngày như trong game</div>
+        <div class="authgate-feat"><span class="ic">🎮</span> Nuôi linh thú tiến hóa 100 cấp theo chuỗi ngày rèn luyện</div>
         <div class="authgate-feat"><span class="ic">🔒</span> Chỉ bạn mới truy cập được dữ liệu của mình</div>
       </div>
       ${!connected ? `<div class="authgate-skip" data-action="authgate-skip">Bỏ qua, dùng ngoại tuyến</div>` : ''}
@@ -4896,12 +5368,21 @@ const MUSIC_CATS = [
 ];
 function musicCat(){ return MUSIC_CATS.some(c=>c.key===SETTINGS.musicCat) ? SETTINGS.musicCat : 'vn'; }
 function musicCatInfo(k){ return MUSIC_CATS.find(c=>c.key===(k||musicCat())) || MUSIC_CATS[0]; }
+// 3 thư mục Drive đã được tạo sẵn trong "Playlist nhac - Ethan Nguyen App" — điền sẵn ID vào đây để
+// bạn không phải dán tay. Vẫn đổi được bất cứ lúc nào bằng nút "Đổi thư mục Drive" trong Playlist.
+const MUSIC_FOLDER_DEFAULTS = {
+  vn:   '1Sm79JDxF5Z-cPl6uCR9xCEYl_XcGYMvH',  // Nhac VN
+  intl: '1kf5qW3Wg0S3fQ8DHwvQS_2rxdQio6fmz',  // Nhac nuoc ngoai
+  en:   '1qxIiiEUkh3q_-aCBtRcvEtMHNpViBQOv'   // Luyen nghe tieng Anh
+};
 function ensureMusicFolders(){
   if(!SETTINGS.musicFolders || typeof SETTINGS.musicFolders!=='object') SETTINGS.musicFolders = {};
-  // Thư mục Drive cũ (dùng chung trước đây) được gán mặc định cho "Nhạc VN" để không mất nhạc đang có.
-  if(SETTINGS.musicFolders.vn === undefined) SETTINGS.musicFolders.vn = MUSIC_DRIVE_FOLDER_ID;
-  if(SETTINGS.musicFolders.intl === undefined) SETTINGS.musicFolders.intl = '';
-  if(SETTINGS.musicFolders.en === undefined) SETTINGS.musicFolders.en = '';
+  const f = SETTINGS.musicFolders;
+  // Chưa đặt HOẶC đang trỏ vào thư mục gốc cũ (dùng chung cho mọi loại nhạc) thì chuyển sang thư mục
+  // riêng của từng danh mục — nhạc cũ vẫn nằm nguyên ở thư mục gốc, không mất đi đâu cả.
+  ['vn','intl','en'].forEach(k=>{
+    if(f[k] === undefined || f[k] === '' || f[k] === MUSIC_DRIVE_FOLDER_ID) f[k] = MUSIC_FOLDER_DEFAULTS[k];
+  });
 }
 function musicFolderId(k){ ensureMusicFolders(); return (SETTINGS.musicFolders[k||musicCat()]||'').trim(); }
 function setMusicCat(k){
@@ -14207,7 +14688,7 @@ function renderToday(){
           <div class="rd-facts">
             <div class="rd-fact"><span class="i">🛡️</span><span>Không tính vào thống kê, <b>không làm đứt chuỗi ngày</b></span></div>
             <div class="rd-fact"><span class="i">🪶</span><span>Đã bỏ chạy bộ &amp; tập tạ nặng, lịch <b>rút gọn ~35%</b></span></div>
-            <div class="rd-fact"><span class="i">💎</span><span>Vẫn nhận <b>${REST_DAY_XP} XP</b> — làm thêm việc nhẹ thì cộng thêm</span></div>
+            <div class="rd-fact"><span class="i">💎</span><span>Nghỉ có kế hoạch <b>không làm đứt chuỗi</b> và không bị trừ điểm linh thú</span></div>
           </div>
           <div class="rd-note">🧠 AI đã tạm dừng việc sắp lịch bù cho ngày mai — nghỉ là nghỉ, không nợ nần gì cả.</div>
         </div>
@@ -14278,11 +14759,6 @@ function renderToday(){
         <div data-action="hub-open" data-target="stats" style="margin-top:14px; text-align:center; font-size:11.5px; color:var(--teal); font-weight:700; cursor:pointer;">📊 Xem thống kê đầy đủ (tuần/tháng/năm) →</div>
       </div>`;
     })()}
-    <div class="card" style="text-align:center;">
-      <h3 style="margin-bottom:6px;">XP hôm nay</h3>
-      <div style="font-family:var(--mono); font-weight:800; font-size:22px; color:var(--gold);">${xp} / ${maxXp}</div>
-      <div style="font-size:11px; color:var(--dim); margin-top:2px;">${(total>0 && done===total) ? '🎉 Hoàn hảo! +'+PERFECT_BONUS+' XP thưởng' : 'Hoàn thành 100% để nhận +'+PERFECT_BONUS+' XP thưởng'}</div>
-    </div>
     <div class="tasklist">${tasksHtml}</div>
     ${resetHtml}
     ${addTaskSection}
@@ -14814,7 +15290,7 @@ function renderMonth(track){
   const monthKeys=[]; cells.forEach(d=>{ if(d!==null) monthKeys.push(y+'-'+pad(m+1)+'-'+pad(d)); });
   const trackedKeys = monthKeys.filter(k=>LOG[k]);
   const avgPct = trackedKeys.length ? Math.round(trackedKeys.reduce((s,k)=>s+dayPctTrack(k,track),0)/trackedKeys.length) : 0;
-  const totalXp = trackedKeys.reduce((s,k)=>s+dayXPTrack(k,track),0);
+  const doneCount = trackedKeys.reduce((s,k)=>s+dayInfoTrack(k,track).done,0);
   const perfectDays = trackedKeys.filter(k=>dayPctTrack(k,track)===100).length;
   const advice = buildAdviceTrack(monthKeys, track);
   const useChart = hasChartJs();
@@ -14830,7 +15306,7 @@ function renderMonth(track){
     </div>
     <div class="statgrid">
       <div class="stat"><div class="v">${avgPct}%</div><div class="l">Trung bình hoàn thành</div></div>
-      <div class="stat"><div class="v">${totalXp}</div><div class="l">Tổng XP trong tháng</div></div>
+      <div class="stat"><div class="v">${doneCount}</div><div class="l">Việc đã hoàn thành</div></div>
       <div class="stat"><div class="v">${perfectDays}</div><div class="l">Ngày hoàn hảo (100%)</div></div>
       <div class="stat"><div class="v">${trackedKeys.length}</div><div class="l">Ngày có dữ liệu</div></div>
     </div>
@@ -14874,7 +15350,7 @@ function renderYear(track){
     for(let d=1;d<=daysInMonth;d++){ const key=y+'-'+pad(m+1)+'-'+pad(d); if(LOG[key]){ sum+=dayPctTrack(key,track); count++; yearTrackedKeys.push(key);} }
     monthAvgs.push(count>0? Math.round(sum/count):0);
   }
-  const totalXp = yearTrackedKeys.reduce((s,k)=>s+dayXPTrack(k,track),0);
+  const doneCount = yearTrackedKeys.reduce((s,k)=>s+dayInfoTrack(k,track).done,0);
   const avgPct = yearTrackedKeys.length ? Math.round(yearTrackedKeys.reduce((s,k)=>s+dayPctTrack(k,track),0)/yearTrackedKeys.length) : 0;
   const bestMonth = (()=>{ let best=-1,bestAvg=-1;
     monthAvgs.forEach((avg,m)=>{ if(avg>bestAvg){bestAvg=avg;best=m;} });
@@ -14899,7 +15375,7 @@ function renderYear(track){
       ${yearChartHtml}</div>
     <div class="statgrid">
       <div class="stat"><div class="v">${avgPct}%</div><div class="l">Trung bình cả năm</div></div>
-      <div class="stat"><div class="v">${totalXp}</div><div class="l">Tổng XP trong năm</div></div>
+      <div class="stat"><div class="v">${doneCount}</div><div class="l">Việc đã hoàn thành</div></div>
       <div class="stat"><div class="v">${bestMonth}</div><div class="l">Tháng tốt nhất</div></div>
       <div class="stat"><div class="v">${yearTrackedKeys.length}</div><div class="l">Ngày có dữ liệu</div></div>
     </div>
