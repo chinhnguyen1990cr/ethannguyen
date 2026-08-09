@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v114';
+const APP_VERSION = 'v115';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3224,6 +3224,11 @@ async function onDriveTokenResponse(resp){
     // dùng vẫn biết đang đồng bộ tới đâu mà không phải đứng nhìn màn hình quay.
     if(STATE.tab==='authgate') STATE.tab = 'hub';
     driveSyncing = true; driveSyncStartedAt = Date.now();
+    // CỰC KỲ QUAN TRỌNG: vì giờ app hiện ra NGAY trong lúc còn đang kéo dữ liệu về, các màn hình được
+    // vẽ ra có thể tự gọi saveSettings() (ví dụ thẻ linh thú cập nhật nhịp học). Nếu không khóa, dữ liệu
+    // MẶC ĐỊNH đang có trên máy sẽ bị đẩy ngược lên Drive và GHI ĐÈ MẤT dữ liệu thật trước khi kéo về
+    // xong — đúng hiện tượng "mất hình nền, mất cấp độ, như bị reset". Khóa đẩy tới khi pull xong.
+    _suppressDrivePush = true;
     renderContent();
     (async ()=>{
       try{
@@ -3237,6 +3242,7 @@ async function onDriveTokenResponse(resp){
       }
       driveLastSyncAt = Date.now();
       driveSyncing = false;
+      _suppressDrivePush = false;   // mở khóa SAU khi đã có dữ liệu thật trên máy
       renderContent();
     })();
     return;
