@@ -1555,7 +1555,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v115';
+const APP_VERSION = 'v116';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3323,8 +3323,22 @@ async function pullFromDrive(){
     res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
   }catch(e){ console.error('Drive pull error', e); driveSyncOk = false; driveLastSyncAt = Date.now(); return; }
   if(!res.ok){ driveSyncOk = false; driveLastSyncAt = Date.now(); return; }
-  let data = {};
-  try{ data = await res.json(); }catch(e){ data = {}; }
+  // QUAN TRỌNG: đọc về dạng text trước rồi mới parse, để phân biệt được 2 trường hợp hoàn toàn khác
+  // nhau: (a) file TRÊN Drive THỰC SỰ rỗng ("" hoặc "{}", đúng lúc mới tạo) — an toàn để đẩy dữ liệu
+  // cục bộ lên khởi tạo; và (b) tải về bị lỗi giữa chừng (mạng chập chờn khiến phản hồi bị cắt cụt,
+  // không parse được) dù Drive đang giữ dữ liệu thật đầy đủ. Trước đây gộp chung 2 trường hợp này lại
+  // (hễ parse lỗi là coi như rỗng) — hậu quả: một lần tải bị lỗi mạng có thể khiến app tưởng Drive rỗng
+  // rồi ĐẨY DỮ LIỆU CŨ/MẶC ĐỊNH TRÊN MÁY LÊN GHI ĐÈ MẤT dữ liệu thật, đúng kiểu "mất hình nền, mất cấp
+  // độ, như bị reset" mà không cần bug nào khác. Giờ chỉ coi là "file rỗng" khi nội dung tải về đúng là
+  // rỗng; còn lại (không rỗng nhưng lỗi parse) phải coi là đồng bộ thất bại, TUYỆT ĐỐI không đẩy gì lên.
+  let rawText = '';
+  try{ rawText = await res.text(); }catch(e){ rawText = ''; }
+  const trimmed = (rawText||'').trim();
+  const isGenuinelyEmpty = !trimmed || trimmed === '{}';
+  let data = {}, parseFailed = false;
+  if(!isGenuinelyEmpty){
+    try{ data = JSON.parse(rawText); }catch(e){ parseFailed = true; }
+  }
   const hasRemoteData = data && (data.progressLog || data.settings || data.kiemhang);
   if(hasRemoteData){
     // QUAN TRỌNG: THAY THẾ TOÀN BỘ dữ liệu cục bộ bằng dữ liệu từ Drive, KHÔNG gộp (merge) từng phần.
@@ -3349,7 +3363,14 @@ async function pullFromDrive(){
     finally{ _suppressDrivePush = false; }
     driveSyncOk = true;
     driveLastSyncAt = Date.now();
+  } else if(parseFailed){
+    // Tải về không rỗng nhưng đọc lỗi — rất có thể Drive đang giữ dữ liệu thật, lần tải này chỉ đơn
+    // giản là trục trặc mạng. Coi như đồng bộ thất bại, giữ nguyên dữ liệu trên máy, KHÔNG đẩy gì lên.
+    driveSyncOk = false;
+    driveLastSyncAt = Date.now();
   } else {
+    // Nội dung tải về đúng là rỗng ("" hoặc "{}") — file mới tạo, chưa có dữ liệu nào trên Drive.
+    // An toàn để đẩy dữ liệu cục bộ hiện có lên khởi tạo.
     await pushToDriveNow();
   }
 }
@@ -3423,9 +3444,15 @@ async function pushToDriveNow(isRetry){
 }
 async function driveManualResync(){
   if(!driveAccessToken){ alert('Bạn chưa đăng nhập Google Drive.'); return; }
-  driveSyncing = true; renderContent();
+  driveSyncing = true;
+  // Khóa đẩy lên Drive suốt quá trình tải về — cùng lý do như lúc đăng nhập (xem onDriveTokenResponse):
+  // nếu không khóa, một lượt tự lưu (autosave) xảy ra đúng lúc màn hình đang vẽ lại vì driveSyncing=true
+  // có thể đẩy dữ liệu cục bộ lên đè mất dữ liệu thật trước khi tải xong.
+  _suppressDrivePush = true;
+  renderContent();
   try{ await pullFromDrive(); }
   catch(e){ driveSyncOk = false; }
+  finally{ _suppressDrivePush = false; }
   driveSyncing = false; renderContent();
 }
 function renderCloudSyncCard(){
