@@ -84,6 +84,26 @@
     border-radius:12px; padding:10px 14px; margin-bottom:14px; cursor:pointer; font-size:12px; color:var(--dim); font-weight:600;}
   .dayoff-toggle.active{background:linear-gradient(145deg,#16241f,#171e27); border-color:var(--teal); color:var(--teal);}
   .dayoff-toggle span:first-child{font-size:16px;}
+  /* ---- Màn hình NGÀY NGHỈ: thẻ lớn thoáng, tông xanh ngọc dịu, 3 ý chính dạng gạch đầu dòng ---- */
+  .restday-hero{position:relative; overflow:hidden; border-radius:22px; margin:12px 0 14px; padding:20px 18px 16px;
+    background:linear-gradient(135deg,#0F2E2A 0%,#123A47 55%,#16283F 100%);
+    border:1px solid rgba(44,219,168,.28); box-shadow:0 10px 24px rgba(0,0,0,.3);}
+  .rd-blob{position:absolute; border-radius:50%; filter:blur(30px); opacity:.5; pointer-events:none;}
+  .rd-blob.b1{width:160px; height:160px; top:-64px; right:-40px; background:radial-gradient(circle,#2CDBA8 0%,transparent 70%);}
+  .rd-blob.b2{width:130px; height:130px; bottom:-56px; left:-34px; background:radial-gradient(circle,#4FA8FF 0%,transparent 70%);}
+  .rd-inner{position:relative; z-index:1; text-align:center;}
+  .rd-emoji{font-size:40px; line-height:1; margin-bottom:6px; animation:rdFloat 4.5s ease-in-out infinite;}
+  @keyframes rdFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-6px) rotate(3deg);}}
+  .rd-title{font-size:17px; font-weight:800; color:#fff; letter-spacing:-.2px;}
+  .rd-sub{font-size:11.5px; color:rgba(255,255,255,.62); margin-top:3px;}
+  .rd-facts{display:flex; flex-direction:column; gap:7px; margin:14px auto 0; max-width:330px; text-align:left;}
+  .rd-fact{display:flex; align-items:flex-start; gap:9px; font-size:11.5px; line-height:1.5;
+    color:rgba(255,255,255,.8); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.09);
+    border-radius:12px; padding:8px 10px;}
+  .rd-fact .i{flex-shrink:0; font-size:13px; line-height:1.3;}
+  .rd-fact b{color:#7CE7DA; font-weight:800;}
+  .rd-note{margin-top:12px; font-size:10.5px; line-height:1.55; color:rgba(255,255,255,.55);
+    border-top:1px solid rgba(255,255,255,.1); padding-top:10px;}
   .rest-day-card{background:radial-gradient(120% 140% at 50% -20%, #1B2434 0%, var(--panel) 60%); border:1px solid var(--border); border-radius:20px;}
 
   .add-task-btn{width:100%; background:var(--panel); border:1px dashed var(--border); color:var(--dim);
@@ -1612,7 +1632,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v118';
+const APP_VERSION = 'v119';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2574,6 +2594,9 @@ const AI_MAKEUP_TASKS = {
 function applyAiTomorrowAdjustments(){
   const key = todayKey();
   const yKey = toKey(addDays(parseKey(key), -1));
+  // NGHỈ LÀ NGHỈ: nếu hôm nay được đánh dấu ngày nghỉ thì KHÔNG chèn việc bù nào cả. Trước đây vẫn
+  // chèn, khiến ngày nghỉ tự nhiên mọc thêm việc "bù" — trái hẳn ý nghĩa của việc bấm nút nghỉ.
+  if(isDayOff(key)) return;
   if(!LOG[yKey] || isDayOff(yKey)) return;
   if(!LOG[key]) LOG[key] = {tasks:{}};
   if(LOG[key].aiAdjustedFrom===yKey) return; // đã áp dụng cho cặp ngày này rồi
@@ -13662,11 +13685,22 @@ function renderToday(){
       <span>${dayOff?'🌴':'☀️'}</span><span>${dayOff? 'Hôm nay đang là ngày nghỉ — bấm để quay lại lịch bình thường' : 'Đánh dấu hôm nay là ngày nghỉ, xả stress'}</span>
     </div>`;
 
+  // Màn hình ngày nghỉ: thiết kế lại thành thẻ lớn kiểu "kỳ nghỉ", nói rõ 3 điều người dùng cần biết
+  // bằng 3 dòng gạch đầu dòng ngắn thay vì một đoạn văn dài khó đọc trên điện thoại.
   const restDayIntro = dayOff ? `
-      <div class="card rest-day-card" style="text-align:center; padding:22px 20px;">
-        <div style="font-size:38px; margin-bottom:8px;">🌴</div>
-        <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Hôm nay là ngày nghỉ ngơi</div>
-        <div style="font-size:12px; color:var(--dim); line-height:1.6; max-width:320px; margin:0 auto;">Ngày này KHÔNG tính vào thống kê hoàn thành và không làm đứt chuỗi ngày liên tiếp, dù bạn có làm việc bên dưới hay không. Lịch đã được <b>tự động rút gọn ~35%</b> và bỏ hẳn phần chạy bộ/tập tạ nặng — chỉ còn vài việc nhẹ để duy trì thói quen tiếng Anh/chuyên môn nếu bạn muốn, cộng thêm XP nếu hoàn thành.</div>
+      <div class="restday-hero">
+        <div class="rd-blob b1"></div><div class="rd-blob b2"></div>
+        <div class="rd-inner">
+          <div class="rd-emoji">🌴</div>
+          <div class="rd-title">Hôm nay bạn đang nghỉ</div>
+          <div class="rd-sub">Cứ thả lỏng — hệ thống đã tự lo phần còn lại.</div>
+          <div class="rd-facts">
+            <div class="rd-fact"><span class="i">🛡️</span><span>Không tính vào thống kê, <b>không làm đứt chuỗi ngày</b></span></div>
+            <div class="rd-fact"><span class="i">🪶</span><span>Đã bỏ chạy bộ &amp; tập tạ nặng, lịch <b>rút gọn ~35%</b></span></div>
+            <div class="rd-fact"><span class="i">💎</span><span>Vẫn nhận <b>${REST_DAY_XP} XP</b> — làm thêm việc nhẹ thì cộng thêm</span></div>
+          </div>
+          <div class="rd-note">🧠 AI đã tạm dừng việc sắp lịch bù cho ngày mai — nghỉ là nghỉ, không nợ nần gì cả.</div>
+        </div>
       </div>` : '';
 
   const {plan, rec, done, total} = dayPlanInfo(key);
@@ -13742,7 +13776,7 @@ function renderToday(){
     <div class="tasklist">${tasksHtml}</div>
     ${resetHtml}
     ${addTaskSection}
-    ${renderAiTomorrowCard(key)}
+    ${dayOff ? '' : renderAiTomorrowCard(key)}
     <button class="reset-schedule-btn" data-action="reset-schedule">↺ Reset lịch làm việc (bắt đầu lại từ ngày mai)</button>
   `;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
