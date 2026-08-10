@@ -409,6 +409,17 @@
     font-variant-numeric:tabular-nums;}
   .hub-clock-ring .rc .l{font-size:7.5px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.06em;
     text-transform:uppercase; margin-top:2px;}
+  /* ===== KHUNG VIỀN NGHỆ THUẬT: viền gradient mảnh + 4 góc trang trí, dùng chung cho các thẻ lớn ===== */
+  .art-frame{position:relative;}
+  .art-frame::before{content:''; position:absolute; inset:0; border-radius:inherit; padding:1.4px;
+    background:linear-gradient(135deg, rgba(255,201,74,.85), rgba(124,108,240,.7) 35%, rgba(44,219,168,.75) 68%, rgba(255,110,168,.8));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; z-index:4;}
+  .art-corner{position:absolute; width:16px; height:16px; border:1.6px solid rgba(255,255,255,.55); z-index:5; pointer-events:none;}
+  .art-corner.tl{top:7px; left:7px; border-right:0; border-bottom:0; border-radius:8px 0 0 0;}
+  .art-corner.tr{top:7px; right:7px; border-left:0; border-bottom:0; border-radius:0 8px 0 0;}
+  .art-corner.bl{bottom:7px; left:7px; border-right:0; border-top:0; border-radius:0 0 0 8px;}
+  .art-corner.br{bottom:7px; right:7px; border-left:0; border-top:0; border-radius:0 0 8px 0;}
   /* ===== ĐỒNG HỒ v3: mặt số ANALOG + lịch tuần + thời tiết theo giờ ===== */
   .hub-clock-card.v3{background:linear-gradient(140deg,#0F1A31 0%,#1A2A50 44%,#122B44 100%);
     border:1px solid rgba(255,255,255,.09); padding:15px 16px 13px; gap:12px;}
@@ -492,6 +503,53 @@
   /* Thẻ thần thú khi nằm TRONG khung đồng hồ */
   .hub-clock-card .pet-card{position:relative; z-index:1; margin:0 0 2px; background:rgba(8,12,20,.42) !important;
     border:1px solid rgba(255,255,255,.12) !important; border-radius:16px;}
+  /* Đồng hồ gọn lại để cả trang chủ vừa một màn hình */
+  .hub-clock-card.v3{padding:12px 13px 11px; gap:9px;}
+  .hc-analog{width:98px; height:98px;}
+  .hc-analog .hcn{font-size:19px;}
+  .hc-digital{font-size:27px; margin-top:4px;}
+  .hc-digital .hc-sec{font-size:12px;}
+  .hc-dm{font-size:11px; margin-top:4px;} .hc-dm b{font-size:14px;}
+  .hc-weather{padding:7px 11px 6px; gap:9px;}
+  .hc-weather .w-ic{font-size:20px;} .hc-weather .w-now{font-size:19px;}
+  .hc-hours{padding:5px 7px 6px;} .wh-ic{font-size:14px;} .wh-t{font-size:11px;}
+  /* Cung hoàng đạo cạnh đồng hồ */
+  .hc-zodiac{position:relative; z-index:1; display:flex; gap:10px; align-items:flex-start;
+    background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1); border-radius:15px;
+    padding:9px 12px; backdrop-filter:blur(6px); border-left:3px solid var(--zc,#B98CFF);}
+  .hc-zodiac.empty{cursor:pointer; border-left-color:rgba(255,255,255,.2);}
+  .hz-sym{font-size:24px; line-height:1.1; color:var(--zc,#B98CFF); flex-shrink:0;}
+  .hz-tx{display:flex; flex-direction:column; min-width:0; font-size:10.5px; line-height:1.5;}
+  .hz-tx b{font-size:12px; color:var(--text); font-weight:800;}
+  .hz-meta{font-size:9px; font-weight:600; color:var(--dim2); margin-left:5px;}
+  .hz-line{color:rgba(255,255,255,.75); margin-top:2px;}
+  .hz-note{font-size:8.5px; color:var(--dim2); margin-top:3px; font-style:italic;}
+  /* Lịch tháng trong khung đồng hồ */
+  .hc-cal{position:relative; z-index:1; background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1);
+    border-radius:15px; padding:8px 10px 9px; backdrop-filter:blur(6px);}
+  .mc-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .mc-title{font-size:11px; font-weight:800; color:rgba(255,255,255,.85); letter-spacing:.02em;}
+  .mc-arrow{width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    border-radius:9px; background:rgba(255,255,255,.07); color:rgba(255,255,255,.7); font-size:14px; cursor:pointer;}
+  .mc-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+  .mc-wd{text-align:center; font-size:8px; font-weight:800; color:rgba(255,255,255,.4);
+    text-transform:uppercase; padding-bottom:2px;}
+  .mc-cell{text-align:center; padding:3px 0 2px; border-radius:8px; cursor:pointer; min-height:30px;
+    border:1px solid transparent;}
+  .mc-cell.blank{visibility:hidden; cursor:default;}
+  .mc-cell.now{background:rgba(124,91,255,.3); border-color:rgba(255,255,255,.2);}
+  .mc-cell.pick{background:linear-gradient(150deg,rgba(124,91,255,.55),rgba(44,219,168,.4)); border-color:rgba(255,255,255,.3);}
+  .mc-d{font-family:var(--num); font-size:11.5px; font-weight:700; color:rgba(255,255,255,.82); line-height:1.2;}
+  .mc-ic{font-size:10px; line-height:1.2;}
+  .mc-dot{width:4px; height:4px; border-radius:50%; margin:2px auto 0; background:rgba(255,255,255,.12);}
+  .mc-dot.some{background:#FFC94A;} .mc-dot.full{background:#2CDBA8;}
+  .mc-detail{margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,.15);}
+  .mcd-head{font-size:10px; font-weight:700; color:#7CE7DA;}
+  .mcd-body{display:flex; align-items:center; gap:9px; margin-top:5px;}
+  .mcd-ic{font-size:22px;}
+  .mcd-tx{font-size:11px; color:rgba(255,255,255,.8); display:flex; flex-direction:column; line-height:1.5;}
+  .mcd-tx b{color:#fff; font-weight:700;}
+  .mcd-none{font-size:10.5px; color:var(--dim2); margin-top:4px; font-style:italic;}
   .cat-mini{margin-top:5px;}
   .cm-bar{height:4px; border-radius:3px; background:rgba(0,0,0,.32); overflow:hidden;}
   .cm-fill{height:100%; border-radius:3px; background:linear-gradient(90deg,#FFFFFF,rgba(255,255,255,.72));
@@ -1843,7 +1901,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v128';
+const APP_VERSION = 'v129';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2119,6 +2177,7 @@ function saveProfile(){
   const g = id=>document.getElementById(id);
   const profile = {
     name: (g('p-name')||{}).value || '',
+    birthday: (g('p-birthday')||{}).value || '',
     gender: (g('p-gender')||{}).value || 'nam',
     age: parseInt((g('p-age')||{}).value,10) || null,
     weight: parseFloat((g('p-weight')||{}).value) || null,
@@ -3547,7 +3606,7 @@ function petAuraParticlesHtml(auraClass){
 }
 function renderPetCard(){
   const st = petState();
-  return `<div class="pet-card" data-action="hub-open" data-target="pet" style="border-color:${st.color}55; background:linear-gradient(135deg,${st.color}1e,${st.color2}18);">
+  return `<div class="pet-card art-frame" data-action="hub-open" data-target="pet" style="border-color:${st.color}55; background:linear-gradient(135deg,${st.color}1e,${st.color2}18);">
     <div class="pet-avatar-wrap ${st.aura}" style="--pet-c1:${st.color}; --pet-c2:${st.color2};">
       ${petAuraParticlesHtml(st.aura)}
       <div class="pet-avatar">${st.icon}</div>
@@ -4926,6 +4985,81 @@ function hubMiniProgress(kind){
     <div class="cm-line">${left ? `còn <b>${left}</b> · ` : ''}${nextLine}</div>
   </div>`;
 }
+// ================= CUNG HOÀNG ĐẠO =================
+// Phần TRA CỨU dưới đây là dữ liệu chiêm tinh phương Tây chuẩn (tropical zodiac): mốc ngày, nguyên tố,
+// tính chất (cardinal/fixed/mutable), hành tinh chủ quản và các từ khoá tính cách truyền thống — thống
+// nhất giữa các tài liệu chiêm tinh, nên phần này tra ra là ĐÚNG và kiểm chứng được.
+// Riêng phần LUẬN NGÀY do AI viết là góc nhìn để ngẫm và tự nhắc mình, KHÔNG phải dự báo có căn cứ khoa
+// học — chiêm tinh chưa từng được chứng minh có khả năng tiên đoán. Đã ghi rõ điều này ngay trên thẻ.
+const ZODIAC = [
+  {k:'aries',       n:'Bạch Dương',  sym:'♈', from:[3,21],  to:[4,19],  el:'Lửa',  mode:'Khởi đầu', rule:'Sao Hỏa',   c:'#FF6E4A', traits:'Quyết đoán, thích dẫn đầu, hành động nhanh; cần luyện tính kiên nhẫn.'},
+  {k:'taurus',      n:'Kim Ngưu',    sym:'♉', from:[4,20],  to:[5,20],  el:'Đất',  mode:'Cố định',  rule:'Sao Kim',   c:'#5CD68A', traits:'Bền bỉ, thực tế, coi trọng sự ổn định; đôi khi hơi cố chấp.'},
+  {k:'gemini',      n:'Song Tử',     sym:'♊', from:[5,21],  to:[6,20],  el:'Khí',  mode:'Linh hoạt',rule:'Sao Thủy',  c:'#FFD166', traits:'Nhanh trí, giỏi ngôn ngữ, ham cái mới; dễ phân tán, cần chốt việc.'},
+  {k:'cancer',      n:'Cự Giải',     sym:'♋', from:[6,21],  to:[7,22],  el:'Nước', mode:'Khởi đầu', rule:'Mặt Trăng', c:'#8FD3FF', traits:'Giàu cảm xúc, gắn bó gia đình, chu đáo; nhạy cảm với lời nói.'},
+  {k:'leo',         n:'Sư Tử',       sym:'♌', from:[7,23],  to:[8,22],  el:'Lửa',  mode:'Cố định',  rule:'Mặt Trời',  c:'#FFB03D', traits:'Tự tin, hào phóng, có sức hút; cần lắng nghe nhiều hơn.'},
+  {k:'virgo',       n:'Xử Nữ',       sym:'♍', from:[8,23],  to:[9,22],  el:'Đất',  mode:'Linh hoạt',rule:'Sao Thủy',  c:'#9BD48A', traits:'Tỉ mỉ, kỷ luật, giỏi phân tích; dễ khắt khe với chính mình.'},
+  {k:'libra',       n:'Thiên Bình',  sym:'♎', from:[9,23],  to:[10,22], el:'Khí',  mode:'Khởi đầu', rule:'Sao Kim',   c:'#C6B4FF', traits:'Hài hoà, công bằng, khéo léo trong quan hệ; hay do dự khi phải chọn.'},
+  {k:'scorpio',     n:'Bọ Cạp',      sym:'♏', from:[10,23], to:[11,21], el:'Nước', mode:'Cố định',  rule:'Sao Diêm Vương', c:'#E0559A', traits:'Sâu sắc, ý chí mạnh, tập trung cao; cần học buông bỏ.'},
+  {k:'sagittarius', n:'Nhân Mã',     sym:'♐', from:[11,22], to:[12,21], el:'Lửa',  mode:'Linh hoạt',rule:'Sao Mộc',   c:'#FF8A5C', traits:'Lạc quan, ưa khám phá, thẳng thắn; đôi khi thiếu kiên trì.'},
+  {k:'capricorn',   n:'Ma Kết',      sym:'♑', from:[12,22], to:[1,19],  el:'Đất',  mode:'Khởi đầu', rule:'Sao Thổ',   c:'#8FA8C9', traits:'Nghiêm túc, có kỷ luật, đi đường dài; dễ tự tạo áp lực.'},
+  {k:'aquarius',    n:'Bảo Bình',    sym:'♒', from:[1,20],  to:[2,18],  el:'Khí',  mode:'Cố định',  rule:'Sao Thiên Vương', c:'#6FD8F0', traits:'Độc lập, nhiều ý tưởng khác biệt, coi trọng tự do.'},
+  {k:'pisces',      n:'Song Ngư',    sym:'♓', from:[2,19],  to:[3,20],  el:'Nước', mode:'Linh hoạt',rule:'Sao Hải Vương', c:'#A9B8FF', traits:'Nhân hậu, giàu trực giác và tưởng tượng; cần ranh giới rõ ràng.'}
+];
+function zodiacOf(birth){
+  if(!birth) return null;
+  const parts = String(birth).split('-').map(Number);
+  if(parts.length<3 || !parts[1] || !parts[2]) return null;
+  const m = parts[1], d = parts[2];
+  for(const z of ZODIAC){
+    const [fm,fd] = z.from, [tm,td] = z.to;
+    if(fm <= tm){ if((m===fm && d>=fd) || (m===tm && d<=td) || (m>fm && m<tm)) return z; }
+    else { if((m===fm && d>=fd) || (m===tm && d<=td)) return z; }   // Ma Kết vắt qua năm mới
+  }
+  return null;
+}
+let _zodiacFetching = false;
+async function fetchZodiacToday(z){
+  if(_zodiacFetching || !z) return;
+  const cache = SETTINGS.zodiacDaily;
+  if(cache && cache.day===todayKey() && cache.k===z.k) return;
+  if(!SETTINGS.geminiApiKey){ SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:'', noKey:true}; return; }
+  _zodiacFetching = true;
+  try{
+    const prompt = `Bạn viết mục "chiêm tinh hằng ngày" cho một tờ báo, dành cho cung ${z.n} (${z.el}, chủ quản ${z.rule}), ngày ${todayKey()}.
+Viết 2 câu tiếng Việt, tổng dưới 45 từ: câu 1 nêu tinh thần chung của ngày, câu 2 là MỘT lời khuyên hành động cụ thể, thực tế, có thể làm ngay (liên quan công việc, sức khỏe hoặc học tập).
+Giọng điềm đạm, không hứa hẹn tiền bạc/vận may, không doạ nạt, không nói chắc chắn điều gì sẽ xảy ra. Chỉ trả về đúng 2 câu, không thêm tiêu đề hay ký hiệu.`;
+    const txt = await callGeminiOnce(prompt);
+    SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:(txt||'').trim()};
+    saveSettings();
+    if(STATE.tab==='hub') renderContent();
+  }catch(e){
+    SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:'', err:true};
+  }finally{ _zodiacFetching = false; }
+}
+function zodiacCardHtml(){
+  const bd = (SETTINGS.profile||{}).birthday;
+  const z = zodiacOf(bd);
+  if(!z){
+    return `<div class="hc-zodiac empty" data-action="hub-open" data-target="profile">
+      <div class="hz-sym">✨</div>
+      <div class="hz-tx"><b>Cung hoàng đạo</b>Nhập ngày sinh trong Thông tin cá nhân để hiện ở đây ›</div>
+    </div>`;
+  }
+  const c = SETTINGS.zodiacDaily;
+  const ready = c && c.day===todayKey() && c.k===z.k;
+  if(!ready) fetchZodiacToday(z);
+  const line = ready
+    ? (c.text || (c.noKey ? 'Thêm Gemini API key trong Cài đặt để có luận ngày.' : 'Chưa lấy được luận ngày hôm nay.'))
+    : 'Đang xem ngày hôm nay…';
+  return `<div class="hc-zodiac" style="--zc:${z.c};">
+    <div class="hz-sym">${z.sym}</div>
+    <div class="hz-tx">
+      <b>${z.n} <span class="hz-meta">${z.el} · ${z.rule}</span></b>
+      <span class="hz-line">${escapeHtml(line)}</span>
+      <span class="hz-note">Chiêm tinh là góc nhìn để ngẫm, không phải dự báo có cơ sở khoa học.</span>
+    </div>
+  </div>`;
+}
 // ================= THỜI TIẾT =================
 // Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
 // rồi nhớ luôn vào SETTINGS; nếu bạn từ chối chia sẻ vị trí thì mặc định lấy theo TP.HCM.
@@ -4962,15 +5096,23 @@ async function fetchWeatherToday(){
   if(_weatherFetching || weatherCache()) return;
   _weatherFetching = true;
   try{
-    let pos = SETTINGS.geo;
-    if(!pos && navigator.geolocation){
+    // Lấy lại vị trí MỖI LẦN MỞ APP (không dùng lại toạ độ cũ đã lưu) — đổi chỗ là dự báo đổi theo ngay.
+    // Toạ độ cũ chỉ dùng làm phương án dự phòng nếu lần này không lấy được.
+    let pos = null;
+    if(navigator.geolocation){
       pos = await new Promise(res=>{
         navigator.geolocation.getCurrentPosition(
           p=>res({lat:+p.coords.latitude.toFixed(2), lon:+p.coords.longitude.toFixed(2)}),
           ()=>res(null), {timeout:6000, maximumAge:86400000});
       });
-      if(pos){ SETTINGS.geo = pos; saveSettings(); }
+      if(pos){
+        // Dời chỗ đáng kể (>~5 km) thì tra lại tên địa điểm cho khớp.
+        const old = SETTINGS.geo;
+        if(!old || Math.abs(old.lat-pos.lat)>0.05 || Math.abs(old.lon-pos.lon)>0.05) SETTINGS.geoCity = '';
+        SETTINGS.geo = pos; saveSettings();
+      }
     }
+    if(!pos && SETTINGS.geo) pos = SETTINGS.geo;
     let usedFallback = false;
     if(!pos){ pos = WEATHER_FALLBACK; usedFallback = true; }
     // Tên địa điểm chỉ cần tra một lần rồi nhớ luôn, không tra lại mỗi ngày.
@@ -4980,7 +5122,7 @@ async function fetchWeatherToday(){
       saveSettings();
     }
     const url = 'https://api.open-meteo.com/v1/forecast?latitude='+pos.lat+'&longitude='+pos.lon
-      + '&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=2';
+      + '&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=16';
     const res = await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
     const d = await res.json();
@@ -4991,6 +5133,15 @@ async function fetchWeatherToday(){
       max: Math.round(d.daily.temperature_2m_max[0]),
       min: Math.round(d.daily.temperature_2m_min[0]),
       rain: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : null,
+      // Dự báo theo NGÀY cho 16 ngày tới — dùng khi bấm vào một ngày trong lịch tháng.
+      days: (function(){
+        const D = d.daily || {}; const t = D.time || []; const out = {};
+        for(let i=0;i<t.length;i++){
+          out[t[i]] = {c: D.weather_code[i], max: Math.round(D.temperature_2m_max[i]), min: Math.round(D.temperature_2m_min[i]),
+                       r: D.precipitation_probability_max ? D.precipitation_probability_max[i] : null};
+        }
+        return out;
+      })(),
       // Dự báo theo GIỜ: lấy 6 mốc kế tiếp kể từ giờ hiện tại để biết lát nữa trời thế nào,
       // hữu ích khi sắp xếp giờ chạy bộ / ra ngoài trong ngày.
       hours: (function(){
@@ -5030,26 +5181,60 @@ function weatherChipHtml(){
     </div>
     ${hours ? `<div class="hc-hours">${hours}</div>` : ''}`;
 }
-// ---- Dải lịch tuần: 7 ngày quanh hôm nay, chấm màu = ngày đã hoàn thành hết việc ----
-function weekStripHtml(){
+// ---- LỊCH THÁNG: hàng "hôm nay" + lưới cả tháng. Bấm vào ngày nào thì hiện dự báo thời tiết của
+// đúng ngày đó, tại đúng vị trí đang lấy. Open-Meteo cho dự báo tối đa 16 ngày tới, các ngày ngoài
+// khoảng đó sẽ ghi rõ là chưa có dữ liệu thay vì đoán bừa.
+function monthCalHtml(){
   const now = new Date();
-  const dow = (now.getDay()+6)%7;              // 0 = Thứ 2
-  const mon = new Date(now); mon.setDate(now.getDate()-dow);
+  const cur = STATE.hubCalMonth !== undefined ? STATE.hubCalMonth : now.getMonth();
+  const curY = STATE.hubCalYear !== undefined ? STATE.hubCalYear : now.getFullYear();
+  const first = new Date(curY, cur, 1);
+  const startDow = (first.getDay()+6)%7;                 // 0 = Thứ 2
+  const daysInMonth = new Date(curY, cur+1, 0).getDate();
   const tk = todayKey();
-  const cells = Array.from({length:7}).map((_,i)=>{
-    const d = new Date(mon); d.setDate(mon.getDate()+i);
-    const k = toKey(d);
+  const w = weatherCache();
+  const wd = ['T2','T3','T4','T5','T6','T7','CN'].map(d=>`<div class="mc-wd">${d}</div>`).join('');
+  let cells = '';
+  for(let i=0;i<startDow;i++) cells += `<div class="mc-cell blank"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(curY, cur, d);
+    const k = toKey(dt);
     const isToday = k === tk;
+    const sel = STATE.hubCalPick === k;
     const info = LOG[k] ? dayInfoTrack(k,'schedule') : null;
     const full = info && info.total>0 && info.done>=info.total;
     const some = info && info.done>0 && !full;
-    return `<div class="ws-cell ${isToday?'now':''}">
-      <div class="ws-wd">${['T2','T3','T4','T5','T6','T7','CN'][i]}</div>
-      <div class="ws-d">${d.getDate()}</div>
-      <div class="ws-dot ${full?'full':(some?'some':'')}"></div>
+    const fc = w && w.days && w.days[k];
+    const ic = fc ? wmoInfo(fc.c)[0] : '';
+    cells += `<div class="mc-cell ${isToday?'now':''} ${sel?'pick':''}" data-action="hub-cal-pick" data-key="${k}">
+      <div class="mc-d">${d}</div>
+      ${ic ? `<div class="mc-ic">${ic}</div>` : `<div class="mc-dot ${full?'full':(some?'some':'')}"></div>`}
     </div>`;
-  }).join('');
-  return `<div class="hc-week">${cells}</div>`;
+  }
+  // Chi tiết ngày đang chọn
+  let detail = '';
+  const pick = STATE.hubCalPick;
+  if(pick){
+    const [yy,mm,dd] = pick.split('-').map(Number);
+    const dt = new Date(yy, mm-1, dd);
+    const fc = w && w.days && w.days[pick];
+    const place = SETTINGS.geoCity || WEATHER_FALLBACK.city;
+    detail = `<div class="mc-detail">
+      <div class="mcd-head">${WD_FULL[dt.getDay()]}, ${pad(dd)}/${pad(mm)}/${yy} · 📍 ${escapeHtml(place)}</div>
+      ${fc ? `<div class="mcd-body"><span class="mcd-ic">${wmoInfo(fc.c)[0]}</span>
+          <span class="mcd-tx"><b>${wmoInfo(fc.c)[1]}</b>${fc.min}° – ${fc.max}°${fc.r!=null?` · 💧 mưa ${fc.r}%`:''}</span></div>`
+        : `<div class="mcd-none">Chưa có dự báo cho ngày này (dự báo chỉ có trong 16 ngày tới).</div>`}
+    </div>`;
+  }
+  return `<div class="hc-cal">
+    <div class="mc-nav">
+      <span class="mc-arrow" data-action="hub-cal-prev">‹</span>
+      <span class="mc-title">Tháng ${cur+1} / ${curY}</span>
+      <span class="mc-arrow" data-action="hub-cal-next">›</span>
+    </div>
+    <div class="mc-grid">${wd}${cells}</div>
+    ${detail}
+  </div>`;
 }
 function renderHub(){
   const key = todayKey();
@@ -5073,7 +5258,7 @@ function renderHub(){
     </div>`;
   const menuHtml = `
     <div class="top-banner">
-      <div class="banner-wrap" style="${bannerStyle}">
+      <div class="banner-wrap art-frame" style="${bannerStyle}">
         <div class="banner-overlay"></div>
         <div class="banner-actions">
           <button class="banner-icon-btn" data-action="banner-pick-photo" title="Đổi ảnh bìa">${svgIcon('camera')}</button>
@@ -5100,7 +5285,9 @@ function renderHub(){
     return `<text x="${(100+Math.cos(a)*r).toFixed(1)}" y="${(100+Math.sin(a)*r+6).toFixed(1)}" text-anchor="middle" class="hcn">${n}</text>`;
   }).join('');
   const clockHtml = `
-    <div class="hub-clock-card v3">
+    <div class="hub-clock-card v3 art-frame">
+      <div class="art-corner tl"></div><div class="art-corner tr"></div>
+      <div class="art-corner bl"></div><div class="art-corner br"></div>
       <div class="hub-clock-blob b1"></div>
       <div class="hub-clock-blob b2"></div>
       ${renderPetCard()}
@@ -5130,8 +5317,9 @@ function renderHub(){
           <div class="hc-dm"><b>${pad(now.getDate())}</b>/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
         </div>
       </div>
-      ${weekStripHtml()}
+      ${zodiacCardHtml()}
       ${weatherChipHtml()}
+      ${monthCalHtml()}
     </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
@@ -5139,7 +5327,7 @@ function renderHub(){
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
       <div class="cat-grid">
-        <div class="cat-card" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
+        <div class="cat-card art-frame" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
           ${catScrim('today')}${catImageActions('today')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
@@ -5147,7 +5335,7 @@ function renderHub(){
           </div>
           ${catDeco('today','📅')}
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
+        <div class="cat-card art-frame" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
           ${catScrim('english')}${catImageActions('english')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('chat','color:#fff;')}</div>
@@ -5236,7 +5424,27 @@ function ensureMusicFolders(){
     if(f[k] === undefined || f[k] === '' || f[k] === MUSIC_DRIVE_FOLDER_ID) f[k] = MUSIC_FOLDER_DEFAULTS[k];
   });
 }
-function musicFolderId(k){ ensureMusicFolders(); return (SETTINGS.musicFolders[k||musicCat()]||'').trim(); }
+// LỖI ĐÃ GẶP THẬT: ID thư mục lưu trong máy bị dính đuôi query của thanh địa chỉ Drive, ví dụ
+//   1Sm79...GYMvH?dmr=1&ec=wgc-drive-[module]-goto
+// khiến MỌI lời gọi Drive API trả 404 và danh sách nhạc không bao giờ hiện. Hàm này lọc sạch: nhận cả
+// link đầy đủ lẫn ID dán tay, cắt bỏ mọi thứ sau ? # /, chỉ giữ đúng phần ID hợp lệ của Drive.
+function cleanDriveFolderId(v){
+  let id = String(v||'').trim();
+  const m = id.match(/folders\/([A-Za-z0-9_-]+)/) || id.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  if(m) id = m[1];
+  id = id.split('?')[0].split('#')[0].split('/').filter(Boolean).pop() || '';
+  const ok = id.match(/[A-Za-z0-9_-]{10,}/);
+  return ok ? ok[0] : '';
+}
+function musicFolderId(k){
+  ensureMusicFolders();
+  const key = k || musicCat();
+  const raw = (SETTINGS.musicFolders[key]||'').trim();
+  const clean = cleanDriveFolderId(raw);
+  // Gặp giá trị bẩn thì sửa luôn vào bộ nhớ + đẩy lên Drive để lần sau không hỏng lại.
+  if(clean && clean !== raw){ SETTINGS.musicFolders[key] = clean; saveSettings(); pushToDrive(); }
+  return clean;
+}
 function setMusicCat(k){
   if(!MUSIC_CATS.some(c=>c.key===k)) return;
   SETTINGS.musicCat = k; saveSettings();
@@ -5251,10 +5459,10 @@ function setMusicFolder(){
   const cur = SETTINGS.musicFolders[c.key] || '';
   const v = window.prompt(`Dán ID thư mục Google Drive cho mục "${c.name}".\n\nCách lấy: mở thư mục trên Drive, nhìn thanh địa chỉ\ndrive.google.com/drive/folders/<ID Ở ĐÂY>\n\nLưu ý: thư mục phải được chia sẻ "Bất kỳ ai có đường liên kết".`, cur);
   if(v===null) return;
-  // Cho phép dán nguyên cả đường link — tự bóc lấy ID để bạn khỏi phải cắt tay.
-  let id = v.trim();
-  const m = id.match(/folders\/([A-Za-z0-9_-]+)/);
-  if(m) id = m[1];
+  // Cho phép dán nguyên cả đường link (kể cả có đuôi ?dmr=1&ec=... như khi copy từ thanh địa chỉ Drive)
+  // — cleanDriveFolderId sẽ lọc ra đúng phần ID.
+  const id = cleanDriveFolderId(v);
+  if(!id){ showToast('⚠️','Không nhận ra ID thư mục','Dán lại link thư mục Drive hoặc đúng đoạn ID nhé.'); return; }
   SETTINGS.musicFolders[c.key] = id;
   saveSettings(); pushToDrive();
   STATE.driveMusicList = undefined; STATE.driveMusicError = null;
@@ -5273,7 +5481,11 @@ async function fetchDriveMusicList(){
     const q = encodeURIComponent(`'${folder}' in parents and trashed=false`);
     const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType)&key=${MUSIC_DRIVE_API_KEY}`;
     const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok){
+      let detail = '';
+      try{ const j = await res.json(); detail = (j.error && j.error.message) ? ' — '+j.error.message : ''; }catch(_){}
+      throw new Error('HTTP '+res.status+detail);
+    }
     const data = await res.json();
     const files = (data.files||[]).filter(f=>f.mimeType && f.mimeType.indexOf('audio')===0);
     STATE.driveMusicList = files;
@@ -5290,7 +5502,11 @@ async function fetchDriveMusicList(){
       }catch(e){}
     }
   }catch(e){
-    STATE.driveMusicError = 'Không tải được danh sách từ Google Drive. Kiểm tra kết nối mạng rồi bấm làm mới.';
+    // BẮT BUỘC gán [] chứ không để undefined: trước đây khi lỗi, biến vẫn undefined nên hàm render lại
+    // gọi fetch → lỗi → render → ... lặp vô hạn (đã đo 61 lần gọi liên tiếp), màn hình kẹt mãi ở
+    // "Đang tải danh sách từ Google Drive...".
+    STATE.driveMusicList = [];
+    STATE.driveMusicError = 'Không tải được danh sách từ Google Drive (' + (e && e.message || 'lỗi không rõ') + '). Kiểm tra ID thư mục và quyền chia sẻ "Bất kỳ ai có đường liên kết", rồi bấm Làm mới.';
   }
   STATE.driveMusicLoading = false;
   renderContentPreserveScroll();
@@ -14891,6 +15107,7 @@ function renderProfile(){
     <div class="card">
       <h3>Thông tin cá nhân</h3>
       <input class="form-input" id="p-name" placeholder="Họ tên" value="${p.name||''}">
+      <input class="form-input" id="p-birthday" type="date" placeholder="Ngày sinh" value="${p.birthday||''}" style="margin-top:8px;">
       <div style="display:flex; gap:8px; margin-top:8px;">
         <select class="form-input" id="p-gender" style="flex:1;">
           <option value="nam" ${p.gender!=='nu'?'selected':''}>Nam</option>
@@ -16006,6 +16223,23 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictHomeOpenEl){ dictHomeOpen(); return; }
   const dictHomeCloseEl = e.target.closest('[data-action="dict-home-close"]');
   if(dictHomeCloseEl){ dictHomeClose(); return; }
+  const calPickEl = e.target.closest('[data-action="hub-cal-pick"]');
+  if(calPickEl){
+    const k = calPickEl.getAttribute('data-key');
+    STATE.hubCalPick = (STATE.hubCalPick === k) ? null : k;   // bấm lại lần nữa để đóng
+    renderContentPreserveScroll(); return;
+  }
+  const calPrevEl = e.target.closest('[data-action="hub-cal-prev"]');
+  const calNextEl = e.target.closest('[data-action="hub-cal-next"]');
+  if(calPrevEl || calNextEl){
+    const now = new Date();
+    let m = STATE.hubCalMonth !== undefined ? STATE.hubCalMonth : now.getMonth();
+    let y = STATE.hubCalYear !== undefined ? STATE.hubCalYear : now.getFullYear();
+    m += calNextEl ? 1 : -1;
+    if(m < 0){ m = 11; y--; } else if(m > 11){ m = 0; y++; }
+    STATE.hubCalMonth = m; STATE.hubCalYear = y;
+    renderContentPreserveScroll(); return;
+  }
   const ggToggleLvEl = e.target.closest('[data-action="gg-toggle-level"]');
   if(ggToggleLvEl){
     const k = ggToggleLvEl.getAttribute('data-level');
