@@ -409,25 +409,28 @@
     font-variant-numeric:tabular-nums;}
   .hub-clock-ring .rc .l{font-size:7.5px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.06em;
     text-transform:uppercase; margin-top:2px;}
-  /* ===== ĐỒNG HỒ v2: bảng đèn + lịch tuần + thời tiết ===== */
-  .hub-clock-card.v2{background:linear-gradient(135deg,#101A33 0%,#1B2A52 42%,#122B44 100%);
+  /* ===== ĐỒNG HỒ v3: mặt số ANALOG + lịch tuần + thời tiết theo giờ ===== */
+  .hub-clock-card.v3{background:linear-gradient(140deg,#0F1A31 0%,#1A2A50 44%,#122B44 100%);
     border:1px solid rgba(255,255,255,.09); padding:15px 16px 13px; gap:12px;}
-  .hc-row{position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;}
-  .hc-time{font-family:var(--num); font-size:52px; font-weight:900; line-height:.9; letter-spacing:-2px;
-    font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:5px;
-    background:linear-gradient(100deg,#FFFFFF 6%,#9FE4FF 44%,#B9A6FF 96%);
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    text-shadow:0 0 26px rgba(120,180,255,.28);}
-  .hc-time .hc-sec{font-size:17px; font-weight:800; letter-spacing:0; -webkit-text-fill-color:#7CE7DA; opacity:.85;}
-  .hc-datebox{text-align:right; flex-shrink:0;}
+  .hc-main{position:relative; z-index:1; display:flex; align-items:center; gap:16px;}
+  .hc-analog{width:132px; height:132px; flex-shrink:0;
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,.42));}
+  .hc-analog svg{width:100%; height:100%; display:block;}
+  .hc-analog .hcn{fill:rgba(233,242,255,.82); font-family:var(--num); font-size:17px; font-weight:800;}
+  .hc-analog #hcSec{transition:transform .18s cubic-bezier(.3,1.6,.5,1);}
+  .hc-side{min-width:0; flex:1;}
   .hc-wd{font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:#7CE7DA;
-    display:flex; align-items:center; justify-content:flex-end; gap:5px;}
+    display:flex; align-items:center; gap:5px;}
   .hc-wd::before{content:''; width:5px; height:5px; border-radius:50%; background:#2CDBA8;
     box-shadow:0 0 8px #2CDBA8; animation:livePulse 2s ease-in-out infinite;}
-  .hc-dm{font-family:var(--num); font-size:15px; font-weight:700; color:rgba(255,255,255,.82); margin-top:4px;
+  .hc-digital{font-family:var(--num); font-size:34px; font-weight:900; line-height:1; letter-spacing:-1.2px;
+    margin-top:6px; font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:5px;
+    background:linear-gradient(100deg,#FFFFFF 6%,#9FE4FF 48%,#B9A6FF 98%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .hc-digital .hc-sec{font-size:14px; font-weight:800; letter-spacing:0; -webkit-text-fill-color:#FF9FB6; opacity:.9;}
+  .hc-dm{font-family:var(--num); font-size:12.5px; font-weight:600; color:rgba(255,255,255,.6); margin-top:6px;
     font-variant-numeric:tabular-nums;}
-  .hc-dm b{font-size:21px; font-weight:900; color:#fff;}
-  .hc-dm span{display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,.45); letter-spacing:.1em;}
+  .hc-dm b{font-size:16px; font-weight:900; color:rgba(255,255,255,.92);}
   .hc-week{position:relative; z-index:1; display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
   .ws-cell{text-align:center; padding:6px 0 5px; border-radius:12px; background:rgba(255,255,255,.05);
     border:1px solid transparent;}
@@ -442,19 +445,38 @@
   .ws-dot.some{background:#FFC94A;}
   .ws-dot.full{background:#2CDBA8; box-shadow:0 0 6px #2CDBA8;}
   .hc-weather{position:relative; z-index:1; display:flex; align-items:center; gap:10px;
-    background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1); border-radius:15px;
-    padding:9px 12px; backdrop-filter:blur(6px);}
-  .hc-weather.loading{opacity:.6;}
+    background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1); border-radius:15px 15px 0 0;
+    padding:9px 12px 8px; backdrop-filter:blur(6px);}
+  .hc-weather.loading{opacity:.6; border-radius:15px;}
   .hc-weather .w-ic{font-size:24px; line-height:1; flex-shrink:0;}
   .hc-weather .w-now{font-family:var(--num); font-size:22px; font-weight:900; color:#fff; line-height:1;
     font-variant-numeric:tabular-nums;}
   .hc-weather .w-tx{font-size:10.5px; color:rgba(255,255,255,.66); line-height:1.45; display:flex;
     flex-direction:column; min-width:0;}
   .hc-weather .w-tx b{font-weight:700; color:rgba(255,255,255,.9); font-family:var(--num);}
-  /* Thẻ danh mục mở rộng: danh sách việc nằm ngay trong thẻ tương ứng */
-  .cat-card.wide{grid-column:1 / -1; min-height:auto !important;}
-  .cat-card-detail{position:relative; z-index:2; margin-top:10px; padding-top:9px;
-    border-top:1px solid rgba(255,255,255,.16); display:flex; flex-direction:column; gap:2px;}
+  /* Dự báo 6 khung giờ kế tiếp */
+  .hc-hours{position:relative; z-index:1; display:grid; grid-template-columns:repeat(6,1fr); gap:2px;
+    background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1); border-top:0;
+    border-radius:0 0 15px 15px; padding:7px 8px 8px; margin-top:-12px; backdrop-filter:blur(6px);}
+  .wh-cell{text-align:center; padding:2px 0;}
+  .wh-h{font-family:var(--num); font-size:9px; font-weight:700; color:rgba(255,255,255,.45);}
+  .wh-ic{font-size:15px; line-height:1.5;}
+  .wh-t{font-family:var(--num); font-size:12px; font-weight:800; color:rgba(255,255,255,.88);}
+  .wh-r{font-size:8px; font-weight:700; color:rgba(120,190,255,.65); margin-top:1px;}
+  .wh-r.high{color:#6FC3FF;}
+  /* Khối tiến độ gọn trong thẻ danh mục — vừa đúng thẻ cỡ chuẩn */
+  .cat-mini{margin-top:5px;}
+  .cm-bar{height:4px; border-radius:3px; background:rgba(0,0,0,.32); overflow:hidden;}
+  .cm-fill{height:100%; border-radius:3px; background:linear-gradient(90deg,#FFFFFF,rgba(255,255,255,.72));
+    transition:width .5s ease;}
+  .cm-line{margin-top:4px; font-size:9.5px; line-height:1.35; color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 3px rgba(0,0,0,.5);}
+  .cm-line b{font-weight:800; color:#fff;}
+  @media (max-width:400px){
+    .hc-analog{width:112px; height:112px;}
+    .hc-digital{font-size:29px;}
+    .wh-ic{font-size:13px;} .wh-t{font-size:11px;}
+  }
   .hub-clock-quicklinks{position:relative; z-index:1; display:flex; gap:8px;}
   .hub-today{position:relative; z-index:1; background:rgba(8,12,20,.46); border:1px solid rgba(255,255,255,.1);
     border-radius:15px; padding:6px 8px 5px; backdrop-filter:blur(6px);}
@@ -1788,7 +1810,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v126';
+const APP_VERSION = 'v127';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3044,7 +3066,7 @@ function petSkillBannerHtml(){
 // 8 cột × 10 hàng, mỗi ô 160×160. Dùng một file thay vì 80 file lẻ để chỉ phải tải một lần, đỡ 80 lượt
 // request và tiện upload. Vị trí ô được tính bằng background-position theo phần trăm.
 // Nếu vì lý do nào đó không tải được ảnh, app tự động rơi về hình vẽ SVG bên dưới nên không bao giờ trắng.
-const PET_SPRITE_FILE = 'pet-sprites.jpg';
+const PET_SPRITE_FILE = 'pet-sprites.webp';   // 2816×3520 — ô 352px, gấp 2.2× bản cũ cho nét khi phóng to
 const PET_SPRITE_COLS = 8, PET_SPRITE_ROWS = 10;
 let PET_SPRITE_OK = false;
 let _petSpriteProbed = false;
@@ -4823,6 +4845,11 @@ function tickHubClock(){
   el.textContent = pad(now.getHours())+':'+pad(now.getMinutes());
   const sec = document.getElementById('hubClockSec');
   if(sec) sec.textContent = pad(now.getSeconds());
+  // Quay 3 kim của mặt số analog — chỉ đổi transform nên rất nhẹ, không render lại màn hình.
+  const rot = (id, deg)=>{ const g = document.getElementById(id); if(g) g.setAttribute('transform', `rotate(${deg} 100 100)`); };
+  rot('hcHour', (now.getHours()%12)*30 + now.getMinutes()*0.5);
+  rot('hcMin',  now.getMinutes()*6 + now.getSeconds()*0.1);
+  rot('hcSec',  now.getSeconds()*6);
 }
 setInterval(tickHubClock, 1000);
 // ---- Khối "hôm nay" gọn dưới đồng hồ ở trang chủ ----
@@ -4833,30 +4860,38 @@ setInterval(tickHubClock, 1000);
 // rồi thì mở Học tiếng Anh — thứ đang cần làm luôn nằm sẵn trước mắt, không phải bấm tìm.
 // (đã gỡ hubTodayTab — thẻ tab trên đồng hồ không còn, thông tin đã chuyển xuống 2 thẻ danh mục.)
 
-// ---- Danh sách việc gọn, dùng LẠI ở trong đúng thẻ danh mục tương ứng (không còn nằm trên đồng hồ) ----
-function hubTaskListHtml(kind){
+// ---- Khối tiến độ gọn NẰM TRONG thẻ danh mục, thay cho dòng đếm "8/10" khô khan ----
+// Thay vì chỉ đưa ra con số, khối này cho biết: thanh tiến độ, còn bao nhiêu việc, và VIỆC KẾ TIẾP là
+// gì lúc mấy giờ — nhìn một cái là biết phải làm gì tiếp, vừa đúng kích thước thẻ tiêu chuẩn.
+function hubMiniProgress(kind){
   const key = todayKey();
   const nowMin = (()=>{ const d=new Date(); return d.getHours()*60+d.getMinutes(); })();
   const toMin = t => { const [h,m]=(t||'00:00').split(':').map(Number); return h*60+(m||0); };
+  let pct=0, left=0, nextLine='';
   if(kind==='today'){
-    const {plan, rec} = dayPlanInfo(key);
+    const {plan, rec, done, total} = dayPlanInfo(key);
+    pct = total ? Math.round(done/total*100) : 0;
     const pending = plan.filter(t=>!rec.tasks[t.id]);
-    if(!pending.length) return `<div class="hub-task empty">🎉 Đã xong hết việc hôm nay</div>`;
-    let rows = pending.slice(0,4).map(t=>{
-      const isFail = rec.failed && rec.failed[t.id];
-      const isNow = !isFail && toMin(t.time) <= nowMin && toMin(t.time)+(t.dur||30) >= nowMin;
-      return `<div class="hub-task ${isFail?'fail':(isNow?'now':'')}"><span class="ht-mark">${isFail?'✕':'○'}</span><span class="ht-time">${escapeHtml(t.time||'')}</span><span class="ht-label">${escapeHtml(t.label||'')}</span></div>`;
-    }).join('');
-    if(pending.length>4) rows += `<div class="hub-task more">+${pending.length-4} việc nữa · bấm để xem tất cả</div>`;
-    return rows;
+    left = pending.length;
+    if(!left) nextLine = '🎉 Xong hết việc hôm nay';
+    else {
+      const nx = pending.slice().sort((a,b)=>toMin(a.time)-toMin(b.time))
+        .find(t=>toMin(t.time)+(t.dur||30) >= nowMin) || pending[0];
+      nextLine = `<b>${escapeHtml(nx.time||'')}</b> ${escapeHtml(nx.label||'')}`;
+    }
+  } else {
+    const act = englishActivityForDate(key);
+    const doneN = act.rows.filter(r=>r.count>0).length;
+    pct = act.rows.length ? Math.round(doneN/act.rows.length*100) : 0;
+    const plan2 = englishPlanForToday();
+    const core = (plan2.core||[]).filter(c=>!c.done);
+    left = core.length;
+    nextLine = left ? `<b>Nên học</b> ${escapeHtml(core[0].item.name)}` : '🎉 Đã đủ chỉ tiêu hôm nay';
   }
-  const act = englishActivityForDate(key);
-  const doneRows = act.rows.filter(r=>r.count>0).slice(0,3).map(r=>
-    `<div class="hub-task done"><span class="ht-mark">✓</span><span class="ht-ic">${r.icon}</span><span class="ht-label">${escapeHtml(r.name)}</span><span class="ht-meta">${r.count} ${r.unit}</span></div>`).join('');
-  const plan2 = englishPlanForToday();
-  const todoRows = (plan2.core||[]).filter(c=>!c.done).slice(0,3).map(c=>
-    `<div class="hub-task now"><span class="ht-mark">○</span><span class="ht-ic">⭐</span><span class="ht-label">${escapeHtml(c.item.name)}</span><span class="ht-meta">nên học</span></div>`).join('');
-  return (doneRows+todoRows) || `<div class="hub-task empty">Hôm nay chưa luyện mục nào</div>`;
+  return `<div class="cat-mini">
+    <div class="cm-bar"><div class="cm-fill" style="width:${pct}%;"></div></div>
+    <div class="cm-line">${left ? `còn <b>${left}</b> · ` : ''}${nextLine}</div>
+  </div>`;
 }
 // ================= THỜI TIẾT =================
 // Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
@@ -4894,7 +4929,7 @@ async function fetchWeatherToday(){
     }
     if(!pos) pos = WEATHER_FALLBACK;
     const url = 'https://api.open-meteo.com/v1/forecast?latitude='+pos.lat+'&longitude='+pos.lon
-      + '&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1';
+      + '&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=2';
     const res = await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
     const d = await res.json();
@@ -4904,7 +4939,21 @@ async function fetchWeatherToday(){
       code: (d.current && d.current.weather_code) ?? (d.daily && d.daily.weather_code && d.daily.weather_code[0]) ?? 0,
       max: Math.round(d.daily.temperature_2m_max[0]),
       min: Math.round(d.daily.temperature_2m_min[0]),
-      rain: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : null
+      rain: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : null,
+      // Dự báo theo GIỜ: lấy 6 mốc kế tiếp kể từ giờ hiện tại để biết lát nữa trời thế nào,
+      // hữu ích khi sắp xếp giờ chạy bộ / ra ngoài trong ngày.
+      hours: (function(){
+        const H = d.hourly || {}; const t = H.time || [];
+        const now = new Date(); const nowH = now.getHours();
+        let start = t.findIndex(x => { const dt = new Date(x); return dt.getDate()===now.getDate() && dt.getHours()===nowH; });
+        if(start < 0) start = 0;
+        const out = [];
+        for(let i=start+1; i<t.length && out.length<6; i++){
+          out.push({h: new Date(t[i]).getHours(), t: Math.round(H.temperature_2m[i]), c: H.weather_code[i],
+                    r: H.precipitation_probability ? H.precipitation_probability[i] : null});
+        }
+        return out;
+      })()
     };
     saveSettings();
     if(STATE.tab==='hub') renderContent();
@@ -4918,11 +4967,16 @@ function weatherChipHtml(){
   if(!w) { fetchWeatherToday(); return `<div class="hc-weather loading"><span class="w-ic">🌤️</span><span class="w-tx">Đang lấy thời tiết…</span></div>`; }
   if(w.err) return `<div class="hc-weather"><span class="w-ic">🌐</span><span class="w-tx">Chưa lấy được thời tiết</span></div>`;
   const [ic, label] = wmoInfo(w.code);
+  const hours = (w.hours||[]).map(h=>{
+    const [hi] = wmoInfo(h.c);
+    return `<div class="wh-cell"><div class="wh-h">${pad(h.h)}h</div><div class="wh-ic">${hi}</div><div class="wh-t">${h.t}°</div>${h.r!=null?`<div class="wh-r ${h.r>=50?'high':''}">${h.r}%</div>`:''}</div>`;
+  }).join('');
   return `<div class="hc-weather">
-    <span class="w-ic">${ic}</span>
-    <span class="w-now">${w.now}°</span>
-    <span class="w-tx">${escapeHtml(label)}<b>${w.min}° – ${w.max}°</b>${w.rain!=null?` · 💧 ${w.rain}%`:''}</span>
-  </div>`;
+      <span class="w-ic">${ic}</span>
+      <span class="w-now">${w.now}°</span>
+      <span class="w-tx">${escapeHtml(label)}<b>${w.min}° – ${w.max}°</b>${w.rain!=null?` · 💧 mưa ${w.rain}%`:''}</span>
+    </div>
+    ${hours ? `<div class="hc-hours">${hours}</div>` : ''}`;
 }
 // ---- Dải lịch tuần: 7 ngày quanh hôm nay, chấm màu = ngày đã hoàn thành hết việc ----
 function weekStripHtml(){
@@ -4980,20 +5034,47 @@ function renderHub(){
       </div>
     </div>`;
   const now = new Date();
-  // ĐỒNG HỒ MỚI: bỏ vòng tròn tiến độ và danh sách việc (đã chuyển xuống đúng 2 thẻ danh mục bên dưới).
-  // Thay vào đó là mặt số lớn kiểu bảng đèn, dải lịch tuần và thời tiết hôm nay.
+  // ĐỒNG HỒ ANALOG: mặt số vẽ bằng SVG, kim giờ/phút/giây quay bằng transform và được cập nhật mỗi
+  // giây trong tickHubClock (chỉ đổi thuộc tính transform, không render lại cả màn hình).
+  const hDeg = (now.getHours()%12)*30 + now.getMinutes()*0.5;
+  const mDeg = now.getMinutes()*6 + now.getSeconds()*0.1;
+  const sDeg = now.getSeconds()*6;
+  const ticks = Array.from({length:60}).map((_,i)=>{
+    const big = i%5===0;
+    return `<line x1="100" y1="${big?14:17}" x2="100" y2="${big?24:21}" stroke="${big?'rgba(255,255,255,.75)':'rgba(255,255,255,.25)'}" stroke-width="${big?3:1.6}" stroke-linecap="round" transform="rotate(${i*6} 100 100)"/>`;
+  }).join('');
+  const nums = [12,1,2,3,4,5,6,7,8,9,10,11].map((n,i)=>{
+    const a = (i*30-90)*Math.PI/180, r = 68;
+    return `<text x="${(100+Math.cos(a)*r).toFixed(1)}" y="${(100+Math.sin(a)*r+6).toFixed(1)}" text-anchor="middle" class="hcn">${n}</text>`;
+  }).join('');
   const clockHtml = `
-    <div class="hub-clock-card v2">
+    <div class="hub-clock-card v3">
       <div class="hub-clock-blob b1"></div>
       <div class="hub-clock-blob b2"></div>
-      <div class="hc-row">
-        <div class="hc-time">
-          <span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span>
-          <span class="hc-sec" id="hubClockSec">${pad(now.getSeconds())}</span>
+      <div class="hc-main">
+        <div class="hc-analog">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hcFace" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#22345E"/><stop offset="1" stop-color="#111C33"/>
+              </linearGradient>
+              <linearGradient id="hcRim" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#8FA8FF"/><stop offset=".5" stop-color="#2CDBA8"/><stop offset="1" stop-color="#B98CFF"/>
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="96" fill="none" stroke="url(#hcRim)" stroke-width="4" opacity=".85"/>
+            <circle cx="100" cy="100" r="90" fill="url(#hcFace)"/>
+            ${ticks}${nums}
+            <g id="hcHour"   transform="rotate(${hDeg} 100 100)"><rect x="96.5" y="46" width="7" height="58" rx="3.5" fill="#EAF2FF"/></g>
+            <g id="hcMin"    transform="rotate(${mDeg} 100 100)"><rect x="97.6" y="28" width="4.8" height="76" rx="2.4" fill="#9FE4FF"/></g>
+            <g id="hcSec"    transform="rotate(${sDeg} 100 100)"><rect x="99.1" y="22" width="1.8" height="88" rx="1" fill="#FF7A9C"/><circle cx="100" cy="128" r="4" fill="#FF7A9C"/></g>
+            <circle cx="100" cy="100" r="6.5" fill="#0E1626" stroke="#EAF2FF" stroke-width="2.4"/>
+          </svg>
         </div>
-        <div class="hc-datebox">
+        <div class="hc-side">
           <div class="hc-wd">${WD_FULL[now.getDay()]}</div>
-          <div class="hc-dm"><b>${pad(now.getDate())}</b>/${pad(now.getMonth()+1)}<span>${now.getFullYear()}</span></div>
+          <div class="hc-digital"><span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span><span class="hc-sec" id="hubClockSec">${pad(now.getSeconds())}</span></div>
+          <div class="hc-dm"><b>${pad(now.getDate())}</b>/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
         </div>
       </div>
       ${weekStripHtml()}
@@ -5001,28 +5082,26 @@ function renderHub(){
     </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
-    ${clockHtml}
     ${renderPetCard()}
+    ${clockHtml}
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
       <div class="cat-grid">
-        <div class="cat-card wide" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
+        <div class="cat-card" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
           ${catScrim('today')}${catImageActions('today')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
-            <div><div class="name">Lịch làm việc</div><div class="stat">${schedDone}/${schedTotal} hôm nay</div></div>
+            <div><div class="name">Lịch làm việc</div>${hubMiniProgress('today')}</div>
           </div>
           ${catDeco('today','📅')}
-          <div class="cat-card-detail">${hubTaskListHtml('today')}</div>
         </div>
-        <div class="cat-card wide" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
+        <div class="cat-card" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
           ${catScrim('english')}${catImageActions('english')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('chat','color:#fff;')}</div>
-            <div><div class="name">Học tiếng Anh</div><div class="stat">${eng.done}/${eng.total} hôm nay</div></div>
+            <div><div class="name">Học tiếng Anh</div>${hubMiniProgress('english')}</div>
           </div>
           ${catDeco('english','🗣️')}
-          <div class="cat-card-detail">${hubTaskListHtml('english')}</div>
         </div>
         <div class="cat-card" data-action="hub-open" data-target="kiemhang" style="${catImageStyle('kiemhang','linear-gradient(135deg,#FF5A6E,#FF8A3D)')}">
           ${catScrim('kiemhang')}${catImageActions('kiemhang')}
