@@ -465,6 +465,33 @@
   .wh-r{font-size:8px; font-weight:700; color:rgba(120,190,255,.65); margin-top:1px;}
   .wh-r.high{color:#6FC3FF;}
   /* Khối tiến độ gọn trong thẻ danh mục — vừa đúng thẻ cỡ chuẩn */
+  /* Ngữ pháp: thẻ AI dẫn đường + lộ trình gấp theo cấp độ */
+  .gg-guide{background:linear-gradient(140deg,rgba(124,108,240,.2),rgba(44,219,168,.12)); border:1px solid rgba(124,108,240,.4);
+    border-radius:18px; padding:14px 16px; margin-bottom:12px;}
+  .ggg-top{display:flex; gap:11px; align-items:flex-start;}
+  .ggg-ic{font-size:24px; line-height:1.1; flex-shrink:0;}
+  .ggg-head{font-size:12.5px; font-weight:800; color:var(--text);}
+  .ggg-body{font-size:11.5px; line-height:1.6; color:var(--dim); margin-top:3px;}
+  .ggg-bar{height:5px; border-radius:4px; background:rgba(0,0,0,.3); overflow:hidden; margin-top:11px;}
+  .ggg-fill{height:100%; border-radius:4px; background:linear-gradient(90deg,#7C6CF0,#2CDBA8); transition:width .5s ease;}
+  .ggg-meta{font-size:10px; color:var(--dim2); margin-top:5px;}
+  .ggg-meta b{color:var(--text);}
+  .gg-lv-block{margin-bottom:8px;}
+  .gg-lv-hdr{display:flex; align-items:center; gap:9px; padding:11px 13px; border-radius:14px;
+    background:var(--panel); border:1px solid var(--border); cursor:pointer;}
+  .gg-lv-hdr.open{background:var(--panel2);}
+  .glh-code{font-family:var(--num); font-size:13px; font-weight:900; min-width:26px;}
+  .glh-name{flex:1; font-size:12px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .glh-prog{font-size:10.5px; font-weight:800; color:var(--dim2); font-family:var(--num);}
+  .glh-arrow{font-size:11px; color:var(--dim2); width:12px; text-align:center;}
+  .gg-lv-block .gg-path{margin-top:6px;}
+  .lpq-type{display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.04em; padding:3px 9px;
+    border-radius:9px; border:1px solid; margin-bottom:9px; text-transform:uppercase;}
+  .hc-weather .w-place{font-size:9.5px; font-weight:700; color:#7CE7DA; letter-spacing:.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;}
+  /* Thẻ thần thú khi nằm TRONG khung đồng hồ */
+  .hub-clock-card .pet-card{position:relative; z-index:1; margin:0 0 2px; background:rgba(8,12,20,.42) !important;
+    border:1px solid rgba(255,255,255,.12) !important; border-radius:16px;}
   .cat-mini{margin-top:5px;}
   .cm-bar{height:4px; border-radius:3px; background:rgba(0,0,0,.32); overflow:hidden;}
   .cm-fill{height:100%; border-radius:3px; background:linear-gradient(90deg,#FFFFFF,rgba(255,255,255,.72));
@@ -1006,6 +1033,12 @@
   .kh-cat-card .lbl{font-size:12.5px; font-weight:700;}
   .kh-cat-card .cnt{font-size:10.5px; color:var(--dim); font-family:var(--mono);}
   .kh-backrow{position:relative; display:flex; align-items:center; justify-content:center; min-height:38px; margin-bottom:16px;}
+  /* Nút về thẳng trang chính — có mặt ở MỌI màn hình con, khỏi phải bấm back nhiều lần */
+  .kh-homebtn{position:absolute; right:0; top:50%; transform:translateY(-50%); width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center; border-radius:13px; font-size:17px;
+    background:var(--panel); border:1px solid var(--border); cursor:pointer; z-index:3;
+    transition:transform .15s ease, background .15s ease;}
+  .kh-homebtn:active{transform:translateY(-50%) scale(.92); background:var(--panel2);}
   .kh-backbtn{position:absolute; left:0; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:12px;
     background:var(--panel); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
     color:var(--text); cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .15s ease;}
@@ -1810,7 +1843,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v127';
+const APP_VERSION = 'v128';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3580,7 +3613,7 @@ function renderPetDetail(){
   const st = petState();
   const P = st.parts;
   const pace = petPaceLabel();
-  const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🐉 Linh Thú của bạn</div></div>`;
+  const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🐉 Linh Thú của bạn</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
   // Bảng phân bổ điểm — nêu rõ nguồn cộng và nguồn trừ theo đúng yêu cầu "có thưởng, có phạt".
   const breakdown = `<div class="pet-score-card">
     <div class="pet-score-head">⚖️ Điểm tu luyện — <b>${st.xp.toLocaleString('vi-VN')}</b></div>
@@ -4897,6 +4930,17 @@ function hubMiniProgress(kind){
 // Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
 // rồi nhớ luôn vào SETTINGS; nếu bạn từ chối chia sẻ vị trí thì mặc định lấy theo TP.HCM.
 const WEATHER_FALLBACK = {lat:10.82, lon:106.63, city:'TP. Hồ Chí Minh'};
+// Đổi toạ độ → TÊN ĐỊA ĐIỂM để biết dự báo đang nói về đâu. Dùng BigDataCloud: miễn phí, không cần
+// đăng ký, không cần API key. Không lấy được tên thì hiện toạ độ rút gọn thay vì để trống.
+async function reverseGeocode(lat, lon){
+  try{
+    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=vi`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    const parts = [d.city || d.locality, d.principalSubdivision].filter(Boolean);
+    return parts.length ? parts.join(', ') : (d.countryName || '');
+  }catch(e){ return ''; }
+}
 const WMO_MAP = {
   0:['☀️','Trời quang'], 1:['🌤️','Ít mây'], 2:['⛅','Có mây'], 3:['☁️','Nhiều mây'],
   45:['🌫️','Sương mù'], 48:['🌫️','Sương giá'],
@@ -4927,7 +4971,14 @@ async function fetchWeatherToday(){
       });
       if(pos){ SETTINGS.geo = pos; saveSettings(); }
     }
-    if(!pos) pos = WEATHER_FALLBACK;
+    let usedFallback = false;
+    if(!pos){ pos = WEATHER_FALLBACK; usedFallback = true; }
+    // Tên địa điểm chỉ cần tra một lần rồi nhớ luôn, không tra lại mỗi ngày.
+    if(!SETTINGS.geoCity){
+      SETTINGS.geoCity = usedFallback ? WEATHER_FALLBACK.city
+        : (await reverseGeocode(pos.lat, pos.lon)) || (pos.lat.toFixed(2)+', '+pos.lon.toFixed(2));
+      saveSettings();
+    }
     const url = 'https://api.open-meteo.com/v1/forecast?latitude='+pos.lat+'&longitude='+pos.lon
       + '&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=2';
     const res = await fetch(url);
@@ -4971,10 +5022,11 @@ function weatherChipHtml(){
     const [hi] = wmoInfo(h.c);
     return `<div class="wh-cell"><div class="wh-h">${pad(h.h)}h</div><div class="wh-ic">${hi}</div><div class="wh-t">${h.t}°</div>${h.r!=null?`<div class="wh-r ${h.r>=50?'high':''}">${h.r}%</div>`:''}</div>`;
   }).join('');
+  const place = SETTINGS.geoCity || WEATHER_FALLBACK.city;
   return `<div class="hc-weather">
       <span class="w-ic">${ic}</span>
       <span class="w-now">${w.now}°</span>
-      <span class="w-tx">${escapeHtml(label)}<b>${w.min}° – ${w.max}°</b>${w.rain!=null?` · 💧 mưa ${w.rain}%`:''}</span>
+      <span class="w-tx"><span class="w-place">📍 ${escapeHtml(place)}</span>${escapeHtml(label)} · <b>${w.min}° – ${w.max}°</b>${w.rain!=null?` · 💧 mưa ${w.rain}%`:''}</span>
     </div>
     ${hours ? `<div class="hc-hours">${hours}</div>` : ''}`;
 }
@@ -5051,6 +5103,7 @@ function renderHub(){
     <div class="hub-clock-card v3">
       <div class="hub-clock-blob b1"></div>
       <div class="hub-clock-blob b2"></div>
+      ${renderPetCard()}
       <div class="hc-main">
         <div class="hc-analog">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -5082,7 +5135,6 @@ function renderHub(){
     </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
-    ${renderPetCard()}
     ${clockHtml}
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
@@ -6017,16 +6069,16 @@ function englishReviewData(){
 function renderEnglishReview(){
   const r = englishReviewData();
   const totalDue = r.vocabDue + r.sentDue + r.dictDue;
-  const dueRow = (icon,name,n,action,note)=> n>0
-    ? `<div class="rv-row" ${action?`data-action="${action}"`:''}>
+  const dueRow = (icon,name,n,action,note,kind)=> n>0
+    ? `<div class="rv-row" ${action?`data-action="${action}"${kind?` data-kind="${kind}"`:''}`:''}>
          <div class="rv-ic">${icon}</div>
          <div class="rv-body"><div class="rv-name">${name}</div><div class="rv-note">${note}</div></div>
          <div class="rv-n">${n}</div><div class="rv-go">${action?'›':''}</div>
        </div>` : '';
   const dueHtml = totalDue>0
-    ? `${dueRow('💬','Câu giao tiếp tới hạn', r.sentDue, 'sent-start-daily', 'Ôn lại đúng lúc sắp quên — hiệu quả nhất')}
-       ${dueRow('📖','Từ vựng tới hạn', r.vocabDue, 'vocab-start-daily', 'Gồm cả những từ bạn từng trả lời sai')}
-       ${dueRow('✍️','Câu chép chính tả tới hạn', r.dictDue, 'dict-start-daily', 'Nghe lại những câu từng nghe hụt')}`
+    ? `${dueRow('💬','Câu giao tiếp tới hạn', r.sentDue, 'review-start', 'Ôn lại đúng lúc sắp quên — hiệu quả nhất', 'sentences')}
+       ${dueRow('📖','Từ vựng tới hạn', r.vocabDue, 'review-start', 'Gồm cả những từ bạn từng trả lời sai', 'vocab')}
+       ${dueRow('✍️','Câu chép chính tả tới hạn', r.dictDue, 'review-start', 'Nghe lại những câu từng nghe hụt', 'listening')}`
     : `<div class="rv-empty">🎉 Không còn gì tới hạn ôn hôm nay. Cứ yên tâm học phần mới ở tab <b>Học</b>.</div>`;
   const weakHtml = (r.weakTopics.length || r.lowSpeak || r.weakest) ? `
     <div class="card" style="margin-top:12px;">
@@ -6256,12 +6308,16 @@ function deleteEnglishItem(id){
   renderContent();
 }
 function englishItemBackRow(title){
-  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div><div class="title">${escapeHtml(title)}</div></div>`;
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="english-item-back">${svgIcon('back')}</div><div class="title">${escapeHtml(title)}</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
 }
 function renderEnglishItem(){
   ensureEnglishItems();
   const item = (SETTINGS.englishItems||[]).find(i=>i.id===STATE.activeEnglishItem);
   if(!item){ STATE.tab='english'; renderEnglish(); return; }
+  // Shadowing là một LỚP PHỦ có thể mở từ bất kỳ video Luyện nghe nào (sau khi gộp 2 mục), nên phải
+  // kiểm tra TRƯỚC khi rẽ theo kind — nếu không, phiên shadowing được tạo ra nhưng màn hình vẫn đứng
+  // ở danh sách video (đúng triệu chứng "bấm nút 🎤 mà không thấy gì").
+  if(STATE.shadowSession) return renderShadowingSession(item);
   if(item.kind==='grammar') return renderEnglishGrammar(item);
   if(item.kind==='quiz') return renderEnglishQuiz(item);
   if(item.kind==='listening') return renderEnglishAV(item,'listening');
@@ -6541,6 +6597,34 @@ function vocabPrepareCurrent(){
   const all = shuffleArr([{t:correctText, correct:true}].concat(optTexts.map(t=>({t, correct:false}))));
   s.options = all.map(o=>o.t);
   s.correctIdx = all.findIndex(o=>o.correct);
+}
+// Mở đúng mô-đun tương ứng rồi mới bắt đầu phiên — nếu gọi từ tab "Ôn" mà không chuyển màn hình thì
+// phiên được tạo ra nhưng KHÔNG có gì hiển thị (đúng lỗi "bấm vào không thấy gì xảy ra").
+function openEnglishKind(kind){
+  ensureEnglishItems();
+  const it = (SETTINGS.englishItems||[]).find(i=>i.kind===kind);
+  if(!it) return false;
+  if(STATE.tab !== 'english-item' || STATE.activeEnglishItem !== it.id){
+    navForward();
+    STATE.tab = 'english-item'; STATE.activeEnglishItem = it.id;
+  }
+  return true;
+}
+// Chờ dữ liệu tải xong rồi chạy tiếp, thay vì bỏ cuộc với một dòng toast "thử lại sau giây lát".
+async function ensureBankThen(getter, fetcher, run){
+  if(getter()){ run(); return; }
+  showToast('⏳','Đang tải dữ liệu…','Chỉ mất một chút, sẽ tự bắt đầu ngay khi xong.');
+  try{ await fetcher(); }catch(e){}
+  if(getter()) run();
+  else showToast('⚠️','Chưa tải được dữ liệu','Kiểm tra kết nối mạng rồi thử lại giúp mình nhé.');
+}
+// 3 lối vào từ tab "Ôn": mở mô-đun → chờ dữ liệu → chạy phiên ôn.
+function reviewStart(kind){
+  if(!openEnglishKind(kind)){ showToast('⚠️','Không tìm thấy mục này',''); return; }
+  renderContent(); window.scrollTo(0,0);
+  if(kind==='vocab')      ensureBankThen(()=>VOCAB_DATA,      fetchVocabData,      vocabStartDaily);
+  else if(kind==='sentences') ensureBankThen(()=>COMMON_SENT_DATA, fetchCommonSentData, sentStartDaily);
+  else if(kind==='listening') ensureBankThen(()=>DICTATION_DATA,   fetchDictationData,   dictStartDaily);
 }
 function vocabStartDaily(){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
@@ -7984,32 +8068,71 @@ function ggScoreHeaderHtml(){
 }
 function renderGrammarPath(item){
   ensureEngGame();
-  let lastLevel = '';
-  const nodes = GRAMMAR_PATH.map((tid)=>{
-    const t = grammarTopicById(tid); if(!t) return '';
-    const st = ggStatus(tid);
-    let levelHdr = '';
-    if(t.level !== lastLevel){
-      lastLevel = t.level;
-      const lv = CEFR_LEVELS.find(l=>l.key===t.level);
-      levelHdr = `<div class="gg-level-hdr">${t.level} · ${lv?lv.label:''}</div>`;
-    }
-    const icon = st==='passed' ? '✅' : (st==='open' ? '⭐' : '🔒');
-    const score = st==='passed' ? `<span class="gg-node-score">${SETTINGS.engGame.gPassed[tid]}/10</span>` : '';
-    return `${levelHdr}
-      <div class="gg-node ${st}" ${st!=='locked'?`data-action="gg-open-topic" data-tid="${tid}"`:''}>
+  // GỌN LẠI: trước đây màn này đổ ra cùng lúc bảng điểm + thẻ lộ trình + đoạn giải thích dài + 38 chủ đề
+  // trải phẳng → rối, không biết bấm đâu trước. Nay chia đúng 3 tầng theo mức độ ưu tiên:
+  //   (1) MỘT thẻ "AI dẫn đường" — nói thẳng việc cần làm ngay bây giờ, kèm 1 nút chính.
+  //   (2) Ôn luyện & Thi thử — lối đi phụ khi muốn tự cày.
+  //   (3) Lộ trình 38 chủ đề — gấp lại theo cấp độ CEFR, chỉ mở sẵn cấp độ đang học.
+  const cur = GRAMMAR_PATH.find(tid => ggStatus(tid) === 'open');
+  const curTopic = cur ? grammarTopicById(cur) : null;
+  const passedCount = GRAMMAR_PATH.filter(tid => ggStatus(tid) === 'passed').length;
+  const pct = Math.round(passedCount / Math.max(1, GRAMMAR_PATH.length) * 100);
+  // AI xem lại các bài gần đây: nếu có chủ đề đã qua nhưng điểm thấp thì ưu tiên bảo ôn lại trước khi đi tiếp.
+  const weak = (function(){
+    const g = SETTINGS.engGame.gPassed || {};
+    let worst = null;
+    Object.keys(g).forEach(tid=>{ if(g[tid] < 9 && (!worst || g[tid] < g[worst])) worst = tid; });
+    return worst ? {tid: worst, score: g[worst], t: grammarTopicById(worst)} : null;
+  })();
+  const advice = !curTopic
+    ? {icon:'🏆', head:'Đã đi hết lộ trình', body:'Giờ là lúc giữ phong độ: vào Ôn luyện &amp; Thi thử làm đề trộn nhiều chủ đề.', btn:null}
+    : (weak && weak.t && passedCount >= 2)
+      ? {icon:'🔁', head:'Nên ôn lại trước khi đi tiếp',
+         body:`Chủ đề <b>${escapeHtml(weak.t.name)}</b> mới đạt <b>${weak.score}/10</b> — ôn chắc phần này rồi học tiếp sẽ đỡ hổng kiến thức về sau.`,
+         btn:{tid:weak.tid, label:'🔁 Ôn lại '+weak.t.name}}
+      : {icon:'⭐', head:'Việc cần làm ngay',
+         body:`Học lý thuyết <b>${escapeHtml(curTopic.name)}</b> rồi làm bài kiểm tra 10 câu. Đạt <b>≥8/10</b> là mở khóa chủ đề kế tiếp.`,
+         btn:{tid:cur, label:'▶️ Học '+curTopic.name}};
+  const guideCard = `<div class="gg-guide">
+    <div class="ggg-top">
+      <div class="ggg-ic">${advice.icon}</div>
+      <div class="ggg-txt"><div class="ggg-head">${advice.head}</div><div class="ggg-body">${advice.body}</div></div>
+    </div>
+    <div class="ggg-bar"><div class="ggg-fill" style="width:${pct}%;"></div></div>
+    <div class="ggg-meta">Đã vượt <b>${passedCount}/${GRAMMAR_PATH.length}</b> chủ đề · ${pct}%</div>
+    ${advice.btn ? `<button class="form-btn" style="width:100%; margin-top:10px;" data-action="gg-open-topic" data-tid="${advice.btn.tid}">${escapeHtml(advice.btn.label)}</button>` : ''}
+  </div>`;
+  // Lộ trình gấp theo cấp độ — mặc định chỉ mở cấp độ đang học để màn hình ngắn lại.
+  if(!STATE.ggOpenLevels) STATE.ggOpenLevels = {};
+  const curLevel = curTopic ? curTopic.level : (CEFR_LEVELS[0] && CEFR_LEVELS[0].key);
+  const groups = CEFR_LEVELS.map(lv=>{
+    const tids = GRAMMAR_PATH.filter(tid=>{ const t=grammarTopicById(tid); return t && t.level===lv.key; });
+    if(!tids.length) return '';
+    const done = tids.filter(tid=>ggStatus(tid)==='passed').length;
+    const open = STATE.ggOpenLevels[lv.key] !== undefined ? STATE.ggOpenLevels[lv.key] : (lv.key === curLevel);
+    const nodes = !open ? '' : tids.map(tid=>{
+      const t = grammarTopicById(tid); const st = ggStatus(tid);
+      const icon = st==='passed' ? '✅' : (st==='open' ? '⭐' : '🔒');
+      const score = st==='passed' ? `<span class="gg-node-score">${SETTINGS.engGame.gPassed[tid]}/10</span>` : '';
+      return `<div class="gg-node ${st}" ${st!=='locked'?`data-action="gg-open-topic" data-tid="${tid}"`:''}>
         <div class="gg-node-icon">${icon}</div>
         <div class="gg-node-txt"><div class="n">${escapeHtml(t.name)}</div><div class="d">${escapeHtml(t.desc)}</div></div>
         ${score}
       </div>`;
+    }).join('');
+    return `<div class="gg-lv-block">
+      <div class="gg-lv-hdr ${open?'open':''}" data-action="gg-toggle-level" data-level="${lv.key}">
+        <span class="glh-code" style="color:${lv.color};">${lv.key}</span>
+        <span class="glh-name">${escapeHtml(lv.label)}</span>
+        <span class="glh-prog">${done}/${tids.length}</span>
+        <span class="glh-arrow">${open?'▾':'▸'}</span>
+      </div>
+      ${nodes ? `<div class="gg-path">${nodes}</div>` : ''}
+    </div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
     ${englishItemBackRow(item.name)}
-    ${ggScoreHeaderHtml()}
-    ${grammarRoadmapCardHtml()}
-    <div class="card" style="padding:12px 14px; margin-bottom:12px; font-size:11.5px; color:var(--dim); line-height:1.6;">
-      🎮 <b style="color:var(--text);">Lộ trình vượt ải:</b> học lý thuyết chủ đề đang mở ⭐ → làm bài kiểm tra 10 câu (trắc nghiệm, nghe-điền, sắp xếp câu, dịch, phát âm) → đúng <b style="color:var(--gold);">≥8/10</b> để mở khóa chủ đề tiếp theo. Bỏ ngày học sẽ bị <b style="color:#ff8080;">trừ điểm lũy tiến</b> và chỉ tiêu mỗi ngày sẽ tăng lên!
-    </div>
+    ${guideCard}
     <div class="gg-practice-entry" data-action="gg-open-practice">
       <div class="gpe-ic">🎯</div>
       <div class="gpe-txt">
@@ -8018,7 +8141,7 @@ function renderGrammarPath(item){
       </div>
       <div class="gpe-arrow">›</div>
     </div>
-    <div class="gg-path">${nodes}</div>`;
+    <div class="gg-levels">${groups}</div>`;
 }
 function renderGrammarTopic(item){
   const tid = STATE.ggTopic;
@@ -13019,6 +13142,21 @@ function startLongPassage(idx){
 // dung/từ vựng/ngữ pháp của chính bài văn vừa đọc (không dùng ngân hàng câu hỏi cố định, vì mỗi bài có
 // nội dung khác nhau hoàn toàn) — chỉ soạn 1 LẦN cho mỗi bài rồi lưu lại (SETTINGS.speakPractice.
 // longQuizBank[idx]) để làm lại nhiều lần không tốn thêm lượt gọi API và câu hỏi nhất quán giữa các lần.
+// Nhãn dạng câu hỏi — để người học biết mình đang bị kiểm tra kỹ năng đọc-hiểu nào, giống cách các
+// mục khác trong app đều gắn nhãn dạng bài.
+const LPQ_TYPES = {
+  main_idea:    ['🎯','Ý chính',        '#FFC94A'],
+  detail:       ['🔍','Chi tiết',       '#4FA8FF'],
+  sequence:     ['🔢','Trình tự',       '#2CDBA8'],
+  inference:    ['🧠','Suy luận',       '#B78CFF'],
+  vocab_context:['📖','Từ trong ngữ cảnh','#FF8A3D'],
+  true_false:   ['⚖️','Đúng / Sai',     '#FF6EA8'],
+  attitude:     ['💭','Thái độ người viết','#5CD6C0']
+};
+function lpqTypeBadge(type){
+  const t = LPQ_TYPES[type]; if(!t) return '';
+  return `<div class="lpq-type" style="color:${t[2]}; border-color:${t[2]}55; background:${t[2]}18;">${t[0]} ${t[1]}</div>`;
+}
 async function startLongPassageQuiz(idx, forceNew){
   const bank = (SPEAKING_PRACTICE && SPEAKING_PRACTICE.long) || [];
   const passage = bank[idx]; if(!passage) return;
@@ -13040,19 +13178,41 @@ async function startLongPassageQuiz(idx, forceNew){
   // Mỗi lần soạn câu hỏi, xáo nhẹ góc độ khai thác (đổi trọng tâm dạng câu hỏi + số ví dụ chi tiết cần hỏi)
   // để 2 lần bấm "Đổi bộ câu hỏi khác" liên tiếp cho ra bộ câu hỏi KHÁC NHAU thật sự dù cùng 1 bài văn,
   // thay vì AI trả lại gần như y hệt lần trước.
+  // Bộ câu hỏi phải BÁM SÁT NỘI DUNG BÀI ĐÃ ĐỌC (đây là bài kiểm tra đọc-hiểu sau khi luyện nói,
+  // không phải bài kiểm tra ngữ pháp). Mỗi lần soạn đổi góc khai thác để hai lần bấm "Đổi bộ câu hỏi"
+  // không ra bộ giống nhau.
   const angleSeed = Math.floor(Math.random()*4);
   const angleHint = [
-    'Ưu tiên khai thác các CHI TIẾT CỤ THỂ, số liệu, tên riêng xuất hiện trong bài.',
-    'Ưu tiên hỏi về Ý CHÍNH, thông điệp, cảm xúc/thái độ của người viết trong bài.',
-    'Ưu tiên hỏi về TỪ VỰNG khó/hay và CỤM TỪ xuất hiện trong bài, kèm 1-2 câu về suy luận (inference) không nói thẳng trong bài.',
-    'Ưu tiên hỏi về CẤU TRÚC NGỮ PHÁP các câu dùng trong bài (thì, mệnh đề, so sánh...) và trình tự sự việc/logic bài viết.'
+    'Lần này nhấn mạnh các CHI TIẾT CỤ THỂ trong bài: ai làm gì, ở đâu, khi nào, con số/tên riêng nào được nhắc tới.',
+    'Lần này nhấn mạnh Ý CHÍNH và THÔNG ĐIỆP: điều tác giả muốn nói, cảm xúc/thái độ của người kể, bài học rút ra.',
+    'Lần này nhấn mạnh SUY LUẬN: những điều bài không nói thẳng nhưng người đọc hiểu được, cùng nguyên nhân – kết quả của sự việc.',
+    'Lần này nhấn mạnh TRÌNH TỰ và LIÊN KẾT: việc gì xảy ra trước/sau, và nghĩa của một vài từ/cụm từ ĐẶT TRONG NGỮ CẢNH của bài.'
   ][angleSeed];
-  const prompt = `Dựa vào đoạn văn tiếng Anh sau, soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm (4 đáp án) bằng tiếng Anh để kiểm tra người học đã hiểu nội dung, từ vựng và ngữ pháp trong bài chưa. Trộn đều 3 dạng: hiểu nội dung (comprehension), nghĩa từ vựng xuất hiện trong bài (vocabulary), cấu trúc ngữ pháp dùng trong bài (grammar). ${angleHint} Chỉ 1 đáp án đúng mỗi câu.${forceNew?' Đây là lần soạn LẠI bộ câu hỏi cho bài này — hãy tạo bộ câu hỏi khác hẳn cách hỏi thông thường, tránh trùng ý với 1 bộ câu hỏi cơ bản đã có trước đó.':''}
+  // Trộn đủ dạng câu hỏi giống các mục khác trong app, tất cả đều dạng trắc nghiệm nhiều lựa chọn nên
+  // dùng chung một giao diện làm bài — người học không phải học lại cách thao tác ở mỗi mục.
+  const prompt = `Người học VỪA ĐỌC TO đoạn văn tiếng Anh dưới đây trong bài luyện NÓI. Hãy soạn CHÍNH XÁC ${LONG_QUIZ_QUESTIONS} câu hỏi trắc nghiệm bằng tiếng Anh để kiểm tra xem họ có THỰC SỰ HIỂU NỘI DUNG BÀI VỪA ĐỌC hay không.
+
+QUY TẮC BẮT BUỘC:
+1. TOÀN BỘ câu hỏi phải trả lời được CHỈ BẰNG cách đọc hiểu đoạn văn này. TUYỆT ĐỐI KHÔNG hỏi kiến thức ngữ pháp thuần tuý (chia thì, chọn giới từ, dạng từ...) tách rời khỏi nội dung.
+2. Trộn đủ các dạng sau, mỗi dạng ít nhất 1 câu:
+   - main_idea: ý chính / tiêu đề phù hợp nhất cho bài.
+   - detail: một chi tiết cụ thể được nêu trong bài.
+   - sequence: thứ tự / diễn biến sự việc.
+   - inference: suy luận hợp lý từ dữ kiện trong bài (bài không nói thẳng).
+   - vocab_context: nghĩa của một từ hoặc cụm từ ĐÚNG NHƯ DÙNG TRONG BÀI.
+   - true_false: một nhận định về bài, người học chọn Đúng/Sai/Bài không đề cập (dùng 3 lựa chọn).
+   - attitude: thái độ, cảm xúc hoặc mục đích của người viết/người kể.
+3. Số lựa chọn: 4 cho hầu hết câu; riêng dạng true_false dùng đúng 3 lựa chọn ("True", "False", "Not mentioned").
+4. Các lựa chọn sai phải hợp lý (lấy từ chi tiết có thật trong bài nhưng dùng sai chỗ), không được ngớ ngẩn để đoán bừa cũng đúng.
+5. ${angleHint}${forceNew?' Đây là lần soạn LẠI cho cùng bài này — phải khác hẳn bộ câu hỏi thông thường, hỏi vào những chi tiết/góc nhìn chưa từng hỏi.':''}
+
 ĐOẠN VĂN:
 """${passage[0]}"""
+
 Trả lời DUY NHẤT 1 mảng JSON hợp lệ, không thêm chữ nào khác, không dùng markdown code fence, đúng định dạng:
-[{"q":"câu hỏi tiếng Anh","options":["A","B","C","D"],"correct":0,"explain":"giải thích ngắn gọn bằng tiếng Việt vì sao đáp án đó đúng"}]
-correct là chỉ số (0-3) của đáp án đúng trong mảng options. Trong mọi chuỗi text, KHÔNG xuống dòng thật và KHÔNG dùng dấu ngoặc kép " bên trong nội dung (dùng dấu nháy đơn ' nếu cần trích dẫn) — để đảm bảo JSON hợp lệ.`;
+[{"type":"main_idea","q":"câu hỏi tiếng Anh","options":["A","B","C","D"],"correct":0,"explain":"giải thích ngắn bằng tiếng Việt, CHỈ RÕ chỗ nào trong bài cho biết đáp án đó đúng"}]
+type là một trong: main_idea, detail, sequence, inference, vocab_context, true_false, attitude.
+correct là chỉ số (bắt đầu từ 0) của đáp án đúng trong mảng options. Trong mọi chuỗi text, KHÔNG xuống dòng thật và KHÔNG dùng dấu ngoặc kép " bên trong nội dung (dùng dấu nháy đơn ' nếu cần trích dẫn) — để đảm bảo JSON hợp lệ.`;
   // Parse cứng cáp: Gemini thỉnh thoảng trả JSON hơi lỗi (dấu ngoặc kép chưa escape, bị cắt cụt do hết
   // token...). Thử parse toàn bộ → thử cắt đúng đoạn [...] → cuối cùng "vớt" từng object {...} hợp lệ
   // riêng lẻ (schema không có object lồng nhau nên regex không tham lam là đủ an toàn).
@@ -13211,6 +13371,7 @@ function renderLongPassageQuizUI(){
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
     <div class="card eng-quiz-card">
+      ${lpqTypeBadge(cur.type)}
       <div class="eng-quiz-q">${escapeHtml(cur.q)}</div>
       ${optsHtml}
       ${explainHtml}
@@ -14613,7 +14774,7 @@ function methodsListHtml(catIds){
   }).join('');
 }
 function renderSectionBack(title){
-  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-back">${svgIcon('back')}</div><div class="title">${title}</div></div>`;
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-back">${svgIcon('back')}</div><div class="title">${title}</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
 }
 function scheduleSubNav(){
   return `<div class="seg" id="schedule-seg">
@@ -15460,6 +15621,22 @@ document.getElementById('content').addEventListener('click',(e)=>{
     petGenerateReward(st.idx, true).then(()=>{ if(STATE.tab==='pet') renderContent(); });
     return;
   }
+  // Về thẳng trang chính từ bất kỳ đâu — dọn sạch các phiên đang mở (cuộc gọi AI, shadowing, quiz...)
+  // để không có audio/mic nào còn chạy nền sau khi rời màn hình.
+  const goHomeEl = e.target.closest('[data-action="go-home"]');
+  if(goHomeEl){
+    try{ if(STATE.aiCallSession) aiCallEnd(); }catch(_){}
+    try{ if(STATE.shadowSession) shadowCleanupMedia(); }catch(_){}
+    try{ stopSpeakAudio(); }catch(_){}
+    try{ stopSpeakMediaStream(); }catch(_){}
+    STATE.shadowSession = null; STATE.quiz = null; STATE.longQuizSession = null;
+    STATE.vocabSession = null; STATE.sentSession = null; STATE.dictSession = null;
+    STATE.ggPractice = false; STATE.grammarDetailOpen = false; STATE.acctMenuOpen = false;
+    STATE.tab = 'hub';
+    NAV_STACK = [];   // về gốc thì lịch sử điều hướng trong app cũng phải sạch
+    renderContent(); window.scrollTo(0,0);
+    return;
+  }
   const hubOpenEl = e.target.closest('[data-action="hub-open"]');
   if(hubOpenEl){
     const target = hubOpenEl.getAttribute('data-target');
@@ -15829,6 +16006,17 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictHomeOpenEl){ dictHomeOpen(); return; }
   const dictHomeCloseEl = e.target.closest('[data-action="dict-home-close"]');
   if(dictHomeCloseEl){ dictHomeClose(); return; }
+  const ggToggleLvEl = e.target.closest('[data-action="gg-toggle-level"]');
+  if(ggToggleLvEl){
+    const k = ggToggleLvEl.getAttribute('data-level');
+    if(!STATE.ggOpenLevels) STATE.ggOpenLevels = {};
+    const curOpen = STATE.ggOpenLevels[k];
+    STATE.ggOpenLevels[k] = curOpen === undefined ? false : !curOpen;
+    renderContentPreserveScroll();
+    return;
+  }
+  const reviewStartEl = e.target.closest('[data-action="review-start"]');
+  if(reviewStartEl){ reviewStart(reviewStartEl.getAttribute('data-kind')); return; }
   const dictStartDailyEl = e.target.closest('[data-action="dict-start-daily"]');
   if(dictStartDailyEl){ dictStartDaily(); return; }
   const dictStartLevelEl = e.target.closest('[data-action="dict-start-level"]');
