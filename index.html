@@ -409,6 +409,52 @@
     font-variant-numeric:tabular-nums;}
   .hub-clock-ring .rc .l{font-size:7.5px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.06em;
     text-transform:uppercase; margin-top:2px;}
+  /* ===== ĐỒNG HỒ v2: bảng đèn + lịch tuần + thời tiết ===== */
+  .hub-clock-card.v2{background:linear-gradient(135deg,#101A33 0%,#1B2A52 42%,#122B44 100%);
+    border:1px solid rgba(255,255,255,.09); padding:15px 16px 13px; gap:12px;}
+  .hc-row{position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;}
+  .hc-time{font-family:var(--num); font-size:52px; font-weight:900; line-height:.9; letter-spacing:-2px;
+    font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:5px;
+    background:linear-gradient(100deg,#FFFFFF 6%,#9FE4FF 44%,#B9A6FF 96%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    text-shadow:0 0 26px rgba(120,180,255,.28);}
+  .hc-time .hc-sec{font-size:17px; font-weight:800; letter-spacing:0; -webkit-text-fill-color:#7CE7DA; opacity:.85;}
+  .hc-datebox{text-align:right; flex-shrink:0;}
+  .hc-wd{font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:#7CE7DA;
+    display:flex; align-items:center; justify-content:flex-end; gap:5px;}
+  .hc-wd::before{content:''; width:5px; height:5px; border-radius:50%; background:#2CDBA8;
+    box-shadow:0 0 8px #2CDBA8; animation:livePulse 2s ease-in-out infinite;}
+  .hc-dm{font-family:var(--num); font-size:15px; font-weight:700; color:rgba(255,255,255,.82); margin-top:4px;
+    font-variant-numeric:tabular-nums;}
+  .hc-dm b{font-size:21px; font-weight:900; color:#fff;}
+  .hc-dm span{display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,.45); letter-spacing:.1em;}
+  .hc-week{position:relative; z-index:1; display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .ws-cell{text-align:center; padding:6px 0 5px; border-radius:12px; background:rgba(255,255,255,.05);
+    border:1px solid transparent;}
+  .ws-cell.now{background:linear-gradient(150deg,rgba(124,91,255,.45),rgba(44,219,168,.32));
+    border-color:rgba(255,255,255,.22); box-shadow:0 3px 12px rgba(124,91,255,.28);}
+  .ws-wd{font-size:8.5px; font-weight:800; letter-spacing:.06em; color:rgba(255,255,255,.5); text-transform:uppercase;}
+  .ws-cell.now .ws-wd{color:rgba(255,255,255,.85);}
+  .ws-d{font-family:var(--num); font-size:14px; font-weight:800; color:rgba(255,255,255,.86); line-height:1.2;
+    font-variant-numeric:tabular-nums;}
+  .ws-cell.now .ws-d{color:#fff;}
+  .ws-dot{width:5px; height:5px; border-radius:50%; margin:3px auto 0; background:rgba(255,255,255,.14);}
+  .ws-dot.some{background:#FFC94A;}
+  .ws-dot.full{background:#2CDBA8; box-shadow:0 0 6px #2CDBA8;}
+  .hc-weather{position:relative; z-index:1; display:flex; align-items:center; gap:10px;
+    background:rgba(8,12,20,.42); border:1px solid rgba(255,255,255,.1); border-radius:15px;
+    padding:9px 12px; backdrop-filter:blur(6px);}
+  .hc-weather.loading{opacity:.6;}
+  .hc-weather .w-ic{font-size:24px; line-height:1; flex-shrink:0;}
+  .hc-weather .w-now{font-family:var(--num); font-size:22px; font-weight:900; color:#fff; line-height:1;
+    font-variant-numeric:tabular-nums;}
+  .hc-weather .w-tx{font-size:10.5px; color:rgba(255,255,255,.66); line-height:1.45; display:flex;
+    flex-direction:column; min-width:0;}
+  .hc-weather .w-tx b{font-weight:700; color:rgba(255,255,255,.9); font-family:var(--num);}
+  /* Thẻ danh mục mở rộng: danh sách việc nằm ngay trong thẻ tương ứng */
+  .cat-card.wide{grid-column:1 / -1; min-height:auto !important;}
+  .cat-card-detail{position:relative; z-index:2; margin-top:10px; padding-top:9px;
+    border-top:1px solid rgba(255,255,255,.16); display:flex; flex-direction:column; gap:2px;}
   .hub-clock-quicklinks{position:relative; z-index:1; display:flex; gap:8px;}
   .hub-today{position:relative; z-index:1; background:rgba(8,12,20,.46); border:1px solid rgba(255,255,255,.1);
     border-radius:15px; padding:6px 8px 5px; backdrop-filter:blur(6px);}
@@ -561,6 +607,9 @@
   .pet-art-fb{position:absolute; inset:0; display:block;}
   .pet-art{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:2;
     filter:drop-shadow(0 3px 10px rgba(0,0,0,.45));}
+  /* Ô ảnh thật cắt ra từ tấm sprite — phủ kín khung, bo góc theo khung chứa */
+  .pet-photo{position:absolute; inset:0; z-index:2; display:block; border-radius:inherit;
+    background-repeat:no-repeat; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);}
   .pet-card-info{flex:1; min-width:0;}
   .pet-card-name{font-size:13px; font-weight:800; color:var(--text);}
   .pet-new-badge{font-size:8.5px; font-weight:800; color:#0A2A44; background:linear-gradient(90deg,#FFC94A,#FF8A3D);
@@ -580,6 +629,8 @@
   /* ---- Thần tướng cưỡi ngựa trời: khối hiển thị 100 cấp, bảng điểm, nhịp tu luyện ---- */
   .pet-hero-realm{font-size:10px; font-weight:700; letter-spacing:.08em; color:var(--dim2); margin-top:3px; text-transform:uppercase;}
   .pet-realm-block{margin-bottom:14px;}
+  .pet-realm-block.slot{opacity:.35;}
+  .pet-realm-block.slot .pet-form-ic{font-size:22px; color:var(--dim2);}
   .pet-realm-block.dim{opacity:.45;}
   .pet-realm-title{font-size:11.5px; font-weight:800; color:var(--dim); margin-bottom:6px;}
   .pet-realm-title small{font-weight:600; font-size:9.5px; color:var(--dim2); margin-left:4px;}
@@ -619,6 +670,7 @@
   @keyframes pzGlow{0%,100%{opacity:.55; transform:scale(1);} 50%{opacity:1; transform:scale(1.09);}}
   .pet-zoom-img{position:relative; z-index:2; width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
   .pet-zoom-img .pet-visual, .pet-zoom-img img, .pet-zoom-img .pet-svg{width:100%; height:100%; object-fit:contain;}
+  .pet-zoom-img .pet-photo{border-radius:14px;}
   .pet-zoom-lv{margin-top:14px; font-size:10px; letter-spacing:1.4px; color:var(--dim2); text-transform:uppercase;}
   .pet-zoom-name{margin-top:4px; font-size:21px; font-weight:800; letter-spacing:.3px;}
   .pet-zoom-story{margin-top:9px; font-size:12.5px; line-height:1.7; color:var(--dim); font-style:italic;}
@@ -630,7 +682,7 @@
   .track-hud-streak-big b{font-family:var(--num,var(--mono)); font-size:15px;}
   .track-hud-pet{font-size:11.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52%;}
   .pet-card-skill{margin-top:5px; font-size:10px; color:var(--dim2); line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .pet-form-ic{font-size:19px; line-height:1.15; height:38px; display:flex; align-items:center; justify-content:center;}
+  .pet-form-ic{border-radius:9px; overflow:hidden; font-size:19px; line-height:1.15; height:38px; display:flex; align-items:center; justify-content:center;}
   .pet-form-lv{font-size:8px; font-weight:800; color:var(--dim2); margin-top:2px;}
   .pet-form-name{font-size:8px; font-weight:700; color:var(--dim2); line-height:1.25; margin-top:1px;
     overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
@@ -1736,7 +1788,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v124';
+const APP_VERSION = 'v126';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2793,130 +2845,124 @@ function computeBadgesTrack(track){
 // khí, ngọc bích, huyết sa, kim quang — thay vì bảng màu tươi sáng kiểu game hiện đại.
 // 10 ĐẠI CẢNH GIỚI chỉ còn giữ vai trò bảng màu + hào quang (mỗi cảnh giới một tông màu riêng, càng cao
 // càng rực rỡ). Còn HÌNH THÁI thì MỖI CẤP MỘT KIỂU KHÁC HẲN — xem PET_FORMS bên dưới.
-const PET_REALMS = [
-  {n:'Phàm Thai',   c1:'#7A6E8F', c2:'#2E2A40', aura:'aura-mist'},
-  {n:'Luyện Khí',   c1:'#9BBF8A', c2:'#2F4A38', aura:'aura-mist'},
-  {n:'Trúc Cơ',     c1:'#C9873D', c2:'#4A2A16', aura:'aura-pulse'},
-  {n:'Kim Đan',     c1:'#D9B44A', c2:'#5C4410', aura:'aura-pulse'},
-  {n:'Nguyên Anh',  c1:'#5FA8D3', c2:'#123449', aura:'aura-ring'},
-  {n:'Hóa Thần',    c1:'#8B6CF0', c2:'#2A1E55', aura:'aura-ring'},
-  {n:'Luyện Hư',    c1:'#2CDBA8', c2:'#0B4B3C', aura:'aura-sparkle'},
-  {n:'Hợp Thể',     c1:'#FF6E4A', c2:'#5C1608', aura:'aura-flame'},
-  {n:'Đại Thừa',    c1:'#FF6EA8', c2:'#4A0F2C', aura:'aura-flame'},
-  {n:'Độ Kiếp',     c1:'#FFD97A', c2:'#5C4310', aura:'aura-divine'},
+// ================= 20 THẦN THÚ CƯỠI, MỖI CON 4 CẤP TIẾN HÓA =================
+// Danh sách thần thú. THÊM CON MỚI = thêm một dòng ở đây + một khối 4 dòng tương ứng trong PET_FORMS
+// bên dưới; hệ thống tự sinh 4 cấp tiến hóa, tự nới số cấp tối đa, không phải sửa dòng code nào khác.
+// sp = loài (quyết định bộ hình vẽ): tiger | bear | wolf | fox | kirin | deer | horse | pegasus | dais
+const PET_MOUNTS = [
+  {n:'Lão Hổ', sp:'tiger', c1:'#F0913C', c2:'#8A3F14', sk:'bonus'},
+  {n:'Bạch Ngạch Mãnh Hổ', sp:'tiger', c1:'#E8F0FA', c2:'#2E6FB0', sk:'hint'},
+  {n:'Ngân Giáp Bạch Hổ', sp:'tiger', c1:'#E2EAF6', c2:'#93A9C9', sk:'shield'},
+  {n:'Bạch Hùng', sp:'bear', c1:'#F2F6FC', c2:'#C0392B', sk:'xp'},
+  {n:'Nguyệt Hùng', sp:'bear', c1:'#F0C14E', c2:'#3FA36A', sk:'streak'},
+  {n:'Diệm Hùng', sp:'bear', c1:'#A8703C', c2:'#FF6A2B', sk:'revive'},
+  {n:'Ngân Lang', sp:'wolf', c1:'#E9F0F8', c2:'#6FA8DC', sk:'focus'},
+  {n:'Hỏa Lang', sp:'wolf', c1:'#F3E3C8', c2:'#FF7A3D', sk:'bonus'},
+  {n:'Tuyết Ngọc Hồ', sp:'fox', c1:'#F4F7FC', c2:'#FF8A4C', sk:'skip'},
+  {n:'Tử Mị Hồ', sp:'fox', c1:'#EFC24E', c2:'#48C08A', sk:'insight'},
+  {n:'Hải Kỳ Lân', sp:'kirin', c1:'#3FBFA0', c2:'#55D6F0', sk:'time'},
+  {n:'Hỏa Kỳ Lân', sp:'kirin', c1:'#E24C2B', c2:'#FFA13D', sk:'bonus'},
+  {n:'Tử Sắc Tuần Lộc', sp:'deer', c1:'#8E6BC8', c2:'#56C8E8', sk:'shield'},
+  {n:'Tông Mao Tuần Lộc', sp:'deer', c1:'#A8703C', c2:'#C0392B', sk:'streak'},
+  {n:'Lam Diễm Mã', sp:'horse', c1:'#3A3358', c2:'#8A6BE8', sk:'hint'},
+  {n:'Xích Diễm Mã', sp:'horse', c1:'#7A2626', c2:'#FF5A2B', sk:'xp'},
+  {n:'Hắc Diễm Mã', sp:'horse', c1:'#2A2338', c2:'#E8A13D', sk:'revive'},
+  {n:'Kim Giáp Thiên Mã', sp:'pegasus', c1:'#F2F6FB', c2:'#F0C24E', sk:'xp'},
+  {n:'Lượng Ngân Đài', sp:'dais', c1:'#DCE6F2', c2:'#B48CE8', sk:'focus'},
+  {n:'Bảo Liên Đài', sp:'dais', c1:'#F0C24E', c2:'#FFDD8A', sk:'insight'},
 ];
-// 100 HÌNH THÁI THẦN TƯỚNG — một nhân vật thần thoại cưỡi NGỰA TRỜI, biến thân và nâng cấp dần:
-// [tên, mô tả]. Hình ảnh KHÔNG dùng emoji nữa mà được vẽ bằng SVG nhiều lớp (xem petWarriorSvg) —
-// giáp, mũ, áo choàng, vũ khí, cánh ngựa, sừng, hào quang, lửa vó đều nâng bậc theo cấp, nên nhìn là
-// biết mình vừa mạnh lên ở chỗ nào.
-// 100 LINH THÚ — mỗi con có: [tên, câu chuyện riêng, mô tả kỹ năng, mã kỹ năng, giá trị kỹ năng].
-// Kỹ năng KHÔNG chỉ để cho vui: nó tác động thật vào việc học (cộng điểm mỗi câu đúng, được bỏ qua câu,
-// được gợi ý loại đáp án sai, bảo vệ chuỗi ngày khi nghỉ...). Xem petSkill()/petSkillValue() bên dưới —
-// các mục luyện tập gọi 2 hàm này để biết linh thú đang đồng hành cho bạn đặc quyền gì.
+const PET_MOUNT_SLOTS = 6;   // số ô "sắp cập nhật" chừa sẵn trong bộ sưu tập cho thần thú bổ sung sau
+const PET_STAGE_TAG = ['+0 ~ +3','+4 ~ +6','+7 ~ +9','+10'];
+const PET_AURAS = ['aura-mist','aura-pulse','aura-ring','aura-sparkle','aura-flame','aura-divine'];
+// PET_REALMS giữ nguyên tên biến cũ để phần còn lại của app không phải sửa — nay mỗi "cảnh giới" chính
+// là MỘT thần thú, và 4 tầng bên trong là 4 nấc tiến hóa của nó.
+const PET_REALMS = PET_MOUNTS.map((m,i)=>({n:m.n, c1:m.c1, c2:m.c2, aura:PET_AURAS[i%PET_AURAS.length]}));
+// [tên, câu chuyện riêng, mô tả kỹ năng, mã kỹ năng, giá trị kỹ năng] — 4 dòng liên tiếp = 4 cấp của
+// cùng một thần thú, kỹ năng mạnh dần theo từng nấc.
 const PET_FORMS = [
-  ['Trứng Sương Mù','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 1 điểm cho mỗi câu trả lời đúng','bonus','1'],
-  ['Ấu Trùng Ngậm Sương','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 1 câu mỗi buổi mà không bị tính sai','skip','1'],
-  ['Manh Điểu Non','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Hồ Điệp Lân Quang','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Thanh Xà Cỏ Dại','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Hỏa Diệm Thằn Lằn','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.05','xp','1.05'],
-  ['Huyền Quy Nhỏ','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 5 giây suy nghĩ ở các bài có tính giờ','time','5'],
-  ['Độc Yết Sơ Sinh','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 5%','streak','5'],
-  ['Nhện Tơ Bạc','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (2 câu/buổi)','focus','2'],
-  ['Cua Thiết Giáp','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 1 điểm yếu cụ thể','insight','1'],
-  ['Bạch Tuộc Tám Ý','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 2 điểm cho mỗi câu trả lời đúng','bonus','2'],
-  ['Mực Thâm Uyên','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 1 câu mỗi buổi mà không bị tính sai','skip','1'],
-  ['Cẩm Lân Ngũ Sắc','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Kim Lân Ngư','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Đồn Ngư Gai','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Kình Sát Non','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.10','xp','1.10'],
-  ['Ngạc Hắc Lân','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 10 giây suy nghĩ ở các bài có tính giờ','time','10'],
-  ['Trường Cảnh Thú','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 10%','streak','10'],
-  ['Bạo Long Ấu','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (2 câu/buổi)','focus','2'],
-  ['Thiềm Tinh Gọi Mưa','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 1 điểm yếu cụ thể','insight','1'],
-  ['Linh Thử Lanh Trí','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 3 điểm cho mỗi câu trả lời đúng','bonus','3'],
-  ['Ngọc Thố Cung Trăng','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 1 câu mỗi buổi mà không bị tính sai','skip','1'],
-  ['Thiên Châm Vệ Sĩ','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Dạ U Minh Dực','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Thương Lang Đầu Đàn','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Cửu Vĩ Hồ Ly','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.15','xp','1.15'],
-  ['Huyền Miêu Âm Dương','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 15 giây suy nghĩ ở các bài có tính giờ','time','15'],
-  ['Bạch Hổ Non','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 15%','streak','15'],
-  ['Kim Báo Lôi Ảnh','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (3 câu/buổi)','focus','3'],
-  ['Sư Vương Bờm Vàng','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 1 điểm yếu cụ thể','insight','1'],
-  ['Ma Trư Cuồng Nộ','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 4 điểm cho mỗi câu trả lời đúng','bonus','4'],
-  ['Giáp Tê Địa Sát','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['Thủy Bá Trấn Hà','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Tượng Thần Thượng Cổ','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Mãnh Mã Băng Nguyên','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Ngưu Ma Chiến Vương','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.20','xp','1.20'],
-  ['Cửu Sắc Linh Lộc','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 20 giây suy nghĩ ở các bài có tính giờ','time','20'],
-  ['Độc Giác Thánh Kỳ','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 20%','streak','20'],
-  ['Thanh Long Sơ Hiện','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (3 câu/buổi)','focus','3'],
-  ['Kim Long Ngũ Trảo','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Đại Bằng Kim Sí','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 5 điểm cho mỗi câu trả lời đúng','bonus','5'],
-  ['Minh Hào Trí Tuệ','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['Khổng Tước Minh Vương','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Bạch Hạc Tiên Cầm','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Phượng Hoàng Niết Bàn','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Lôi Kiếp Chi Linh','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.25','xp','1.25'],
-  ['Phong Bạo Chi Chủ','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 25 giây suy nghĩ ở các bài có tính giờ','time','25'],
-  ['Tinh Vẫn Thiên Giáng','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 25%','streak','25'],
-  ['Hỗn Độn Sơ Thai','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (3 câu/buổi)','focus','3'],
-  ['Thiên Đạo Ấn Ký','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Tử Khí Giao Long','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 6 điểm cho mỗi câu trả lời đúng','bonus','6'],
-  ['Huyết Nguyệt Lang Thần','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['U Minh Quỷ Diện','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Diệm Vũ Chu Tước','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Hàn Băng Huyền Vũ','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Lôi Đình Kỳ Lân','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.30','xp','1.30'],
-  ['Vân Vụ Bạch Trạch','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 30 giây suy nghĩ ở các bài có tính giờ','time','30'],
-  ['Cửu Anh Xà Thần','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 30%','streak','30'],
-  ['Thao Thiết Thôn Thiên','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
-  ['Đế Giang Hỗn Độn','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Bích Lạc Thanh Loan','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 7 điểm cho mỗi câu trả lời đúng','bonus','7'],
-  ['Hư Không Ẩn Miêu','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['Vạn Lý Truy Phong','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Ngân Hà Du Ngư','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Không Minh Thần Điểu','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Tinh Thần Lộc Vương','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.35','xp','1.35'],
-  ['Nguyệt Ảnh Yêu Hồ','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 35 giây suy nghĩ ở các bài có tính giờ','time','35'],
-  ['Thái Âm Ngọc Thiềm','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 35%','streak','35'],
-  ['Thái Dương Kim Ô','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
-  ['Song Sinh Hỏa Thủy','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Viêm Dương Hỏa Kỳ Lân','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 8 điểm cho mỗi câu trả lời đúng','bonus','8'],
-  ['Xích Long Phần Thiên','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 3 câu mỗi buổi mà không bị tính sai','skip','3'],
-  ['Bất Diệt Huyết Giao','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
-  ['Cửu Diệm Phượng Hoàng','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Ma Vực Hắc Long','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Thánh Quang Bạch Long','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.40','xp','1.40'],
-  ['Lôi Trạch Thiên Ngưu','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 40 giây suy nghĩ ở các bài có tính giờ','time','40'],
-  ['Phong Nhận Kim Điêu','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 40%','streak','40'],
-  ['Địa Mạch Thổ Long','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
-  ['Hải Nhãn Thần Kình','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
-  ['Tinh Vẫn Thần Thú','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 9 điểm cho mỗi câu trả lời đúng','bonus','9'],
-  ['Vạn Giới Tuần Long','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 3 câu mỗi buổi mà không bị tính sai','skip','3'],
-  ['Thần Tích Kỳ Lân','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
-  ['Bất Hủ Kim Bằng','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Cửu Thiên Huyền Nữ Điểu','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Thái Cổ Chân Long','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.45','xp','1.45'],
-  ['Vô Thượng Bạch Hổ','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 45 giây suy nghĩ ở các bài có tính giờ','time','45'],
-  ['Càn Khôn Huyền Vũ','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 45%','streak','45'],
-  ['Bán Thánh Chu Tước','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
-  ['Thánh Vực Thanh Long','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
-  ['Độ Kiếp Lôi Long','Nở ra từ màn sương đầu núi, nó biết lắng nghe hơn là gào thét.','Cộng thêm 10 điểm cho mỗi câu trả lời đúng','bonus','10'],
-  ['Kiếp Hỏa Phượng Hoàng','Người ta đồn nó từng đứng dậy sau mỗi lần ngã, sau đó ẩn mình trong vực nước tối.','Được bỏ qua 3 câu mỗi buổi mà không bị tính sai','skip','3'],
-  ['Bất Diệt Thần Quy','Sinh ra nơi gốc cổ thụ ngàn năm; kẻ nào gặp nó đều nhớ mãi vì nó đi chậm nhưng chưa từng quay lại.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
-  ['Tứ Dực Thiên Long','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người biết nghỉ đúng lúc để đi xa hơn.','Bảo vệ chuỗi ngày: nghỉ 3 ngày vẫn không đứt chuỗi','shield','3'],
-  ['Hỗn Độn Thánh Thú','Suốt trăm năm nó nằm im trong đồng cỏ hoang, chờ một người đủ kiên trì để thắng bằng kiên nhẫn chứ không bằng sức.','Làm sai vẫn được thử lại 3 lần mỗi buổi','revive','3'],
-  ['Vạn Cổ Đệ Nhất Thú','Nở ra từ lòng hồ băng, nó học lại từ đầu mà không thấy nhục.','Toàn bộ điểm nhận được nhân 1.50','xp','1.50'],
-  ['Thiên Đạo Hộ Pháp Thú','Người ta đồn nó từng chịu đau để mạnh hơn, sau đó ẩn mình trong hang gió hú.','Thêm 50 giây suy nghĩ ở các bài có tính giờ','time','50'],
-  ['Chí Tôn Linh Thú','Sinh ra nơi đáy biển sâu; kẻ nào gặp nó đều nhớ mãi vì nó không bao giờ bỏ dở việc đã bắt đầu.','Thưởng chuỗi ngày tăng thêm 50%','streak','50'],
-  ['Sáng Thế Thần Long','Nó chọn chủ nhân chứ không ai chọn được nó — chỉ hiện thân với người giữ lời hứa với chính mình.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
-  ['Thiên Đạo Chí Tôn','Suốt trăm năm nó nằm im trong bãi tro tàn, chờ một người đủ kiên trì để nhìn thấu điều người khác bỏ qua.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
+  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 1 điểm cho mỗi câu trả lời đúng','bonus','1'],
+  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 2 điểm cho mỗi câu trả lời đúng','bonus','2'],
+  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 3 điểm cho mỗi câu trả lời đúng','bonus','3'],
+  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 4 điểm cho mỗi câu trả lời đúng','bonus','4'],
+  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
+  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
+  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
+  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
+  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.13','xp','1.13'],
+  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.18','xp','1.18'],
+  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.23','xp','1.23'],
+  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.28','xp','1.28'],
+  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 19%','streak','19'],
+  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 23%','streak','23'],
+  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 27%','streak','27'],
+  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 31%','streak','31'],
+  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (2 câu/buổi)','focus','2'],
+  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (3 câu/buổi)','focus','3'],
+  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
+  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
+  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 5 điểm cho mỗi câu trả lời đúng','bonus','5'],
+  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 6 điểm cho mỗi câu trả lời đúng','bonus','6'],
+  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 7 điểm cho mỗi câu trả lời đúng','bonus','7'],
+  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 8 điểm cho mỗi câu trả lời đúng','bonus','8'],
+  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 1 câu mỗi buổi mà không bị tính sai','skip','1'],
+  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
+  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
+  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 3 câu mỗi buổi mà không bị tính sai','skip','3'],
+  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 1 điểm yếu cụ thể','insight','1'],
+  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
+  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
+  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
+  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 49 giây suy nghĩ ở các bài có tính giờ','time','49'],
+  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 54 giây suy nghĩ ở các bài có tính giờ','time','54'],
+  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 59 giây suy nghĩ ở các bài có tính giờ','time','59'],
+  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 64 giây suy nghĩ ở các bài có tính giờ','time','64'],
+  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 7 điểm cho mỗi câu trả lời đúng','bonus','7'],
+  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 8 điểm cho mỗi câu trả lời đúng','bonus','8'],
+  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 9 điểm cho mỗi câu trả lời đúng','bonus','9'],
+  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 10 điểm cho mỗi câu trả lời đúng','bonus','10'],
+  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
+  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
+  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
+  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 46%','streak','46'],
+  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 50%','streak','50'],
+  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 54%','streak','54'],
+  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 58%','streak','58'],
+  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
+  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
+  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
+  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 4 đáp án sai mỗi buổi','hint','4'],
+  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.37','xp','1.37'],
+  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.42','xp','1.42'],
+  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.47','xp','1.47'],
+  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.52','xp','1.52'],
+  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
+  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
+  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
+  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.41','xp','1.41'],
+  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.46','xp','1.46'],
+  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.51','xp','1.51'],
+  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.56','xp','1.56'],
+  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
+  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
+  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (6 câu/buổi)','focus','6'],
+  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (7 câu/buổi)','focus','7'],
+  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
+  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
+  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
+  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 4 điểm yếu cụ thể','insight','4'],
 ];
-const PET_SUBS = ['Sơ Nhập','Tiểu Thành','Tiến Giai','Trung Kỳ','Đại Tiến','Hậu Kỳ','Cực Hạn','Đại Thành','Bán Bộ','Viên Mãn'];
-const PET_MAX_LEVEL = PET_FORMS.length; // 100 cấp = 100 linh thú, mỗi con một chuyện và một kỹ năng
+const PET_SUBS = ['Sơ Khai','Cường Hóa','Thần Giáp','Viên Mãn'];  // 4 nấc tiến hóa của mỗi thần thú
+const PET_MAX_LEVEL = PET_FORMS.length; // = số thần thú × 4 — tự nới ra khi bạn thêm thần thú mới
 function petRealmOf(idx){ return PET_REALMS[Math.min(PET_REALMS.length-1, Math.floor(idx/PET_SUBS.length))]; }
 function petFormOf(idx){ return PET_FORMS[Math.max(0, Math.min(PET_FORMS.length-1, idx))]; }
 function petLevelName(idx){ return petFormOf(idx)[0]; }
@@ -2993,635 +3039,241 @@ function petSkillBannerHtml(){
   }
   return `<div class="pet-skill-banner"><span class="psb-ic">${s.icon}</span><span class="psb-tx"><b>${escapeHtml(s.name)}</b> — ${escapeHtml(s.text)}${left}</span></div>`;
 }
-// ẢNH RIÊNG CHO TỪNG CẤP (tùy chọn): nếu trong thư mục có file `pet-lv-1.png` … `pet-lv-100.png` thì
-// cấp đó sẽ dùng ẢNH thay cho hình vẽ. KHÔNG bắt buộc — không có file nào thì cả 100 cấp vẫn hiện đủ
-// 100 con vật khác nhau nhờ bộ vẽ SVG bên dưới. Đây là chỗ để sau này bạn muốn thay con nào bằng ảnh
-// đẹp hơn thì chỉ cần thả đúng một file vào, không phải sửa code.
-// (Bộ ảnh cũ `pet-realm-N.png` đã ngưng dùng: nó là hình chiến tướng dùng chung cho cả 10 cấp một
-// cảnh giới, không còn hợp với yêu cầu "mỗi cấp một linh thú riêng".)
-const PET_ART_MAP = {};   // { chỉ số cấp: true } — cấp nào đã dò thấy có file ảnh
-let _petArtProbed = false;
-function petArtIndex(idx){ return PET_ART_MAP[idx] ? (idx+1) : 0; }
+// ================= ẢNH THẬT CỦA THẦN THÚ =================
+// Toàn bộ 80 hình (20 thần thú × 4 cấp) nằm trong MỘT file duy nhất `pet-sprites.jpg` — một tấm lưới
+// 8 cột × 10 hàng, mỗi ô 160×160. Dùng một file thay vì 80 file lẻ để chỉ phải tải một lần, đỡ 80 lượt
+// request và tiện upload. Vị trí ô được tính bằng background-position theo phần trăm.
+// Nếu vì lý do nào đó không tải được ảnh, app tự động rơi về hình vẽ SVG bên dưới nên không bao giờ trắng.
+const PET_SPRITE_FILE = 'pet-sprites.jpg';
+const PET_SPRITE_COLS = 8, PET_SPRITE_ROWS = 10;
+let PET_SPRITE_OK = false;
+let _petSpriteProbed = false;
 async function probePetArt(){
-  if(_petArtProbed) return; _petArtProbed = true;
-  let found = 0;
-  for(let i=0; i<PET_MAX_LEVEL; i++){
-    const ok = await new Promise(res=>{
-      const im = new Image();
-      im.onload = ()=>res(true); im.onerror = ()=>res(false);
-      im.src = 'pet-lv-'+(i+1)+'.png';
-    });
-    if(ok){ PET_ART_MAP[i] = true; found++; }
-  }
-  if(found && (STATE.tab==='pet' || STATE.tab==='hub')) renderContent();
+  if(_petSpriteProbed) return; _petSpriteProbed = true;
+  PET_SPRITE_OK = await new Promise(res=>{
+    const im = new Image();
+    im.onload = ()=>res(true); im.onerror = ()=>res(false);
+    im.src = PET_SPRITE_FILE;
+  });
+  if(PET_SPRITE_OK && (STATE.tab==='pet' || STATE.tab==='hub')) renderContent();
+}
+function petSpriteStyle(idx){
+  const col = idx % PET_SPRITE_COLS, row = Math.floor(idx / PET_SPRITE_COLS);
+  const x = (col/(PET_SPRITE_COLS-1)*100).toFixed(4);
+  const y = (row/(PET_SPRITE_ROWS-1)*100).toFixed(4);
+  return `background-image:url('${PET_SPRITE_FILE}'); background-size:${PET_SPRITE_COLS*100}% ${PET_SPRITE_ROWS*100}%; background-position:${x}% ${y}%;`;
 }
 function petFormVisual(idx){
-  const n = petArtIndex(idx);
+  idx = Math.max(0, Math.min(PET_MAX_LEVEL-1, idx|0));
   return `<span class="pet-visual">`
     + `<span class="pet-art-fb">${petBeastSvg(idx)}</span>`
-    + (n ? `<img class="pet-art" src="pet-lv-${n}.png" alt="" loading="lazy" decoding="async" onerror="this.remove();">` : '')
+    + (PET_SPRITE_OK ? `<span class="pet-photo" style="${petSpriteStyle(idx)}"></span>` : '')
     + `</span>`;
 }
 
-// ================= 100 LINH THÚ — SVG CHIBI, MỖI CẤP MỘT CON HOÀN TOÀN KHÁC =================
-// Bốn thứ cùng lúc làm nên sự khác biệt giữa 100 con, không con nào trùng con nào:
-//   1) MÀU RIÊNG TỪNG CẤP — không còn cảnh 10 con cùng cảnh giới chung một màu. Mỗi cấp có tông màu
-//      riêng lấy theo góc vàng 137.5° nên hai cấp liền nhau lệch hẳn nhau về màu; chỉ pha nhẹ màu
-//      cảnh giới để vẫn nhận ra mình đang ở tầng nào.
-//   2) BỘ HÌNH RIÊNG THEO LOÀI — 22 khung xương khác nhau (rùa, cua, cáo, rồng, phượng...).
-//   3) TÓC / BỜM — 8 kiểu: mái ngố, chỏm, tóc dài, tóc dựng, xoăn, tết bím, mào, xù.
-//   4) VÂN / VẨY TRÊN THÂN + KIỂU ĐUÔI + PHỤ KIỆN — 9 kiểu vân (vẩy, sọc, đốm, xoáy, sao, giáp,
-//      khoang, thoi, tàn nhang), 9 kiểu đuôi (bông, lông vũ, mũi giáo, lửa, lá, pha lê, khoang, vây),
-//      9 phụ kiện (chuông, nơ, ngọc trán, lá, mây, vòng sáng, khăn, hoa).
-// Cấu hình: [loài, sừng, tầng cánh, số đuôi, bờm, chi tiết loài, tóc, vân, kiểu đuôi, phụ kiện]
-const PET_BEAST_CFG = [
-  ['egg',0,0,0,0,'crack','none','spot','plain','bell'],
-  ['grub',0,0,0,0,'','afro','none','ringed','none'],
-  ['avian',0,1,1,0,'beak','spiky','ring','spade','scarf'],
-  ['bug',0,2,0,0,'','none','swirl','fin','none'],
-  ['serpent',0,0,1,0,'','curl','scale','flame','leaf'],
-  ['reptile',1,0,1,0,'','none','diamond','fluff','none'],
-  ['turtle',0,0,1,0,'shell','none','star','leaf','bell'],
-  ['arachnid',0,0,1,0,'sting','none','stripe','feather','none'],
-  ['arachnid',0,0,0,0,'web','none','fleck','crystal','scarf'],
-  ['crustacean',0,0,0,0,'claw','none','plate','plain','none'],
-  ['cephalopod',0,0,0,0,'tent','none','spot','ringed','leaf'],
-  ['cephalopod',1,0,0,0,'tent','none','none','spade','none'],
-  ['fish',0,0,1,0,'fin','crest','ring','fin','bell'],
-  ['fish',1,0,1,0,'fin','tuft','swirl','flame','none'],
-  ['fish',0,0,1,0,'spike','braid','scale','fluff','scarf'],
-  ['fish',0,0,1,0,'big','fringe','diamond','fin','none'],
-  ['reptile',0,0,1,0,'jaw','afro','star','feather','leaf'],
-  ['ungulate',0,0,1,1,'neck','spiky','stripe','crystal','none'],
-  ['dragon',1,0,1,1,'','braid','fleck','spade','bell'],
-  ['amphibian',0,0,0,0,'','spiky','plate','ringed','none'],
-  ['rodent',0,0,1,0,'','curl','spot','spade','scarf'],
-  ['rodent',0,0,1,0,'longear','none','none','fin','none'],
-  ['rodent',0,0,1,0,'spike','spiky','ring','flame','leaf'],
-  ['bat',0,2,1,0,'','curl','swirl','fluff','none'],
-  ['canine',0,0,1,0,'','long','scale','fluff','bell'],
-  ['canine',0,0,9,0,'','crest','diamond','feather','none'],
-  ['feline',0,0,2,1,'yinyang','tuft','star','crystal','scarf'],
-  ['feline',0,0,1,1,'stripe','braid','stripe','fluff','none'],
-  ['feline',0,0,1,0,'spot','fringe','fleck','ringed','leaf'],
-  ['feline',0,0,1,1,'mane','curl','plate','spade','none'],
-  ['ungulate',2,0,1,1,'tusk','tuft','spot','fin','bell'],
-  ['ungulate',1,0,1,0,'plate','braid','none','flame','none'],
-  ['ungulate',0,0,1,1,'big','fringe','ring','fluff','scarf'],
-  ['ungulate',0,0,1,1,'trunk','curl','swirl','leaf','none'],
-  ['ungulate',0,0,1,0,'','none','scale','feather','leaf'],
-  ['ungulate',2,0,1,1,'','spiky','diamond','crystal','none'],
-  ['ungulate',0,0,1,1,'antler','afro','star','plain','bell'],
-  ['ungulate',1,0,1,0,'antler','long','stripe','ringed','none'],
-  ['dragon',2,0,1,1,'','curl','fleck','spade','scarf'],
-  ['dragon',2,0,1,1,'claw','none','plate','spade','none'],
-  ['avian',0,2,2,0,'beak','long','spot','flame','leaf'],
-  ['avian',0,1,1,0,'owl','crest','none','fluff','none'],
-  ['avian',1,1,3,0,'plume','tuft','ring','feather','bell'],
-  ['avian',0,2,1,0,'crane','braid','swirl','feather','none'],
-  ['phoenix',0,2,3,0,'','long','scale','crystal','scarf'],
-  ['spirit',1,0,0,0,'bolt','braid','diamond','plain','none'],
-  ['spirit',0,2,0,0,'swirl','fringe','star','ringed','leaf'],
-  ['spirit',0,0,0,0,'star','curl','stripe','spade','none'],
-  ['egg',0,0,0,0,'orb','none','fleck','fin','bell'],
-  ['spirit',1,0,0,0,'seal','spiky','plate','flame','none'],
-  ['dragon',2,1,1,1,'','afro','spot','fluff','scarf'],
-  ['canine',1,0,1,0,'moon','long','none','fluff','none'],
-  ['demon',2,0,0,0,'mask','braid','ring','feather','leaf'],
-  ['phoenix',0,2,3,0,'flame','long','swirl','crystal','none'],
-  ['turtle',1,0,1,0,'shellsnake','none','scale','plain','bell'],
-  ['kirin',2,0,1,0,'bolt','none','diamond','ringed','none'],
-  ['kirin',1,0,1,1,'cloud','spiky','star','spade','scarf'],
-  ['serpent',1,0,1,0,'nine','fringe','stripe','plain','none'],
-  ['demon',3,0,1,0,'maw','long','fleck','flame','leaf'],
-  ['spirit',2,2,0,0,'chaos','afro','plate','fluff','none'],
-  ['phoenix',0,2,3,0,'jade','spiky','spot','feather','bell'],
-  ['feline',0,0,2,0,'ghost','crest','none','feather','none'],
-  ['ungulate',0,1,1,1,'wind','spiky','ring','crystal','scarf'],
-  ['fish',0,1,1,0,'star','spiky','swirl','fin','none'],
-  ['avian',0,3,2,0,'void','none','scale','ringed','leaf'],
-  ['ungulate',2,0,1,1,'star','crest','diamond','spade','none'],
-  ['canine',1,0,9,0,'moon','none','star','fluff','bell'],
-  ['amphibian',1,0,0,0,'moon','crest','stripe','flame','none'],
-  ['avian',0,2,2,0,'sun','crest','fleck','fluff','scarf'],
-  ['spirit',2,2,0,0,'twin','long','plate','leaf','none'],
-  ['kirin',2,0,1,0,'flame','braid','spot','feather','leaf'],
-  ['dragon',2,2,1,1,'flame','tuft','none','crystal','none'],
-  ['dragon',2,1,1,1,'blood','braid','ring','spade','bell'],
-  ['phoenix',0,3,3,0,'flame','tuft','swirl','ringed','none'],
-  ['dragon',3,2,1,1,'dark','curl','scale','spade','scarf'],
-  ['dragon',2,2,1,1,'holy','none','diamond','spade','none'],
-  ['ungulate',2,1,1,0,'bolt','braid','star','flame','leaf'],
-  ['avian',0,2,2,0,'blade','crest','stripe','fluff','none'],
-  ['dragon',1,0,1,1,'earth','long','fleck','spade','bell'],
-  ['fish',0,0,1,0,'abyss','curl','plate','feather','none'],
-  ['kirin',2,1,1,1,'star','fringe','spot','crystal','scarf'],
-  ['dragon',2,2,1,1,'ring','braid','none','spade','none'],
-  ['kirin',3,1,1,0,'holy','none','ring','ringed','leaf'],
-  ['avian',0,3,3,0,'gold','spiky','swirl','spade','none'],
-  ['phoenix',1,3,3,0,'jade','fringe','scale','feather','bell'],
-  ['dragon',3,2,1,0,'ancient','spiky','diamond','flame','none'],
-  ['feline',2,1,1,1,'holy','afro','star','fluff','scarf'],
-  ['turtle',2,0,1,0,'shellsnake','none','stripe','leaf','none'],
-  ['phoenix',1,3,3,0,'flame','afro','fleck','feather','leaf'],
-  ['dragon',2,2,1,1,'jade','tuft','plate','crystal','none'],
-  ['dragon',3,2,1,1,'bolt','braid','spot','spade','bell'],
-  ['phoenix',1,3,3,0,'kalpa','tuft','none','ringed','none'],
-  ['turtle',2,1,1,0,'holy','none','ring','spade','scarf'],
-  ['dragon',3,4,1,1,'holy','none','swirl','spade','none'],
-  ['kirin',3,2,1,0,'chaos','long','scale','flame','leaf'],
-  ['feline',3,2,1,1,'gold','afro','diamond','fluff','none'],
-  ['kirin',3,2,1,1,'seal','tuft','star','flame','bell'],
-  ['dragon',3,3,1,0,'gold','crest','stripe','feather','none'],
-  ['dragon',3,4,1,1,'genesis','tuft','fleck','crystal','scarf'],
-  ['dragon',3,4,1,1,'supreme','braid','plate','spade','none'],
-];
+// ================= THẦN THÚ CƯỠI — 20 CON, MỖI CON 4 CẤP TIẾN HÓA =================
+// Đúng mô hình bạn gửi: một thần thú nhìn NGANG, có người cưỡi trên lưng, và cùng một con đó
+// nâng cấp qua 4 nấc — trần trụi → gắn giáp → giáp nặng + hào quang → toàn thân bùng hào quang.
+//   Cấp +0 ~ +3  (nấc 1): yên cương đơn giản
+//   Cấp +4 ~ +6  (nấc 2): giáp vai + giáp mông + bờm sáng
+//   Cấp +7 ~ +9  (nấc 3): giáp toàn thân, gai, phù văn phát sáng, vó có lửa
+//   Cấp +10      (nấc 4): hào quang phủ kín, cánh năng lượng, hạt sáng bay quanh
+// MUỐN THÊM THẦN THÚ MỚI: chỉ cần thêm một dòng vào PET_MOUNTS bên dưới (tên, loài, 2 màu, kỹ năng)
+// và một dòng chuyện trong PET_FORMS — hệ thống tự sinh thêm 4 cấp, tự nới số cấp tối đa, không phải
+// sửa dòng code nào khác. Các ô "sắp cập nhật" trong bộ sưu tập là chỗ chừa sẵn cho những con đó.
+// (PET_MOUNTS / PET_MOUNT_SLOTS / PET_STAGE_TAG đã khai báo ở phần dữ liệu phía trên.)
+
 // --- tiện ích màu ---
 function _pHex(c){ c = c.replace('#',''); if(c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)]; }
 function _pMix(a,b,t){ const A=_pHex(a), B=_pHex(b); const f=(i)=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0'); return '#'+f(0)+f(1)+f(2); }
 function _pLight(c,t){ return _pMix(c,'#FFFFFF',t); }
 function _pDark(c,t){ return _pMix(c,'#140E22',t); }
-function _pHsl(h,s,l){
-  h=((h%360)+360)%360; s/=100; l/=100;
-  const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l);
-  const f=n=>{ const v=l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1))); return Math.round(v*255).toString(16).padStart(2,'0'); };
-  return '#'+f(0)+f(8)+f(4);
-}
 
-// ---- KHUÔN MẶT CHIBI ----
-function _pbFace(cx, cy, o){
-  o = o || {};
-  const er = o.er || 6.5, gap = o.gap || 10;
-  const eye = (x)=>`<ellipse cx="${x}" cy="${cy}" rx="${er*0.82}" ry="${er}" fill="#20182E"/>`
-    + `<circle cx="${x-er*0.3}" cy="${cy-er*0.36}" r="${er*0.34}" fill="#FFFFFF"/>`
-    + `<circle cx="${x+er*0.26}" cy="${cy+er*0.34}" r="${er*0.17}" fill="#FFFFFF" opacity=".85"/>`;
-  let out = eye(cx-gap) + eye(cx+gap);
-  if(o.blush !== false){
-    out += `<ellipse cx="${cx-gap-er*1.5}" cy="${cy+er*0.95}" rx="${er*0.72}" ry="${er*0.44}" fill="#FF8FA6" opacity=".5"/>`
-        +  `<ellipse cx="${cx+gap+er*1.5}" cy="${cy+er*0.95}" rx="${er*0.72}" ry="${er*0.44}" fill="#FF8FA6" opacity=".5"/>`;
+// ---- NGƯỜI CƯỠI: dáng chibi nhỏ ngồi trên lưng, ngẩng cao ----
+function _pmRider(x, y, sc, c1, c2, stage){
+  const cape = stage>=1 ? `<path d="M4 -2 C14 4 16 18 10 26 C4 22 2 10 2 2 Z" fill="${c2}" opacity=".9"/>` : '';
+  const glow = stage>=3 ? `<circle cx="0" cy="-14" r="15" fill="${_pLight(c1,.5)}" opacity=".35"/>` : '';
+  const helm = stage>=2
+    ? `<path d="M-8 -16 C-8 -25 8 -25 8 -16 L8 -13 L-8 -13 Z" fill="${c1}"/><path d="M0 -25 L0 -33 M0 -33 C4 -35 7 -32 6 -29" stroke="${_pLight(c1,.4)}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+    : `<path d="M-7 -16 C-7 -23 7 -23 7 -16 L7 -14 L-7 -14 Z" fill="${c2}"/>`;
+  return `<g transform="translate(${x},${y}) scale(${sc})">
+    ${glow}${cape}
+    <path d="M-6 2 C-9 12 -8 20 -4 24 L6 24 C9 18 9 8 6 2 Z" fill="${c2}"/>
+    <path d="M-7 -2 C-9 4 -9 10 -6 14 L7 14 C10 9 10 2 7 -3 Z" fill="${c1}"/>
+    <path d="M-7 0 C-14 4 -17 10 -16 15" stroke="${c1}" stroke-width="4.6" fill="none" stroke-linecap="round"/>
+    <path d="M7 0 C13 3 16 8 15 13" stroke="${c1}" stroke-width="4.6" fill="none" stroke-linecap="round"/>
+    <circle cx="0" cy="-11" r="8.4" fill="#F6D8B8"/>
+    <circle cx="-3" cy="-11" r="1.5" fill="#2A1F33"/><circle cx="3" cy="-11" r="1.5" fill="#2A1F33"/>
+    ${helm}
+  </g>`;
+}
+// ---- GIÁP THEO NẤC: dán lên vai / mông / chân của con thú ----
+function _pmArmor(stage, b, mt, mtD, glow){
+  if(stage<1) return '';
+  let s = `<path d="M${b.sx-13} ${b.sy-8} C${b.sx-4} ${b.sy-17} ${b.sx+12} ${b.sy-15} ${b.sx+15} ${b.sy-4} C${b.sx+8} ${b.sy+3} ${b.sx-7} ${b.sy+3} ${b.sx-13} ${b.sy-8} Z" fill="${mt}"/>`
+        + `<path d="M${b.hx-12} ${b.hy-7} C${b.hx-4} ${b.hy-16} ${b.hx+11} ${b.hy-14} ${b.hx+14} ${b.hy-3} C${b.hx+7} ${b.hy+4} ${b.hx-6} ${b.hy+4} ${b.hx-12} ${b.hy-7} Z" fill="${mt}"/>`;
+  if(stage>=2){
+    s += `<path d="M${b.sx-16} ${b.sy-6} l-7 -9 l10 1 z" fill="${mtD}"/><path d="M${b.hx+15} ${b.hy-5} l8 -9 l-10 0 z" fill="${mtD}"/>`
+       + `<rect x="${b.cx-20}" y="${b.cy-6}" width="40" height="13" rx="6" fill="${mt}" opacity=".92"/>`
+       + `<g stroke="${_pLight(glow,.4)}" stroke-width="1.8" fill="none" opacity=".85"><path d="M${b.cx-12} ${b.cy} h24 M${b.cx-6} ${b.cy-5} v10 M${b.cx+6} ${b.cy-5} v10"/></g>`
+       + `<g fill="${mtD}">${[0,1,2,3].map(i=>`<path d="M${b.cx-16+i*11} ${b.cy-7} l4 -8 l4 8 z"/>`).join('')}</g>`;
   }
-  const my = cy + er*1.5;
-  if(o.mouth === 'w') out += `<path d="M${cx-4} ${my} q2 3 4 0 q2 3 4 0" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
-  else if(o.mouth === 'open') out += `<ellipse cx="${cx}" cy="${my+1}" rx="3.4" ry="2.8" fill="#E4557A"/>`;
-  else if(o.mouth === 'fang') out += `<path d="M${cx-5} ${my} q5 5 10 0 z" fill="#3A2340"/><path d="M${cx-4} ${my} l1.8 3 l1.8 -3 z" fill="#FFF"/><path d="M${cx+0.4} ${my} l1.8 3 l1.8 -3 z" fill="#FFF"/>`;
-  else if(o.mouth === 'beak') out += '';
-  else out += `<path d="M${cx-3.4} ${my} q3.4 3.4 6.8 0" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
-  return out;
-}
-// ---- TÓC: 8 kiểu, vẽ theo vị trí + bán kính đầu của từng loài ----
-function _pbHair(type, hx, hy, hr, c, c2){
-  if(!type || type==='none') return '';
-  const top = hy - hr;
-  switch(type){
-    case 'fringe': // mái ngố che trán
-      return `<path d="M${hx-hr*0.95} ${hy-hr*0.25} C${hx-hr} ${top-2} ${hx+hr} ${top-2} ${hx+hr*0.95} ${hy-hr*0.25} C${hx+hr*0.5} ${hy-hr*0.55} ${hx+hr*0.2} ${hy-hr*0.2} ${hx} ${hy-hr*0.5} C${hx-hr*0.2} ${hy-hr*0.2} ${hx-hr*0.5} ${hy-hr*0.55} ${hx-hr*0.95} ${hy-hr*0.25} Z" fill="${c}"/>`;
-    case 'tuft': // chỏm tóc nhỏ vểnh lên
-      return `<path d="M${hx-5} ${top+3} C${hx-9} ${top-11} ${hx+3} ${top-15} ${hx+2} ${top-6} C${hx+8} ${top-12} ${hx+12} ${top-3} ${hx+5} ${top+3} Z" fill="${c}"/>`;
-    case 'long': // tóc dài xoã hai bên
-      return `<path d="M${hx-hr*0.9} ${hy-hr*0.3} C${hx-hr*1.35} ${hy+hr*0.9} ${hx-hr*1.1} ${hy+hr*1.7} ${hx-hr*0.75} ${hy+hr*1.9} C${hx-hr*0.85} ${hy+hr*0.9} ${hx-hr*0.8} ${hy+hr*0.2} ${hx-hr*0.6} ${hy-hr*0.4} Z" fill="${c}"/>`
-           + `<path d="M${hx+hr*0.9} ${hy-hr*0.3} C${hx+hr*1.35} ${hy+hr*0.9} ${hx+hr*1.1} ${hy+hr*1.7} ${hx+hr*0.75} ${hy+hr*1.9} C${hx+hr*0.85} ${hy+hr*0.9} ${hx+hr*0.8} ${hy+hr*0.2} ${hx+hr*0.6} ${hy-hr*0.4} Z" fill="${c}"/>`
-           + `<path d="M${hx-hr*0.9} ${hy-hr*0.2} C${hx-hr*0.8} ${top-3} ${hx+hr*0.8} ${top-3} ${hx+hr*0.9} ${hy-hr*0.2} C${hx+hr*0.4} ${hy-hr*0.6} ${hx-hr*0.4} ${hy-hr*0.6} ${hx-hr*0.9} ${hy-hr*0.2} Z" fill="${c}"/>`;
-    case 'spiky': // tóc dựng gai
-      return `<g fill="${c}">` + [0,1,2,3,4].map(i=>{
-          const x = hx - hr*0.75 + i*hr*0.375, h = 12 + (i%2?7:0);
-          return `<path d="M${x-5} ${top+5} L${x + (i-2)*2.2} ${top+5-h} L${x+5} ${top+5} Z"/>`;
-        }).join('') + `</g>`;
-    case 'curl': // xoăn lọn tròn
-      return `<g fill="${c}">` + [0,1,2,3].map(i=>`<circle cx="${hx-hr*0.7+i*hr*0.47}" cy="${top+4-(i%2?5:0)}" r="${6.5-(i%2?1:0)}"/>`).join('')
-           + `</g><path d="M${hx-hr*0.8} ${hy-hr*0.35} C${hx-hr*0.7} ${top+1} ${hx+hr*0.7} ${top+1} ${hx+hr*0.8} ${hy-hr*0.35} Z" fill="${c}"/>`;
-    case 'braid': // tết bím hai bên
-      return `<path d="M${hx-hr*0.85} ${hy-hr*0.3} C${hx-hr*0.8} ${top-2} ${hx+hr*0.8} ${top-2} ${hx+hr*0.85} ${hy-hr*0.3} C${hx+hr*0.4} ${hy-hr*0.62} ${hx-hr*0.4} ${hy-hr*0.62} ${hx-hr*0.85} ${hy-hr*0.3} Z" fill="${c}"/>`
-           + `<g fill="${c2}">` + [0,1,2].map(i=>`<circle cx="${hx-hr*1.05}" cy="${hy+hr*0.15+i*8}" r="${5.5-i*0.7}"/><circle cx="${hx+hr*1.05}" cy="${hy+hr*0.15+i*8}" r="${5.5-i*0.7}"/>`).join('') + `</g>`;
-    case 'crest': // mào dựng giữa đỉnh đầu
-      return `<path d="M${hx} ${top-16} C${hx-8} ${top-8} ${hx-9} ${top+1} ${hx-7} ${top+4} L${hx+7} ${top+4} C${hx+9} ${top+1} ${hx+8} ${top-8} ${hx} ${top-16} Z" fill="${c}"/>`
-           + `<path d="M${hx} ${top-16} C${hx-3} ${top-7} ${hx-3} ${top+1} ${hx-2} ${top+4} L${hx+3} ${top+4} C${hx+3} ${top} ${hx+3} ${top-8} ${hx} ${top-16} Z" fill="${c2}" opacity=".75"/>`;
-    case 'afro': // xù tròn quanh đỉnh
-      return `<g fill="${c}">` + [0,1,2,3,4,5,6].map(i=>{
-          const a = (-170 + i*23)*Math.PI/180;
-          return `<circle cx="${(hx+Math.cos(a)*hr*0.95).toFixed(1)}" cy="${(hy+Math.sin(a)*hr*0.95).toFixed(1)}" r="8"/>`;
-        }).join('') + `</g>`;
+  if(stage>=3){
+    s += `<g fill="${_pLight(glow,.35)}" opacity=".8">${[0,1,2,3,4].map(i=>`<path d="M${b.cx-22+i*11} ${b.cy-12} c-3 -8 1 -13 1 -17 c3 5 7 8 4 14 c-1 3 -3 3 -5 3 z"/>`).join('')}</g>`;
   }
-  return '';
+  return s;
 }
-// ---- VÂN / VẨY TRÊN THÂN: cắt gọn trong vùng thân của từng loài ----
-function _pbPattern(type, b, c, c2, uid){
-  if(!type || type==='none') return {clip:'', marks:''};
-  const {x,y,rx,ry} = b;
-  let inner = '';
-  if(type==='scale'){
-    for(let row=0; row<4; row++) for(let col=0; col<6; col++){
-      const px = x - rx + col*(rx*2/5.5) + (row%2 ? rx/5.5 : 0);
-      const py = y - ry*0.5 + row*(ry*0.52);
-      inner += `<path d="M${px} ${py} a5 5 0 0 1 10 0 z" fill="${c}" opacity=".55"/>`;
-    }
-  } else if(type==='stripe'){
-    for(let i=0;i<5;i++) inner += `<path d="M${x-rx+i*(rx*2/4.4)} ${y-ry} q6 ${ry} 0 ${ry*2}" stroke="${c}" stroke-width="5" fill="none" opacity=".5"/>`;
-  } else if(type==='spot'){
-    [[-0.5,-0.35],[0.15,-0.5],[0.6,-0.1],[-0.6,0.3],[0.1,0.35],[0.55,0.55],[-0.15,0.05]].forEach(p=>{
-      inner += `<circle cx="${x+p[0]*rx}" cy="${y+p[1]*ry}" r="${4.6}" fill="${c}" opacity=".5"/>`;
-    });
-  } else if(type==='swirl'){
-    inner += `<path d="M${x} ${y} m-12 0 a12 12 0 1 1 12 12 a7 7 0 1 1 -7 -7" stroke="${c}" stroke-width="3.4" fill="none" opacity=".55" stroke-linecap="round"/>`;
-    inner += `<path d="M${x+rx*0.55} ${y-ry*0.4} m-7 0 a7 7 0 1 1 7 7" stroke="${c}" stroke-width="2.6" fill="none" opacity=".45" stroke-linecap="round"/>`;
-  } else if(type==='star'){
-    [[-0.45,-0.4],[0.35,-0.25],[0,0.25],[0.55,0.45],[-0.5,0.4]].forEach(p=>{
-      const sx=x+p[0]*rx, sy=y+p[1]*ry;
-      inner += `<path d="M${sx} ${sy-5} l1.7 3.6 l3.9 .5 l-2.9 2.7 l.8 3.9 l-3.5 -1.9 l-3.5 1.9 l.8 -3.9 l-2.9 -2.7 l3.9 -.5 z" fill="${c}" opacity=".7"/>`;
-    });
-  } else if(type==='plate'){
-    for(let i=0;i<4;i++) inner += `<rect x="${x-rx*0.75}" y="${y-ry*0.7+i*(ry*0.45)}" width="${rx*1.5}" height="${ry*0.3}" rx="${ry*0.15}" fill="${c}" opacity=".4"/>`;
-  } else if(type==='ring'){
-    for(let i=0;i<4;i++) inner += `<ellipse cx="${x}" cy="${y-ry*0.6+i*(ry*0.5)}" rx="${rx*0.95}" ry="${ry*0.16}" fill="none" stroke="${c}" stroke-width="4.4" opacity=".45"/>`;
-  } else if(type==='diamond'){
-    for(let i=0;i<3;i++) inner += `<path d="M${x} ${y-ry*0.6+i*(ry*0.6)} l9 9 l-9 9 l-9 -9 z" fill="${c}" opacity=".5"/>`;
-  } else if(type==='fleck'){
-    for(let i=0;i<14;i++){
-      const a=i*137.5*Math.PI/180, rr=0.25+((i*7)%10)/13;
-      inner += `<circle cx="${(x+Math.cos(a)*rx*rr).toFixed(1)}" cy="${(y+Math.sin(a)*ry*rr).toFixed(1)}" r="${2 + (i%3)*0.7}" fill="${c2}" opacity=".55"/>`;
-    }
-  }
-  return {
-    clip: `<clipPath id="${uid}c"><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></clipPath>`,
-    marks: `<g clip-path="url(#${uid}c)">${inner}</g>`
-  };
+// ---- LỬA / SÉT DƯỚI VÓ + HÀO QUANG NỀN ----
+function _pmAura(stage, glow, c2){
+  if(stage<2) return {back:'', front:''};
+  const back = `<ellipse cx="60" cy="62" rx="${52+stage*4}" ry="${40+stage*4}" fill="${_pLight(glow,.4)}" opacity="${stage>=3?.24:.14}"/>`
+    + (stage>=3 ? `<g fill="${_pLight(c2,.3)}" opacity=".55">${[0,1,2,3,4,5].map(i=>{const a=(-160+i*32)*Math.PI/180;return `<ellipse cx="${(60+Math.cos(a)*46).toFixed(1)}" cy="${(58+Math.sin(a)*34).toFixed(1)}" rx="9" ry="16" transform="rotate(${(-160+i*32)/2} ${(60+Math.cos(a)*46).toFixed(1)} ${(58+Math.sin(a)*34).toFixed(1)})"/>`;}).join('')}</g>` : '');
+  const front = `<g fill="${_pLight(c2,.25)}" opacity=".9">${[24,44,74,96].map(x=>`<path d="M${x} 100 c-4 -9 2 -14 1 -19 c4 6 9 9 5 16 c-1 3 -4 4 -6 3 z"/>`).join('')}</g>`
+    + (stage>=3 ? `<g fill="#FFF3C4" opacity=".9">${[[18,40],[102,44],[26,86],[98,84],[60,14]].map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${1.8+(i%2)*1.6}"/>`).join('')}</g>` : '');
+  return {back, front};
 }
-// ---- PHỤ KIỆN: dấu nhận dạng nhỏ, đặt ở cổ hoặc trán ----
-function _pbAcc(type, hx, hy, hr, c, c2){
-  const ny = hy + hr*0.98;  // ngang cổ
-  switch(type){
-    case 'bell':   return `<path d="M${hx-16} ${ny} q16 9 32 0" stroke="#C0392B" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="${hx}" cy="${ny+6}" r="5.4" fill="#FFD166"/><circle cx="${hx}" cy="${ny+7.6}" r="1.6" fill="#8A6A12"/>`;
-    case 'ribbon': return `<g fill="#FF6E8A"><path d="M${hx-14} ${ny-2} l-11 -6 l0 12 z"/><path d="M${hx+14} ${ny-2} l11 -6 l0 12 z"/><circle cx="${hx}" cy="${ny-1}" r="5"/></g>`;
-    case 'gem':    return `<path d="M${hx} ${hy-hr*0.62} l6 6 l-6 7 l-6 -7 z" fill="${_pLight(c,.35)}"/><path d="M${hx} ${hy-hr*0.62} l6 6 l-6 0 z" fill="#FFFFFF" opacity=".55"/>`;
-    case 'leaf':   return `<path d="M${hx+hr*0.55} ${hy-hr*0.85} c8 -9 17 -8 19 -3 c-6 6 -14 8 -19 3 z" fill="#5CD68A"/><path d="M${hx+hr*0.55} ${hy-hr*0.85} l17 -4" stroke="#2F8F55" stroke-width="1.4"/>`;
-    case 'cloud':  return `<g fill="#FFFFFF" opacity=".55"><ellipse cx="${hx-24}" cy="${ny+16}" rx="13" ry="6"/><ellipse cx="${hx+24}" cy="${ny+16}" rx="13" ry="6"/></g>`;
-    case 'halo':   return `<ellipse cx="${hx}" cy="${hy-hr-7}" rx="17" ry="5" fill="none" stroke="#FFE08A" stroke-width="3.4" opacity=".9"/>`;
-    case 'scarf':  return `<path d="M${hx-17} ${ny-2} q17 11 34 0 l0 7 q-17 10 -34 0 z" fill="${c2}"/><path d="M${hx+13} ${ny+5} l9 14 l-8 2 z" fill="${c2}"/>`;
-    case 'flower': return `<g fill="#FF8FC0" transform="translate(${hx+hr*0.72},${hy-hr*0.72})">${[0,1,2,3,4].map(i=>{const a=i*72*Math.PI/180;return `<ellipse cx="${(Math.cos(a)*5).toFixed(1)}" cy="${(Math.sin(a)*5).toFixed(1)}" rx="4" ry="3"/>`;}).join('')}<circle r="2.8" fill="#FFD166"/></g>`;
-  }
-  return '';
-}
-// ---- CÁNH ----
-function _pbWings(n,c,c2,style,y){
-  if(!n) return '';
-  y = y || 62; let out = '';
-  for(let i=n-1;i>=0;i--){
-    const col = _pMix(c2, c, 0.4 + i*0.18), sc = 1 + i*0.26;
-    const d = style==='bat'
-      ? 'M0 0 C-13 -12 -28 -13 -36 -6 C-27 -4 -23 3 -21 9 C-17 3 -11 2 -7 5 C-5 1 -2 0 0 0 Z'
-      : 'M0 0 C-13 -11 -28 -13 -37 -6 C-26 -1 -12 5 -2 7 Z';
-    out += `<g transform="translate(50,${y}) scale(${sc})"><path d="${d}" fill="${col}"/></g>`;
-    out += `<g transform="translate(70,${y}) scale(${-sc},${sc})"><path d="${d}" fill="${col}"/></g>`;
-  }
-  return out;
-}
-// ---- ĐUÔI: 9 kiểu khác hẳn nhau ----
-function _pbTails(n,style,c,c2,ox,oy){
-  if(!n) return '';
-  ox = ox||60; oy = oy||80;
-  let out = ''; const cnt = Math.min(9,n);
-  for(let i=0;i<cnt;i++){
-    const sp = cnt===1 ? 0 : (i-(cnt-1)/2);
-    const ang = sp * (cnt>=5 ? 17 : 26);
-    const L = cnt>=5 ? 32 : 36;
-    const col = _pMix(c, c2, 0.08 + Math.abs(sp)*0.09);
-    const g = (inner)=>`<g transform="translate(${ox},${oy}) rotate(${ang})">${inner}</g>`;
-    if(style==='fluff') out += g(`<path d="M0 0 C-8 -12 -8 -${L*0.72} 0 -${L} C8 -${L*0.72} 8 -12 0 0 Z" fill="${col}"/><path d="M0 -${L} C-4 -${L*0.76} -4 -${L*0.5} 0 -${L*0.46} C4 -${L*0.5} 4 -${L*0.76} 0 -${L} Z" fill="${_pLight(col,.5)}"/>`);
-    else if(style==='feather') out += g(`<path d="M0 0 C-5 -16 -4 -${L} 0 -${L+9} C4 -${L} 5 -16 0 0 Z" fill="${col}"/><circle cx="0" cy="-${L+3}" r="4" fill="${_pLight(col,.55)}"/>`);
-    else if(style==='spade') out += g(`<path d="M0 0 C-3.4 -14 -3.4 -${L*0.8} 0 -${L*0.85} C3.4 -${L*0.8} 3.4 -14 0 0 Z" fill="${col}"/><path d="M0 -${L+11} l8 11 l-8 7 l-8 -7 z" fill="${_pLight(col,.3)}"/>`);
-    else if(style==='flame') out += g(`<path d="M0 0 C-9 -14 -2 -22 -3 -${L*0.8} C4 -${L*0.6} 9 -${L*0.5} 6 -14 C4 -6 2 -2 0 0 Z" fill="${col}"/><path d="M0 -${L*0.55} C-4 -${L*0.72} 0 -${L*0.9} 1 -${L+4} C4 -${L*0.85} 4 -${L*0.6} 0 -${L*0.55} Z" fill="#FFD166" opacity=".75"/>`);
-    else if(style==='leaf') out += g(`<path d="M0 0 C-4 -13 -4 -${L*0.7} 0 -${L*0.8} C4 -${L*0.7} 4 -13 0 0 Z" fill="${col}"/><path d="M0 -${L*0.8} c-11 -3 -13 -12 -11 -16 c9 1 13 8 11 16 z" fill="#5CD68A"/><path d="M0 -${L*0.8} c11 -3 13 -12 11 -16 c-9 1 -13 8 -11 16 z" fill="#4BC47A"/>`);
-    else if(style==='crystal') out += g(`<path d="M0 0 C-3 -12 -3 -${L*0.7} 0 -${L*0.75} C3 -${L*0.7} 3 -12 0 0 Z" fill="${col}"/><path d="M0 -${L+8} l7 10 l-7 9 l-7 -9 z" fill="${_pLight(col,.45)}" opacity=".9"/><path d="M0 -${L+8} l7 10 l-7 0 z" fill="#FFFFFF" opacity=".5"/>`);
-    else if(style==='ringed') out += g(`<path d="M0 0 C-4.5 -13 -4.5 -${L*0.8} 0 -${L} C4.5 -${L*0.8} 4.5 -13 0 0 Z" fill="${col}"/>` + [0,1,2].map(k=>`<rect x="-5" y="${-12-k*9}" width="10" height="4.4" rx="2" fill="${_pDark(col,.35)}" opacity=".8"/>`).join(''));
-    else if(style==='fin') out += g(`<path d="M0 0 C-6 -12 -16 -${L*0.7} -10 -${L} C-4 -${L*0.75} 4 -${L*0.75} 10 -${L} C16 -${L*0.7} 6 -12 0 0 Z" fill="${col}"/><g stroke="${_pLight(col,.45)}" stroke-width="1.4" opacity=".7"><path d="M-5 -16 L-7 -${L*0.85} M0 -18 L0 -${L*0.9} M5 -16 L7 -${L*0.85}"/></g>`);
-    else out += g(`<path d="M0 0 C-4.5 -13 -4.5 -${L*0.8} 0 -${L} C4.5 -${L*0.8} 4.5 -13 0 0 Z" fill="${col}"/>`);
-  }
-  return out;
-}
-// ---- SỪNG ----
-function _pbHorns(n,cx,cy,c,dk){
-  if(!n) return '';
-  if(n===1) return `<path d="M${cx} ${cy-13} C${cx-2.6} ${cy-5} ${cx-3.4} ${cy-1} ${cx-3} ${cy+1} L${cx+3} ${cy+1} C${cx+3.4} ${cy-1} ${cx+2.6} ${cy-5} ${cx} ${cy-13} Z" fill="${c}"/><path d="M${cx} ${cy-13} L${cx+1} ${cy+1} L${cx+3} ${cy+1} Z" fill="${dk}" opacity=".4"/>`;
-  if(n===2) return `<path d="M${cx-9} ${cy+2} C${cx-16} ${cy-4} ${cx-15} ${cy-12} ${cx-8} ${cy-14} C${cx-10} ${cy-8} ${cx-8} ${cy-3} ${cx-4} ${cy+1} Z" fill="${c}"/>`
-    + `<path d="M${cx+9} ${cy+2} C${cx+16} ${cy-4} ${cx+15} ${cy-12} ${cx+8} ${cy-14} C${cx+10} ${cy-8} ${cx+8} ${cy-3} ${cx+4} ${cy+1} Z" fill="${c}"/>`;
-  return `<path d="M${cx-8} ${cy+1} C${cx-17} ${cy-6} ${cx-18} ${cy-17} ${cx-10} ${cy-21} C${cx-12} ${cy-13} ${cx-8} ${cy-8} ${cx-3} ${cy} Z" fill="${c}"/>`
-    + `<path d="M${cx+8} ${cy+1} C${cx+17} ${cy-6} ${cx+18} ${cy-17} ${cx+10} ${cy-21} C${cx+12} ${cy-13} ${cx+8} ${cy-8} ${cx+3} ${cy} Z" fill="${c}"/>`
-    + `<path d="M${cx-13} ${cy-10} L${cx-21} ${cy-14} M${cx+13} ${cy-10} L${cx+21} ${cy-14}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
-}
-let _petBeastSeq = 0;
+let _petMountSeq = 0;
 // ================= BỘ VẼ CHÍNH =================
+// idx = cấp (0..PET_MAX_LEVEL-1). Cứ 4 cấp liên tiếp là 4 nấc tiến hóa của CÙNG một thần thú.
 function petBeastSvg(idx, extraCls){
-  idx = Math.max(0, Math.min(PET_BEAST_CFG.length-1, idx|0));
-  const cfg = PET_BEAST_CFG[idx];
-  const plan=cfg[0], nHorn=cfg[1], nWing=cfg[2], nTail=cfg[3], mane=cfg[4], extra=cfg[5];
-  const hair=cfg[6], patt=cfg[7], tailStyle=cfg[8], accType=cfg[9];
-  const realm = Math.floor(idx/10), step = idx % 10;
-  const r = PET_REALMS[Math.min(PET_REALMS.length-1, realm)];
-  // MÀU RIÊNG TỪNG CẤP: góc vàng 137.5° cho hai cấp liền nhau lệch hẳn tông; độ tươi và độ sáng cũng
-  // xoay vòng để không con nào trùng con nào. Pha 22% màu cảnh giới để vẫn thấy được mình đang ở tầng nào.
-  const hue = (idx*137.508 + 18) % 360;
-  const sat = 52 + (idx%5)*8;
-  const lit = 62 + ((idx*3)%4)*5;
-  const own = _pHsl(hue, sat, lit);
-  const base  = _pMix(own, r.c1, 0.22);
-  const belly = _pLight(base, 0.44);
-  const dk    = _pDark(base, 0.42);
-  const acc   = _pMix(_pHsl((hue+42)%360, sat+16, 44), r.c2, 0.18);
-  const mark  = _pDark(base, 0.30);                 // màu vân trên thân
-  const hairC = _pMix(_pHsl((hue+186)%360, sat+12, 52), r.c1, 0.15);  // tóc màu bổ túc → nổi bật
-  const glow  = r.c1;
-  const paw   = _pDark(base, 0.16);
-  const u = 'pb'+(++_petBeastSeq);
-  let back='', art='', props='';
-  let HX=60, HY=48, HR=26;            // tâm + bán kính ĐẦU (để đặt tóc, sừng, phụ kiện)
-  let BODY={x:60,y:80,rx:22,ry:18};   // vùng THÂN (để phủ vân/vẩy)
+  const total = PET_MOUNTS.length*4;
+  idx = Math.max(0, Math.min(total-1, idx|0));
+  const mi = Math.floor(idx/4), stage = idx%4;
+  const M = PET_MOUNTS[mi];
+  const sp = M.sp;
+  const c1 = M.c1, c2 = M.c2;
+  const body = _pLight(c1, stage*0.05);
+  const belly= _pLight(body, .34);
+  const dk   = _pDark(c1, .35);
+  const mt   = _pMix(c2, '#FFFFFF', .18 + stage*0.1);   // ánh kim của giáp, sáng dần theo nấc
+  const mtD  = _pDark(c2, .28);
+  const glow = c2;
+  const u = 'pm'+(++_petMountSeq);
+  const aura = _pmAura(stage, glow, c2);
+  // b = mốc gắn giáp: vai (sx,sy) — mông (hx,hy) — giữa lưng (cx,cy)
+  let b = {sx:44, sy:58, hx:80, hy:58, cx:62, cy:52};
+  let art = '', riderAt = [60, 46], riderScale = 0.78;
 
-  // ---------- 22 BỘ HÌNH RIÊNG ----------
-  if(plan==='egg'){
-    HX=60; HY=66; HR=31; BODY={x:60,y:66,rx:30,ry:36};
-    art = `<ellipse cx="60" cy="66" rx="31" ry="37" fill="${base}"/>`
-      + `<ellipse cx="49" cy="52" rx="10" ry="14" fill="#FFFFFF" opacity=".3"/>`
-      + (extra==='crack'
-          ? `<path d="M36 66 L48 58 L43 72 L57 64 L52 80 L66 71 L62 84" stroke="${dk}" stroke-width="3" fill="none" stroke-linejoin="round"/>`
-          : `<circle cx="60" cy="66" r="20" fill="${_pLight(glow,.35)}" opacity=".45"/><circle cx="60" cy="66" r="11" fill="#FFF" opacity=".7"/>`)
-      + `<path d="M60 30 C56 22 60 15 66 16 C64 22 64 27 62 31 Z" fill="${_pMix(acc,glow,.5)}"/>`
-      + _pbFace(60, 66, {er:6.5, gap:11, mouth:'w'});
+  const legs = (xs, y, h, w)=>`<g fill="${_pDark(body,.16)}">${xs.map(x=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w/2}"/>`).join('')}</g>`;
+  const hoof = (xs, y)=>`<g fill="${stage>=2?_pLight(glow,.3):dk}">${xs.map(x=>`<rect x="${x-1}" y="${y}" width="9" height="6" rx="3"/>`).join('')}</g>`;
+
+  if(sp==='tiger' || sp==='wolf' || sp==='fox'){
+    const lean = sp==='wolf' ? 1 : 0;
+    // đuôi
+    const tail = sp==='fox'
+      ? `<g>${[0,1,2].map(i=>`<path d="M92 62 C104 ${52-i*9} 112 ${44-i*10} 108 ${34-i*10} C100 ${42-i*8} 94 ${52-i*6} 90 62 Z" fill="${_pMix(body,c2,.2+i*.2)}"/>`).join('')}</g>`
+      : `<path d="M92 60 C108 56 114 44 108 34" stroke="${body}" stroke-width="8" fill="none" stroke-linecap="round"/>`
+        + (sp==='tiger' ? `<g stroke="${dk}" stroke-width="3" opacity=".8"><path d="M99 55 l5 2 M105 47 l5 1 M108 39 l5 0"/></g>` : '');
+    art = tail
+      + legs([34,46,74,86], 66, 26, 11)
+      + `<ellipse cx="62" cy="60" rx="32" ry="17" fill="${body}"/>`
+      + `<ellipse cx="62" cy="66" rx="24" ry="9" fill="${belly}" opacity=".7"/>`
+      + (sp==='tiger' ? `<g fill="${dk}" opacity=".75">${[0,1,2,3,4].map(i=>`<path d="M${44+i*11} 46 c3 6 3 12 0 17 c-2 -5 -2 -11 0 -17 z"/>`).join('')}</g>` : '')
+      + (sp==='fox' ? `<path d="M40 64 C50 70 74 70 84 64 C74 72 50 72 40 64 Z" fill="${_pLight(belly,.3)}"/>` : '')
+      // đầu
+      + `<ellipse cx="30" cy="${50-lean*2}" rx="18" ry="15" fill="${body}"/>`
+      + `<path d="M14 ${52-lean*2} C4 ${52-lean*2} 2 ${58-lean*2} 8 ${60-lean*2} C14 ${62-lean*2} 22 ${58-lean*2} 24 ${54-lean*2} Z" fill="${_pLight(body,.14)}"/>`
+      + `<g fill="${body}"><path d="M22 ${38-lean*2} L18 ${24-lean*2} L32 ${34-lean*2} Z"/><path d="M40 ${38-lean*2} L46 ${24-lean*2} L32 ${34-lean*2} Z"/></g>`
+      + `<g fill="${_pMix(belly,c2,.4)}"><path d="M24 ${38-lean*2} L22 ${29-lean*2} L31 ${35-lean*2} Z"/><path d="M39 ${38-lean*2} L42 ${29-lean*2} L33 ${35-lean*2} Z"/></g>`
+      + `<circle cx="9" cy="${57-lean*2}" r="2.4" fill="${dk}"/>`
+      + `<ellipse cx="26" cy="${49-lean*2}" rx="3.4" ry="4" fill="#20182E"/><circle cx="24.8" cy="${47.6-lean*2}" r="1.3" fill="#FFF"/>`
+      + `<ellipse cx="37" cy="${49-lean*2}" rx="3.4" ry="4" fill="#20182E"/><circle cx="35.8" cy="${47.6-lean*2}" r="1.3" fill="#FFF"/>`
+      + (stage>=2 ? `<path d="M22 ${34-lean*2} q10 -6 20 0 l0 5 q-10 -5 -20 0 z" fill="${mt}"/>` : '');
+    b = {sx:44, sy:54, hx:82, hy:54, cx:62, cy:48};
+    riderAt = [64, 40];
   }
-  else if(plan==='grub'){
-    HX=52; HY=60; HR=27; BODY={x:80,y:78,rx:22,ry:13};
-    art = [3,2,1,0].map(i=>`<ellipse cx="${72+i*8}" cy="${74+i*3}" rx="${15-i*2.6}" ry="${13-i*2.2}" fill="${i%2?_pLight(base,.14):base}"/>`).join('')
-      + `<circle cx="52" cy="60" r="27" fill="${base}"/>`
-      + `<path d="M40 40 C36 28 30 22 24 21" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="23" cy="20" r="4" fill="${acc}"/>`
-      + `<path d="M64 40 C68 28 74 22 80 21" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="81" cy="20" r="4" fill="${acc}"/>`
-      + _pbFace(52, 62, {er:6.8, gap:11, mouth:'smile'});
+  else if(sp==='bear'){
+    art = `<path d="M94 62 c8 -1 10 -6 7 -10" stroke="${body}" stroke-width="7" fill="none" stroke-linecap="round"/>`
+      + legs([32,46,74,88], 68, 24, 14)
+      + `<g fill="${_pDark(body,.28)}">${[32,46,74,88].map(x=>`<rect x="${x-1}" y="88" width="16" height="7" rx="3.5"/>`).join('')}</g>`
+      + `<path d="M28 60 C28 42 50 36 64 38 C82 40 94 48 94 62 C94 74 76 78 62 78 C44 78 28 74 28 60 Z" fill="${body}"/>`
+      + `<ellipse cx="62" cy="70" rx="24" ry="9" fill="${belly}" opacity=".6"/>`
+      + `<ellipse cx="26" cy="56" rx="18" ry="16" fill="${body}"/>`
+      + `<g fill="${body}"><circle cx="16" cy="40" r="7.5"/><circle cx="36" cy="38" r="7.5"/></g>`
+      + `<g fill="${_pMix(belly,c2,.35)}"><circle cx="16" cy="40" r="4"/><circle cx="36" cy="38" r="4"/></g>`
+      + `<ellipse cx="13" cy="60" rx="8" ry="6" fill="${_pLight(body,.2)}"/><ellipse cx="9" cy="59" rx="3" ry="2.4" fill="${dk}"/>`
+      + `<ellipse cx="22" cy="54" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="20.9" cy="52.7" r="1.2" fill="#FFF"/>`
+      + `<ellipse cx="33" cy="54" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="31.9" cy="52.7" r="1.2" fill="#FFF"/>`;
+    b = {sx:42, sy:52, hx:84, hy:56, cx:62, cy:46};
+    riderAt = [62, 38];
   }
-  else if(plan==='bug'){
-    HX=60; HY=44; HR=21; BODY={x:60,y:70,rx:8,ry:17};
-    back = `<ellipse cx="34" cy="50" rx="24" ry="18" fill="${_pMix(base,acc,.3)}" transform="rotate(-20 34 50)"/>`
-      + `<ellipse cx="86" cy="50" rx="24" ry="18" fill="${_pMix(base,acc,.3)}" transform="rotate(20 86 50)"/>`
-      + `<ellipse cx="40" cy="76" rx="17" ry="13" fill="${_pMix(base,glow,.45)}" transform="rotate(-16 40 76)"/>`
-      + `<ellipse cx="80" cy="76" rx="17" ry="13" fill="${_pMix(base,glow,.45)}" transform="rotate(16 80 76)"/>`
-      + `<g fill="#FFFFFF" opacity=".45"><circle cx="30" cy="46" r="5"/><circle cx="90" cy="46" r="5"/><circle cx="38" cy="78" r="3.4"/><circle cx="82" cy="78" r="3.4"/></g>`
-      + `<g fill="${acc}" opacity=".55"><circle cx="40" cy="56" r="3.4"/><circle cx="80" cy="56" r="3.4"/></g>`;
-    art = `<ellipse cx="60" cy="70" rx="8" ry="17" fill="${dk}"/>`
-      + `<circle cx="60" cy="44" r="21" fill="${base}"/>`
-      + `<path d="M50 27 C46 16 40 12 35 12" stroke="${dk}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="34" cy="11" r="3.6" fill="${acc}"/>`
-      + `<path d="M70 27 C74 16 80 12 85 12" stroke="${dk}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="86" cy="11" r="3.6" fill="${acc}"/>`
-      + _pbFace(60, 46, {er:6, gap:9, mouth:'smile'});
+  else if(sp==='deer' || sp==='kirin'){
+    const horn = sp==='deer'
+      ? `<g stroke="${_pMix(c2,'#F6EFD8',.4)}" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M24 34 L18 16 M22 24 L10 20 M20 18 L16 8"/><path d="M38 34 L44 16 M40 24 L52 20 M42 18 L46 8"/></g>`
+      : `<path d="M32 32 C30 20 34 10 42 6 C40 16 38 24 38 32 Z" fill="${_pMix(c2,'#FFFFFF',.35)}"/>`;
+    const mane = `<path d="M40 36 C34 46 34 60 40 68 C46 58 46 44 40 36 Z" fill="${_pMix(c2,glow,.35)}"/>`;
+    const tail = sp==='kirin'
+      ? `<g>${[0,1,2].map(i=>`<path d="M92 54 C106 ${46-i*7} 112 ${34-i*8} 106 ${26-i*8} C98 ${36-i*6} 92 ${46-i*4} 88 54 Z" fill="${_pMix(c2,glow,.2+i*.2)}" opacity=".9"/>`).join('')}</g>`
+      : `<path d="M92 54 C102 50 104 42 100 36" stroke="${_pMix(body,c2,.3)}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    art = tail
+      + legs([36,48,74,86], 64, 30, 9) + hoof([36,48,74,86], 92)
+      + `<ellipse cx="62" cy="56" rx="30" ry="15" fill="${body}"/>`
+      + `<ellipse cx="62" cy="62" rx="22" ry="7" fill="${belly}" opacity=".6"/>`
+      + (sp==='deer' ? `<g fill="#FFFFFF" opacity=".5">${[[50,50],[62,48],[74,52],[56,58],[68,58]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.6"/>`).join('')}</g>` : '')
+      + (sp==='kirin' ? `<g fill="${_pMix(c2,'#FFFFFF',.4)}" opacity=".55">${[0,1,2,3,4].map(i=>`<path d="M${46+i*9} 48 a5 5 0 0 1 9 0 z"/>`).join('')}</g>` : '')
+      + `<path d="M44 50 C40 40 36 34 32 32" stroke="${body}" stroke-width="13" fill="none" stroke-linecap="round"/>`
+      + mane
+      + `<ellipse cx="28" cy="34" rx="15" ry="12" fill="${body}"/>`
+      + `<path d="M15 36 C6 36 4 42 10 45 C16 47 23 43 25 39 Z" fill="${_pLight(body,.14)}"/>`
+      + `<g fill="${body}"><ellipse cx="22" cy="22" rx="4.4" ry="8" transform="rotate(-24 22 22)"/><ellipse cx="36" cy="22" rx="4.4" ry="8" transform="rotate(24 36 22)"/></g>`
+      + horn
+      + `<circle cx="11" cy="42" r="2.2" fill="${dk}"/>`
+      + `<ellipse cx="24" cy="34" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="22.9" cy="32.7" r="1.2" fill="#FFF"/>`
+      + `<ellipse cx="34" cy="34" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="32.9" cy="32.7" r="1.2" fill="#FFF"/>`;
+    b = {sx:44, sy:50, hx:82, hy:50, cx:62, cy:44};
+    riderAt = [64, 36];
   }
-  else if(plan==='serpent'){
-    HX=60; HY=44; HR=23; BODY={x:60,y:80,rx:32,ry:15};
-    art = `<path d="M60 60 C26 62 24 92 54 94 C82 96 96 84 92 74 C88 66 74 64 62 68" fill="none" stroke="${base}" stroke-width="17" stroke-linecap="round"/>`
-      + `<path d="M46 88 C62 94 80 90 86 80" fill="none" stroke="${belly}" stroke-width="7" stroke-linecap="round" opacity=".6"/>`
-      + `<ellipse cx="60" cy="44" rx="24" ry="21" fill="${base}"/>`
-      + `<path d="M60 62 l0 8 l-4 -4 z" fill="#FF6E8A"/>`
-      + (extra==='nine' ? `<g fill="${_pMix(base,acc,.4)}">${[0,1,2].map(i=>`<ellipse cx="${42+i*18}" cy="24" rx="8" ry="11"/>`).join('')}</g>` : '')
-      + _pbFace(60, 46, {er:6.4, gap:10, mouth:'w'});
+  else if(sp==='horse' || sp==='pegasus'){
+    const flame = `<g fill="${_pLight(glow,.3)}" opacity=".9">${[0,1,2,3].map(i=>`<path d="M${44+i*10} 40 c-4 -10 2 -16 1 -21 c5 7 11 11 6 19 c-2 4 -5 4 -7 2 z"/>`).join('')}</g>`;
+    const wings = sp==='pegasus'
+      ? `<g>${[0,1].map(i=>`<path d="M62 44 C${42-i*10} ${28-i*8} ${26-i*8} ${10-i*6} ${16-i*10} ${8-i*4} C${30-i*6} ${24-i*6} ${46-i*4} ${36-i*4} 60 46 Z" fill="${_pMix('#FFFFFF',c2,.25+i*.3)}" opacity=".95"/>`).join('')}</g>`
+      : '';
+    art = `<g>${[0,1,2].map(i=>`<path d="M92 48 C106 ${42-i*6} 110 ${30-i*7} 104 ${22-i*7} C96 ${32-i*5} 90 ${42-i*3} 88 50 Z" fill="${_pMix(c2,glow,.15+i*.22)}" opacity=".9"/>`).join('')}</g>`
+      + legs([36,48,74,86], 62, 32, 9) + hoof([36,48,74,86], 92)
+      + `<ellipse cx="62" cy="54" rx="31" ry="15" fill="${body}"/>`
+      + `<ellipse cx="62" cy="60" rx="23" ry="7" fill="${belly}" opacity=".55"/>`
+      + wings
+      + `<path d="M44 48 C40 36 36 28 32 26" stroke="${body}" stroke-width="14" fill="none" stroke-linecap="round"/>`
+      + `<path d="M42 30 C34 40 34 56 40 64 C48 54 48 38 42 30 Z" fill="${_pMix(c2,glow,.4)}"/>`
+      + (stage>=1 ? flame : '')
+      + `<ellipse cx="28" cy="28" rx="15" ry="11" fill="${body}"/>`
+      + `<path d="M15 30 C6 31 5 38 11 40 C17 42 24 37 26 33 Z" fill="${_pLight(body,.14)}"/>`
+      + `<g fill="${body}"><ellipse cx="24" cy="16" rx="4" ry="7.5" transform="rotate(-22 24 16)"/><ellipse cx="36" cy="16" rx="4" ry="7.5" transform="rotate(22 36 16)"/></g>`
+      + `<circle cx="12" cy="37" r="2.2" fill="${dk}"/>`
+      + `<ellipse cx="24" cy="28" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="22.9" cy="26.7" r="1.2" fill="#FFF"/>`
+      + `<ellipse cx="34" cy="28" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="32.9" cy="26.7" r="1.2" fill="#FFF"/>`;
+    b = {sx:44, sy:48, hx:82, hy:48, cx:62, cy:42};
+    riderAt = [64, 34];
   }
-  else if(plan==='reptile'){
-    HX=58; HY=44; HR=24; BODY={x:60,y:76,rx:27,ry:15};
-    art = `<g fill="${paw}"><ellipse cx="38" cy="88" rx="9" ry="6"/><ellipse cx="82" cy="88" rx="9" ry="6"/></g>`
-      + `<path d="M92 78 C106 74 108 62 100 54" stroke="${base}" stroke-width="9" fill="none" stroke-linecap="round"/>`
-      + `<ellipse cx="60" cy="76" rx="28" ry="16" fill="${base}"/>`
-      + `<g fill="${acc}">${[0,1,2,3,4].map(i=>`<path d="M${42+i*9} 62 l4.5 -9 l4.5 9 z"/>`).join('')}</g>`
-      + `<ellipse cx="58" cy="44" rx="25" ry="20" fill="${base}"/>`
-      + `<path d="M34 48 C20 48 16 54 20 58 C26 61 36 58 40 54 Z" fill="${_pLight(base,.12)}"/>`
-      + (extra==='jaw' ? `<g fill="#FFF"><path d="M22 54 l2 4 l2 -4 z"/><path d="M28 55 l2 4 l2 -4 z"/><path d="M34 55 l2 4 l2 -4 z"/></g>` : '')
-      + `<circle cx="24" cy="50" r="1.8" fill="#20182E"/>`
-      + _pbFace(62, 44, {er:6.4, gap:10, mouth:'smile'});
-  }
-  else if(plan==='turtle'){
-    HX=60; HY=86; HR=20; BODY={x:60,y:64,rx:33,ry:24};
-    art = `<g fill="${paw}"><ellipse cx="30" cy="88" rx="11" ry="7" transform="rotate(-18 30 88)"/><ellipse cx="90" cy="88" rx="11" ry="7" transform="rotate(18 90 88)"/></g>`
-      + `<path d="M96 74 C108 72 110 64 104 60" stroke="${base}" stroke-width="7" fill="none" stroke-linecap="round"/>`
-      + `<path d="M22 74 A38 32 0 0 1 98 74 Z" fill="${_pDark(base,.26)}"/>`
-      + `<path d="M27 74 A33 27 0 0 1 93 74 Z" fill="${_pMix(base,acc,.3)}"/>`
-      + `<g fill="none" stroke="${_pDark(base,.45)}" stroke-width="1.8" opacity=".85"><path d="M60 47 L60 74 M38 66 L82 66 M42 54 L48 74 M78 54 L72 74"/></g>`
-      + `<ellipse cx="60" cy="86" rx="20" ry="15" fill="${base}"/>`
-      + (extra==='shellsnake' ? `<path d="M100 66 C114 60 114 44 102 40 C94 37 88 43 92 48" stroke="${acc}" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="93" cy="49" r="3.4" fill="${dk}"/>` : '')
-      + _pbFace(60, 86, {er:5.6, gap:9, mouth:'smile'});
-  }
-  else if(plan==='arachnid'){
-    HX=60; HY=48; HR=21; BODY={x:60,y:80,rx:22,ry:18};
-    back = `<g stroke="${dk}" stroke-width="3.4" fill="none" stroke-linecap="round">`
-      + [0,1,2,3].map(i=>`<path d="M46 ${62+i*5} C30 ${54+i*7} 20 ${60+i*8} 18 ${74+i*6}"/><path d="M74 ${62+i*5} C90 ${54+i*7} 100 ${60+i*8} 102 ${74+i*6}"/>`).join('')
-      + `</g>`;
-    props = extra==='web' ? `<g stroke="${_pLight(glow,.45)}" stroke-width="1" fill="none" opacity=".3"><circle cx="60" cy="60" r="46"/><circle cx="60" cy="60" r="32"/><path d="M60 14 L60 106 M14 60 L106 60 M28 28 L92 92 M92 28 L28 92"/></g>` : '';
-    art = `<ellipse cx="60" cy="80" rx="23" ry="19" fill="${base}"/>`
-      + `<path d="M52 74 l8 -6 l8 6 l-8 8 z" fill="${acc}" opacity=".75"/>`
-      + `<circle cx="60" cy="48" r="21" fill="${_pLight(base,.1)}"/>`
-      + (extra==='sting' ? `<path d="M82 72 C100 64 104 44 94 32" stroke="${base}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M94 32 l-6 -10 l11 3 z" fill="${acc}"/>` : '')
-      + `<g fill="#20182E"><circle cx="50" cy="42" r="2.6"/><circle cx="70" cy="42" r="2.6"/></g>`
-      + _pbFace(60, 50, {er:6, gap:9.5, mouth:'w'});
-  }
-  else if(plan==='crustacean'){
-    HX=60; HY=58; HR=26; BODY={x:60,y:62,rx:38,ry:18};
-    art = `<g stroke="${paw}" stroke-width="4" fill="none" stroke-linecap="round"><path d="M36 80 L24 92 M48 84 L42 96 M72 84 L78 96 M84 80 L96 92"/></g>`
-      + `<g fill="${_pDark(base,.08)}"><path d="M28 58 C12 50 4 58 10 68 C16 76 28 72 30 64 Z"/><path d="M92 58 C108 50 116 58 110 68 C104 76 92 72 90 64 Z"/></g>`
-      + `<path d="M18 66 A42 30 0 0 1 102 66 A42 22 0 0 1 18 66 Z" fill="${base}"/>`
-      + `<ellipse cx="60" cy="60" rx="26" ry="10" fill="${_pLight(base,.3)}" opacity=".5"/>`
-      + `<g stroke="${base}" stroke-width="4" fill="none" stroke-linecap="round"><path d="M50 44 L48 28 M70 44 L72 28"/></g>`
-      + `<circle cx="48" cy="26" r="7" fill="${_pLight(base,.2)}"/><circle cx="72" cy="26" r="7" fill="${_pLight(base,.2)}"/>`
-      + `<circle cx="48" cy="26" r="3.4" fill="#20182E"/><circle cx="72" cy="26" r="3.4" fill="#20182E"/>`
-      + `<circle cx="46.6" cy="24.6" r="1.4" fill="#FFF"/><circle cx="70.6" cy="24.6" r="1.4" fill="#FFF"/>`
-      + `<path d="M54 68 q6 5 12 0" stroke="#20182E" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
-      + `<ellipse cx="42" cy="70" rx="5" ry="3" fill="#FF8FA6" opacity=".5"/><ellipse cx="78" cy="70" rx="5" ry="3" fill="#FF8FA6" opacity=".5"/>`;
-  }
-  else if(plan==='cephalopod'){
-    HX=60; HY=50; HR=30; BODY={x:60,y:82,rx:32,ry:18};
-    art = `<g fill="${base}">` + [0,1,2,3,4,5].map(i=>{
-        const x = 32 + i*11.2, sw = i%2 ? 1 : -1;
-        return `<path d="M${x} 70 C${x-6*sw} 84 ${x+8*sw} 90 ${x+3*sw} 102 C${x+10*sw} 90 ${x+11*sw} 78 ${x+7} 70 Z" opacity="${0.72+(i%2)*0.24}"/>`;
-      }).join('') + `</g>`
-      + `<g fill="${acc}" opacity=".7">${[0,1,2,3].map(i=>`<circle cx="${38+i*15}" cy="90" r="2.8"/>`).join('')}</g>`
-      + `<path d="M28 62 C28 32 92 32 92 62 C92 74 28 74 28 62 Z" fill="${base}"/>`
-      + `<ellipse cx="46" cy="44" rx="10" ry="7" fill="#FFFFFF" opacity=".28"/>`
-      + _pbFace(60, 54, {er:7, gap:12, mouth:'w'});
-  }
-  else if(plan==='fish'){
-    HX=56; HY=56; HR=27; BODY={x:56,y:66,rx:30,ry:25};
-    props = `<g fill="#FFFFFF" opacity=".28"><circle cx="24" cy="30" r="5"/><circle cx="16" cy="46" r="3"/><circle cx="30" cy="18" r="2.4"/></g>`;
-    back = `<path d="M84 66 C104 44 116 52 114 68 C112 84 100 90 84 78 Z" fill="${_pMix(base,acc,.45)}"/>`;
-    art = `<path d="M58 34 C64 20 76 18 80 26 C70 30 64 38 62 44 Z" fill="${_pMix(base,acc,.5)}"/>`
-      + `<ellipse cx="56" cy="64" rx="32" ry="27" fill="${base}"/>`
-      + `<ellipse cx="50" cy="74" rx="20" ry="13" fill="${belly}" opacity=".7"/>`
-      + `<path d="M38 80 C30 92 38 100 48 94 Z" fill="${_pMix(base,acc,.4)}"/>`
-      + (extra==='spike' ? `<g fill="${acc}">${[0,1,2,3,4,5].map(i=>`<path d="M${34+i*10} 44 l3.4 -9 l3.4 9 z"/>`).join('')}</g>` : '')
-      + _pbFace(54, 60, {er:7, gap:12, mouth:'open'});
-  }
-  else if(plan==='amphibian'){
-    HX=60; HY=52; HR=28; BODY={x:60,y:76,rx:34,ry:24};
-    art = `<g fill="${paw}"><ellipse cx="26" cy="92" rx="13" ry="7"/><ellipse cx="94" cy="92" rx="13" ry="7"/></g>`
-      + `<ellipse cx="60" cy="74" rx="36" ry="26" fill="${base}"/>`
-      + `<ellipse cx="60" cy="82" rx="23" ry="16" fill="${belly}" opacity=".8"/>`
-      + `<circle cx="42" cy="46" r="15" fill="${base}"/><circle cx="78" cy="46" r="15" fill="${base}"/>`
-      + `<circle cx="42" cy="46" r="9.5" fill="#FFFFFF"/><circle cx="78" cy="46" r="9.5" fill="#FFFFFF"/>`
-      + `<circle cx="42" cy="47" r="5.4" fill="#20182E"/><circle cx="78" cy="47" r="5.4" fill="#20182E"/>`
-      + `<circle cx="40" cy="44" r="2.2" fill="#FFF"/><circle cx="76" cy="44" r="2.2" fill="#FFF"/>`
-      + `<path d="M42 66 q18 12 36 0" stroke="#20182E" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
-      + `<ellipse cx="30" cy="66" rx="7" ry="4" fill="#FF8FA6" opacity=".5"/><ellipse cx="90" cy="66" rx="7" ry="4" fill="#FF8FA6" opacity=".5"/>`
-      + (extra==='moon' ? `<circle cx="60" cy="20" r="8" fill="${_pLight(glow,.45)}" opacity=".8"/>` : '');
-  }
-  else if(plan==='rodent'){
-    HX=60; HY=52; HR=27; BODY={x:60,y:82,rx:20,ry:17};
-    const longEar = extra==='longear';
-    back = longEar
-      ? `<g fill="${base}"><ellipse cx="44" cy="16" rx="7.5" ry="21" transform="rotate(-10 44 16)"/><ellipse cx="76" cy="16" rx="7.5" ry="21" transform="rotate(10 76 16)"/></g>`
-        + `<g fill="#FFB3C4" opacity=".8"><ellipse cx="44" cy="18" rx="3.8" ry="14" transform="rotate(-10 44 18)"/><ellipse cx="76" cy="18" rx="3.8" ry="14" transform="rotate(10 76 18)"/></g>`
-      : `<g fill="${base}"><circle cx="36" cy="28" r="14"/><circle cx="84" cy="28" r="14"/></g><g fill="#FFB3C4" opacity=".8"><circle cx="36" cy="28" r="8"/><circle cx="84" cy="28" r="8"/></g>`;
-    art = `<ellipse cx="60" cy="82" rx="21" ry="18" fill="${base}"/><ellipse cx="60" cy="86" rx="13" ry="11" fill="${belly}" opacity=".8"/>`
-      + `<g fill="${paw}"><ellipse cx="47" cy="96" rx="6.5" ry="4"/><ellipse cx="73" cy="96" rx="6.5" ry="4"/></g>`
-      + `<circle cx="60" cy="52" r="27" fill="${base}"/>`
-      + `<circle cx="60" cy="60" r="3" fill="#FF8FA6"/>`
-      + (extra==='spike' ? `<g fill="${acc}">${[0,1,2,3,4,5,6].map(i=>`<path d="M${40+i*7} 78 l3 -14 l3 14 z"/>`).join('')}</g>` : '')
-      + _pbFace(60, 50, {er:7, gap:11, mouth:'w'});
-  }
-  else if(plan==='bat'){
-    HX=60; HY=50; HR=25; BODY={x:60,y:80,rx:17,ry:16};
-    back = `<g fill="${base}"><path d="M42 26 L32 4 L54 20 Z"/><path d="M78 26 L88 4 L66 20 Z"/></g>`
-      + `<g fill="#FFB3C4" opacity=".7"><path d="M44 25 L38 12 L52 22 Z"/><path d="M76 25 L82 12 L68 22 Z"/></g>`;
-    art = `<ellipse cx="60" cy="80" rx="17" ry="16" fill="${base}"/><ellipse cx="60" cy="83" rx="10" ry="10" fill="${belly}" opacity=".75"/>`
-      + `<circle cx="60" cy="50" r="25" fill="${base}"/>`
-      + _pbFace(60, 48, {er:6.6, gap:10.5, mouth:'fang'});
-  }
-  else if(plan==='canine'){
-    HX=60; HY=50; HR=26; BODY={x:60,y:82,rx:21,ry:17};
-    back = `<g fill="${base}"><path d="M40 30 L30 6 L54 22 Z"/><path d="M80 30 L90 6 L66 22 Z"/></g>`
-      + `<g fill="${_pMix(belly,acc,.35)}"><path d="M42 29 L36 14 L52 24 Z"/><path d="M78 29 L84 14 L68 24 Z"/></g>`;
-    art = `<ellipse cx="60" cy="82" rx="22" ry="18" fill="${base}"/><ellipse cx="60" cy="87" rx="13" ry="11" fill="${belly}" opacity=".75"/>`
-      + `<g fill="${paw}"><ellipse cx="46" cy="96" rx="7" ry="4.6"/><ellipse cx="74" cy="96" rx="7" ry="4.6"/></g>`
-      + `<circle cx="60" cy="50" r="26" fill="${base}"/>`
-      + `<path d="M46 56 C46 68 74 68 74 56 C74 50 46 50 46 56 Z" fill="${belly}" opacity=".7"/>`
-      + `<path d="M60 55 l-4.6 4 h9.2 z" fill="#20182E"/><path d="M60 59 v4" stroke="#20182E" stroke-width="1.6"/>`
-      + (extra==='moon' ? `<circle cx="60" cy="14" r="7.5" fill="${_pLight(glow,.5)}" opacity=".85"/>` : '')
-      + _pbFace(60, 47, {er:6.4, gap:11, mouth:'none'});
-  }
-  else if(plan==='feline'){
-    HX=60; HY=50; HR=27; BODY={x:60,y:84,rx:22,ry:15};
-    back = (mane ? `<circle cx="60" cy="50" r="34" fill="${_pMix(acc,glow,.5)}"/><g fill="${_pMix(acc,glow,.3)}">${[0,1,2,3,4,5,6,7].map(i=>{const a=i*45*Math.PI/180;return `<circle cx="${(60+Math.cos(a)*33).toFixed(1)}" cy="${(50+Math.sin(a)*33).toFixed(1)}" r="9"/>`;}).join('')}</g>` : '')
-      + `<g fill="${base}"><path d="M40 30 L36 8 L56 24 Z"/><path d="M80 30 L84 8 L64 24 Z"/></g>`
-      + `<g fill="#FFB3C4" opacity=".75"><path d="M42 29 L40 15 L53 25 Z"/><path d="M78 29 L80 15 L67 25 Z"/></g>`;
-    art = `<ellipse cx="60" cy="84" rx="23" ry="16" fill="${base}"/><ellipse cx="60" cy="88" rx="13" ry="9" fill="${belly}" opacity=".75"/>`
-      + `<g fill="${paw}"><ellipse cx="46" cy="96" rx="7" ry="4.4"/><ellipse cx="74" cy="96" rx="7" ry="4.4"/></g>`
-      + `<circle cx="60" cy="50" r="27" fill="${base}"/>`
-      + `<path d="M60 56 l-4 3.6 h8 z" fill="#FF8FA6"/><path d="M60 60 q-4 5 -8 2 M60 60 q4 5 8 2" stroke="#20182E" stroke-width="1.5" fill="none" stroke-linecap="round"/>`
-      + `<g stroke="${dk}" stroke-width="1.4" stroke-linecap="round" opacity=".85"><path d="M44 56 L30 52 M44 60 L30 62 M76 56 L90 52 M76 60 L90 62"/></g>`
-      + (extra==='yinyang' ? `<path d="M60 23 A27 27 0 0 1 60 77 A13.5 13.5 0 0 0 60 50 A13.5 13.5 0 0 1 60 23 Z" fill="#FFFFFF" opacity=".16"/>` : '')
-      + _pbFace(60, 47, {er:6.6, gap:11, mouth:'none'});
-  }
-  else if(plan==='ungulate'){
-    HX=60; HY=48; HR=26; BODY={x:60,y:78,rx:27,ry:18};
-    back = `<g fill="${base}"><ellipse cx="36" cy="34" rx="9" ry="13" transform="rotate(-28 36 34)"/><ellipse cx="84" cy="34" rx="9" ry="13" transform="rotate(28 84 34)"/></g>`
-      + (mane ? `<path d="M40 32 C26 48 26 72 38 86 C46 70 46 48 40 32 Z" fill="${_pMix(hairC,glow,.3)}"/>` : '')
-      + (extra==='antler' ? `<g stroke="${acc}" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M48 26 L40 8 M46 18 L32 14 M44 12 L40 2"/><path d="M72 26 L80 8 M74 18 L88 14 M76 12 L80 2"/></g>` : '');
-    art = `<ellipse cx="60" cy="78" rx="28" ry="19" fill="${base}"/><ellipse cx="60" cy="84" rx="17" ry="11" fill="${belly}" opacity=".7"/>`
-      + `<g fill="${paw}"><rect x="41" y="90" width="9" height="13" rx="4"/><rect x="70" y="90" width="9" height="13" rx="4"/></g>`
-      + `<ellipse cx="60" cy="48" rx="26" ry="24" fill="${base}"/>`
-      + `<ellipse cx="60" cy="60" rx="12" ry="9" fill="${_pMix(belly,acc,.3)}"/>`
-      + `<circle cx="56" cy="59" r="2" fill="#20182E"/><circle cx="64" cy="59" r="2" fill="#20182E"/>`
-      + (extra==='trunk' ? `<path d="M60 66 C57 82 63 92 57 102" stroke="${base}" stroke-width="11" fill="none" stroke-linecap="round"/>` : '')
-      + (extra==='tusk' ? `<g fill="#F6F0E2"><path d="M46 62 C40 70 40 78 46 80 L49 72 Z"/><path d="M74 62 C80 70 80 78 74 80 L71 72 Z"/></g>` : '')
-      + (extra==='plate' ? `<path d="M60 24 l-5 12 h10 z" fill="${acc}"/>` : '')
-      + _pbFace(60, 44, {er:6, gap:12, mouth:'none'});
-  }
-  else if(plan==='kirin'){
-    HX=60; HY=48; HR=25; BODY={x:60,y:78,rx:26,ry:18};
-    back = `<g fill="${base}"><ellipse cx="36" cy="34" rx="8" ry="12" transform="rotate(-30 36 34)"/><ellipse cx="84" cy="34" rx="8" ry="12" transform="rotate(30 84 34)"/></g>`
-      + `<path d="M38 32 C22 50 22 76 36 90 C46 72 46 48 38 32 Z" fill="${_pMix(hairC,glow,.28)}"/>`
-      + `<circle cx="60" cy="56" r="44" fill="none" stroke="${_pLight(glow,.4)}" stroke-width="1.8" opacity=".4"/>`;
-    props = `<g fill="${_pLight(acc,.35)}" opacity=".6">${[[22,84],[98,84],[30,96],[90,96]].map(pp=>`<path d="M${pp[0]} ${pp[1]} c-5 -8 0 -13 0 -17 c3 5 8 8 5 14 c-1 3 -3 3 -5 3 z"/>`).join('')}</g>`;
-    art = `<ellipse cx="60" cy="78" rx="27" ry="19" fill="${base}"/><ellipse cx="60" cy="84" rx="16" ry="11" fill="${belly}" opacity=".7"/>`
-      + `<g fill="${acc}" opacity=".8">${[0,1,2,3].map(i=>`<path d="M${47+i*9} 62 l4 -8 l4 8 z"/>`).join('')}</g>`
-      + `<g fill="${_pLight(glow,.25)}"><rect x="42" y="90" width="9" height="13" rx="4"/><rect x="69" y="90" width="9" height="13" rx="4"/></g>`
-      + `<ellipse cx="60" cy="48" rx="25" ry="23" fill="${base}"/>`
-      + `<ellipse cx="60" cy="60" rx="10" ry="7.5" fill="${_pMix(belly,acc,.35)}"/>`
-      + `<circle cx="57" cy="59" r="1.8" fill="#20182E"/><circle cx="63" cy="59" r="1.8" fill="#20182E"/>`
-      + _pbFace(60, 44, {er:6, gap:11.5, mouth:'none'});
-  }
-  else if(plan==='avian'){
-    HX=60; HY=42; HR=25; BODY={x:60,y:76,rx:25,ry:24};
-    art = `<g stroke="${_pMix(acc,'#FFC94A',.5)}" stroke-width="3.4" stroke-linecap="round"><path d="M52 96 L50 104 M68 96 L70 104"/><path d="M46 104 L56 104 M64 104 L74 104"/></g>`
-      + `<ellipse cx="60" cy="76" rx="26" ry="25" fill="${base}"/>`
-      + `<ellipse cx="60" cy="82" rx="15" ry="15" fill="${belly}" opacity=".75"/>`
-      + `<ellipse cx="34" cy="74" rx="9" ry="14" fill="${_pMix(base,acc,.3)}" transform="rotate(-14 34 74)"/>`
-      + `<ellipse cx="86" cy="74" rx="9" ry="14" fill="${_pMix(base,acc,.3)}" transform="rotate(14 86 74)"/>`
-      + `<circle cx="60" cy="42" r="25" fill="${base}"/>`
-      + `<path d="M60 50 l-8 6 l8 7 l8 -7 z" fill="${_pMix(acc,'#FFC94A',.6)}"/>`
-      + (extra==='owl' ? `<g fill="none" stroke="${acc}" stroke-width="2.4" opacity=".65"><circle cx="50" cy="40" r="11"/><circle cx="70" cy="40" r="11"/></g><g fill="${base}"><path d="M42 22 L38 8 L52 20 Z"/><path d="M78 22 L82 8 L68 20 Z"/></g>` : '')
-      + (extra==='crane' ? `<path d="M60 22 C58 10 66 2 78 3" stroke="${base}" stroke-width="8" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="20" rx="6" ry="4" fill="#FF5A6E" opacity=".85"/>` : '')
-      + (extra==='sun' ? `<circle cx="60" cy="12" r="10" fill="#FFD166" opacity=".8"/>` : '')
-      + _pbFace(60, 40, {er:6.4, gap:11, mouth:'beak'});
-  }
-  else if(plan==='phoenix'){
-    HX=60; HY=44; HR=22; BODY={x:60,y:74,rx:20,ry:22};
-    back = `<g>${[0,1,2].map(i=>`<path d="M60 ${84-i*7} C${24-i*8} ${62-i*7} ${28-i*6} ${22-i*9} 60 ${10-i*7} C${92+i*6} ${22-i*9} ${96+i*8} ${62-i*7} 60 ${84-i*7} Z" fill="${_pMix(acc, glow, .25+i*0.25)}" opacity=".5"/>`).join('')}</g>`;
-    art = `<g stroke="${_pMix(acc,'#FFC94A',.5)}" stroke-width="3" stroke-linecap="round"><path d="M53 92 L51 100 M67 92 L69 100"/></g>`
-      + `<ellipse cx="60" cy="74" rx="21" ry="22" fill="${base}"/>`
-      + `<ellipse cx="60" cy="79" rx="12" ry="13" fill="${belly}" opacity=".7"/>`
-      + `<circle cx="60" cy="44" r="22" fill="${base}"/>`
-      + `<path d="M60 51 l-7 5 l7 6 l7 -6 z" fill="${_pMix(acc,'#FFC94A',.65)}"/>`
-      + _pbFace(60, 42, {er:6.2, gap:10.5, mouth:'beak'});
-  }
-  else if(plan==='dragon'){
-    HX=60; HY=42; HR=26; BODY={x:60,y:84,rx:34,ry:15};
-    art = `<path d="M60 68 C30 70 22 92 50 98 C80 104 100 90 96 78" fill="none" stroke="${base}" stroke-width="16" stroke-linecap="round"/>`
-      + `<path d="M46 90 C62 98 84 94 90 82" fill="none" stroke="${belly}" stroke-width="6" stroke-linecap="round" opacity=".6"/>`
-      + `<g fill="${acc}">${[0,1,2,3,4].map(i=>`<path d="M${38+i*11} 70 l4.6 -10 l4.6 10 z"/>`).join('')}</g>`
-      + `<g fill="${paw}"><ellipse cx="38" cy="100" rx="8" ry="5"/><ellipse cx="86" cy="96" rx="8" ry="5"/></g>`
-      + (mane ? `<path d="M36 34 C22 46 22 62 34 70 C40 56 40 44 36 34 Z" fill="${_pMix(hairC,glow,.25)}"/>` : '')
-      + `<ellipse cx="60" cy="42" rx="27" ry="23" fill="${base}"/>`
-      + `<ellipse cx="60" cy="55" rx="14" ry="10" fill="${_pMix(belly,acc,.3)}"/>`
-      + `<circle cx="55" cy="54" r="2" fill="#20182E"/><circle cx="65" cy="54" r="2" fill="#20182E"/>`
-      + `<path d="M50 60 q10 7 20 0" stroke="#20182E" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
-      + `<path d="M40 44 C28 40 20 42 14 50" stroke="${_pLight(acc,.35)}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
-      + `<path d="M80 44 C92 40 100 42 106 50" stroke="${_pLight(acc,.35)}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
-      + _pbFace(60, 40, {er:6.2, gap:12, mouth:'none'});
-  }
-  else if(plan==='spirit'){
-    HX=60; HY=56; HR=24; BODY={x:60,y:56,rx:23,ry:23};
-    props = `<g fill="#FFFFFF" opacity=".7">${[[24,32],[96,38],[30,92],[92,88],[60,10]].map(pp=>`<path d="M${pp[0]} ${pp[1]-6} l2 4.4 l4.6 .6 l-3.4 3.2 l.9 4.6 l-4.1 -2.2 l-4.1 2.2 l.9 -4.6 l-3.4 -3.2 l4.6 -.6 z"/>`).join('')}</g>`;
-    art = `<path d="M34 76 C34 96 50 104 60 104 C70 104 86 96 86 76 C80 86 68 88 60 88 C52 88 40 86 34 76 Z" fill="${base}" opacity=".6"/>`
-      + `<circle cx="60" cy="56" r="32" fill="${_pLight(glow,.3)}" opacity=".28"/>`
-      + `<circle cx="60" cy="56" r="24" fill="${base}"/>`
-      + `<circle cx="50" cy="46" r="7" fill="#FFFFFF" opacity=".35"/>`
-      + `<g fill="none" stroke="${_pLight(acc,.4)}" stroke-width="1.8" opacity=".65"><ellipse cx="60" cy="56" rx="40" ry="14"/><ellipse cx="60" cy="56" rx="40" ry="14" transform="rotate(58 60 56)"/></g>`
-      + (extra==='bolt' ? `<path d="M66 14 L50 42 L60 42 L52 66 L76 34 L64 34 Z" fill="${_pLight(acc,.4)}" opacity=".9"/>` : '')
-      + _pbFace(60, 56, {er:6.8, gap:11, mouth:'w'});
-  }
-  else { // demon
-    HX=60; HY=58; HR=28; BODY={x:60,y:80,rx:28,ry:22};
-    art = `<path d="M32 60 C24 88 44 104 60 104 C76 104 96 88 88 60 Z" fill="${base}"/>`
-      + `<path d="M32 60 C46 52 74 52 88 60 C74 56 46 56 32 60 Z" fill="${_pLight(base,.2)}"/>`
-      + `<g fill="#FFFFFF" opacity=".95">${[0,1,2,3,4].map(i=>`<path d="M${44+i*9} 74 l4 10 l4 -10 z"/>`).join('')}</g>`
-      + `<path d="M44 84 q16 12 32 0" stroke="#20182E" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>`
-      + `<path d="M38 50 L54 44 M82 50 L66 44" stroke="#20182E" stroke-width="3.4" stroke-linecap="round"/>`
-      + `<g fill="#20182E"><ellipse cx="48" cy="56" rx="6" ry="7"/><ellipse cx="72" cy="56" rx="6" ry="7"/></g>`
-      + `<g fill="${_pLight(acc,.55)}"><circle cx="48" cy="56" r="3"/><circle cx="72" cy="56" r="3"/></g>`
-      + (extra==='maw' ? `<ellipse cx="60" cy="88" rx="13" ry="8" fill="#E4557A" opacity=".7"/>` : '');
+  else { // dais — đài bay, không phải thú: người đứng trên đài
+    const petals = [0,1,2,3,4,5,6].map(i=>{
+      const a = (-180 + i*30)*Math.PI/180;
+      const x = 60 + Math.cos(a)*34, y = 84 + Math.sin(a)*11;
+      return `<path d="M${x.toFixed(1)} ${y.toFixed(1)} c-9 -6 -9 -16 0 -21 c9 5 9 15 0 21 z" fill="${_pMix(c1,c2,.15+ (i%3)*0.2)}" transform="rotate(${(-180+i*30)/3} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+    }).join('');
+    art = `<g opacity=".95">${petals}</g>`
+      + `<ellipse cx="60" cy="84" rx="30" ry="11" fill="${_pDark(c1,.12)}"/>`
+      + `<ellipse cx="60" cy="81" rx="24" ry="8.5" fill="${_pLight(c1,.2)}"/>`
+      + `<g fill="none" stroke="${_pLight(c2,.35)}" stroke-width="2" opacity=".9"><ellipse cx="60" cy="81" rx="17" ry="6"/><ellipse cx="60" cy="81" rx="10" ry="3.6"/></g>`
+      + (stage>=1 ? `<g fill="none" stroke="${_pLight(c2,.45)}" stroke-width="${1.6+stage}" opacity=".7"><ellipse cx="60" cy="70" rx="${34+stage*3}" ry="${11+stage}"/></g>` : '')
+      + (stage>=2 ? `<g fill="none" stroke="${_pLight(c2,.5)}" stroke-width="1.6" opacity=".55"><ellipse cx="60" cy="58" rx="${26+stage*3}" ry="9" transform="rotate(12 60 58)"/></g>` : '');
+    b = {sx:44, sy:78, hx:80, hy:78, cx:60, cy:74};
+    riderAt = [60, 56]; riderScale = 0.92;
   }
 
-  // ---------- LỚP DÙNG CHUNG ----------
-  const wingY = (plan==='bat'||plan==='avian'||plan==='phoenix') ? 70 : 64;
-  const tailY = (plan==='canine'||plan==='feline') ? 86 : (plan==='avian'||plan==='phoenix') ? 88 : 80;
-  back = _pbWings(nWing, base, acc, plan==='bat'?'bat':'feather', wingY)
-       + _pbTails(nTail, tailStyle, base, acc, 60, tailY) + back;
-  const pat = _pbPattern(patt, BODY, mark, _pLight(acc,.3), u);
-  const hairArt = _pbHair(hair, HX, HY, HR, hairC, _pLight(hairC,.3));
-  const hornY = HY - HR + (plan==='turtle' ? 14 : 2);
-  const horns = _pbHorns(nHorn, HX, hornY, _pLight(acc,.4), dk);
-  const accArt = _pbAcc(accType, HX, HY, HR, acc, _pMix(acc,hairC,.4));
-  const halo = realm>=4 ? `<circle cx="60" cy="54" r="${44+realm}" fill="none" stroke="${_pLight(glow,.4)}" stroke-width="${1.4+realm*0.24}" opacity=".${realm>=8?6:4}"/>` : '';
-  const sparks = realm>=6 ? `<g fill="${_pLight(glow,.45)}" opacity=".9">${[[18,26],[104,34],[22,96],[102,92],[60,6]].map((pp,i)=>`<circle cx="${pp[0]}" cy="${pp[1]}" r="${1.8+(i%2)*1.4}"/>`).join('')}</g>` : '';
+  const armor = sp==='dais' ? '' : _pmArmor(stage, b, mt, mtD, glow);
+  const saddle = sp==='dais' ? '' : `<path d="M${b.cx-16} ${b.cy+2} q16 -9 32 0 l0 6 q-16 8 -32 0 z" fill="${_pDark(c2,.1)}"/>`;
+  const rider = _pmRider(riderAt[0], riderAt[1], riderScale, _pMix(c2,'#FFFFFF',.25), _pDark(c2,.2), stage);
 
-  return `<svg class="pet-svg ${extraCls||''}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(petLevelName(idx))}">
-    <defs><radialGradient id="${u}g" cx="50%" cy="44%" r="62%">
-      <stop offset="0%" stop-color="${_pLight(own,.4)}" stop-opacity=".5"/>
+  return `<svg class="pet-svg ${extraCls||''}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(M.n)}">
+    <defs><radialGradient id="${u}g" cx="50%" cy="48%" r="62%">
+      <stop offset="0%" stop-color="${_pLight(glow,.45)}" stop-opacity=".45"/>
       <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
-    </radialGradient>${pat.clip}</defs>
+    </radialGradient></defs>
     <circle cx="60" cy="58" r="58" fill="url(#${u}g)"/>
-    ${halo}${props}${back}
-    <ellipse cx="60" cy="106" rx="27" ry="5" fill="#000" opacity=".2"/>
-    ${art}${pat.marks}
-    ${hairArt}${horns}${accArt}${sparks}
+    ${aura.back}
+    <ellipse cx="60" cy="100" rx="34" ry="6" fill="#000" opacity=".22"/>
+    ${art}${saddle}${armor}${rider}${aura.front}
   </svg>`;
 }
 function petWarriorSvg(idx, extraCls){ return petBeastSvg(idx, extraCls); }
@@ -3801,11 +3453,12 @@ async function callGeminiOnce(prompt){
   return raw.trim();
 }
 function petFallbackReward(idx){
+  // Số thần thú (20+) nhiều hơn số lời chỉ điểm soạn sẵn (10) nên xoay vòng thay vì kẹt mãi ở câu cuối.
   const r = Math.floor(idx/PET_SUBS.length);
-  return PET_REALM_REWARDS[Math.min(PET_REALM_REWARDS.length-1, r)];
+  return PET_REALM_REWARDS[r % PET_REALM_REWARDS.length];
 }
 // Chỉ gọi AI khi người dùng CHỦ ĐỘNG bấm nút (force=true) hoặc khi vừa bước sang một ĐẠI CẢNH GIỚI mới
-// (mỗi 5 cấp) — tránh đốt hạn mức API miễn phí cho từng cấp nhỏ, vốn dùng chung với các tính năng chấm
+// (tức mỗi 4 cấp, khi đổi sang thần thú khác) — tránh đốt hạn mức API miễn phí cho từng nấc nhỏ, vốn dùng chung với các tính năng chấm
 // điểm/tạo câu hỏi quan trọng hơn.
 async function petGenerateReward(idx, force){
   const p = ensurePet();
@@ -3818,7 +3471,7 @@ async function petGenerateReward(idx, force){
   }
   try{
     const st = petState();
-    const prompt = `Bạn là một linh thú trong thế giới thần thoại tu luyện, vừa tiến hóa thành hình thái "${petLevelName(idx)}" (${petLevelDesc(idx)}), thuộc cảnh giới ${petRealmOf(idx).n}. Chủ nhân của bạn là một người Việt đang mỗi ngày rèn luyện thể chất, làm việc theo lịch và học tiếng Anh; hiện đã tích được ${st.xp} điểm tu luyện, chuỗi ngày học tiếng Anh liên tiếp là ${st.parts.engStreak} ngày.
+    const prompt = `Bạn là một thần thú cưỡi trong thế giới thần thoại tu luyện, vừa tiến hóa thành "${petLevelName(idx)}" (${petLevelDesc(idx)}), ở nấc tiến hóa ${PET_STAGE_TAG[idx % PET_SUBS.length]}. Chủ nhân của bạn là một người Việt đang mỗi ngày rèn luyện thể chất, làm việc theo lịch và học tiếng Anh; hiện đã tích được ${st.xp} điểm tu luyện, chuỗi ngày học tiếng Anh liên tiếp là ${st.parts.engStreak} ngày.
 Hãy viết cho chủ nhân một lời chúc mừng kiêm phần thưởng tinh thần bất ngờ, dài 2-3 câu, bằng tiếng Việt, giọng văn cổ trang tiên hiệp huyền bí nhưng vẫn ấm áp và dễ hiểu. Trong đó phải có MỘT lời khuyên học tập cụ thể, thực hành được ngay hôm nay. Không dùng markdown, không dùng dấu **, không xuống dòng nhiều lần, chỉ trả về đúng đoạn văn.`;
     const text = await callGeminiOnce(prompt);
     const result = { text, ai:true };
@@ -3887,7 +3540,7 @@ function openPetZoom(idx){
         <div class="pet-zoom-glow"></div>
         <div class="pet-zoom-img">${petFormVisual(idx)}</div>
       </div>
-      <div class="pet-zoom-lv">CẤP ${idx+1} · ${escapeHtml(r.n)} ${escapeHtml(PET_SUBS[idx%PET_SUBS.length])}</div>
+      <div class="pet-zoom-lv">CẤP ${idx+1} · ${escapeHtml(PET_SUBS[idx%PET_SUBS.length])} · ${escapeHtml(PET_STAGE_TAG[idx%PET_SUBS.length])}</div>
       <div class="pet-zoom-name" style="color:${r.c1};">${escapeHtml(petLevelName(idx))}</div>
       <div class="pet-zoom-story">${escapeHtml(petLevelStory(idx))}</div>
       <div class="pet-zoom-skill"><span class="pzs-ic">${sk.icon}</span><span><b>${escapeHtml(sk.name)}</b> — ${escapeHtml(sk.text)}</span></div>
@@ -3922,27 +3575,33 @@ function renderPetDetail(){
   // Danh sách 50 cấp: hiện gọn theo từng đại cảnh giới, mở rộng chi tiết 5 tầng ở cảnh giới hiện tại.
   // Bộ sưu tập 50 hình thái: đã mở khóa thì hiện rõ hình + tên, chưa mở thì chỉ thấy bóng mờ và mốc
   // điểm cần đạt — để người học luôn nhìn thấy "con kế tiếp" mình sắp mở được, tạo động lực rõ ràng.
-  const curRealmIdx = Math.floor(st.idx/PET_SUBS.length);
+  const curMountIdx = Math.floor(st.idx/PET_SUBS.length);
   const journey = PET_REALMS.map((r,ri)=>{
     const first = ri*PET_SUBS.length;
-    const unlockedRealm = ri <= curRealmIdx;
+    const unlocked = ri <= curMountIdx;
     const cells = PET_SUBS.map((sn,si)=>{
       const li = first+si;
-      const f = petFormOf(li);
       const open = li <= st.idx;
       const isCur = li === st.idx;
       return `<div class="pet-form ${open?'open':'lock'} ${isCur?'cur':''}" style="${open?`border-color:${r.c1}66;`:''}" ${open?`data-action="pet-zoom" data-idx="${li}"`:''}>
         <div class="pet-form-ic">${open?petFormVisual(li):'❔'}</div>
-        <div class="pet-form-lv">Cấp ${li+1}</div>
-        <div class="pet-form-name" style="${open?`color:${r.c1};`:''}">${open?escapeHtml(f[0]):'???'}</div>
+        <div class="pet-form-lv">${PET_STAGE_TAG[si]}</div>
+        <div class="pet-form-name" style="${open?`color:${r.c1};`:''}">${open?escapeHtml(sn):'???'}</div>
         <div class="pet-form-xp">${petLevelThreshold(li).toLocaleString('vi-VN')}đ</div>
       </div>`;
     }).join('');
-    return `<div class="pet-realm-block ${unlockedRealm?'':'dim'}">
-      <div class="pet-realm-title" style="${unlockedRealm?`color:${r.c1};`:''}">${unlockedRealm?escapeHtml(r.n):'??? Cảnh Giới'} <small>cấp ${first+1}–${first+PET_SUBS.length}</small></div>
+    return `<div class="pet-realm-block ${unlocked?'':'dim'}">
+      <div class="pet-realm-title" style="${unlocked?`color:${r.c1};`:''}">${unlocked?escapeHtml(r.n):'??? Thần Thú'} <small>cấp ${first+1}–${first+PET_SUBS.length}</small></div>
       <div class="pet-form-grid">${cells}</div>
     </div>`;
   }).join('');
+  // Ô trống chờ bổ sung: giữ chỗ sẵn cho các thần thú bạn sẽ gửi thêm sau, để nhìn thấy ngay là bộ
+  // sưu tập còn tiếp tục dài ra chứ không phải đã hết.
+  const slots = Array.from({length: PET_MOUNT_SLOTS}).map((_,i)=>`
+    <div class="pet-realm-block slot">
+      <div class="pet-realm-title">🔒 Thần thú thứ ${PET_REALMS.length+i+1} <small>sắp cập nhật</small></div>
+      <div class="pet-form-grid">${PET_STAGE_TAG.map(t=>`<div class="pet-form lock"><div class="pet-form-ic">＋</div><div class="pet-form-lv">${t}</div><div class="pet-form-name">—</div></div>`).join('')}</div>
+    </div>`).join('');
   let rewardObj = SETTINGS.pet.rewards[st.idx];
   if(rewardObj && !petRewardTextValid(rewardObj.text)) rewardObj = null;
   const rewardHtml = rewardObj
@@ -3952,14 +3611,14 @@ function renderPetDetail(){
   document.getElementById('content').innerHTML = `
     ${backRow}
     <div class="pet-hero-card" style="background:radial-gradient(120% 90% at 50% 0%, ${st.color}2e, ${st.color2}22 55%, transparent 100%);">
-      <div class="pet-hero-lv">CẢNH GIỚI ${st.lv} / ${PET_MAX_LEVEL}</div>
+      <div class="pet-hero-lv">CẤP ${st.lv} / ${PET_MAX_LEVEL}</div>
       <div class="pet-avatar-wrap large ${st.aura}" style="--pet-c1:${st.color}; --pet-c2:${st.color2};" data-action="pet-zoom" data-idx="${st.idx}">
         ${petAuraParticlesHtml(st.aura)}
         <div class="pet-avatar large">${st.icon}</div>
         <div class="pet-zoom-hint">🔍 Chạm để xem lớn</div>
       </div>
       <div class="pet-hero-name" style="color:${st.color};">${st.name}</div>
-      <div class="pet-hero-realm">${st.realm.n} · ${st.sub}</div>
+      <div class="pet-hero-realm">${st.sub} · <b>${PET_STAGE_TAG[st.idx % PET_SUBS.length]}</b></div>
       <div class="pet-hero-desc">${st.desc}</div>
       <div class="pet-bar-track large"><div class="pet-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.color},${st.color2});"></div></div>
       <div class="pet-hero-xp">${st.isMax ? `${st.xp.toLocaleString('vi-VN')} điểm — đã đạt cảnh giới tối thượng` : `Còn <b>${st.remain.toLocaleString('vi-VN')}</b> điểm để lên <b>${st.nextName}</b>`}</div>
@@ -3970,9 +3629,9 @@ function renderPetDetail(){
     ${breakdown}
     ${paceCard}
     <div class="card" style="margin-top:14px;">
-      <h3 style="margin-bottom:4px;">🗺️ Bộ sưu tập hình thái — ${PET_MAX_LEVEL} lần biến thân</h3>
-      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:10px; line-height:1.5;">Đã mở <b>${st.idx+1}/${PET_MAX_LEVEL}</b> hình thái. Mỗi linh thú có <b>câu chuyện riêng</b> và <b>một kỹ năng riêng</b> tác động thật vào việc học của bạn. Chạm vào hình bất kỳ con nào đã mở để xem lớn trong khung riêng, đọc chuyện của nó và biết nó cho bạn đặc quyền gì. Mốc điểm hiển thị đã điều chỉnh theo nhịp học thật của bạn.</div>
-      ${journey}
+      <h3 style="margin-bottom:4px;">🐾 Bộ sưu tập thần thú — ${PET_REALMS.length} con × ${PET_SUBS.length} cấp tiến hóa</h3>
+      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:10px; line-height:1.5;">Đã mở <b>${st.idx+1}/${PET_MAX_LEVEL}</b> cấp. Mỗi thần thú có <b>câu chuyện riêng</b>, <b>một kỹ năng riêng</b> tác động thật vào việc học, và <b>4 nấc tiến hóa</b> — từ trần trụi tới giáp vàng rực hào quang. Chạm vào hình đã mở để xem lớn trong khung riêng.</div>
+      ${journey}${slots}
     </div>`;
   if(!rewardObj) petGenerateReward(st.idx, false).then(()=>{ if(STATE.tab==='pet') renderContent(); });
 }
@@ -5162,6 +4821,8 @@ function tickHubClock(){
   if(!el) return;
   const now = new Date();
   el.textContent = pad(now.getHours())+':'+pad(now.getMinutes());
+  const sec = document.getElementById('hubClockSec');
+  if(sec) sec.textContent = pad(now.getSeconds());
 }
 setInterval(tickHubClock, 1000);
 // ---- Khối "hôm nay" gọn dưới đồng hồ ở trang chủ ----
@@ -5170,46 +4831,119 @@ setInterval(tickHubClock, 1000);
 // CÁCH LÀM: gộp thành MỘT khối có 2 tab — mỗi lúc chỉ hiện một danh sách, cắt đôi chiều cao. Mặc định
 // mở tab nào là do việc còn dở quyết định: còn việc trong lịch chưa xong thì mở Lịch làm việc, xong hết
 // rồi thì mở Học tiếng Anh — thứ đang cần làm luôn nằm sẵn trước mắt, không phải bấm tìm.
-function hubTodayTab(){
-  if(STATE.hubTab==='today' || STATE.hubTab==='english') return STATE.hubTab;
-  const {done, total} = dayPlanInfo(todayKey());
-  return (total>0 && done<total) ? 'today' : 'english';
-}
-function hubTodayCompact(){
+// (đã gỡ hubTodayTab — thẻ tab trên đồng hồ không còn, thông tin đã chuyển xuống 2 thẻ danh mục.)
+
+// ---- Danh sách việc gọn, dùng LẠI ở trong đúng thẻ danh mục tương ứng (không còn nằm trên đồng hồ) ----
+function hubTaskListHtml(kind){
   const key = todayKey();
-  const {plan, rec, done, total} = dayPlanInfo(key);
-  const act = englishActivityForDate(key);
-  const engDone = act.rows.filter(r=>r.count>0).length;
-  const tab = hubTodayTab();
   const nowMin = (()=>{ const d=new Date(); return d.getHours()*60+d.getMinutes(); })();
   const toMin = t => { const [h,m]=(t||'00:00').split(':').map(Number); return h*60+(m||0); };
-  let rows = '';
-  if(tab==='today'){
-    // Chỉ hiện các việc ĐÁNG CHÚ Ý (chưa xong / đang tới giờ), không liệt kê lại việc đã hoàn thành —
-    // việc đã xong không cần chiếm chỗ trên màn hình chính nữa.
+  if(kind==='today'){
+    const {plan, rec} = dayPlanInfo(key);
     const pending = plan.filter(t=>!rec.tasks[t.id]);
-    rows = pending.slice(0,3).map(t=>{
+    if(!pending.length) return `<div class="hub-task empty">🎉 Đã xong hết việc hôm nay</div>`;
+    let rows = pending.slice(0,4).map(t=>{
       const isFail = rec.failed && rec.failed[t.id];
       const isNow = !isFail && toMin(t.time) <= nowMin && toMin(t.time)+(t.dur||30) >= nowMin;
       return `<div class="hub-task ${isFail?'fail':(isNow?'now':'')}"><span class="ht-mark">${isFail?'✕':'○'}</span><span class="ht-time">${escapeHtml(t.time||'')}</span><span class="ht-label">${escapeHtml(t.label||'')}</span></div>`;
     }).join('');
-    if(!pending.length) rows = `<div class="hub-task empty">🎉 Đã xong hết việc hôm nay</div>`;
-    else if(pending.length>3) rows += `<div class="hub-task more">+${pending.length-3} việc nữa · bấm để xem tất cả</div>`;
-  } else {
-    const doneRows = act.rows.filter(r=>r.count>0).slice(0,3).map(r=>
-      `<div class="hub-task done"><span class="ht-mark">✓</span><span class="ht-ic">${r.icon}</span><span class="ht-label">${escapeHtml(r.name)}</span><span class="ht-meta">${r.count} ${r.unit}</span></div>`).join('');
-    const plan2 = englishPlanForToday();
-    const todoRows = (plan2.core||[]).filter(c=>!c.done).slice(0,3).map(c=>
-      `<div class="hub-task now"><span class="ht-mark">○</span><span class="ht-ic">⭐</span><span class="ht-label">${escapeHtml(c.item.name)}</span><span class="ht-meta">nên học</span></div>`).join('');
-    rows = (doneRows+todoRows) || `<div class="hub-task empty">Hôm nay chưa luyện mục nào</div>`;
+    if(pending.length>4) rows += `<div class="hub-task more">+${pending.length-4} việc nữa · bấm để xem tất cả</div>`;
+    return rows;
   }
-  return `<div class="hub-today">
-    <div class="hub-today-tabs">
-      <div class="htt ${tab==='today'?'on':''}" data-action="hub-today-tab" data-tab="today">📅 Lịch làm việc <b>${done}/${total}</b></div>
-      <div class="htt ${tab==='english'?'on':''}" data-action="hub-today-tab" data-tab="english">🗣️ Tiếng Anh <b>${engDone}/${act.rows.length}</b></div>
-    </div>
-    <div class="hub-today-body" data-action="hub-open" data-target="${tab==='today'?'today':'english'}">${rows}</div>
+  const act = englishActivityForDate(key);
+  const doneRows = act.rows.filter(r=>r.count>0).slice(0,3).map(r=>
+    `<div class="hub-task done"><span class="ht-mark">✓</span><span class="ht-ic">${r.icon}</span><span class="ht-label">${escapeHtml(r.name)}</span><span class="ht-meta">${r.count} ${r.unit}</span></div>`).join('');
+  const plan2 = englishPlanForToday();
+  const todoRows = (plan2.core||[]).filter(c=>!c.done).slice(0,3).map(c=>
+    `<div class="hub-task now"><span class="ht-mark">○</span><span class="ht-ic">⭐</span><span class="ht-label">${escapeHtml(c.item.name)}</span><span class="ht-meta">nên học</span></div>`).join('');
+  return (doneRows+todoRows) || `<div class="hub-task empty">Hôm nay chưa luyện mục nào</div>`;
+}
+// ================= THỜI TIẾT =================
+// Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
+// rồi nhớ luôn vào SETTINGS; nếu bạn từ chối chia sẻ vị trí thì mặc định lấy theo TP.HCM.
+const WEATHER_FALLBACK = {lat:10.82, lon:106.63, city:'TP. Hồ Chí Minh'};
+const WMO_MAP = {
+  0:['☀️','Trời quang'], 1:['🌤️','Ít mây'], 2:['⛅','Có mây'], 3:['☁️','Nhiều mây'],
+  45:['🌫️','Sương mù'], 48:['🌫️','Sương giá'],
+  51:['🌦️','Mưa phùn nhẹ'], 53:['🌦️','Mưa phùn'], 55:['🌦️','Mưa phùn dày'],
+  61:['🌧️','Mưa nhẹ'], 63:['🌧️','Mưa'], 65:['🌧️','Mưa to'],
+  66:['🌧️','Mưa lạnh'], 67:['🌧️','Mưa lạnh nặng hạt'],
+  71:['🌨️','Tuyết nhẹ'], 73:['🌨️','Tuyết'], 75:['🌨️','Tuyết dày'],
+  80:['🌦️','Mưa rào'], 81:['🌦️','Mưa rào vừa'], 82:['⛈️','Mưa rào lớn'],
+  95:['⛈️','Dông'], 96:['⛈️','Dông kèm mưa đá'], 99:['⛈️','Dông mạnh']
+};
+function wmoInfo(code){ return WMO_MAP[code] || ['🌡️','—']; }
+let _weatherFetching = false;
+function weatherCache(){
+  const w = SETTINGS.weather;
+  if(w && w.day === todayKey()) return w;
+  return null;
+}
+async function fetchWeatherToday(){
+  if(_weatherFetching || weatherCache()) return;
+  _weatherFetching = true;
+  try{
+    let pos = SETTINGS.geo;
+    if(!pos && navigator.geolocation){
+      pos = await new Promise(res=>{
+        navigator.geolocation.getCurrentPosition(
+          p=>res({lat:+p.coords.latitude.toFixed(2), lon:+p.coords.longitude.toFixed(2)}),
+          ()=>res(null), {timeout:6000, maximumAge:86400000});
+      });
+      if(pos){ SETTINGS.geo = pos; saveSettings(); }
+    }
+    if(!pos) pos = WEATHER_FALLBACK;
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude='+pos.lat+'&longitude='+pos.lon
+      + '&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1';
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
+    SETTINGS.weather = {
+      day: todayKey(),
+      now: Math.round((d.current && d.current.temperature_2m) ?? 0),
+      code: (d.current && d.current.weather_code) ?? (d.daily && d.daily.weather_code && d.daily.weather_code[0]) ?? 0,
+      max: Math.round(d.daily.temperature_2m_max[0]),
+      min: Math.round(d.daily.temperature_2m_min[0]),
+      rain: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : null
+    };
+    saveSettings();
+    if(STATE.tab==='hub') renderContent();
+  }catch(e){
+    console.warn('Không lấy được thời tiết:', e && e.message);
+    SETTINGS.weather = {day: todayKey(), err: true}; // khỏi gọi lại liên tục trong ngày
+  }finally{ _weatherFetching = false; }
+}
+function weatherChipHtml(){
+  const w = weatherCache();
+  if(!w) { fetchWeatherToday(); return `<div class="hc-weather loading"><span class="w-ic">🌤️</span><span class="w-tx">Đang lấy thời tiết…</span></div>`; }
+  if(w.err) return `<div class="hc-weather"><span class="w-ic">🌐</span><span class="w-tx">Chưa lấy được thời tiết</span></div>`;
+  const [ic, label] = wmoInfo(w.code);
+  return `<div class="hc-weather">
+    <span class="w-ic">${ic}</span>
+    <span class="w-now">${w.now}°</span>
+    <span class="w-tx">${escapeHtml(label)}<b>${w.min}° – ${w.max}°</b>${w.rain!=null?` · 💧 ${w.rain}%`:''}</span>
   </div>`;
+}
+// ---- Dải lịch tuần: 7 ngày quanh hôm nay, chấm màu = ngày đã hoàn thành hết việc ----
+function weekStripHtml(){
+  const now = new Date();
+  const dow = (now.getDay()+6)%7;              // 0 = Thứ 2
+  const mon = new Date(now); mon.setDate(now.getDate()-dow);
+  const tk = todayKey();
+  const cells = Array.from({length:7}).map((_,i)=>{
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    const k = toKey(d);
+    const isToday = k === tk;
+    const info = LOG[k] ? dayInfoTrack(k,'schedule') : null;
+    const full = info && info.total>0 && info.done>=info.total;
+    const some = info && info.done>0 && !full;
+    return `<div class="ws-cell ${isToday?'now':''}">
+      <div class="ws-wd">${['T2','T3','T4','T5','T6','T7','CN'][i]}</div>
+      <div class="ws-d">${d.getDate()}</div>
+      <div class="ws-dot ${full?'full':(some?'some':'')}"></div>
+    </div>`;
+  }).join('');
+  return `<div class="hc-week">${cells}</div>`;
 }
 function renderHub(){
   const key = todayKey();
@@ -5246,39 +4980,24 @@ function renderHub(){
       </div>
     </div>`;
   const now = new Date();
-  // Vòng tròn bên phải đồng hồ: phần vòng sáng = tỉ lệ công việc hôm nay đã hoàn thành; số ở giữa là
-  // số việc CÒN LẠI — nhìn một cái là biết hôm nay còn nợ bao nhiêu, không cần mở màn hình khác.
-  const remainTasks = Math.max(0, schedTotal - schedDone);
-  const ringPct = schedTotal ? Math.round(schedDone/schedTotal*100) : 0;
-  const R = 27, CIRC = 2*Math.PI*R;
+  // ĐỒNG HỒ MỚI: bỏ vòng tròn tiến độ và danh sách việc (đã chuyển xuống đúng 2 thẻ danh mục bên dưới).
+  // Thay vào đó là mặt số lớn kiểu bảng đèn, dải lịch tuần và thời tiết hôm nay.
   const clockHtml = `
-    <div class="hub-clock-card">
+    <div class="hub-clock-card v2">
       <div class="hub-clock-blob b1"></div>
       <div class="hub-clock-blob b2"></div>
-      <div class="hub-clock-top">
-        <div class="hub-clock-left">
-          <div class="hub-clock-weekday">${WD_FULL[now.getDay()]}</div>
-          <div class="hub-clock-time"><span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span></div>
-          <div class="hub-clock-date">Ngày ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}</div>
+      <div class="hc-row">
+        <div class="hc-time">
+          <span id="hubClockTime">${pad(now.getHours())}:${pad(now.getMinutes())}</span>
+          <span class="hc-sec" id="hubClockSec">${pad(now.getSeconds())}</span>
         </div>
-        <div class="hub-clock-ring" data-action="hub-open" data-target="today" title="Tiến độ công việc hôm nay">
-          <svg viewBox="0 0 64 64">
-            <defs>
-              <linearGradient id="hcRingGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#7C5BFF"/><stop offset="0.55" stop-color="#4FA8FF"/><stop offset="1" stop-color="#2CDBA8"/>
-              </linearGradient>
-            </defs>
-            <circle class="rtrack" cx="32" cy="32" r="${R}"/>
-            <circle class="rfill" cx="32" cy="32" r="${R}"
-              stroke-dasharray="${CIRC.toFixed(1)}" stroke-dashoffset="${(CIRC*(1-ringPct/100)).toFixed(1)}"/>
-          </svg>
-          <div class="rc">
-            <div class="n">${remainTasks}</div>
-            <div class="l">${remainTasks? 'còn lại':'xong'}</div>
-          </div>
+        <div class="hc-datebox">
+          <div class="hc-wd">${WD_FULL[now.getDay()]}</div>
+          <div class="hc-dm"><b>${pad(now.getDate())}</b>/${pad(now.getMonth()+1)}<span>${now.getFullYear()}</span></div>
         </div>
       </div>
-      ${hubTodayCompact()}
+      ${weekStripHtml()}
+      ${weatherChipHtml()}
     </div>`;
   document.getElementById('content').innerHTML = `
     ${menuHtml}
@@ -5287,21 +5006,23 @@ function renderHub(){
     <div class="hub-grid">
       <div class="menu-card-heading" style="padding:0 2px 10px;">Danh mục</div>
       <div class="cat-grid">
-        <div class="cat-card" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
+        <div class="cat-card wide" data-action="hub-open" data-target="today" style="${catImageStyle('today','linear-gradient(135deg,#FFC94A,#FF8A3D)')}">
           ${catScrim('today')}${catImageActions('today')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('calendar','color:#fff;')}</div>
             <div><div class="name">Lịch làm việc</div><div class="stat">${schedDone}/${schedTotal} hôm nay</div></div>
           </div>
           ${catDeco('today','📅')}
+          <div class="cat-card-detail">${hubTaskListHtml('today')}</div>
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
+        <div class="cat-card wide" data-action="hub-open" data-target="english" style="${catImageStyle('english','linear-gradient(135deg,#4FA8FF,#7C6CF0)')}">
           ${catScrim('english')}${catImageActions('english')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('chat','color:#fff;')}</div>
             <div><div class="name">Học tiếng Anh</div><div class="stat">${eng.done}/${eng.total} hôm nay</div></div>
           </div>
           ${catDeco('english','🗣️')}
+          <div class="cat-card-detail">${hubTaskListHtml('english')}</div>
         </div>
         <div class="cat-card" data-action="hub-open" data-target="kiemhang" style="${catImageStyle('kiemhang','linear-gradient(135deg,#FF5A6E,#FF8A3D)')}">
           ${catScrim('kiemhang')}${catImageActions('kiemhang')}
@@ -15651,8 +15372,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
     renderContent();
     return;
   }
-  const hubTabEl = e.target.closest('[data-action="hub-today-tab"]');
-  if(hubTabEl){ STATE.hubTab = hubTabEl.getAttribute('data-tab'); renderContent(); return; }
   const studyModeEl = e.target.closest('[data-action="set-study-mode"]');
   if(studyModeEl){ setStudyMode(studyModeEl.getAttribute('data-mode')); return; }
   const petRegenEl = e.target.closest('[data-action="pet-regen-reward"]');
