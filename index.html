@@ -490,12 +490,12 @@
     background:rgba(255,255,255,.06); color:var(--dim); font-size:14px; cursor:pointer;}
   .wx-pick-cur{font-size:11px; color:var(--dim2); margin-bottom:11px;}
   .wx-pick-cur b{color:var(--text);}
-  .wx-pick-row{display:flex; gap:8px;}
-  .wx-pick-row .form-input{flex:1; min-width:0; margin:0;}
-  .wx-pick-results{margin-top:10px; max-height:230px; overflow:auto;}
-  .wx-pick-item{padding:10px 12px; border-radius:12px; border:1px solid var(--border); margin-bottom:6px;
-    font-size:12.5px; color:var(--text); cursor:pointer;}
-  .wx-pick-item:active{background:rgba(255,255,255,.07);}
+  .wx-pick-box .form-input{width:100%; margin:0;}
+  .wx-pick-results{margin-top:10px; max-height:250px; overflow:auto; margin-bottom:8px;}
+  .wx-pick-item{display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:12px;
+    border:1px solid var(--border); margin-bottom:6px; font-size:12.5px; color:var(--text); cursor:pointer;}
+  .wx-pick-item:active{background:rgba(255,255,255,.09);}
+  .wx-pick-item .wx-pin{flex:0 0 auto; font-size:13px; opacity:.75;}
   .wx-pick-hint{font-size:11.5px; color:var(--dim2); padding:10px 2px; line-height:1.6;}
   .hc-wmeta{display:flex; gap:9px; font-size:9px; color:var(--hcD2); margin-top:2px; flex-wrap:wrap;}
   .hc-wmeta span{white-space:nowrap;}
@@ -540,23 +540,33 @@
   .hc-caltoggle.open .cta{transform:rotate(180deg);}
   .hc-caltoggle small{font-weight:600; color:var(--hcD2,#8D9CB4); font-size:10px;}
   /* Cung hoàng đạo cạnh đồng hồ */
-  .hc-zodiac{position:relative; z-index:1; display:flex; gap:10px; align-items:flex-start;
-    background:var(--hcS,#232F4A); border:1px solid var(--hcB,#2E3B57); border-radius:16px;
-    padding:9px 12px; border-left:3px solid var(--zc,#B9A6FF);}
-  .hc-zodiac.empty{cursor:pointer; border-left-color:#3A4763;}
-  .hz-sym{font-size:24px; line-height:1.1; color:var(--zc,#B9A6FF); flex-shrink:0;}
-  .hz-tx{display:flex; flex-direction:column; min-width:0; font-size:10.5px; line-height:1.5;}
-  .hz-tx b{font-size:12px; color:var(--hcT,#EAF0FA); font-weight:800;}
-  .hz-meta{font-size:9px; font-weight:600; color:var(--hcD2,#8D9CB4); margin-left:5px;}
-  .hz-line{color:var(--hcD,#B5C3D8); margin-top:2px;}
-  .hz-astro{color:var(--hcA,#5B9CFF); font-weight:700; font-size:10px; margin-top:3px; letter-spacing:.01em;}
-  .hz-ai{color:var(--hcT,#EAF0FA); font-size:10.5px; line-height:1.6; margin-top:5px;
-    padding:6px 9px; border-radius:10px; background:rgba(91,156,255,.12); border:1px solid rgba(91,156,255,.26);}
-  .hz-aibtn{align-self:flex-start; margin-top:6px; font-size:10px; font-weight:800; cursor:pointer;
-    color:var(--hcA,#5B9CFF); padding:4px 10px; border-radius:9px; border:1px dashed rgba(91,156,255,.45);}
-  .hz-aibtn.busy{opacity:.6; cursor:default;}
-  .hz-note{color:var(--hcD2,#8D9CB4); font-size:8.5px; line-height:1.45; margin-top:4px; font-style:italic;}
-  .hz-note{font-size:8.5px; color:var(--dim2); margin-top:3px; font-style:italic;}
+  /* ===== THẺ LÝ SỐ HẰNG NGÀY ===== */
+  .tv-card{position:relative; z-index:1; background:var(--hcS,#232F4A); border:1px solid var(--hcB,#2E3B57);
+    border-radius:16px; padding:11px 13px 10px; border-left:3px solid var(--tvc,#5B9CFF);}
+  .tv-card.empty{display:flex; gap:10px; align-items:center; cursor:pointer; border-left-color:#3A4763;}
+  .tv-sym{font-size:22px; line-height:1; color:var(--tvc,#5B9CFF); flex:0 0 auto;}
+  .tv-empty-tx{font-size:10.5px; line-height:1.55; color:var(--hcD,#B5C3D8); display:flex; flex-direction:column;}
+  .tv-empty-tx b{font-size:12px; color:var(--hcT,#EAF0FA); font-weight:800;}
+  .tv-head{display:flex; align-items:flex-start; gap:9px; margin-bottom:9px;}
+  .tv-head-tx{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .tv-head-tx b{font-size:13px; font-weight:800; color:var(--hcT,#EAF0FA);}
+  .tv-sub{font-size:9.5px; color:var(--hcD2,#8D9CB4); margin-top:2px; line-height:1.45;}
+  .tv-badge{flex:0 0 auto; font-size:9px; font-weight:800; padding:3px 8px; border-radius:8px;
+    border:1px solid transparent; white-space:nowrap; align-self:center;}
+  .tv-sec{font-size:10.5px; line-height:1.65; color:var(--hcD,#B5C3D8); padding:7px 0;
+    border-top:1px dashed var(--hcB,#2E3B57);}
+  .tv-lbl{display:block; font-size:9.5px; font-weight:800; letter-spacing:.02em; margin-bottom:3px;
+    color:var(--hcT,#EAF0FA);}
+  .tv-sec.warn .tv-lbl{color:#FFB84D;}
+  .tv-sec.good .tv-lbl{color:#35D6A4;}
+  .tv-sec.act .tv-lbl{color:#5B9CFF;}
+  .tv-luck{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; padding-top:8px;
+    border-top:1px dashed var(--hcB,#2E3B57);}
+  .tv-luck span{font-size:9px; color:var(--hcD,#B5C3D8); background:rgba(255,255,255,.05);
+    border:1px solid var(--hcB,#2E3B57); border-radius:8px; padding:4px 8px; line-height:1.4;}
+  .tv-luck b{display:block; color:var(--hcD2,#8D9CB4); font-size:8px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.04em; margin-bottom:1px;}
+  .tv-note{font-size:8.5px; color:var(--hcD2,#8D9CB4); line-height:1.5; margin-top:8px; font-style:italic;}
   /* Lịch tháng trong khung đồng hồ */
   .hc-cal{position:relative; z-index:1; background:var(--hcS,#232F4A); border:1px solid var(--hcB,#2E3B57);
     border-radius:16px; padding:9px 11px 10px; margin-top:-3px;}
@@ -1879,7 +1889,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v133';
+const APP_VERSION = 'v134';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2156,6 +2166,7 @@ function saveProfile(){
   const profile = {
     name: (g('p-name')||{}).value || '',
     birthday: (g('p-birthday')||{}).value || '',
+    job: (g('p-job')||{}).value || 'qc',
     gender: (g('p-gender')||{}).value || 'nam',
     age: parseInt((g('p-age')||{}).value,10) || null,
     weight: parseFloat((g('p-weight')||{}).value) || null,
@@ -4715,42 +4726,209 @@ function hubMiniProgress(kind){
     <div class="cm-line">${left ? `còn <b>${left}</b> · ` : ''}${nextLine}</div>
   </div>`;
 }
-// ================= CUNG HOÀNG ĐẠO =================
-// Phần TRA CỨU dưới đây là dữ liệu chiêm tinh phương Tây chuẩn (tropical zodiac): mốc ngày, nguyên tố,
-// tính chất (cardinal/fixed/mutable), hành tinh chủ quản và các từ khoá tính cách truyền thống — thống
-// nhất giữa các tài liệu chiêm tinh, nên phần này tra ra là ĐÚNG và kiểm chứng được.
-// Riêng phần LUẬN NGÀY do AI viết là góc nhìn để ngẫm và tự nhắc mình, KHÔNG phải dự báo có căn cứ khoa
-// học — chiêm tinh chưa từng được chứng minh có khả năng tiên đoán. Đã ghi rõ điều này ngay trên thẻ.
-const ZODIAC = [
-  {k:'aries',       n:'Bạch Dương',  sym:'♈', from:[3,21],  to:[4,19],  el:'Lửa',  mode:'Khởi đầu', rule:'Sao Hỏa',   c:'#FF6E4A', traits:'Quyết đoán, thích dẫn đầu, hành động nhanh; cần luyện tính kiên nhẫn.'},
-  {k:'taurus',      n:'Kim Ngưu',    sym:'♉', from:[4,20],  to:[5,20],  el:'Đất',  mode:'Cố định',  rule:'Sao Kim',   c:'#5CD68A', traits:'Bền bỉ, thực tế, coi trọng sự ổn định; đôi khi hơi cố chấp.'},
-  {k:'gemini',      n:'Song Tử',     sym:'♊', from:[5,21],  to:[6,20],  el:'Khí',  mode:'Linh hoạt',rule:'Sao Thủy',  c:'#FFD166', traits:'Nhanh trí, giỏi ngôn ngữ, ham cái mới; dễ phân tán, cần chốt việc.'},
-  {k:'cancer',      n:'Cự Giải',     sym:'♋', from:[6,21],  to:[7,22],  el:'Nước', mode:'Khởi đầu', rule:'Mặt Trăng', c:'#8FD3FF', traits:'Giàu cảm xúc, gắn bó gia đình, chu đáo; nhạy cảm với lời nói.'},
-  {k:'leo',         n:'Sư Tử',       sym:'♌', from:[7,23],  to:[8,22],  el:'Lửa',  mode:'Cố định',  rule:'Mặt Trời',  c:'#FFB03D', traits:'Tự tin, hào phóng, có sức hút; cần lắng nghe nhiều hơn.'},
-  {k:'virgo',       n:'Xử Nữ',       sym:'♍', from:[8,23],  to:[9,22],  el:'Đất',  mode:'Linh hoạt',rule:'Sao Thủy',  c:'#9BD48A', traits:'Tỉ mỉ, kỷ luật, giỏi phân tích; dễ khắt khe với chính mình.'},
-  {k:'libra',       n:'Thiên Bình',  sym:'♎', from:[9,23],  to:[10,22], el:'Khí',  mode:'Khởi đầu', rule:'Sao Kim',   c:'#C6B4FF', traits:'Hài hoà, công bằng, khéo léo trong quan hệ; hay do dự khi phải chọn.'},
-  {k:'scorpio',     n:'Bọ Cạp',      sym:'♏', from:[10,23], to:[11,21], el:'Nước', mode:'Cố định',  rule:'Sao Diêm Vương', c:'#E0559A', traits:'Sâu sắc, ý chí mạnh, tập trung cao; cần học buông bỏ.'},
-  {k:'sagittarius', n:'Nhân Mã',     sym:'♐', from:[11,22], to:[12,21], el:'Lửa',  mode:'Linh hoạt',rule:'Sao Mộc',   c:'#FF8A5C', traits:'Lạc quan, ưa khám phá, thẳng thắn; đôi khi thiếu kiên trì.'},
-  {k:'capricorn',   n:'Ma Kết',      sym:'♑', from:[12,22], to:[1,19],  el:'Đất',  mode:'Khởi đầu', rule:'Sao Thổ',   c:'#8FA8C9', traits:'Nghiêm túc, có kỷ luật, đi đường dài; dễ tự tạo áp lực.'},
-  {k:'aquarius',    n:'Bảo Bình',    sym:'♒', from:[1,20],  to:[2,18],  el:'Khí',  mode:'Cố định',  rule:'Sao Thiên Vương', c:'#6FD8F0', traits:'Độc lập, nhiều ý tưởng khác biệt, coi trọng tự do.'},
-  {k:'pisces',      n:'Song Ngư',    sym:'♓', from:[2,19],  to:[3,20],  el:'Nước', mode:'Linh hoạt',rule:'Sao Hải Vương', c:'#A9B8FF', traits:'Nhân hậu, giàu trực giác và tưởng tượng; cần ranh giới rõ ràng.'}
-];
-function zodiacOf(birth){
-  if(!birth) return null;
-  const parts = String(birth).split('-').map(Number);
-  if(parts.length<3 || !parts[1] || !parts[2]) return null;
-  const m = parts[1], d = parts[2];
-  for(const z of ZODIAC){
-    const [fm,fd] = z.from, [tm,td] = z.to;
-    if(fm <= tm){ if((m===fm && d>=fd) || (m===tm && d<=td) || (m>fm && m<tm)) return z; }
-    else { if((m===fm && d>=fd) || (m===tm && d<=td)) return z; }   // Ma Kết vắt qua năm mới
-  }
-  return null;
+// ================= LÝ SỐ PHƯƠNG ĐÔNG — CAN CHI · NGŨ HÀNH · THẬP THẦN =================
+// Thay cho thẻ cung hoàng đạo cũ (gọi AI mỗi lần vẽ màn hình → đốt hạn mức mà nội dung không kiểm
+// chứng được). Toàn bộ phần này TÍNH CỤC BỘ, KHÔNG GỌI API LẦN NÀO:
+//   • Can Chi ngày suy từ số ngày Julius — là phép chia lấy dư thuần tuý, đối chiếu được với bất kỳ
+//     cuốn lịch vạn niên nào, không phải "sinh văn" ngẫu nhiên.
+//   • Quan hệ giữa ngày và Nhật Chủ (Can của ngày sinh) đi theo đúng quy luật Ngũ hành sinh khắc cổ
+//     điển → ra một trong 5 nhóm Thập Thần, mỗi nhóm một sắc thái năng lượng riêng.
+//   • Lục hợp / lục xung giữa Chi ngày và Chi năm sinh cho ra phần "điểm sáng" và "nhắc nhở".
+// Nguyên tắc diễn đạt: mọi rủi ro viết dưới dạng NHẮC NHỞ CẨN TRỌNG, tuyệt đối không dùng từ hù dọa
+// kiểu "đại hung", "tuyệt mạng". Đây là khung tham chiếu để sắp xếp công việc trong ngày, không phải
+// lời tiên đoán — câu ghi chú cuối thẻ nói rõ điều đó.
+const CAN = ['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'];
+const CHI = ['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+const CAN_NH = ['Mộc','Mộc','Hỏa','Hỏa','Thổ','Thổ','Kim','Kim','Thủy','Thủy'];
+const CHI_NH = ['Thủy','Thổ','Mộc','Mộc','Thổ','Hỏa','Hỏa','Thổ','Kim','Kim','Thổ','Thủy'];
+const CAN_AM = [true,false,true,false,true,false,true,false,true,false];   // true = Dương
+const NH_SINH = {'Mộc':'Hỏa','Hỏa':'Thổ','Thổ':'Kim','Kim':'Thủy','Thủy':'Mộc'};
+const NH_KHAC = {'Mộc':'Thổ','Thổ':'Thủy','Thủy':'Hỏa','Hỏa':'Kim','Kim':'Mộc'};
+const NH_MAU  = {'Mộc':'#4CC38A','Hỏa':'#FF6B5C','Thổ':'#E0A93B','Kim':'#C9D3E2','Thủy':'#4F9BFF'};
+const NH_SAC  = {'Mộc':'xanh lá, xanh ngọc','Hỏa':'đỏ, cam, hồng','Thổ':'vàng đất, nâu, be',
+                 'Kim':'trắng, xám, ánh kim','Thủy':'xanh dương, đen, xanh than'};
+const NH_HUONG= {'Mộc':'Đông','Hỏa':'Nam','Thổ':'Đông Bắc / Tây Nam','Kim':'Tây','Thủy':'Bắc'};
+// Số ngày Julius (JDN) cho một ngày dương lịch — công thức Fliegel & Van Flandern, chuẩn thiên văn.
+function jdn(y, m, d){
+  const a = Math.floor((14-m)/12), yy = y + 4800 - a, mm = m + 12*a - 3;
+  return d + Math.floor((153*mm+2)/5) + 365*yy + Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
 }
-// ---- DỮ LIỆU THIÊN VĂN THẬT (tính cục bộ, kiểm chứng được, không tốn hạn mức AI) ----
-// Thẻ cũ phụ thuộc HOÀN TOÀN vào một lời văn do AI sinh ra: hết hạn mức hoặc chưa nhập API key là
-// thẻ trắng, và bản thân lời văn đó cũng không có gì để đối chiếu đúng/sai. Nay phần LÕI của thẻ là
-// ba dữ kiện thiên văn có thật và tự kiểm chứng được: cung Mặt Trời đang đi qua hôm nay, pha Mặt
+// Can Chi của một ngày. Mốc kiểm chứng: 01/01/2000 là ngày Mậu Ngọ — chạy hàm này ra đúng Mậu Ngọ.
+function canChiNgay(y, m, d){
+  const j = jdn(y, m, d);
+  return {can: (j + 9) % 10, chi: (j + 1) % 12};
+}
+// Can Chi NĂM theo Bát Tự: năm đổi trụ vào tiết Lập Xuân (khoảng 4/2), KHÔNG phải Tết Nguyên Đán và
+// cũng không phải 1/1 dương lịch. Sinh trước Lập Xuân thì vẫn tính là năm trước.
+function canChiNam(y, m, d){
+  const yy = (m < 2 || (m === 2 && d < 4)) ? y - 1 : y;
+  return {can: ((yy - 4) % 10 + 10) % 10, chi: ((yy - 4) % 12 + 12) % 12, year: yy};
+}
+function chiName(i){ return CHI[((i%12)+12)%12]; }
+function canName(i){ return CAN[((i%10)+10)%10]; }
+// Lục hợp / lục xung — hai quan hệ cơ bản nhất giữa hai Địa Chi.
+const LUC_HOP = {0:1, 1:0, 2:11, 11:2, 3:10, 10:3, 4:9, 9:4, 5:8, 8:5, 6:7, 7:6};
+function chiXung(a, b){ return ((a - b) % 12 + 12) % 12 === 6; }
+function chiHop(a, b){ return LUC_HOP[((a%12)+12)%12] === ((b%12)+12)%12; }
+// Giờ hoàng đạo cổ điển, tra theo Chi của ngày (mỗi cặp Chi xung nhau dùng chung một bộ giờ).
+const GIO_HD = {
+  0:[0,1,3,6,8,9], 6:[0,1,3,6,8,9],
+  1:[2,3,5,8,10,11], 7:[2,3,5,8,10,11],
+  2:[0,1,4,5,7,10], 8:[0,1,4,5,7,10],
+  3:[0,2,3,6,7,9], 9:[0,2,3,6,7,9],
+  4:[2,4,5,8,9,11], 10:[2,4,5,8,9,11],
+  5:[1,4,6,7,10,11], 11:[1,4,6,7,10,11]
+};
+const CHI_GIO = ['23–01','01–03','03–05','05–07','07–09','09–11','11–13','13–15','15–17','17–19','19–21','21–23'];
+
+// ---- THẬP THẦN rút gọn về 5 nhóm: quan hệ giữa hành của NGÀY và hành của NHẬT CHỦ ----
+function thapThan(nhNgay, nhChu){
+  if(nhNgay === nhChu) return 'ty';                 // cùng hành
+  if(NH_SINH[nhNgay] === nhChu) return 'an';        // ngày sinh ra ta → được hỗ trợ
+  if(NH_SINH[nhChu] === nhNgay) return 'thuc';      // ta sinh ra ngày → tiêu hao, thể hiện
+  if(NH_KHAC[nhNgay] === nhChu) return 'quan';      // ngày khắc ta → áp lực, kỷ luật
+  return 'tai';                                     // ta khắc ngày → kiểm soát được, cơ hội
+}
+const TT_META = {
+  an:  {n:'Ấn — được nâng đỡ', c:'#4F9BFF',
+        tong:'Hành của ngày sinh trợ cho bản mệnh, nên đây là kiểu ngày dễ tiếp thu: đọc gì cũng vào, học gì cũng nhớ lâu hơn thường lệ. Năng lượng thiên về thu nạp chứ không thiên về bung sức.',
+        canh:'Vì dễ chịu nên cũng dễ trì hoãn — ngày thuận thường trôi qua mà không để lại kết quả cụ thể nào. Hãy đặt trước một việc bắt buộc phải xong.',
+        sang:'Học kiến thức mới, đọc tài liệu khó, xin lời khuyên từ người đi trước — hôm nay tiếp thu tốt hơn bình thường.'},
+  thuc:{n:'Thực Thương — bung sức thể hiện', c:'#4CC38A',
+        tong:'Bản mệnh sinh cho hành của ngày, tức là năng lượng chảy ra ngoài. Đây là kiểu ngày hợp với việc tạo ra thứ gì đó, nói ra ý của mình, trình bày cho người khác nghe.',
+        canh:'Nói ra nhiều hơn nghe vào là rủi ro của hôm nay. Trước khi gửi tin nhắn hoặc phản hồi ai đó lúc đang bực, hãy đọc lại một lượt.',
+        sang:'Trình bày, thuyết trình, viết lách, làm bài luyện nói — đầu ra hôm nay trôi chảy hơn thường lệ.'},
+  tai: {n:'Tài — nắm được cơ hội', c:'#E0A93B',
+        tong:'Bản mệnh khắc chế hành của ngày, nghĩa là bạn đang ở thế chủ động. Kiểu ngày hợp để chốt việc, thương lượng, xử lý những thứ cần bạn cầm trịch.',
+        canh:'Thế chủ động dễ thành ôm đồm. Nhận thêm việc hôm nay thì cân nhắc kỹ, vì cảm giác "làm được hết" thường lớn hơn quỹ thời gian thật.',
+        sang:'Đàm phán, chốt đơn, ra quyết định đã treo lâu, dọn dẹp việc tồn — hôm nay bạn cầm được thế.'},
+  quan:{n:'Quan Sát — áp lực và kỷ luật', c:'#FF9B4D',
+        tong:'Hành của ngày khắc bản mệnh, nên dễ gặp việc đòi hỏi cao hơn sức mình muốn bỏ ra: deadline, người khó tính, quy trình rườm rà. Không phải ngày xấu — là ngày rèn.',
+        canh:'Nhắc nhở cẩn trọng: hôm nay dễ va chạm với cấp trên hoặc người giữ vai trò kiểm soát. Trả lời chậm một nhịp, ưu tiên viết ra thay vì tranh luận miệng.',
+        sang:'Việc cần kỷ luật và độ chính xác cao lại hợp hôm nay: rà soát, kiểm tra chéo, làm giấy tờ, hoàn thiện phần còn dở.'},
+  ty:  {n:'Tỷ Kiếp — ngang sức, cạnh tranh', c:'#C9D3E2',
+        tong:'Ngày cùng hành với bản mệnh, năng lượng ngang bằng. Làm việc một mình thì thuận, nhưng khi chia việc với người khác dễ giẫm chân nhau vì ai cũng thấy cách mình đúng.',
+        canh:'Nhắc nhở cẩn trọng: hôm nay dễ nảy tranh luận với đồng nghiệp ngang cấp, và cũng dễ chi tiêu theo bạn bè. Chốt rõ ai làm phần nào trước khi bắt tay vào.',
+        sang:'Việc tự làm một mình, tự học, tự luyện — không phụ thuộc ai thì hôm nay chạy rất trơn.'}
+};
+// ---- LỜI KHUYÊN BÁM NGHỀ ----
+const TUVI_JOBS = {
+  qc:      'Kiểm hàng / QC / sản xuất',
+  sales:   'Kinh doanh / bán hàng',
+  tech:    'Kỹ thuật / công nghệ',
+  office:  'Văn phòng / hành chính',
+  creative:'Sáng tạo / thiết kế',
+  teach:   'Giáo dục / đào tạo',
+  health:  'Y tế / chăm sóc',
+  other:   'Ngành nghề khác'
+};
+const TUVI_JOB_ADVICE = {
+  qc: {an:'Hôm nay hợp để đọc lại tiêu chuẩn kiểm, cập nhật quy cách mới hoặc học từ một ca lỗi cũ — kiến thức vào sâu hơn ngày thường.',
+       thuc:'Hợp để viết báo cáo lỗi, giải thích tiêu chí cho nhà cung cấp, đào tạo lại người mới — hôm nay bạn diễn đạt mạch lạc.',
+       tai:'Hợp để chốt kết luận với lô hàng còn treo và thương lượng phương án xử lý — bạn đang ở thế cầm trịch.',
+       quan:'Hôm nay dễ gặp lô khó hoặc bên đối tác căng. Bám chặt tiêu chuẩn, chụp ảnh và ghi biên bản đầy đủ — chứng cứ nói thay bạn tốt hơn lời nói.',
+       ty:'Hợp để tự đi kiểm một mình và soát lại phần việc của chính mình. Nếu kiểm chung, chốt rõ ai phụ trách hạng mục nào trước khi vào xưởng.'},
+  sales:{an:'Hợp để nghiên cứu khách hàng, đọc hồ sơ đối thủ, chuẩn bị kịch bản — chưa cần chốt vội.',
+       thuc:'Hợp gọi điện, trình bày sản phẩm, gửi đề xuất — hôm nay bạn nói thuyết phục hơn.',
+       tai:'Ngày mạnh nhất để chốt đơn và đàm phán giá. Đừng để cơ hội trôi.',
+       quan:'Dễ gặp khách khó tính hoặc bị ép điều khoản. Đừng hứa miệng, xác nhận lại bằng văn bản.',
+       ty:'Cẩn thận giẫm chân đồng nghiệp trên cùng một khách. Xác nhận rõ ai đang theo trước khi liên hệ.'},
+  tech:{an:'Hợp để đọc tài liệu, học công nghệ mới, xem lại kiến trúc hệ thống.',
+       thuc:'Hợp để viết code tính năng mới, viết tài liệu, trình bày giải pháp.',
+       tai:'Hợp để dứt điểm những task tồn đọng và ra quyết định kỹ thuật đã treo lâu.',
+       quan:'Ngày hợp cho việc cần cẩn thận: sửa lỗi, review, kiểm thử. Đừng đẩy lên bản chạy thật vào cuối giờ.',
+       ty:'Hợp làm việc độc lập. Nếu làm chung nhánh, thống nhất phạm vi trước để tránh đụng nhau.'},
+  office:{an:'Hợp để đọc quy trình, sắp xếp lại hồ sơ, học phần mềm hoặc kỹ năng mới.',
+       thuc:'Hợp để soạn công văn, làm báo cáo, thuyết trình trong cuộc họp.',
+       tai:'Hợp để giải quyết dứt điểm giấy tờ tồn và các việc cần bạn quyết.',
+       quan:'Dễ bị giục hoặc phát sinh việc gấp. Ưu tiên theo mức quan trọng và trả lời bằng email để có dấu vết.',
+       ty:'Việc tự làm thì trôi. Việc phối hợp nhiều bộ phận nên lùi sang hôm khác nếu được.'},
+  creative:{an:'Hợp để nạp cảm hứng: xem tác phẩm hay, nghiên cứu xu hướng, phác ý tưởng thô.',
+       thuc:'Ngày mạnh nhất để sáng tác và hoàn thiện tác phẩm — dòng chảy sáng tạo đang mở.',
+       tai:'Hợp để chốt phương án với khách và báo giá cho dự án.',
+       quan:'Dễ bị sửa tới sửa lui. Thống nhất phạm vi chỉnh sửa bằng văn bản trước khi làm tiếp.',
+       ty:'Hợp làm việc một mình. Tránh đưa bản nháp cho quá nhiều người góp ý cùng lúc.'},
+  teach:{an:'Hợp để soạn giáo án, nghiên cứu phương pháp mới, tự bồi dưỡng chuyên môn.',
+       thuc:'Hợp để đứng lớp, giảng bài, làm video hướng dẫn — hôm nay truyền đạt cuốn hút.',
+       tai:'Hợp để chốt lịch khoá học, đàm phán hợp tác, xử lý việc quản lý còn tồn.',
+       quan:'Dễ gặp học viên hoặc phụ huynh khó. Giữ giọng điềm đạm, ghi lại nội dung trao đổi.',
+       ty:'Hợp chuẩn bị một mình. Họp tổ chuyên môn hôm nay dễ mỗi người một ý.'},
+  health:{an:'Hợp để cập nhật phác đồ, đọc ca bệnh, học kỹ thuật mới.',
+       thuc:'Hợp để tư vấn, giải thích cho bệnh nhân và người nhà — hôm nay bạn diễn đạt dễ hiểu.',
+       tai:'Hợp để xử lý dứt điểm hồ sơ tồn và các quyết định đã cân nhắc lâu.',
+       quan:'Ngày cần cẩn trọng nhất trong tuần: kiểm tra lại liều, đối chiếu tên bệnh nhân, không làm tắt bước nào.',
+       ty:'Hợp ca trực độc lập. Bàn giao ca hôm nay nên ghi chép kỹ hơn thường lệ.'},
+  other:{an:'Hợp để học hỏi, tiếp thu, chuẩn bị nền tảng cho việc lớn hơn.',
+       thuc:'Hợp để làm ra sản phẩm cụ thể và trình bày cho người khác.',
+       tai:'Hợp để chốt việc, ra quyết định và dọn dẹp việc tồn.',
+       quan:'Hợp việc cần cẩn thận và kỷ luật. Đừng vội, đừng làm tắt.',
+       ty:'Hợp làm một mình. Việc chung cần chốt rõ phân công từ đầu.'}
+};
+
+function tuviState(){
+  const p = SETTINGS.profile || {};
+  if(!p.birthday) return null;
+  const [by, bm, bd] = String(p.birthday).split('-').map(Number);
+  if(!by || !bm || !bd) return null;
+  const now = new Date();
+  const D = canChiNgay(now.getFullYear(), now.getMonth()+1, now.getDate());
+  const B = canChiNgay(by, bm, bd);
+  const BY = canChiNam(by, bm, bd);
+  const nhNgay = CAN_NH[D.can], nhChu = CAN_NH[B.can];
+  const key = thapThan(nhNgay, nhChu);
+  const meta = TT_META[key];
+  const job = TUVI_JOBS[p.job] ? p.job : 'qc';
+  // Hành sinh cho Nhật Chủ chính là hành nên dùng để "tiếp sức" trong ngày.
+  const nhTot = Object.keys(NH_SINH).find(k => NH_SINH[k] === nhChu) || nhChu;
+  const xung = chiXung(D.chi, BY.chi), hop = chiHop(D.chi, BY.chi);
+  const gio = (GIO_HD[D.chi] || []).map(i => CHI[i] + ' (' + CHI_GIO[i] + ')');
+  return {
+    ngayCan: canName(D.can), ngayChi: chiName(D.chi), nhNgay,
+    chuCan: canName(B.can), chuChi: chiName(B.chi), nhChu,
+    namCan: canName(BY.can), namChi: chiName(BY.chi), namNum: BY.year,
+    duong: CAN_AM[D.can], key, meta, job, jobName: TUVI_JOBS[job],
+    nhTot, sac: NH_SAC[nhTot], huong: NH_HUONG[nhTot], mau: NH_MAU[nhNgay],
+    xung, hop, gio,
+    advice: (TUVI_JOB_ADVICE[job] || TUVI_JOB_ADVICE.other)[key]
+  };
+}
+function tuviCardHtml(){
+  const t = tuviState();
+  if(!t){
+    return `<div class="tv-card empty" data-action="hub-open" data-target="profile">
+      <div class="tv-sym">☯</div>
+      <div class="tv-empty-tx"><b>Lý số hằng ngày</b>Nhập ngày sinh trong Thông tin cá nhân để xem bản tin năng lượng theo Can Chi ›</div>
+    </div>`;
+  }
+  const m = (typeof moonInfo === 'function') ? moonInfo() : null;
+  const canhBao = t.xung
+    ? t.meta.canh + ' Thêm nữa, Chi ngày hôm nay xung với Chi năm sinh của bạn (' + t.ngayChi + ' – ' + t.namChi + '): đây là ngày nên tránh khởi sự việc lớn và nên kiểm tra lại lần cuối trước khi ký hay gửi bất cứ thứ gì.'
+    : t.meta.canh;
+  const diemSang = t.hop
+    ? t.meta.sang + ' Chi ngày hợp với Chi năm sinh (' + t.ngayChi + ' – ' + t.namChi + ') nên việc cần người khác đồng thuận hôm nay dễ xuôi hơn.'
+    : t.meta.sang;
+  return `<div class="tv-card" style="--tvc:${t.meta.c};">
+    <div class="tv-head">
+      <span class="tv-sym">☯</span>
+      <span class="tv-head-tx">
+        <b>Ngày ${escapeHtml(t.ngayCan)} ${escapeHtml(t.ngayChi)}</b>
+        <span class="tv-sub">Hành ${escapeHtml(t.nhNgay)} · ${t.duong?'Dương':'Âm'} · Nhật Chủ của bạn: ${escapeHtml(t.chuCan)} (${escapeHtml(t.nhChu)})</span>
+      </span>
+      <span class="tv-badge" style="background:${t.meta.c}22; color:${t.meta.c}; border-color:${t.meta.c}55;">${escapeHtml(t.meta.n)}</span>
+    </div>
+    <div class="tv-sec"><span class="tv-lbl">🌤️ Tổng quan năng lượng</span>${escapeHtml(t.meta.tong)}</div>
+    <div class="tv-sec warn"><span class="tv-lbl">⚠️ Cảnh báo &amp; nhắc nhở</span>${escapeHtml(canhBao)}</div>
+    <div class="tv-sec good"><span class="tv-lbl">✨ Điểm sáng trong ngày</span>${escapeHtml(diemSang)}</div>
+    <div class="tv-sec act"><span class="tv-lbl">🎯 Lời khuyên hành động — ${escapeHtml(t.jobName)}</span>${escapeHtml(t.advice)}</div>
+    <div class="tv-luck">
+      <span><b>Giờ thuận</b>${escapeHtml(t.gio.slice(0,3).join(' · '))}</span>
+      <span><b>Màu tiếp sức</b>${escapeHtml(t.sac)}</span>
+      <span><b>Hướng</b>${escapeHtml(t.huong)}</span>
+      ${m?`<span><b>Mặt Trăng</b>${m.ic} ${escapeHtml(m.name)} · ${m.illum}%</span>`:''}
+    </div>
+    <div class="tv-note">Can Chi và giờ hoàng đạo tính theo lịch pháp cổ điển, đối chiếu được với lịch vạn niên. Phần luận giải dựa trên quy luật Ngũ hành sinh khắc — dùng để sắp xếp thứ tự công việc trong ngày, không phải lời tiên đoán.</div>
+  </div>`;
+}
 // Trăng, và số ngày tới ngày trăng tròn. Lời luận của AI chỉ còn là phần thêm, có thì tốt, không có
 // thì thẻ vẫn đầy đủ nội dung.
 // Pha Mặt Trăng: đếm từ kỳ trăng mới đã biết (06/01/2000 18:14 UTC), chu kỳ giao hội 29,530588853 ngày.
@@ -4773,87 +4951,7 @@ function moonInfo(date){
 }
 // Cung Mặt Trời ĐANG đi qua hôm nay (khác với cung sinh của người dùng) — dùng chính bảng ranh giới
 // nhiệt đới đã có, nên hai con số luôn nhất quán với nhau.
-function sunSignToday(){
-  const d = new Date();
-  return zodiacOf(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
-}
-// Lời luận ngày TÍNH CỤC BỘ — không gọi AI. Ghép từ 3 dữ kiện có thật và một bảng gợi ý soạn sẵn:
-// pha Mặt Trăng (chu kỳ năng lượng), nguyên tố của cung, và tính chất (Khởi đầu/Cố định/Linh hoạt).
-// Cùng một ngày + cùng một cung luôn ra cùng một câu, nên đọc lại vẫn nhất quán chứ không "bói" ngẫu nhiên.
-const ZODIAC_MOON_NOTE = {
-  'Trăng mới':'Đầu chu kỳ — hợp để bắt đầu một việc nhỏ hơn là chốt việc lớn.',
-  'Trăng lưỡi liềm đầu':'Đà đang lên — giữ nhịp đều quan trọng hơn làm thật nhiều trong một hôm.',
-  'Bán nguyệt đầu':'Giai đoạn phải chọn — bỏ bớt một việc để làm tốt việc còn lại.',
-  'Trăng khuyết đầu':'Sắp tới đỉnh chu kỳ — dồn sức cho việc bạn đã bỏ dở gần đây.',
-  'Trăng tròn':'Đỉnh chu kỳ — dễ mất tập trung vì nhiều thứ cùng gọi tên; chốt một việc rồi hãy mở việc mới.',
-  'Trăng khuyết cuối':'Thời điểm tốt để rà lại và sửa, hơn là mở thêm hướng mới.',
-  'Bán nguyệt cuối':'Giai đoạn buông bớt — cắt một thói quen đang ngốn thời gian của bạn.',
-  'Trăng lưỡi liềm cuối':'Cuối chu kỳ — nghỉ ngơi có kế hoạch không phải là lười, là chuẩn bị.'
-};
-const ZODIAC_EL_NOTE = {
-  'Lửa':'Bạn khởi động nhanh, nên rào cản thường nằm ở đoạn giữa — đặt mốc ngắn để không hụt hơi.',
-  'Đất':'Bạn bền nhưng khó đổi hướng — thử một cách làm mới ở đúng một việc nhỏ hôm nay.',
-  'Khí':'Bạn tiếp thu nhanh và cũng phân tán nhanh — chốt xong một việc rồi mới mở tab tiếp theo.',
-  'Nước':'Bạn làm việc theo cảm hứng — dựng sẵn một thói quen tối thiểu để những hôm nhạt vẫn không đứt.'
-};
-let _zodiacFetching = false;
-// Chỉ chạy khi người dùng CHỦ ĐỘNG bấm nút. Trước đây hàm này tự chạy mỗi lần vẽ trang chủ, nên một
-// tính năng trang trí lại đi tranh hạn mức AI với những thứ thật sự cần AI (chấm phát âm, tạo câu hỏi)
-// — mở app lên là thấy banner "hết hạn mức" dù chưa học gì. Nay mặc định KHÔNG gọi.
-async function fetchZodiacToday(z){
-  if(_zodiacFetching || !z) return;
-  const cache = SETTINGS.zodiacDaily;
-  if(cache && cache.day===todayKey() && cache.k===z.k && cache.text) return;
-  // Không còn khoá cả ngày khi thiếu key: chỉ ghi nhận trạng thái, lần render sau (sau khi người dùng
-  // vừa dán key vào Cài đặt) là thử lại ngay — trước đây phải đợi sang hôm sau mới có luận ngày.
-  if(!SETTINGS.geminiApiKey){ showToast('🔑','Chưa có Gemini API key','Vào Cài đặt → Hội thoại AI để thêm key trước khi xin lời luận.'); return; }
-  _zodiacFetching = true;
-  try{
-    const prompt = `Bạn viết mục "chiêm tinh hằng ngày" cho một tờ báo, dành cho cung ${z.n} (${z.el}, chủ quản ${z.rule}), ngày ${todayKey()}.
-Viết 2 câu tiếng Việt, tổng dưới 45 từ: câu 1 nêu tinh thần chung của ngày, câu 2 là MỘT lời khuyên hành động cụ thể, thực tế, có thể làm ngay (liên quan công việc, sức khỏe hoặc học tập).
-Giọng điềm đạm, không hứa hẹn tiền bạc/vận may, không doạ nạt, không nói chắc chắn điều gì sẽ xảy ra. Chỉ trả về đúng 2 câu, không thêm tiêu đề hay ký hiệu.`;
-    const txt = await callGeminiOnce(prompt);
-    SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:(txt||'').trim(), tries:0};
-    saveSettings();
-    if(STATE.tab==='hub') renderContent();
-  }catch(e){
-    showToast('⚠️','Chưa xin được lời luận', geminiFriendlyError(e && e.message, 'bấm lại sau ít phút'));
-  }finally{ _zodiacFetching = false; renderContent(); }
-}
-function zodiacCardHtml(){
-  const bd = (SETTINGS.profile||{}).birthday;
-  const z = zodiacOf(bd);
-  if(!z){
-    return `<div class="hc-zodiac empty" data-action="hub-open" data-target="profile">
-      <div class="hz-sym">✨</div>
-      <div class="hz-tx"><b>Cung hoàng đạo</b>Nhập ngày sinh trong Thông tin cá nhân để hiện ở đây ›</div>
-    </div>`;
-  }
-  const c = SETTINGS.zodiacDaily;
-  const hasText = c && c.day===todayKey() && c.k===z.k && c.text;
-  const loading = !!_zodiacFetching;
-  // PHẦN LÕI — luôn hiện, tính cục bộ, không cần mạng, không tốn hạn mức AI, và kiểm chứng được bằng
-  // bất kỳ lịch thiên văn nào: pha Mặt Trăng hôm nay + cung Mặt Trời đang đi qua.
-  const m = moonInfo();
-  const sun = sunSignToday();
-  const astro = `${m.ic} ${m.name} · sáng ${m.illum}%${m.toFull>0?` · còn ${m.toFull} ngày tới trăng tròn`:''}`
-    + (sun ? ` · ☉ Mặt Trời đang ở ${sun.n}` : '');
-  // Lời luận ngày dựng tại chỗ từ pha Mặt Trăng + nguyên tố của cung — luôn có, không tốn hạn mức.
-  const note = (ZODIAC_MOON_NOTE[m.name]||'') + ' ' + (ZODIAC_EL_NOTE[z.el]||'');
-  const aiLine = hasText
-    ? `<span class="hz-ai">🤖 ${escapeHtml(c.text)}</span>`
-    : `<span class="hz-aibtn ${loading?'busy':''}" data-action="zodiac-ai">${loading?'⏳ Đang xin lời luận…':'🤖 Xin thêm lời luận từ AI'}</span>`;
-  return `<div class="hc-zodiac" style="--zc:${z.c};">
-    <div class="hz-sym">${z.sym}</div>
-    <div class="hz-tx">
-      <b>${z.n} <span class="hz-meta">${z.el} · ${z.rule}</span></b>
-      <span class="hz-astro">${astro}</span>
-      <span class="hz-line">${escapeHtml(note.trim())}</span>
-      ${aiLine}
-      <span class="hz-note">Pha Mặt Trăng và vị trí Mặt Trời là dữ liệu thiên văn thật; phần còn lại là góc nhìn để ngẫm, không phải dự báo có cơ sở khoa học.</span>
-    </div>
-  </div>`;
-}
+
 // ================= THỜI TIẾT =================
 // Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
 // rồi nhớ luôn vào SETTINGS; nếu bạn từ chối chia sẻ vị trí thì mặc định lấy theo TP.HCM.
@@ -5079,6 +5177,18 @@ async function wxSearchPlaces(q){
     return {lat: r.latitude, lon: r.longitude, name: parts.join(', ')};
   });
 }
+// LỖI CỦA BẢN TRƯỚC: mọi thao tác click trong app đi qua MỘT trình xử lý gắn trên #content, nhưng lớp
+// chọn vị trí lại được gắn vào document.body — tức nằm NGOÀI #content — nên bấm nút "Tìm", bấm kết quả
+// hay bấm "Đóng" đều không có gì xảy ra. Bản này gắn trình xử lý riêng ngay trên chính lớp phủ.
+// Đồng thời bỏ luôn nút "Tìm": gõ tới đâu gợi ý hiện tới đó (chờ 280ms sau phím cuối để không bắn
+// request mỗi ký tự), giống thanh tìm địa điểm của các ứng dụng bản đồ.
+let _wxSearchTimer = null, _wxSearchSeq = 0;
+function wxRecent(){ return Array.isArray(SETTINGS.geoRecent) ? SETTINGS.geoRecent : []; }
+function wxPushRecent(item){
+  const list = wxRecent().filter(x => x && x.name !== item.name);
+  list.unshift(item);
+  SETTINGS.geoRecent = list.slice(0, 6);
+}
 function openWxPicker(){
   closeWxPicker();
   const el = document.createElement('div');
@@ -5086,42 +5196,73 @@ function openWxPicker(){
   const cur = SETTINGS.geoManual;
   el.innerHTML = `<div class="wx-pick-box">
       <div class="wx-pick-head"><span>📍 Chọn vị trí xem thời tiết</span>
-        <button class="wx-pick-x" data-action="wx-pick-close" aria-label="Đóng">✕</button></div>
-      <div class="wx-pick-cur">Đang xem: <b>${escapeHtml(SETTINGS.geoCity || WEATHER_FALLBACK.city)}</b>${cur?' (tự chọn)':' (theo vị trí máy)'}</div>
-      <div class="wx-pick-row">
-        <input id="wxPickInput" class="form-input" type="text" placeholder="Gõ tên tỉnh/thành, ví dụ: Đà Nẵng" autocomplete="off">
-        <button class="form-btn" data-action="wx-pick-search" style="flex:0 0 auto; padding:0 14px;">Tìm</button>
-      </div>
+        <button class="wx-pick-x" data-wx="close" aria-label="Đóng">✕</button></div>
+      <div class="wx-pick-cur">Đang xem: <b>${escapeHtml(SETTINGS.geoCity || WEATHER_FALLBACK.city)}</b>${cur?' · bạn tự chọn':' · theo vị trí máy'}</div>
+      <input id="wxPickInput" class="form-input" type="text" placeholder="Gõ tên tỉnh, thành, quận…" autocomplete="off" autocorrect="off" spellcheck="false">
       <div id="wxPickResults" class="wx-pick-results"></div>
-      <button class="form-btn cancel" data-action="wx-pick-auto" style="width:100%; margin-top:10px;">⌖ Dùng lại vị trí hiện tại của máy</button>
+      <button class="form-btn cancel" data-wx="auto" style="width:100%; margin-top:4px;">⌖ Dùng vị trí hiện tại của máy</button>
     </div>`;
-  el.addEventListener('click', ev=>{ if(ev.target === el) closeWxPicker(); });
+  // Trình xử lý RIÊNG cho lớp phủ — không phụ thuộc trình xử lý chung của #content.
+  el.addEventListener('click', ev=>{
+    if(ev.target === el){ closeWxPicker(); return; }
+    const hit = ev.target.closest('[data-wx]');
+    if(!hit) return;
+    const act = hit.getAttribute('data-wx');
+    if(act === 'close') closeWxPicker();
+    else if(act === 'auto') wxUseAuto();
+    else if(act === 'use') wxUsePlace(hit.getAttribute('data-lat'), hit.getAttribute('data-lon'), hit.getAttribute('data-name'));
+  });
   document.body.appendChild(el);
   const inp = document.getElementById('wxPickInput');
   if(inp){
-    inp.focus();
-    inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); runWxSearch(); } });
+    inp.addEventListener('input', ()=>{
+      clearTimeout(_wxSearchTimer);
+      _wxSearchTimer = setTimeout(runWxSearch, 280);
+    });
+    inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); clearTimeout(_wxSearchTimer); runWxSearch(); } });
+    setTimeout(()=>{ try{ inp.focus(); }catch(_){} }, 60);
   }
+  wxRenderResults(wxRecent().length
+    ? `<div class="wx-pick-hint">Vừa dùng gần đây</div>` + wxRecent().map(wxItemHtml).join('')
+    : `<div class="wx-pick-hint">Gõ tên địa điểm để xem gợi ý, ví dụ: Đà Nẵng, Quận 7, Biên Hòa…</div>`);
 }
-function closeWxPicker(){ const el = document.getElementById('wxPickOverlay'); if(el) el.remove(); }
+function wxItemHtml(r){
+  return `<div class="wx-pick-item" data-wx="use" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${escapeHtml(r.name)}">
+    <span class="wx-pin">📍</span><span>${escapeHtml(r.name)}</span></div>`;
+}
+function wxRenderResults(html){
+  const box = document.getElementById('wxPickResults');
+  if(box) box.innerHTML = html;
+}
+function closeWxPicker(){
+  clearTimeout(_wxSearchTimer);
+  const el = document.getElementById('wxPickOverlay'); if(el) el.remove();
+}
 async function runWxSearch(){
   const inp = document.getElementById('wxPickInput');
-  const box = document.getElementById('wxPickResults');
-  if(!inp || !box) return;
+  if(!inp) return;
   const q = inp.value.trim();
-  if(q.length < 2){ box.innerHTML = `<div class="wx-pick-hint">Gõ ít nhất 2 ký tự rồi bấm Tìm.</div>`; return; }
-  box.innerHTML = `<div class="wx-pick-hint">Đang tìm…</div>`;
+  if(q.length < 2){
+    wxRenderResults(wxRecent().length
+      ? `<div class="wx-pick-hint">Vừa dùng gần đây</div>` + wxRecent().map(wxItemHtml).join('')
+      : `<div class="wx-pick-hint">Gõ ít nhất 2 ký tự để có gợi ý.</div>`);
+    return;
+  }
+  const seq = ++_wxSearchSeq;
+  wxRenderResults(`<div class="wx-pick-hint">Đang tìm “${escapeHtml(q)}”…</div>`);
   try{
     const list = await wxSearchPlaces(q);
-    box.innerHTML = list.length
-      ? list.map(r=>`<div class="wx-pick-item" data-action="wx-pick-use" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>`).join('')
-      : `<div class="wx-pick-hint">Không tìm thấy địa điểm nào khớp "${escapeHtml(q)}".</div>`;
+    if(seq !== _wxSearchSeq) return;   // đã có lần gõ mới hơn → bỏ kết quả cũ
+    wxRenderResults(list.length ? list.map(wxItemHtml).join('')
+      : `<div class="wx-pick-hint">Không tìm thấy địa điểm nào khớp “${escapeHtml(q)}”. Thử gõ tên tỉnh/thành thay vì tên phường.</div>`);
   }catch(e){
-    box.innerHTML = `<div class="wx-pick-hint">Không tra được danh sách địa điểm (${escapeHtml((e&&e.message)||'lỗi mạng')}).</div>`;
+    if(seq !== _wxSearchSeq) return;
+    wxRenderResults(`<div class="wx-pick-hint">Không tra được danh sách địa điểm (${escapeHtml((e&&e.message)||'lỗi mạng')}).</div>`);
   }
 }
 function wxUsePlace(lat, lon, name){
   SETTINGS.geoManual = {lat:+lat, lon:+lon, city:name};
+  wxPushRecent({lat:+lat, lon:+lon, name});
   SETTINGS.geoCity = name;
   SETTINGS.weather = null;              // xoá đệm để lấy lại ngay cho địa điểm mới
   saveSettings(); pushToDrive();
@@ -5303,7 +5444,7 @@ function renderHub(){
         </div>
         ${hcJourneyHtml()}
       </div>
-      ${zodiacCardHtml()}
+      ${tuviCardHtml()}
       ${weatherChipHtml()}
       ${monthCalBlockHtml()}
     </div>`;
@@ -15160,6 +15301,9 @@ function renderProfile(){
       <select class="form-input" id="p-activity" style="margin-top:8px;">
         ${Object.keys(ACTIVITY_LABELS).map(k=>`<option value="${k}" ${(p.activity||'moderate')===k?'selected':''}>${ACTIVITY_LABELS[k]}</option>`).join('')}
       </select>
+      <select class="form-input" id="p-job" style="margin-top:8px;">
+        ${Object.keys(TUVI_JOBS).map(k=>`<option value="${k}" ${(p.job||'qc')===k?'selected':''}>Nghề nghiệp: ${TUVI_JOBS[k]}</option>`).join('')}
+      </select>
       <button class="form-btn submit" style="width:100%; margin-top:12px;" data-action="save-profile">💾 Lưu thông tin</button>
     </div>
     <div class="card">
@@ -16259,20 +16403,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const wxOpenEl = e.target.closest('[data-action="wx-pick-open"]');
   if(wxOpenEl){ openWxPicker(); return; }
-  const wxCloseEl = e.target.closest('[data-action="wx-pick-close"]');
-  if(wxCloseEl){ closeWxPicker(); return; }
-  const wxSearchEl = e.target.closest('[data-action="wx-pick-search"]');
-  if(wxSearchEl){ runWxSearch(); return; }
-  const wxUseEl = e.target.closest('[data-action="wx-pick-use"]');
-  if(wxUseEl){ wxUsePlace(wxUseEl.getAttribute('data-lat'), wxUseEl.getAttribute('data-lon'), wxUseEl.getAttribute('data-name')); return; }
-  const wxAutoEl = e.target.closest('[data-action="wx-pick-auto"]');
-  if(wxAutoEl){ wxUseAuto(); return; }
-  const zodiacAiEl = e.target.closest('[data-action="zodiac-ai"]');
-  if(zodiacAiEl){
-    const z = zodiacOf((SETTINGS.profile||{}).birthday);
-    if(z && !_zodiacFetching){ fetchZodiacToday(z); renderContent(); }
-    return;
-  }
   const calToggleEl = e.target.closest('[data-action="hub-cal-toggle"]');
   if(calToggleEl){
     STATE.hubCalOpen = !STATE.hubCalOpen;
