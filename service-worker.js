@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ren-luyen-cache-v137';
+const CACHE_NAME = 'ren-luyen-cache-v138';
 const ASSETS = ['./index.html',
   './pet-sheet.webp', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './dictation-data.json'];
 // Giới hạn thời gian chờ mạng khi mở app (navigate). Nếu mạng chậm/treo lâu hơn mức này,
