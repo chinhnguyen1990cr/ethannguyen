@@ -500,8 +500,8 @@
     border-radius:9px; border:1px solid; margin-bottom:9px; text-transform:uppercase;}
   .hc-weather .w-place{font-size:9.5px; font-weight:700; color:#7CE7DA; letter-spacing:.02em;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;}
-  /* Thẻ thần thú khi nằm TRONG khung đồng hồ */
-  .hub-clock-card .pet-card{position:relative; z-index:1; margin:0 0 2px; background:rgba(8,12,20,.42) !important;
+  /* Thẻ Hành trình khi nằm TRONG khung đồng hồ */
+  .hub-clock-card .gm-card{position:relative; z-index:1; margin:0 0 2px; background:rgba(8,12,20,.42) !important;
     border:1px solid rgba(255,255,255,.12) !important; border-radius:16px;}
   /* Đồng hồ gọn lại để cả trang chủ vừa một màn hình */
   .hub-clock-card.v3{padding:12px 13px 11px; gap:9px;}
@@ -587,8 +587,8 @@
   /* ---- THU GỌN TOÀN TRANG CHỦ ĐỂ VỪA ĐÚNG MỘT KHUNG ĐIỆN THOẠI ----
      Trước đây phải cuộn mới thấy hết 4 danh mục. Giảm đều chiều cao của banner, thẻ thần tướng và
      thẻ danh mục; ở màn hình thấp (<=740px) giảm thêm một nấc nữa. */
-  .pet-card{padding:9px 12px !important; margin-top:9px !important;}
-  .pet-avatar-wrap{width:44px !important; height:44px !important;}
+  .gm-card{padding:9px 12px !important; margin-top:9px !important;}
+  .gm-card-ic{width:40px !important; height:40px !important;}
   .cat-grid{gap:9px !important;}
   .cat-card{min-height:92px !important; padding:12px !important; border-radius:18px !important;}
   .cat-card .ic{width:30px !important; height:30px !important;}
@@ -600,7 +600,7 @@
     .hub-clock-ring{width:58px; height:58px;}
     .hub-clock-card{padding:11px 13px 9px; gap:7px;}
     .cat-card{min-height:84px !important; padding:11px !important;}
-    .pet-avatar-wrap{width:40px !important; height:40px !important;}
+    .gm-card-ic{width:36px !important; height:36px !important;}
     .hub-today-body{min-height:40px;}
   }
   /* ---- "Học hôm nay" — buổi học liền mạch + Kho luyện tập ---- */
@@ -700,150 +700,92 @@
   .hub-clock-qlink .ql-name{font-size:10.5px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .hub-clock-qlink .ql-stat{font-size:9.5px; font-weight:700; color:rgba(255,255,255,.68); margin-top:1px;}
   .hub-grid{margin-top:18px;}
-  /* ============ LINH THÚ TIẾN HÓA (Pet Evolution) — thẻ gọn trên Hub + màn chi tiết ============ */
-  .pet-card{position:relative; display:flex; align-items:center; gap:12px; margin-top:12px; padding:12px 14px;
+  /* ============ HÀNH TRÌNH THÁM HIỂM — thẻ gọn trên Hub + màn Hành trình ============ */
+  .gm-svg{display:block; overflow:visible;}
+  .gm-card{position:relative; display:flex; align-items:center; gap:12px; margin-top:12px; padding:12px 14px;
     border-radius:18px; border:1px solid var(--border); cursor:pointer;}
-  .pet-avatar-wrap{position:relative; width:52px; height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
-  .pet-avatar-wrap.large{width:96px; height:96px; margin:0 auto;}
-  .pet-avatar{font-size:28px; position:relative; z-index:2; filter:drop-shadow(0 2px 6px rgba(0,0,0,.35)); width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
-  .pet-avatar.large{font-size:52px;}
-  .pet-svg{width:100%; height:100%; display:block; overflow:visible;}
-  .pet-form-ic .pet-svg{width:100%; height:100%;}
-  /* Lớp hình: ảnh vẽ (nếu có) phủ lên trên hình SVG dự phòng. Ảnh lỗi/chưa có sẽ tự gỡ mình đi. */
-  .pet-visual{position:relative; display:block; width:100%; height:100%;}
-  .pet-art-fb{position:absolute; inset:0; display:block;}
-  .pet-art{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:2;
-    filter:drop-shadow(0 3px 10px rgba(0,0,0,.45));}
-  /* Ô ảnh thật cắt ra từ tấm sprite — phủ kín khung, bo góc theo khung chứa */
-  .pet-photo{position:absolute; inset:0; z-index:2; display:block; border-radius:inherit;
-    background-repeat:no-repeat; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);}
-  .pet-card-info{flex:1; min-width:0;}
-  .pet-card-name{font-size:13px; font-weight:800; color:var(--text);}
-  .pet-new-badge{font-size:8.5px; font-weight:800; color:#0A2A44; background:linear-gradient(90deg,#FFC94A,#FF8A3D);
-    border-radius:6px; padding:1px 5px; letter-spacing:.04em; vertical-align:middle;}
-  .pet-card-sub{font-size:10.5px; color:var(--dim); margin-top:2px;}
-  .pet-bar-track{height:6px; border-radius:4px; background:var(--border); overflow:hidden; margin-top:6px;}
-  .pet-bar-track.large{height:8px; margin-top:10px; max-width:260px; margin-left:auto; margin-right:auto;}
-  .pet-bar-fill{height:100%; border-radius:4px; transition:width .3s ease;}
-  .pet-card-arrow{font-size:20px; color:var(--dim2); flex-shrink:0;}
-  .pet-hero-card{border-radius:20px; padding:22px 16px; text-align:center; border:1px solid var(--border);}
-  .pet-hero-name{font-size:17px; font-weight:800; color:var(--text); margin-top:12px;}
-  .pet-hero-desc{font-size:11.5px; color:var(--dim); line-height:1.6; margin-top:6px; max-width:320px; margin-left:auto; margin-right:auto;}
-  .pet-hero-xp{font-size:10.5px; font-weight:700; color:var(--dim2); margin-top:8px;}
-  .pet-reward-card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-top:14px;}
-  .pet-reward-label{font-size:11px; font-weight:800; color:var(--gold);}
-  .pet-reward-text{font-size:12px; line-height:1.6; color:var(--text); margin-top:6px;}
-  /* ---- Thần tướng cưỡi ngựa trời: khối hiển thị 100 cấp, bảng điểm, nhịp tu luyện ---- */
-  .pet-hero-realm{font-size:10px; font-weight:700; letter-spacing:.08em; color:var(--dim2); margin-top:3px; text-transform:uppercase;}
-  .pet-realm-block{margin-bottom:14px;}
-  .pet-realm-block.slot{opacity:.35;}
-  .pet-realm-block.slot .pet-form-ic{font-size:22px; color:var(--dim2);}
-  .pet-realm-block.dim{opacity:.45;}
-  .pet-realm-title{font-size:11.5px; font-weight:800; color:var(--dim); margin-bottom:6px;}
-  .pet-realm-title small{font-weight:600; font-size:9.5px; color:var(--dim2); margin-left:4px;}
-  .pet-form-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:5px;}
-  .pet-form{border:1px solid var(--border); border-radius:10px; padding:7px 3px 5px; text-align:center;
-    background:rgba(0,0,0,.2); min-width:0;}
-  .pet-form.lock{opacity:.5;}
-  .pet-form.cur{box-shadow:0 0 0 2px var(--gold) inset;}
-  /* ===== KỸ NĂNG RIÊNG + KHUNG PHÓNG TO LINH THÚ ===== */
-  .pet-skill-card{margin-top:12px; padding:14px 16px; border-radius:18px; background:linear-gradient(150deg, color-mix(in srgb, var(--pk1) 16%, transparent), color-mix(in srgb, var(--pk2) 10%, transparent)); border:1px solid color-mix(in srgb, var(--pk1) 38%, transparent);}
-  .pskc-head{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--fg); margin-bottom:6px;}
-  .pskc-ic{font-size:20px;}
-  .pskc-text{font-size:12.5px; line-height:1.6; color:var(--fg);}
-  .pskc-left{font-size:11px; color:var(--dim); margin-top:5px;}
-  .pskc-story{margin-top:9px; padding-top:9px; border-top:1px dashed color-mix(in srgb, var(--pk1) 30%, transparent); font-size:11.5px; line-height:1.65; color:var(--dim); font-style:italic;}
-  .pskc-next{margin-top:8px; font-size:10.5px; color:var(--dim2); line-height:1.55;}
-  .pet-skill-banner{display:flex; align-items:center; gap:9px; padding:9px 12px; margin-bottom:10px; border-radius:14px; background:rgba(124,108,240,.13); border:1px solid rgba(124,108,240,.34);}
-  .pet-skill-banner .psb-ic{font-size:17px; flex:0 0 auto;}
-  .pet-skill-banner .psb-tx{font-size:11px; line-height:1.5; color:var(--dim);}
-  .eng-quiz-hint{width:100%; margin-top:10px; padding:10px; border-radius:13px; border:1px dashed rgba(255,209,102,.55); background:rgba(255,209,102,.10); color:#FFD166; font-size:12px; font-weight:600; cursor:pointer;}
-  .eng-quiz-opt.hinted-out{opacity:.26; text-decoration:line-through; pointer-events:none; filter:grayscale(.7);}
-  .pet-avatar-wrap.large{cursor:zoom-in;}
-  .pet-zoom-hint{position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); font-size:9.5px; color:var(--dim2); white-space:nowrap; letter-spacing:.3px;}
-  .pet-form.open{cursor:zoom-in;}
-  .pet-zoom-overlay{position:fixed; inset:0; z-index:9999; background:rgba(4,6,14,.86); backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px); display:flex; align-items:center; justify-content:center; padding:22px 18px; opacity:0; transition:opacity .22s ease; overflow:auto;}
-  .pet-zoom-overlay.show{opacity:1;}
-  .pet-zoom-box{position:relative; width:100%; max-width:340px; text-align:center; transform:scale(.9); transition:transform .28s cubic-bezier(.2,1.3,.4,1);}
-  .pet-zoom-overlay.show .pet-zoom-box{transform:scale(1);}
-  .pet-zoom-close{position:absolute; top:-6px; right:-4px; z-index:3; width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); color:#fff; font-size:15px; cursor:pointer;}
-  .pet-zoom-frame{position:relative; padding:20px; border-radius:26px; background:radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--pz1) 34%, transparent), color-mix(in srgb, var(--pz2) 16%, transparent) 60%, rgba(10,12,22,.9) 100%); border:2px solid color-mix(in srgb, var(--pz1) 62%, transparent); box-shadow:0 0 42px color-mix(in srgb, var(--pz1) 38%, transparent), inset 0 0 30px rgba(0,0,0,.45);}
-  .pzf-corner{position:absolute; width:26px; height:26px; border:2px solid color-mix(in srgb, var(--pz1) 85%, transparent);}
-  .pzf-corner.tl{top:7px; left:7px; border-right:0; border-bottom:0; border-radius:12px 0 0 0;}
-  .pzf-corner.tr{top:7px; right:7px; border-left:0; border-bottom:0; border-radius:0 12px 0 0;}
-  .pzf-corner.bl{bottom:7px; left:7px; border-right:0; border-top:0; border-radius:0 0 0 12px;}
-  .pzf-corner.br{bottom:7px; right:7px; border-left:0; border-top:0; border-radius:0 0 12px 0;}
-  .pet-zoom-glow{position:absolute; inset:14%; border-radius:50%; background:radial-gradient(circle, color-mix(in srgb, var(--pz1) 46%, transparent), transparent 68%); filter:blur(16px); animation:pzGlow 3.4s ease-in-out infinite;}
-  @keyframes pzGlow{0%,100%{opacity:.55; transform:scale(1);} 50%{opacity:1; transform:scale(1.09);}}
-  .pet-zoom-img{position:relative; z-index:2; width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
-  .pet-zoom-img .pet-visual, .pet-zoom-img img, .pet-zoom-img .pet-svg{width:100%; height:100%; object-fit:contain;}
-  .pet-zoom-img .pet-photo{border-radius:14px;}
-  .pet-zoom-lv{margin-top:14px; font-size:10px; letter-spacing:1.4px; color:var(--dim2); text-transform:uppercase;}
-  .pet-zoom-name{margin-top:4px; font-size:21px; font-weight:800; letter-spacing:.3px;}
-  .pet-zoom-story{margin-top:9px; font-size:12.5px; line-height:1.7; color:var(--dim); font-style:italic;}
-  .pet-zoom-skill{margin-top:13px; display:flex; align-items:flex-start; gap:9px; text-align:left; padding:11px 13px; border-radius:15px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:12px; line-height:1.6; color:var(--fg);}
-  .pet-zoom-skill .pzs-ic{font-size:18px; flex:0 0 auto;}
-  .track-hud.slim{padding:10px 14px; cursor:pointer;}
-  .track-hud.slim .track-hud-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .track-hud-streak-big{font-size:12.5px; color:var(--fg); font-weight:600;}
-  .track-hud-streak-big b{font-family:var(--num,var(--mono)); font-size:15px;}
-  .track-hud-pet{font-size:11.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52%;}
-  .pet-card-skill{margin-top:5px; font-size:10px; color:var(--dim2); line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .pet-form-ic{border-radius:9px; overflow:hidden; font-size:19px; line-height:1.15; height:38px; display:flex; align-items:center; justify-content:center;}
-  .pet-form-lv{font-size:8px; font-weight:800; color:var(--dim2); margin-top:2px;}
-  .pet-form-name{font-size:8px; font-weight:700; color:var(--dim2); line-height:1.25; margin-top:1px;
-    overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
-  .pet-form-xp{font-size:7.5px; color:var(--dim2); opacity:.75; margin-top:2px;}
-  @media (max-width:400px){ .pet-form-grid{gap:4px;} .pet-form-ic{font-size:17px; height:32px;} }
-  .pet-lv-chip{display:inline-block; font-size:9px; font-weight:800; letter-spacing:.03em; padding:1px 6px; border-radius:6px;
-    background:rgba(255,217,122,.14); border:1px solid rgba(255,217,122,.35); color:#FFD97A; margin-right:5px;}
-  .pet-hero-lv{font-size:9.5px; font-weight:800; letter-spacing:.16em; color:var(--dim2); text-transform:uppercase; margin-bottom:12px;}
-  .pet-hero-card{position:relative; overflow:hidden;}
-  .pet-hero-card::after{content:''; position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(115deg, rgba(255,255,255,.03) 0 1px, transparent 1px 7px);}
-  .pet-warn{margin-top:10px; font-size:10.5px; line-height:1.55; color:#FFB27A; background:rgba(255,138,61,.10);
-    border:1px solid rgba(255,138,61,.3); border-radius:10px; padding:8px 10px;}
-  .pet-score-card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-top:14px;}
-  .pet-score-head{font-size:12px; font-weight:800; color:var(--text); margin-bottom:8px;}
-  .pet-score-head b{color:#FFD97A;}
-  .pet-score-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:11px;
+  .gm-card-ic{flex:0 0 auto; width:46px; height:46px; display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 3px 7px rgba(0,0,0,.35));}
+  .gm-card-info{flex:1; min-width:0;}
+  .gm-card-name{font-size:13px; font-weight:800; color:var(--text);}
+  .gm-new{font-size:8.5px; font-weight:800; color:#0A2A44; background:linear-gradient(90deg,#FFC94A,#FF8A3D);
+    padding:1px 6px; border-radius:6px; margin-left:5px; vertical-align:middle; letter-spacing:.04em;}
+  .gm-card-sub{font-size:10.5px; color:var(--dim); margin-top:3px;}
+  .gm-lv-chip{display:inline-block; font-size:9px; font-weight:800; padding:1px 6px; border-radius:6px;
+    border:1px solid transparent; margin-right:4px;}
+  .gm-card-badges{font-size:9.5px; color:var(--dim2); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .gm-card-arrow{font-size:20px; color:var(--dim2); flex-shrink:0;}
+  .gm-bar{height:6px; border-radius:4px; background:var(--border); overflow:hidden; margin-top:6px;}
+  .gm-bar.large{height:9px; margin:12px auto 0; max-width:280px;}
+  .gm-bar.thin{height:4px; margin-top:6px;}
+  .gm-bar-fill{height:100%; border-radius:4px; transition:width .35s ease;}
+  /* --- màn Hành trình --- */
+  .gm-hero{position:relative; border-radius:22px; padding:20px 16px 22px; text-align:center; border:1px solid var(--border); overflow:hidden;}
+  .gm-hero::after{content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(60% 40% at 50% 0%, rgba(255,255,255,.10), transparent 70%);}
+  .gm-hero-tier{position:relative; z-index:1; font-size:9.5px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2);}
+  .gm-hero-ic{position:relative; z-index:1; margin:10px auto 2px; width:118px; height:118px; display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 8px 20px rgba(0,0,0,.45));}
+  .gm-hero-name{position:relative; z-index:1; font-size:22px; font-weight:800; letter-spacing:.3px;}
+  .gm-hero-lv{position:relative; z-index:1; font-size:12px; color:var(--dim); margin-top:4px;}
+  .gm-hero-lv b{color:var(--text); font-size:14px;}
+  .gm-hero-lv span{font-size:10.5px; color:var(--dim2);}
+  .gm-hero-xp{position:relative; z-index:1; font-size:11px; font-weight:700; color:var(--dim2); margin-top:9px;}
+  .gm-hero-desc{position:relative; z-index:1; font-size:11.5px; color:var(--dim); line-height:1.65; margin:10px auto 0; max-width:330px;}
+  .gm-claim{margin-top:12px; padding:11px 14px; border-radius:14px; font-size:11.5px; line-height:1.6; color:#0A2A44;
+    background:linear-gradient(90deg,#FFD97A,#FFC94A); font-weight:600;}
+  .gm-score{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-top:14px;}
+  .gm-score-head{font-size:12px; font-weight:800; color:var(--text); margin-bottom:9px;}
+  .gm-score-head b{color:#FFD97A;}
+  .gm-score-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:11px;
     color:var(--dim); padding:5px 0; border-bottom:1px dashed var(--border);}
-  .pet-score-row b{font-size:11.5px; flex-shrink:0;}
-  .pet-score-row b.plus{color:#2CDBA8;} .pet-score-row b.minus{color:#FF6E6E;}
-  .pet-score-note{font-size:10px; color:var(--dim2); line-height:1.55; margin-top:9px;}
-  .pet-pace-card{background:linear-gradient(135deg, rgba(139,108,240,.12), rgba(44,219,168,.05));
-    border:1px solid rgba(139,108,240,.35); border-radius:16px; padding:13px 15px; margin-top:12px;}
-  .pet-pace-title{font-size:11.5px; font-weight:800; color:#B9A6FF;}
-  .pet-pace-desc{font-size:10.5px; color:var(--dim); line-height:1.6; margin-top:5px;}
-  .aura-mist{filter:drop-shadow(0 0 9px var(--pet-c1));}
-  .aura-mist::before{content:''; position:absolute; inset:-10px; border-radius:50%;
-    background:radial-gradient(circle, var(--pet-c1), transparent 68%); opacity:.16;}
-  /* Hiệu ứng hào quang theo từng cấp — càng tiến hóa cao càng lộng lẫy */
-  .aura-soft{filter:drop-shadow(0 0 8px var(--pet-c1));}
-  .aura-pulse{animation:petPulse 2.2s ease-in-out infinite;}
-  @keyframes petPulse{0%,100%{filter:drop-shadow(0 0 6px var(--pet-c1));}50%{filter:drop-shadow(0 0 16px var(--pet-c1));}}
-  .aura-sparkle{animation:petPulse 2.2s ease-in-out infinite;}
-  .aura-ring::before{content:'';position:absolute; inset:-6px; border-radius:50%;
-    border:2px solid transparent; border-top-color:var(--pet-c1); border-right-color:var(--pet-c2);
-    animation:petSpin 3s linear infinite;}
-  .aura-ring.gold::before{border-top-color:#FFC94A; border-right-color:var(--pet-c1);}
-  @keyframes petSpin{to{transform:rotate(360deg);}}
-  .aura-flame{animation:petPulse 1.6s ease-in-out infinite;}
-  .aura-flame::before{content:'';position:absolute; inset:-8px; border-radius:50%;
-    background:radial-gradient(circle, var(--pet-c1), transparent 70%); opacity:.22; animation:petPulse 1.6s ease-in-out infinite;}
-  .aura-divine::before{content:'';position:absolute; inset:-10px; border-radius:50%;
-    border:2px solid transparent; border-top-color:var(--pet-c1); border-right-color:var(--pet-c2);
-    border-bottom-color:var(--pet-c1); animation:petSpin 2.4s linear infinite;}
-  .aura-divine{animation:petPulse 1.8s ease-in-out infinite;}
-  .pet-particle{position:absolute; width:4px; height:4px; border-radius:50%; background:var(--pet-c1);
-    top:50%; left:50%; animation:petTwinkle 2.4s ease-in-out infinite; opacity:0;}
-  .pet-particle.p0{animation-delay:0s; transform:translate(-26px,-18px);}
-  .pet-particle.p1{animation-delay:.3s; transform:translate(22px,-22px);}
-  .pet-particle.p2{animation-delay:.6s; transform:translate(28px,14px);}
-  .pet-particle.p3{animation-delay:.9s; transform:translate(-22px,20px);}
-  .pet-particle.p4{animation-delay:1.2s; transform:translate(0,-30px);}
-  .pet-particle.p5{animation-delay:1.5s; transform:translate(0,30px);}
-  @keyframes petTwinkle{0%,100%{opacity:0; transform:scale(.4) translate(var(--tx,0),var(--ty,0));}50%{opacity:1; transform:scale(1.1) translate(var(--tx,0),var(--ty,0));}}
+  .gm-score-row b{font-size:11.5px; flex-shrink:0;}
+  .gm-score-row b.plus{color:#2CDBA8;} .gm-score-row b.hold{color:#9FB0C6;}
+  .gm-score-note{font-size:10px; color:var(--dim2); line-height:1.6; margin-top:10px;}
+  .gm-block{background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:15px 16px; margin-top:14px;}
+  .gm-block h3{font-size:13px; font-weight:800; color:var(--text); margin:0 0 3px;}
+  .gm-block-sub{font-size:10.5px; color:var(--dim2); line-height:1.55; margin-bottom:11px;}
+  .gm-perk{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border);}
+  .gm-perk:last-child{border-bottom:0;}
+  .gm-perk.off{opacity:.45;}
+  .gm-perk-ic{font-size:18px; flex:0 0 auto;}
+  .gm-perk-tx{font-size:11.5px; color:var(--dim); line-height:1.55;}
+  .gm-perk-tx b{color:var(--text);}
+  .gm-perk-tx small{font-size:10px; color:var(--dim2);}
+  .gm-perk-banner{display:flex; align-items:center; gap:9px; padding:8px 12px; margin-bottom:10px; border-radius:14px;
+    background:rgba(124,108,240,.13); border:1px solid rgba(124,108,240,.34);}
+  .gm-perk-banner .gpb-ic{flex:0 0 auto; display:flex;}
+  .gm-perk-banner .gpb-tx{font-size:11px; line-height:1.5; color:var(--dim);}
+  .gm-tier-row{padding:10px 0; border-bottom:1px dashed var(--border);}
+  .gm-tier-row:last-child{border-bottom:0;}
+  .gm-tier-row.dim{opacity:.45;}
+  .gm-tier-head{display:flex; align-items:center; gap:10px;}
+  .gm-tier-ic{flex:0 0 auto; width:38px; height:38px; display:flex;}
+  .gm-tier-tx{font-size:12px; color:var(--text); line-height:1.4;}
+  .gm-tier-tx small{font-size:9.5px; color:var(--dim2); font-weight:600;}
+  .gm-dots{display:flex; gap:5px; margin-top:8px; padding-left:48px; flex-wrap:wrap;}
+  .gm-dot{width:17px; height:17px; border-radius:50%; background:var(--border); flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:transparent;}
+  .gm-dot.on{background:var(--dc);}
+  .gm-dot.cur{box-shadow:0 0 0 2px rgba(255,255,255,.55); color:#0A1020; width:21px; height:21px; font-size:9px;}
+  .gm-badge-grid{display:grid; grid-template-columns:1fr; gap:11px;}
+  .gm-badge{display:flex; align-items:center; gap:12px; padding:10px; border-radius:14px;
+    border:1px solid var(--border); background:rgba(255,255,255,.02);}
+  .gm-badge.got{background:rgba(255,255,255,.045);}
+  .gm-badge-ic{position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-radius:50%;
+    background:radial-gradient(circle at 34% 26%, color-mix(in srgb, var(--bf1) 55%, transparent), color-mix(in srgb, var(--bf2) 40%, transparent) 70%, rgba(10,14,26,.85) 100%);}
+  .gm-badge-ic.off{filter:grayscale(1); opacity:.42;}
+  .gm-badge-ring{position:absolute; inset:0; border-radius:50%; border:2.5px solid var(--bf1);
+    box-shadow:0 0 12px color-mix(in srgb, var(--bf1) 45%, transparent), inset 0 -3px 8px rgba(0,0,0,.35);}
+  .gm-badge-ic.dia .gm-badge-ring{animation:gmDia 2.6s ease-in-out infinite;}
+  @keyframes gmDia{0%,100%{box-shadow:0 0 10px color-mix(in srgb, var(--bf1) 40%, transparent), inset 0 -3px 8px rgba(0,0,0,.35);}
+    50%{box-shadow:0 0 22px color-mix(in srgb, var(--bf1) 85%, transparent), inset 0 -3px 8px rgba(0,0,0,.35);}}
+  .gm-badge-tx{flex:1; min-width:0;}
+  .gm-badge-n{font-size:12px; font-weight:800; color:var(--text);}
+  .gm-badge-tier{font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;}
+  .gm-badge-d{font-size:10px; color:var(--dim2); line-height:1.45; margin-top:2px;}
+  .gm-badge-p{font-size:9.5px; color:var(--dim2); margin-top:4px;}
+  @media (min-width:560px){ .gm-badge-grid{grid-template-columns:1fr 1fr;} }
   .menu-card{background:var(--panel); border:1px solid var(--border); border-radius:22px; overflow:hidden;
     box-shadow:0 10px 24px rgba(0,0,0,0.22);}
   .menu-card-heading{display:flex; align-items:center; gap:8px; padding:14px 18px 4px; font-size:10.5px; font-weight:700;
@@ -1901,7 +1843,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v129';
+const APP_VERSION = 'v130';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2953,593 +2895,273 @@ function computeBadgesTrack(track){
     {icon:'👑', label:'Đạt Level 5', earned: lvl>=5},
   ];
 }
-// ================= LINH THÚ TIẾN HÓA — HỆ CẢNH GIỚI TU LUYỆN 50 CẤP =================
-// Phong cách tiên hiệp/thần thoại phương Đông: linh thú đồng hành đi qua 10 ĐẠI CẢNH GIỚI, mỗi cảnh
-// giới chia 5 TẦNG (Sơ Kỳ → Viên Mãn) = 50 cấp. Bảng màu chọn theo hướng ma mị & cổ đại: mực đen, tử
-// khí, ngọc bích, huyết sa, kim quang — thay vì bảng màu tươi sáng kiểu game hiện đại.
-// 10 ĐẠI CẢNH GIỚI chỉ còn giữ vai trò bảng màu + hào quang (mỗi cảnh giới một tông màu riêng, càng cao
-// càng rực rỡ). Còn HÌNH THÁI thì MỖI CẤP MỘT KIỂU KHÁC HẲN — xem PET_FORMS bên dưới.
-// ================= 20 THẦN THÚ CƯỠI, MỖI CON 4 CẤP TIẾN HÓA =================
-// Danh sách thần thú. THÊM CON MỚI = thêm một dòng ở đây + một khối 4 dòng tương ứng trong PET_FORMS
-// bên dưới; hệ thống tự sinh 4 cấp tiến hóa, tự nới số cấp tối đa, không phải sửa dòng code nào khác.
-// sp = loài (quyết định bộ hình vẽ): tiger | bear | wolf | fox | kirin | deer | horse | pegasus | dais
-const PET_MOUNTS = [
-  {n:'Lão Hổ', sp:'tiger', c1:'#F0913C', c2:'#8A3F14', sk:'bonus'},
-  {n:'Bạch Ngạch Mãnh Hổ', sp:'tiger', c1:'#E8F0FA', c2:'#2E6FB0', sk:'hint'},
-  {n:'Ngân Giáp Bạch Hổ', sp:'tiger', c1:'#E2EAF6', c2:'#93A9C9', sk:'shield'},
-  {n:'Bạch Hùng', sp:'bear', c1:'#F2F6FC', c2:'#C0392B', sk:'xp'},
-  {n:'Nguyệt Hùng', sp:'bear', c1:'#F0C14E', c2:'#3FA36A', sk:'streak'},
-  {n:'Diệm Hùng', sp:'bear', c1:'#A8703C', c2:'#FF6A2B', sk:'revive'},
-  {n:'Ngân Lang', sp:'wolf', c1:'#E9F0F8', c2:'#6FA8DC', sk:'focus'},
-  {n:'Hỏa Lang', sp:'wolf', c1:'#F3E3C8', c2:'#FF7A3D', sk:'bonus'},
-  {n:'Tuyết Ngọc Hồ', sp:'fox', c1:'#F4F7FC', c2:'#FF8A4C', sk:'skip'},
-  {n:'Tử Mị Hồ', sp:'fox', c1:'#EFC24E', c2:'#48C08A', sk:'insight'},
-  {n:'Hải Kỳ Lân', sp:'kirin', c1:'#3FBFA0', c2:'#55D6F0', sk:'time'},
-  {n:'Hỏa Kỳ Lân', sp:'kirin', c1:'#E24C2B', c2:'#FFA13D', sk:'bonus'},
-  {n:'Tử Sắc Tuần Lộc', sp:'deer', c1:'#8E6BC8', c2:'#56C8E8', sk:'shield'},
-  {n:'Tông Mao Tuần Lộc', sp:'deer', c1:'#A8703C', c2:'#C0392B', sk:'streak'},
-  {n:'Lam Diễm Mã', sp:'horse', c1:'#3A3358', c2:'#8A6BE8', sk:'hint'},
-  {n:'Xích Diễm Mã', sp:'horse', c1:'#7A2626', c2:'#FF5A2B', sk:'xp'},
-  {n:'Hắc Diễm Mã', sp:'horse', c1:'#2A2338', c2:'#E8A13D', sk:'revive'},
-  {n:'Kim Giáp Thiên Mã', sp:'pegasus', c1:'#F2F6FB', c2:'#F0C24E', sk:'xp'},
-  {n:'Lượng Ngân Đài', sp:'dais', c1:'#DCE6F2', c2:'#B48CE8', sk:'focus'},
-  {n:'Bảo Liên Đài', sp:'dais', c1:'#F0C24E', c2:'#FFDD8A', sk:'insight'},
+// ================= HÀNH TRÌNH THÁM HIỂM — 50 CẤP, 5 CHẶNG, 10 HUY HIỆU =================
+// Thay cho hệ linh thú cũ. Ba nguyên tắc thiết kế, mỗi cái sửa một lỗi của hệ cũ:
+//
+//   1. ĐIỂM CHỈ TĂNG, KHÔNG BAO GIỜ GIẢM. Hệ cũ tính thưởng chuỗi ngày theo kiểu "chụp ảnh hiện tại"
+//      (chuỗi 30 ngày = +360đ), nên hôm nào đứt chuỗi là mất trắng 360đ và TỤT CẤP — đúng vào ngày
+//      người dùng đã thấy tệ nhất. Nay mỗi ngày học xong là điểm thưởng được GỬI VÀO KHO vĩnh viễn;
+//      đứt chuỗi chỉ có nghĩa là ngày mai không được cộng thêm, chứ không lấy lại thứ đã trao.
+//   2. MỐC CẤP CỐ ĐỊNH. Hệ cũ co giãn mốc theo nhịp học 14 ngày → học chăm thì mốc bị đẩy lên, người
+//      dùng bị phạt vì tiến bộ. Nay 50 mốc là hằng số, nhìn là biết còn bao xa.
+//   3. HUY HIỆU TỰ SUY RA TỪ DỮ LIỆU CÓ SẴN. Không cần bộ đếm riêng dễ lệch — đọc thẳng từ nhật ký
+//      luyện tập đã lưu, nên người đang dùng app mở lên là thấy ngay những huy hiệu mình vốn đã xứng
+//      đáng có, không phải làm lại từ đầu.
+//
+// Kỷ luật vẫn còn, nhưng đổi chỗ: bỏ ngày học thì Điểm học tập (SETTINGS.engGame) vẫn bị trừ như cũ và
+// chuỗi ngày về 0 — cái mất là ĐÀ TIẾN, không phải thành quả đã có.
+
+const GAMI_TIERS = [
+  {n:'Tân Binh',        sub:'La bàn & ba lô',        ic:'compass',  c1:'#4FA8FF', c2:'#7C6CF0',
+   d:'Những bước đầu tiên. Mục tiêu duy nhất lúc này là mở app mỗi ngày — kỹ năng sẽ tự đến sau thói quen.'},
+  {n:'Lữ Khách',        sub:'Ống nhòm & bản đồ',     ic:'scope',    c1:'#2CDBA8', c2:'#4FA8FF',
+   d:'Bạn đã đi đủ xa để nhìn thấy đường. Giai đoạn này hợp để mở rộng: chạm vào những mục bạn còn né.'},
+  {n:'Người Dẫn Đường', sub:'Bánh lái & mỏ neo',     ic:'helm',     c1:'#FFC94A', c2:'#FF8A3D',
+   d:'Bạn tự cầm lái được rồi. Hãy chọn một điểm yếu và cắm neo ở đó cho tới khi nó thành điểm mạnh.'},
+  {n:'Nhà Thám Hiểm',   sub:'Khinh khí cầu & thuyền buồm', ic:'balloon', c1:'#FF6EA8', c2:'#B06CF0',
+   d:'Đủ nền tảng để rời vùng an toàn. Dùng tiếng Anh vào việc thật: xem không phụ đề, đọc báo, nói chuyện.'},
+  {n:'Bậc Thầy',        sub:'Đỉnh núi & sao chổi',   ic:'summit',   c1:'#FFD97A', c2:'#FF8A3D',
+   d:'Từ đây việc học không còn là leo dốc mà là giữ độ cao. Thứ quyết định là nhịp đều, không phải nỗ lực dồn.'},
 ];
-const PET_MOUNT_SLOTS = 6;   // số ô "sắp cập nhật" chừa sẵn trong bộ sưu tập cho thần thú bổ sung sau
-const PET_STAGE_TAG = ['+0 ~ +3','+4 ~ +6','+7 ~ +9','+10'];
-const PET_AURAS = ['aura-mist','aura-pulse','aura-ring','aura-sparkle','aura-flame','aura-divine'];
-// PET_REALMS giữ nguyên tên biến cũ để phần còn lại của app không phải sửa — nay mỗi "cảnh giới" chính
-// là MỘT thần thú, và 4 tầng bên trong là 4 nấc tiến hóa của nó.
-const PET_REALMS = PET_MOUNTS.map((m,i)=>({n:m.n, c1:m.c1, c2:m.c2, aura:PET_AURAS[i%PET_AURAS.length]}));
-// [tên, câu chuyện riêng, mô tả kỹ năng, mã kỹ năng, giá trị kỹ năng] — 4 dòng liên tiếp = 4 cấp của
-// cùng một thần thú, kỹ năng mạnh dần theo từng nấc.
-const PET_FORMS = [
-  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 1 điểm cho mỗi câu trả lời đúng','bonus','1'],
-  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 2 điểm cho mỗi câu trả lời đúng','bonus','2'],
-  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 3 điểm cho mỗi câu trả lời đúng','bonus','3'],
-  ['Lão Hổ','Con hổ già nhất rừng Nam. Nó không còn nhanh như thời trẻ, nhưng chưa ai thấy nó bỏ dở một cuộc săn.','Cộng thêm 4 điểm cho mỗi câu trả lời đúng','bonus','4'],
-  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 1 đáp án sai mỗi buổi','hint','1'],
-  ['Bạch Ngạch Mãnh Hổ','Vết trắng trên trán là sẹo của một trận thua. Từ hôm đó nó học cách nhìn trước khi vồ.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Ngân Giáp Bạch Hổ','Bộ lông hoá bạc sau trăm mùa tuyết. Nó đứng canh cửa núi, chưa từng rời vị trí một đêm nào.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.13','xp','1.13'],
-  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.18','xp','1.18'],
-  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.23','xp','1.23'],
-  ['Bạch Hùng','Gấu trắng vùng băng. Ngủ đông sáu tháng rồi thức dậy mạnh hơn — nó biết nghỉ cũng là một cách luyện.','Toàn bộ điểm nhận được nhân 1.28','xp','1.28'],
-  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 19%','streak','19'],
-  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 23%','streak','23'],
-  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 27%','streak','27'],
-  ['Nguyệt Hùng','Chỉ ra khỏi hang vào đêm trăng tròn. Ai đi đủ ba mươi đêm liên tiếp mới gặp được nó.','Thưởng chuỗi ngày tăng thêm 31%','streak','31'],
-  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Diệm Hùng','Từng bị lửa rừng thiêu trụi bộ lông. Lông mọc lại có màu than đỏ, và nó không còn sợ lửa nữa.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (2 câu/buổi)','focus','2'],
-  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (3 câu/buổi)','focus','3'],
-  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
-  ['Ngân Lang','Sói đầu đàn bạc. Nó nhớ mặt từng con trong đàn, và nhớ cả những con đã bỏ cuộc giữa đường.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
-  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 5 điểm cho mỗi câu trả lời đúng','bonus','5'],
-  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 6 điểm cho mỗi câu trả lời đúng','bonus','6'],
-  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 7 điểm cho mỗi câu trả lời đúng','bonus','7'],
-  ['Hỏa Lang','Chạy càng lâu lông càng nóng. Người ta nói nó chưa từng dừng lại để thở.','Cộng thêm 8 điểm cho mỗi câu trả lời đúng','bonus','8'],
-  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 1 câu mỗi buổi mà không bị tính sai','skip','1'],
-  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 2 câu mỗi buổi mà không bị tính sai','skip','2'],
-  ['Tuyết Ngọc Hồ','Hồ ly tuyết chín đuôi. Nó cho người ta bỏ qua một lần, nhưng chỉ một lần thôi.','Được bỏ qua 3 câu mỗi buổi mà không bị tính sai','skip','3'],
-  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 1 điểm yếu cụ thể','insight','1'],
-  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Tử Mị Hồ','Nhìn một cái là biết bạn đang giấu điểm yếu nào. Nó không nói ra, chỉ đợi bạn tự nhận.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
-  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 49 giây suy nghĩ ở các bài có tính giờ','time','49'],
-  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 54 giây suy nghĩ ở các bài có tính giờ','time','54'],
-  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 59 giây suy nghĩ ở các bài có tính giờ','time','59'],
-  ['Hải Kỳ Lân','Kỳ lân biển. Dưới nước thời gian trôi chậm hơn, và nó cho bạn mượn một chút sự chậm rãi đó.','Thêm 64 giây suy nghĩ ở các bài có tính giờ','time','64'],
-  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 7 điểm cho mỗi câu trả lời đúng','bonus','7'],
-  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 8 điểm cho mỗi câu trả lời đúng','bonus','8'],
-  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 9 điểm cho mỗi câu trả lời đúng','bonus','9'],
-  ['Hỏa Kỳ Lân','Vó chạm đất là đất cháy. Nó chỉ chịu để người dám bắt đầu lại từ đầu ngồi lên lưng.','Cộng thêm 10 điểm cho mỗi câu trả lời đúng','bonus','10'],
-  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 1 ngày vẫn không đứt chuỗi','shield','1'],
-  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Tử Sắc Tuần Lộc','Sừng tím phát sáng trong sương. Nó dẫn đường cho những ai đi lạc mà vẫn chưa chịu quay về.','Bảo vệ chuỗi ngày: nghỉ 2 ngày vẫn không đứt chuỗi','shield','2'],
-  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 46%','streak','46'],
-  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 50%','streak','50'],
-  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 54%','streak','54'],
-  ['Tông Mao Tuần Lộc','Tuần lộc bờm nâu kéo xe mùa đông. Nó đi chậm, nhưng chưa năm nào tới trễ.','Thưởng chuỗi ngày tăng thêm 58%','streak','58'],
-  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 2 đáp án sai mỗi buổi','hint','2'],
-  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
-  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 3 đáp án sai mỗi buổi','hint','3'],
-  ['Lam Diễm Mã','Ngựa lửa lam. Ngọn lửa của nó không nóng — nó soi đường chứ không thiêu đốt.','Được gợi ý loại bỏ 4 đáp án sai mỗi buổi','hint','4'],
-  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.37','xp','1.37'],
-  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.42','xp','1.42'],
-  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.47','xp','1.47'],
-  ['Xích Diễm Mã','Mỗi bước chân để lại một vệt lửa đỏ. Nó chạy nhanh nhất khi chủ nhân đang tức giận với chính mình.','Toàn bộ điểm nhận được nhân 1.52','xp','1.52'],
-  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 1 lần mỗi buổi','revive','1'],
-  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Hắc Diễm Mã','Ngựa đen lửa vàng. Nó từng ngã gãy chân, và vẫn về đích cuối cùng trong cuộc đua năm ấy.','Làm sai vẫn được thử lại 2 lần mỗi buổi','revive','2'],
-  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.41','xp','1.41'],
-  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.46','xp','1.46'],
-  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.51','xp','1.51'],
-  ['Kim Giáp Thiên Mã','Thiên mã giáp vàng. Chỉ cất cánh khi chủ nhân đã đi bộ đủ xa trên mặt đất.','Toàn bộ điểm nhận được nhân 1.56','xp','1.56'],
-  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (4 câu/buổi)','focus','4'],
-  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (5 câu/buổi)','focus','5'],
-  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (6 câu/buổi)','focus','6'],
-  ['Lượng Ngân Đài','Không phải thú cưỡi mà là một đài bạc biết bay. Nó nâng người biết đứng yên đủ lâu để nghĩ cho thấu.','Câu sai được tự động đưa vào danh sách ôn lại (7 câu/buổi)','focus','7'],
-  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 2 điểm yếu cụ thể','insight','2'],
-  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
-  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 3 điểm yếu cụ thể','insight','3'],
-  ['Bảo Liên Đài','Đài sen vàng của bậc đã đi hết đường. Ngồi lên rồi thì không còn gì để chứng minh với ai nữa.','Sau mỗi buổi, AI phân tích sâu thêm 4 điểm yếu cụ thể','insight','4'],
-];
-const PET_SUBS = ['Sơ Khai','Cường Hóa','Thần Giáp','Viên Mãn'];  // 4 nấc tiến hóa của mỗi thần thú
-const PET_MAX_LEVEL = PET_FORMS.length; // = số thần thú × 4 — tự nới ra khi bạn thêm thần thú mới
-function petRealmOf(idx){ return PET_REALMS[Math.min(PET_REALMS.length-1, Math.floor(idx/PET_SUBS.length))]; }
-function petFormOf(idx){ return PET_FORMS[Math.max(0, Math.min(PET_FORMS.length-1, idx))]; }
-function petLevelName(idx){ return petFormOf(idx)[0]; }
-function petLevelDesc(idx){ return petFormOf(idx)[1]; }   // câu chuyện riêng của linh thú
-function petLevelStory(idx){ return petFormOf(idx)[1]; }
-function petLevelIcon(idx){ return petFormVisual(idx); }
+const GAMI_MAX_LEVEL = 50;
+const GAMI_PER_TIER = 10;
+function gamiTierIdx(lv){ return Math.max(0, Math.min(GAMI_TIERS.length-1, Math.floor((lv-1)/GAMI_PER_TIER))); }
+function gamiTierOf(lv){ return GAMI_TIERS[gamiTierIdx(lv)]; }
 
-// ================= KỸ NĂNG RIÊNG CỦA TỪNG LINH THÚ =================
-// Mỗi linh thú không chỉ khác hình và khác chuyện — nó còn cho bạn MỘT ĐẶC QUYỀN THẬT khi học.
-// Ví dụ: cộng thêm điểm mỗi câu đúng, được bỏ qua câu mà không bị tính sai, được gợi ý loại đáp án
-// sai, được bảo vệ chuỗi ngày khi nghỉ... Linh thú lên cấp thì đặc quyền cũng mạnh lên.
-// Cách các mục luyện tập dùng: gọi petSkillBonus() / petSkillLeft('hint') / petSkillUse('hint')...
-const PET_SKILL_META = {
-  bonus:  {icon:'✨', name:'Thưởng điểm'},
-  skip:   {icon:'⏭️', name:'Miễn tính sai'},
-  hint:   {icon:'💡', name:'Thiên cơ chỉ điểm'},
-  shield: {icon:'🛡️', name:'Hộ chuỗi'},
-  revive: {icon:'♻️', name:'Tái chiến'},
-  xp:     {icon:'📈', name:'Bội điểm'},
-  time:   {icon:'⏳', name:'Ngưng thần'},
-  streak: {icon:'🔥', name:'Cường chuỗi'},
-  focus:  {icon:'🎯', name:'Truy hồi'},
-  insight:{icon:'🔮', name:'Thấu thị'}
-};
-const PET_CONSUMABLE_SKILLS = ['skip','hint','revive'];
-function petSkillOf(idx){
-  const f = petFormOf(idx);
-  const key = f[3] || 'bonus';
-  const meta = PET_SKILL_META[key] || {icon:'✨', name:'Đặc quyền'};
-  return {key, val: parseFloat(f[4]) || 0, text: f[2] || '', icon: meta.icon, name: meta.name,
-          consumable: PET_CONSUMABLE_SKILLS.indexOf(key) >= 0};
+// Mốc điểm để ĐẠT cấp lv. Đường cong lũy thừa (mũ 1.79) chứ không phải hàm mũ: hàm mũ làm 10 cấp cuối
+// dựng đứng thành bức tường, người đi xa nhất lại là người dễ bỏ cuộc nhất. Lũy thừa giữ khoảng cách
+// giữa hai cấp tăng đều đặn — cấp 2 tới sau ~1 buổi học, cấp 50 sau khoảng một năm rưỡi đi đều.
+function gamiLevelThreshold(lv){
+  if(lv <= 1) return 0;
+  if(lv > GAMI_MAX_LEVEL) lv = GAMI_MAX_LEVEL;
+  return Math.round(30 * Math.pow(lv-1, 1.79) / 10) * 10;
 }
-// Kỹ năng đang có hiệu lực = kỹ năng của linh thú ở CẤP HIỆN TẠI.
-function petActiveSkill(){
-  try{ return petSkillOf(petState().idx); }
-  catch(e){ return {key:'bonus', val:0, text:'', icon:'✨', name:'Đặc quyền', consumable:false}; }
-}
-// Số lần dùng còn lại trong NGÀY của các kỹ năng tiêu hao (bỏ qua / gợi ý / làm lại).
-function petSkillUseToday(){
-  const p = ensurePet();
-  const d = todayKey();
-  if(!p.skillUse || p.skillUse.d !== d) p.skillUse = {d, skip:0, hint:0, revive:0};
-  return p.skillUse;
-}
-function petSkillLeft(key){
-  const s = petActiveSkill();
-  if(s.key !== key) return 0;
-  const u = petSkillUseToday();
-  return Math.max(0, Math.round(s.val) - (u[key]||0));
-}
-function petSkillUse(key){
-  if(petSkillLeft(key) <= 0) return false;
-  const u = petSkillUseToday();
-  u[key] = (u[key]||0) + 1;
-  saveSettings(); pushToDrive();
-  return true;
-}
-// Các kỹ năng bị động — gọi trực tiếp khi tính điểm / tính chuỗi / tính giờ.
-function petSkillBonus(){ const s = petActiveSkill(); return s.key==='bonus' ? Math.round(s.val) : 0; }
-function petSkillXpMult(){ const s = petActiveSkill(); return s.key==='xp' ? (s.val||1) : 1; }
-function petSkillStreakPct(){ const s = petActiveSkill(); return s.key==='streak' ? s.val : 0; }
-function petSkillShieldDays(){ const s = petActiveSkill(); return s.key==='shield' ? Math.round(s.val) : 0; }
-function petSkillExtraSec(){ const s = petActiveSkill(); return s.key==='time' ? Math.round(s.val) : 0; }
-function petSkillFocusCount(){ const s = petActiveSkill(); return s.key==='focus' ? Math.round(s.val) : 0; }
-function petSkillInsightCount(){ const s = petActiveSkill(); return s.key==='insight' ? Math.round(s.val) : 0; }
-// Dòng nhắc gọn hiển thị trong các màn luyện tập, để bạn luôn nhớ mình đang được ưu ái điều gì.
-function petSkillBannerHtml(){
-  const s = petActiveSkill();
-  if(!s.text) return '';
-  let left = '';
-  if(s.consumable){
-    const n = petSkillLeft(s.key);
-    left = ` <b style="color:${n>0?'var(--teal)':'var(--dim2)'};">(còn ${n} lần hôm nay)</b>`;
-  }
-  return `<div class="pet-skill-banner"><span class="psb-ic">${s.icon}</span><span class="psb-tx"><b>${escapeHtml(s.name)}</b> — ${escapeHtml(s.text)}${left}</span></div>`;
-}
-// ================= ẢNH THẬT CỦA THẦN THÚ =================
-// Toàn bộ 80 hình (20 thần thú × 4 cấp) nằm trong MỘT file duy nhất `pet-sprites.jpg` — một tấm lưới
-// 8 cột × 10 hàng, mỗi ô 160×160. Dùng một file thay vì 80 file lẻ để chỉ phải tải một lần, đỡ 80 lượt
-// request và tiện upload. Vị trí ô được tính bằng background-position theo phần trăm.
-// Nếu vì lý do nào đó không tải được ảnh, app tự động rơi về hình vẽ SVG bên dưới nên không bao giờ trắng.
-const PET_SPRITE_FILE = 'pet-sprites.webp';   // 2816×3520 — ô 352px, gấp 2.2× bản cũ cho nét khi phóng to
-const PET_SPRITE_COLS = 8, PET_SPRITE_ROWS = 10;
-let PET_SPRITE_OK = false;
-let _petSpriteProbed = false;
-async function probePetArt(){
-  if(_petSpriteProbed) return; _petSpriteProbed = true;
-  PET_SPRITE_OK = await new Promise(res=>{
-    const im = new Image();
-    im.onload = ()=>res(true); im.onerror = ()=>res(false);
-    im.src = PET_SPRITE_FILE;
-  });
-  if(PET_SPRITE_OK && (STATE.tab==='pet' || STATE.tab==='hub')) renderContent();
-}
-function petSpriteStyle(idx){
-  const col = idx % PET_SPRITE_COLS, row = Math.floor(idx / PET_SPRITE_COLS);
-  const x = (col/(PET_SPRITE_COLS-1)*100).toFixed(4);
-  const y = (row/(PET_SPRITE_ROWS-1)*100).toFixed(4);
-  return `background-image:url('${PET_SPRITE_FILE}'); background-size:${PET_SPRITE_COLS*100}% ${PET_SPRITE_ROWS*100}%; background-position:${x}% ${y}%;`;
-}
-function petFormVisual(idx){
-  idx = Math.max(0, Math.min(PET_MAX_LEVEL-1, idx|0));
-  return `<span class="pet-visual">`
-    + `<span class="pet-art-fb">${petBeastSvg(idx)}</span>`
-    + (PET_SPRITE_OK ? `<span class="pet-photo" style="${petSpriteStyle(idx)}"></span>` : '')
-    + `</span>`;
+function gamiLevelFor(xp){
+  let lv = 1;
+  for(let i=2;i<=GAMI_MAX_LEVEL;i++){ if(xp >= gamiLevelThreshold(i)) lv = i; else break; }
+  return lv;
 }
 
-// ================= THẦN THÚ CƯỠI — 20 CON, MỖI CON 4 CẤP TIẾN HÓA =================
-// Đúng mô hình bạn gửi: một thần thú nhìn NGANG, có người cưỡi trên lưng, và cùng một con đó
-// nâng cấp qua 4 nấc — trần trụi → gắn giáp → giáp nặng + hào quang → toàn thân bùng hào quang.
-//   Cấp +0 ~ +3  (nấc 1): yên cương đơn giản
-//   Cấp +4 ~ +6  (nấc 2): giáp vai + giáp mông + bờm sáng
-//   Cấp +7 ~ +9  (nấc 3): giáp toàn thân, gai, phù văn phát sáng, vó có lửa
-//   Cấp +10      (nấc 4): hào quang phủ kín, cánh năng lượng, hạt sáng bay quanh
-// MUỐN THÊM THẦN THÚ MỚI: chỉ cần thêm một dòng vào PET_MOUNTS bên dưới (tên, loài, 2 màu, kỹ năng)
-// và một dòng chuyện trong PET_FORMS — hệ thống tự sinh thêm 4 cấp, tự nới số cấp tối đa, không phải
-// sửa dòng code nào khác. Các ô "sắp cập nhật" trong bộ sưu tập là chỗ chừa sẵn cho những con đó.
-// (PET_MOUNTS / PET_MOUNT_SLOTS / PET_STAGE_TAG đã khai báo ở phần dữ liệu phía trên.)
-
-// --- tiện ích màu ---
-function _pHex(c){ c = c.replace('#',''); if(c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)]; }
-function _pMix(a,b,t){ const A=_pHex(a), B=_pHex(b); const f=(i)=>Math.round(A[i]+(B[i]-A[i])*t).toString(16).padStart(2,'0'); return '#'+f(0)+f(1)+f(2); }
-function _pLight(c,t){ return _pMix(c,'#FFFFFF',t); }
-function _pDark(c,t){ return _pMix(c,'#140E22',t); }
-
-// ---- NGƯỜI CƯỠI: dáng chibi nhỏ ngồi trên lưng, ngẩng cao ----
-function _pmRider(x, y, sc, c1, c2, stage){
-  const cape = stage>=1 ? `<path d="M4 -2 C14 4 16 18 10 26 C4 22 2 10 2 2 Z" fill="${c2}" opacity=".9"/>` : '';
-  const glow = stage>=3 ? `<circle cx="0" cy="-14" r="15" fill="${_pLight(c1,.5)}" opacity=".35"/>` : '';
-  const helm = stage>=2
-    ? `<path d="M-8 -16 C-8 -25 8 -25 8 -16 L8 -13 L-8 -13 Z" fill="${c1}"/><path d="M0 -25 L0 -33 M0 -33 C4 -35 7 -32 6 -29" stroke="${_pLight(c1,.4)}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
-    : `<path d="M-7 -16 C-7 -23 7 -23 7 -16 L7 -14 L-7 -14 Z" fill="${c2}"/>`;
-  return `<g transform="translate(${x},${y}) scale(${sc})">
-    ${glow}${cape}
-    <path d="M-6 2 C-9 12 -8 20 -4 24 L6 24 C9 18 9 8 6 2 Z" fill="${c2}"/>
-    <path d="M-7 -2 C-9 4 -9 10 -6 14 L7 14 C10 9 10 2 7 -3 Z" fill="${c1}"/>
-    <path d="M-7 0 C-14 4 -17 10 -16 15" stroke="${c1}" stroke-width="4.6" fill="none" stroke-linecap="round"/>
-    <path d="M7 0 C13 3 16 8 15 13" stroke="${c1}" stroke-width="4.6" fill="none" stroke-linecap="round"/>
-    <circle cx="0" cy="-11" r="8.4" fill="#F6D8B8"/>
-    <circle cx="-3" cy="-11" r="1.5" fill="#2A1F33"/><circle cx="3" cy="-11" r="1.5" fill="#2A1F33"/>
-    ${helm}
-  </g>`;
+// ---- KHO DỮ LIỆU ----
+function ensureGami(){
+  if(!SETTINGS.gami || typeof SETTINGS.gami !== 'object') SETTINGS.gami = {};
+  const g = SETTINGS.gami;
+  if(typeof g.bonus !== 'number') g.bonus = 0;      // điểm thưởng đã gửi kho (chuỗi ngày + huy hiệu)
+  if(typeof g.peak !== 'number') g.peak = 0;        // chốt chặn: tổng điểm không bao giờ tụt
+  if(typeof g.seenLv !== 'number') g.seenLv = 0;    // cấp người dùng đã xem (để hiện nhãn LÊN CẤP)
+  if(typeof g.bestStreak !== 'number') g.bestStreak = 0;
+  if(!g.seenBadges || typeof g.seenBadges !== 'object') g.seenBadges = {};
+  if(!g.gotBadges || typeof g.gotBadges !== 'object') g.gotBadges = {};
+  if(!g.tod || typeof g.tod !== 'object') g.tod = {am:0, pm:0};
+  if(!g.perk || typeof g.perk !== 'object') g.perk = {};
+  if(typeof g.streakDay !== 'string') g.streakDay = '';
+  ensureEngGame();
+  gamiDailyTick();
+  return g;
 }
-// ---- GIÁP THEO NẤC: dán lên vai / mông / chân của con thú ----
-function _pmArmor(stage, b, mt, mtD, glow){
-  if(stage<1) return '';
-  let s = `<path d="M${b.sx-13} ${b.sy-8} C${b.sx-4} ${b.sy-17} ${b.sx+12} ${b.sy-15} ${b.sx+15} ${b.sy-4} C${b.sx+8} ${b.sy+3} ${b.sx-7} ${b.sy+3} ${b.sx-13} ${b.sy-8} Z" fill="${mt}"/>`
-        + `<path d="M${b.hx-12} ${b.hy-7} C${b.hx-4} ${b.hy-16} ${b.hx+11} ${b.hy-14} ${b.hx+14} ${b.hy-3} C${b.hx+7} ${b.hy+4} ${b.hx-6} ${b.hy+4} ${b.hx-12} ${b.hy-7} Z" fill="${mt}"/>`;
-  if(stage>=2){
-    s += `<path d="M${b.sx-16} ${b.sy-6} l-7 -9 l10 1 z" fill="${mtD}"/><path d="M${b.hx+15} ${b.hy-5} l8 -9 l-10 0 z" fill="${mtD}"/>`
-       + `<rect x="${b.cx-20}" y="${b.cy-6}" width="40" height="13" rx="6" fill="${mt}" opacity=".92"/>`
-       + `<g stroke="${_pLight(glow,.4)}" stroke-width="1.8" fill="none" opacity=".85"><path d="M${b.cx-12} ${b.cy} h24 M${b.cx-6} ${b.cy-5} v10 M${b.cx+6} ${b.cy-5} v10"/></g>`
-       + `<g fill="${mtD}">${[0,1,2,3].map(i=>`<path d="M${b.cx-16+i*11} ${b.cy-7} l4 -8 l4 8 z"/>`).join('')}</g>`;
-  }
-  if(stage>=3){
-    s += `<g fill="${_pLight(glow,.35)}" opacity=".8">${[0,1,2,3,4].map(i=>`<path d="M${b.cx-22+i*11} ${b.cy-12} c-3 -8 1 -13 1 -17 c3 5 7 8 4 14 c-1 3 -3 3 -5 3 z"/>`).join('')}</g>`;
-  }
-  return s;
-}
-// ---- LỬA / SÉT DƯỚI VÓ + HÀO QUANG NỀN ----
-function _pmAura(stage, glow, c2){
-  if(stage<2) return {back:'', front:''};
-  const back = `<ellipse cx="60" cy="62" rx="${52+stage*4}" ry="${40+stage*4}" fill="${_pLight(glow,.4)}" opacity="${stage>=3?.24:.14}"/>`
-    + (stage>=3 ? `<g fill="${_pLight(c2,.3)}" opacity=".55">${[0,1,2,3,4,5].map(i=>{const a=(-160+i*32)*Math.PI/180;return `<ellipse cx="${(60+Math.cos(a)*46).toFixed(1)}" cy="${(58+Math.sin(a)*34).toFixed(1)}" rx="9" ry="16" transform="rotate(${(-160+i*32)/2} ${(60+Math.cos(a)*46).toFixed(1)} ${(58+Math.sin(a)*34).toFixed(1)})"/>`;}).join('')}</g>` : '');
-  const front = `<g fill="${_pLight(c2,.25)}" opacity=".9">${[24,44,74,96].map(x=>`<path d="M${x} 100 c-4 -9 2 -14 1 -19 c4 6 9 9 5 16 c-1 3 -4 4 -6 3 z"/>`).join('')}</g>`
-    + (stage>=3 ? `<g fill="#FFF3C4" opacity=".9">${[[18,40],[102,44],[26,86],[98,84],[60,14]].map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${1.8+(i%2)*1.6}"/>`).join('')}</g>` : '');
-  return {back, front};
-}
-let _petMountSeq = 0;
-// ================= BỘ VẼ CHÍNH =================
-// idx = cấp (0..PET_MAX_LEVEL-1). Cứ 4 cấp liên tiếp là 4 nấc tiến hóa của CÙNG một thần thú.
-function petBeastSvg(idx, extraCls){
-  const total = PET_MOUNTS.length*4;
-  idx = Math.max(0, Math.min(total-1, idx|0));
-  const mi = Math.floor(idx/4), stage = idx%4;
-  const M = PET_MOUNTS[mi];
-  const sp = M.sp;
-  const c1 = M.c1, c2 = M.c2;
-  const body = _pLight(c1, stage*0.05);
-  const belly= _pLight(body, .34);
-  const dk   = _pDark(c1, .35);
-  const mt   = _pMix(c2, '#FFFFFF', .18 + stage*0.1);   // ánh kim của giáp, sáng dần theo nấc
-  const mtD  = _pDark(c2, .28);
-  const glow = c2;
-  const u = 'pm'+(++_petMountSeq);
-  const aura = _pmAura(stage, glow, c2);
-  // b = mốc gắn giáp: vai (sx,sy) — mông (hx,hy) — giữa lưng (cx,cy)
-  let b = {sx:44, sy:58, hx:80, hy:58, cx:62, cy:52};
-  let art = '', riderAt = [60, 46], riderScale = 0.78;
-
-  const legs = (xs, y, h, w)=>`<g fill="${_pDark(body,.16)}">${xs.map(x=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w/2}"/>`).join('')}</g>`;
-  const hoof = (xs, y)=>`<g fill="${stage>=2?_pLight(glow,.3):dk}">${xs.map(x=>`<rect x="${x-1}" y="${y}" width="9" height="6" rx="3"/>`).join('')}</g>`;
-
-  if(sp==='tiger' || sp==='wolf' || sp==='fox'){
-    const lean = sp==='wolf' ? 1 : 0;
-    // đuôi
-    const tail = sp==='fox'
-      ? `<g>${[0,1,2].map(i=>`<path d="M92 62 C104 ${52-i*9} 112 ${44-i*10} 108 ${34-i*10} C100 ${42-i*8} 94 ${52-i*6} 90 62 Z" fill="${_pMix(body,c2,.2+i*.2)}"/>`).join('')}</g>`
-      : `<path d="M92 60 C108 56 114 44 108 34" stroke="${body}" stroke-width="8" fill="none" stroke-linecap="round"/>`
-        + (sp==='tiger' ? `<g stroke="${dk}" stroke-width="3" opacity=".8"><path d="M99 55 l5 2 M105 47 l5 1 M108 39 l5 0"/></g>` : '');
-    art = tail
-      + legs([34,46,74,86], 66, 26, 11)
-      + `<ellipse cx="62" cy="60" rx="32" ry="17" fill="${body}"/>`
-      + `<ellipse cx="62" cy="66" rx="24" ry="9" fill="${belly}" opacity=".7"/>`
-      + (sp==='tiger' ? `<g fill="${dk}" opacity=".75">${[0,1,2,3,4].map(i=>`<path d="M${44+i*11} 46 c3 6 3 12 0 17 c-2 -5 -2 -11 0 -17 z"/>`).join('')}</g>` : '')
-      + (sp==='fox' ? `<path d="M40 64 C50 70 74 70 84 64 C74 72 50 72 40 64 Z" fill="${_pLight(belly,.3)}"/>` : '')
-      // đầu
-      + `<ellipse cx="30" cy="${50-lean*2}" rx="18" ry="15" fill="${body}"/>`
-      + `<path d="M14 ${52-lean*2} C4 ${52-lean*2} 2 ${58-lean*2} 8 ${60-lean*2} C14 ${62-lean*2} 22 ${58-lean*2} 24 ${54-lean*2} Z" fill="${_pLight(body,.14)}"/>`
-      + `<g fill="${body}"><path d="M22 ${38-lean*2} L18 ${24-lean*2} L32 ${34-lean*2} Z"/><path d="M40 ${38-lean*2} L46 ${24-lean*2} L32 ${34-lean*2} Z"/></g>`
-      + `<g fill="${_pMix(belly,c2,.4)}"><path d="M24 ${38-lean*2} L22 ${29-lean*2} L31 ${35-lean*2} Z"/><path d="M39 ${38-lean*2} L42 ${29-lean*2} L33 ${35-lean*2} Z"/></g>`
-      + `<circle cx="9" cy="${57-lean*2}" r="2.4" fill="${dk}"/>`
-      + `<ellipse cx="26" cy="${49-lean*2}" rx="3.4" ry="4" fill="#20182E"/><circle cx="24.8" cy="${47.6-lean*2}" r="1.3" fill="#FFF"/>`
-      + `<ellipse cx="37" cy="${49-lean*2}" rx="3.4" ry="4" fill="#20182E"/><circle cx="35.8" cy="${47.6-lean*2}" r="1.3" fill="#FFF"/>`
-      + (stage>=2 ? `<path d="M22 ${34-lean*2} q10 -6 20 0 l0 5 q-10 -5 -20 0 z" fill="${mt}"/>` : '');
-    b = {sx:44, sy:54, hx:82, hy:54, cx:62, cy:48};
-    riderAt = [64, 40];
-  }
-  else if(sp==='bear'){
-    art = `<path d="M94 62 c8 -1 10 -6 7 -10" stroke="${body}" stroke-width="7" fill="none" stroke-linecap="round"/>`
-      + legs([32,46,74,88], 68, 24, 14)
-      + `<g fill="${_pDark(body,.28)}">${[32,46,74,88].map(x=>`<rect x="${x-1}" y="88" width="16" height="7" rx="3.5"/>`).join('')}</g>`
-      + `<path d="M28 60 C28 42 50 36 64 38 C82 40 94 48 94 62 C94 74 76 78 62 78 C44 78 28 74 28 60 Z" fill="${body}"/>`
-      + `<ellipse cx="62" cy="70" rx="24" ry="9" fill="${belly}" opacity=".6"/>`
-      + `<ellipse cx="26" cy="56" rx="18" ry="16" fill="${body}"/>`
-      + `<g fill="${body}"><circle cx="16" cy="40" r="7.5"/><circle cx="36" cy="38" r="7.5"/></g>`
-      + `<g fill="${_pMix(belly,c2,.35)}"><circle cx="16" cy="40" r="4"/><circle cx="36" cy="38" r="4"/></g>`
-      + `<ellipse cx="13" cy="60" rx="8" ry="6" fill="${_pLight(body,.2)}"/><ellipse cx="9" cy="59" rx="3" ry="2.4" fill="${dk}"/>`
-      + `<ellipse cx="22" cy="54" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="20.9" cy="52.7" r="1.2" fill="#FFF"/>`
-      + `<ellipse cx="33" cy="54" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="31.9" cy="52.7" r="1.2" fill="#FFF"/>`;
-    b = {sx:42, sy:52, hx:84, hy:56, cx:62, cy:46};
-    riderAt = [62, 38];
-  }
-  else if(sp==='deer' || sp==='kirin'){
-    const horn = sp==='deer'
-      ? `<g stroke="${_pMix(c2,'#F6EFD8',.4)}" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M24 34 L18 16 M22 24 L10 20 M20 18 L16 8"/><path d="M38 34 L44 16 M40 24 L52 20 M42 18 L46 8"/></g>`
-      : `<path d="M32 32 C30 20 34 10 42 6 C40 16 38 24 38 32 Z" fill="${_pMix(c2,'#FFFFFF',.35)}"/>`;
-    const mane = `<path d="M40 36 C34 46 34 60 40 68 C46 58 46 44 40 36 Z" fill="${_pMix(c2,glow,.35)}"/>`;
-    const tail = sp==='kirin'
-      ? `<g>${[0,1,2].map(i=>`<path d="M92 54 C106 ${46-i*7} 112 ${34-i*8} 106 ${26-i*8} C98 ${36-i*6} 92 ${46-i*4} 88 54 Z" fill="${_pMix(c2,glow,.2+i*.2)}" opacity=".9"/>`).join('')}</g>`
-      : `<path d="M92 54 C102 50 104 42 100 36" stroke="${_pMix(body,c2,.3)}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
-    art = tail
-      + legs([36,48,74,86], 64, 30, 9) + hoof([36,48,74,86], 92)
-      + `<ellipse cx="62" cy="56" rx="30" ry="15" fill="${body}"/>`
-      + `<ellipse cx="62" cy="62" rx="22" ry="7" fill="${belly}" opacity=".6"/>`
-      + (sp==='deer' ? `<g fill="#FFFFFF" opacity=".5">${[[50,50],[62,48],[74,52],[56,58],[68,58]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.6"/>`).join('')}</g>` : '')
-      + (sp==='kirin' ? `<g fill="${_pMix(c2,'#FFFFFF',.4)}" opacity=".55">${[0,1,2,3,4].map(i=>`<path d="M${46+i*9} 48 a5 5 0 0 1 9 0 z"/>`).join('')}</g>` : '')
-      + `<path d="M44 50 C40 40 36 34 32 32" stroke="${body}" stroke-width="13" fill="none" stroke-linecap="round"/>`
-      + mane
-      + `<ellipse cx="28" cy="34" rx="15" ry="12" fill="${body}"/>`
-      + `<path d="M15 36 C6 36 4 42 10 45 C16 47 23 43 25 39 Z" fill="${_pLight(body,.14)}"/>`
-      + `<g fill="${body}"><ellipse cx="22" cy="22" rx="4.4" ry="8" transform="rotate(-24 22 22)"/><ellipse cx="36" cy="22" rx="4.4" ry="8" transform="rotate(24 36 22)"/></g>`
-      + horn
-      + `<circle cx="11" cy="42" r="2.2" fill="${dk}"/>`
-      + `<ellipse cx="24" cy="34" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="22.9" cy="32.7" r="1.2" fill="#FFF"/>`
-      + `<ellipse cx="34" cy="34" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="32.9" cy="32.7" r="1.2" fill="#FFF"/>`;
-    b = {sx:44, sy:50, hx:82, hy:50, cx:62, cy:44};
-    riderAt = [64, 36];
-  }
-  else if(sp==='horse' || sp==='pegasus'){
-    const flame = `<g fill="${_pLight(glow,.3)}" opacity=".9">${[0,1,2,3].map(i=>`<path d="M${44+i*10} 40 c-4 -10 2 -16 1 -21 c5 7 11 11 6 19 c-2 4 -5 4 -7 2 z"/>`).join('')}</g>`;
-    const wings = sp==='pegasus'
-      ? `<g>${[0,1].map(i=>`<path d="M62 44 C${42-i*10} ${28-i*8} ${26-i*8} ${10-i*6} ${16-i*10} ${8-i*4} C${30-i*6} ${24-i*6} ${46-i*4} ${36-i*4} 60 46 Z" fill="${_pMix('#FFFFFF',c2,.25+i*.3)}" opacity=".95"/>`).join('')}</g>`
-      : '';
-    art = `<g>${[0,1,2].map(i=>`<path d="M92 48 C106 ${42-i*6} 110 ${30-i*7} 104 ${22-i*7} C96 ${32-i*5} 90 ${42-i*3} 88 50 Z" fill="${_pMix(c2,glow,.15+i*.22)}" opacity=".9"/>`).join('')}</g>`
-      + legs([36,48,74,86], 62, 32, 9) + hoof([36,48,74,86], 92)
-      + `<ellipse cx="62" cy="54" rx="31" ry="15" fill="${body}"/>`
-      + `<ellipse cx="62" cy="60" rx="23" ry="7" fill="${belly}" opacity=".55"/>`
-      + wings
-      + `<path d="M44 48 C40 36 36 28 32 26" stroke="${body}" stroke-width="14" fill="none" stroke-linecap="round"/>`
-      + `<path d="M42 30 C34 40 34 56 40 64 C48 54 48 38 42 30 Z" fill="${_pMix(c2,glow,.4)}"/>`
-      + (stage>=1 ? flame : '')
-      + `<ellipse cx="28" cy="28" rx="15" ry="11" fill="${body}"/>`
-      + `<path d="M15 30 C6 31 5 38 11 40 C17 42 24 37 26 33 Z" fill="${_pLight(body,.14)}"/>`
-      + `<g fill="${body}"><ellipse cx="24" cy="16" rx="4" ry="7.5" transform="rotate(-22 24 16)"/><ellipse cx="36" cy="16" rx="4" ry="7.5" transform="rotate(22 36 16)"/></g>`
-      + `<circle cx="12" cy="37" r="2.2" fill="${dk}"/>`
-      + `<ellipse cx="24" cy="28" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="22.9" cy="26.7" r="1.2" fill="#FFF"/>`
-      + `<ellipse cx="34" cy="28" rx="3.2" ry="3.8" fill="#20182E"/><circle cx="32.9" cy="26.7" r="1.2" fill="#FFF"/>`;
-    b = {sx:44, sy:48, hx:82, hy:48, cx:62, cy:42};
-    riderAt = [64, 34];
-  }
-  else { // dais — đài bay, không phải thú: người đứng trên đài
-    const petals = [0,1,2,3,4,5,6].map(i=>{
-      const a = (-180 + i*30)*Math.PI/180;
-      const x = 60 + Math.cos(a)*34, y = 84 + Math.sin(a)*11;
-      return `<path d="M${x.toFixed(1)} ${y.toFixed(1)} c-9 -6 -9 -16 0 -21 c9 5 9 15 0 21 z" fill="${_pMix(c1,c2,.15+ (i%3)*0.2)}" transform="rotate(${(-180+i*30)/3} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
-    }).join('');
-    art = `<g opacity=".95">${petals}</g>`
-      + `<ellipse cx="60" cy="84" rx="30" ry="11" fill="${_pDark(c1,.12)}"/>`
-      + `<ellipse cx="60" cy="81" rx="24" ry="8.5" fill="${_pLight(c1,.2)}"/>`
-      + `<g fill="none" stroke="${_pLight(c2,.35)}" stroke-width="2" opacity=".9"><ellipse cx="60" cy="81" rx="17" ry="6"/><ellipse cx="60" cy="81" rx="10" ry="3.6"/></g>`
-      + (stage>=1 ? `<g fill="none" stroke="${_pLight(c2,.45)}" stroke-width="${1.6+stage}" opacity=".7"><ellipse cx="60" cy="70" rx="${34+stage*3}" ry="${11+stage}"/></g>` : '')
-      + (stage>=2 ? `<g fill="none" stroke="${_pLight(c2,.5)}" stroke-width="1.6" opacity=".55"><ellipse cx="60" cy="58" rx="${26+stage*3}" ry="9" transform="rotate(12 60 58)"/></g>` : '');
-    b = {sx:44, sy:78, hx:80, hy:78, cx:60, cy:74};
-    riderAt = [60, 56]; riderScale = 0.92;
-  }
-
-  const armor = sp==='dais' ? '' : _pmArmor(stage, b, mt, mtD, glow);
-  const saddle = sp==='dais' ? '' : `<path d="M${b.cx-16} ${b.cy+2} q16 -9 32 0 l0 6 q-16 8 -32 0 z" fill="${_pDark(c2,.1)}"/>`;
-  const rider = _pmRider(riderAt[0], riderAt[1], riderScale, _pMix(c2,'#FFFFFF',.25), _pDark(c2,.2), stage);
-
-  return `<svg class="pet-svg ${extraCls||''}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(M.n)}">
-    <defs><radialGradient id="${u}g" cx="50%" cy="48%" r="62%">
-      <stop offset="0%" stop-color="${_pLight(glow,.45)}" stop-opacity=".45"/>
-      <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
-    </radialGradient></defs>
-    <circle cx="60" cy="58" r="58" fill="url(#${u}g)"/>
-    ${aura.back}
-    <ellipse cx="60" cy="100" rx="34" ry="6" fill="#000" opacity=".22"/>
-    ${art}${saddle}${armor}${rider}${aura.front}
-  </svg>`;
-}
-function petWarriorSvg(idx, extraCls){ return petBeastSvg(idx, extraCls); }
-
-// ---- AI ĐÁNH GIÁ NHỊP HỌC ĐỂ ĐẶT MỐC TIẾN HÓA HỢP LÝ ----
-// Mốc điểm KHÔNG cố định cứng nhắc: mỗi ngày hệ thống tự chấm "nhịp tu luyện" 14 ngày gần nhất (số lượt
-// luyện tiếng Anh/ngày + tỉ lệ hoàn thành lịch làm việc) rồi co giãn toàn bộ thang mốc. Học đều & nhiều
-// → mốc nhích cao hơn cho xứng sức; học ít/bận rộn → mốc tự HẠ XUỐNG để linh thú vẫn tiến hóa đều đặn,
-// không ai bị kẹt mãi ở một cảnh giới. Hệ số nằm trong khoảng 0.5–1.5 và được lưu theo ngày.
-function petPaceFactor(){
-  const p = ensurePet();
+// Gửi điểm thưởng chuỗi ngày vào kho — MỖI NGÀY ĐÚNG MỘT LẦN, và chỉ khi hôm nay thật sự có học.
+// Càng đi dài chuỗi càng cộng nhiều (trần 20/ngày mỗi mục) để phần thưởng lớn dần theo công sức bỏ ra,
+// nhưng vì đã vào kho nên hôm sau đứt chuỗi cũng không bị lấy lại.
+function gamiDailyTick(){
+  const g = SETTINGS.gami;
   const today = todayKey();
-  if(p.paceDate === today && typeof p.pace === 'number') return p.pace;
-  let d = new Date(), engAct = 0, schedSum = 0, schedDays = 0;
-  for(let i=0;i<14;i++){
-    const k = toKey(d);
-    engAct += englishExerciseCountForDate(k);
-    if(LOG[k]){ schedSum += dayPct(k); schedDays++; }
-    d = addDays(d,-1);
-  }
-  const engPerDay = engAct/14;
-  const schedAvg = schedDays ? schedSum/schedDays : 0;
-  let f = 0.5 + Math.min(engPerDay/22, 0.6) + Math.min(schedAvg/100, 1)*0.4;
-  f = Math.max(0.5, Math.min(1.5, f));
-  // Làm mượt: mỗi ngày chỉ dịch chuyển tối đa 0.05 về phía giá trị mục tiêu. Nếu để nhảy tự do, chỉ cần
-  // một ngày học dồn là toàn bộ thang mốc bị đẩy lên, người dùng mở app ra thấy linh thú "tụt cấp" dù
-  // không làm gì sai — trải nghiệm rất tệ. Đi từ từ giúp mốc luôn bám nhịp thật mà không giật cục.
-  const prev = (typeof p.pace === 'number') ? p.pace : f;
-  f = Math.max(prev-0.05, Math.min(prev+0.05, f));
-  p.pace = Math.round(Math.max(0.5, Math.min(1.5, f))*100)/100; p.paceDate = today; saveSettingsAfterRender();
-  return p.pace;
+  if(g.streakDay === today) return;
+  let s1 = 0, s2 = 0;
+  try{ s1 = computeStreakTrack('schedule'); }catch(_){}
+  try{ s2 = englishRealStreak(); }catch(_){}
+  if(Math.max(s1,s2) > g.bestStreak) g.bestStreak = Math.max(s1,s2);
+  let activeToday = false;
+  try{ activeToday = englishExerciseCountForDate(today) > 0 || dayPctTrack(today,'schedule') >= 75; }catch(_){}
+  if(!activeToday) return;   // chưa học hôm nay thì để dành, học lúc nào cộng lúc đó
+  let gain = 0;
+  if(s1 > 0) gain += Math.min(4 + s1, 20);
+  if(s2 > 0) gain += Math.min(4 + s2, 20);
+  g.bonus += gain;
+  g.streakDay = today;
+  saveSettingsAfterRender();
 }
-function petPaceLabel(){
-  const f = petPaceFactor();
-  if(f >= 1.25) return {t:'Tu luyện tinh tấn', d:'Bạn đang học rất đều — thiên đạo đặt mốc cao hơn để xứng với nhịp của bạn.'};
-  if(f >= 0.95) return {t:'Nhịp tu luyện ổn định', d:'Nhịp học hiện tại vừa sức — các mốc tiến hóa được giữ ở mức tiêu chuẩn.'};
-  if(f >= 0.7)  return {t:'Tu luyện thong thả', d:'Gần đây bạn học thưa hơn — mốc tiến hóa đã được hạ xuống để linh thú vẫn lên cấp đều.'};
-  return {t:'Khởi đầu nhẹ nhàng', d:'Mốc tiến hóa đang ở mức dễ nhất — chỉ cần học đều vài hôm là thấy linh thú đổi cảnh giới ngay.'};
-}
-// Mốc điểm cần để ĐẠT cấp idx (idx 0 = 0 điểm). Đường cong tăng mềm, nhân với hệ số nhịp học ở trên.
-function petLevelThreshold(idx){
-  if(idx <= 0) return 0;
-  // Hệ số mũ được HẠ từ 1.048 xuống 1.0168 khi nâng từ 50 lên 100 cấp: giữ nguyên tổng công sức để
-  // đi hết chặng đường (cấp cuối vẫn ~21.000 điểm như trước), nhưng chia thành gấp đôi số mốc — nên
-  // mỗi lần lên cấp đến sớm hơn, thấy nhân vật nâng cấp thường xuyên hơn, mà đích cuối không dễ đi hơn.
-  const base = 42 * idx * Math.pow(1.0168, idx);
-  return Math.round(base * petPaceFactor() / 10) * 10;
+// Đếm mốc thời gian học để phục vụ huy hiệu "Chim sớm & Cú đêm". Gọi từ engGameMarkActivity() —
+// một điểm duy nhất mà mọi mục tiếng Anh đều đi qua, nên không phải sửa 10 chỗ gọi rải rác.
+function gamiMarkTime(){
+  if(!SETTINGS.gami) return;
+  const h = new Date().getHours();
+  if(h < 7) SETTINGS.gami.tod.am++;
+  else if(h >= 22) SETTINGS.gami.tod.pm++;
 }
 
-// ---- ĐIỂM TIẾN HÓA: LẤY TỪ CẢ HAI MỤC + CHUỖI NGÀY, CÓ THƯỞNG VÀ CÓ TRỪ ----
-const PET_STREAK_BONUS = 12;   // mỗi ngày trong chuỗi liên tiếp (mỗi mục) cộng thêm
-const PET_MISS_PENALTY = 8;    // mỗi việc trong Lịch làm việc bị bỏ lỡ sẽ bị trừ
-// Chỉ tính việc bỏ lỡ trong 30 NGÀY GẦN NHẤT. Nếu cộng dồn toàn bộ lịch sử, một người dùng lâu năm sẽ
-// mang theo hàng trăm lượt bỏ lỡ từ nhiều tháng trước và bị trừ vĩnh viễn — linh thú không bao giờ lớn
-// nổi dù hiện tại đang học rất chăm. Giới hạn 30 ngày giúp hình phạt phản ánh đúng giai đoạn gần đây và
-// luôn có cơ hội "chuộc lỗi" bằng cách làm tốt trở lại.
-const PET_MISS_WINDOW_DAYS = 30;
-function petMissedTaskCount(){
-  let n = 0, d = new Date();
-  for(let i=0;i<PET_MISS_WINDOW_DAYS;i++){
-    const r = LOG[toKey(d)];
-    if(r && r.failed) n += Object.keys(r.failed).filter(id => !(r.tasks && r.tasks[id])).length;
-    d = addDays(d,-1);
-  }
-  return n;
+// ---- TỔNG ĐIỂM ----
+// Ba nguồn cộng vào: XP Lịch làm việc (suy từ LOG), Điểm học tiếng Anh (SETTINGS.engGame.score) và
+// kho thưởng. g.peak là chốt một chiều: tổng hiện tại có tụt (do engGame bị trừ vì bỏ ngày) thì cấp
+// vẫn đứng yên — người dùng chỉ ngừng tiến, không bị đẩy lùi.
+function gamiParts(){
+  const g = ensureGami();
+  let sched = 0, eng = 0;
+  try{ sched = Math.max(0, totalXPTrack('schedule')); }catch(_){}
+  try{ eng = Math.max(0, (SETTINGS.engGame && SETTINGS.engGame.score) || 0); }catch(_){}
+  const bonus = Math.max(0, g.bonus);
+  const raw = sched + eng + bonus;
+  if(raw > g.peak){ g.peak = raw; saveSettingsAfterRender(); }
+  return {sched, eng, bonus, raw, total: g.peak, held: g.peak - raw};
 }
-// Bảng phân bổ điểm minh bạch — hiện nguyên văn trong màn hình linh thú để người dùng biết mình đang
-// được cộng/bị trừ từ đâu: XP Lịch làm việc + Điểm học tiếng Anh + thưởng chuỗi ngày − phạt việc bỏ lỡ.
-function petPointParts(){
-  ensureEngGame();
-  const sched = Math.max(0, totalXPTrack('schedule'));
-  const eng = Math.max(0, (SETTINGS.engGame && SETTINGS.engGame.score) || 0);
-  const schedStreak = computeStreakTrack('schedule');
-  const engStreak = englishRealStreak();
-  const streakBonus = (schedStreak + engStreak) * PET_STREAK_BONUS;
-  const missed = petMissedTaskCount();
-  const earned = sched + eng + streakBonus;
-  // Chặn trần hình phạt ở 25% tổng điểm kiếm được. Lý do: XP Lịch làm việc (dayXP) VỐN ĐÃ tự trừ mỗi
-  // việc bỏ lỡ rồi, nên nếu ở đây trừ thêm toàn phần là phạt hai lần cho cùng một lỗi — ngày đầu dùng
-  // app đã thấy "−96 điểm" trong khi chưa kịp kiếm điểm nào. Trần 25% giữ cho hình phạt vẫn có sức nặng
-  // và luôn nhìn thấy được, nhưng không bao giờ nuốt trọn thành quả người dùng đã bỏ công ra.
-  const penalty = Math.min(missed * PET_MISS_PENALTY, Math.round(earned * 0.25));
-  const total = Math.max(0, earned - penalty);
-  return {sched, eng, schedStreak, engStreak, streakBonus, missed, penalty, total};
-}
-function petCombinedXP(){ return petPointParts().total; }
-function ensurePet(){
-  if(!SETTINGS.pet || typeof SETTINGS.pet !== 'object') SETTINGS.pet = {};
-  const p = SETTINGS.pet;
-  if(typeof p.peakIdx !== 'number') p.peakIdx = 0;
-  if(typeof p.lastSeenLevel !== 'number') p.lastSeenLevel = 0;
-  if(!p.rewards || typeof p.rewards !== 'object') p.rewards = {};
-  ensureEngGame();
-  return p;
-}
-function petLevelIdxFor(xp){
-  let idx = 0;
-  for(let i=1;i<PET_MAX_LEVEL;i++){ if(xp >= petLevelThreshold(i)) idx = i; else break; }
-  return idx;
-}
-function petState(){
-  const p = ensurePet();
-  const parts = petPointParts();
+function gamiState(){
+  const g = ensureGami();
+  const parts = gamiParts();
   const xp = parts.total;
-  let idx = petLevelIdxFor(xp);
-  // KHÓA CHỐNG TỤT CẤP OAN: cảnh giới chỉ được phép rơi khi ĐIỂM THỰC SỰ GIẢM (do bị trừ vì bỏ lỡ việc),
-  // chứ không phải vì thang mốc vừa được nâng lên khi người dùng học chăm hơn. Vì vậy lưu lại cả cảnh
-  // giới cao nhất (peakIdx) lẫn số điểm tại thời điểm đó (peakXp): còn giữ đủ điểm thì còn giữ cảnh giới.
-  if(typeof p.peakXp !== 'number') p.peakXp = 0;
-  if(idx > p.peakIdx){ p.peakIdx = idx; p.peakXp = xp; saveSettingsAfterRender(); }
-  else if(xp >= p.peakXp){ idx = p.peakIdx; }
-  // Còn lại: điểm đã thực sự tụt xuống dưới mức từng đạt (bị trừ do bỏ lỡ việc) → giữ nguyên cảnh giới
-  // sống theo điểm hiện tại, và hiện cảnh báo "chiến khí đang hao tổn" để người dùng biết lý do.
-  const realm = petRealmOf(idx);
-  const isMax = idx >= PET_MAX_LEVEL-1;
-  const curMin = petLevelThreshold(idx);
-  const nextMin = isMax ? curMin : petLevelThreshold(idx+1);
-  const xpInLevel = xp - curMin;
-  const xpForNext = Math.max(1, nextMin - curMin);
-  const pct = isMax ? 100 : Math.min(100, Math.round(xpInLevel/xpForNext*100));
+  const lv = gamiLevelFor(xp);
+  const tIdx = gamiTierIdx(lv), tier = GAMI_TIERS[tIdx];
+  const isMax = lv >= GAMI_MAX_LEVEL;
+  const curMin = gamiLevelThreshold(lv);
+  const nextMin = isMax ? curMin : gamiLevelThreshold(lv+1);
+  const span = Math.max(1, nextMin - curMin);
+  const pct = isMax ? 100 : Math.min(100, Math.round((xp - curMin)/span*100));
   return {
-    xp, parts, idx, lv: idx+1, realm, name: petLevelName(idx), icon: petLevelIcon(idx),
-    sub: PET_SUBS[idx % PET_SUBS.length],
-    color: realm.c1, color2: realm.c2, aura: realm.aura, desc: petLevelDesc(idx),
-    nextName: isMax ? null : petLevelName(idx+1),
-    xpInLevel, xpForNext, remain: Math.max(0, nextMin - xp), pct, isMax,
-    justEvolved: idx > p.lastSeenLevel, peakIdx: p.peakIdx, waning: idx < p.peakIdx
+    xp, parts, lv, tier, tierIdx: tIdx, isMax,
+    c1: tier.c1, c2: tier.c2, icon: tier.ic,
+    inTier: ((lv-1) % GAMI_PER_TIER) + 1,
+    remain: Math.max(0, nextMin - xp), pct,
+    nextTier: tIdx < GAMI_TIERS.length-1 ? GAMI_TIERS[tIdx+1] : null,
+    justLeveled: lv > g.seenLv && g.seenLv > 0,
+    badges: gamiBadgeCount()
   };
 }
-function petMarkSeen(){
-  const p = ensurePet(); const idx = petState().idx;
-  if(idx > p.lastSeenLevel){ p.lastSeenLevel = idx; saveSettings(); pushToDrive(); }
+function gamiMarkSeen(){
+  const g = ensureGami(); const lv = gamiState().lv;
+  if(lv !== g.seenLv){ g.seenLv = lv; saveSettings(); pushToDrive(); }
 }
-// Phần thưởng tĩnh theo cảnh giới — dùng ngay không cần gọi AI (tiết kiệm hạn mức API miễn phí).
-const PET_REALM_REWARDS = [
-  'Chàng thiếu niên chăn ngựa đã cảm nhận được ý chí từ sự chăm chỉ của bạn. Hãy học đều 3 ngày liên tiếp — chuỗi ngày được cộng thêm điểm, hành trình lên yên sẽ tới nhanh hơn bạn tưởng.',
-  'Vị kỵ binh vừa hớp ngụm chiến khí đầu tiên. Bí quyết của Luyện Khí kỳ: mỗi ngày một chút còn hơn dồn hết vào cuối tuần — não bộ ghi nhớ theo nhịp lặp lại, không theo khối lượng.',
-  'Trúc Cơ đã lập nền. Hãy chọn đúng MỘT kỹ năng bạn yếu nhất và luyện nó ba hôm liền — nền móng vững thì mọi cảnh giới sau đều lên nhanh.',
-  'Kim đan đã kết. Đây là lúc thích hợp để nâng độ khó: thử một cấp độ cao hơn bạn quen làm, sai vài câu cũng không sao — điểm trừ chỉ đến từ việc bỏ lỡ, không đến từ việc dám thử.',
-  'Nguyên anh xuất khiếu. Hãy tự thưởng cho mình một buổi nghỉ đúng nghĩa — nghỉ có kế hoạch không bị trừ điểm, còn bỏ dở giữa chừng thì có.',
-  'Long tộc huyết mạch đã thức tỉnh. Hãy đặt một mục tiêu 30 ngày cho riêng mình — ở cảnh giới này, thứ quyết định không còn là hứng thú mà là thói quen.',
-  'Thanh Long luyện hư. Hãy quay lại ôn những bài đầu tiên bạn từng làm — bạn sẽ bất ngờ khi thấy chúng dễ đến mức nào, đó là thước đo tiến bộ thật nhất.',
-  'Huyết hỏa hợp thể. Hãy thử dùng tiếng Anh vào một việc thật ngoài đời hôm nay — xem một đoạn video không phụ đề, đọc một bài báo ngắn. Kiến thức chỉ sống khi được dùng.',
-  'Đại Thừa cảnh. Bạn đã đi xa hơn hầu hết những người từng bắt đầu cùng bạn. Hãy tự thưởng một điều gì đó cụ thể — bạn xứng đáng.',
-  'Độ Kiếp viên mãn — Thần Long đăng đỉnh. Con đường phía trước không còn là học cho biết, mà là duy trì cho vững. Hãy giữ chuỗi ngày của bạn không đứt.',
+
+// ---- ĐẶC QUYỀN THEO CẤP ----
+// Giữ lại hai đặc quyền hữu ích của hệ cũ (gợi ý & bỏ qua câu) nhưng gắn vào CẤP thay vì vào con linh
+// thú đang cưỡi — nhờ vậy nó tăng đều theo hành trình chứ không nhảy loạn mỗi lần đổi thú.
+const GAMI_PERKS = {
+  hint: {ic:'💡', n:'Gợi ý loại đáp án', from:[15,25,40], d:'Loại bớt đáp án sai của câu đang làm'},
+  skip: {ic:'⏭️', n:'Bỏ qua không tính sai', from:[8,25,40], d:'Bỏ một câu mà không bị tính là trả lời sai'}
+};
+function gamiPerkAllow(key){
+  const p = GAMI_PERKS[key]; if(!p) return 0;
+  const lv = gamiState().lv;
+  let n = 0; p.from.forEach(need=>{ if(lv >= need) n++; });
+  return n;
+}
+function gamiPerkLeft(key){
+  const g = ensureGami();
+  const today = todayKey();
+  const used = (g.perk.d === today && g.perk[key]) ? g.perk[key] : 0;
+  return Math.max(0, gamiPerkAllow(key) - used);
+}
+function gamiPerkUse(key){
+  if(gamiPerkLeft(key) <= 0) return false;
+  const g = ensureGami(); const today = todayKey();
+  if(g.perk.d !== today){ g.perk = {d: today}; }
+  g.perk[key] = (g.perk[key]||0) + 1;
+  saveSettings();
+  return true;
+}
+function gamiPerkBannerHtml(){
+  const keys = Object.keys(GAMI_PERKS).filter(k=>gamiPerkAllow(k) > 0);
+  if(!keys.length) return '';
+  const st = gamiState();
+  const txt = keys.map(k=>`${GAMI_PERKS[k].ic} ${GAMI_PERKS[k].n} <b>${gamiPerkLeft(k)}/${gamiPerkAllow(k)}</b>`).join(' · ');
+  return `<div class="gm-perk-banner"><span class="gpb-ic">${gamiIconSvg(st.icon, {size:26, c1:st.c1, c2:st.c2})}</span>
+    <span class="gpb-tx">Đặc quyền cấp ${st.lv} hôm nay — ${txt}</span></div>`;
+}
+
+// ---- HUY HIỆU ----
+// 4 bậc dùng chung một hình, chỉ đổi khung và chất liệu (Đồng → Bạc → Vàng → Kim cương). Cách này vừa
+// rẻ vừa giữ được nhận diện: nhìn lướt là biết huy hiệu nào, nhìn kỹ mới thấy đã lên bậc mấy.
+const GAMI_FRAMES = [
+  {n:'Đồng',      c1:'#C97B3F', c2:'#8A4E22'},
+  {n:'Bạc',       c1:'#CBD7E3', c2:'#8496A8'},
+  {n:'Vàng',      c1:'#FFC94A', c2:'#E08A20'},
+  {n:'Kim cương', c1:'#7EE8FA', c2:'#4FA8FF'},
 ];
-// Kiểm tra "nội dung thật" thay vì chỉ đếm độ dài chuỗi — bản trả lời hỏng của Gemini (do bước
-// "thinking" bị cắt cụt) thường chỉ còn dấu câu/khoảng trắng (vd ".\n        *"), độ dài thô vẫn khá
-// dài nhưng gần như không có chữ cái thật nào. Một câu trả lời hợp lệ luôn có rất nhiều chữ cái.
-function petRewardTextValid(text){
+const GAMI_FRAME_XP = [60, 180, 450, 1200];   // thưởng một lần khi đạt mỗi bậc
+function gamiSum(obj, field){
+  if(!obj) return 0;
+  return Object.keys(obj).reduce((s,k)=>{ const r = obj[k]; return s + ((r && r[field]) || 0); }, 0);
+}
+function gamiLogCount(arr, filt){
+  if(!Array.isArray(arr)) return 0;
+  return filt ? arr.filter(filt).length : arr.length;
+}
+function gamiHighScoreCount(){
+  // "Người kiểm định" KHÔNG đòi tuyệt đối không sai. Bản gốc của yêu cầu là mốc 100%, nhưng mốc đó dạy
+  // người học né bài khó để giữ điểm đẹp — ngược hẳn mục tiêu. Mốc ≥90% vẫn tôn vinh sự chính xác mà
+  // không phạt người dám thử phần khó.
+  const g = gamiLogCount(SETTINGS.grammarQuizLog, r=>r && r.pct >= 90);
+  const l = gamiLogCount(SETTINGS.listenQuizLog, r=>r && r.pct >= 90);
+  const s = gamiLogCount(SETTINGS.speakPracticeLog, r=>r && r.overall >= 90);
+  return g + l + s;
+}
+function gamiPerfectDays(){
+  let n = 0;
+  try{ Object.keys(LOG).forEach(k=>{ if(dayPctTrack(k,'schedule') === 100) n++; }); }catch(_){}
+  return n;
+}
+function gamiVocabLearned(){
+  const p = SETTINGS.vocabProgress || {};
+  return Object.keys(p).filter(k=>p[k] && p[k].introduced).length;
+}
+const GAMI_BADGES = [
+  {k:'pron', ic:'mic',   n:'Bậc Thầy Phát Âm',      d:'Lượt luyện nói và luyện phát âm IPA',
+   tiers:[10,50,150,400], get:()=>gamiLogCount(SETTINGS.speakPracticeLog)},
+  {k:'vocab',ic:'chest', n:'Kho Tàng Từ Vựng',      d:'Số từ đã đưa vào bộ nhớ dài hạn',
+   tiers:[50,200,600,1500], get:()=>gamiVocabLearned()},
+  {k:'ear',  ic:'ear',   n:'Thính Giác Tinh Nhạy',  d:'Câu đã làm ở Luyện nghe và Chép chính tả',
+   tiers:[30,150,500,1500], get:()=>gamiSum(SETTINGS.dictDailyStats,'answered') + gamiLogCount(SETTINGS.listenQuizLog)*8},
+  {k:'gram', ic:'ruler', n:'Kiến Trúc Sư Ngữ Pháp', d:'Chủ đề ngữ pháp đã vượt ải',
+   tiers:[3,10,20,36], get:()=>Object.keys((SETTINGS.engGame && SETTINGS.engGame.gPassed) || {}).length},
+  {k:'exact',ic:'glass', n:'Người Kiểm Định',       d:'Lượt kiểm tra đạt từ 90% trở lên',
+   tiers:[5,20,60,150], get:()=>gamiHighScoreCount()},
+  {k:'fire', ic:'flame', n:'Kỷ Luật Thép',          d:'Chuỗi ngày học liên tiếp dài nhất từng đạt',
+   tiers:[7,30,100,365], get:()=>(SETTINGS.gami && SETTINGS.gami.bestStreak) || 0},
+  {k:'owl',  ic:'owl',   n:'Chim Sớm & Cú Đêm',     d:'Buổi học trước 7h sáng hoặc sau 22h đêm',
+   tiers:[5,20,60,150], get:()=>{ const t = (SETTINGS.gami && SETTINGS.gami.tod) || {}; return (t.am||0)+(t.pm||0); }},
+  {k:'cal',  ic:'cal',   n:'Người Giữ Lịch',        d:'Ngày hoàn thành 100% Lịch làm việc',
+   tiers:[5,20,60,180], get:()=>gamiPerfectDays()},
+  {k:'talk', ic:'talk',  n:'Người Đối Thoại',       d:'Lượt nói trong Hội thoại AI',
+   tiers:[20,100,300,800], get:()=>(SETTINGS.aiChatLog||[]).reduce((s,r)=>s+((r&&r.turns)||0),0)},
+  {k:'road', ic:'flag',  n:'Người Mở Đường',        d:'Cấp độ hành trình đã đạt',
+   tiers:[10,20,35,50], get:()=>gamiLevelFor((SETTINGS.gami && SETTINGS.gami.peak) || 0)},
+];
+// Trả về {tier: 0..4, cur, next, pct} — tier 0 = chưa đạt bậc Đồng.
+function gamiBadgeState(b){
+  let cur = 0;
+  try{ cur = b.get() || 0; }catch(_){ cur = 0; }
+  let tier = 0;
+  for(let i=0;i<b.tiers.length;i++){ if(cur >= b.tiers[i]) tier = i+1; else break; }
+  const done = tier >= b.tiers.length;
+  const from = tier === 0 ? 0 : b.tiers[tier-1];
+  const next = done ? b.tiers[b.tiers.length-1] : b.tiers[tier];
+  const pct = done ? 100 : Math.min(100, Math.round((cur - from) / Math.max(1, next - from) * 100));
+  return {tier, cur, next, from, pct, done, frame: tier > 0 ? GAMI_FRAMES[tier-1] : null};
+}
+function gamiBadgeCount(){
+  let n = 0;
+  GAMI_BADGES.forEach(b=>{ if(gamiBadgeState(b).tier > 0) n++; });
+  return n;
+}
+// Gửi thưởng cho những bậc huy hiệu vừa đạt. Chạy mỗi lần mở màn Hành trình; đã trao rồi thì thôi.
+function gamiClaimBadges(){
+  const g = ensureGami();
+  let gained = 0; const got = [];
+  GAMI_BADGES.forEach(b=>{
+    const st = gamiBadgeState(b);
+    const had = g.gotBadges[b.k] || 0;
+    if(st.tier > had){
+      for(let t = had+1; t <= st.tier; t++) gained += GAMI_FRAME_XP[t-1];
+      g.gotBadges[b.k] = st.tier;
+      got.push({b, tier: st.tier});
+    }
+  });
+  if(gained > 0){ g.bonus += gained; saveSettings(); pushToDrive(); }
+  return {gained, got};
+}
+
+// Kiem tra "noi dung that": ban tra loi hong cua Gemini thuong chi con dau cau/khoang trang, do dai
+// tho van kha dai nhung gan nhu khong co chu cai that. Mot cau tra loi hop le luon co rat nhieu chu cai.
+function aiTextValid(text){
   if(!text) return false;
-  const letters = (text.match(/[a-zA-ZÀ-ỹ]/g)||[]).length;
+  const letters = (text.match(/[a-zA-Z\u00C0-\u1EF9]/g)||[]).length;
   return letters >= 15;
 }
 async function callGeminiOnce(prompt){
@@ -3563,191 +3185,279 @@ async function callGeminiOnce(prompt){
   const cand = data.candidates && data.candidates[0];
   const parts = (cand && cand.content && cand.content.parts) || [];
   const raw = parts.filter(p=>p && p.text && !p.thought).map(p=>p.text).join('').trim();
-  if(!petRewardTextValid(raw)) throw new Error('EMPTY');
+  if(!aiTextValid(raw)) throw new Error('EMPTY');
   return raw.trim();
 }
-function petFallbackReward(idx){
-  // Số thần thú (20+) nhiều hơn số lời chỉ điểm soạn sẵn (10) nên xoay vòng thay vì kẹt mãi ở câu cuối.
-  const r = Math.floor(idx/PET_SUBS.length);
-  return PET_REALM_REWARDS[r % PET_REALM_REWARDS.length];
+
+// ================= ICON ISOMETRIC — VẼ BẰNG SVG =================
+// Cùng một quy ước cho mọi icon để cả bộ nhìn như một nhà thiết kế làm ra: bệ hình thoi (phối cảnh
+// isometric), vật thể đặt trên bệ, sáng từ trên-trái nên mặt trái luôn sáng hơn mặt phải. Vẽ bằng SVG
+// thay vì ảnh PNG vì icon phải đổi màu theo chặng và theo bậc huy hiệu — ảnh tĩnh thì phải xuất 5×4
+// phiên bản cho mỗi hình, còn SVG chỉ cần truyền hai mã màu vào.
+let _gmSeq = 0;
+function _gmShade(hex, t){
+  // t>0 sáng lên (trộn trắng), t<0 tối đi (trộn xanh mực) — dùng cho mặt sáng/mặt tối của khối 3D.
+  let c = String(hex||'#888').replace('#','');
+  if(c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  const to = t >= 0 ? [255,255,255] : [16,20,38];
+  const a = Math.abs(t);
+  const p = i => {
+    const v = parseInt(c.substr(i*2,2),16);
+    return Math.round(v + (to[i]-v)*a).toString(16).padStart(2,'0');
+  };
+  return '#'+p(0)+p(1)+p(2);
 }
-// Chỉ gọi AI khi người dùng CHỦ ĐỘNG bấm nút (force=true) hoặc khi vừa bước sang một ĐẠI CẢNH GIỚI mới
-// (tức mỗi 4 cấp, khi đổi sang thần thú khác) — tránh đốt hạn mức API miễn phí cho từng nấc nhỏ, vốn dùng chung với các tính năng chấm
-// điểm/tạo câu hỏi quan trọng hơn.
-async function petGenerateReward(idx, force){
-  const p = ensurePet();
-  if(p.rewards[idx] && !petRewardTextValid(p.rewards[idx].text)) delete p.rewards[idx];
-  if(p.rewards[idx] && !force) return p.rewards[idx];
-  const fallback = { text: petFallbackReward(idx), ai:false };
-  const isRealmMilestone = (idx % PET_SUBS.length) === 0;
-  if(!SETTINGS.geminiApiKey || (!force && !isRealmMilestone)){
-    p.rewards[idx] = fallback; saveSettings(); return fallback;
-  }
-  try{
-    const st = petState();
-    const prompt = `Bạn là một thần thú cưỡi trong thế giới thần thoại tu luyện, vừa tiến hóa thành "${petLevelName(idx)}" (${petLevelDesc(idx)}), ở nấc tiến hóa ${PET_STAGE_TAG[idx % PET_SUBS.length]}. Chủ nhân của bạn là một người Việt đang mỗi ngày rèn luyện thể chất, làm việc theo lịch và học tiếng Anh; hiện đã tích được ${st.xp} điểm tu luyện, chuỗi ngày học tiếng Anh liên tiếp là ${st.parts.engStreak} ngày.
-Hãy viết cho chủ nhân một lời chúc mừng kiêm phần thưởng tinh thần bất ngờ, dài 2-3 câu, bằng tiếng Việt, giọng văn cổ trang tiên hiệp huyền bí nhưng vẫn ấm áp và dễ hiểu. Trong đó phải có MỘT lời khuyên học tập cụ thể, thực hành được ngay hôm nay. Không dùng markdown, không dùng dấu **, không xuống dòng nhiều lần, chỉ trả về đúng đoạn văn.`;
-    const text = await callGeminiOnce(prompt);
-    const result = { text, ai:true };
-    p.rewards[idx] = result; saveSettings(); pushToDrive();
-    return result;
-  }catch(e){
-    p.rewards[idx] = fallback; saveSettings();
-    return fallback;
-  }
+// Bệ hình thoi + bóng đổ mềm, dùng chung cho tất cả icon.
+function _gmBase(c1){
+  return `<ellipse cx="50" cy="83" rx="30" ry="9" fill="#000" opacity=".22"/>`
+    + `<path d="M50 68 L82 82 L50 96 L18 82 Z" fill="${_gmShade(c1,-.15)}"/>`
+    + `<path d="M50 68 L82 82 L50 89 L18 82 Z" fill="${_gmShade(c1,.28)}"/>`;
 }
-function petAuraParticlesHtml(auraClass){
-  if(/aura-sparkle|aura-flame|aura-divine|aura-ring/.test(auraClass)){
-    const n = /aura-divine/.test(auraClass) ? 10 : 6;
-    let html = ''; for(let i=0;i<n;i++) html += `<span class="pet-particle p${i%6}"></span>`;
-    return html;
+function gamiIconSvg(name, o){
+  o = o || {};
+  const c1 = o.c1 || '#4FA8FF', c2 = o.c2 || '#7C6CF0';
+  const size = o.size || 48;
+  const L = _gmShade(c1,.34), D = _gmShade(c1,-.32), A = _gmShade(c2,.16), AD = _gmShade(c2,-.3);
+  const u = 'gm'+(++_gmSeq);
+  let body = '';
+  switch(name){
+    // ---------- 5 CHẶNG ----------
+    case 'compass':   // La bàn gỗ — Tân Binh
+      body = `<circle cx="50" cy="44" r="25" fill="${D}"/><circle cx="50" cy="41" r="25" fill="${L}"/>
+        <circle cx="50" cy="41" r="19" fill="${_gmShade(c1,-.55)}"/><circle cx="50" cy="41" r="19" fill="none" stroke="${A}" stroke-width="2"/>
+        <path d="M50 24 L55 39 L50 41 L45 39 Z" fill="#FF6B6B"/><path d="M50 58 L45 43 L50 41 L55 43 Z" fill="#F2F5FA"/>
+        <circle cx="50" cy="41" r="3" fill="${A}"/>
+        <circle cx="50" cy="19" r="4" fill="${A}"/><rect x="47" y="14" width="6" height="6" rx="2" fill="${AD}"/>`;
+      break;
+    case 'scope':     // Ống nhòm — Lữ Khách
+      body = `<rect x="20" y="30" width="24" height="38" rx="9" fill="${D}"/><rect x="56" y="30" width="24" height="38" rx="9" fill="${D}"/>
+        <rect x="20" y="27" width="24" height="38" rx="9" fill="${L}"/><rect x="56" y="27" width="24" height="38" rx="9" fill="${L}"/>
+        <rect x="41" y="36" width="18" height="12" rx="4" fill="${A}"/>
+        <circle cx="32" cy="36" r="7" fill="${_gmShade(c1,-.6)}"/><circle cx="68" cy="36" r="7" fill="${_gmShade(c1,-.6)}"/>
+        <circle cx="30" cy="34" r="2.6" fill="#FFF" opacity=".8"/><circle cx="66" cy="34" r="2.6" fill="#FFF" opacity=".8"/>
+        <rect x="22" y="50" width="20" height="4" rx="2" fill="${AD}"/><rect x="58" y="50" width="20" height="4" rx="2" fill="${AD}"/>`;
+      break;
+    case 'helm':      // Bánh lái tàu — Người Dẫn Đường
+      body = `<circle cx="50" cy="42" r="26" fill="none" stroke="${D}" stroke-width="8"/>
+        <circle cx="50" cy="40" r="26" fill="none" stroke="${L}" stroke-width="7"/>
+        ${[0,45,90,135].map(a=>`<line x1="${50-Math.cos(a*Math.PI/180)*30}" y1="${40-Math.sin(a*Math.PI/180)*30}" x2="${50+Math.cos(a*Math.PI/180)*30}" y2="${40+Math.sin(a*Math.PI/180)*30}" stroke="${L}" stroke-width="5.5" stroke-linecap="round"/>`).join('')}
+        <circle cx="50" cy="40" r="9" fill="${A}"/><circle cx="50" cy="40" r="4" fill="${_gmShade(c2,-.4)}"/>
+        ${[0,45,90,135,180,225,270,315].map(a=>`<circle cx="${(50+Math.cos(a*Math.PI/180)*31).toFixed(1)}" cy="${(40+Math.sin(a*Math.PI/180)*31).toFixed(1)}" r="3.6" fill="${A}"/>`).join('')}`;
+      break;
+    case 'balloon':   // Khinh khí cầu — Nhà Thám Hiểm
+      body = `<path d="M50 8 C68 8 79 21 79 35 C79 47 68 56 50 66 C32 56 21 47 21 35 C21 21 32 8 50 8 Z" fill="${L}"/>
+        <path d="M50 8 C68 8 79 21 79 35 C79 47 68 56 50 66 Z" fill="${D}" opacity=".55"/>
+        <path d="M42 9 C36 22 36 48 44 64 L50 66 L50 8 Z" fill="${A}" opacity=".85"/>
+        <path d="M58 9 C64 22 64 48 56 64" stroke="${A}" stroke-width="4" fill="none" opacity=".85"/>
+        <path d="M42 64 L44 74 M58 64 L56 74" stroke="${_gmShade(c1,-.5)}" stroke-width="2"/>
+        <rect x="41" y="72" width="18" height="12" rx="3" fill="${AD}"/><rect x="41" y="72" width="18" height="5" rx="2" fill="${A}"/>`;
+      break;
+    case 'summit':    // Đỉnh núi cắm cờ — Bậc Thầy
+      body = `<path d="M50 12 L88 74 L12 74 Z" fill="${D}"/><path d="M50 12 L50 74 L12 74 Z" fill="${L}"/>
+        <path d="M50 12 L64 35 L50 42 L36 35 Z" fill="#F2F7FF"/>
+        <path d="M50 12 L64 35 L50 42 Z" fill="#CFE0F5"/>
+        <line x1="70" y1="14" x2="70" y2="46" stroke="${_gmShade(c2,-.35)}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M70 14 L90 20 L70 27 Z" fill="${A}"/>
+        <circle cx="24" cy="22" r="2.4" fill="#FFF" opacity=".8"/><circle cx="82" cy="52" r="2" fill="#FFF" opacity=".7"/>`;
+      break;
+    // ---------- 10 HUY HIỆU ----------
+    case 'mic':       // Bậc thầy phát âm
+      body = `<rect x="39" y="12" width="22" height="34" rx="11" fill="${D}"/><rect x="37" y="10" width="22" height="34" rx="11" fill="${L}"/>
+        <rect x="42" y="15" width="8" height="12" rx="4" fill="#FFF" opacity=".45"/>
+        <path d="M26 34 C26 52 74 52 74 34" stroke="${A}" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="46" y="50" width="6" height="14" rx="3" fill="${AD}"/><rect x="34" y="62" width="30" height="6" rx="3" fill="${A}"/>
+        <path d="M12 26 q6 8 0 16 M88 26 q-6 8 0 16" stroke="${A}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>`;
+      break;
+    case 'chest':     // Kho tàng từ vựng
+      body = `<path d="M20 34 q30 -20 60 0 L80 42 L20 42 Z" fill="${L}"/>
+        <rect x="20" y="42" width="60" height="26" rx="4" fill="${D}"/><rect x="20" y="42" width="60" height="9" fill="${A}" opacity=".8"/>
+        <rect x="44" y="44" width="12" height="16" rx="3" fill="${A}"/><circle cx="50" cy="52" r="2.6" fill="${_gmShade(c2,-.5)}"/>
+        <text x="34" y="34" font-size="11" font-weight="800" fill="#FFF" opacity=".9">A</text>
+        <text x="58" y="32" font-size="9" font-weight="800" fill="#FFF" opacity=".7">B</text>
+        <circle cx="30" cy="24" r="2.2" fill="#FFF" opacity=".85"/><circle cx="70" cy="27" r="1.8" fill="#FFF" opacity=".7"/>`;
+      break;
+    case 'ear':       // Thính giác tinh nhạy
+      body = `<path d="M56 12 C34 12 26 30 28 46 C30 60 38 62 40 72 C42 82 56 84 58 74 C60 64 52 62 52 54 C52 46 62 46 64 38 C67 26 68 12 56 12 Z" fill="${L}"/>
+        <path d="M52 26 C44 26 40 34 42 42" stroke="${_gmShade(c1,-.45)}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M74 26 q8 12 0 24 M84 18 q13 20 0 40" stroke="${A}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      break;
+    case 'ruler':     // Kiến trúc sư ngữ pháp
+      body = `<path d="M18 66 L62 22 L78 38 L34 82 Z" fill="${D}"/><path d="M14 62 L58 18 L74 34 L30 78 Z" fill="${L}"/>
+        ${[0,1,2,3,4].map(i=>`<line x1="${24+i*10}" y1="${72-i*10}" x2="${30+i*10}" y2="${66-i*10}" stroke="${_gmShade(c1,-.45)}" stroke-width="2.4" stroke-linecap="round"/>`).join('')}
+        <circle cx="76" cy="20" r="9" fill="${A}"/><path d="M72 20 l3 4 l6 -8" stroke="#FFF" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      break;
+    case 'glass':     // Người kiểm định
+      body = `<circle cx="44" cy="38" r="24" fill="${_gmShade(c1,-.6)}"/><circle cx="44" cy="38" r="24" fill="none" stroke="${D}" stroke-width="7"/>
+        <circle cx="44" cy="36" r="24" fill="none" stroke="${L}" stroke-width="6"/>
+        <path d="M36 38 l6 7 l13 -15" stroke="${A}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="35" cy="27" r="4" fill="#FFF" opacity=".3"/>
+        <rect x="58" y="54" width="26" height="9" rx="4.5" transform="rotate(42 58 54)" fill="${AD}"/>`;
+      break;
+    case 'flame':     // Kỷ luật thép
+      body = `<path d="M50 8 C64 26 76 34 76 50 C76 66 64 78 50 78 C36 78 24 66 24 50 C24 36 34 32 40 22 C42 32 46 34 50 30 C52 22 50 14 50 8 Z" fill="${L}"/>
+        <path d="M50 30 C56 40 62 44 62 54 C62 64 57 70 50 70 C43 70 38 64 38 54 C38 46 44 42 46 34 C48 40 50 36 50 30 Z" fill="${A}"/>
+        <path d="M50 46 C53 52 55 55 55 59 C55 64 53 67 50 67 C47 67 45 64 45 59 C45 54 48 52 50 46 Z" fill="#FFF" opacity=".75"/>`;
+      break;
+    case 'owl':       // Chim sớm & cú đêm
+      body = `<path d="M28 22 L38 34 M72 22 L62 34" stroke="${D}" stroke-width="7" stroke-linecap="round"/>
+        <ellipse cx="50" cy="48" rx="27" ry="29" fill="${L}"/>
+        <ellipse cx="50" cy="58" rx="18" ry="18" fill="${_gmShade(c1,.55)}" opacity=".55"/>
+        <circle cx="39" cy="42" r="11" fill="#FFF"/><circle cx="61" cy="42" r="11" fill="#FFF"/>
+        <circle cx="39" cy="42" r="5.5" fill="#20182E"/><circle cx="61" cy="42" r="5.5" fill="#20182E"/>
+        <circle cx="37" cy="40" r="2" fill="#FFF"/><circle cx="59" cy="40" r="2" fill="#FFF"/>
+        <circle cx="39" cy="42" r="11" fill="none" stroke="${A}" stroke-width="2.6"/><circle cx="61" cy="42" r="11" fill="none" stroke="${A}" stroke-width="2.6"/>
+        <line x1="50" y1="42" x2="50" y2="42" stroke="${A}" stroke-width="3"/>
+        <path d="M50 50 l-5 6 h10 Z" fill="${A}"/>
+        <path d="M14 22 a11 11 0 1 0 9 15 a9 9 0 0 1 -9 -15 Z" fill="${_gmShade(c2,.4)}" opacity=".9"/>`;
+      break;
+    case 'cal':       // Người giữ lịch
+      body = `<rect x="18" y="20" width="64" height="58" rx="8" fill="${D}"/><rect x="18" y="17" width="64" height="58" rx="8" fill="${L}"/>
+        <rect x="18" y="17" width="64" height="16" rx="8" fill="${A}"/><rect x="18" y="27" width="64" height="6" fill="${A}"/>
+        <rect x="30" y="10" width="7" height="14" rx="3.5" fill="${AD}"/><rect x="63" y="10" width="7" height="14" rx="3.5" fill="${AD}"/>
+        ${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${28+c*16}" y="${40+r*11}" width="9" height="7" rx="2" fill="${_gmShade(c1,-.4)}" opacity="${r===0&&c<2?'.35':'.7'}"/>`).join('')).join('')}
+        <path d="M36 56 l7 8 l16 -19" stroke="#2CDBA8" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      break;
+    case 'talk':      // Người đối thoại
+      body = `<path d="M14 24 h50 a8 8 0 0 1 8 8 v22 a8 8 0 0 1 -8 8 h-30 l-14 12 v-12 h-6 a8 8 0 0 1 -8 -8 v-22 a8 8 0 0 1 8 -8 Z" fill="${L}"/>
+        <path d="M46 44 h34 a8 8 0 0 1 8 8 v16 a8 8 0 0 1 -8 8 h-4 v10 l-11 -10 h-19 a8 8 0 0 1 -8 -8 v-16 a8 8 0 0 1 8 -8 Z" fill="${A}"/>
+        <circle cx="28" cy="43" r="3.2" fill="#FFF" opacity=".85"/><circle cx="39" cy="43" r="3.2" fill="#FFF" opacity=".85"/><circle cx="50" cy="43" r="3.2" fill="#FFF" opacity=".5"/>
+        <circle cx="60" cy="60" r="3" fill="#FFF" opacity=".8"/><circle cx="70" cy="60" r="3" fill="#FFF" opacity=".8"/>`;
+      break;
+    case 'flag':      // Người mở đường
+      body = `<ellipse cx="50" cy="78" rx="24" ry="7" fill="${D}"/>
+        <line x1="40" y1="16" x2="40" y2="78" stroke="${_gmShade(c2,-.3)}" stroke-width="6" stroke-linecap="round"/>
+        <path d="M43 16 L84 26 L43 40 Z" fill="${L}"/><path d="M43 40 L84 26 L84 34 L43 48 Z" fill="${A}"/>
+        <circle cx="40" cy="13" r="5" fill="${A}"/>
+        <circle cx="22" cy="30" r="2.4" fill="#FFF" opacity=".7"/><circle cx="78" cy="52" r="2" fill="#FFF" opacity=".6"/>`;
+      break;
+    default:
+      body = `<circle cx="50" cy="44" r="24" fill="${L}"/><circle cx="50" cy="44" r="12" fill="${A}"/>`;
   }
-  return '';
+  const cls = o.cls ? ' '+o.cls : '';
+  return `<svg class="gm-svg${cls}" viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`
+    + (o.base === false ? '' : _gmBase(c1)) + body + `</svg>`;
 }
-function renderPetCard(){
-  const st = petState();
-  return `<div class="pet-card art-frame" data-action="hub-open" data-target="pet" style="border-color:${st.color}55; background:linear-gradient(135deg,${st.color}1e,${st.color2}18);">
-    <div class="pet-avatar-wrap ${st.aura}" style="--pet-c1:${st.color}; --pet-c2:${st.color2};">
-      ${petAuraParticlesHtml(st.aura)}
-      <div class="pet-avatar">${st.icon}</div>
+// Huy hiệu = hình gốc + KHUNG theo bậc. Hình bên trong không đổi giữa 4 bậc (giữ nhận diện), chỉ khung
+// và ánh kim đổi — đúng hướng "tối ưu chi phí thiết kế" bạn đặt ra.
+function gamiBadgeIconHtml(b, st, size){
+  size = size || 60;
+  const f = st.frame;
+  const c1 = f ? f.c1 : '#39415A', c2 = f ? f.c2 : '#262C40';
+  const inner = gamiIconSvg(b.ic, {size: Math.round(size*0.62), c1: f ? f.c1 : '#5A6480', c2: f ? f.c2 : '#3A4258', base:false});
+  return `<span class="gm-badge-ic ${f?'':'off'} ${st.tier===4?'dia':''}" style="--bf1:${c1}; --bf2:${c2}; width:${size}px; height:${size}px;">
+    <span class="gm-badge-ring"></span>${inner}</span>`;
+}
+
+// ================= GIAO DIỆN =================
+// Thẻ gọn nằm trong khung đồng hồ ở trang chính.
+function renderGamiCard(){
+  const st = gamiState();
+  return `<div class="gm-card art-frame" data-action="hub-open" data-target="journey" style="border-color:${st.c1}55; background:linear-gradient(135deg,${st.c1}1e,${st.c2}18);">
+    <div class="gm-card-ic">${gamiIconSvg(st.icon, {size:46, c1:st.c1, c2:st.c2})}</div>
+    <div class="gm-card-info">
+      <div class="gm-card-name">${escapeHtml(st.tier.n)}${st.justLeveled?' <span class="gm-new">LÊN CẤP!</span>':''}</div>
+      <div class="gm-card-sub"><span class="gm-lv-chip" style="background:${st.c1}26; color:${st.c1}; border-color:${st.c1}55;">Cấp ${st.lv}/${GAMI_MAX_LEVEL}</span>
+        ${st.isMax ? 'Đã đi hết hành trình ✨' : `còn ${st.remain.toLocaleString('vi-VN')} điểm`}</div>
+      <div class="gm-bar"><div class="gm-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.c1},${st.c2});"></div></div>
+      <div class="gm-card-badges">🎖️ ${st.badges}/${GAMI_BADGES.length} huy hiệu · ${st.xp.toLocaleString('vi-VN')} điểm</div>
     </div>
-    <div class="pet-card-info">
-      <div class="pet-card-name">${st.name}${st.justEvolved?' <span class="pet-new-badge">TIẾN HÓA!</span>':''}</div>
-      <div class="pet-card-sub"><span class="pet-lv-chip">Cấp ${st.lv}/${PET_MAX_LEVEL}</span> ${st.isMax ? 'Đã đăng đỉnh cửu thiên ✨' : `còn ${st.remain.toLocaleString('vi-VN')} điểm`}</div>
-      <div class="pet-bar-track"><div class="pet-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.color},${st.color2});"></div></div>
-      <div class="pet-card-skill">${petSkillOf(st.idx).icon} ${escapeHtml(petSkillOf(st.idx).name)}${petSkillOf(st.idx).consumable?` · còn ${petSkillLeft(petSkillOf(st.idx).key)}`:''}</div>
-    </div>
-    <div class="pet-card-arrow">›</div>
+    <div class="gm-card-arrow">›</div>
   </div>`;
 }
-// ================= THẺ KỸ NĂNG + KHUNG PHÓNG TO LINH THÚ =================
-function petSkillCardHtml(st){
-  const sk = petSkillOf(st.idx);
-  const nextSk = st.isMax ? null : petSkillOf(st.idx+1);
-  let leftHtml = '';
-  if(sk.consumable){
-    const n = petSkillLeft(sk.key);
-    leftHtml = `<div class="pskc-left">Hôm nay còn <b style="color:${n>0?'var(--teal)':'var(--dim2)'};">${n}</b> lượt · tự hồi đầy mỗi ngày</div>`;
-  }
-  return `<div class="pet-skill-card" style="--pk1:${st.color}; --pk2:${st.color2};">
-    <div class="pskc-head"><span class="pskc-ic">${sk.icon}</span><span>Kỹ năng riêng — <b>${escapeHtml(sk.name)}</b></span></div>
-    <div class="pskc-text">${escapeHtml(sk.text)}</div>
-    ${leftHtml}
-    <div class="pskc-story">📜 ${escapeHtml(petLevelStory(st.idx))}</div>
-    ${nextSk?`<div class="pskc-next">Cấp sau — <b>${escapeHtml(petLevelName(st.idx+1))}</b>: ${sk.icon===nextSk.icon?'':nextSk.icon+' '}${escapeHtml(nextSk.text)}</div>`:''}
-  </div>`;
-}
-// Chạm vào hình linh thú → phóng to trong khung cổ trang, kèm tên, cảnh giới, chuyện riêng và kỹ năng.
-function openPetZoom(idx){
-  idx = Math.max(0, Math.min(PET_MAX_LEVEL-1, idx|0));
-  closePetZoom();
-  const r = petRealmOf(idx);
-  const sk = petSkillOf(idx);
-  const el = document.createElement('div');
-  el.id = 'petZoomOverlay';
-  el.className = 'pet-zoom-overlay';
-  el.innerHTML = `<div class="pet-zoom-box" style="--pz1:${r.c1}; --pz2:${r.c2};">
-      <button class="pet-zoom-close" data-action="pet-zoom-close" aria-label="Đóng">✕</button>
-      <div class="pet-zoom-frame">
-        <div class="pzf-corner tl"></div><div class="pzf-corner tr"></div>
-        <div class="pzf-corner bl"></div><div class="pzf-corner br"></div>
-        <div class="pet-zoom-glow"></div>
-        <div class="pet-zoom-img">${petFormVisual(idx)}</div>
-      </div>
-      <div class="pet-zoom-lv">CẤP ${idx+1} · ${escapeHtml(PET_SUBS[idx%PET_SUBS.length])} · ${escapeHtml(PET_STAGE_TAG[idx%PET_SUBS.length])}</div>
-      <div class="pet-zoom-name" style="color:${r.c1};">${escapeHtml(petLevelName(idx))}</div>
-      <div class="pet-zoom-story">${escapeHtml(petLevelStory(idx))}</div>
-      <div class="pet-zoom-skill"><span class="pzs-ic">${sk.icon}</span><span><b>${escapeHtml(sk.name)}</b> — ${escapeHtml(sk.text)}</span></div>
-    </div>`;
-  el.addEventListener('click', ev=>{ if(ev.target === el) closePetZoom(); });
-  document.body.appendChild(el);
-  requestAnimationFrame(()=>el.classList.add('show'));
-}
-function closePetZoom(){
-  const el = document.getElementById('petZoomOverlay');
-  if(el) el.remove();
-}
-function renderPetDetail(){
-  petMarkSeen();
-  const st = petState();
+// Trang Hành trình đầy đủ.
+function renderGamiDetail(){
+  const claim = gamiClaimBadges();
+  gamiMarkSeen();
+  const st = gamiState();
   const P = st.parts;
-  const pace = petPaceLabel();
-  const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🐉 Linh Thú của bạn</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
-  // Bảng phân bổ điểm — nêu rõ nguồn cộng và nguồn trừ theo đúng yêu cầu "có thưởng, có phạt".
-  const breakdown = `<div class="pet-score-card">
-    <div class="pet-score-head">⚖️ Điểm tu luyện — <b>${st.xp.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-row"><span>📅 XP Lịch làm việc hằng ngày</span><b class="plus">+${P.sched.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-row"><span>🗣️ Điểm học tiếng Anh</span><b class="plus">+${P.eng.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-row"><span>🔥 Thưởng chuỗi ngày (${P.schedStreak} + ${P.engStreak} ngày × ${PET_STREAK_BONUS})</span><b class="plus">+${P.streakBonus.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-row"><span>⚠️ Việc bỏ lỡ ${PET_MISS_WINDOW_DAYS} ngày gần đây (${P.missed} việc)</span><b class="minus">−${P.penalty.toLocaleString('vi-VN')}</b></div>
-    <div class="pet-score-note">Mọi hành động hoàn thành đúng yêu cầu ở <b>Lịch làm việc</b> và <b>Học tiếng Anh</b> đều nuôi linh khí cho linh thú; việc để quá giờ mà không hoàn thành sẽ hao tổn chiến khí. Hình phạt chỉ tính trong ${PET_MISS_WINDOW_DAYS} ngày gần nhất và không bao giờ vượt quá 25% điểm bạn đã kiếm được — làm tốt trở lại là hồi phục ngay.</div>
+  const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🧭 Hành trình của bạn</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
+
+  const hero = `<div class="gm-hero art-frame" style="--g1:${st.c1}; --g2:${st.c2}; background:radial-gradient(120% 90% at 50% 0%, ${st.c1}30, ${st.c2}1c 55%, transparent 100%);">
+    <div class="art-corner tl"></div><div class="art-corner tr"></div><div class="art-corner bl"></div><div class="art-corner br"></div>
+    <div class="gm-hero-tier">CHẶNG ${st.tierIdx+1}/${GAMI_TIERS.length} · ${escapeHtml(st.tier.sub)}</div>
+    <div class="gm-hero-ic">${gamiIconSvg(st.icon, {size:118, c1:st.c1, c2:st.c2})}</div>
+    <div class="gm-hero-name" style="color:${st.c1};">${escapeHtml(st.tier.n)}</div>
+    <div class="gm-hero-lv">Cấp <b>${st.lv}</b> / ${GAMI_MAX_LEVEL} <span>· nấc ${st.inTier}/${GAMI_PER_TIER} của chặng</span></div>
+    <div class="gm-bar large"><div class="gm-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.c1},${st.c2});"></div></div>
+    <div class="gm-hero-xp">${st.isMax
+      ? `${st.xp.toLocaleString('vi-VN')} điểm — bạn đã đi hết bản đồ`
+      : `Còn <b>${st.remain.toLocaleString('vi-VN')}</b> điểm để lên cấp ${st.lv+1}${st.lv%GAMI_PER_TIER===0?` và bước vào chặng <b>${escapeHtml(st.nextTier?st.nextTier.n:'')}</b>`:''}`}</div>
+    <div class="gm-hero-desc">${escapeHtml(st.tier.d)}</div>
   </div>`;
-  const paceCard = `<div class="pet-pace-card">
-    <div class="pet-pace-title">🔮 Thiên đạo luận nhịp: ${pace.t}</div>
-    <div class="pet-pace-desc">${pace.d} Hệ số mốc tiến hóa hiện tại: <b>×${petPaceFactor().toFixed(2)}</b> — được tính lại mỗi ngày dựa trên nhịp học 14 ngày gần nhất của bạn.</div>
+
+  const claimHtml = claim.gained > 0
+    ? `<div class="gm-claim">🎉 Vừa nhận <b>+${claim.gained.toLocaleString('vi-VN')} điểm</b> từ ${claim.got.length} bậc huy hiệu mới: ${claim.got.map(x=>escapeHtml(x.b.n)+' ('+GAMI_FRAMES[x.tier-1].n+')').join(', ')}.</div>`
+    : '';
+
+  // Bảng điểm minh bạch — người dùng phải biết chính xác điểm từ đâu ra, nếu không hệ thống chỉ là con số.
+  const breakdown = `<div class="gm-score">
+    <div class="gm-score-head">⚖️ Tổng điểm hành trình — <b>${st.xp.toLocaleString('vi-VN')}</b></div>
+    <div class="gm-score-row"><span>📅 Lịch làm việc hằng ngày</span><b class="plus">+${P.sched.toLocaleString('vi-VN')}</b></div>
+    <div class="gm-score-row"><span>🗣️ Học tiếng Anh</span><b class="plus">+${P.eng.toLocaleString('vi-VN')}</b></div>
+    <div class="gm-score-row"><span>🎁 Kho thưởng (chuỗi ngày + huy hiệu)</span><b class="plus">+${P.bonus.toLocaleString('vi-VN')}</b></div>
+    ${P.held > 0 ? `<div class="gm-score-row"><span>🛡️ Đang được giữ lại (điểm học tập bị trừ do bỏ ngày)</span><b class="hold">+${P.held.toLocaleString('vi-VN')}</b></div>` : ''}
+    <div class="gm-score-note">Điểm hành trình <b>không bao giờ giảm</b>. Bỏ ngày học vẫn bị trừ Điểm học tập và mất chuỗi ngày — nghĩa là bạn <b>ngừng tiến</b> chứ không bị đẩy lùi về cấp cũ. Mỗi ngày học xong, tiền thưởng chuỗi được gửi thẳng vào kho và thuộc về bạn vĩnh viễn.</div>
   </div>`;
-  // Danh sách 50 cấp: hiện gọn theo từng đại cảnh giới, mở rộng chi tiết 5 tầng ở cảnh giới hiện tại.
-  // Bộ sưu tập 50 hình thái: đã mở khóa thì hiện rõ hình + tên, chưa mở thì chỉ thấy bóng mờ và mốc
-  // điểm cần đạt — để người học luôn nhìn thấy "con kế tiếp" mình sắp mở được, tạo động lực rõ ràng.
-  const curMountIdx = Math.floor(st.idx/PET_SUBS.length);
-  const journey = PET_REALMS.map((r,ri)=>{
-    const first = ri*PET_SUBS.length;
-    const unlocked = ri <= curMountIdx;
-    const cells = PET_SUBS.map((sn,si)=>{
-      const li = first+si;
-      const open = li <= st.idx;
-      const isCur = li === st.idx;
-      return `<div class="pet-form ${open?'open':'lock'} ${isCur?'cur':''}" style="${open?`border-color:${r.c1}66;`:''}" ${open?`data-action="pet-zoom" data-idx="${li}"`:''}>
-        <div class="pet-form-ic">${open?petFormVisual(li):'❔'}</div>
-        <div class="pet-form-lv">${PET_STAGE_TAG[si]}</div>
-        <div class="pet-form-name" style="${open?`color:${r.c1};`:''}">${open?escapeHtml(sn):'???'}</div>
-        <div class="pet-form-xp">${petLevelThreshold(li).toLocaleString('vi-VN')}đ</div>
-      </div>`;
-    }).join('');
-    return `<div class="pet-realm-block ${unlocked?'':'dim'}">
-      <div class="pet-realm-title" style="${unlocked?`color:${r.c1};`:''}">${unlocked?escapeHtml(r.n):'??? Thần Thú'} <small>cấp ${first+1}–${first+PET_SUBS.length}</small></div>
-      <div class="pet-form-grid">${cells}</div>
+
+  const perkList = Object.keys(GAMI_PERKS).map(k=>{
+    const p = GAMI_PERKS[k];
+    const allow = gamiPerkAllow(k), left = gamiPerkLeft(k);
+    const nextAt = p.from.find(n=>st.lv < n);
+    return `<div class="gm-perk ${allow?'on':'off'}">
+      <span class="gm-perk-ic">${p.ic}</span>
+      <span class="gm-perk-tx"><b>${escapeHtml(p.n)}</b> — ${escapeHtml(p.d)}<br>
+        <small>${allow ? `Hôm nay còn <b>${left}/${allow}</b> lượt${nextAt?` · lên cấp ${nextAt} được thêm 1 lượt`:''}` : `Mở khoá ở cấp ${p.from[0]}`}</small></span>
     </div>`;
   }).join('');
-  // Ô trống chờ bổ sung: giữ chỗ sẵn cho các thần thú bạn sẽ gửi thêm sau, để nhìn thấy ngay là bộ
-  // sưu tập còn tiếp tục dài ra chứ không phải đã hết.
-  const slots = Array.from({length: PET_MOUNT_SLOTS}).map((_,i)=>`
-    <div class="pet-realm-block slot">
-      <div class="pet-realm-title">🔒 Thần thú thứ ${PET_REALMS.length+i+1} <small>sắp cập nhật</small></div>
-      <div class="pet-form-grid">${PET_STAGE_TAG.map(t=>`<div class="pet-form lock"><div class="pet-form-ic">＋</div><div class="pet-form-lv">${t}</div><div class="pet-form-name">—</div></div>`).join('')}</div>
-    </div>`).join('');
-  let rewardObj = SETTINGS.pet.rewards[st.idx];
-  if(rewardObj && !petRewardTextValid(rewardObj.text)) rewardObj = null;
-  const rewardHtml = rewardObj
-    ? `<div class="pet-reward-card"><div class="pet-reward-label">🎁 Thiên cơ ban thưởng${rewardObj.ai?' (AI đề xuất)':''}</div><div class="pet-reward-text">${escapeHtml(rewardObj.text)}</div>
-        <button class="form-btn cancel" data-action="pet-regen-reward" style="margin-top:8px; font-size:11px;">🔄 Xin lời chỉ điểm khác</button></div>`
-    : `<div class="pet-reward-card"><button class="form-btn" data-action="pet-regen-reward">🎁 Xin thiên cơ ban thưởng</button></div>`;
+  const perkCard = `<div class="gm-block"><h3>🎒 Đặc quyền theo cấp</h3>${perkList}</div>`;
+
+  // Bản đồ 50 cấp — gom theo chặng, mỗi chặng 10 chấm. Nhìn thấy toàn bộ con đường và mình đang đứng đâu.
+  const map = GAMI_TIERS.map((t,ti)=>{
+    const from = ti*GAMI_PER_TIER + 1, to = from + GAMI_PER_TIER - 1;
+    const reached = st.lv >= from;
+    const dots = Array.from({length:GAMI_PER_TIER}).map((_,i)=>{
+      const lv = from + i;
+      const open = st.lv >= lv, cur = st.lv === lv;
+      return `<span class="gm-dot ${open?'on':''} ${cur?'cur':''}" style="${open?`--dc:${t.c1};`:''}" title="Cấp ${lv} — ${gamiLevelThreshold(lv).toLocaleString('vi-VN')} điểm">${cur?lv:''}</span>`;
+    }).join('');
+    return `<div class="gm-tier-row ${reached?'':'dim'}">
+      <div class="gm-tier-head">
+        <span class="gm-tier-ic">${gamiIconSvg(t.ic, {size:38, c1:t.c1, c2:t.c2, base:false})}</span>
+        <span class="gm-tier-tx"><b style="color:${reached?t.c1:'var(--dim2)'};">${escapeHtml(t.n)}</b><br><small>Cấp ${from}–${to} · từ ${gamiLevelThreshold(from).toLocaleString('vi-VN')} điểm</small></span>
+      </div>
+      <div class="gm-dots">${dots}</div>
+    </div>`;
+  }).join('');
+
+  const badges = GAMI_BADGES.map(b=>{
+    const bs = gamiBadgeState(b);
+    return `<div class="gm-badge ${bs.tier?'got':''}">
+      ${gamiBadgeIconHtml(b, bs, 62)}
+      <div class="gm-badge-tx">
+        <div class="gm-badge-n">${escapeHtml(b.n)}${bs.frame?` <span class="gm-badge-tier" style="color:${bs.frame.c1};">${bs.frame.n}</span>`:''}</div>
+        <div class="gm-badge-d">${escapeHtml(b.d)}</div>
+        <div class="gm-bar thin"><div class="gm-bar-fill" style="width:${bs.pct}%; background:linear-gradient(90deg,${bs.frame?bs.frame.c1:'#5A6480'},${bs.frame?bs.frame.c2:'#3A4258'});"></div></div>
+        <div class="gm-badge-p">${bs.done ? `Đã đạt bậc cao nhất · ${bs.cur.toLocaleString('vi-VN')}` : `${bs.cur.toLocaleString('vi-VN')} / ${bs.next.toLocaleString('vi-VN')} để lên bậc ${GAMI_FRAMES[bs.tier].n}`}</div>
+      </div>
+    </div>`;
+  }).join('');
+
   document.getElementById('content').innerHTML = `
     ${backRow}
-    <div class="pet-hero-card" style="background:radial-gradient(120% 90% at 50% 0%, ${st.color}2e, ${st.color2}22 55%, transparent 100%);">
-      <div class="pet-hero-lv">CẤP ${st.lv} / ${PET_MAX_LEVEL}</div>
-      <div class="pet-avatar-wrap large ${st.aura}" style="--pet-c1:${st.color}; --pet-c2:${st.color2};" data-action="pet-zoom" data-idx="${st.idx}">
-        ${petAuraParticlesHtml(st.aura)}
-        <div class="pet-avatar large">${st.icon}</div>
-        <div class="pet-zoom-hint">🔍 Chạm để xem lớn</div>
-      </div>
-      <div class="pet-hero-name" style="color:${st.color};">${st.name}</div>
-      <div class="pet-hero-realm">${st.sub} · <b>${PET_STAGE_TAG[st.idx % PET_SUBS.length]}</b></div>
-      <div class="pet-hero-desc">${st.desc}</div>
-      <div class="pet-bar-track large"><div class="pet-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.color},${st.color2});"></div></div>
-      <div class="pet-hero-xp">${st.isMax ? `${st.xp.toLocaleString('vi-VN')} điểm — đã đạt cảnh giới tối thượng` : `Còn <b>${st.remain.toLocaleString('vi-VN')}</b> điểm để lên <b>${st.nextName}</b>`}</div>
-      ${st.waning?`<div class="pet-warn">⚠️ Chiến khí đang hao tổn — cảnh giới cao nhất từng đạt là <b>${petLevelName(st.peakIdx)}</b>. Hoàn thành việc trong lịch để hồi phục.</div>`:''}
-    </div>
-    ${petSkillCardHtml(st)}
-    ${rewardHtml}
+    ${hero}
+    ${claimHtml}
     ${breakdown}
-    ${paceCard}
-    <div class="card" style="margin-top:14px;">
-      <h3 style="margin-bottom:4px;">🐾 Bộ sưu tập thần thú — ${PET_REALMS.length} con × ${PET_SUBS.length} cấp tiến hóa</h3>
-      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:10px; line-height:1.5;">Đã mở <b>${st.idx+1}/${PET_MAX_LEVEL}</b> cấp. Mỗi thần thú có <b>câu chuyện riêng</b>, <b>một kỹ năng riêng</b> tác động thật vào việc học, và <b>4 nấc tiến hóa</b> — từ trần trụi tới giáp vàng rực hào quang. Chạm vào hình đã mở để xem lớn trong khung riêng.</div>
-      ${journey}${slots}
+    ${perkCard}
+    <div class="gm-block">
+      <h3>🗺️ Bản đồ hành trình — ${GAMI_MAX_LEVEL} cấp, ${GAMI_TIERS.length} chặng</h3>
+      <div class="gm-block-sub">Mốc điểm cố định, không đổi theo nhịp học — nhìn là biết còn bao xa.</div>
+      ${map}
+    </div>
+    <div class="gm-block">
+      <h3>🎖️ Tủ huy hiệu — ${st.badges}/${GAMI_BADGES.length} đã mở</h3>
+      <div class="gm-block-sub">Mỗi huy hiệu có 4 bậc: ${GAMI_FRAMES.map(f=>f.n).join(' → ')}. Lên bậc được thưởng ${GAMI_FRAME_XP.join(' / ')} điểm.</div>
+      <div class="gm-badge-grid">${badges}</div>
     </div>`;
-  if(!rewardObj) petGenerateReward(st.idx, false).then(()=>{ if(STATE.tab==='pet') renderContent(); });
 }
 // Phân tích dựa hoàn toàn trên LOG thực tế (đọc lại mỗi lần render — không cache), gồm cả
 // các việc bị tự động đánh dấu "không hoàn thành" (rec.failed) để đánh giá đúng thực chất,
@@ -3846,15 +3556,14 @@ function buildAdviceTrack(dateKeys, track){
   return msgs;
 }
 function renderTrackHUD(track){
-  // ĐÃ BỎ Level/XP: điểm số nay chỉ còn MỘT nơi duy nhất là Linh Thú (điểm tu luyện), tránh việc người
-  // dùng phải nhìn hai hệ thống điểm song song cho cùng một hành động. Thanh này giờ chỉ hiển thị
-  // chuỗi ngày liên tiếp — thứ duy nhất ở đây không phải là điểm — và dẫn thẳng sang màn Linh Thú.
+  // Chỉ MỘT hệ điểm duy nhất trong toàn app: điểm Hành trình. Thanh này không lặp lại con số đó mà
+  // chỉ hiện chuỗi ngày (thứ duy nhất ở đây không phải điểm) rồi dẫn thẳng sang màn Hành trình.
   const streak = computeStreakTrack(track); const meta = TRACK_META[track];
-  const st = petState();
-  return `<div class="track-hud slim" style="border-color:${meta.hex}44; background:linear-gradient(135deg,${meta.hex}14,${meta.hex2}0a);" data-action="hub-open" data-target="pet">
+  const st = gamiState();
+  return `<div class="track-hud slim" style="border-color:${meta.hex}44; background:linear-gradient(135deg,${meta.hex}14,${meta.hex2}0a);" data-action="hub-open" data-target="journey">
     <div class="track-hud-top">
       <div class="track-hud-streak-big">🔥 <b>${streak}</b> ngày liên tiếp</div>
-      <div class="track-hud-pet" style="color:${st.color};">🐉 ${escapeHtml(st.name)} · Cấp ${st.lv} ›</div>
+      <div class="track-hud-pet" style="color:${st.c1};">🧭 ${escapeHtml(st.tier.n)} · Cấp ${st.lv} ›</div>
     </div>
   </div>`;
 }
@@ -3992,7 +3701,7 @@ async function onDriveTokenResponse(resp){
     if(STATE.tab==='authgate') STATE.tab = 'hub';
     driveSyncing = true; driveSyncStartedAt = Date.now();
     // CỰC KỲ QUAN TRỌNG: vì giờ app hiện ra NGAY trong lúc còn đang kéo dữ liệu về, các màn hình được
-    // vẽ ra có thể tự gọi saveSettings() (ví dụ thẻ linh thú cập nhật nhịp học). Nếu không khóa, dữ liệu
+    // vẽ ra có thể tự gọi saveSettings() (ví dụ thẻ Hành trình gửi thưởng chuỗi ngày). Nếu không khóa, dữ liệu
     // MẶC ĐỊNH đang có trên máy sẽ bị đẩy ngược lên Drive và GHI ĐÈ MẤT dữ liệu thật trước khi kéo về
     // xong — đúng hiện tượng "mất hình nền, mất cấp độ, như bị reset". Khóa đẩy tới khi pull xong.
     _suppressDrivePush = true;
@@ -4905,7 +4614,7 @@ function renderAuthGate(){
       }</div>
       <div class="authgate-feats">
         <div class="authgate-feat"><span class="ic">☁️</span> Đồng bộ dữ liệu tự động lên Google Drive</div>
-        <div class="authgate-feat"><span class="ic">🎮</span> Nuôi linh thú tiến hóa 100 cấp theo chuỗi ngày rèn luyện</div>
+        <div class="authgate-feat"><span class="ic">🧭</span> Hành trình 50 cấp và 10 huy hiệu ghi lại từng bước tiến của bạn</div>
         <div class="authgate-feat"><span class="ic">🔒</span> Chỉ bạn mới truy cập được dữ liệu của mình</div>
       </div>
       ${!connected ? `<div class="authgate-skip" data-action="authgate-skip">Bỏ qua, dùng ngoại tuyến</div>` : ''}
@@ -5290,7 +4999,7 @@ function renderHub(){
       <div class="art-corner bl"></div><div class="art-corner br"></div>
       <div class="hub-clock-blob b1"></div>
       <div class="hub-clock-blob b2"></div>
-      ${renderPetCard()}
+      ${renderGamiCard()}
       <div class="hc-main">
         <div class="hc-analog">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -7611,12 +7320,11 @@ function answerEnglishQuiz(optIdx){
   renderContent();
 }
 // Kỹ năng "Thiên cơ chỉ điểm": loại bớt đáp án SAI của câu đang làm, mỗi ngày dùng được số lần bằng
-// sức mạnh kỹ năng của linh thú hiện tại. Cấp càng cao thì loại được càng nhiều đáp án.
+// đặc quyền theo cấp hành trình. Cấp càng cao thì mỗi ngày dùng được càng nhiều lượt.
 function useQuizHint(){
   const q = STATE.quiz; if(!q || q.answered!==null) return;
   if(q.hintFor === q.idx) return;
-  const s = petActiveSkill();
-  if(s.key !== 'hint' || !petSkillUse('hint')) return;
+  if(!gamiPerkUse('hint')) return;
   const [tid, idx] = q.order[q.idx];
   const qi = grammarBankFor(tid)[idx];
   if(!qi) return;
@@ -7898,7 +7606,7 @@ function renderEnglishQuiz(item){
         if(i===qi[2]) cls += ' correct';
         else if(i===q.answered) cls += ' wrong';
       }
-      // Kỹ năng "Thiên cơ chỉ điểm" của linh thú: các đáp án bị loại sẽ mờ đi và bấm không được nữa.
+      // Đặc quyền "Gợi ý": các đáp án bị loại sẽ mờ đi và bấm không được nữa.
       const hinted = (q.hintFor === q.idx) && Array.isArray(q.hintOpts) && q.hintOpts.indexOf(i) >= 0;
       if(hinted) cls += ' hinted-out';
       return `<div class="${cls}" ${(q.answered===null && !hinted)?`data-action="quiz-answer" data-opt="${i}"`:''}>
@@ -7915,12 +7623,12 @@ function renderEnglishQuiz(item){
       </div>
       <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
     </div>
-    ${petSkillBannerHtml()}
+    ${gamiPerkBannerHtml()}
     <div class="card eng-quiz-card">
       <div class="eng-quiz-q">${escapeHtml(qi[0])}</div>
       ${opts}
-      ${(q.answered===null && petSkillLeft('hint')>0 && q.hintFor!==q.idx) ? `<button class="eng-quiz-hint" data-action="quiz-hint">💡 Dùng Thiên cơ chỉ điểm (còn ${petSkillLeft('hint')})</button>` : ''}
-      ${q.answered===null ? `<button class="eng-quiz-skip" data-action="quiz-skip">⏭ Bỏ qua câu này${petSkillLeft('skip')>0?` — linh thú miễn tính sai (còn ${petSkillLeft('skip')})`:''}</button>` : ''}
+      ${(q.answered===null && gamiPerkLeft('hint')>0 && q.hintFor!==q.idx) ? `<button class="eng-quiz-hint" data-action="quiz-hint">💡 Gợi ý — loại bớt đáp án sai (còn ${gamiPerkLeft('hint')})</button>` : ''}
+      ${q.answered===null ? `<button class="eng-quiz-skip" data-action="quiz-skip">⏭ Bỏ qua câu này${gamiPerkLeft('skip')>0?` — không tính sai (còn ${gamiPerkLeft('skip')})`:''}</button>` : ''}
       ${q.answered!==null ? `
         <div class="eng-quiz-explain">💡 ${escapeHtml(qi[3]||'')}</div>
         ${qi[5] ? `<div class="eng-quiz-tip">🤖 <b>Mẹo AI:</b> ${escapeHtml(qi[5])}</div>` : ''}
@@ -8028,17 +7736,12 @@ function ensureEngGame(){
   }
 }
 function engGameGoalToday(){ ensureEngGame(); return 1 + Math.min(SETTINGS.engGame.missStreak, 3); }
-// nCorrect (không bắt buộc): số câu ĐÚNG trong lượt vừa rồi — dùng để áp kỹ năng "Thưởng điểm" của
-// linh thú (cộng thêm N điểm cho MỖI câu đúng). Kỹ năng "Bội điểm" thì nhân vào toàn bộ điểm dương.
+// Cổng cộng/trừ Điểm học tiếng Anh dùng chung cho MỌI mục. Điểm ở đây chảy thẳng vào tổng điểm
+// Hành trình (xem gamiParts) nên không có hệ thống điểm nào song song nữa.
+// nCorrect (không bắt buộc): số câu đúng trong lượt — giữ lại cho phần ghi nhật ký.
 function engGameAddScore(delta, why, nCorrect){
   ensureEngGame();
   const g = SETTINGS.engGame;
-  if(delta > 0){
-    const b = petSkillBonus();
-    if(b > 0 && nCorrect > 0){ delta += b * nCorrect; why += ' · ✨ linh thú +'+(b*nCorrect); }
-    const m = petSkillXpMult();
-    if(m && m !== 1){ const before = delta; delta = Math.round(delta * m); if(delta>before) why += ' · 📈 ×'+m; }
-  }
   g.score += delta;
   g.log.push({d:todayKey(), delta, why});
   if(g.log.length>200) g.log = g.log.slice(-200);
@@ -8047,6 +7750,7 @@ function engGameAddScore(delta, why, nCorrect){
 // Ghi nhận "1 hoạt động học" hôm nay (mọi module tiếng Anh gọi khi hoàn thành 1 việc).
 function engGameMarkActivity(){
   ensureEngGame();
+  try{ gamiMarkTime(); }catch(_){}
   const g = SETTINGS.engGame; const k = todayKey();
   g.daily[k] = (g.daily[k]||0) + 1;
   const need = 1 + Math.min(g.missStreak, 3);
@@ -14865,7 +14569,7 @@ function renderToday(){
           <div class="rd-facts">
             <div class="rd-fact"><span class="i">🛡️</span><span>Không tính vào thống kê, <b>không làm đứt chuỗi ngày</b></span></div>
             <div class="rd-fact"><span class="i">🪶</span><span>Đã bỏ chạy bộ &amp; tập tạ nặng, lịch <b>rút gọn ~35%</b></span></div>
-            <div class="rd-fact"><span class="i">💎</span><span>Nghỉ có kế hoạch <b>không làm đứt chuỗi</b> và không bị trừ điểm linh thú</span></div>
+            <div class="rd-fact"><span class="i">💎</span><span>Nghỉ có kế hoạch <b>không làm đứt chuỗi</b> và không bị trừ điểm hành trình</span></div>
           </div>
           <div class="rd-note">🧠 AI đã tạm dừng việc sắp lịch bù cho ngày mai — nghỉ là nghỉ, không nợ nần gì cả.</div>
         </div>
@@ -15741,7 +15445,6 @@ function renderStatsFor(track){
   else renderYear(track);
 }
 function renderContent(){
-  closePetZoom(); // đóng khung phóng to linh thú khi chuyển màn hình (kể cả khi vuốt back)
   _renderDepth++;
   try{ renderContentInner(); }
   catch(err){
@@ -15765,6 +15468,7 @@ function renderContent(){
 }
 function renderContentInner(){
   destroyCharts();
+  if(STATE.tab==='pet') STATE.tab = 'journey';   // tương thích ngược: link/lịch sử cũ trỏ tới màn linh thú
   if(STATE.tab==='authgate') renderAuthGate();
   else if(STATE.tab==='hub') renderHub();
   else if(STATE.tab==='today') renderToday();
@@ -15781,7 +15485,7 @@ function renderContentInner(){
   else if(STATE.tab==='entertainment') renderEntertainment();
   else if(STATE.tab==='ent-music') renderMusicPlaylist();
   else if(STATE.tab==='customcat') renderCustomCat();
-  else if(STATE.tab==='pet') renderPetDetail();
+  else if(STATE.tab==='journey') renderGamiDetail();
   else if(STATE.tab==='english-planner') renderEnglishPlanner();
     else if(STATE.tab==='english-vault') renderEnglishVault();
     else if(STATE.tab==='english-review') renderEnglishReview();
@@ -15831,13 +15535,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const studyModeEl = e.target.closest('[data-action="set-study-mode"]');
   if(studyModeEl){ setStudyMode(studyModeEl.getAttribute('data-mode')); return; }
-  const petRegenEl = e.target.closest('[data-action="pet-regen-reward"]');
-  if(petRegenEl){
-    petRegenEl.textContent = '⏳ Đang xin lời khuyên...'; petRegenEl.disabled = true;
-    const st = petState();
-    petGenerateReward(st.idx, true).then(()=>{ if(STATE.tab==='pet') renderContent(); });
-    return;
-  }
   // Về thẳng trang chính từ bất kỳ đâu — dọn sạch các phiên đang mở (cuộc gọi AI, shadowing, quiz...)
   // để không có audio/mic nào còn chạy nền sau khi rời màn hình.
   const goHomeEl = e.target.closest('[data-action="go-home"]');
@@ -15900,14 +15597,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(quizMockCountEl){ STATE.mockTestCount = parseInt(quizMockCountEl.getAttribute('data-count'),10); renderContent(); return; }
   const quizAnswerEl = e.target.closest('[data-action="quiz-answer"]');
   if(quizAnswerEl){ answerEnglishQuiz(parseInt(quizAnswerEl.getAttribute('data-opt'),10)); return; }
-  const petZoomCloseEl = e.target.closest('[data-action="pet-zoom-close"]');
-  if(petZoomCloseEl){ closePetZoom(); return; }
-  const petZoomEl = e.target.closest('[data-action="pet-zoom"]');
-  if(petZoomEl){ openPetZoom(parseInt(petZoomEl.getAttribute('data-idx'),10)||0); return; }
   const quizNextEl = e.target.closest('[data-action="quiz-next"]');
   if(quizNextEl){ nextEnglishQuiz(); return; }
   const quizSkipEl = e.target.closest('[data-action="quiz-skip"]');
-  if(quizSkipEl){ if(petSkillLeft('skip')>0) petSkillUse('skip'); nextEnglishQuiz(); return; }
+  if(quizSkipEl){ gamiPerkUse('skip'); nextEnglishQuiz(); return; }
   const quizHintEl = e.target.closest('[data-action="quiz-hint"]');
   if(quizHintEl){ useQuizHint(); return; }
   const quizChangeLevelEl = e.target.closest('[data-action="quiz-change-level"]');
@@ -16578,8 +16271,6 @@ if('serviceWorker' in navigator){
   // đăng nhập Google thành công (xem onDriveTokenResponse) — kể cả khi trước đó đã từng đăng nhập.
   renderContent();
   applyAppBackground();
-  // Dò số ảnh thần tướng có sẵn (pet-realm-1.png, -2.png, ...) chạy ngầm, không chặn khởi động app.
-  probePetArt().catch(()=>{});
   initDriveSync();
   setInterval(checkReminders, 20000);
   if(STORAGE_MODE==='memory'){ showToast('⚠️','Không thể lưu dữ liệu','Trình duyệt chặn lưu trữ — tiến độ sẽ mất khi đóng tab.'); }
