@@ -550,6 +550,37 @@
     border-radius:14px; background:rgba(124,108,240,.13); border:1px solid rgba(124,108,240,.34);}
   .pet-perk-banner .ppb-tx{font-size:11px; line-height:1.5; color:var(--dim);}
   @media (max-width:400px){ .hc-digi-time{font-size:34px;} .hc-digi-sec{font-size:15px;} }
+  /* ===== QUY TRÌNH HỌC ===== */
+  .eng-flow{border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.03);
+    margin-bottom:12px; overflow:hidden;}
+  .eng-flow summary{display:flex; align-items:center; gap:10px; padding:12px 13px; cursor:pointer; list-style:none;}
+  .eng-flow summary::-webkit-details-marker{display:none;}
+  .eng-flow summary b{display:block; font-size:12.5px; color:var(--text);}
+  .eng-flow summary small{display:block; font-size:9.5px; color:var(--dim2); margin-top:1px;}
+  .ef-sum-ic{font-size:19px; flex:0 0 auto;}
+  .ef-in{padding:0 13px 13px;}
+  .ef-row{display:flex; gap:10px; padding:10px 0; border-top:1px dashed var(--border);}
+  .ef-step{flex:0 0 auto; width:21px; height:21px; border-radius:50%; color:#0B1220;
+    font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+  .ef-body{min-width:0; flex:1;}
+  .ef-h{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .ef-h b{font-size:11px; letter-spacing:.06em;}
+  .ef-ic{font-size:13px;}
+  .ef-t{font-size:11.5px; font-weight:700; color:var(--text);}
+  .ef-d{font-size:11px; line-height:1.65; color:var(--dim); margin-top:4px;}
+  .ef-m{display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;}
+  .ef-tag{font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:20px; border:1px solid;}
+  .ef-note{font-size:10.5px; line-height:1.7; color:var(--dim); margin-top:10px; padding:9px 11px;
+    border-radius:11px; background:rgba(79,168,255,.09); border:1px solid rgba(79,168,255,.24);}
+  .ef-note.warn{background:rgba(255,184,77,.09); border-color:rgba(255,184,77,.26);}
+  .ef-note b{color:var(--text);}
+  /* ===== KHỐI SINH HOẠT ===== */
+  .life-anchor{display:flex; align-items:center; gap:9px; padding:7px 12px; margin:3px 0 5px;
+    border-radius:11px; background:rgba(255,255,255,.028); border:1px dashed var(--border);}
+  .life-anchor .la-ic{font-size:13px; flex:0 0 auto; opacity:.85;}
+  .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
+    flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
+  .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
   /* ===== LUẬN NGÀY ===== */
   .dl-sum{border:1px solid var(--border); border-left:3px solid var(--dc,#5B9CFF); border-radius:16px;
     padding:13px 14px; background:rgba(255,255,255,.03);}
@@ -2066,7 +2097,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v140';
+const APP_VERSION = 'v141';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2533,6 +2564,46 @@ function programWeekFor(dateObj){
 // ngày nghỉ tạ (T3/T5) bù lại bằng buổi Luyện nói + chuyên môn dài hơn. Cuối tuần KHÔNG bị ràng buộc
 // giờ làm nên giữ nguyên các buổi luyện tập dài, sâu như trước. Luôn chừa ≥30 phút "wind-down" không
 // màn hình trước giờ ngủ — đúng khuyến nghị vệ sinh giấc ngủ mà mục Kỷ luật nhắc tới.
+// ================= KHỐI SINH HOẠT (mốc neo trong ngày) =================
+// Vấn đề của lịch cũ: chỉ liệt kê việc CẦN LÀM (chạy bộ, học, tập) mà không có bữa ăn, đi lại, tắm
+// giặt — nên nhìn vào thì tưởng còn nhiều thời gian trống, thực tế thì không. Điển hình: tan làm
+// 19:00 mà 19:15 đã phải có mặt ở phòng tập, tức là 15 phút để về nhà và thay đồ.
+//
+// Các khối dưới đây được vẽ XEN GIỮA các việc để nhìn phát biết ngay quỹ thời gian thật, nhưng CỐ Ý
+// KHÔNG nằm trong getPlanForDate() — nghĩa là không có nút hoàn thành, không tính vào tỷ lệ %, không
+// cộng/trừ điểm, không đụng gì tới thống kê. Chúng chỉ là mốc neo để đọc lịch cho đúng.
+function lifeAnchorsForDate(dateObj){
+  const wd = dateObj.getDay();
+  const isWorkday = wd>=1 && wd<=5;
+  const isGymDay = wd===1||wd===3||wd===5;
+  const A = (time,dur,label,ic)=>({time,dur,label,ic,anchor:true});
+  if(isWorkday){
+    const out = [];
+    if(isGymDay){
+      out.push(A('06:08',22,'Tắm rửa · ăn sáng','🍳'));
+      out.push(A('06:50',10,'Di chuyển tới chỗ làm','🛵'));
+    } else {
+      out.push(A('06:35',25,'Tắm rửa · ăn sáng · chuẩn bị đi làm','🍳'));
+    }
+    out.push(A('07:00',720,'Giờ làm việc (07:00 – 19:00)','💼'));
+    out.push(A('12:00',15,'Ăn trưa','🍚'));
+    if(isGymDay){
+      out.push(A('19:00',25,'Về nhà · thay đồ · ăn nhẹ trước khi tập','🛵'));
+      out.push(A('20:15',40,'Tắm · ăn tối','🍜'));
+    } else {
+      out.push(A('19:00',50,'Về nhà · ăn tối · tắm rửa','🍜'));
+    }
+    return out;
+  }
+  if(wd===6){
+    return [A('06:45',30,'Ngủ dậy · vệ sinh cá nhân','🌅'), A('08:50',10,'Ăn sáng','🍳'),
+            A('12:15',60,'Ăn trưa · nghỉ ngơi','🍚'), A('16:30',135,'Thời gian tự do · việc nhà · gia đình','🏡'),
+            A('19:15',15,'Ăn tối','🍜')];
+  }
+  return [A('06:40',25,'Tắm rửa · ăn sáng sau long run','🍳'),
+          A('11:45',75,'Ăn trưa · nghỉ trưa','🍚'), A('16:30',135,'Thời gian tự do · việc nhà · gia đình','🏡'),
+          A('19:15',15,'Ăn tối','🍜')];
+}
 function getPlanForDate(dateObj){
   const wd = dateObj.getDay();
   const isWorkday = wd>=1 && wd<=5; // Thứ 2 - Thứ 6: đi làm cố định 7:00-19:00
@@ -2557,14 +2628,14 @@ function getPlanForDate(dateObj){
     if(isGymDay){
       tasks.push({id:'gian_co', time:'06:00', dur:8, label:'Giãn cơ sau chạy', cat:'the_luc', kind:'stretch',
         sub:['Giãn tĩnh các nhóm cơ vừa chạy: bắp chuối, đùi trước, đùi sau, hông — mỗi nhóm 20-30 giây','Hít thở sâu, chậm để đưa nhịp tim về bình thường','Giúp giảm đau cơ trễ (DOMS) và giữ biên độ khớp cho buổi tập tạ tối nay']});
-      tasks.push({id:'ipa', time:'06:15', dur:20, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+      tasks.push({id:'ipa', time:'06:30', dur:20, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
     } else {
       tasks.push({id:'tu_vung', time:'05:45', dur:25, label:'Từ vựng mới (Luyện từ vựng)', cat:'tieng_anh', kind:'vocab',
         sub:['Vào mục Luyện từ vựng → học 20 từ mới của hôm nay','Đọc to từng từ + câu ví dụ (kết hợp tai-miệng giúp nhớ sâu hơn chỉ đọc thầm)','Buổi trưa và tối sẽ ôn lại đúng những từ này — đừng cố học thêm, đúng lịch là đủ']});
-      tasks.push({id:'ipa', time:'06:15', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
+      tasks.push({id:'ipa', time:'06:10', dur:25, label:'Luyện phát âm IPA (trước giờ làm)', cat:'tieng_anh', kind:'ipa'});
       // Ngày không chạy/tập tạ (T3/T5) vẫn PHẢI có vận động nhẹ — tránh 2 ngày liên tiếp hoàn toàn
       // ít vận động. 15' đi bộ nhanh/giãn cơ vừa đủ trong khoảng trống trước giờ làm 7:00.
-      tasks.push({id:'the_luc_nhe', time:'06:40', dur:15, label:'Vận động nhẹ (đi bộ nhanh/giãn cơ)', cat:'the_luc', kind:'light_active',
+      tasks.push({id:'the_luc_nhe', time:'05:30', dur:15, label:'Vận động nhẹ (đi bộ nhanh/giãn cơ)', cat:'the_luc', kind:'light_active',
         sub:['Ngày này không chạy bền/tập tạ nặng, nhưng vẫn nên vận động nhẹ 15 phút: đi bộ nhanh, giãn cơ toàn thân, hoặc vài động tác hít đất/plank tại nhà','Mục tiêu là duy trì thói quen vận động mỗi ngày — không cần đổ mồ hôi nhiều','Có thể gộp với lúc chuẩn bị đi làm nếu tiện']});
     }
     // ---- TRƯA (12:15-12:50, giờ nghỉ trưa) ----
@@ -2574,23 +2645,25 @@ function getPlanForDate(dateObj){
       sub:['Mở lại Luyện từ vựng → ôn tập các từ đã học sáng nay/hôm qua','Chỉ 10 phút active recall — nhìn nghĩa đoán từ, nhìn từ đoán nghĩa','Lần ôn giữa ngày này chính là "mũi tiêm nhắc" giúp từ chuyển vào trí nhớ dài hạn']});
     // ---- TỐI (sau giờ làm 19:00) ----
     if(isGymDay){
-      tasks.push({id:'tap_ta', time:'19:15', dur:60, label:'Tập tạ (sau giờ làm)', cat:'the_luc', kind: wd===1?'gym_a':(wd===3?'gym_b':'gym_c')});
-      tasks.push({id:'ngu_phap_game', time:'20:30', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+      tasks.push({id:'tap_ta', time:'19:25', dur:50, label:'Tập tạ (sau giờ làm)', cat:'the_luc', kind: wd===1?'gym_a':(wd===3?'gym_b':'gym_c')});
+      tasks.push({id:'ngu_phap_game', time:'20:55', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
         sub:['Vào mục Ngữ pháp → học tiếp chủ đề đang mở, làm bài kiểm tra vượt ải nếu đã sẵn sàng','Mỗi ngày PHẢI hoàn thành nhiệm vụ ngữ pháp — bỏ ngày sẽ bị trừ điểm học tập','Đạt 8/10 câu ở bài kiểm tra để mở khóa chủ đề tiếp theo']});
-      tasks.push({id:'shadowing', time:'21:00', dur:20, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
-      tasks.push({id:'hoc_chuyen_nganh', time:'21:25', dur:15, label:'Ôn nhanh QC/QA', cat:'chuyen_mon', kind:'study',
+      tasks.push({id:'shadowing', time:'21:20', dur:20, label:'Shadowing tiếng Anh', cat:'tieng_anh', kind:'shadowing'});
+      tasks.push({id:'hoc_chuyen_nganh', time:'21:40', dur:15, label:'Ôn nhanh QC/QA', cat:'chuyen_mon', kind:'study',
         sub:['Xem lại 1 ghi chú/thuật ngữ QC-QA đã học','Tự hỏi-đáp nhanh bằng kỹ thuật Feynman','Ngày có tập tạ nên chỉ cần ôn ngắn — duy trì đều đặn quan trọng hơn số lượng']});
     } else {
-      tasks.push({id:'luyen_noi', time:'19:30', dur:40, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
-      tasks.push({id:'ai_talk', time:'20:15', dur:20, label:'Hội thoại AI — phản xạ nói', cat:'tieng_anh', kind:'ai_chat',
+      tasks.push({id:'luyen_noi', time:'19:50', dur:40, label:'Luyện nói tiếng Anh', cat:'tieng_anh', kind:'speaking'});
+      tasks.push({id:'ai_talk', time:'20:30', dur:20, label:'Hội thoại AI — phản xạ nói', cat:'tieng_anh', kind:'ai_chat',
         sub:['Vào Hội thoại AI → gọi thoại trực tiếp theo 1 tình huống thực tế (quán cà phê, phỏng vấn...)','Nói tự nhiên, đừng sợ sai — AI sẽ sửa bằng cách nhắc lại cách nói đúng','Mục tiêu: phản xạ trả lời trong 2-3 giây, không dịch thầm trong đầu']});
-      tasks.push({id:'ngu_phap_game', time:'20:40', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
+      tasks.push({id:'ngu_phap_game', time:'20:50', dur:25, label:'Ngữ pháp — vượt ải mở khóa', cat:'tieng_anh', kind:'grammar_game',
         sub:['Vào mục Ngữ pháp → học tiếp chủ đề đang mở, làm bài kiểm tra vượt ải nếu đã sẵn sàng','Mỗi ngày PHẢI hoàn thành nhiệm vụ ngữ pháp — bỏ ngày sẽ bị trừ điểm học tập','Đạt 8/10 câu ở bài kiểm tra để mở khóa chủ đề tiếp theo']});
-      tasks.push({id:'hoc_chuyen_nganh', time:'21:10', dur:35, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
+      tasks.push({id:'hoc_chuyen_nganh', time:'21:15', dur:35, label:'Học chuyên ngành QC/QA', cat:'chuyen_mon', kind:'study',
         sub:['Đọc tài liệu/giáo trình chuyên ngành','Tự giải thích lại bằng lời của mình (kỹ thuật Feynman)','Ghi chú điểm chưa rõ để tra cứu thêm']});
     }
-    tasks.push({id:'ngu_dung_gio', time:'22:00', dur:420, endLabel:'05:00 (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
-      sub:['Ngưng dùng màn hình trước 30 phút — 15 phút cuối có thể ôn từ vựng lần 3 bằng cách nhớ lại trong đầu','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00 — ngủ đủ 7 tiếng là nền tảng của cả thể lực lẫn trí nhớ']});
+    const wakeNext = isGymDay ? '05:15' : '05:30';
+    const sleepMin  = isGymDay ? 435 : 450;   // 22:00 -> 05:15 = 7h15 | 22:00 -> 05:30 = 7h30
+    tasks.push({id:'ngu_dung_gio', time:'22:00', dur:sleepMin, endLabel:wakeNext+' (hôm sau)', label:'Ngủ đúng giờ (22h00)', cat:'ky_luat', kind:'sleep',
+      sub:['Ngưng dùng màn hình trước 30 phút — 15 phút cuối có thể ôn từ vựng lần 3 bằng cách nhớ lại trong đầu','Chuẩn bị phòng ngủ thoáng, tối','Lên giường trước 22h00 — ngủ '+(isGymDay?'7 tiếng 15':'7 tiếng 30')+' phút là nền tảng của cả thể lực lẫn trí nhớ']});
   } else if(wd===6){
     // THỨ 7 — ngày phục hồi thể lực (không chạy bền/không tập tạ nặng), dồn cho tiếng Anh sâu + chuyên
     // môn. Vẫn cần 1 buổi vận động NHẸ (đi bộ/đạp xe/yoga) để không đứt quãng vận động — "phục hồi"
@@ -6674,10 +6747,61 @@ function renderEnglishItemRows(){
     <div class="eng-item-add" data-action="add-english-item"><span style="font-size:16px; font-weight:800; line-height:1;">+</span> Thêm mục mới</div>
   </div>`;
 }
+// ================= QUY TRÌNH HỌC: 7 MỤC PHỐI HỢP VỚI NHAU NHƯ THẾ NÀO =================
+// Vấn đề của một app có nhiều mục: người học mở lên thấy 7 ô, không biết bấm ô nào trước, học bao lâu thì
+// chuyển, và vì sao lại phải học ô đó. Khối này trả lời đúng 3 câu hỏi ấy, dựa trên vài kết quả nghiên
+// cứu đã được lặp lại nhiều lần trong ngành dạy ngôn ngữ:
+//
+//  • Ôn NGẮT QUÃNG hơn hẳn học dồn. Phân tích tổng hợp của Kim & Webb (2022) trên 48 thí nghiệm với 3.411
+//    người học ngoại ngữ cho thấy học chia nhỏ nhiều buổi có hiệu quả cỡ trung bình-lớn so với học dồn
+//    một lần; khoảng cách DÀI giữa các lần ôn cho kết quả tốt hơn ở bài kiểm tra sau một thời gian.
+//    => App chia mỗi từ thành nhiều lần gặp lại cách nhau nhiều ngày, thay vì học thuộc một lần.
+//  • NHỚ LẠI CHỦ ĐỘNG (tự bật ra đáp án) ăn đứt đọc lại. Đây là lý do mọi mục đều bắt trả lời trước rồi
+//    mới cho xem đáp án, chứ không cho đọc trước.
+//  • CÓ SỬA SAI thì hiệu quả cao hơn không sửa (g≈0,54 so với 0,37 trong cùng phân tích trên).
+//    => Sai câu nào app đều giải thích ngay tại chỗ, không chỉ báo đúng/sai.
+//  • ĐẦU VÀO DỄ HIỂU (nghe/đọc nhiều thứ vừa sức) giúp lên trình đều nhưng chậm, hiệu quả rõ hơn khi
+//    kéo dài nhiều tháng => phần nghe đóng vai "nạp", không phải vai "luyện".
+//
+// Bốn vai trò, mỗi mục nằm ở một vai:
+const ENG_FLOW = [
+  {v:'NẠP', c:'#2CDBA8', ic:'📥', t:'Đưa tiếng Anh vào đầu',
+   d:'Nghe và đọc nhiều thứ vừa sức. Giai đoạn này KHÔNG cần cố nhớ — chỉ cần hiểu. Lượng quan trọng hơn độ khó.',
+   m:['Luyện nghe','Câu thông dụng']},
+  {v:'HIỂU', c:'#FF8A3D', ic:'🧩', t:'Biết vì sao câu đó đúng',
+   d:'Học quy tắc để tự ráp câu mới, thay vì chỉ thuộc lòng câu có sẵn. Mỗi chủ đề học xong phải qua bài kiểm tra mới mở chủ đề sau.',
+   m:['Ngữ pháp']},
+  {v:'NHỚ', c:'#4FA8FF', ic:'🔁', t:'Giữ lại lâu dài',
+   d:'Gặp lại đúng lúc sắp quên. Mỗi từ được hỏi lại nhiều lần, cách nhau xa dần — đây là phần quyết định bạn còn nhớ sau 6 tháng hay không.',
+   m:['Luyện từ vựng']},
+  {v:'BẬT RA', c:'#FF6EA8', ic:'🗣️', t:'Nói được, phát âm đúng',
+   d:'Biết mà không nói ra được thì coi như chưa biết. Phần này ép bạn tạo ra câu chứ không chỉ nhận ra câu.',
+   m:['Luyện nói','Luyện IPA','Hội thoại AI']}
+];
+function engFlowHtml(){
+  const rows = ENG_FLOW.map((f,i)=>`
+    <div class="ef-row">
+      <div class="ef-step" style="background:${f.c};">${i+1}</div>
+      <div class="ef-body">
+        <div class="ef-h"><span class="ef-ic">${f.ic}</span><b style="color:${f.c};">${f.v}</b><span class="ef-t">${escapeHtml(f.t)}</span></div>
+        <div class="ef-d">${escapeHtml(f.d)}</div>
+        <div class="ef-m">${f.m.map(x=>`<span class="ef-tag" style="border-color:${f.c}55; color:${f.c};">${escapeHtml(x)}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+  return `<details class="eng-flow"${SETTINGS._flowSeen?'':' open'}>
+    <summary><span class="ef-sum-ic">🧭</span><span><b>Quy trình học — 7 mục này ăn khớp với nhau ra sao</b><small>Đọc một lần để biết mở mục nào trước</small></span></summary>
+    <div class="ef-in">
+      ${rows}
+      <div class="ef-note"><b>Thứ tự trong ngày:</b> sáng đầu óc tỉnh nhất → dành cho <b>NHỚ</b> (từ vựng mới) và phát âm. Trưa mệt → <b>NẠP</b> (nghe, không cần gắng sức). Tối → <b>BẬT RA</b> (nói) và <b>HIỂU</b> (ngữ pháp). Lịch làm việc đã xếp sẵn đúng thứ tự này, bạn chỉ cần làm theo.</div>
+      <div class="ef-note warn"><b>Một điều quan trọng:</b> ngày nào bận thì làm phần <b>NHỚ</b> trước tiên rồi nghỉ — bỏ một ngày ôn từ gây thiệt hại lớn hơn bỏ một ngày ngữ pháp, vì từ đã quên thì phải học lại từ đầu.</div>
+    </div>
+  </details>`;
+}
 function renderEnglish(){
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
+    ${engFlowHtml()}
     ${renderAiCoachCard()}
     ${renderTodayFlow()}
     ${renderEnglishTodayPanel()}
@@ -15665,7 +15789,19 @@ function renderToday(){
   const isWorkdayNow = now.getDay()>=1 && now.getDay()<=5;
   const workBanner = isWorkdayNow ? `<div class="rest-banner" style="background:#4FA8FF14; border-color:#4FA8FF44;">💼 Lịch hôm nay đã sắp xếp quanh giờ làm 7:00-19:00 của bạn — buổi sáng trước 7h &amp; buổi tối sau 19h dành cho Thể lực/Tiếng Anh/Chuyên môn, giữa trưa có 1 việc rất nhẹ. Điều chỉnh vài phút theo giờ di chuyển thực tế của bạn nếu cần.</div>` : '';
 
-  const tasksHtml = plan.map(t=>{
+  // Trộn khối sinh hoạt vào ĐÚNG vị trí theo giờ để đọc lịch cho khớp thực tế. Ngày nghỉ thì bỏ qua
+  // (lịch ngày nghỉ vốn đã rất nhẹ, chèn thêm chỉ làm rối).
+  const anchors = dayOff ? [] : lifeAnchorsForDate(parseKey(key));
+  const merged = [...plan.map(t=>({t,anchor:false})), ...anchors.map(a=>({t:a,anchor:true}))]
+    .sort((x,y)=> x.t.time.localeCompare(y.t.time));
+  const tasksHtml = merged.map(({t,anchor})=>{
+    if(anchor){
+      const endM = (()=>{ const [h,m]=t.time.split(':').map(Number); const e=h*60+m+t.dur;
+        return String(Math.floor(e/60)%24).padStart(2,'0')+':'+String(e%60).padStart(2,'0'); })();
+      return `<div class="life-anchor"><span class="la-ic">${t.ic}</span>
+        <span class="la-time">${t.time}–${endM}</span>
+        <span class="la-lbl">${escapeHtml(t.label)}</span></div>`;
+    }
     const isDone = !!rec.tasks[t.id];
     const [hh,mm] = t.time.split(':').map(Number);
     const taskTime = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm);
