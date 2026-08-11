@@ -566,7 +566,7 @@
   .pet-realm.dim{opacity:.5;}
   .pet-realm-h{font-size:11.5px; font-weight:800; margin-bottom:6px;}
   .pet-realm-h small{font-weight:600; font-size:9.5px; color:var(--dim2); margin-left:5px;}
-  .pet-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:5px;}
+  .pet-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:5px;}
   .pet-cell{border:1px solid var(--border); border-radius:11px; padding:5px 3px 4px; text-align:center;
     background:rgba(255,255,255,.03);}
   .pet-cell .pet-img{height:52px;}
@@ -2075,7 +2075,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v138';
+const APP_VERSION = 'v139';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3210,14 +3210,19 @@ function gamiParts(){
 // Hình lấy TRỰC TIẾP từ 4 bảng bạn gửi, cắt thành sprite sheet 10 cột × 36 hàng (pet-sheet.webp).
 // Mỗi CỘT là một loài, mỗi HÀNG là một nấc tiến hóa — đúng cách bốn bảng đó được vẽ.
 // Bốn bảng xếp theo thứ tự sức mạnh tăng dần, mỗi bảng 9 nấc:
-//   Kỵ Sĩ (cấp 1–8) → Nguyên Tố (9–16) → Vũ Trụ (17–24) → Thần Vực (25–32)
-// Mỗi bảng gốc có 9 HÀNG ẢNH (không phải 10 như tiêu đề ghi), và chiều cao các hàng KHÔNG bằng nhau —
-// cắt bằng lưới đều là hình hàng này dính sang hàng kia. Ở đây cắt theo đúng biên thật của từng hàng.
-// Hàng thứ 7 bị BỎ: đó là hàng "ảnh mẫu kèm tên gọi", con vật quay về dạng thường nên nếu giữ thì lên
-// cấp lại thấy linh thú yếu đi — cảm giác rất tệ. Còn 8 nấc mỗi bảng, tăng đều từ đầu tới cuối.
+// CÁCH DỰNG BỘ HÌNH (đã sửa 2 lỗi ở các bản trước):
+//  1. Mỗi bảng gốc có 9 HÀNG ẢNH (tiêu đề ghi 10 nhưng thực tế 9), và chiều cao các hàng KHÔNG bằng
+//     nhau — hàng thường ~180px, riêng hàng F/G cao 261px. Cắt bằng lưới đều là hình hàng này dính
+//     sang hàng kia. Nay cắt theo đúng biên thật của từng hàng, đã kiểm bằng mắt trên cả 4 bảng.
+//  2. Bốn bảng TRÙNG NHAU rất nhiều — hàng đầu của cả bốn đều là cùng một con thú non, nhiều hàng
+//     giữa cũng gần như y hệt. Đã lọc trùng bằng cách so ảnh (360 ô → 258 ô riêng biệt), rồi chọn ra
+//     20 nấc trải đều cho mỗi loài.
+// THỨ TỰ SẮP XẾP: khoá chính là NẤC trong bảng gốc (hàng), khoá phụ là hệ (Kỵ Sĩ → Nguyên Tố → Vũ Trụ
+// → Thần Vực). Nhờ vậy con non chỉ xuất hiện một lần ở cấp 1, rồi mỗi nấc lại leo qua các hệ mạnh dần —
+// đọc từ cấp 1 tới 20 là thấy rõ thú non → khoác giáp → kỵ sĩ → nguyên tố → có cánh → hào quang.
 const PET_SHEET = 'pet-sheet.webp';
-const PET_COLS = 10, PET_ROWS = 32;
-const PET_MAX = PET_ROWS;                       // 32 cấp
+const PET_COLS = 10, PET_ROWS = 20;
+const PET_MAX = PET_ROWS;                       // 20 cấp
 const PET_SPECIES = [
   {n:'Hùng Bi',   d:'Gấu — bền bỉ, chịu tải nặng',        c1:'#C98A4B', c2:'#8A5A2A'},
   {n:'Thương Lang',d:'Sói — nhanh, đi đường dài',          c1:'#9FB4CC', c2:'#5E7188'},
@@ -3233,18 +3238,18 @@ const PET_SPECIES = [
 // 4 cảnh giới × 9 nấc. Tên nấc dùng chung cho mọi loài để khỏi phải soạn 360 cái tên rời rạc,
 // nhưng tên loài + hình thì mỗi con một khác nên nhìn vẫn ra bản sắc riêng.
 const PET_REALMS = [
-  {n:'Kỵ Sĩ',     d:'Từ thú non tới chiến binh khoác giáp — giai đoạn xây nền.',      c:'#C9D3E2'},
-  {n:'Nguyên Tố', d:'Thức tỉnh huyết mạch nguyên tố: đất, lửa, sấm, độc, linh.',      c:'#FF9B4D'},
-  {n:'Vũ Trụ',    d:'Vượt khỏi giới hạn vật chất, mang theo tinh vân và ánh sao.',    c:'#B9A6FF'},
-  {n:'Thần Vực',  d:'Chạm tới tầng trừu tượng: tồn tại, tri thức, thời gian.',        c:'#7EE8FA'}
+  {n:'Ấu Thú',    d:'Thú non vừa mở mắt, bắt đầu quen với thế giới. Giai đoạn này chỉ cần đều đặn, chưa cần mạnh.', c:'#C9D3E2'},
+  {n:'Chiến Thú', d:'Khoác giáp, cầm vũ khí, đứng được trên hai chân — sức mạnh bắt đầu thành hình rõ rệt.',       c:'#FFB03D'},
+  {n:'Linh Thú',  d:'Thức tỉnh huyết mạch: lửa, sấm, tinh vân, ánh sao quấn quanh thân.',                           c:'#B9A6FF'},
+  {n:'Thần Thú',  d:'Mọc cánh, hào quang phủ kín — hình thái cuối của cả hành trình.',                              c:'#7EE8FA'}
 ];
-const PET_STEPS = ['Sơ Sinh','Tỉnh Thức','Nhập Đạo','Kiên Cố','Thành Hình','Đại Thành','Siêu Việt','Viên Mãn'];
+const PET_STEPS = ['Sơ Khai','Tôi Luyện','Thành Hình','Đại Thành','Viên Mãn'];
 function petSpecies(){
   const i = (SETTINGS.pet && typeof SETTINGS.pet.sp === 'number') ? SETTINGS.pet.sp : 0;
   return Math.max(0, Math.min(PET_COLS-1, i));
 }
-function petRealmOf(lv){ return Math.min(PET_REALMS.length-1, Math.floor((lv-1)/8)); }
-function petStepOf(lv){ return (lv-1) % 8; }
+function petRealmOf(lv){ return Math.min(PET_REALMS.length-1, Math.floor((lv-1)/5)); }
+function petStepOf(lv){ return (lv-1) % 5; }
 function petName(lv, sp){
   const s = PET_SPECIES[sp === undefined ? petSpecies() : sp];
   return s.n + ' · ' + PET_REALMS[petRealmOf(lv)].n + ' ' + PET_STEPS[petStepOf(lv)];
@@ -3266,7 +3271,7 @@ function petImg(lv, sp, cls){
 function petLevelThreshold(lv){
   if(lv <= 1) return 0;
   if(lv > PET_MAX) lv = PET_MAX;
-  return Math.round(46 * Math.pow(lv-1, 1.86) / 10) * 10;
+  return Math.round(70 * Math.pow(lv-1, 1.95) / 10) * 10;
 }
 function petLevelFor(xp){
   let lv = 1;
@@ -3311,8 +3316,8 @@ function petChooseSpecies(i){
 }
 // ---- ĐẶC QUYỀN THEO CẤP (giữ từ bản trước, chỉ đổi mốc cho hợp 36 cấp) ----
 const PET_PERKS = {
-  hint: {ic:'💡', n:'Gợi ý loại đáp án', from:[10,17,26], d:'Loại bớt đáp án sai của câu đang làm'},
-  skip: {ic:'⏭️', n:'Bỏ qua không tính sai', from:[5,17,26], d:'Bỏ một câu mà không bị tính là trả lời sai'}
+  hint: {ic:'💡', n:'Gợi ý loại đáp án', from:[7,12,17], d:'Loại bớt đáp án sai của câu đang làm'},
+  skip: {ic:'⏭️', n:'Bỏ qua không tính sai', from:[4,12,17], d:'Bỏ một câu mà không bị tính là trả lời sai'}
 };
 function petPerkAllow(key){
   const p = PET_PERKS[key]; if(!p) return 0;
@@ -3366,13 +3371,13 @@ function renderPetDetail(){
   const st = petState(); const P = st.parts;
   const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🐾 Linh thú của bạn</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
   const hero = `<div class="pet-hero" style="--p1:${st.c1}; --p2:${st.c2};">
-    <div class="pet-hero-realm">${escapeHtml(st.realm.n.toUpperCase())} · NẤC ${st.step+1}/8</div>
+    <div class="pet-hero-realm">${escapeHtml(st.realm.n.toUpperCase())} · NẤC ${st.step+1}/5</div>
     <div class="pet-hero-img">${petImg(st.lv, st.sp)}</div>
     <div class="pet-hero-name">${escapeHtml(st.species.n)}</div>
     <div class="pet-hero-sub">${escapeHtml(PET_REALMS[st.realmIdx].n)} ${escapeHtml(PET_STEPS[st.step])} · ${escapeHtml(st.species.d)}</div>
     <div class="gm-bar large"><div class="gm-bar-fill" style="width:${st.pct}%; background:linear-gradient(90deg,${st.c1},${st.c2});"></div></div>
     <div class="pet-hero-xp">Cấp <b>${st.lv}</b>/${PET_MAX} · ${st.isMax
-      ? `${st.xp.toLocaleString('vi-VN')} điểm — đã đi hết 32 nấc`
+      ? `${st.xp.toLocaleString('vi-VN')} điểm — đã đi hết 20 nấc`
       : `còn <b>${st.remain.toLocaleString('vi-VN')}</b> điểm để lên cấp ${st.lv+1}`}</div>
     <div class="pet-hero-desc">${escapeHtml(st.realm.d)}</div>
   </div>`;
@@ -3394,7 +3399,7 @@ function renderPetDetail(){
   // Bộ sưu tập: 4 cảnh giới × 9 nấc của LOÀI đang nuôi. Nấc chưa đạt hiện mờ + mốc điểm.
   const collection = PET_REALMS.map((rm, ri)=>{
     const cells = PET_STEPS.map((sn, si)=>{
-      const lv = ri*8 + si + 1, open = lv <= st.lv, cur = lv === st.lv;
+      const lv = ri*5 + si + 1, open = lv <= st.lv, cur = lv === st.lv;
       return `<div class="pet-cell ${open?'open':'lock'} ${cur?'cur':''}" ${open?`data-action="pet-zoom" data-lv="${lv}"`:''}>
         ${petImg(lv, st.sp, open?'':'dim')}
         <div class="pet-cell-lv">${lv}</div>
@@ -3404,7 +3409,7 @@ function renderPetDetail(){
     }).join('');
     return `<div class="pet-realm ${ri<=st.realmIdx?'':'dim'}">
       <div class="pet-realm-h" style="color:${ri<=st.realmIdx?rm.c:'var(--dim2)'};">${escapeHtml(rm.n)}
-        <small>cấp ${ri*8+1}–${ri*8+8}</small></div>
+        <small>cấp ${ri*5+1}–${ri*5+5}</small></div>
       <div class="pet-grid">${cells}</div></div>`;
   }).join('');
   // Đổi loài: giữ nguyên cấp, chỉ đổi hình — nên đổi lúc nào cũng được, không mất tiến độ.
@@ -3416,11 +3421,11 @@ function renderPetDetail(){
     <div class="gm-block"><h3>🎒 Đặc quyền theo cấp</h3>${perkList}</div>
     <div class="gm-block">
       <h3>🔄 Chọn loài linh thú</h3>
-      <div class="gm-block-sub">Đổi loài <b>không mất tiến độ</b> — cấp và điểm giữ nguyên, chỉ đổi hình. Cả 10 loài đều có đủ 32 nấc.</div>
+      <div class="gm-block-sub">Đổi loài <b>không mất tiến độ</b> — cấp và điểm giữ nguyên, chỉ đổi hình. Cả 10 loài đều có đủ 20 nấc, và không nấc nào trùng hình nấc nào.</div>
       ${picker}
     </div>
     <div class="gm-block">
-      <h3>🗺️ Bộ sưu tập — 32 nấc × 4 cảnh giới</h3>
+      <h3>🗺️ Bộ sưu tập — 20 nấc × 4 chặng</h3>
       <div class="gm-block-sub">Đã mở <b>${st.lv}/${PET_MAX}</b> nấc. Chạm vào nấc đã mở để xem lớn.</div>
       ${collection}
     </div>`;
@@ -4600,7 +4605,7 @@ function renderAuthGate(){
       }</div>
       <div class="authgate-feats">
         <div class="authgate-feat"><span class="ic">☁️</span> Đồng bộ dữ liệu tự động lên Google Drive</div>
-        <div class="authgate-feat"><span class="ic">🐾</span> Nuôi linh thú tiến hoá 32 nấc theo điểm luyện tập mỗi ngày</div>
+        <div class="authgate-feat"><span class="ic">🐾</span> Nuôi linh thú tiến hoá 20 nấc theo điểm luyện tập mỗi ngày</div>
         <div class="authgate-feat"><span class="ic">🔒</span> Chỉ bạn mới truy cập được dữ liệu của mình</div>
       </div>
       ${!connected ? `<div class="authgate-skip" data-action="authgate-skip">Bỏ qua, dùng ngoại tuyến</div>` : ''}
