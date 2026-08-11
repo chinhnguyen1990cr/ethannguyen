@@ -475,8 +475,28 @@
     font-variant-numeric:tabular-nums;}
   .hc-weather .w-tx{font-size:10.5px; color:var(--hcD); line-height:1.45; display:flex; flex-direction:column; min-width:0; flex:1;}
   .hc-weather .w-tx b{font-weight:800; color:var(--hcT); font-family:var(--num);}
-  .hc-weather .w-place{font-size:9.5px; font-weight:800; color:var(--hcA); letter-spacing:.02em;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px;}
+  .w-placerow{display:flex; align-items:center; gap:6px; min-width:0;}
+  .hc-weather .w-place{font-size:9.5px; font-weight:800; color:var(--hcA,#5B9CFF); letter-spacing:.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;}
+  .w-pick{flex:0 0 auto; font-size:9px; font-weight:800; color:var(--hcD,#B5C3D8); cursor:pointer;
+    padding:2px 7px; border-radius:8px; border:1px solid var(--hcB,#2E3B57); background:rgba(255,255,255,.05);}
+  .wx-pick-overlay{position:fixed; inset:0; z-index:9999; background:rgba(4,8,18,.8); backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px); display:flex; align-items:center; justify-content:center; padding:20px 16px; overflow:auto;}
+  .wx-pick-box{width:100%; max-width:390px; background:var(--panel); border:1px solid var(--border);
+    border-radius:20px; padding:16px;}
+  .wx-pick-head{display:flex; align-items:center; justify-content:space-between; font-size:13.5px;
+    font-weight:800; color:var(--text); margin-bottom:8px;}
+  .wx-pick-x{width:30px; height:30px; border-radius:50%; border:1px solid var(--border);
+    background:rgba(255,255,255,.06); color:var(--dim); font-size:14px; cursor:pointer;}
+  .wx-pick-cur{font-size:11px; color:var(--dim2); margin-bottom:11px;}
+  .wx-pick-cur b{color:var(--text);}
+  .wx-pick-row{display:flex; gap:8px;}
+  .wx-pick-row .form-input{flex:1; min-width:0; margin:0;}
+  .wx-pick-results{margin-top:10px; max-height:230px; overflow:auto;}
+  .wx-pick-item{padding:10px 12px; border-radius:12px; border:1px solid var(--border); margin-bottom:6px;
+    font-size:12.5px; color:var(--text); cursor:pointer;}
+  .wx-pick-item:active{background:rgba(255,255,255,.07);}
+  .wx-pick-hint{font-size:11.5px; color:var(--dim2); padding:10px 2px; line-height:1.6;}
   .hc-wmeta{display:flex; gap:9px; font-size:9px; color:var(--hcD2); margin-top:2px; flex-wrap:wrap;}
   .hc-wmeta span{white-space:nowrap;}
   .hc-hours{position:relative; z-index:1; display:grid; grid-template-columns:repeat(6,1fr); gap:2px;
@@ -512,8 +532,6 @@
   .gg-lv-block .gg-path{margin-top:6px;}
   .lpq-type{display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.04em; padding:3px 9px;
     border-radius:9px; border:1px solid; margin-bottom:9px; text-transform:uppercase;}
-  .hc-weather .w-place{font-size:9.5px; font-weight:700; color:#7CE7DA; letter-spacing:.02em;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;}
   /* Nút mở/thu lịch tháng */
   .hc-caltoggle{position:relative; z-index:1; display:flex; align-items:center; justify-content:center; gap:7px;
     background:var(--hcS,#232F4A); border:1px solid var(--hcB,#2E3B57); border-radius:16px; padding:9px 12px;
@@ -532,6 +550,11 @@
   .hz-meta{font-size:9px; font-weight:600; color:var(--hcD2,#8D9CB4); margin-left:5px;}
   .hz-line{color:var(--hcD,#B5C3D8); margin-top:2px;}
   .hz-astro{color:var(--hcA,#5B9CFF); font-weight:700; font-size:10px; margin-top:3px; letter-spacing:.01em;}
+  .hz-ai{color:var(--hcT,#EAF0FA); font-size:10.5px; line-height:1.6; margin-top:5px;
+    padding:6px 9px; border-radius:10px; background:rgba(91,156,255,.12); border:1px solid rgba(91,156,255,.26);}
+  .hz-aibtn{align-self:flex-start; margin-top:6px; font-size:10px; font-weight:800; cursor:pointer;
+    color:var(--hcA,#5B9CFF); padding:4px 10px; border-radius:9px; border:1px dashed rgba(91,156,255,.45);}
+  .hz-aibtn.busy{opacity:.6; cursor:default;}
   .hz-note{color:var(--hcD2,#8D9CB4); font-size:8.5px; line-height:1.45; margin-top:4px; font-style:italic;}
   .hz-note{font-size:8.5px; color:var(--dim2); margin-top:3px; font-style:italic;}
   /* Lịch tháng trong khung đồng hồ */
@@ -1856,7 +1879,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v132';
+const APP_VERSION = 'v133';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -4754,14 +4777,36 @@ function sunSignToday(){
   const d = new Date();
   return zodiacOf(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
 }
+// Lời luận ngày TÍNH CỤC BỘ — không gọi AI. Ghép từ 3 dữ kiện có thật và một bảng gợi ý soạn sẵn:
+// pha Mặt Trăng (chu kỳ năng lượng), nguyên tố của cung, và tính chất (Khởi đầu/Cố định/Linh hoạt).
+// Cùng một ngày + cùng một cung luôn ra cùng một câu, nên đọc lại vẫn nhất quán chứ không "bói" ngẫu nhiên.
+const ZODIAC_MOON_NOTE = {
+  'Trăng mới':'Đầu chu kỳ — hợp để bắt đầu một việc nhỏ hơn là chốt việc lớn.',
+  'Trăng lưỡi liềm đầu':'Đà đang lên — giữ nhịp đều quan trọng hơn làm thật nhiều trong một hôm.',
+  'Bán nguyệt đầu':'Giai đoạn phải chọn — bỏ bớt một việc để làm tốt việc còn lại.',
+  'Trăng khuyết đầu':'Sắp tới đỉnh chu kỳ — dồn sức cho việc bạn đã bỏ dở gần đây.',
+  'Trăng tròn':'Đỉnh chu kỳ — dễ mất tập trung vì nhiều thứ cùng gọi tên; chốt một việc rồi hãy mở việc mới.',
+  'Trăng khuyết cuối':'Thời điểm tốt để rà lại và sửa, hơn là mở thêm hướng mới.',
+  'Bán nguyệt cuối':'Giai đoạn buông bớt — cắt một thói quen đang ngốn thời gian của bạn.',
+  'Trăng lưỡi liềm cuối':'Cuối chu kỳ — nghỉ ngơi có kế hoạch không phải là lười, là chuẩn bị.'
+};
+const ZODIAC_EL_NOTE = {
+  'Lửa':'Bạn khởi động nhanh, nên rào cản thường nằm ở đoạn giữa — đặt mốc ngắn để không hụt hơi.',
+  'Đất':'Bạn bền nhưng khó đổi hướng — thử một cách làm mới ở đúng một việc nhỏ hôm nay.',
+  'Khí':'Bạn tiếp thu nhanh và cũng phân tán nhanh — chốt xong một việc rồi mới mở tab tiếp theo.',
+  'Nước':'Bạn làm việc theo cảm hứng — dựng sẵn một thói quen tối thiểu để những hôm nhạt vẫn không đứt.'
+};
 let _zodiacFetching = false;
+// Chỉ chạy khi người dùng CHỦ ĐỘNG bấm nút. Trước đây hàm này tự chạy mỗi lần vẽ trang chủ, nên một
+// tính năng trang trí lại đi tranh hạn mức AI với những thứ thật sự cần AI (chấm phát âm, tạo câu hỏi)
+// — mở app lên là thấy banner "hết hạn mức" dù chưa học gì. Nay mặc định KHÔNG gọi.
 async function fetchZodiacToday(z){
   if(_zodiacFetching || !z) return;
   const cache = SETTINGS.zodiacDaily;
-  if(cache && cache.day===todayKey() && cache.k===z.k && (cache.text || cache.tries>=2)) return;
+  if(cache && cache.day===todayKey() && cache.k===z.k && cache.text) return;
   // Không còn khoá cả ngày khi thiếu key: chỉ ghi nhận trạng thái, lần render sau (sau khi người dùng
   // vừa dán key vào Cài đặt) là thử lại ngay — trước đây phải đợi sang hôm sau mới có luận ngày.
-  if(!SETTINGS.geminiApiKey){ SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:'', noKey:true, tries:0}; return; }
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Chưa có Gemini API key','Vào Cài đặt → Hội thoại AI để thêm key trước khi xin lời luận.'); return; }
   _zodiacFetching = true;
   try{
     const prompt = `Bạn viết mục "chiêm tinh hằng ngày" cho một tờ báo, dành cho cung ${z.n} (${z.el}, chủ quản ${z.rule}), ngày ${todayKey()}.
@@ -4772,13 +4817,8 @@ Giọng điềm đạm, không hứa hẹn tiền bạc/vận may, không doạ 
     saveSettings();
     if(STATE.tab==='hub') renderContent();
   }catch(e){
-    // Đếm số lần thử thay vì đánh dấu "hỏng cả ngày": một lần dính hạn mức AI lúc 8 giờ sáng không
-    // được phép giết luôn thẻ tới nửa đêm. Cho thử lại tối đa 2 lần trong ngày, sau đó dừng để khỏi
-    // gọi lặp vô ích — phần lõi thiên văn của thẻ vẫn hiện bình thường dù lời luận không có.
-    const prev = SETTINGS.zodiacDaily;
-    const tries = (prev && prev.day===todayKey() && prev.k===z.k ? (prev.tries||0) : 0) + 1;
-    SETTINGS.zodiacDaily = {day:todayKey(), k:z.k, text:'', err:(e&&e.message)||'lỗi', tries};
-  }finally{ _zodiacFetching = false; }
+    showToast('⚠️','Chưa xin được lời luận', geminiFriendlyError(e && e.message, 'bấm lại sau ít phút'));
+  }finally{ _zodiacFetching = false; renderContent(); }
 }
 function zodiacCardHtml(){
   const bd = (SETTINGS.profile||{}).birthday;
@@ -4791,22 +4831,26 @@ function zodiacCardHtml(){
   }
   const c = SETTINGS.zodiacDaily;
   const hasText = c && c.day===todayKey() && c.k===z.k && c.text;
-  if(!hasText) fetchZodiacToday(z);
+  const loading = !!_zodiacFetching;
   // PHẦN LÕI — luôn hiện, tính cục bộ, không cần mạng, không tốn hạn mức AI, và kiểm chứng được bằng
   // bất kỳ lịch thiên văn nào: pha Mặt Trăng hôm nay + cung Mặt Trời đang đi qua.
   const m = moonInfo();
   const sun = sunSignToday();
   const astro = `${m.ic} ${m.name} · sáng ${m.illum}%${m.toFull>0?` · còn ${m.toFull} ngày tới trăng tròn`:''}`
     + (sun ? ` · ☉ Mặt Trời đang ở ${sun.n}` : '');
-  const aiLine = hasText ? `<span class="hz-line">${escapeHtml(c.text)}</span>` : '';
+  // Lời luận ngày dựng tại chỗ từ pha Mặt Trăng + nguyên tố của cung — luôn có, không tốn hạn mức.
+  const note = (ZODIAC_MOON_NOTE[m.name]||'') + ' ' + (ZODIAC_EL_NOTE[z.el]||'');
+  const aiLine = hasText
+    ? `<span class="hz-ai">🤖 ${escapeHtml(c.text)}</span>`
+    : `<span class="hz-aibtn ${loading?'busy':''}" data-action="zodiac-ai">${loading?'⏳ Đang xin lời luận…':'🤖 Xin thêm lời luận từ AI'}</span>`;
   return `<div class="hc-zodiac" style="--zc:${z.c};">
     <div class="hz-sym">${z.sym}</div>
     <div class="hz-tx">
       <b>${z.n} <span class="hz-meta">${z.el} · ${z.rule}</span></b>
       <span class="hz-astro">${astro}</span>
-      <span class="hz-line">${escapeHtml(z.traits)}</span>
+      <span class="hz-line">${escapeHtml(note.trim())}</span>
       ${aiLine}
-      <span class="hz-note">Pha Mặt Trăng và vị trí Mặt Trời là dữ liệu thiên văn thật. Phần luận tính cách là góc nhìn để ngẫm, không phải dự báo có cơ sở khoa học.</span>
+      <span class="hz-note">Pha Mặt Trăng và vị trí Mặt Trời là dữ liệu thiên văn thật; phần còn lại là góc nhìn để ngẫm, không phải dự báo có cơ sở khoa học.</span>
     </div>
   </div>`;
 }
@@ -4882,17 +4926,24 @@ function wxSvg(code, size){
   return `<svg viewBox="0 0 100 100" width="${z}" height="${z}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">${b}</svg>`;
 }
 let _weatherFetching = false;
-// Bộ nhớ đệm cũ so theo NGÀY, nghĩa là nhiệt độ "hiện tại" hiển thị lúc 22h vẫn là số lấy lúc 6h sáng —
-// sai tới cả chục độ mà nhìn vào không biết. Nay đệm theo 30 PHÚT: đủ để không gọi API liên tục
-// (Open-Meteo cũng chỉ cập nhật mô hình theo giờ) mà số hiện ra luôn là số thật của lúc này.
-const WEATHER_TTL_MS = 30*60*1000;
+// Open-Meteo cập nhật khối "current" khoảng 15 phút một lần, nên đệm 10 phút là vừa: không gọi API
+// thừa mà số hiện ra không bao giờ cũ quá một nhịp cập nhật. Quan trọng hơn: app này chạy dạng PWA,
+// người dùng thường KHÔNG tải lại trang mà chỉ mở lại từ nền — nên còn phải bắt sự kiện "app hiện
+// trở lại" để lấy số mới, nếu không thì mở lúc 8h30 vẫn thấy số liệu từ lần mở trước lúc 8h.
+const WEATHER_TTL_MS = 10*60*1000;
 function weatherCache(){
   const w = SETTINGS.weather;
   if(!w) return null;
-  if(w.err) return (w.day === todayKey() && Date.now() - (w.at||0) < 10*60*1000) ? w : null;
+  if(w.err) return (w.day === todayKey() && Date.now() - (w.at||0) < 5*60*1000) ? w : null;
   if(w.at && Date.now() - w.at < WEATHER_TTL_MS) return w;
   return null;
 }
+// Mỗi lần app quay lại tiền cảnh (mở lại từ nền, chuyển tab về): nếu số liệu đã quá hạn thì lấy lại
+// ngay. Đây chính là chỗ khiến trước đây mở app lúc 8h30 mà vẫn thấy dữ liệu lúc 8h.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible' && !weatherCache()) fetchWeatherToday();
+});
+window.addEventListener('focus', ()=>{ if(!weatherCache()) fetchWeatherToday(); });
 async function fetchWeatherToday(){
   if(_weatherFetching || weatherCache()) return;
   _weatherFetching = true;
@@ -4900,7 +4951,13 @@ async function fetchWeatherToday(){
     // Lấy lại vị trí MỖI LẦN MỞ APP (không dùng lại toạ độ cũ đã lưu) — đổi chỗ là dự báo đổi theo ngay.
     // Toạ độ cũ chỉ dùng làm phương án dự phòng nếu lần này không lấy được.
     let pos = null;
-    if(navigator.geolocation){
+    // Vị trí do người dùng TỰ CHỌN được ưu tiên tuyệt đối — không hỏi GPS nữa, để xem thời tiết nơi
+    // khác (quê nhà, nơi sắp đi công tác) mà không bị toạ độ thật ghi đè mỗi lần mở app.
+    if(SETTINGS.geoManual && typeof SETTINGS.geoManual.lat === 'number'){
+      pos = {lat: SETTINGS.geoManual.lat, lon: SETTINGS.geoManual.lon};
+      SETTINGS.geoCity = SETTINGS.geoManual.city || '';
+    }
+    if(!pos && navigator.geolocation){
       pos = await new Promise(res=>{
         navigator.geolocation.getCurrentPosition(
           p=>res({lat:+p.coords.latitude.toFixed(2), lon:+p.coords.longitude.toFixed(2)}),
@@ -4999,12 +5056,87 @@ function weatherChipHtml(){
   return `<div class="hc-weather">
       <span class="w-ic">${wxSvg(w.code,40)}</span>
       <span class="w-now">${w.now}°</span>
-      <span class="w-tx"><span class="w-place">📍 ${escapeHtml(place)}</span>
+      <span class="w-tx"><span class="w-placerow"><span class="w-place">📍 ${escapeHtml(place)}</span><span class="w-pick" data-action="wx-pick-open" title="Đổi vị trí">⌖ Đổi</span></span>
         <span>${escapeHtml(label)} · <b>${w.min}° – ${w.max}°</b></span>
         <span class="hc-wmeta">${meta.map(m=>`<span>${m}</span>`).join('')}</span></span>
     </div>
     ${hours ? `<div class="hc-hours">${hours}</div>` : ''}
     <div class="hc-src">Nguồn: Open-Meteo — tổng hợp mô hình ECMWF · DWD ICON · NOAA GFS${obs?` · số liệu lúc ${obs}`:''}</div>`;
+}
+// ---- CHỌN VỊ TRÍ XEM THỜI TIẾT ----
+// Tra tên địa điểm bằng Open-Meteo Geocoding: miễn phí, không cần API key, trả về sẵn tên tỉnh/quốc gia
+// nên không phải ghép thêm dịch vụ nào khác. Chọn xong lưu vào SETTINGS.geoManual và đồng bộ qua Drive.
+async function wxSearchPlaces(q){
+  const url = 'https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)
+    + '&count=8&language=vi&format=json';
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const d = await res.json();
+  return (d.results||[]).map(r=>{
+    // Bỏ phần trùng: API trả "Đà Nẵng / admin1: Đà Nẵng / Việt Nam" — ghép thẳng sẽ ra tên lặp hai lần.
+    const parts = [r.name, r.admin2, r.admin1, r.country].filter(Boolean)
+      .filter((x,i,a)=>a.indexOf(x)===i);
+    return {lat: r.latitude, lon: r.longitude, name: parts.join(', ')};
+  });
+}
+function openWxPicker(){
+  closeWxPicker();
+  const el = document.createElement('div');
+  el.id = 'wxPickOverlay'; el.className = 'wx-pick-overlay';
+  const cur = SETTINGS.geoManual;
+  el.innerHTML = `<div class="wx-pick-box">
+      <div class="wx-pick-head"><span>📍 Chọn vị trí xem thời tiết</span>
+        <button class="wx-pick-x" data-action="wx-pick-close" aria-label="Đóng">✕</button></div>
+      <div class="wx-pick-cur">Đang xem: <b>${escapeHtml(SETTINGS.geoCity || WEATHER_FALLBACK.city)}</b>${cur?' (tự chọn)':' (theo vị trí máy)'}</div>
+      <div class="wx-pick-row">
+        <input id="wxPickInput" class="form-input" type="text" placeholder="Gõ tên tỉnh/thành, ví dụ: Đà Nẵng" autocomplete="off">
+        <button class="form-btn" data-action="wx-pick-search" style="flex:0 0 auto; padding:0 14px;">Tìm</button>
+      </div>
+      <div id="wxPickResults" class="wx-pick-results"></div>
+      <button class="form-btn cancel" data-action="wx-pick-auto" style="width:100%; margin-top:10px;">⌖ Dùng lại vị trí hiện tại của máy</button>
+    </div>`;
+  el.addEventListener('click', ev=>{ if(ev.target === el) closeWxPicker(); });
+  document.body.appendChild(el);
+  const inp = document.getElementById('wxPickInput');
+  if(inp){
+    inp.focus();
+    inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); runWxSearch(); } });
+  }
+}
+function closeWxPicker(){ const el = document.getElementById('wxPickOverlay'); if(el) el.remove(); }
+async function runWxSearch(){
+  const inp = document.getElementById('wxPickInput');
+  const box = document.getElementById('wxPickResults');
+  if(!inp || !box) return;
+  const q = inp.value.trim();
+  if(q.length < 2){ box.innerHTML = `<div class="wx-pick-hint">Gõ ít nhất 2 ký tự rồi bấm Tìm.</div>`; return; }
+  box.innerHTML = `<div class="wx-pick-hint">Đang tìm…</div>`;
+  try{
+    const list = await wxSearchPlaces(q);
+    box.innerHTML = list.length
+      ? list.map(r=>`<div class="wx-pick-item" data-action="wx-pick-use" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>`).join('')
+      : `<div class="wx-pick-hint">Không tìm thấy địa điểm nào khớp "${escapeHtml(q)}".</div>`;
+  }catch(e){
+    box.innerHTML = `<div class="wx-pick-hint">Không tra được danh sách địa điểm (${escapeHtml((e&&e.message)||'lỗi mạng')}).</div>`;
+  }
+}
+function wxUsePlace(lat, lon, name){
+  SETTINGS.geoManual = {lat:+lat, lon:+lon, city:name};
+  SETTINGS.geoCity = name;
+  SETTINGS.weather = null;              // xoá đệm để lấy lại ngay cho địa điểm mới
+  saveSettings(); pushToDrive();
+  closeWxPicker();
+  renderContent();
+  fetchWeatherToday();
+}
+function wxUseAuto(){
+  SETTINGS.geoManual = null;
+  SETTINGS.geoCity = '';
+  SETTINGS.weather = null;
+  saveSettings(); pushToDrive();
+  closeWxPicker();
+  renderContent();
+  fetchWeatherToday();
 }
 // ---- Ô HÀNH TRÌNH nằm cạnh đồng hồ ----
 function hcJourneyHtml(){
@@ -15670,6 +15802,7 @@ function renderContent(){
 }
 function renderContentInner(){
   destroyCharts();
+  closeWxPicker();
   if(STATE.tab==='pet') STATE.tab = 'journey';   // tương thích ngược: link/lịch sử cũ trỏ tới màn linh thú
   if(STATE.tab==='authgate') renderAuthGate();
   else if(STATE.tab==='hub') renderHub();
@@ -16123,6 +16256,22 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const k = calPickEl.getAttribute('data-key');
     STATE.hubCalPick = (STATE.hubCalPick === k) ? null : k;   // bấm lại lần nữa để đóng
     renderContentPreserveScroll(); return;
+  }
+  const wxOpenEl = e.target.closest('[data-action="wx-pick-open"]');
+  if(wxOpenEl){ openWxPicker(); return; }
+  const wxCloseEl = e.target.closest('[data-action="wx-pick-close"]');
+  if(wxCloseEl){ closeWxPicker(); return; }
+  const wxSearchEl = e.target.closest('[data-action="wx-pick-search"]');
+  if(wxSearchEl){ runWxSearch(); return; }
+  const wxUseEl = e.target.closest('[data-action="wx-pick-use"]');
+  if(wxUseEl){ wxUsePlace(wxUseEl.getAttribute('data-lat'), wxUseEl.getAttribute('data-lon'), wxUseEl.getAttribute('data-name')); return; }
+  const wxAutoEl = e.target.closest('[data-action="wx-pick-auto"]');
+  if(wxAutoEl){ wxUseAuto(); return; }
+  const zodiacAiEl = e.target.closest('[data-action="zodiac-ai"]');
+  if(zodiacAiEl){
+    const z = zodiacOf((SETTINGS.profile||{}).birthday);
+    if(z && !_zodiacFetching){ fetchZodiacToday(z); renderContent(); }
+    return;
   }
   const calToggleEl = e.target.closest('[data-action="hub-cal-toggle"]');
   if(calToggleEl){
