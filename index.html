@@ -695,6 +695,29 @@
   .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
     flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
   .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
+  /* ===== HAI CÁCH GỌI MỆNH ===== */
+  .menh-box{border:1px solid var(--border); border-radius:15px; padding:12px 13px; margin-bottom:11px;
+    background:rgba(255,255,255,.03);}
+  .menh-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .menh-cell{text-align:center; padding:9px 6px; border-radius:12px; background:rgba(255,255,255,.035);
+    border:1px solid var(--border);}
+  .menh-lbl{font-size:9px; font-weight:800; color:var(--dim2); text-transform:uppercase; letter-spacing:.04em;}
+  .menh-val{font-size:14px; font-weight:900; margin-top:5px;}
+  .menh-sub{font-size:9px; color:var(--dim2); margin-top:3px; line-height:1.4;}
+  .menh-why{margin-top:10px;}
+  .menh-why summary{font-size:10.5px; font-weight:700; color:#FFB84D; cursor:pointer; list-style:none;}
+  .menh-why summary::-webkit-details-marker{display:none;}
+  .menh-why summary::before{content:'▸ ';} .menh-why[open] summary::before{content:'▾ ';}
+  .menh-why div{font-size:10.5px; line-height:1.8; color:var(--dim); margin-top:7px; padding:10px 12px;
+    border-radius:11px; background:rgba(255,184,77,.08); border:1px solid rgba(255,184,77,.22);}
+  .menh-why b{color:var(--text);}
+  .menh-same{font-size:10px; color:var(--dim2); margin-top:8px; text-align:center; line-height:1.6;}
+  .dv-home-seg{display:flex; gap:7px; margin:10px 0 11px;}
+  .dv-home-seg button{flex:1; padding:8px; border-radius:11px; font-size:11px; font-weight:700;
+    cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,.03); color:var(--dim2);}
+  .dv-home-seg button.on{border-color:rgba(185,166,255,.5); color:#B9A6FF; background:rgba(185,166,255,.12);}
+  .dv-home-more{text-align:center; font-size:10.5px; font-weight:700; color:var(--hcA,#5B9CFF);
+    padding:9px; margin-top:10px; border-top:1px dashed var(--border); cursor:pointer;}
   /* ===== PHIÊN ÂM IPA ===== */
   .ipa-phon{display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:-4px; padding-bottom:6px;}
   .ipa-phon-txt{font-size:21px; font-weight:700; color:var(--teal,#2CDBA8); font-family:var(--mono,monospace); letter-spacing:.5px;}
@@ -2248,7 +2271,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v147';
+const APP_VERSION = 'v148';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5453,6 +5476,85 @@ function dailyCardHtml(d){
   </div>`;
 }
 
+// ================= TỰ SANG NGÀY MỚI LÚC 00:00 =================
+// App dạng PWA thường được mở lại từ nền chứ không tải lại trang, nên nếu để qua nửa đêm mà không làm gì
+// thì mọi luận giải vẫn là của NGÀY HÔM QUA — ngày Can Chi, lá Tarot, vận trình bốn mảng, giờ tốt đều
+// tính theo new Date() tại thời điểm vẽ màn hình, mà màn hình thì không được vẽ lại.
+// Khối này canh đúng thời khắc 00:00: hẹn giờ tới đầu ngày kế tiếp rồi vẽ lại; đồng thời kiểm tra mỗi
+// khi người dùng mở lại app (visibilitychange/focus) phòng trường hợp máy ngủ làm hẹn giờ trượt.
+let _dvDayKey = null;
+function dvCheckNewDay(){
+  const k = todayKey();
+  if(_dvDayKey === null){ _dvDayKey = k; return false; }
+  if(_dvDayKey !== k){
+    _dvDayKey = k;
+    // Xoá các bộ nhớ đệm tính theo ngày để mọi thứ tính lại từ đầu cho ngày mới.
+    try{ if(SETTINGS.vocabDailyCache) SETTINGS.vocabDailyCache = null; }catch(_){}
+    try{ if(SETTINGS.sentDailyCache)  SETTINGS.sentDailyCache  = null; }catch(_){}
+    try{ renderContent(); }catch(_){}
+    try{ showToast('🌅','Đã sang ngày mới','Luận giải Tử Vi & Bói Toán và gói học hôm nay đã được cập nhật.'); }catch(_){}
+    return true;
+  }
+  return false;
+}
+function dvScheduleMidnight(){
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 3); // 00:00:03 cho chắc
+  const ms = Math.max(1000, next - now);
+  setTimeout(()=>{ dvCheckNewDay(); dvScheduleMidnight(); }, ms);
+}
+// ================= HAI CÁCH GỌI "MỆNH" — CHỖ RẤT DỄ HIỂU NHẦM =================
+// Người dùng phản ánh app hiện "bản mệnh Kim" trong khi họ biết mình mệnh khác. Kiểm lại thì THUẬT TOÁN
+// KHÔNG SAI — sai ở CÁCH GỌI TÊN. Trong tiếng Việt có hai thứ cùng được gọi là "mệnh":
+//
+//   1) MỆNH NẠP ÂM theo NĂM SINH — cái mà hầu hết người Việt biết về mình ("tôi mệnh Thổ - Lộ Bàng Thổ").
+//      Lấy từ trụ NĂM, mỗi 2 năm đổi một nạp âm. Dùng để xem hợp tuổi, chọn màu, xem hướng nhà.
+//   2) NHẬT CHỦ (Nhật Nguyên) — chữ Can ở trụ NGÀY sinh. Đây mới là "mình" trong Bát Tự/Tử Bình, và là
+//      cái mà toàn bộ phép luận Thập Thần (Quan/Tài/Ấn/Thực…) xoay quanh.
+//
+// Ví dụ sinh 15/6/1990: trụ năm Canh Ngọ → nạp âm Lộ Bàng THỔ (cái người ta quen nói), còn trụ ngày là
+// Tân Hợi → Nhật Chủ Tân, hành KIM. Cả hai đều đúng, chỉ khác hệ quy chiếu.
+//
+// App trước đây chỉ hiện Nhật Chủ mà lại gọi trống là "bản mệnh" → va thẳng vào cách hiểu phổ thông.
+// Nay hiện CẢ HAI, gọi tên rõ ràng, và nói thẳng vì sao chúng khác nhau.
+function dvMenhInfo(){
+  const p = SETTINGS.profile || {};
+  const arr = parseBirth(p.birthday);
+  if(!arr) return null;
+  const b = batTu(p.birthday, dvBirthHour());
+  if(!b) return null;
+  const nam = canChiNam(arr[0], arr[1], arr[2]);
+  const napAm = napAmNguHanh(nam.can, nam.chi);
+  return {
+    nhatChu: {can: CAN[b.chuCan], nh: b.nhChu},
+    menhNam: {tru: CAN[nam.can]+' '+CHI[nam.chi], nh: napAm},
+    khacNhau: b.nhChu !== napAm
+  };
+}
+function dvMenhHtml(){
+  const m = dvMenhInfo();
+  if(!m) return '';
+  return `<div class="menh-box">
+    <div class="menh-row">
+      <div class="menh-cell">
+        <div class="menh-lbl">Nhật Chủ (Bát Tự)</div>
+        <div class="menh-val" style="color:${NH_MAU[m.nhatChu.nh]};">${escapeHtml(m.nhatChu.can)} · ${escapeHtml(m.nhatChu.nh)}</div>
+        <div class="menh-sub">Chữ Can ở trụ NGÀY sinh</div>
+      </div>
+      <div class="menh-cell">
+        <div class="menh-lbl">Mệnh nạp âm (năm sinh)</div>
+        <div class="menh-val" style="color:${NH_MAU[m.menhNam.nh]};">${escapeHtml(m.menhNam.tru)} · ${escapeHtml(m.menhNam.nh)}</div>
+        <div class="menh-sub">Cách gọi quen thuộc trong dân gian</div>
+      </div>
+    </div>
+    ${m.khacNhau ? `<details class="menh-why"><summary>Vì sao hai con số này khác nhau?</summary><div>
+      Tiếng Việt dùng chung một chữ "mệnh" cho hai thứ khác hẳn nhau:<br><br>
+      <b>Mệnh nạp âm</b> lấy từ trụ <b>NĂM</b> sinh — đây là cái hầu hết người Việt biết về mình (kiểu "tôi mệnh Thổ, Lộ Bàng Thổ"). Nó dùng để xem hợp tuổi, chọn màu, xem hướng.<br><br>
+      <b>Nhật Chủ</b> lấy từ trụ <b>NGÀY</b> sinh. Trong Bát Tự thì đây mới là "mình", và mọi phép luận về sự nghiệp, tài lộc, tình duyên đều xoay quanh nó. Hai người cùng năm sinh có cùng mệnh nạp âm, nhưng sinh khác ngày thì Nhật Chủ khác nhau — nên lá số cũng khác nhau.<br><br>
+      Cả hai đều đúng, chỉ khác hệ quy chiếu. Phần <b>Vận trình</b> và <b>Bát Tự</b> trong app dùng Nhật Chủ vì đó là quy tắc của Tử Bình.
+    </div></details>` : `<div class="menh-same">Hai cách tính cho cùng một hành — trường hợp của bạn không có gì mâu thuẫn.</div>`}
+  </div>`;
+}
 // ================= BỐN MẢNG ĐỜI SỐNG + CHỈ SỐ MAY MẮN =================
 // Bốn mảng dưới đây suy ra từ ĐÚNG bộ dữ liệu Bát Tự đã tính (Nhật Chủ, dụng thần, kỵ thần, hành của
 // ngày), theo cách quy chiếu Thập Thần quen thuộc trong Tử Bình:
@@ -5593,9 +5695,9 @@ function dvLifeAreasHtml(){
 //   Tử Vi   → chia nhỏ theo 12 mảng đời sống
 //   Chiêm tinh → chân dung tâm lý, không dự đoán sự kiện
 //   Tarot   → một câu hỏi để tự ngẫm trong ngày
+// Hai mục "Hôm nay" và "Vận trình" đã được đưa hẳn ra TRANG CHỦ (xem dvHomeCardHtml) vì đó là thứ cần
+// liếc mắt là thấy mỗi sáng. Vào mục đầy đủ thì chỉ còn bốn môn để tra cứu sâu.
 const DV_TABS = [
-  {k:'today', n:'Hôm nay',   ic:'🗓️', d:'Tổng hợp cả bốn môn thành một bản tin cho ngày hôm nay'},
-  {k:'linhvuc', n:'Vận trình', ic:'🧭', d:'Sự nghiệp · tài lộc · tình duyên · sức khoẻ · giờ và màu hợp mệnh'},
   {k:'battu', n:'Bát Tự',    ic:'☰', d:'Quy luật · thời vận · cân bằng năng lượng'},
   {k:'tuvi',  n:'Tử Vi',     ic:'✦', d:'12 cung — sự việc và con người'},
   {k:'astro', n:'Chiêm tinh',ic:'♄', d:'Chân dung tâm lý'},
@@ -5695,6 +5797,7 @@ function renderDvBatTu(){
   const tt = TT_META[b.ttDaiVan], tl = TT_META[b.ttLuuNien];
   return `
     ${dailyCardHtml(dailyBatTu())}
+    ${dvMenhHtml()}
     ${!b.hasHour ? `<div class="dv-warn">Chưa có giờ sinh nên lá số đang là <b>tam trụ</b> (năm – tháng – ngày). Thêm giờ sinh trong Thông tin cá nhân để có đủ tứ trụ.</div>` + dvHourHelpHtml() : ''}
     <div class="dv-block">
       <h3>Tứ trụ</h3>
@@ -5878,7 +5981,9 @@ function renderDvToday(){
     </div>`;
 }
 function renderDivination(){
-  const tab = STATE.dvTab || 'today';
+  // Người dùng cũ có thể còn lưu tab 'today'/'linhvuc' — hai tab này đã dời ra trang chủ.
+  if(STATE.dvTab==='today' || STATE.dvTab==='linhvuc') STATE.dvTab = 'battu';
+  const tab = STATE.dvTab || 'battu';
   const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🔮 Tử Vi &amp; Bói Toán</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
   const tabs = `<div class="dv-tabs">${DV_TABS.map(t=>`
       <div class="dv-tab ${tab===t.k?'on':''}" data-action="dv-tab" data-k="${t.k}">
@@ -5887,9 +5992,7 @@ function renderDivination(){
   const meta = DV_TABS.find(t=>t.k===tab) || DV_TABS[0];
   let body = '';
   try{
-    if(tab==='today') body = renderDvToday();
-    else if(tab==='linhvuc') body = renderDvLinhVuc();
-    else if(tab==='battu') body = renderDvBatTu();
+    if(tab==='battu') body = renderDvBatTu();
     else if(tab==='tuvi') body = renderDvTuVi();
     else if(tab==='astro') body = renderDvAstro();
     else body = renderDvTarot();
@@ -5915,13 +6018,24 @@ function dvHomeCardHtml(){
   }
   const t = tuviState();
   const card = tarotToday();
+  const dvSub = SETTINGS.dvHomeSub || 'today';   // 'today' = bản tin tổng hợp | 'linhvuc' = vận trình
   const head = `<div class="dv-home-head" data-action="dv-home-toggle">
       <span class="dv-home-ic">🔮</span>
       <span class="dv-home-tx"><b>Tử Vi &amp; Bói Toán</b><small>${t? escapeHtml('Ngày '+t.ngayCan+' '+t.ngayChi+' · '+t.meta.n) : 'Hôm nay'}</small></span>
       <span class="dv-home-cta ${open?'open':''}">▾</span>
     </div>`;
   if(!open) return `<div class="dv-home">${head}</div>`;
+  const seg = `<div class="dv-home-seg">
+      <button class="${dvSub==='today'?'on':''}" data-action="dv-home-sub" data-sub="today">🗓️ Hôm nay</button>
+      <button class="${dvSub==='linhvuc'?'on':''}" data-action="dv-home-sub" data-sub="linhvuc">🧭 Vận trình</button>
+    </div>`;
+  const sub = dvSub==='linhvuc'
+    ? `${dvMenhHtml()}${dvLifeAreasHtml()}`
+    : `${dailySummaryHtml()}`;
   return `<div class="dv-home">${head}
+    ${seg}
+    ${sub}
+    <div class="dv-home-more" data-action="hub-open" data-target="divination">Xem đầy đủ Bát Tự · Tử Vi · Chiêm tinh · Tarot ›</div>
     ${t ? tuviCardHtml() : ''}
     <div class="dv-home-tarot">
       <div class="dv-home-lbl">🂠 Lá bài hôm nay</div>
@@ -6018,9 +6132,10 @@ function weatherCache(){
 // Mỗi lần app quay lại tiền cảnh (mở lại từ nền, chuyển tab về): nếu số liệu đã quá hạn thì lấy lại
 // ngay. Đây chính là chỗ khiến trước đây mở app lúc 8h30 mà vẫn thấy dữ liệu lúc 8h.
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'visible' && !weatherCache()) fetchWeatherToday();
+  if(document.visibilityState === 'visible'){ dvCheckNewDay(); if(!weatherCache()) fetchWeatherToday(); }
 });
-window.addEventListener('focus', ()=>{ if(!weatherCache()) fetchWeatherToday(); });
+window.addEventListener('focus', ()=>{ dvCheckNewDay(); if(!weatherCache()) fetchWeatherToday(); });
+try{ dvCheckNewDay(); dvScheduleMidnight(); }catch(_){}
 async function fetchWeatherToday(){
   if(_weatherFetching || weatherCache()) return;
   _weatherFetching = true;
@@ -17987,6 +18102,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictNextEl){ dictNext(); return; }
   const dictExitSessionEl = e.target.closest('[data-action="dict-exit-session"]');
   if(dictExitSessionEl){ dictExitSession(); return; }
+  const dvSubEl = e.target.closest('[data-action="dv-home-sub"]');
+  if(dvSubEl){ SETTINGS.dvHomeSub = dvSubEl.getAttribute('data-sub'); saveSettings(); renderContent(); return; }
   const dlgOpenEl = e.target.closest('[data-action="dlg-open"]');
   if(dlgOpenEl){ dlgStart(dlgOpenEl.getAttribute('data-id')); return; }
   const dlgExitEl = e.target.closest('[data-action="dlg-exit"]');
