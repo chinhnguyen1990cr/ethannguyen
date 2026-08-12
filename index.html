@@ -695,6 +695,19 @@
   .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
     flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
   .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
+  /* ===== NHÃN NGÀY ===== */
+  .day-stamp{display:flex; align-items:center; gap:6px; padding:5px 10px; margin-bottom:9px;
+    border-radius:20px; background:rgba(255,255,255,.045); border:1px solid var(--border);
+    width:fit-content;}
+  .day-stamp.inline{margin-bottom:7px; padding:3px 9px;}
+  .day-stamp .ds-ic{font-size:11px; flex:0 0 auto;}
+  .day-stamp .ds-tx{font-size:10px; font-weight:700; color:var(--dim2); font-family:var(--num);
+    letter-spacing:.01em; white-space:nowrap;}
+  .day-stamp.inline .ds-tx{font-size:9px;}
+  .day-stamp.stale{background:rgba(255,90,110,.14); border-color:rgba(255,90,110,.42);}
+  .day-stamp.stale .ds-tx{color:#FF8A8A;}
+  .day-stamp .ds-refresh{font-size:9.5px; font-weight:800; color:#FF8A8A; cursor:pointer;
+    padding-left:6px; border-left:1px solid rgba(255,90,110,.32);}
   /* ===== HAI CÁCH GỌI MỆNH ===== */
   .menh-box{border:1px solid var(--border); border-radius:15px; padding:12px 13px; margin-bottom:11px;
     background:rgba(255,255,255,.03);}
@@ -2271,7 +2284,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v148';
+const APP_VERSION = 'v149';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5450,6 +5463,7 @@ function dailySummaryHtml(){
   const tranh = A.parts.filter(x=>x.score<=0).map(x=>`<li><b>${x.ic} ${escapeHtml(x.mon)}:</b> ${x.tranh}</li>`).join('')
     || '<li>Hôm nay không hướng nào báo động. Việc duy nhất cần tránh là để một ngày thuận trôi qua mà không làm được gì đáng kể.</li>';
   return `<div class="dl-sum" style="--dc:${A.band.c};">
+    ${dayStampHtml({label:'Luận cho'})}
     <div class="dl-sum-h">
       <span class="dl-sum-ic">🗓️</span>
       <span><b>${escapeHtml(A.band.n)}</b><small>Tổng hợp từ Bát Tự · Tử Vi · Chiêm tinh · Tarot</small></span>
@@ -5467,6 +5481,7 @@ function dailySummaryHtml(){
 function dailyCardHtml(d){
   if(!d) return '';
   return `<div class="dl-card" style="--dc:${d.c};">
+    ${dayStampHtml({inline:true})}
     <div class="dl-card-h"><span class="dl-card-ic">${d.ic}</span>
       <span><b>Hôm nay: ${escapeHtml(d.tieu)}</b><small>${escapeHtml(d.mon)} · luận cho riêng ngày này</small></span></div>
     <div class="dl-row"><span class="dl-lbl">Nhận định</span><span>${d.nhan}</span></div>
@@ -5476,6 +5491,26 @@ function dailyCardHtml(d){
   </div>`;
 }
 
+// ================= NHÃN NGÀY CHO MỌI KẾT QUẢ TÍNH THEO NGÀY =================
+// Vì sao cần: app dạng PWA mở lại từ nền, và nếu vì lý do nào đó màn hình chưa kịp vẽ lại (máy ngủ lâu,
+// hẹn giờ nửa đêm trượt, mở lại tab cũ) thì người dùng đang nhìn số liệu của HÔM QUA mà không hề biết.
+// Nhãn ngày đóng ngay trên mỗi khối kết quả là cách rẻ nhất để chuyện đó không thể xảy ra âm thầm:
+// liếc mắt là biết đang xem cho ngày nào.
+// Nhãn còn TỰ ĐỔI MÀU khi lệch ngày — nếu ngày trên nhãn không phải hôm nay thì hiện đỏ kèm nút bấm
+// để vẽ lại ngay, thay vì để người dùng tự nghi ngờ.
+const WD_STAMP = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+function dayStampHtml(opts){
+  const o = opts || {};
+  const d = o.date instanceof Date ? o.date : new Date();
+  const key = toKey(d);
+  const stale = key !== todayKey();
+  const txt = `${WD_STAMP[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  return `<div class="day-stamp ${stale?'stale':''} ${o.inline?'inline':''}">
+    <span class="ds-ic">${stale?'⚠️':'📅'}</span>
+    <span class="ds-tx">${o.label?escapeHtml(o.label)+' ':''}${txt}</span>
+    ${stale?`<span class="ds-refresh" data-action="day-refresh">Cập nhật ›</span>`:''}
+  </div>`;
+}
 // ================= TỰ SANG NGÀY MỚI LÚC 00:00 =================
 // App dạng PWA thường được mở lại từ nền chứ không tải lại trang, nên nếu để qua nửa đêm mà không làm gì
 // thì mọi luận giải vẫn là của NGÀY HÔM QUA — ngày Can Chi, lá Tarot, vận trình bốn mảng, giờ tốt đều
@@ -5676,7 +5711,7 @@ function dvLifeAreasHtml(){
   const gioTot = L.gioTot.length
     ? L.gioTot.map(g=>`<div class="lk-row"><span class="lk-k">${escapeHtml(g.khung)}</span><span class="lk-v">giờ ${escapeHtml(g.chi)} · hành ${escapeHtml(g.nh)}</span></div>`).join('')
     : '<div class="lk-none">Hôm nay không khung giờ nào nổi trội — giờ nào cũng như nhau, cứ theo lịch bình thường.</div>';
-  return `${rows}
+  return `${dayStampHtml({label:'Vận trình ngày'})}${rows}
     <div class="lk-box">
       <div class="lk-h">🍀 Yếu tố may mắn hôm nay</div>
       <div class="lk-sec"><div class="lk-sec-h">⏰ ${L.gioTotYeu?'Giờ đỡ nhất trong ngày':'Giờ thuận (nên xếp việc quan trọng)'}</div>${gioTot}${L.gioTotYeu?'<div class="lk-none" style="margin-top:5px;">Hôm nay không khung giờ nào thật sự nổi trội — đây chỉ là khung ít nghịch nhất, đừng đặt nặng.</div>':''}</div>
@@ -5795,7 +5830,7 @@ function renderDvBatTu(){
       <span class="dv-bar-num">${b.dem[k]}</span>
     </div>`).join('');
   const tt = TT_META[b.ttDaiVan], tl = TT_META[b.ttLuuNien];
-  return `
+  return `${dayStampHtml({label:'Bát Tự ngày'})}
     ${dailyCardHtml(dailyBatTu())}
     ${dvMenhHtml()}
     ${!b.hasHour ? `<div class="dv-warn">Chưa có giờ sinh nên lá số đang là <b>tam trụ</b> (năm – tháng – ngày). Thêm giờ sinh trong Thông tin cá nhân để có đủ tứ trụ.</div>` + dvHourHelpHtml() : ''}
@@ -5842,7 +5877,7 @@ function renderDvTuVi(){
   const layout = [[5,6,7,8],[4,-1,-1,9],[3,-1,-1,10],[2,1,0,11]];
   const byPos = {}; c.cung.forEach(x=>byPos[x.pos] = x);
   const grid = layout.map(row => row.map(pos=>{
-    if(pos < 0) return `<div class="dv-cell mid"></div>`;
+    if(pos < 0) return `${dayStampHtml({label:'Tử Vi ngày'})}<div class="dv-cell mid"></div>`;
     const cu = byPos[pos]; if(!cu) return `<div class="dv-cell"></div>`;
     const isMenh = cu.ten === 'Mệnh', isHan = cu.pos === c.hanCung.pos, isLn = cu.pos === c.lnCung.pos;
     return `<div class="dv-cell ${isMenh?'menh':''} ${isHan?'han':''}">
@@ -5891,7 +5926,7 @@ function renderDvAstro(){
       <div class="dv-astro-t">${escapeHtml(tx)}</div>
     </div>`;
   const elBar = Object.keys(a.el).map(k=>`<span class="dv-el ${a.el[k]?'on':''}">${k} ${a.el[k]}</span>`).join('');
-  return `
+  return `${dayStampHtml({label:'Chiêm tinh ngày'})}
     ${dailyCardHtml(dailyAstro())}
     <div class="dv-block">
       <h3>Ba trục tâm lý</h3>
@@ -5934,7 +5969,7 @@ function tarotCardHtml(c, big){
 function renderDvTarot(){
   const one = tarotToday();
   const showSpread = !!STATE.dvSpread;
-  return `
+  return `${dayStampHtml({label:'Tarot ngày'})}
     ${dailyCardHtml(dailyTarot())}
     <div class="dv-block">
       <h3>Lá bài hôm nay</h3>
@@ -7563,6 +7598,7 @@ function renderTodayFlow(){
     ? `<div class="tf-done">🎉 Bạn đã hoàn thành trọn vẹn buổi học hôm nay. Muốn luyện thêm thì mở Kho luyện tập bên dưới.</div>`
     : `<button class="form-btn" data-action="open-english-item" data-itemid="${f.next.item.id}">▶️ ${f.doneCount? 'Học tiếp':'Bắt đầu'}: ${escapeHtml(f.next.name)}</button>`;
   return `<div class="tf-card">
+    ${dayStampHtml({label:'Buổi học'})}
     <div class="tf-head">
       <div>
         <div class="tf-title">🎯 Học hôm nay</div>
@@ -8477,6 +8513,7 @@ function vocabHomeSubNav(){
   </div>`;
 }
 function renderVocabDailyHome(){
+  const _stamp = dayStampHtml({label:'Gói học'});
   const stats = vocabStats();
   const ids = VOCAB_DATA ? vocabBuildDailyQueue() : [];
   const dueCount = SETTINGS.vocabProgress ? ids.filter(n=>{ const p=SETTINGS.vocabProgress[n]; return p && p.introduced; }).length : 0;
@@ -8495,7 +8532,7 @@ function renderVocabDailyHome(){
   const weakTopicHtml = stats.weakTopic ? `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
     <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn hay trả lời sai ở chủ đề <b>${escapeHtml(vocabTopicMeta(stats.weakTopic.code).label)}</b> (sai khoảng ${Math.round(stats.weakTopic.wrongRate*100)}%) — nên vào mục <b>Chủ đề</b> ôn lại nhóm từ này thêm.</div>
   </div>` : '';
-  return `${statsHtml}${weakTopicHtml}
+  return `${_stamp}${statsHtml}${weakTopicHtml}
   <div class="card eng-mocktest-card">
     <div class="mocktest-icon">📅</div>
     <div class="mocktest-title">Từ hôm nay</div>
@@ -11323,6 +11360,7 @@ function sentHomeSubNav(){
   </div>`;
 }
 function renderSentDailyHome(){
+  const _stamp = dayStampHtml({label:'Gói học'});
   const stats = sentStats();
   const ids = COMMON_SENT_DATA ? sentBuildDailyQueue() : [];
   const dueCount = SETTINGS.sentProgress ? ids.filter(n=>{ const p=SETTINGS.sentProgress[n]; return p && p.introduced; }).length : 0;
@@ -11350,7 +11388,7 @@ function renderSentDailyHome(){
       (chọn đúng câu để đáp lại 1 lời thoại mở đầu) — luyện được cả phản xạ dùng câu thật đúng ngữ cảnh, không chỉ nhận ra đáp án có sẵn.
     </div>
   </div>`;
-  return `${statsHtml}${methodHtml}
+  return `${_stamp}${statsHtml}${methodHtml}
   <div class="card eng-mocktest-card">
     <div class="mocktest-icon">💬</div>
     <div class="mocktest-title">Câu hôm nay</div>
@@ -16682,6 +16720,7 @@ function renderToday(){
       </div>` : '';
 
   const {plan, rec, done, total} = dayPlanInfo(key);
+  const dayStamp = dayStampHtml({label:'Lịch'});
   const xp = dayXP(key); const maxXp = dayMaxXP(key);
   const catsPresent = Object.keys(CATS).filter(c=> plan.some(t=>t.cat===c));
   const legend = catsPresent.map(cat=>{ const ci=catInfo(key,cat); return `
@@ -16734,6 +16773,7 @@ function renderToday(){
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
+    ${dayStamp}
     ${renderTrackHUD('schedule')}
     ${toggleRow}
     ${restDayIntro}
@@ -18102,6 +18142,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictNextEl){ dictNext(); return; }
   const dictExitSessionEl = e.target.closest('[data-action="dict-exit-session"]');
   if(dictExitSessionEl){ dictExitSession(); return; }
+  const dayRefEl = e.target.closest('[data-action="day-refresh"]');
+  if(dayRefEl){ try{ dvCheckNewDay(); }catch(_){} renderContent(); return; }
   const dvSubEl = e.target.closest('[data-action="dv-home-sub"]');
   if(dvSubEl){ SETTINGS.dvHomeSub = dvSubEl.getAttribute('data-sub'); saveSettings(); renderContent(); return; }
   const dlgOpenEl = e.target.closest('[data-action="dlg-open"]');
