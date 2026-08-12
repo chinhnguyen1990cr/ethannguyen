@@ -2181,7 +2181,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v142';
+const APP_VERSION = 'v143';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15217,6 +15217,9 @@ function renderSpeakPracticeUI(){
         : `<button class="form-btn speak-rec-btn recording" data-action="speak-record"><span class="rec-dot"></span> Đang nghe… còn <span id="speak-countdown-num">${s.recordSecLeft}</span>s (bấm để dừng sớm)</button>
        <div id="speak-live-caption" style="font-size:11.5px; color:var(--teal); text-align:center; margin-top:8px; min-height:16px; font-style:italic;">🎙️ Đang chờ giọng nói…</div>`)
     : `<button class="form-btn speak-rec-btn" data-action="speak-record">🎤 ${r?'Đọc lại & chấm điểm':'Bấm để đọc & chấm điểm'}</button>`;
+  // Chế độ ngắt nhịp: khi ĐANG chấm điểm thì giữ bản tô màu (để soi chữ đọc đúng/sai), còn khi tập
+  // đọc thì thay bằng bản có ký hiệu / // ↗ ↘.
+  const prosOn = SETTINGS.speakProsody !== false;
   const prosToggle = `<div class="pr-toggle-row">
       <div class="pr-toggle ${prosOn?'on':''}" data-action="speak-prosody-toggle">
         <span>🎵</span><span>${prosOn?'Đang hiện ký hiệu ngắt nhịp':'Hiện ký hiệu ngắt nhịp & lên xuống giọng'}</span>
@@ -15259,7 +15262,6 @@ function renderSpeakPracticeUI(){
   // Chế độ ngắt nhịp: thay bản chữ thường bằng bản có ký hiệu / // ↗ ↘ và tô đậm từ cần nhấn.
   // Bật/tắt được vì khi ĐANG chấm điểm cần xem chữ đã đọc đúng chưa (bản tô màu), còn khi TẬP ĐỌC thì
   // bản ngắt nhịp hữu ích hơn.
-  const prosOn = SETTINGS.speakProsody !== false;
   if(prosOn && !r){ passageBodyHtml = prosodyHtml(text); }
   const translateHtml = (!lpMultiPara && translateVi && s.showTranslate) ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(translateVi)}</div>` : '';
   const tipHtml = tipVi ? `<div class="eng-quiz-tip">🤖 <b>Mẹo phát âm:</b> ${escapeHtml(tipVi)}</div>` : '';
