@@ -550,6 +550,7 @@
     border-radius:14px; background:rgba(124,108,240,.13); border:1px solid rgba(124,108,240,.34);}
   .pet-perk-banner .ppb-tx{font-size:11px; line-height:1.5; color:var(--dim);}
   @media (max-width:400px){ .hc-digi-time{font-size:34px;} .hc-digi-sec{font-size:15px;} }
+  .tf-time{font-size:9.5px; color:var(--dim2); font-family:var(--num); margin-top:2px;}
   /* ===== LỘ TRÌNH GIAO TIẾP ===== */
   .comm-goal{border:1px solid var(--border); border-left:3px solid var(--cc,#2CDBA8); border-radius:16px;
     background:rgba(255,255,255,.03); margin-bottom:12px; overflow:hidden;}
@@ -2210,7 +2211,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v145';
+const APP_VERSION = 'v146';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7202,21 +7203,44 @@ function todayFlowSupportKind(){
   if(d===2 || d===5) return 'vocab';
   return null;
 }
+// Mỗi việc tiếng Anh trong LỊCH LÀM VIỆC ứng với mục nào trong Học tiếng Anh, và dòng nào trong bảng
+// hoạt động (để biết hôm nay đã làm chưa).
+const FLOW_MAP = {
+  ipa:             {k:'ipa',       row:'Luyện IPA',      why:'Sáng sớm miệng và tai còn tỉnh — lúc tập phát âm hiệu quả nhất trong ngày.'},
+  vocab:           {k:'vocab',     row:'Từ vựng',        why:'12 từ mới theo đúng thứ tự tần suất nói. Đây là khối quan trọng nhất trong ngày.'},
+  vocab_review:    {k:'vocab',     row:'Từ vựng',        why:'Gặp lại đúng những từ sáng nay — bỏ lần ôn này là mất phần lớn công buổi sáng.'},
+  sentences:       {k:'sentences', row:'Câu thông dụng', why:'Học nguyên cụm câu người bản xứ dùng thật, lúc cần là bật ra cả câu.'},
+  listening_lunch: {k:'listening', row:'Luyện nghe',     why:'Giữa ngày mệt, không gắng sức được — nghe là việc nạp vào, hợp lúc này nhất.'},
+  dialogue:        {k:'sentences', row:'Câu thông dụng', why:'Gặp lại từ và câu đã học trong một câu chuyện thật, rồi tập dùng lại ở tình huống mới.'},
+  dictation:       {k:'listening', row:'Chép chính tả',  why:'Bài tập lộ rõ nhất những âm bạn đang nghe sót.'},
+  speaking:        {k:'speaking',  row:'Luyện nói',      why:'Tự bật thành tiếng — bước biến "hiểu" thành "dùng được".'},
+  grammar_game:    {k:'grammar',   row:'Ngữ pháp',       why:'Học quy tắc để tự ráp câu mới, thay vì chỉ thuộc lòng câu có sẵn.'},
+  ai_chat:         {k:'aichat',    row:'Hội thoại AI',   why:'Nói qua lại thật: mục tiêu là trả lời trong 3 giây, không dịch thầm trong đầu.'}
+};
 function todayFlowState(){
   ensureEnglishItems();
   const act = englishActivityForDate(todayKey());
   const items = SETTINGS.englishItems || [];
-  const supKind = todayFlowSupportKind();
-  const sup = supKind ? TODAY_SUPPORT_STEPS.filter(x=>x.kind===supKind) : [];
-  const steps = TODAY_FLOW_STEPS.concat(sup).map(st=>{
-    const row = act.rows.find(r=>r.name===st.row);
-    const item = items.find(i=>i.kind===st.kind);
-    return Object.assign({}, st, {
-      item, done: !!(row && row.count>0),
+  // TRƯỚC ĐÂY: "Học hôm nay" chạy ENGLISH_PLAN_ROTATION — một vòng xoay cố định theo thứ trong tuần,
+  // mỗi ngày chỉ 4-5 mục, HOÀN TOÀN TÁCH RỜI lịch trong mục Lịch làm việc. Hệ quả: hai màn hình bảo
+  // hai đằng, người học không biết theo cái nào.
+  // NAY: lấy thẳng các việc tiếng Anh của ĐÚNG ngày hôm nay trong lịch 90 ngày, giữ nguyên thứ tự giờ
+  // đã thiết kế (phát âm sáng → nghe trưa → hội thoại chiều → nói tối). Hai màn hình luôn khớp nhau
+  // vì cùng đọc một nguồn.
+  const plan = getPlanForDate(new Date()).filter(t=>t.cat==='tieng_anh');
+  const steps = plan.map(t=>{
+    const m = FLOW_MAP[t.kind];
+    if(!m) return null;
+    const item = items.find(i=>i.kind===m.k);
+    if(!item) return null;
+    const row = act.rows.find(r=>r.name===m.row);
+    return {
+      kind: t.kind, name: t.label, why: m.why, time: t.time, dur: t.dur, item,
+      done: !!(row && row.count>0),
       count: row ? row.count : 0, unit: row ? row.unit : '', score: row ? row.score : null,
-      meta: ENGLISH_ITEM_KIND[st.kind] || ENGLISH_ITEM_KIND.notes
-    });
-  }).filter(st=>st.item);
+      meta: ENGLISH_ITEM_KIND[m.k] || ENGLISH_ITEM_KIND.notes
+    };
+  }).filter(Boolean);
   const doneCount = steps.filter(s=>s.done).length;
   const next = steps.find(s=>!s.done) || null;
   return {steps, doneCount, next, all: steps.length, allDone: steps.length>0 && doneCount===steps.length};
@@ -7230,6 +7254,7 @@ function renderTodayFlow(){
       <div class="tf-num" style="${st.done?'':`background:linear-gradient(135deg,${st.meta.c1},${st.meta.c2});`}">${st.done?'✓':(i+1)}</div>
       <div class="tf-body">
         <div class="tf-name">${escapeHtml(st.name)}${isNext?' <span class="tf-badge">TIẾP THEO</span>':''}</div>
+        <div class="tf-time">🕐 ${escapeHtml(st.time||'')} · ${st.dur||0} phút</div>
         <div class="tf-sub">${st.done ? `Đã xong · ${st.count} ${escapeHtml(st.unit)}${st.score!==null?' · '+st.score+'%':''}` : escapeHtml(st.why)}</div>
       </div>
       <div class="tf-go">${st.done?'':'›'}</div>
