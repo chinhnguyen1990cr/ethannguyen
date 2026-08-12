@@ -695,6 +695,43 @@
   .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
     flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
   .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
+  /* ===== PHIÊN ÂM IPA ===== */
+  .ipa-phon{display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:-4px; padding-bottom:6px;}
+  .ipa-phon-txt{font-size:21px; font-weight:700; color:var(--teal,#2CDBA8); font-family:var(--mono,monospace); letter-spacing:.5px;}
+  .ipa-phon-focus{font-size:10.5px; color:var(--dim2);}
+  .ipa-phon-focus b{color:#FFB84D; font-size:12px;}
+  /* ===== BỐN MẢNG ĐỜI SỐNG ===== */
+  .lv-card{border:1px solid var(--border); border-left:3px solid var(--lc,#5B9CFF); border-radius:15px;
+    padding:12px 13px; margin-bottom:10px; background:rgba(255,255,255,.03);}
+  .lv-h{display:flex; align-items:center; gap:8px; margin-bottom:7px;}
+  .lv-ic{font-size:17px;}
+  .lv-h b{font-size:12.5px; color:var(--text); flex:1;}
+  .lv-tag{font-size:9.5px; font-weight:800; padding:3px 9px; border-radius:20px;}
+  .lv-tx{font-size:11.5px; line-height:1.7; color:var(--dim);}
+  .lv-why{margin-top:8px; border-top:1px dashed var(--border); padding-top:7px;}
+  .lv-why summary{font-size:10px; font-weight:700; color:var(--hcA,#5B9CFF); cursor:pointer; list-style:none;}
+  .lv-why summary::-webkit-details-marker{display:none;}
+  .lv-why summary::before{content:'▸ ';} .lv-why[open] summary::before{content:'▾ ';}
+  .lv-why div{font-size:10.5px; line-height:1.75; color:var(--dim); margin-top:6px;}
+  .lv-why b{color:var(--text);}
+  .lk-box{border:1px solid var(--border); border-radius:16px; padding:13px 14px; background:rgba(255,255,255,.03); margin-top:14px;}
+  .lk-h{font-size:12.5px; font-weight:800; color:var(--text); margin-bottom:10px;}
+  .lk-sec{margin-top:11px; padding-top:9px; border-top:1px dashed var(--border);}
+  .lk-sec:first-of-type{border-top:0; padding-top:0; margin-top:0;}
+  .lk-sec-h{font-size:10.5px; font-weight:800; color:var(--dim2); margin-bottom:6px;}
+  .lk-row{display:flex; justify-content:space-between; align-items:baseline; padding:4px 0; font-size:11px;}
+  .lk-k{font-family:var(--num); font-weight:800; color:var(--text);}
+  .lk-v{font-size:10px; color:var(--dim2);}
+  .lk-none{font-size:10.5px; color:var(--dim2); line-height:1.6;}
+  .lk-mau{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:11px; color:var(--dim);}
+  .lk-mau.dim{opacity:.62;}
+  .lk-mau b{color:var(--text);}
+  .lk-mau small{display:block; font-size:9.5px; color:var(--dim2); margin-top:1px;}
+  .lk-sws{display:flex; gap:3px; flex:0 0 auto;}
+  .lk-sw{width:16px; height:16px; border-radius:5px; border:1px solid rgba(255,255,255,.16);}
+  .lk-note{font-size:10px; line-height:1.7; color:var(--dim2); margin-top:11px; padding:9px 11px;
+    border-radius:11px; background:rgba(255,255,255,.03); border:1px solid var(--border);}
+  .lk-note b{color:var(--dim);}
   /* ===== LUẬN NGÀY ===== */
   .dl-sum{border:1px solid var(--border); border-left:3px solid var(--dc,#5B9CFF); border-radius:16px;
     padding:13px 14px; background:rgba(255,255,255,.03);}
@@ -2211,7 +2248,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v146';
+const APP_VERSION = 'v147';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5416,6 +5453,140 @@ function dailyCardHtml(d){
   </div>`;
 }
 
+// ================= BỐN MẢNG ĐỜI SỐNG + CHỈ SỐ MAY MẮN =================
+// Bốn mảng dưới đây suy ra từ ĐÚNG bộ dữ liệu Bát Tự đã tính (Nhật Chủ, dụng thần, kỵ thần, hành của
+// ngày), theo cách quy chiếu Thập Thần quen thuộc trong Tử Bình:
+//   • Sự nghiệp  ← nhóm QUAN SÁT: hành KHẮC bản mệnh — sức ép, kỷ luật, cấp trên, trách nhiệm.
+//   • Tài lộc    ← nhóm TÀI:      hành bản mệnh KHẮC — thứ mình nắm và chi phối được, tiền bạc.
+//   • Tình duyên ← nhóm TÀI + ẤN: bạn đời và gia đạo.
+//   • Sức khoẻ   ← độ mạnh yếu của bản mệnh so với hành của ngày.
+// Mỗi mảng chấm −2..+2 rồi quy ra lời khuyên. KHÔNG có chuyện hên xui hay hù doạ — mọi câu đều nói về
+// việc nên làm gì trong ngày, và luôn kèm dòng "vì sao" để đọc xong hiểu logic chứ không phải tin suông.
+const NH_MAU_TEN = {
+  'Kim':  {ten:'trắng, bạc, xám sáng, ánh kim', hex:['#F2F5FA','#C9D3E2','#9BA8BC']},
+  'Mộc':  {ten:'xanh lá, xanh lục, nâu gỗ',      hex:['#4CC38A','#2E9E6B','#7A5C3E']},
+  'Thủy': {ten:'đen, xanh dương, xanh nước biển',hex:['#1B2432','#4F9BFF','#1E5A9E']},
+  'Hỏa':  {ten:'đỏ, hồng, cam, tím',             hex:['#FF6B5C','#FF9AB8','#FF8A3D']},
+  'Thổ':  {ten:'vàng, nâu đất, be, cam đất',     hex:['#E0A93B','#B07C3A','#D8C39A']}
+};
+// 12 canh giờ — dùng để chọn giờ tốt trong ngày.
+const CHI_KHUNG_GIO = ['23:00–01:00','01:00–03:00','03:00–05:00','05:00–07:00','07:00–09:00','09:00–11:00',
+                       '11:00–13:00','13:00–15:00','15:00–17:00','17:00–19:00','19:00–21:00','21:00–23:00'];
+// Giờ trong ngày người ta thực sự còn thức và xếp việc được.
+// LỖI CŨ: danh sách chỉ có chỉ số 3..10 (Mão 05h → Dậu 19h), tức là BỎ CẢ HAI canh giờ hành Thủy
+// (Tý 23-01 và Hợi 21-23). Hệ quả: bất kỳ ai có dụng thần là Thủy đều KHÔNG BAO GIỜ có giờ thuận —
+// đo trên 200 hồ sơ thì 19% rơi vào cảnh này, riêng nhóm dụng thần Thủy là 100%.
+// Nay thêm Hợi (21:00–23:00) — khung giờ buổi tối hoàn toàn dùng được — nên đủ cả 5 hành.
+const GIO_DUNG_DUOC = [3,4,5,6,7,8,9,10,11];
+
+// Chấm một hành so với bản mệnh: hợp (+) hay nghịch (−).
+function nhHopScore(nh, nhChu, dungThan, kyThan){
+  let sc = 0;
+  if(nh === dungThan) sc += 2;              // đúng hành đang thiếu
+  if(nh === kyThan)   sc -= 2;              // đúng hành đang thừa
+  if(NH_SINH[nh] === nhChu) sc += 1;        // hành đó sinh cho mình
+  if(NH_KHAC[nh] === nhChu) sc -= 1;        // hành đó khắc mình
+  return sc;
+}
+function dvLuckyToday(){
+  const p = SETTINGS.profile || {};
+  const b = batTu(p.birthday, dvBirthHour());
+  if(!b) return null;
+  const now = new Date();
+  const D = canChiNgay(now.getFullYear(), now.getMonth()+1, now.getDate());
+  // --- GIỜ TỐT: chấm từng canh giờ theo hành của chi giờ đó ---
+  const gio = GIO_DUNG_DUOC.map(ci=>({
+    chi: CHI[ci], khung: CHI_KHUNG_GIO[ci], nh: CHI_NH[ci],
+    sc: nhHopScore(CHI_NH[ci], b.nhChu, b.dungThan, b.kyThan)
+  })).sort((x,y)=> y.sc - x.sc);
+  let tot = gio.filter(g=>g.sc > 0).slice(0,3);
+  const ne  = gio.filter(g=>g.sc < 0).slice(-2);
+  // Phòng xa: nếu vì lý do nào đó vẫn không có khung nào dương điểm, lấy khung điểm cao nhất còn lại
+  // và đánh dấu là "đỡ nhất" — thà nói thật là hôm nay không có giờ nào nổi trội, còn hơn để trống.
+  let totYeu = false;
+  if(!tot.length){ const best = gio.filter(g=>g.sc >= 0).slice(0,2); if(best.length){ tot = best; totYeu = true; } }
+  // --- MÀU HỢP MỆNH: màu của dụng thần (hành đang thiếu) và của hành sinh ra bản mệnh ---
+  const mauChinh = NH_MAU_TEN[b.dungThan] || NH_MAU_TEN[b.nhChu];
+  const nhSinhChu = Object.keys(NH_SINH).find(k=>NH_SINH[k]===b.nhChu);
+  const mauPhu = NH_MAU_TEN[nhSinhChu] || null;
+  const mauTranh = NH_MAU_TEN[b.kyThan] || null;
+  return {b, D, nhNgay: CAN_NH[D.can], gioTot: tot, gioNe: ne, gioTotYeu: totYeu,
+          mauChinh, mauPhu, mauTranh, dungThan: b.dungThan, kyThan: b.kyThan,
+          nhSinhChu};
+}
+// Bốn mảng đời sống.
+const DV_LINH_VUC = [
+  {k:'nghe',  n:'Sự nghiệp · Công việc', ic:'💼', c:'#5B9CFF',
+   nhOf:(b)=>Object.keys(NH_KHAC).find(k=>NH_KHAC[k]===b.nhChu),   // hành khắc bản mệnh = Quan Sát
+   tot:'Việc cần trách nhiệm và độ chuẩn xác hôm nay dễ được ghi nhận. Hợp để nhận phần việc khó, báo cáo tiến độ, hoặc đề xuất điều bạn đã chuẩn bị kỹ.',
+   xau:'Áp lực công việc hôm nay nặng hơn sức bạn muốn bỏ ra. Đừng nhận thêm việc mới; xử lý cho xong phần đang dở rồi hãy tính tiếp.',
+   tb :'Công việc ở nhịp bình thường. Đây là ngày hợp để làm những việc tồn đọng hơn là khởi sự việc lớn.'},
+  {k:'tai',   n:'Tài lộc · Tiền bạc', ic:'💰', c:'#E0A93B',
+   nhOf:(b)=>NH_KHAC[b.nhChu],                                     // hành bản mệnh khắc = Tài
+   tot:'Hợp để rà lại thu chi, chốt giá, đòi hoặc trả khoản còn tồn. Con số hôm nay bạn nhìn rõ hơn ngày thường.',
+   xau:'Dễ chi quá tay hoặc quyết vội một khoản. Hôm nay hoãn mọi quyết định tiền bạc lớn lại 24 giờ, mai nhìn lại vẫn thấy hợp lý thì mới làm.',
+   tb :'Tiền bạc không có biến động đáng kể. Hợp để ghi chép, lập kế hoạch chi tiêu hơn là mua sắm.'},
+  {k:'tinh',  n:'Tình duyên · Gia đạo', ic:'🏠', c:'#FF9AB8',
+   nhOf:(b)=>b.nhChu,                                              // cùng hành = Tỷ Kiếp, quan hệ ngang vai
+   tot:'Hợp để dành thời gian cho người thân, nói ra điều lâu nay chưa nói. Hôm nay bạn dễ được lắng nghe hơn.',
+   xau:'Dễ nói nặng lời với người gần mình nhất chỉ vì mệt chuyện khác. Nhận ra điều đó là đủ để tránh — hôm nay nghe nhiều hơn nói.',
+   tb :'Quan hệ gia đình ổn định. Một tin nhắn hỏi thăm ngắn cũng đủ giữ ấm, không cần làm gì to tát.'},
+  {k:'suckhoe', n:'Sức khoẻ', ic:'💪', c:'#35D6A4',
+   nhOf:(b)=>NH_SINH[b.nhChu],                                     // hành bản mệnh sinh ra = Thực Thương, hao khí
+   tot:'Thể trạng tốt, hợp để tập nặng hơn ngày thường hoặc chạy dài. Cơ thể đang sẵn sàng.',
+   xau:'Hôm nay dễ hao sức. Giảm cường độ tập xuống một bậc, ngủ sớm hơn 30 phút — ép thêm không được gì mà còn dễ chấn thương.',
+   tb :'Sức khoẻ bình thường. Giữ đúng lịch tập đã đặt, không cần tăng cũng không cần giảm.'}
+];
+function dvLifeAreas(){
+  const L = dvLuckyToday();
+  if(!L) return null;
+  const b = L.b;
+  return DV_LINH_VUC.map(lv=>{
+    const nh = lv.nhOf(b);
+    // Mảng đó hôm nay thuận hay nghịch: xét hành của mảng có được hành CỦA NGÀY tiếp sức không.
+    let sc = nhHopScore(nh, b.nhChu, b.dungThan, b.kyThan);
+    if(NH_SINH[L.nhNgay] === nh) sc += 1;      // hành ngày sinh cho mảng này
+    if(NH_KHAC[L.nhNgay] === nh) sc -= 1;      // hành ngày khắc mảng này
+    sc = Math.max(-2, Math.min(2, sc));
+    const txt = sc > 0 ? lv.tot : (sc < 0 ? lv.xau : lv.tb);
+    const why = `Mảng này ứng với hành <b>${nh}</b>. Bản mệnh bạn hành <b>${b.nhChu}</b>, hôm nay là ngày hành <b>${L.nhNgay}</b>. `
+      + (NH_SINH[L.nhNgay]===nh ? 'Hành của ngày <b>sinh</b> cho mảng này nên được tiếp sức.'
+        : NH_KHAC[L.nhNgay]===nh ? 'Hành của ngày <b>khắc</b> mảng này nên hơi bị kìm.'
+        : 'Hành của ngày không tác động rõ tới mảng này.')
+      + (nh===b.dungThan ? ' Thêm nữa đây đúng là hành bạn đang thiếu, nên mảng này vốn là chỗ nên đầu tư.' : '')
+      + (nh===b.kyThan ? ' Nhưng đây là hành bạn vốn đã thừa, nên dễ quá đà ở mảng này.' : '');
+    return {...lv, nh, sc, txt, why};
+  });
+}
+function dvLifeAreasHtml(){
+  const areas = dvLifeAreas(), L = dvLuckyToday();
+  if(!areas || !L) return '';
+  const rows = areas.map(a=>{
+    const lbl = a.sc>0 ? 'Thuận' : (a.sc<0 ? 'Cẩn trọng' : 'Bình thường');
+    return `<div class="lv-card" style="--lc:${a.c};">
+      <div class="lv-h"><span class="lv-ic">${a.ic}</span><b>${escapeHtml(a.n)}</b>
+        <span class="lv-tag" style="background:${a.c}22; color:${a.c};">${lbl}</span></div>
+      <div class="lv-tx">${escapeHtml(a.txt)}</div>
+      <details class="lv-why"><summary>Vì sao?</summary><div>${a.why}</div></details>
+    </div>`;
+  }).join('');
+  const swatch = (m)=> m ? m.hex.map(h=>`<span class="lk-sw" style="background:${h};"></span>`).join('') : '';
+  const gioTot = L.gioTot.length
+    ? L.gioTot.map(g=>`<div class="lk-row"><span class="lk-k">${escapeHtml(g.khung)}</span><span class="lk-v">giờ ${escapeHtml(g.chi)} · hành ${escapeHtml(g.nh)}</span></div>`).join('')
+    : '<div class="lk-none">Hôm nay không khung giờ nào nổi trội — giờ nào cũng như nhau, cứ theo lịch bình thường.</div>';
+  return `${rows}
+    <div class="lk-box">
+      <div class="lk-h">🍀 Yếu tố may mắn hôm nay</div>
+      <div class="lk-sec"><div class="lk-sec-h">⏰ ${L.gioTotYeu?'Giờ đỡ nhất trong ngày':'Giờ thuận (nên xếp việc quan trọng)'}</div>${gioTot}${L.gioTotYeu?'<div class="lk-none" style="margin-top:5px;">Hôm nay không khung giờ nào thật sự nổi trội — đây chỉ là khung ít nghịch nhất, đừng đặt nặng.</div>':''}</div>
+      ${L.gioNe.length?`<div class="lk-sec"><div class="lk-sec-h">🕐 Giờ nên tránh việc căng</div>${L.gioNe.map(g=>`<div class="lk-row"><span class="lk-k">${escapeHtml(g.khung)}</span><span class="lk-v">giờ ${escapeHtml(g.chi)} · hành ${escapeHtml(g.nh)}</span></div>`).join('')}</div>`:''}
+      <div class="lk-sec"><div class="lk-sec-h">🎨 Màu hợp mệnh</div>
+        <div class="lk-mau"><div class="lk-sws">${swatch(L.mauChinh)}</div><div><b>Chính</b> — ${escapeHtml(L.mauChinh?L.mauChinh.ten:'')}<small>Màu của hành ${escapeHtml(L.dungThan)}, hành bạn đang thiếu</small></div></div>
+        ${L.mauPhu?`<div class="lk-mau"><div class="lk-sws">${swatch(L.mauPhu)}</div><div><b>Phụ</b> — ${escapeHtml(L.mauPhu.ten)}<small>Màu của hành ${escapeHtml(L.nhSinhChu)}, hành sinh ra bản mệnh</small></div></div>`:''}
+        ${L.mauTranh?`<div class="lk-mau dim"><div class="lk-sws">${swatch(L.mauTranh)}</div><div><b>Hạn chế</b> — ${escapeHtml(L.mauTranh.ten)}<small>Màu của hành ${escapeHtml(L.kyThan)}, hành bạn vốn đã thừa</small></div></div>`:''}
+      </div>
+      <div class="lk-note">Giờ và màu ở đây suy ra từ ngũ hành trong lá số của bạn, không phải con số ngẫu nhiên. Hãy dùng nó như một cách <b>sắp thứ tự việc trong ngày</b> — xếp việc cần tập trung vào khung giờ thuận — chứ đừng để nó quyết định thay bạn những chuyện hệ trọng.</div>
+    </div>`;
+}
 // ================= GIAO DIỆN "TỬ VI & BÓI TOÁN" =================
 // Bốn môn, mỗi môn giữ đúng thế mạnh riêng thay vì cả bốn cùng nói một chuyện:
 //   Bát Tự  → cấu trúc và nhịp dài (10 năm / 1 năm)
@@ -5424,6 +5595,7 @@ function dailyCardHtml(d){
 //   Tarot   → một câu hỏi để tự ngẫm trong ngày
 const DV_TABS = [
   {k:'today', n:'Hôm nay',   ic:'🗓️', d:'Tổng hợp cả bốn môn thành một bản tin cho ngày hôm nay'},
+  {k:'linhvuc', n:'Vận trình', ic:'🧭', d:'Sự nghiệp · tài lộc · tình duyên · sức khoẻ · giờ và màu hợp mệnh'},
   {k:'battu', n:'Bát Tự',    ic:'☰', d:'Quy luật · thời vận · cân bằng năng lượng'},
   {k:'tuvi',  n:'Tử Vi',     ic:'✦', d:'12 cung — sự việc và con người'},
   {k:'astro', n:'Chiêm tinh',ic:'♄', d:'Chân dung tâm lý'},
@@ -5677,6 +5849,17 @@ function renderDvTarot(){
       <div class="dv-note-in">Tarot ở đây được viết theo hướng <b>câu hỏi để tự ngẫm</b>, không phải lời phán về tương lai. Giá trị của nó nằm ở chỗ buộc bạn dừng lại và soi vào một góc mình đang né — chứ không phải ở việc lá bài “biết trước” điều gì.</div>
     </div>`;
 }
+function renderDvLinhVuc(){
+  const p = SETTINGS.profile || {};
+  if(!parseBirth(p.birthday)) return dvNeedProfile();
+  const L = dvLuckyToday();
+  return `
+    <div class="dv-block">
+      <h3>Vận trình bốn mảng hôm nay</h3>
+      <div class="dv-block-sub">${L?`Bản mệnh <b>${escapeHtml(L.b.nhChu)}</b> · hôm nay ngày <b>${escapeHtml(CAN[L.D.can]+' '+CHI[L.D.chi])}</b> hành <b>${escapeHtml(L.nhNgay)}</b>`:''}</div>
+      ${dvLifeAreasHtml()}
+    </div>`;
+}
 function renderDvToday(){
   const p = SETTINGS.profile || {};
   if(!parseBirth(p.birthday)) return dvNeedProfile();
@@ -5705,6 +5888,7 @@ function renderDivination(){
   let body = '';
   try{
     if(tab==='today') body = renderDvToday();
+    else if(tab==='linhvuc') body = renderDvLinhVuc();
     else if(tab==='battu') body = renderDvBatTu();
     else if(tab==='tuvi') body = renderDvTuVi();
     else if(tab==='astro') body = renderDvAstro();
@@ -15337,7 +15521,7 @@ function renderSpeakPracticeUI(){
   const lvName= isIpaPractice ? 'Luyện tập phát âm IPA' : (isLongPassage ? 'Đoạn văn dài' : (lvObj?(lvObj.key+' · '+lvObj.label):s.level));
   const backRow=`<div class="kh-backrow"><div class="kh-backbtn" data-action="speak-practice-exit">${svgIcon('back')}</div><div class="title">${isIpaPractice?'🔤':(isLongPassage?'📖':'🗣️')} ${escapeHtml(isIpaPractice||isLongPassage?lvName:('Luyện nói · '+lvName))}</div></div>`;
   if(!item){ document.getElementById('content').innerHTML=backRow+`<div class="card"><div class="eng-av-empty">Không có nội dung.</div></div>`; return; }
-  const [text, translateVi, tipVi]=item;
+  const [text, translateVi, tipVi, wordIpa, focusIpa]=item;
   const pb=STATE.speakPlayback||'idle';
   const playLabel= pb==='playing' ? '⏸ Tạm dừng' : (pb==='paused' ? '▶ Tiếp tục' : '🔊 Nghe mẫu');
   const progressPct=Math.round((s.idx/s.order.length)*100);
@@ -15422,6 +15606,10 @@ function renderSpeakPracticeUI(){
     </div>
     <div class="card eng-quiz-card">
       <div class="eng-quiz-q" style="${isIpaPractice ? 'text-align:center; white-space:pre-line; font-size:34px; font-weight:800; padding:22px 10px; letter-spacing:.3px;' : (lpMultiPara ? 'text-align:left;' : 'text-align:left; white-space:pre-line;')}">${passageBodyHtml}</div>
+      ${isIpaPractice && wordIpa ? `<div class="ipa-phon">
+          <span class="ipa-phon-txt">/${escapeHtml(wordIpa)}/</span>
+          ${focusIpa?`<span class="ipa-phon-focus">âm cần tập: <b>/${escapeHtml(focusIpa)}/</b></span>`:''}
+        </div>` : ''}
       ${isIpaPractice?'':prosToggle}
       <div id="speak-word-meaning" style="${isIpaPractice?'text-align:center;':''}"></div>
       ${r ? '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">🟢 Đọc đúng, máy nhận diện được &nbsp; 🔴 Máy chưa nhận diện được &nbsp;·&nbsp; chạm 1 từ để nghe phát âm + nghĩa</div>' : '<div style="font-size:10px; color:var(--dim2); margin:-6px 0 10px; text-align:left;">Chạm vào 1 từ bất kỳ để nghe phát âm + xem nghĩa tiếng Việt</div>'}
@@ -15687,7 +15875,7 @@ function getIpaPracticeBank(){
       for(const ex of ph.examples){
         // Định dạng [text, translateVi, tipVi] — ĐÚNG NHƯ format mà currentSpeakItem()/renderSpeakPracticeUI()
         // của Luyện nói đã dùng sẵn, nên tái sử dụng được 100% giao diện + logic chấm điểm không cần viết lại.
-        bank.push([ex.w, ex.vi, `Tập trung vào âm /${ph.ipa}/ — ${ph.tip}`]);
+        bank.push([ex.w, ex.vi, `Tập trung vào âm /${ph.ipa}/ — ${ph.tip}`, ex.ipa || '', ph.ipa]);
       }
     }
   }
