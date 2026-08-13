@@ -2284,7 +2284,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v149';
+const APP_VERSION = 'v150';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6052,7 +6052,6 @@ function dvHomeCardHtml(){
     </div>`;
   }
   const t = tuviState();
-  const card = tarotToday();
   const dvSub = SETTINGS.dvHomeSub || 'today';   // 'today' = bản tin tổng hợp | 'linhvuc' = vận trình
   const head = `<div class="dv-home-head" data-action="dv-home-toggle">
       <span class="dv-home-ic">🔮</span>
@@ -6067,16 +6066,16 @@ function dvHomeCardHtml(){
   const sub = dvSub==='linhvuc'
     ? `${dvMenhHtml()}${dvLifeAreasHtml()}`
     : `${dailySummaryHtml()}`;
+  // DỌN CHỒNG CHÉO: trước đây khối này vẽ liền một lúc BỐN thứ nói về cùng một ngày —
+  //   (1) bản tin tổng hợp mới, (2) thẻ tuviCardHtml() cũ còn sót lại từ bản trước,
+  //   (3) một thẻ Tarot riêng nữa, (4) hai link "Xem đầy đủ" y hệt nhau.
+  // Thẻ cũ (2) và (3) tính lại cùng dữ liệu nhưng trình bày khác, nên nhìn vào tưởng app cho ra
+  // nhiều kết quả mâu thuẫn. Nay trang chủ CHỈ còn đúng hai chế độ người dùng chọn, và một lối vào
+  // mục đầy đủ. Mọi con số đều đến từ cùng một nguồn tính (batTu/tuViChart/astroState/tarotToday).
   return `<div class="dv-home">${head}
     ${seg}
     ${sub}
     <div class="dv-home-more" data-action="hub-open" data-target="divination">Xem đầy đủ Bát Tự · Tử Vi · Chiêm tinh · Tarot ›</div>
-    ${t ? tuviCardHtml() : ''}
-    <div class="dv-home-tarot">
-      <div class="dv-home-lbl">🂠 Lá bài hôm nay</div>
-      ${tarotCardHtml(card)}
-    </div>
-    <div class="dv-home-more" data-action="hub-open" data-target="divination">Xem đầy đủ Bát Tự · Tử Vi · Chiêm tinh · Tarot →</div>
   </div>`;
 }
 
