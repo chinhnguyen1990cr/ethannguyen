@@ -701,6 +701,21 @@
   .aic-row.aic-nodata{opacity:.72;}
   .aic-note{flex:1; font-size:9.5px; color:var(--dim2); font-style:italic; line-height:1.4;}
   .aic-val.dim{color:var(--dim2);}
+  /* ===== HIỆU CHỈNH VỊ TRÍ VIDEO ===== */
+  .vid-seek-box{margin-bottom:12px; padding:9px 10px; border-radius:12px;
+    background:rgba(255,255,255,.035); border:1px solid var(--border);}
+  .vid-seek-box .vs-row{display:flex; align-items:center; gap:7px; flex-wrap:wrap;}
+  .vid-seek-box .vs-row.btns{margin-top:8px; gap:6px;}
+  .vid-seek-box .vs-lb{font-size:10.5px; color:var(--dim2); font-weight:700;}
+  .vid-seek-box .vs-tm{font-size:11.5px; font-weight:800; color:var(--gold); font-family:var(--num);}
+  .vid-seek-box .vs-off{font-size:9.5px; font-weight:800; color:var(--teal);
+    background:rgba(92,214,192,.14); border-radius:20px; padding:2px 8px;}
+  .vid-seek-box .vs-btn{flex:1; min-width:0; padding:7px 4px; border-radius:9px; cursor:pointer;
+    font-size:10.5px; font-weight:800; color:var(--dim); background:rgba(255,255,255,.05);
+    border:1px solid var(--border); white-space:nowrap;}
+  .vid-seek-box .vs-btn:active{background:rgba(255,255,255,.12);}
+  .vid-seek-box .vs-btn.reset{flex:0 0 auto; padding:7px 11px; color:#FF8A8A;}
+  .vid-seek-box .vs-note{font-size:9.5px; line-height:1.6; color:var(--dim2); margin-top:8px;}
   /* ===== NHÃN NGÀY ===== */
   .day-stamp{display:flex; align-items:center; gap:6px; padding:5px 10px; margin-bottom:9px;
     border-radius:20px; background:rgba(255,255,255,.045); border:1px solid var(--border);
@@ -2290,7 +2305,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v152';
+const APP_VERSION = 'v153';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8291,7 +8306,9 @@ function vocabBuildDailyQueue(){
     if(p && p.introduced) continue;
     newWords.push(n);
   }
-  const ids = shuffleArr(due).concat(newWords);
+  // 'due' đã được sắp sẵn theo NGÀY ĐẾN HẠN (quá hạn lâu nhất trước). Trước đây bị shuffleArr() xáo
+  // lại, phá đúng thứ tự ưu tiên mà thuật toán lặp lại ngắt quãng vừa tính ra. Nay giữ nguyên.
+  const ids = due.concat(newWords);
   SETTINGS.vocabDailyCache = {date: today, ids};
   saveSettings();
   return ids;
@@ -8410,7 +8427,10 @@ function vocabStartDaily(){
 function vocabStartTopic(code){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
   const bank = vocabWordsByTopic(code);
-  const ids = shuffleArr(bank.map(w=>w[0])).slice(0, Math.min(20, bank.length));
+  const seqIds = vocabSeqIds(bank);
+  const takeV = seqTakeNext('vocab:topic:'+code, seqIds.length, 20);
+  const ids = takeV.idx.map(i=>seqIds[i]);
+  seqToastWrap(takeV.wrapped, 'các từ trong chủ đề');
   navForward();
   STATE.vocabSession = {mode:'topic', topic:code, ids, idx:0, correct:0, finished:false, retried:{}};
   vocabPrepareCurrent();
@@ -8468,18 +8488,20 @@ function vocabFinishAnswer(isCorrect){
 // thêm mốc lịch sử mới (giống quy ước "Làm lại không push thêm nav" đã dùng ở Luyện ngữ pháp/vượt ải).
 function vocabRestartOptimal(){
   const s = STATE.vocabSession; if(!s) return;
-  const missed = Array.isArray(s.missedIds) ? shuffleArr(s.missedIds.slice()) : [];
+  // Giữ nguyên THỨ TỰ gặp phải của các từ sai (không xáo) — ôn lại đúng mạch vừa học.
+  const missed = Array.isArray(s.missedIds) ? s.missedIds.slice() : [];
   if(s.mode==='topic'){
     const code = s.topic;
     const bank = vocabWordsByTopic(code);
     let ids;
     if(missed.length>0){
       const missedSet = new Set(missed);
-      const rest = shuffleArr(bank.map(w=>w[0]).filter(n=>!missedSet.has(n)));
+      const rest = vocabSeqIds(bank).filter(n=>!missedSet.has(n));
       ids = missed.concat(rest).slice(0, Math.min(20, bank.length));
       showToast('🎯','Ôn lại từ vừa sai trước','Đang ưu tiên luyện lại '+missed.length+' từ bạn trả lời sai lượt trước.');
     } else {
-      ids = shuffleArr(bank.map(w=>w[0])).slice(0, Math.min(20, bank.length));
+      const seqIds2 = vocabSeqIds(bank);
+      ids = seqTakeNext('vocab:topic:'+code, seqIds2.length, 20).idx.map(i=>seqIds2[i]);
     }
     STATE.vocabSession = {mode:'topic', topic:code, ids, idx:0, correct:0, finished:false, retried:{}};
     vocabPrepareCurrent();
@@ -9037,6 +9059,51 @@ async function fetchGrammarQuizBank(){
   if(STATE.tab==='english-item') renderContent();
 }
 function grammarBankFor(topicId){ return (GRAMMAR_QUIZ_BANK && GRAMMAR_QUIZ_BANK[topicId]) || []; }
+// ================= CON TRỎ TUẦN TỰ CHO MỌI MỤC LUYỆN TẬP =================
+// VẤN ĐỀ THẬT (người dùng phản ánh: "tránh việc ngẫu nhiên hên xui"): trước đây MỌI mục luyện tập đều
+// bốc câu ngẫu nhiên trong ngân hàng của cấp độ bằng shuffleArr(). Hậu quả đo được:
+//   • Không có cảm giác "đi tới" — lượt này toàn câu dễ, lượt sau nhảy thẳng vào câu khó nhất cấp.
+//   • Câu vừa làm hôm qua có thể hiện lại ngay hôm nay, trong khi nhiều câu chưa từng được thấy lần nào.
+//   • Không thể biết mình đã đi được bao nhiêu phần của một cấp độ.
+// CÁCH SỬA: mỗi phạm vi (một cấp độ, một chủ đề) có CON TRỎ riêng lưu trong SETTINGS (nên đồng bộ Drive
+// và không mất khi đóng app). Mỗi lượt lấy đúng khối câu KẾ TIẾP theo thứ tự biên soạn của ngân hàng —
+// ngân hàng vốn đã được sắp từ dễ đến khó trong từng cấp — rồi nhích con trỏ lên. Đi hết ngân hàng thì
+// quay về đầu và BÁO cho người học biết là đã trọn một vòng, thay vì âm thầm lặp lại.
+// Lưu ý: việc XÁO TRỘN 4 ĐÁP ÁN của một câu vẫn giữ nguyên — đó là chống học vẹt vị trí đáp án, khác
+// hoàn toàn với việc bốc ngẫu nhiên xem hôm nay được học câu nào.
+function seqCursorStore(){
+  if(!SETTINGS.seqCursor || typeof SETTINGS.seqCursor!=='object' || Array.isArray(SETTINGS.seqCursor)) SETTINGS.seqCursor = {};
+  return SETTINGS.seqCursor;
+}
+function seqTakeNext(key, total, count){
+  if(!(total>0)) return {idx:[], wrapped:false, from:0, total:0};
+  const st = seqCursorStore();
+  const pos = Math.max(0, Math.min(total-1, st[key]|0));
+  const take = Math.min(Math.max(1, count|0), total);
+  const idx = []; let wrapped = false;
+  for(let k=0;k<take;k++){
+    if(pos+k >= total) wrapped = true;
+    idx.push((pos+k) % total);
+  }
+  st[key] = (pos + take) % total;
+  saveSettings();
+  return {idx, wrapped, from:pos, total};
+}
+function seqToastWrap(wrapped, what){
+  if(wrapped) showToast('🔄','Đã đi trọn một vòng','Bạn vừa học hết '+what+' của cấp này theo đúng thứ tự — nay quay lại từ đầu để ôn.');
+}
+// Sắp các từ trong một chủ đề theo ĐỘ PHỔ BIẾN THẬT (VOCAB_DATA.learnOrder — thứ tự tần suất xuất hiện
+// trong hội thoại đời thường), tức từ hay gặp/dễ trước, từ hiếm/khó sau. Đây chính là "đúng trình tự
+// từng level" áp dụng cho mục từ vựng, thay cho việc bốc ngẫu nhiên trong chủ đề như trước.
+function vocabSeqIds(bank){
+  const order = (VOCAB_DATA && Array.isArray(VOCAB_DATA.learnOrder)) ? VOCAB_DATA.learnOrder : [];
+  const rank = {}; order.forEach((num,i)=>{ rank[num]=i; });
+  return bank.map(w=>w[0]).sort((a,b)=>{
+    const ra = rank[a]===undefined ? 1e9 : rank[a];
+    const rb = rank[b]===undefined ? 1e9 : rank[b];
+    return ra-rb || a-b;
+  });
+}
 function shuffleArr(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 // Item 6: chọn NGẪU NHIÊN kiểu bài tập trong số các kiểu đã mở khóa (thay vì công thức cố định
 // types[(idx+box)%types.length] — luôn ra đúng 1 kiểu y hệt cho cùng 1 từ/câu ở cùng mức box, dễ đoán
@@ -9075,7 +9142,9 @@ function grammarPickOrder(candidates, count, scopeKey){
   const key = scopeKey || 'global';
   const recentArr = Array.isArray(store[key]) ? store[key] : [];
   const recent = new Set(recentArr);
-  const fresh = shuffleArr(candidates.filter(c => !recent.has(c[0]+'#'+c[1])));
+  // Giữ nguyên thứ tự ngân hàng (đã sắp từ dễ đến khó trong từng chủ đề/cấp) thay vì xáo ngẫu nhiên —
+  // người học đi hết chủ đề theo đúng trình tự, không nhảy cóc.
+  const fresh = candidates.filter(c => !recent.has(c[0]+'#'+c[1]));
   let order;
   if(fresh.length >= count){
     order = fresh.slice(0, count);
@@ -10656,8 +10725,10 @@ function listenLevelUpHint(best){
 function startListenQuiz(level){
   const bank = (LISTENING_QUIZ && LISTENING_QUIZ[level]) || [];
   const pace = aiRecommendListenPace();
-  const allIdx = shuffleArr(bank.map((_,i)=>i));
-  const order = allIdx.slice(0, Math.min(pace.count, allIdx.length));
+  // TRƯỚC: shuffleArr(...) — mỗi lượt là một canh bạc. NAY: lấy đúng khối câu kế tiếp trong cấp.
+  const take = seqTakeNext('listen:'+level, bank.length, pace.count);
+  const order = take.idx;
+  seqToastWrap(take.wrapped, 'ngân hàng câu nghe');
   if(!STATE.listenQuiz) navForward(); // chỉ đẩy 1 lớp điều hướng khi thực sự MỚI vào (không đẩy thêm khi bấm "Làm lại")
   STATE.listenQuiz = {level, order, idx:0, correct:0, answered:null, finished:false, showTranslate:false};
   STATE.listenPlayback = 'idle';
@@ -10799,7 +10870,25 @@ function renderListenQuizUI(){
         <div style="display:flex; gap:8px; margin-bottom:6px;">
           <button class="form-btn cancel" data-action="listen-video-replay" style="flex:1;">🔁 Lặp lại đoạn này</button>
         </div>
-        <div style="font-size:11px; color:var(--dim2); margin-bottom:12px; text-align:center;">📺 Video chỉ phát đúng đoạn chứa câu hỏi — bấm "Lặp lại" nếu cần nghe thêm lần nữa.</div>`
+        ${(function(){
+          const off = listenVidOffset(q.videoId);
+          const b = listenSegBounds(q.videoId, videoStartSec, videoEndSec);
+          return `<div class="vid-seek-box">
+            <div class="vs-row">
+              <span class="vs-lb">⏱️ Đang phát đoạn</span>
+              <span class="vs-tm">${fmtMMSS(b.st)} → ${videoEndSec?fmtMMSS(b.en):'hết'}</span>
+              ${off?`<span class="vs-off">đã dời ${off>0?'+':''}${off}s</span>`:''}
+            </div>
+            <div class="vs-row btns">
+              <button class="vs-btn" data-action="listen-video-nudge" data-d="-10">⏪ 10s</button>
+              <button class="vs-btn" data-action="listen-video-nudge" data-d="-3">◀ 3s</button>
+              <button class="vs-btn" data-action="listen-video-nudge" data-d="3">3s ▶</button>
+              <button class="vs-btn" data-action="listen-video-nudge" data-d="10">10s ⏩</button>
+              ${off?`<button class="vs-btn reset" data-action="listen-video-nudge" data-d="reset">↺</button>`:''}
+            </div>
+            <div class="vs-note">Nếu video chạy không khớp câu hỏi, bấm mũi tên để dời cho khớp — chỉnh một lần là áp dụng cho tất cả câu hỏi của video này và được ghi nhớ lại.</div>
+          </div>`;
+        })()}`
         : `<div style="display:flex; gap:8px; margin-bottom:12px; align-items:stretch;">
         <button class="form-btn" data-action="listen-quiz-toggle" style="flex:1;">${playBtnLabel}</button>
         <div class="listen-speed-group">${LISTEN_SPEEDS.map(sp=>`<button class="listen-speed-btn ${((STATE.listenSpeed||1)===sp)?'active':''}" data-action="listen-quiz-speed" data-speed="${sp}">${sp}x</button>`).join('')}</div>
@@ -10832,7 +10921,8 @@ function renderListenQuizUI(){
     if(curItem){
       const autoplay = !!q.replayAuto;
       q.replayAuto = false;
-      mountListenVideoPlayer(q.videoId, curItem[7]||0, curItem[8]||0, autoplay);
+      const _b = listenSegBounds(q.videoId, curItem[7]||0, curItem[8]||0);
+      mountListenVideoPlayer(q.videoId, _b.st, _b.en, autoplay);
     }
   } else {
     stopListenVideoPlayer();
@@ -11197,7 +11287,7 @@ function sentBuildDailyQueue(){
     if(p && p.introduced) continue;
     newOnes.push(n);
   }
-  const ids = shuffleArr(due).concat(newOnes);
+  const ids = due.concat(newOnes); // giữ đúng thứ tự ưu tiên theo hạn ôn (xem chú thích ở Luyện từ vựng)
   SETTINGS.sentDailyCache = {date: today, ids};
   saveSettings();
   return ids;
@@ -11336,7 +11426,8 @@ function sentStartDaily(){
 function sentStartCategory(code){
   if(!COMMON_SENT_DATA){ fetchCommonSentData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
   const bank = sentByCategory(code);
-  const ids = shuffleArr(bank.map(s=>s[0]));
+  // Đi đúng thứ tự số hiệu câu trong nhóm (thứ tự biên soạn: câu nền tảng trước, câu nâng cao sau).
+  const ids = bank.map(s=>s[0]).sort((a,b)=>a-b);
   navForward();
   STATE.sentSession = {mode:'category', category:code, ids, idx:0, correct:0, finished:false, retried:{}};
   sentPrepareCurrent();
@@ -11793,7 +11884,7 @@ function dictBuildDailyQueue(){
     if(p && p.introduced) continue;
     newOnes.push(s[0]);
   }
-  const ids = shuffleArr(due).concat(newOnes);
+  const ids = due.concat(newOnes); // giữ đúng thứ tự ưu tiên theo hạn ôn (xem chú thích ở Luyện từ vựng)
   SETTINGS.dictDailyCache = {date: today, ids};
   saveSettings();
   return ids;
@@ -11819,7 +11910,12 @@ function dictStartLevel(levelKey){
   if(idx===-1 || !dictLevelUnlocked(idx)) return;
   const bank = dictByLevel(levelKey);
   if(!bank.length) return;
-  const ids = shuffleArr(bank.map(s=>s[0]));
+  // Chép chính tả theo cấp cũng đi TUẦN TỰ theo thứ tự biên soạn của cấp (câu ngắn/dễ trước), lấy khối
+  // 20 câu kế tiếp mỗi lượt thay vì xáo toàn bộ ngân hàng như trước.
+  const seqIdsD = bank.map(x=>x[0]);
+  const takeD = seqTakeNext('dict:'+levelKey, seqIdsD.length, Math.min(20, seqIdsD.length));
+  const ids = takeD.idx.map(i=>seqIdsD[i]);
+  seqToastWrap(takeD.wrapped, 'ngân hàng câu chép chính tả');
   navForward();
   STATE.dictSession = {mode:'level', level:levelKey, ids, idx:0, correct:0, finished:false, retried:{}};
   dictPrepareCurrent();
@@ -13015,10 +13111,12 @@ async function aiGenerateListenQuestions(videoId){
   if(!apiKey) throw new Error('NO_KEY');
   const prompt = `You are creating an English listening comprehension exercise for a Vietnamese learner from this YouTube video.
 Watch/listen to the video and produce STRICT JSON (no markdown) with this exact shape:
-{"title":"<video title, English>","questions":[{"start":<seconds>,"end":<seconds>,"transcript":[["Speaker","exact sentence heard"],...],"type":"<one of: detail|inference|vocab|main_idea|speaker|sequence>","q":"<question in English about THIS segment>","opts":["A","B","C","D"],"correct":<0-3>,"explain":"<giải thích ngắn bằng tiếng Việt vì sao đáp án đúng>","translate":"<dịch câu hỏi sang tiếng Việt>","tip":"<mẹo nghe ngắn bằng tiếng Việt cho đoạn này>"}]}
+{"title":"<video title, English>","questions":[{"start":"<MM:SS>","end":"<MM:SS>","transcript":[["Speaker","exact sentence heard"],...],"type":"<one of: detail|inference|vocab|main_idea|speaker|sequence>","q":"<question in English about THIS segment>","opts":["A","B","C","D"],"correct":<0-3>,"explain":"<giải thích ngắn bằng tiếng Việt vì sao đáp án đúng>","translate":"<dịch câu hỏi sang tiếng Việt>","tip":"<mẹo nghe ngắn bằng tiếng Việt cho đoạn này>"}]}
 Rules:
 - Create 20 to 30 questions covering the WHOLE video in chronological order, in the SAME order the content appears.
-- start/end MUST be TIGHT, accurate timestamps (seconds) that bound EXACTLY the segment containing the evidence for the answer — do not use a wide/generic range; each segment should be as short as possible while still containing the answer (typically 10-30 seconds).
+- start/end MUST be written in MM:SS clock format exactly as they appear on the video's own progress bar (for example "02:35"), NOT as a raw number of seconds. Read the elapsed time carefully — an offset of even a few seconds sends the learner to the wrong part of the video.
+- start/end MUST bound EXACTLY the segment containing the evidence for the answer — as short as possible while still containing the answer (typically 10-30 seconds).
+- start times MUST increase from the first question to the last, and end MUST always be later than start.
 - transcript: 1-4 lines actually spoken in that segment, verbatim (used to let the learner re-read the exact words).
 - DIVERSIFY the question types so the learner grasps the FULL content and meaning intelligently, not just isolated facts. Mix roughly evenly across the whole set (do NOT make every question a single repetitive "what did X say" pattern):
   • detail — a specific fact/detail explicitly stated in the segment.
@@ -13061,9 +13159,14 @@ Return ONLY the JSON object.`;
     Array.isArray(qq.transcript)? qq.transcript.map(t=>Array.isArray(t)?[String(t[0]||'A'),String(t[1]||'')]:['A',String(t)]):[],
     String(qq.q||''), (qq.opts||[]).slice(0,4).map(String), Math.max(0,Math.min(3,qq.correct|0)),
     String(qq.explain||''), String(qq.translate||''), String(qq.tip||''),
-    Math.max(0, Math.floor(qq.start||0)), Math.max(0, Math.floor(qq.end||0)),
+    tsToSec(qq.start), tsToSec(qq.end),
     String(qq.type||'detail') // chỉ số [9]: loại câu hỏi (detail/inference/vocab/main_idea/speaker/sequence) — dùng để hiện nhãn dạng câu hỏi, giúp người học nhận biết đang luyện kỹ năng nghe nào.
-  ]).filter(qq=>qq[1] && qq[2].length===4);
+  ]).filter(qq=>qq[1] && qq[2].length===4)
+    // Loại các câu có mốc vô lý (kết thúc trước khi bắt đầu, hoặc đoạn dài quá 5 phút thì chắc chắn AI
+    // đoán bừa chứ không phải đoạn chứa đáp án) rồi SẮP LẠI THEO THỜI GIAN, để mạch câu hỏi luôn chạy
+    // xuôi theo video — điều kiện tối thiểu để người học không thấy "câu hỏi một đường, video một nẻo".
+    .filter(qq=>{ const st=qq[7], en=qq[8]; return !(en>0 && en<=st) && !(en>0 && en-st>300); })
+    .sort((a,b)=> a[7]-b[7]);
   return {title:String(parsed.title||'Video luyện nghe'), questions};
 }
 async function submitAddListenVideo(){
@@ -13169,6 +13272,53 @@ function videoLessonsListHtml(mode){
 }
 // Chỉ còn 1 khung video Luyện nghe hiện diện trên màn hình tại 1 thời điểm, nên dùng chung 1 id cố định
 // cho vùng gắn YT.Player() — xem mountListenVideoPlayer()/stopListenVideoPlayer() bên dưới.
+// ================= HIỆU CHỈNH VỊ TRÍ ĐOẠN VIDEO =================
+// NGUYÊN NHÂN GỐC của lỗi "câu hỏi một đường, bấm video chạy một nẻo": mốc thời gian của từng câu hỏi
+// KHÔNG do app tính ra mà do Gemini tự ước lượng khi xem video. Gemini lấy mẫu hình ảnh/âm thanh theo
+// nhịp cố định và đếm thời gian theo mẫu đó, nên với video dài mốc trả về thường LỆCH ĐỀU một khoảng
+// (trôi dần về sau) chứ không lệch lung tung — chính vì vậy người dùng thấy "lệch rất nhiều" ở mọi câu
+// chứ không phải một vài câu. Bản cũ đem thẳng con số đó đi seek nên lệch bao nhiêu chịu bấy nhiêu.
+// BA LỚP XỬ LÝ, từ gốc ra ngọn:
+//   1) Đổi định dạng hỏi Gemini sang MM:SS thay vì số giây trần (xem prompt) — Gemini đọc/đếm mốc theo
+//      dạng đồng hồ chính xác hơn hẳn so với việc phải tự cộng ra tổng số giây.
+//   2) Đệm sẵn vài giây mỗi đầu đoạn, để lệch nhỏ vẫn không làm mất phần chứa đáp án.
+//   3) Nút hiệu chỉnh thủ công: người dùng lệch bao nhiêu thì bù bấy nhiêu, và vì độ lệch là ĐỀU nên
+//      một lần chỉnh áp dụng cho TẤT CẢ câu hỏi của video đó, lưu lại vĩnh viễn (đồng bộ Drive).
+const LISTEN_SEG_PAD = 3;   // giây đệm mỗi đầu đoạn
+function listenVidOffset(videoId){
+  const m = SETTINGS.listenVideoOffset;
+  return (m && typeof m==='object') ? (m[videoId]|0) : 0;
+}
+function listenVidNudge(videoId, delta){
+  if(!videoId) return;
+  if(!SETTINGS.listenVideoOffset || typeof SETTINGS.listenVideoOffset!=='object') SETTINGS.listenVideoOffset = {};
+  const cur = (SETTINGS.listenVideoOffset[videoId]|0) + delta;
+  SETTINGS.listenVideoOffset[videoId] = cur;
+  saveSettings(); try{ pushToDrive(); }catch(e){}
+  showToast('🎯','Đã chỉnh vị trí video', (cur===0?'Về đúng mốc gốc':'Dời '+(cur>0?'+':'')+cur+' giây')+' — áp dụng cho MỌI câu hỏi của video này.');
+  renderContent();
+}
+// Mốc thật sẽ dùng để phát = mốc AI đưa ra + độ lệch người dùng đã hiệu chỉnh, có đệm hai đầu.
+function listenSegBounds(videoId, startSec, endSec){
+  const off = listenVidOffset(videoId);
+  const st = Math.max(0, Math.floor((startSec||0) + off - LISTEN_SEG_PAD));
+  const en = (endSec && endSec>0) ? Math.floor(endSec + off + LISTEN_SEG_PAD) : 0;
+  return {st, en};
+}
+function fmtMMSS(sec){
+  const t = Math.max(0, Math.floor(sec||0));
+  return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+}
+// Đọc mốc thời gian AI trả về: chấp nhận cả "1:23", "01:02:03" lẫn số giây trần (tương thích ngược với
+// các video người dùng đã thêm từ những bản trước).
+function tsToSec(v){
+  if(typeof v === 'number') return Math.max(0, Math.floor(v));
+  const str = String(v==null?'':v).trim();
+  if(/^\d+$/.test(str)) return parseInt(str,10);
+  const parts = str.split(':').map(x=>parseInt(x,10));
+  if(parts.some(isNaN) || !parts.length) return 0;
+  return Math.max(0, parts.reduce((acc,p)=>acc*60+p, 0));
+}
 const LISTEN_YT_HOLDER_ID = 'listen-yt-player-holder';
 function speakVideoEmbedHtml(videoId){
   // Chỉ trả về khung chứa RỖNG — việc thực sự gắn video (qua YouTube IFrame API, có tự động dừng đúng
@@ -13962,7 +14112,10 @@ function startSpeakPractice(level){
     if(!unlocked) return; // chặn mở cấp đang khóa (phòng khi dispatch bị bỏ qua)
   }
   const bank = level==='ipa' ? getIpaPracticeBank() : ((SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[]);
-  const order = shuffleArr(bank.map((_,i)=>i)).slice(0, Math.min(15, bank.length));
+  // Đi tuần tự theo thứ tự biên soạn của cấp (dễ -> khó), không còn bốc ngẫu nhiên.
+  const takeSpeak = seqTakeNext('speak:'+level, bank.length, 15);
+  const order = takeSpeak.idx;
+  seqToastWrap(takeSpeak.wrapped, 'ngân hàng đoạn đọc');
   if(!STATE.speakSession) navForward(); // chỉ đẩy 1 lớp điều hướng khi thực sự MỚI vào
   STATE.speakSession = {level, order, idx:0, showTranslate:false, result:null, recording:false};
   STATE.speakPlayback = 'idle';
@@ -14036,7 +14189,40 @@ function resumeSpeakLine(){
 }
 function toggleSpeakPlayback(){ const st=STATE.speakPlayback; if(st==='playing') pauseSpeakLine(); else if(st==='paused') resumeSpeakLine(); else playSpeakLine(); }
 // ---- Chấm điểm phát âm bằng nhận diện giọng nói ----
-function speakNormalizeWords(str){ return (str||'').toLowerCase().replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean); }
+// Máy nhận diện giọng nói viết ra cùng một lời nói theo nhiều kiểu khác nhau: "I'm" hay "I am",
+// "3" hay "three", "okay" hay "ok", "gonna" hay "going to", "colour" hay "color". Người học đọc ĐÚNG
+// nhưng vì đoạn gốc viết kiểu này còn máy viết kiểu kia nên bị đếm là sai — đây là nguồn trừ điểm oan
+// phổ biến nhất sau lỗi nhận diện thật. Nay quy về một dạng chuẩn cho CẢ HAI phía trước khi so khớp.
+const SPEAK_EXPAND = {
+  "i'm":"i am", "you're":"you are", "we're":"we are", "they're":"they are", "he's":"he is",
+  "she's":"she is", "it's":"it is", "that's":"that is", "there's":"there is", "what's":"what is",
+  "let's":"let us", "i've":"i have", "you've":"you have", "we've":"we have", "they've":"they have",
+  "i'll":"i will", "you'll":"you will", "we'll":"we will", "he'll":"he will", "she'll":"she will",
+  "i'd":"i would", "you'd":"you would", "don't":"do not", "doesn't":"does not", "didn't":"did not",
+  "isn't":"is not", "aren't":"are not", "wasn't":"was not", "weren't":"were not", "can't":"can not",
+  "cannot":"can not", "couldn't":"could not", "won't":"will not", "wouldn't":"would not",
+  "shouldn't":"should not", "haven't":"have not", "hasn't":"has not", "hadn't":"had not",
+  "gonna":"going to", "wanna":"want to", "gotta":"got to", "ok":"okay", "'cause":"because",
+  "0":"zero","1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","7":"seven",
+  "8":"eight","9":"nine","10":"ten","11":"eleven","12":"twelve","20":"twenty","30":"thirty",
+  "100":"hundred","1000":"thousand"
+};
+// Biến thể chính tả Anh-Anh -> Anh-Mỹ (Cloud STT cấu hình en-US nên luôn trả về dạng Mỹ).
+function speakSpellNorm(w){
+  return w.replace(/our$/,'or').replace(/ise$/,'ize').replace(/isation$/,'ization')
+          .replace(/^centre$/,'center').replace(/^metre$/,'meter').replace(/^theatre$/,'theater')
+          .replace(/^travelling$/,'traveling').replace(/^favourite$/,'favorite');
+}
+function speakNormalizeWords(str){
+  const raw = (str||'').toLowerCase().replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean);
+  const out = [];
+  raw.forEach(w=>{
+    const ex = SPEAK_EXPAND[w];
+    if(ex){ ex.split(' ').forEach(p=>out.push(p)); }
+    else out.push(speakSpellNorm(w));
+  });
+  return out;
+}
 // Tách đoạn văn thành từng CÂU riêng (giữ nguyên dấu câu cuối) — dùng để chỉ ra CHÍNH XÁC câu nào
 // người học đọc sai nhiều nhất (item 2b: "đọc nguyên lại một đoạn nào đó mà người học đọc bị sai"),
 // thay vì chỉ chấm điểm chung cho cả bài dài.
@@ -14067,9 +14253,11 @@ function speakLevenshtein(a,b){
 // Cho phép sai lệch nhỏ này giúp điểm số phản ánh SÁT với khả năng phát âm thật hơn.
 function speakWordsSimilar(a,b){
   if(a===b) return true;
-  if(a.length<4 || b.length<4) return false;
-  if(Math.abs(a.length-b.length)>1) return false;
-  return speakLevenshtein(a,b)<=1;
+  const L = Math.max(a.length, b.length);
+  if(L < 4) return false;               // từ ngắn giữ khớp tuyệt đối: tránh nhận nhầm "a"~"I", "in"~"on"
+  const tol = L >= 8 ? 2 : 1;           // từ dài (>=8 ký tự) cho lệch 2 ký tự — máy rất hay sai đuôi
+  if(Math.abs(a.length-b.length) > tol) return false;
+  return speakLevenshtein(a,b) <= tol;
 }
 function speakLcsLen(a,b){
   const m=a.length,n=b.length; if(!m||!n) return 0;
@@ -14098,6 +14286,28 @@ function speakLcsMatchMask(a,b){
     else j--;
   }
   return mask;
+}
+// Các âm tiếng Anh mà người Việt hay bị máy nghe hụt nhất — không phải để CỘNG điểm bù (như thế là
+// tự dối mình), mà để khi một từ bị bỏ lỡ thì nói rõ ÂM NÀO cần sửa và sửa bằng cách nào, thay vì chỉ
+// hiện ra danh sách từ sai trơ trọi. Đây là phần "đưa ra kết quả phù hợp nhất" mà người dùng yêu cầu.
+const VN_SOUND_HINTS = [
+  [/^th/,      'Âm /θ/ - /ð/ (th): đặt đầu lưỡi chạm nhẹ giữa hai hàm răng rồi thổi hơi ra. Đọc thành "s", "t" hay "d" là máy nghe ra từ khác hẳn.'],
+  [/v/,        'Âm /v/: răng cửa trên chạm môi dưới và RUNG kéo dài. Chụm hai môi lại thành "b" là máy nghe nhầm ngay.'],
+  [/^r/,       'Âm /r/: cuộn nhẹ đầu lưỡi về sau, KHÔNG chạm vòm miệng. Âm "r" tiếng Việt bật ở vị trí khác nên máy không nhận ra.'],
+  [/ed$/,      'Đuôi -ed phải bật thành /t/, /d/ hoặc /ɪd/. Nuốt đuôi thì máy nghe thành thì hiện tại — sai nghĩa cả câu.'],
+  [/(s|es)$/,  'Đuôi -s/-es rất dễ bị nuốt. Phải nghe rõ tiếng gió ở cuối từ thì máy mới phân biệt được số ít/số nhiều.'],
+  [/(l|ll)$/,  'Âm /l/ cuối từ: đầu lưỡi chạm lợi trên và GIỮ lại một nhịp, đừng bỏ lửng giữa chừng.'],
+  [/^(sp|st|sk|str|spr|scr)/, 'Cụm phụ âm đầu (sp-, st-, str-...): đọc dính liền, không chèn nguyên âm "ơ" vào giữa như thói quen tiếng Việt.']
+];
+function speakSoundTips(missed){
+  const out = []; const used = new Set();
+  (missed||[]).forEach(w=>{
+    for(let i=0;i<VN_SOUND_HINTS.length;i++){
+      if(used.has(i)) continue;
+      if(VN_SOUND_HINTS[i][0].test(w)){ used.add(i); out.push({w, tip:VN_SOUND_HINTS[i][1]}); break; }
+    }
+  });
+  return out.slice(0,3);
 }
 function scoreSpeaking(target, heard, durationSec, confidence){
   const tw=speakNormalizeWords(target), hw=speakNormalizeWords(heard);
@@ -14130,7 +14340,8 @@ function scoreSpeaking(target, heard, durationSec, confidence){
     wPos += n;
     return {text:sent, acc: n?Math.round(correct/n*100):100, wordCount:n};
   });
-  return {wordAcc, pron, intonation:paceScore, overall, missed:missed.slice(0,8), heard, wps, matchMask, sentenceScores};
+  return {wordAcc, pron, intonation:paceScore, overall, missed:missed.slice(0,8), heard, wps, matchMask,
+    sentenceScores, soundTips: speakSoundTips(missed)};
 }
 // Chuẩn ĐẠT cho "Đoạn văn dài" — cùng mốc dùng để mở khóa bài tiếp theo (longPassageUnlocked), để
 // tránh 2 tiêu chuẩn khác nhau gây khó hiểu. Ngoài điểm tổng, còn yêu cầu KHÔNG còn câu nào bị đọc
@@ -14553,10 +14764,30 @@ async function transcribeCloudStt(blob, hintText){
   // nhầm sang từ đồng âm phổ biến hơn. Cải thiện rõ rệt độ chính xác so với nhận diện "mù" hoàn toàn.
   // model:'latest_long' cho độ chính xác cao hơn model mặc định với câu/đoạn nói liên tục nhiều từ.
   const config = { encoding:'WEBM_OPUS', sampleRateHertz:48000, languageCode:'en-US',
-    enableAutomaticPunctuation:false, model:'latest_long', useEnhanced:true };
+    enableAutomaticPunctuation:false, model:'latest_long', useEnhanced:true,
+    // maxAlternatives — CẢI THIỆN LỚN NHẤT vòng này. Khi giọng người học chưa chuẩn, Cloud STT rất hay
+    // đặt phương án ĐÚNG ở vị trí thứ 2-3 chứ không phải thứ nhất; bản cũ chỉ đọc alternatives[0] nên
+    // người học bị trừ điểm oan cho những từ máy thật ra đã "nghe ra" được. Nay xin 5 phương án rồi tự
+    // chọn phương án khớp đoạn gốc nhiều nhất (xem phần chọn phương án bên dưới).
+    maxAlternatives: 5,
+    // Điểm tin cậy theo TỪNG TỪ thay vì một điểm chung cho cả câu — để về sau chỉ đúng từ nào máy nghe
+    // không rõ, thay vì hạ điểm cả đoạn vì một từ.
+    enableWordConfidence: true,
+    // Tắt bộ lọc từ thô: nó thay từ bằng dấu *** và làm hỏng phép so khớp.
+    profanityFilter: false,
+    audioChannelCount: 1 };
   if(hintText){
-    const words = Array.from(new Set(String(hintText).replace(/[^a-zA-Z' ]/g,' ').split(/\s+/).filter(w=>w.length>1)));
-    if(words.length) config.speechContexts = [{ phrases: words.slice(0,120), boost: 15 }];
+    // Gợi ý ngữ cảnh 2 LỚP thay vì chỉ danh sách từ rời như bản cũ:
+    //   (1) các CỤM 3 TỪ liền nhau trong đoạn — quan trọng hơn từ rời, vì Cloud STT giải mã theo chuỗi:
+    //       biết trước cụm "check in at the" thì máy không tách nhầm thành "chicken at the";
+    //   (2) từng từ đơn, để bắt các từ hiếm.
+    // boost 18 (thang khuyến nghị 0-20) — cao hơn mức 15 cũ nhưng chưa tới mức máy bịa ra từ không có.
+    const clean = String(hintText).replace(/[^a-zA-Z' ]/g,' ').split(/\s+/).filter(Boolean);
+    const words = Array.from(new Set(clean.filter(w=>w.length>1)));
+    const grams = [];
+    for(let i=0; i+2<clean.length && grams.length<80; i+=2) grams.push(clean.slice(i,i+3).join(' '));
+    const phrases = grams.concat(words).slice(0,150);
+    if(phrases.length) config.speechContexts = [{ phrases, boost: 18 }];
   }
   const res = await fetch(`https://speech.googleapis.com/v1/speech:recognize?key=${encodeURIComponent(apiKey)}`, {
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -14568,7 +14799,20 @@ async function transcribeCloudStt(blob, hintText){
     throw new Error('Cloud Speech-to-Text HTTP '+res.status+' — '+t.slice(0,180));
   }
   const data = await res.json();
-  return (data.results||[]).map(r=> (r.alternatives && r.alternatives[0]) ? r.alternatives[0].transcript : '').join(' ').trim();
+  // Với mỗi mảnh kết quả, KHÔNG mặc định lấy alternatives[0] nữa mà chọn phương án có nhiều từ trùng
+  // với đoạn gốc nhất (đo bằng chính thuật toán so khớp dùng để chấm điểm, nên nhất quán tuyệt đối).
+  const targetWords = hintText ? speakNormalizeWords(hintText) : null;
+  return (data.results||[]).map(r=>{
+    const alts = (r.alternatives||[]).map(a=>String(a.transcript||'').trim()).filter(Boolean);
+    if(!alts.length) return '';
+    if(!targetWords || !targetWords.length || alts.length===1) return alts[0];
+    let best = alts[0], bestSc = -1;
+    alts.forEach(a=>{
+      const sc = speakLcsLen(targetWords, speakNormalizeWords(a));
+      if(sc > bestSc){ bestSc = sc; best = a; }
+    });
+    return best;
+  }).join(' ').trim();
 }
 // Dừng ghi âm NGAY LẬP TỨC và chấm điểm bằng phần đã nghe được, không chờ sự kiện onend của trình
 // duyệt — một số máy Android không bao giờ bắn sự kiện này (hoặc bắn rất trễ) khiến màn hình bị
@@ -15833,8 +16077,9 @@ function renderSpeakPracticeUI(){
       <div style="font-size:11.5px;color:var(--dim);text-align:center;margin-bottom:14px;">Điểm tổng (thang 100)</div>
       ${speakScoreBar('🎯 Đúng từ', r.wordAcc)}
       ${speakScoreBar('🔤 Phát âm', r.pron)}
-      ${speakScoreBar('🎵 Ngữ điệu / tốc độ', r.intonation)}
+      ${speakScoreBar('⏱️ Tốc độ nói ('+(r.wps||0).toFixed(1)+' từ/giây)', r.intonation)}
       <div class="eng-quiz-explain" style="margin-top:12px;">🤖 <b>AI nhận xét:</b><br>${speakFeedbackMsgs(r).map(m=>'• '+m).join('<br>')}</div>
+      ${(r.soundTips&&r.soundTips.length)?`<div class="eng-quiz-tip" style="margin-top:10px;">🔊 <b>Âm cần sửa (rút ra từ những từ máy chưa nghe được):</b><br>${r.soundTips.map(t=>'• <b>'+escapeHtml(t.w)+'</b> — '+escapeHtml(t.tip)).join('<br>')}</div>`:''}
     </div>`;
     if(isLongPassage) resultHtml += renderLongPassageDeepFeedback(r, s, text);
   }
@@ -18241,6 +18486,20 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictNextEl){ dictNext(); return; }
   const dictExitSessionEl = e.target.closest('[data-action="dict-exit-session"]');
   if(dictExitSessionEl){ dictExitSession(); return; }
+  const vidNudgeEl = e.target.closest('[data-action="listen-video-nudge"]');
+  if(vidNudgeEl){
+    const q = STATE.listenQuiz;
+    if(q && q.videoId){
+      const d = vidNudgeEl.getAttribute('data-d');
+      if(d==='reset'){
+        if(SETTINGS.listenVideoOffset) delete SETTINGS.listenVideoOffset[q.videoId];
+        saveSettings(); try{ pushToDrive(); }catch(_){}
+        showToast('↺','Đã bỏ hiệu chỉnh','Quay về đúng mốc thời gian AI đưa ra ban đầu.');
+        renderContent();
+      } else listenVidNudge(q.videoId, parseInt(d,10)||0);
+    }
+    return;
+  }
   const dayRefEl = e.target.closest('[data-action="day-refresh"]');
   if(dayRefEl){ try{ dvCheckNewDay(); }catch(_){} renderContent(); return; }
   const dvSubEl = e.target.closest('[data-action="dv-home-sub"]');
