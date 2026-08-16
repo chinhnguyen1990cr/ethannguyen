@@ -698,6 +698,9 @@
   .lv-sac{font-size:10.5px; line-height:1.65; color:var(--dim2); margin-top:7px; padding:7px 10px;
     border-radius:10px; background:rgba(255,255,255,.035); border:1px solid var(--border);}
   .lv-sac b{color:var(--dim);}
+  .aic-row.aic-nodata{opacity:.72;}
+  .aic-note{flex:1; font-size:9.5px; color:var(--dim2); font-style:italic; line-height:1.4;}
+  .aic-val.dim{color:var(--dim2);}
   /* ===== NHÃN NGÀY ===== */
   .day-stamp{display:flex; align-items:center; gap:6px; padding:5px 10px; margin-bottom:9px;
     border-radius:20px; background:rgba(255,255,255,.045); border:1px solid var(--border);
@@ -2287,7 +2290,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v151';
+const APP_VERSION = 'v152';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7354,11 +7357,9 @@ function renderEnglish(){
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Học tiếng Anh')}
     ${englishSubNav()}
-    ${commCardHtml()}
-    ${engFlowHtml()}
-    ${renderAiCoachCard()}
-    ${renderTodayFlow()}
     ${renderEnglishTodayPanel()}
+    ${renderTodayFlow()}
+    ${renderAiCoachCard()}
   `;
 }
 // ================= AI HỌC TẬP: CHẤM ĐIỂM TỪNG KỸ NĂNG + ĐỀ XUẤT BUỔI HỌC KẾ TIẾP =================
@@ -7407,6 +7408,9 @@ function aiCollectSkillData(days){
   }
   return out;
 }
+// Ngưỡng số lượt tối thiểu để chấm điểm thành thạo cho từng kỹ năng. Đặt theo độ "nặng" của mỗi lượt:
+// một lượt Luyện nói dài vài phút nói lên nhiều hơn một câu trắc nghiệm từ vựng, nên ngưỡng thấp hơn.
+const AI_MIN_SAMPLE = {grammar:20, listen:15, speak:8, ipa:15, vocab:30, sent:20, dict:15, aichat:5};
 function aiSkillReport(){
   const raw = aiCollectSkillData(30);
   const today = new Date();
@@ -7418,8 +7422,13 @@ function aiSkillReport(){
     const daysSince = o.lastDate ? Math.max(0, Math.round((today - parseKey(o.lastDate))/86400000)) : 999;
     // Độ tươi: đụng tới trong 2 ngày = 100 điểm, sau đó tụt dần, quá 21 ngày coi như đã quên gần hết.
     const fresh = daysSince>=21 ? 0 : Math.max(0, Math.round(100 - Math.max(0, daysSince-2)*5.3));
-    const mastery = (acc===null && o.count===0) ? null
-      : Math.round((acc===null?45:acc)*0.5 + volPct*0.3 + fresh*0.2);
+    // Số lượt tối thiểu để một điểm số có ý nghĩa. Dưới mức này thì thà nói "chưa đủ dữ liệu" còn hơn
+    // đưa ra con số dễ gây hiểu nhầm — một người làm đúng 2/2 câu KHÔNG phải là người đã vững.
+    const MIN_N = AI_MIN_SAMPLE[s.key] || 10;
+    const duLieu = o.count >= MIN_N;
+    const mastery = (o.count===0) ? null
+      : (!duLieu ? null
+      : Math.round((acc===null?45:acc)*0.5 + volPct*0.3 + fresh*0.2));
     const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
     const r7 = avg(o.recent), p7 = avg(o.older);
     const trend = (r7!==null && p7!==null) ? Math.round(r7-p7) : null;
@@ -7444,19 +7453,40 @@ function aiOverallBand(v){
   return {t:'Mới khởi động', c:'#FF8A3D', d:'Giai đoạn quan trọng nhất là TẠO THÓI QUEN: học ít nhưng ngày nào cũng học.'};
 }
 // Đề xuất buổi học kế tiếp: 3 việc cụ thể, ưu tiên kỹ năng yếu/lâu chưa đụng, kèm lý do rõ ràng.
+// Gợi ý luyện tiếp phải BÁM THEO LỊCH của đúng ngày hôm nay, không đề xuất chung chung.
+// Trước đây hàm này chỉ xếp theo điểm thành thạo, nên có thể bảo "luyện Ngữ pháp" vào ngày mà lịch
+// không hề có Ngữ pháp — người học đọc xong không biết làm gì với lời khuyên đó.
+function aiKindsInTodayPlan(){
+  try{
+    const plan = getPlanForDate(new Date()).filter(t=>t.cat==='tieng_anh');
+    const set = new Set();
+    plan.forEach(t=>{ const m = FLOW_MAP[t.kind]; if(m) set.add(m.k); });
+    return set;
+  }catch(_){ return new Set(); }
+}
 function aiNextSessionPlan(rep){
   const plan = [];
   const seen = new Set();
-  rep.ranked.forEach(s=>{
+  const inToday = aiKindsInTodayPlan();
+  // Xếp lại thứ tự: kỹ năng CÓ TRONG LỊCH HÔM NAY được đưa lên trước. Cùng nằm trong lịch thì mới so
+  // điểm thành thạo. Nhờ vậy lời khuyên luôn khớp với việc bạn thật sự sẽ làm trong ngày.
+  const ranked = rep.ranked.slice().sort((a,b)=>{
+    const ia = inToday.has(a.key) ? 0 : 1, ib = inToday.has(b.key) ? 0 : 1;
+    if(ia !== ib) return ia - ib;
+    return 0;   // giữ nguyên thứ tự ưu tiên theo điểm đã sắp ở aiSkillReport
+  });
+  ranked.forEach(s=>{
     if(plan.length>=3 || seen.has(s.key)) return;
+    const trongLich = inToday.has(s.key);
     let why, minutes;
     if(s.count===0){ why = 'chưa từng luyện — mở ra để AI có dữ liệu chấm trình độ'; minutes = 10; }
     else if(s.daysSince>=7){ why = `đã ${s.daysSince} ngày chưa đụng tới, kiến thức đang phai`; minutes = 12; }
     else if(s.acc!==null && s.acc<70){ why = `độ chính xác mới ${s.acc}% — cần luyện chậm và kỹ hơn`; minutes = 15; }
     else if(s.volPct<40){ why = 'luyện còn ít nên điểm chưa đáng tin, cần thêm số lượng'; minutes = 12; }
     else { why = 'duy trì để không tụt'; minutes = 8; }
+    if(trongLich) why = 'có trong lịch hôm nay — ' + why;
     seen.add(s.key);
-    plan.push({...s, why, minutes});
+    plan.push({...s, why, minutes, trongLich});
   });
   return plan;
 }
@@ -7467,15 +7497,24 @@ function renderAiCoachCard(){
   const bars = rep.skills.map(s=>{
     const m = s.mastery;
     const w = m===null? 0 : m;
+    const MIN_N = AI_MIN_SAMPLE[s.key] || 10;
+    const thieu = Math.max(0, MIN_N - (s.count||0));
     const trendHtml = s.trend===null ? '' :
       (s.trend>2 ? `<span class="aic-trend up">▲ ${s.trend}</span>`
       : s.trend<-2 ? `<span class="aic-trend down">▼ ${Math.abs(s.trend)}</span>`
       : `<span class="aic-trend flat">– đều</span>`);
-    return `<div class="aic-row">
+    // Ba trạng thái rõ ràng thay vì một dấu "--" mơ hồ:
+    //   chưa làm gì  → nói thẳng là chưa bắt đầu
+    //   làm chưa đủ  → nói còn thiếu bao nhiêu lượt nữa mới đủ để chấm, KHÔNG đưa điểm
+    //   đủ dữ liệu   → mới hiện điểm và xu hướng
+    const trangThai = (s.count===0) ? 'chưa bắt đầu'
+      : (m===null ? `còn ${thieu} lượt nữa mới đủ để chấm` : '');
+    return `<div class="aic-row ${m===null?'aic-nodata':''}">
       <div class="aic-name">${s.icon} ${escapeHtml(s.name)}</div>
-      <div class="aic-bar"><div class="aic-fill" style="width:${w}%; background:${s.color};"></div></div>
-      <div class="aic-val">${m===null?'--':m}</div>
-      ${trendHtml}
+      ${m===null
+        ? `<div class="aic-note">${escapeHtml(trangThai)}</div><div class="aic-val dim">—</div>`
+        : `<div class="aic-bar"><div class="aic-fill" style="width:${w}%; background:${s.color};"></div></div>
+           <div class="aic-val">${m}</div>${trendHtml}`}
     </div>`;
   }).join('');
   const planHtml = plan.map((p,i)=>`
@@ -17142,6 +17181,14 @@ function englishActivityForDate(dateKey){
     {icon:'💬', name:'Câu thông dụng', count:sentDs.answered, unit:'câu', score:pctOf(sentDs), color:'#FFD166'},
     {icon:'✍️', name:'Chép chính tả', count:dictDs.answered, unit:'câu', score:pctOf(dictDs), color:'#2CDBA8'},
     {icon:'💬', name:'Hội thoại AI', count:aiTurns, unit:'lượt nói', score:null, color:'#5CD6C0'},
+    // BỔ SUNG: Hội thoại ngữ cảnh — mục này có từ v142 nhưng chưa từng được đếm vào hoạt động trong
+    // ngày, nên làm xong bài vẫn hiện như chưa học. Đếm theo số bài hoàn thành đúng ngày hôm đó.
+    (function(){
+      const dp = SETTINGS.dlgProgress || {};
+      const ids = Object.keys(dp).filter(k=>dp[k] && dp[k].date===dateKey);
+      const sc = ids.length ? Math.round(ids.reduce((a,k)=>a+(dp[k].score||0),0)/ids.length) : null;
+      return {icon:'🗨️', name:'Hội thoại ngữ cảnh', count:ids.length, unit:'bài', score:sc, color:'#FFC94A'};
+    })(),
   ];
   const totalExercises = rows.reduce((s,r)=>s+(r.count||0),0);
   const scoredRows = rows.filter(r=>r.score!==null && r.count>0);
