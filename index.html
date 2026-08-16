@@ -695,6 +695,9 @@
   .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
     flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
   .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
+  .lv-sac{font-size:10.5px; line-height:1.65; color:var(--dim2); margin-top:7px; padding:7px 10px;
+    border-radius:10px; background:rgba(255,255,255,.035); border:1px solid var(--border);}
+  .lv-sac b{color:var(--dim);}
   /* ===== NHÃN NGÀY ===== */
   .day-stamp{display:flex; align-items:center; gap:6px; padding:5px 10px; margin-bottom:9px;
     border-radius:20px; background:rgba(255,255,255,.045); border:1px solid var(--border);
@@ -2284,7 +2287,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v150';
+const APP_VERSION = 'v151';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5035,7 +5038,7 @@ function batTu(birth, hour){
   };
   const nowY = new Date().getFullYear();
   const LN = {can: ((nowY - 4) % 10 + 10) % 10, chi: ((nowY - 4) % 12 + 12) % 12, year: nowY};
-  return {tru, dem, tong, nhChu, chuCan: D.can, manh, yeu, dungThan, kyThan, vuong,
+  return {tru, dem, tong, nhChu, chuCan: D.can, chuChi: D.chi, namChi: Y.chi, namCan: Y.can, manh, yeu, dungThan, kyThan, vuong,
           hasHour, dv, ln: LN, napAmMenh: napAmNguHanh(Y.can, Y.chi),
           ttDaiVan: thapThan(CAN_NH[dv.can], nhChu), ttLuuNien: thapThan(CAN_NH[LN.can], nhChu)};
 }
@@ -5590,7 +5593,26 @@ function dvMenhHtml(){
     </div></details>` : `<div class="menh-same">Hai cách tính cho cùng một hành — trường hợp của bạn không có gì mâu thuẫn.</div>`}
   </div>`;
 }
+// ================= QUAN HỆ CHI: LỤC HỢP · LỤC XUNG =================
+// Đây là phần trước đây BỊ BỎ SÓT hoàn toàn, và là nguyên nhân khiến Vận trình lặp lại.
+// Chẩn đoán: bản cũ chỉ đọc hành của CAN ngày. Can có 10 chữ nhưng chỉ ứng 5 hành (Giáp-Ất đều Mộc,
+// Bính-Đinh đều Hỏa…), nên cứ 2 ngày liên tiếp lại ra kết quả y hệt. Đo trên 60 ngày: chỉ có 5 tổ hợp,
+// 49% số ngày trùng khít ngày hôm trước.
+// Cách sửa đúng theo truyền thống: một ngày được định danh bằng CẢ TRỤ (Can + Chi), tức chu kỳ 60 ngày.
+// Nay tính thêm:
+//   • Hành của CHI ngày (chu kỳ 12) — ghép với Can cho 60 trạng thái ngày khác nhau.
+//   • LỤC HỢP / LỤC XUNG giữa Chi ngày và Chi năm sinh, Chi ngày sinh — đây là quan hệ mà mọi sách
+//     Tử Bình đều dùng để luận ngày tốt xấu, trước đây app không hề xét tới.
+// LUC_HOP và lucXung() đã được khai báo sẵn ở phần Tử Vi phía trên — dùng lại, không khai báo lần hai.
+function chiQuanHe(chiNgay, chiMoc){
+  if(chiNgay === chiMoc)        return {k:'trung', sc:0,  t:'trùng chi'};
+  if(chiHop(chiNgay, chiMoc))   return {k:'hop',   sc:2,  t:'lục hợp'};
+  if(chiXung(chiNgay, chiMoc))  return {k:'xung',  sc:-2, t:'lục xung'};
+  return {k:'thuong', sc:0, t:'không hợp không xung'};
+}
+
 // ================= BỐN MẢNG ĐỜI SỐNG + CHỈ SỐ MAY MẮN =================
+
 // Bốn mảng dưới đây suy ra từ ĐÚNG bộ dữ liệu Bát Tự đã tính (Nhật Chủ, dụng thần, kỵ thần, hành của
 // ngày), theo cách quy chiếu Thập Thần quen thuộc trong Tử Bình:
 //   • Sự nghiệp  ← nhóm QUAN SÁT: hành KHẮC bản mệnh — sức ép, kỷ luật, cấp trên, trách nhiệm.
@@ -5631,10 +5653,16 @@ function dvLuckyToday(){
   if(!b) return null;
   const now = new Date();
   const D = canChiNgay(now.getFullYear(), now.getMonth()+1, now.getDate());
-  // --- GIỜ TỐT: chấm từng canh giờ theo hành của chi giờ đó ---
+  // --- GIỜ TỐT ---
+  // TRƯỚC ĐÂY: tự suy giờ tốt từ ngũ hành của chi giờ so với dụng thần. Cách này có hai nhược điểm —
+  // không đổi theo ngày (chỉ bám lá số), và không phải cách người Việt quen tra.
+  // NAY: dùng bảng GIỜ HOÀNG ĐẠO cổ điển vốn ĐÃ CÓ SẴN trong app (GIO_HD) nhưng chưa từng được Vận trình
+  // dùng tới — tra theo Chi của NGÀY, nên giờ tốt đổi mỗi ngày đúng như sách lịch vạn niên. Ngũ hành so
+  // với dụng thần được giữ lại làm điểm phụ để xếp thứ tự trong số các giờ hoàng đạo của ngày đó.
+  const hdSet = new Set(GIO_HD[D.chi] || []);
   const gio = GIO_DUNG_DUOC.map(ci=>({
-    chi: CHI[ci], khung: CHI_KHUNG_GIO[ci], nh: CHI_NH[ci],
-    sc: nhHopScore(CHI_NH[ci], b.nhChu, b.dungThan, b.kyThan)
+    chi: CHI[ci], khung: CHI_KHUNG_GIO[ci], nh: CHI_NH[ci], hd: hdSet.has(ci),
+    sc: (hdSet.has(ci) ? 3 : -1) + nhHopScore(CHI_NH[ci], b.nhChu, b.dungThan, b.kyThan)
   })).sort((x,y)=> y.sc - x.sc);
   let tot = gio.filter(g=>g.sc > 0).slice(0,3);
   const ne  = gio.filter(g=>g.sc < 0).slice(-2);
@@ -5674,25 +5702,49 @@ const DV_LINH_VUC = [
    xau:'Hôm nay dễ hao sức. Giảm cường độ tập xuống một bậc, ngủ sớm hơn 30 phút — ép thêm không được gì mà còn dễ chấn thương.',
    tb :'Sức khoẻ bình thường. Giữ đúng lịch tập đã đặt, không cần tăng cũng không cần giảm.'}
 ];
+// Sắc thái riêng cho từng loại ngày — để hai ngày cùng điểm số vẫn đọc ra khác nhau, bám vào đặc
+// điểm thật của ngày đó chứ không phải câu chữ ngẫu nhiên.
+const DV_SAC_THAI = {
+  hop:   'Chi ngày hôm nay <b>lục hợp</b> với lá số của bạn — việc cần phối hợp với người khác dễ xuôi hơn thường lệ.',
+  xung:  'Chi ngày hôm nay <b>lục xung</b> với lá số của bạn — dễ có thay đổi đột ngột hoặc bất đồng. Không phải điềm xấu, chỉ là ngày nên chuẩn bị phương án hai.',
+  trung: 'Chi ngày trùng với chi trong lá số bạn — mọi thứ như được phóng to lên, tốt cũng rõ mà mệt cũng rõ.',
+  thuong:''
+};
 function dvLifeAreas(){
   const L = dvLuckyToday();
   if(!L) return null;
-  const b = L.b;
+  const b = L.b, D = L.D;
+  const nhCan = CAN_NH[D.can];      // hành CAN ngày  — chu kỳ 10
+  const nhChi = CHI_NH[D.chi];      // hành CHI ngày  — chu kỳ 12
+  // Quan hệ chi ngày với chi NĂM sinh và chi NGÀY sinh (lấy cái mạnh hơn).
+  const qhNam  = chiQuanHe(D.chi, b.namChi !== undefined ? b.namChi : D.chi);
+  const qhNgay = chiQuanHe(D.chi, b.chuChi !== undefined ? b.chuChi : D.chi);
+  const qh = Math.abs(qhNgay.sc) >= Math.abs(qhNam.sc) ? qhNgay : qhNam;
   return DV_LINH_VUC.map(lv=>{
     const nh = lv.nhOf(b);
-    // Mảng đó hôm nay thuận hay nghịch: xét hành của mảng có được hành CỦA NGÀY tiếp sức không.
     let sc = nhHopScore(nh, b.nhChu, b.dungThan, b.kyThan);
-    if(NH_SINH[L.nhNgay] === nh) sc += 1;      // hành ngày sinh cho mảng này
-    if(NH_KHAC[L.nhNgay] === nh) sc -= 1;      // hành ngày khắc mảng này
+    // CAN ngày (trọng số 2 — ảnh hưởng chính)
+    if(NH_SINH[nhCan] === nh) sc += 2;
+    if(NH_KHAC[nhCan] === nh) sc -= 2;
+    if(nhCan === nh)          sc += 1;
+    // CHI ngày (trọng số 1 — điều chỉnh, và chính nó phá thế lặp 2 ngày)
+    if(NH_SINH[nhChi] === nh) sc += 1;
+    if(NH_KHAC[nhChi] === nh) sc -= 1;
+    // Lục hợp / lục xung — chỉ tác động mạnh lên mảng quan hệ và sự nghiệp
+    if(lv.k==='tinh' || lv.k==='nghe') sc += Math.round(qh.sc/2);
     sc = Math.max(-2, Math.min(2, sc));
     const txt = sc > 0 ? lv.tot : (sc < 0 ? lv.xau : lv.tb);
-    const why = `Mảng này ứng với hành <b>${nh}</b>. Bản mệnh bạn hành <b>${b.nhChu}</b>, hôm nay là ngày hành <b>${L.nhNgay}</b>. `
-      + (NH_SINH[L.nhNgay]===nh ? 'Hành của ngày <b>sinh</b> cho mảng này nên được tiếp sức.'
-        : NH_KHAC[L.nhNgay]===nh ? 'Hành của ngày <b>khắc</b> mảng này nên hơi bị kìm.'
-        : 'Hành của ngày không tác động rõ tới mảng này.')
-      + (nh===b.dungThan ? ' Thêm nữa đây đúng là hành bạn đang thiếu, nên mảng này vốn là chỗ nên đầu tư.' : '')
-      + (nh===b.kyThan ? ' Nhưng đây là hành bạn vốn đã thừa, nên dễ quá đà ở mảng này.' : '');
-    return {...lv, nh, sc, txt, why};
+    const why = `Mảng này ứng với hành <b>${nh}</b>; bản mệnh bạn hành <b>${b.nhChu}</b>. `
+      + `Hôm nay là ngày <b>${CAN[D.can]} ${CHI[D.chi]}</b> — Can hành <b>${nhCan}</b>, Chi hành <b>${nhChi}</b>. `
+      + (NH_SINH[nhCan]===nh ? 'Can ngày <b>sinh</b> cho mảng này. '
+        : NH_KHAC[nhCan]===nh ? 'Can ngày <b>khắc</b> mảng này. '
+        : nhCan===nh ? 'Can ngày <b>cùng hành</b> với mảng này. ' : '')
+      + (NH_SINH[nhChi]===nh ? 'Chi ngày cũng tiếp thêm. '
+        : NH_KHAC[nhChi]===nh ? 'Chi ngày kìm bớt một chút. ' : '')
+      + ((lv.k==='tinh'||lv.k==='nghe') && qh.k!=='thuong' ? `Chi ngày <b>${qh.t}</b> với lá số của bạn. ` : '')
+      + (nh===b.dungThan ? 'Đây đúng là hành bạn đang thiếu — mảng đáng đầu tư.' : '')
+      + (nh===b.kyThan ? 'Đây là hành bạn vốn đã thừa — dễ quá đà ở mảng này.' : '');
+    return {...lv, nh, sc, txt, why, sacThai: DV_SAC_THAI[qh.k] || ''};
   });
 }
 function dvLifeAreasHtml(){
@@ -5704,12 +5756,13 @@ function dvLifeAreasHtml(){
       <div class="lv-h"><span class="lv-ic">${a.ic}</span><b>${escapeHtml(a.n)}</b>
         <span class="lv-tag" style="background:${a.c}22; color:${a.c};">${lbl}</span></div>
       <div class="lv-tx">${escapeHtml(a.txt)}</div>
+      ${a.sacThai?`<div class="lv-sac">${a.sacThai}</div>`:''}
       <details class="lv-why"><summary>Vì sao?</summary><div>${a.why}</div></details>
     </div>`;
   }).join('');
   const swatch = (m)=> m ? m.hex.map(h=>`<span class="lk-sw" style="background:${h};"></span>`).join('') : '';
   const gioTot = L.gioTot.length
-    ? L.gioTot.map(g=>`<div class="lk-row"><span class="lk-k">${escapeHtml(g.khung)}</span><span class="lk-v">giờ ${escapeHtml(g.chi)} · hành ${escapeHtml(g.nh)}</span></div>`).join('')
+    ? L.gioTot.map(g=>`<div class="lk-row"><span class="lk-k">${escapeHtml(g.khung)}</span><span class="lk-v">giờ ${escapeHtml(g.chi)}${g.hd?' · <b style="color:#35D6A4;">hoàng đạo</b>':''} · hành ${escapeHtml(g.nh)}</span></div>`).join('')
     : '<div class="lk-none">Hôm nay không khung giờ nào nổi trội — giờ nào cũng như nhau, cứ theo lịch bình thường.</div>';
   return `${dayStampHtml({label:'Vận trình ngày'})}${rows}
     <div class="lk-box">
