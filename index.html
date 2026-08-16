@@ -2317,7 +2317,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v154';
+const APP_VERSION = 'v155';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11083,25 +11083,47 @@ function dlgStart(id){
   const d = (DLG_DATA&&DLG_DATA.dialogues||[]).find(x=>x.id===id);
   if(!d) return;
   navForward();
-  STATE.dlgSession = {id, step:'read', qi:0, picked:null, correct:0, showVi:false};
+  stopAllSpeech();
+  STATE.dlgSession = {id, step:'read', qi:0, picked:null, correct:0, showVi:false, speaking:false};
   renderContent(); window.scrollTo(0,0);
 }
-function dlgExit(){ stopAllSpeech(); STATE.dlgSession=null; renderContent(); navBack(); }
+function dlgExit(){
+  stopAllSpeech();
+  STATE.dlgSession=null;
+  renderContent();
+  navBack();
+}
 function dlgCur(){
   const s=STATE.dlgSession; if(!s) return null;
   return (DLG_DATA&&DLG_DATA.dialogues||[]).find(x=>x.id===s.id)||null;
 }
 // Đọc cả đoạn hội thoại, đổi giọng theo từng người nói để nghe ra hai vai khác nhau.
+let dlgSpeakTimers = [];   // các hẹn giờ đọc từng câu — giữ lại để còn dừng được giữa chừng
 function dlgSpeakAll(){
   const d=dlgCur(); if(!d) return;
+  const dangDoc = dlgSpeakTimers.length > 0;
   stopAllSpeech();
+  if(dangDoc){ const s0=STATE.dlgSession; if(s0) s0.speaking=false; renderContent(); return; } // bấm lần nữa = dừng
   const names=[...new Set(d.lines.map(l=>l[0]))];
+  // Giãn nhịp theo ĐỘ DÀI THẬT của từng câu thay vì cố định 2,6 giây cho mọi câu: câu dài trước đây bị
+  // câu sau đè lên, nghe chồng tiếng. Ước lượng ~9 ký tự/giây khi đọc chậm 0.92, cộng 0,7 giây nghỉ.
+  let moc = 0;
   d.lines.forEach((l,i)=>{
-    setTimeout(()=>{
+    const cho = moc;
+    moc += Math.max(1800, Math.round(String(l[1]||'').length / 9 * 1000) + 700);
+    dlgSpeakTimers.push(setTimeout(()=>{
       const isB = names.indexOf(l[0])===1;
       speakEnglishRobust(l[1], {rate:0.92, pitch: isB?0.85:1.12});
-    }, i*2600);
+      if(i === d.lines.length-1){
+        // câu cuối đã phát -> dọn danh sách hẹn giờ và bỏ trạng thái "đang đọc"
+        dlgSpeakTimers = [];
+        const s2 = STATE.dlgSession;
+        if(s2 && s2.speaking){ s2.speaking = false; try{ renderContent(); }catch(e){} }
+      }
+    }, cho));
   });
+  const s = STATE.dlgSession; if(s) s.speaking = true;
+  renderContent();
 }
 function dlgPick(i){
   const s=STATE.dlgSession; if(!s||s.picked!==null) return;
@@ -11121,7 +11143,7 @@ function dlgNext(){
     saveSettings(); pushToDrive();
     s.step='done';
   }
-  renderContent();
+  renderContent(); window.scrollTo(0,0);
 }
 function dlgRender(){
   const s=STATE.dlgSession, d=dlgCur();
@@ -11166,7 +11188,7 @@ function dlgRender(){
         </div>
         <div class="dlg-body">${lines}</div>
         <div class="dlg-tools">
-          <button class="dlg-tool" data-action="dlg-speak">🔊 Nghe cả đoạn</button>
+          <button class="dlg-tool" data-action="dlg-speak">${s.speaking?'⏹ Dừng đọc':'🔊 Nghe cả đoạn'}</button>
           <button class="dlg-tool" data-action="dlg-vi">${s.showVi?'🙈 Ẩn dịch':'🇻🇳 Hiện dịch'}</button>
         </div>
         <div class="dlg-note">Các cụm <mark class="dlg-mark">tô vàng</mark> là phần sẽ được hỏi. Đọc hiểu bằng ngữ cảnh trước đã — đừng vội tra từ điển, vì tự đoán được nghĩa mới là kỹ năng cần luyện.</div>
@@ -11783,14 +11805,19 @@ function renderEnglishSentences(item){
   if(STATE.sentSession){ document.getElementById('content').innerHTML = renderSentSession(); return; }
   const view = STATE.sentView || 'daily';
   let body;
-  if(!COMMON_SENT_DATA){
-    body = `<div class="card" style="text-align:center; padding:24px 16px;">
+  // Tab "Hội thoại ngữ cảnh" dùng dữ liệu NHÚNG SẴN trong app, không liên quan gì tới file câu thông
+  // dụng tải qua mạng — nên phải vẽ được ngay cả khi file kia chưa tải xong hoặc tải hỏng. Trước đây nó
+  // bị nhốt chung trong nhánh chờ COMMON_SENT_DATA, nghĩa là chỉ cần file câu thông dụng trục trặc là
+  // mục hội thoại cũng chết theo dù bản thân nó chẳng thiếu gì.
+  if(view==='dlg'){
+    body = sentHomeSubNav() + dlgListHtml();
+  } else if(!COMMON_SENT_DATA){
+    body = sentHomeSubNav() + `<div class="card" style="text-align:center; padding:24px 16px;">
       <div style="font-size:32px; margin-bottom:8px;">⏳</div>
       <div style="font-size:13px; color:var(--dim);">Đang tải dữ liệu câu thông dụng…</div>
     </div>`;
   } else {
-    if(view==='dlg') fetchDlgData();
-    body = sentHomeSubNav() + (view==='dlg' ? dlgListHtml() : (view==='cats' ? renderSentCategoriesGrid() : renderSentDailyHome()));
+    body = sentHomeSubNav() + (view==='cats' ? renderSentCategoriesGrid() : renderSentDailyHome());
   }
   document.getElementById('content').innerHTML = `${englishItemBackRow(item.name)}${body}`;
 }
@@ -14223,6 +14250,19 @@ function getSpeakAudioEl(){
 // speakAudioEl nên khi đang bấm "Nghe lại giọng bạn" rồi bấm nút back thoát màn hình, âm thanh vẫn
 // tiếp tục phát ngầm phía sau vì speakPracticeExit()/nextSpeakPractice() chỉ gọi hàm này — không có
 // nơi nào khác dừng riêng speakPlaybackAudioEl.
+// Dừng MỌI nguồn phát tiếng đang chạy trong app — giọng đọc máy (speechSynthesis), file audio Cloud TTS,
+// và cả chuỗi hẹn giờ đọc từng câu của "Hội thoại ngữ cảnh". Trước đây tên hàm này được gọi ở 3 nơi mà
+// không hề tồn tại, làm chết cả một mục.
+function stopAllSpeech(){
+  // Huỷ chuỗi hẹn giờ đọc hội thoại: nếu không huỷ, thoát khỏi bài rồi giọng đọc vẫn tiếp tục vang lên
+  // ở màn hình khác vì các setTimeout đã đặt trước đó vẫn còn hàng đợi.
+  if(Array.isArray(dlgSpeakTimers)){ dlgSpeakTimers.forEach(t=>{ try{ clearTimeout(t); }catch(e){} }); }
+  dlgSpeakTimers = [];
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  try{ stopSpeakAudio(); }catch(e){}
+  try{ stopListenAudio(); }catch(e){}
+  try{ const a = getSharedTtsAudioEl && getSharedTtsAudioEl(); if(a) a.pause(); }catch(e){}
+}
 function stopSpeakAudio(){ speakPlayToken++; if(speakAudioEl){ try{speakAudioEl.pause();}catch(e){} } if(speakPlaybackAudioEl){ try{speakPlaybackAudioEl.pause();}catch(e){} } if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 async function playSpeakLine(){
   const item=currentSpeakItem(); if(!item) return;
@@ -18583,15 +18623,29 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const dlgSpeakEl = e.target.closest('[data-action="dlg-speak"]');
   if(dlgSpeakEl){ dlgSpeakAll(); return; }
   const dlgViEl = e.target.closest('[data-action="dlg-vi"]');
-  if(dlgViEl){ STATE.dlgSession.showVi = !STATE.dlgSession.showVi; renderContent(); return; }
+  if(dlgViEl){ if(!STATE.dlgSession) return; STATE.dlgSession.showVi = !STATE.dlgSession.showVi; renderContent(); return; }
   const dlgBeginEl = e.target.closest('[data-action="dlg-begin"]');
-  if(dlgBeginEl){ stopAllSpeech(); STATE.dlgSession.step='quiz'; renderContent(); return; }
+  if(dlgBeginEl){
+    if(!STATE.dlgSession) return;
+    stopAllSpeech();
+    STATE.dlgSession.speaking=false;
+    STATE.dlgSession.step='quiz';
+    renderContent(); window.scrollTo(0,0);
+    return;
+  }
   const dlgPickEl = e.target.closest('[data-action="dlg-pick"]');
   if(dlgPickEl){ dlgPick(parseInt(dlgPickEl.getAttribute('data-i'),10)); return; }
   const dlgNextEl = e.target.closest('[data-action="dlg-next"]');
   if(dlgNextEl){ dlgNext(); return; }
   const dlgReEl = e.target.closest('[data-action="dlg-restart"]');
-  if(dlgReEl){ const id=STATE.dlgSession.id; STATE.dlgSession={id, step:'read', qi:0, picked:null, correct:0, showVi:false}; renderContent(); return; }
+  if(dlgReEl){
+    if(!STATE.dlgSession) return;
+    stopAllSpeech();
+    const id=STATE.dlgSession.id;
+    STATE.dlgSession={id, step:'read', qi:0, picked:null, correct:0, showVi:false, speaking:false};
+    renderContent(); window.scrollTo(0,0);
+    return;
+  }
   const prosEl = e.target.closest('[data-action="speak-prosody-toggle"]');
   if(prosEl){ SETTINGS.speakProsody = (SETTINGS.speakProsody === false); saveSettings(); renderSpeakPracticeUI(); return; }
   const speakExitEl = e.target.closest('[data-action="speak-practice-exit"]');
