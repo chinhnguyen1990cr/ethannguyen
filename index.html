@@ -695,6 +695,7 @@
   .life-anchor .la-time{font-family:var(--num); font-size:10px; font-weight:700; color:var(--dim2);
     flex:0 0 auto; font-variant-numeric:tabular-nums; letter-spacing:-.2px;}
   .life-anchor .la-lbl{font-size:10.5px; color:var(--dim2); line-height:1.4; min-width:0;}
+  .lv-lam{font-size:11px; line-height:1.65; color:var(--gold); margin-top:6px; font-weight:700;}
   .lv-sac{font-size:10.5px; line-height:1.65; color:var(--dim2); margin-top:7px; padding:7px 10px;
     border-radius:10px; background:rgba(255,255,255,.035); border:1px solid var(--border);}
   .lv-sac b{color:var(--dim);}
@@ -2317,7 +2318,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v155';
+const APP_VERSION = 'v156';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3206,23 +3207,38 @@ function dayMaxXP(key){
 }
 // Quét việc của HÔM NAY, tự đánh dấu "không hoàn thành" cho việc nào đã trễ quá 30 phút mà
 // vẫn chưa tick xong — ghi vào LOG của ngày đó để có dữ liệu lịch sử/thống kê lâu dài.
-const AUTO_FAIL_MINUTES = 30;
+const AUTO_FAIL_MINUTES = 30;   // chỉ còn dùng để HIỂN THỊ nhãn "đang trễ", không còn dùng để khoá
+// Chốt "bỏ lỡ" cho các NGÀY ĐÃ QUA, không đụng tới ngày hôm nay. Quét lùi 14 ngày là đủ: xa hơn nữa thì
+// đã chốt từ những lần mở app trước rồi.
 function autoFailOverdueTasks(){
-  const now = new Date(); const key = todayKey();
-  if(isDayOff(key)) return;
-  const plan = getPlanForKey(key);
-  if(!LOG[key]) LOG[key] = {tasks:{}};
-  const rec = LOG[key];
-  if(!rec.failed) rec.failed = {};
   let changed = false;
-  plan.forEach(t=>{
-    if(t.kind==='sleep' || !t.time) return;
-    if(rec.tasks[t.id] || rec.failed[t.id]) return;
-    const [hh,mm] = t.time.split(':').map(Number);
-    const taskTime = new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0);
-    if((now-taskTime)/60000 >= AUTO_FAIL_MINUTES){ rec.failed[t.id] = true; changed = true; }
-  });
+  const homNay = todayKey();
+  for(let lui=1; lui<=14; lui++){
+    const d = new Date(); d.setDate(d.getDate()-lui);
+    const key = toKey(d);
+    if(key === homNay) continue;
+    if(isDayOff(key)) continue;
+    const rec = LOG[key];
+    if(!rec) continue;                 // ngày không có hoạt động gì thì không chốt, tránh bịa ra "bỏ lỡ"
+    if(!rec.tasks) rec.tasks = {};
+    if(!rec.failed) rec.failed = {};
+    if(rec.chotBoLo) continue;         // đã chốt rồi thì thôi
+    getPlanForKey(key).forEach(t=>{
+      if(t.kind==='sleep' || !t.time) return;
+      if(rec.tasks[t.id] || rec.failed[t.id]) return;
+      rec.failed[t.id] = true; changed = true;
+    });
+    rec.chotBoLo = true; changed = true;
+  }
   if(changed){ saveLog(); if(STATE.tab==='today') renderContent(); }
+}
+// Việc của HÔM NAY đã quá giờ bao nhiêu phút (âm = chưa tới giờ). Dùng để hiện nhãn nhắc nhẹ.
+function taskTreMinutes(key, t){
+  if(key !== todayKey() || !t || !t.time || t.kind==='sleep') return -1;
+  const now = new Date();
+  const [hh,mm] = t.time.split(':').map(Number);
+  const moc = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0);
+  return Math.floor((now - moc)/60000);
 }
 
 // ================= AI LÊN LỊCH NGÀY MAI (theo 4 chỉ tiêu: Thể lực · Tiếng Anh · Chuyên môn · Kỷ luật) =================
@@ -3925,11 +3941,14 @@ function renderCloudSyncCard(){
 
 function toggleTask(key, taskId){
   if(!LOG[key]) LOG[key] = {tasks:{}};
-  // Việc đã bị tự động đánh dấu "bỏ lỡ" (trễ quá AUTO_FAIL_MINUTES phút) thì khóa vĩnh viễn —
-  // không cho xác nhận lại thành Confirmed nữa, dù bấm bao nhiêu lần.
-  if(LOG[key].failed && LOG[key].failed[taskId]){
-    showToast('🔒', 'Việc này đã bị khóa', `Đã trễ quá ${AUTO_FAIL_MINUTES} phút nên bị đánh dấu bỏ lỡ — không thể xác nhận lại.`);
-    return;
+  // KHÔNG còn khoá việc trễ. Làm muộn vẫn là đã làm — bấm xác nhận lúc nào cũng được ghi nhận, và cờ
+  // "bỏ lỡ" của việc đó được gỡ bỏ luôn. (Xem chú thích ở autoFailOverdueTasks về lý do bỏ quy tắc cũ.)
+  if(LOG[key].failed && LOG[key].failed[taskId] && !LOG[key].tasks[taskId]){
+    delete LOG[key].failed[taskId];
+    const tre = taskTreMinutes(key, getPlanForKey(key).find(x=>x.id===taskId));
+    if(tre > AUTO_FAIL_MINUTES){
+      showToast('👍','Ghi nhận hoàn thành muộn','Trễ '+(tre>=120? Math.round(tre/60)+' giờ' : tre+' phút')+' so với lịch, nhưng đã làm là được tính đủ.');
+    }
   }
   const wasDone = !!LOG[key].tasks[taskId];
   LOG[key].tasks[taskId] = !wasDone;
@@ -5713,24 +5732,103 @@ function dvLuckyToday(){
 const DV_LINH_VUC = [
   {k:'nghe',  n:'Sự nghiệp · Công việc', ic:'💼', c:'#5B9CFF',
    nhOf:(b)=>Object.keys(NH_KHAC).find(k=>NH_KHAC[k]===b.nhChu),   // hành khắc bản mệnh = Quan Sát
-   tot:'Việc cần trách nhiệm và độ chuẩn xác hôm nay dễ được ghi nhận. Hợp để nhận phần việc khó, báo cáo tiến độ, hoặc đề xuất điều bạn đã chuẩn bị kỹ.',
-   xau:'Áp lực công việc hôm nay nặng hơn sức bạn muốn bỏ ra. Đừng nhận thêm việc mới; xử lý cho xong phần đang dở rồi hãy tính tiếp.',
-   tb :'Công việc ở nhịp bình thường. Đây là ngày hợp để làm những việc tồn đọng hơn là khởi sự việc lớn.'},
+   muc:{
+    '2':['Hôm nay là ngày bạn nói có người nghe. Việc gì cần trình bày, xin duyệt, hay chốt với cấp trên thì đưa ra hôm nay.',
+         'Sức bật công việc đang ở đỉnh của chu kỳ này. Nhận phần việc khó nhất trong tuần vào hôm nay là hợp lý.',
+         'Ngày thuận cho việc cần cả trách nhiệm lẫn độ chính xác. Bạn làm kỹ tới đâu hôm nay được ghi nhận tới đó.'],
+    '1':['Công việc trôi, không có gì cản. Hợp để đẩy cho xong một việc đang dở dang hơn là mở thêm việc mới.',
+         'Ngày làm được việc. Không có đột phá gì lớn nhưng bạn tập trung được lâu hơn ngày thường.',
+         'Mọi thứ ở thế thuận nhẹ. Tranh thủ dọn cho sạch mấy việc lặt vặt tồn từ tuần trước.'],
+    '0':['Công việc ở nhịp bình thường, không thuận cũng không nghịch. Ngày hợp để làm việc tồn hơn là khởi sự việc lớn.',
+         'Không có gì đặc biệt trong công việc hôm nay. Cứ theo kế hoạch đã đặt là ổn.',
+         'Ngày trung tính. Đừng kỳ vọng đột phá, cũng không cần đề phòng gì.'],
+    '-1':['Công việc hôm nay hơi nặng so với sức bạn muốn bỏ ra. Làm cho xong phần đang dở rồi hãy tính tiếp.',
+          'Dễ bị việc ngoài kế hoạch chen ngang. Giữ chặt danh sách ưu tiên, đừng để người khác đặt lịch giúp mình.',
+          'Ngày dễ mệt vì việc. Hạ kỳ vọng xuống một bậc, xong 70% cũng đã là tốt.'],
+    '-2':['Áp lực công việc hôm nay vượt mức thoải mái. Tuyệt đối đừng nhận thêm việc mới hay hứa hẹn deadline nào.',
+          'Ngày dễ va chạm trong công việc. Có bất đồng thì ghi lại, mai bàn — hôm nay nói ra dễ thành to chuyện.',
+          'Thế bất lợi rõ. Việc gì quan trọng mà hoãn được thì hoãn sang ngày khác, đừng cố.'],
+   },
+   lam:{'2':'Việc nên làm: trình bày, xin duyệt, chốt phương án đã chuẩn bị kỹ.',
+        '1':'Việc nên làm: dọn dứt điểm một việc đang dở.',
+        '0':'Việc nên làm: xử lý việc tồn, sắp lại thứ tự ưu tiên.',
+        '-1':'Nên tránh: nhận thêm việc mới, hứa thêm deadline.',
+        '-2':'Nên tránh: quyết định lớn, đối chất, ký kết.'}},
+
   {k:'tai',   n:'Tài lộc · Tiền bạc', ic:'💰', c:'#E0A93B',
    nhOf:(b)=>NH_KHAC[b.nhChu],                                     // hành bản mệnh khắc = Tài
-   tot:'Hợp để rà lại thu chi, chốt giá, đòi hoặc trả khoản còn tồn. Con số hôm nay bạn nhìn rõ hơn ngày thường.',
-   xau:'Dễ chi quá tay hoặc quyết vội một khoản. Hôm nay hoãn mọi quyết định tiền bạc lớn lại 24 giờ, mai nhìn lại vẫn thấy hợp lý thì mới làm.',
-   tb :'Tiền bạc không có biến động đáng kể. Hợp để ghi chép, lập kế hoạch chi tiêu hơn là mua sắm.'},
+   muc:{
+    '2':['Ngày bạn nhìn con số rõ nhất. Hợp để chốt giá, đàm phán, hoặc quyết một khoản đã cân nhắc từ lâu.',
+         'Tài vận thuận. Khoản nào đang treo thì hôm nay là ngày đòi hoặc chốt được.',
+         'Ngày tốt cho chuyện tiền. Rà lại thu chi hôm nay bạn sẽ thấy chỗ đang rò rỉ mà mọi ngày không nhận ra.'],
+    '1':['Tiền bạc thuận nhẹ. Hợp để lập kế hoạch chi tiêu hoặc gom lại các khoản lặt vặt.',
+         'Không có biến động xấu về tiền. Ngày yên để tính toán dài hạn.',
+         'Ổn định. Việc mua sắm cần thiết làm hôm nay được, nhưng đừng mua theo cảm hứng.'],
+    '0':['Tiền bạc không có biến động đáng kể. Hợp để ghi chép, lập kế hoạch hơn là mua sắm.',
+         'Ngày trung tính về tài chính. Không mất cũng không được thêm.',
+         'Không có gì đáng chú ý. Giữ nguyên nếp chi tiêu đang có.'],
+    '-1':['Dễ chi hơn dự tính. Trước khi mua gì, để đó 1 tiếng rồi quay lại xem còn muốn không.',
+          'Ngày dễ phát sinh khoản ngoài kế hoạch. Không phải xui, chỉ là nên có chỗ đệm.',
+          'Hơi bất lợi về tiền. Hoãn những khoản chưa cấp thiết lại vài ngày.'],
+    '-2':['Dễ quyết vội một khoản lớn rồi tiếc. Hoãn mọi quyết định tiền bạc lớn lại 24 giờ.',
+          'Ngày xấu cho chuyện tiền. Không cho vay, không đầu tư, không ký gì liên quan tới tiền.',
+          'Thế bất lợi rõ về tài chính. Hôm nay chỉ nên xem, không nên động.'],
+   },
+   lam:{'2':'Việc nên làm: chốt giá, đòi khoản tồn, quyết khoản đã cân nhắc kỹ.',
+        '1':'Việc nên làm: lập kế hoạch chi tiêu, gom các khoản nhỏ.',
+        '0':'Việc nên làm: ghi chép thu chi, chưa cần quyết gì.',
+        '-1':'Nên tránh: mua theo cảm hứng.',
+        '-2':'Nên tránh: khoản chi lớn, cho vay, đầu tư, ký kết tài chính.'}},
+
   {k:'tinh',  n:'Tình duyên · Gia đạo', ic:'🏠', c:'#FF9AB8',
    nhOf:(b)=>b.nhChu,                                              // cùng hành = Tỷ Kiếp, quan hệ ngang vai
-   tot:'Hợp để dành thời gian cho người thân, nói ra điều lâu nay chưa nói. Hôm nay bạn dễ được lắng nghe hơn.',
-   xau:'Dễ nói nặng lời với người gần mình nhất chỉ vì mệt chuyện khác. Nhận ra điều đó là đủ để tránh — hôm nay nghe nhiều hơn nói.',
-   tb :'Quan hệ gia đình ổn định. Một tin nhắn hỏi thăm ngắn cũng đủ giữ ấm, không cần làm gì to tát.'},
+   muc:{
+    '2':['Hôm nay bạn dễ được lắng nghe hơn hẳn ngày thường. Điều gì lâu nay chưa nói thì nói ra hôm nay.',
+         'Ngày ấm chuyện nhà. Một bữa cơm chung hay một cuộc gọi dài đều đáng giá hơn bạn nghĩ.',
+         'Quan hệ thuận. Chuyện đang lấn cấn với ai đó, hôm nay gỡ được.'],
+    '1':['Quan hệ êm. Không cần làm gì to tát, chỉ cần có mặt và để ý tới người bên cạnh.',
+         'Ngày dễ chịu với người thân. Hợp để hỏi thăm ai đó lâu chưa liên lạc.',
+         'Không khí gia đình nhẹ nhàng. Giữ được như vậy đã là tốt.'],
+    '0':['Quan hệ gia đình ổn định. Một tin nhắn hỏi thăm ngắn cũng đủ giữ ấm.',
+         'Ngày bình thường về tình cảm. Không có gì cần xử lý.',
+         'Không có biến động. Cứ sinh hoạt như mọi ngày.'],
+    '-1':['Dễ mất kiên nhẫn với người gần mình nhất chỉ vì mệt chuyện khác. Hôm nay nghe nhiều hơn nói.',
+          'Ngày dễ hiểu lầm nhau. Câu nào nghe chướng tai thì hỏi lại cho rõ trước khi phản ứng.',
+          'Hơi căng trong quan hệ. Tránh bàn chuyện nhạy cảm hôm nay.'],
+    '-2':['Rất dễ nói nặng lời rồi hối. Nhận ra điều đó là đủ để tránh — hôm nay im lặng là khôn.',
+          'Ngày xấu cho chuyện tình cảm, gia đạo. Việc gì cần tranh luận thì để mai.',
+          'Thế xung rõ. Nếu thấy mình đang khó chịu, hãy đi ra ngoài 15 phút thay vì nói tiếp.'],
+   },
+   lam:{'2':'Việc nên làm: nói điều lâu nay chưa nói, gỡ chuyện đang lấn cấn.',
+        '1':'Việc nên làm: hỏi thăm người lâu chưa liên lạc.',
+        '0':'Việc nên làm: một tin nhắn ngắn cũng đủ.',
+        '-1':'Nên tránh: bàn chuyện nhạy cảm, phản ứng ngay khi khó chịu.',
+        '-2':'Nên tránh: tranh luận, ra quyết định liên quan tới người thân.'}},
+
   {k:'suckhoe', n:'Sức khoẻ', ic:'💪', c:'#35D6A4',
    nhOf:(b)=>NH_SINH[b.nhChu],                                     // hành bản mệnh sinh ra = Thực Thương, hao khí
-   tot:'Thể trạng tốt, hợp để tập nặng hơn ngày thường hoặc chạy dài. Cơ thể đang sẵn sàng.',
-   xau:'Hôm nay dễ hao sức. Giảm cường độ tập xuống một bậc, ngủ sớm hơn 30 phút — ép thêm không được gì mà còn dễ chấn thương.',
-   tb :'Sức khoẻ bình thường. Giữ đúng lịch tập đã đặt, không cần tăng cũng không cần giảm.'}
+   muc:{
+    '2':['Thể trạng đang ở mức tốt nhất của chu kỳ này. Hợp để chạy dài hoặc đẩy tạ nặng hơn ngày thường.',
+         'Cơ thể sẵn sàng. Hôm nay là ngày phá kỷ lục cá nhân nếu bạn muốn thử.',
+         'Sức khoẻ sung. Tập nặng hôm nay hồi phục cũng nhanh hơn.'],
+    '1':['Thể lực khá. Giữ đúng giáo án, có thể tăng nhẹ một chút ở hiệp cuối.',
+         'Người nhẹ nhõm. Ngày hợp để tập đều, không cần tăng cũng không cần giảm.',
+         'Sức ổn. Tập xong nhớ giãn cơ cho kỹ là đủ.'],
+    '0':['Sức khoẻ bình thường. Giữ đúng lịch tập đã đặt.',
+         'Không có gì bất thường về thể trạng. Cứ theo kế hoạch.',
+         'Ngày trung tính. Tập đúng bài, ăn đúng bữa là được.'],
+    '-1':['Hơi hao sức hôm nay. Giảm cường độ xuống một bậc và ngủ sớm hơn 30 phút.',
+          'Cơ thể đang cần nghỉ hơn là cần ép. Đổi buổi tập nặng thành đi bộ hoặc giãn cơ.',
+          'Dễ uể oải. Uống đủ nước, tránh cà phê sau 3 giờ chiều.'],
+    '-2':['Dễ hao sức và dễ chấn thương. Hôm nay nghỉ hoặc chỉ vận động nhẹ — ép thêm không được gì.',
+          'Thể trạng xuống rõ. Bỏ buổi tập nặng, ngủ bù là việc có ích nhất hôm nay.',
+          'Ngày cơ thể báo động. Để ý các dấu hiệu bất thường, đừng chủ quan.'],
+   },
+   lam:{'2':'Việc nên làm: tập nặng, chạy dài, thử sức.',
+        '1':'Việc nên làm: tập đều theo giáo án.',
+        '0':'Việc nên làm: giữ đúng lịch đã đặt.',
+        '-1':'Nên tránh: tập quá sức, thức khuya.',
+        '-2':'Nên tránh: tập nặng hoàn toàn. Ưu tiên ngủ bù.'}}
 ];
 // Sắc thái riêng cho từng loại ngày — để hai ngày cùng điểm số vẫn đọc ra khác nhau, bám vào đặc
 // điểm thật của ngày đó chứ không phải câu chữ ngẫu nhiên.
@@ -5763,18 +5861,34 @@ function dvLifeAreas(){
     // Lục hợp / lục xung — chỉ tác động mạnh lên mảng quan hệ và sự nghiệp
     if(lv.k==='tinh' || lv.k==='nghe') sc += Math.round(qh.sc/2);
     sc = Math.max(-2, Math.min(2, sc));
-    const txt = sc > 0 ? lv.tot : (sc < 0 ? lv.xau : lv.tb);
-    const why = `Mảng này ứng với hành <b>${nh}</b>; bản mệnh bạn hành <b>${b.nhChu}</b>. `
-      + `Hôm nay là ngày <b>${CAN[D.can]} ${CHI[D.chi]}</b> — Can hành <b>${nhCan}</b>, Chi hành <b>${nhChi}</b>. `
-      + (NH_SINH[nhCan]===nh ? 'Can ngày <b>sinh</b> cho mảng này. '
-        : NH_KHAC[nhCan]===nh ? 'Can ngày <b>khắc</b> mảng này. '
-        : nhCan===nh ? 'Can ngày <b>cùng hành</b> với mảng này. ' : '')
-      + (NH_SINH[nhChi]===nh ? 'Chi ngày cũng tiếp thêm. '
-        : NH_KHAC[nhChi]===nh ? 'Chi ngày kìm bớt một chút. ' : '')
-      + ((lv.k==='tinh'||lv.k==='nghe') && qh.k!=='thuong' ? `Chi ngày <b>${qh.t}</b> với lá số của bạn. ` : '')
-      + (nh===b.dungThan ? 'Đây đúng là hành bạn đang thiếu — mảng đáng đầu tư.' : '')
-      + (nh===b.kyThan ? 'Đây là hành bạn vốn đã thừa — dễ quá đà ở mảng này.' : '');
-    return {...lv, nh, sc, txt, why, sacThai: DV_SAC_THAI[qh.k] || ''};
+    // Chọn câu theo ĐÚNG mức điểm (5 mức) rồi lấy biến thể theo trụ ngày. Dùng trụ ngày làm chỉ số nên
+    // cùng một ngày luôn cho cùng một câu (mở lại app không đổi), nhưng ngày khác thì chữ khác.
+    const bo  = (lv.muc && lv.muc[String(sc)]) || [];
+    const txt = bo.length ? bo[(D.can*12 + D.chi) % bo.length] : '';
+    const nenLam = (lv.lam && lv.lam[String(sc)]) || '';
+    // Giải thích viết bằng tiếng Việt đời thường: nói THEO NGÔN NGỮ ĐỜI SỐNG trước, thuật ngữ để trong
+    // ngoặc cho ai muốn tra. Bản cũ viết "Mảng này ứng với hành Hoả; bản mệnh bạn hành Kim..." — đúng về
+    // chuyên môn nhưng người không học ngũ hành đọc xong không rút ra được gì.
+    const quanHeCanNgay =
+      NH_SINH[nhCan]===nh ? 'nâng đỡ'  :
+      NH_KHAC[nhCan]===nh ? 'ép xuống' :
+      nhCan===nh          ? 'cộng hưởng với' : 'không tác động nhiều tới';
+    const quanHeChiNgay =
+      NH_SINH[nhChi]===nh ? 'cũng tiếp thêm một phần' :
+      NH_KHAC[nhChi]===nh ? 'kìm bớt một chút'        : '';
+    const why =
+      `<b>Vì sao ra kết quả này:</b> hôm nay là ngày <b>${CAN[D.can]} ${CHI[D.chi]}</b>. `
+      + `Năng lượng của ngày đang <b>${quanHeCanNgay}</b> mảng ${lv.n.toLowerCase()}`
+      + (quanHeChiNgay ? `, và ${quanHeChiNgay}` : '')
+      + `. `
+      + ((lv.k==='tinh'||lv.k==='nghe') && qh.k!=='thuong'
+          ? (qh.k==='hop'  ? 'Ngày này lại <b>hợp</b> với tuổi bạn nên chuyện phối hợp với người khác dễ xuôi hơn. '
+           : qh.k==='xung' ? 'Ngày này <b>xung</b> với tuổi bạn nên dễ có thay đổi đột ngột — không phải điềm xấu, chỉ là nên có phương án hai. '
+                           : 'Ngày này <b>trùng</b> tuổi bạn nên mọi thứ được phóng to lên: tốt cũng rõ mà mệt cũng rõ. ')
+          : '')
+      + (nh===b.dungThan ? '<br>Đây là mảng bạn vốn còn thiếu, nên đầu tư vào đây có lãi hơn các mảng khác.' : '')
+      + (nh===b.kyThan   ? '<br>Đây là mảng bạn vốn đã mạnh sẵn, dễ làm quá tay — biết điểm dừng thì hơn.' : '');
+    return {...lv, nh, sc, txt, nenLam, why, sacThai: DV_SAC_THAI[qh.k] || ''};
   });
 }
 function dvLifeAreasHtml(){
@@ -5786,6 +5900,7 @@ function dvLifeAreasHtml(){
       <div class="lv-h"><span class="lv-ic">${a.ic}</span><b>${escapeHtml(a.n)}</b>
         <span class="lv-tag" style="background:${a.c}22; color:${a.c};">${lbl}</span></div>
       <div class="lv-tx">${escapeHtml(a.txt)}</div>
+      ${a.nenLam?`<div class="lv-lam">${escapeHtml(a.nenLam)}</div>`:''}
       ${a.sacThai?`<div class="lv-sac">${a.sacThai}</div>`:''}
       <details class="lv-why"><summary>Vì sao?</summary><div>${a.why}</div></details>
     </div>`;
