@@ -2191,11 +2191,40 @@
 .wx-leg-tx{flex:1;font-size:11.5px;color:var(--dim);line-height:1.6;}
 .wx-leg-tx b{color:var(--text);display:block;font-size:12px;margin-bottom:1px;}
 .wx-leg-sec{font-size:10px;font-weight:800;color:var(--dim2);letter-spacing:.08em;margin:11px 0 3px;}
+/* ===== Nghe & chép chính tả — trình phát tua được (v165) ===== */
+.dict-player{background:var(--panel2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin:10px 0 12px;}
+.dict-pl-row{display:flex;gap:7px;}
+.dict-pl-btn{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:11px 4px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+.dict-pl-btn.wide{flex:1.2;font-size:15px;background:linear-gradient(135deg,#2CDBA8,#1fa87f);color:#08110d;border:none;}
+.dict-pl-btn:active{opacity:.7;}
+.dict-pl-bar{height:5px;background:var(--border);border-radius:3px;margin-top:9px;overflow:hidden;}
+.dict-pl-fill{height:100%;width:0%;background:linear-gradient(90deg,#2CDBA8,#7ec8ff);border-radius:3px;transition:width .18s linear;}
+.dict-pl-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--dim2);margin-top:5px;font-family:var(--mono);}
+.dict-pl-note{font-size:10.5px;color:#FFC94A;line-height:1.55;margin-top:8px;}
+.dict-ta{width:100%;min-height:96px;resize:vertical;font-family:inherit;font-size:15px;line-height:1.6;}
+.dict-dc{margin-top:10px;background:var(--panel2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:11px;padding:11px 12px;}
+.dict-dc-row{display:flex;gap:9px;align-items:baseline;padding:6px 0;}
+.dict-dc-lb{flex:0 0 62px;font-size:9.5px;font-weight:800;color:var(--dim2);letter-spacing:.05em;}
+.dict-dc-tx{flex:1;font-size:14px;line-height:1.85;}
+.dict-dc-note{font-size:10.5px;color:var(--dim);line-height:1.6;padding:1px 0 5px 71px;}
+.dict-dc-note b{color:#ff8080;}
+.dict-dc-note i{color:var(--text);font-style:normal;font-weight:700;}
+.dict-dc-goc{font-size:12px;color:var(--dim);line-height:1.65;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.dict-dc-cha{font-size:10px;color:var(--dim2);margin-top:6px;}
+.dict-w{padding:1px 3px;border-radius:4px;}
+.dict-w.ok{color:#2CDBA8;background:rgba(44,219,168,.11);}
+.dict-w.no{color:#ff5c5c;background:rgba(255,92,92,.11);text-decoration:underline;text-decoration-style:dotted;}
 /* ===== YouGlish trong Luyện IPA (v163) ===== */
 .yg-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:12px;}
 .yg-h{font-size:12.5px;font-weight:800;color:var(--gold);margin-bottom:3px;}
 .yg-d{font-size:10.5px;color:var(--dim2);line-height:1.6;margin-bottom:10px;}
-.yg-box{width:100%;min-height:230px;border-radius:10px;overflow:hidden;background:#000;}
+/* Đặt theo ID, KHÔNG theo class: widget của YouGlish thay hẳn thẻ div và làm mất class,
+   nên quy tắc viết theo .yg-box sẽ biến mất ngay khi video được nạp. */
+#yg-box{width:100%;min-height:260px;border-radius:10px;overflow:hidden;background:#000;}
+#yg-box iframe{width:100%;min-height:250px;border:none;display:block;}
+#yg-box .ygContainer{background:#11161d !important;}
+.yg-err{font-size:11.5px;color:#ff9a9a;line-height:1.6;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);border-radius:9px;padding:9px 11px;margin-bottom:9px;}
+.yg-out{display:block;text-align:center;font-size:11.5px;font-weight:700;color:var(--teal);padding:9px;margin-top:8px;border:1px dashed var(--border);border-radius:9px;text-decoration:none;}
 .yg-bar{display:flex;gap:8px;margin-top:9px;}
 .yg-bar .form-btn{flex:1;margin:0;}
 .yg-credit{font-size:9.5px;color:var(--dim2);text-align:center;margin-top:8px;}
@@ -2464,7 +2493,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v164';
+const APP_VERSION = 'v165';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13351,7 +13380,9 @@ function dictTypedInput(value){
 const DICT_PASS_ACC = 95;
 function dictScoreTyped(target, typed){
   const tw = speakNormalizeWords(target), hw = speakNormalizeWords(typed);
-  const matchMask = speakLcsMatchMask(tw, hw);
+  // v165: đổi sang so khớp CHÍNH XÁC. Trước đây dùng speakLcsMatchMask (châm chước lệch 1 ký tự)
+  // nên gõ "cook" thay vì "book", "ship" thay vì "sheep" vẫn được tính ĐÚNG — điểm cao hơn thực lực.
+  const matchMask = dictLcsExact(tw, hw);
   const correctN = matchMask.filter(Boolean).length;
   const acc = tw.length ? Math.round(correctN/tw.length*100) : 0;
   return {acc, matchMask, tw, passed: acc>=DICT_PASS_ACC};
@@ -13390,13 +13421,19 @@ function dictSpeakCurrent(slow){
   s.playCount = (s.playCount||0)+1;
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   try{
-    const p = speakEnglishRobust(sentence[2], {rate: slow?0.55:0.92});
+    const p = speakEnglishRobust(sentence[2], {rate: slow?0.55:0.92, speedMul: slow?0.6:1});
+    setTimeout(dictCapNhatThanh, 250);   // chờ audio có src rồi mới chạy thanh tiến trình
     if(p && p.catch) p.catch(()=>{ showToast('⚠️','Không đọc được câu này','Bấm nghe lại lần nữa, hoặc thoát ra vào lại bài nếu vẫn không nghe được.'); });
   }catch(e){
     showToast('⚠️','Không đọc được câu này','Bấm nghe lại lần nữa, hoặc thoát ra vào lại bài nếu vẫn không nghe được.');
   }
 }
-function dictExitSession(){ STATE.dictSession = null; renderContent(); navBack(); }
+function dictExitSession(){
+  if(dictThanhTimer){ clearInterval(dictThanhTimer); dictThanhTimer = null; }
+  try{ const a = dictAudioEl(); if(a) a.pause(); }catch(_){}
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(_){}
+  STATE.dictSession = null; renderContent(); navBack();
+}
 // Tô màu bài chép của người học so với câu gốc: xanh = từ đúng (theo matchMask), đỏ/gạch chân = từ
 // sai/thiếu — giúp thấy ngay lỗi cụ thể thay vì chỉ biết % đúng chung chung.
 function dictHighlightDiff(text, matchMask){
@@ -13412,6 +13449,125 @@ function dictHighlightDiff(text, matchMask){
   }
   return out;
 }
+
+// ── Trình phát có thể TUA cho bài chép chính tả ──────────────────────────
+// Vì sao trước đây không có nút tua: mục này phát bằng speechSynthesis của hệ điều hành, mà API đó
+// KHÔNG cho tua — chỉ có phát và dừng. Nay nếu có Cloud TTS key thì câu được tổng hợp thành một file
+// âm thanh thật (<audio>), lúc đó tua lùi/tới mới làm được. Không có key thì nói thẳng là không tua
+// được và chỉ phát lại từ đầu, chứ không giả vờ có nút rồi bấm không ăn.
+const DICT_TUA_GIAY = 3;
+function dictCoTua(){ return !!SETTINGS.cloudTtsApiKey; }
+function dictAudioEl(){ try{ return getSharedTtsAudioEl(); }catch(_){ return null; } }
+function dictTua(giay){
+  const a = dictAudioEl();
+  if(!dictCoTua() || !a || !a.src){
+    showToast('⏪','Chưa tua được','Nút tua cần Google Cloud TTS (giọng đọc thật). Chưa có thì bấm 🔊 để nghe lại từ đầu.');
+    return;
+  }
+  try{
+    const dai = isFinite(a.duration) ? a.duration : 0;
+    a.currentTime = Math.max(0, Math.min(dai || 1e9, (a.currentTime||0) + giay));
+    if(a.paused) a.play();
+    dictCapNhatThanh();
+  }catch(e){ showToast('⏪','Không tua được','Bấm 🔊 nghe lại từ đầu.'); }
+}
+function dictPhatDung(){
+  const a = dictAudioEl();
+  if(a && a.src && !a.paused){ try{ a.pause(); }catch(_){} dictCapNhatThanh(); return; }
+  if(a && a.src && a.paused && (a.currentTime||0) > 0 && (a.currentTime < (a.duration||0))){
+    try{ a.play(); }catch(_){}
+    dictCapNhatThanh(); return;
+  }
+  dictSpeakCurrent(false);
+}
+// Cập nhật thanh tiến trình mà KHÔNG vẽ lại cả màn hình — vẽ lại sẽ làm mất chữ đang gõ dở.
+let dictThanhTimer = null;
+function dictCapNhatThanh(){
+  if(dictThanhTimer) clearInterval(dictThanhTimer);
+  const ve = ()=>{
+    const a = dictAudioEl();
+    const bar = document.getElementById('dictBarFill');
+    const tt  = document.getElementById('dictBarTime');
+    const nut = document.getElementById('dictPlayBtn');
+    if(!bar) { if(dictThanhTimer) clearInterval(dictThanhTimer); return; }
+    const cur = (a && a.src) ? (a.currentTime||0) : 0;
+    const dai = (a && a.src && isFinite(a.duration)) ? a.duration : 0;
+    bar.style.width = dai ? Math.min(100, cur/dai*100)+'%' : '0%';
+    if(tt) tt.textContent = dai ? (cur.toFixed(1)+'s / '+dai.toFixed(1)+'s') : '';
+    if(nut) nut.textContent = (a && a.src && !a.paused) ? '⏸' : '▶️';
+  };
+  ve();
+  dictThanhTimer = setInterval(ve, 200);
+}
+function dictThanhPhatHtml(s){
+  const co = dictCoTua();
+  return `<div class="dict-player">
+    <div class="dict-pl-row">
+      <button class="dict-pl-btn wide" id="dictPlayBtn" data-action="dict-play-toggle" title="Phát / tạm dừng">▶️</button>
+      <button class="dict-pl-btn" data-action="dict-rewind" title="Tua lùi ${DICT_TUA_GIAY} giây">⏪ ${DICT_TUA_GIAY}s</button>
+      <button class="dict-pl-btn" data-action="dict-forward" title="Tua tới ${DICT_TUA_GIAY} giây">${DICT_TUA_GIAY}s ⏩</button>
+      <button class="dict-pl-btn" data-action="dict-speak-slow" title="Nghe chậm">🐢</button>
+    </div>
+    <div class="dict-pl-bar"><div class="dict-pl-fill" id="dictBarFill"></div></div>
+    <div class="dict-pl-meta"><span id="dictBarTime"></span><span>${s.playCount>0?`đã nghe ${s.playCount} lần`:'nghe bao nhiêu lần tùy thích'}</span></div>
+    ${co ? '' : `<div class="dict-pl-note">⚠️ Nút tua cần Google Cloud TTS. Hiện đang dùng giọng máy của hệ điều hành — giọng máy không tua được, bấm ▶️ sẽ phát lại từ đầu.</div>`}
+  </div>`;
+}
+// ── Đối chiếu HAI CHIỀU ──────────────────────────────────────────────────
+// Bản cũ chỉ tô màu trên CÂU ĐÚNG: từ nào bạn chép trúng thì xanh, hụt thì đỏ. Thiếu một nửa câu
+// chuyện — bạn không thấy những từ MÌNH ĐÃ GÕ nhưng không có trong câu (nghe nhầm thành từ khác).
+// Nay hiện cả hai dòng: dòng "Bạn gõ" tô xanh từ trúng, tô đỏ từ thừa/sai; dòng "Câu đúng" tô xanh
+// từ bạn bắt được, tô đỏ từ bạn bỏ sót. Nhìn hai dòng cạnh nhau là thấy ngay mình nghe hụt chỗ nào.
+// So khớp CHÍNH XÁC theo từ (đã bỏ hoa/thường và dấu câu ở bước chuẩn hoá). KHÔNG dùng
+// speakLcsMatchMask vì hàm đó châm chước sai lệch 1 ký tự — hợp lý cho Luyện nói (máy nghe nhầm),
+// nhưng sai hoàn toàn cho chép chính tả: gõ "cook" khi câu là "book" là nghe sai thật, phải báo sai.
+function dictLcsExact(a, b){
+  const m=a.length, n=b.length;
+  const mask=new Array(m).fill(false);
+  if(!m || !n) return mask;
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=1;i<=m;i++)
+    for(let j=1;j<=n;j++)
+      dp[i][j] = (a[i-1]===b[j-1]) ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+  let i=m, j=n;
+  while(i>0 && j>0){
+    if(a[i-1]===b[j-1]){ mask[i-1]=true; i--; j--; }
+    else if(dp[i-1][j] >= dp[i][j-1]) i--;
+    else j--;
+  }
+  return mask;
+}
+function dictDoiChieu(target, typed){
+  const tw = speakNormalizeWords(target), hw = speakNormalizeWords(typed);
+  const maskDich = dictLcsExact(tw, hw);   // từ nào trong câu đúng được bạn bắt được
+  const maskGo   = dictLcsExact(hw, tw);   // từ nào bạn gõ có mặt trong câu đúng
+  const thieu = tw.filter((w,i)=>!maskDich[i]);
+  const thua  = hw.filter((w,i)=>!maskGo[i]);
+  return {tw, hw, maskDich, maskGo, thieu, thua};
+}
+function dictToMau(words, mask, nhan){
+  if(!words.length) return `<span style="color:var(--dim2);font-style:italic;">(trống)</span>`;
+  return words.map((w,i)=>{
+    const ok = mask[i]===true;
+    return `<span class="dict-w ${ok?'ok':'no'}">${escapeHtml(w)}</span>`;
+  }).join(' ');
+}
+function dictKhoiDoiChieuHtml(target, typed){
+  const D = dictDoiChieu(target, typed);
+  const dong = (nhan, w, m, ghi) => `<div class="dict-dc-row">
+      <div class="dict-dc-lb">${nhan}</div>
+      <div class="dict-dc-tx">${dictToMau(w, m)}</div>
+    </div>${ghi?`<div class="dict-dc-note">${ghi}</div>`:''}`;
+  const ghiThieu = D.thieu.length ? `Bỏ sót <b>${D.thieu.length}</b> từ: ${D.thieu.map(x=>`<i>${escapeHtml(x)}</i>`).join(', ')}` : '';
+  const ghiThua  = D.thua.length  ? `Gõ thừa/nghe nhầm <b>${D.thua.length}</b> từ: ${D.thua.map(x=>`<i>${escapeHtml(x)}</i>`).join(', ')}` : '';
+  return `<div class="dict-dc">
+    ${dong('BẠN GÕ', D.hw, D.maskGo, ghiThua)}
+    ${dong('CÂU ĐÚNG', D.tw, D.maskDich, ghiThieu)}
+    <div class="dict-dc-goc">${escapeHtml(target)}</div>
+    <div class="dict-dc-cha"><span class="dict-w ok">xanh</span> = khớp · <span class="dict-w no">đỏ</span> = sai hoặc thiếu. Không tính hoa/thường và dấu câu.</div>
+  </div>`;
+}
+
 function dictBackRow(){
   return `<div class="kh-backrow"><div class="kh-backbtn" data-action="dict-home-close">${svgIcon('back')}</div><div class="title">✍️ Nghe &amp; chép chính tả</div></div>`;
 }
@@ -13505,10 +13661,7 @@ function renderDictSession(){
   const r = s.result;
   const inputCls = s.answered===null ? '' : (r && r.passed ? 'correct' : 'wrong');
   const resultHtml = r ? `<div class="vocab-scramble-result ${r.passed?'ok':'no'}" style="margin-top:10px;">${r.passed?`✓ Đạt (${r.acc}% từ đúng)!`:`✗ Chưa đạt (${r.acc}% từ đúng) — cần ≥${DICT_PASS_ACC}%`}</div>
-    <div style="font-size:13px; line-height:1.7; margin-top:8px; background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:10px 12px;">
-      <div style="font-size:10.5px; color:var(--dim2); margin-bottom:4px;">📝 Câu bạn gõ, đối chiếu đáp án đúng:</div>
-      ${dictHighlightDiff(sentence[2], r.matchMask)}
-    </div>
+    ${dictKhoiDoiChieuHtml(sentence[2], s.typedValue||'')}
     ${sentence[3] ? `<div class="eng-quiz-explain">🇻🇳 ${escapeHtml(sentence[3])}</div>` : ''}
     <div class="eng-quiz-actions">
       <button class="form-btn btn-listen" data-action="dict-speak-current" style="flex:1;">🔊 Nghe lại</button>
@@ -13517,12 +13670,8 @@ function renderDictSession(){
     <button class="form-btn eng-quiz-nextbtn" data-action="dict-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>` : '';
   const body = `<div class="card eng-quiz-card">
     <div class="eng-quiz-q" style="text-align:center;">✍️ Nghe rồi gõ lại CHÍNH XÁC câu bạn nghe được</div>
-    <div class="eng-quiz-actions" style="justify-content:center; margin:10px 0;">
-      <button class="form-btn btn-listen" data-action="dict-speak-current">🔊 Nghe (tốc độ thường)</button>
-      <button class="form-btn cancel" data-action="dict-speak-slow">🐢 Nghe chậm</button>
-    </div>
-    ${s.playCount>0 ? `<div style="font-size:10.5px; color:var(--dim2); text-align:center; margin:-4px 0 10px;">Đã nghe ${s.playCount} lần — nghe lại bao nhiêu lần tùy thích trước khi kiểm tra.</div>` : ''}
-    <textarea id="dictTypedInputEl" class="vocab-type-input ${inputCls}" style="width:100%; min-height:70px; resize:vertical; font-family:inherit;" autocomplete="off" autocapitalize="off" spellcheck="false"
+    ${dictThanhPhatHtml(s)}
+    <textarea id="dictTypedInputEl" class="vocab-type-input dict-ta ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
       placeholder="Gõ lại câu bạn nghe được…" ${s.answered!==null?'disabled':''}
       oninput="dictTypedInput(this.value)" onchange="dictTypedInput(this.value)" onblur="dictTypedInput(this.value)">${escapeHtml(s.typedValue||'')}</textarea>
     ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="dict-typed-submit">✓ Kiểm tra</button>` : resultHtml}
@@ -17887,13 +18036,35 @@ function ipaDeepWordList(){
 // đúng giây một từ được nói — nhưng YouGlish thì có: nó lập chỉ mục phụ đề của hàng triệu video
 // YouTube, tìm ra những đoạn có chứa từ đó và tua thẳng tới đúng giây người ta nói. Đúng thứ bạn
 // cần, miễn phí, không cần API key. Widget tự nạp khi mở, không nạp sẵn để khỏi tốn băng thông.
-let ygSan = false, ygCho = null, ygSo = 0;
+let ygSan = false, ygCho = null, ygLoi = null, ygDongHo = null;
 function ygNap(){
-  if(ygSan || document.getElementById('yg-lib')) return;
+  if(ygSan) return;
+  const cu = document.getElementById('yg-lib');
+  if(cu){
+    // Thẻ script đã có nhưng thư viện chưa sẵn sàng: có thể lần trước tải hỏng. Bỏ đi để thử lại,
+    // thay vì đứng im mãi mãi như bản trước (đó là lý do bấm lại vẫn không ra gì).
+    if(!ygSan){ try{ cu.remove(); }catch(_){} } else return;
+  }
   const t = document.createElement('script');
   t.id = 'yg-lib'; t.async = true; t.charset = 'utf-8';
   t.src = 'https://youglish.com/public/emb/widget.js';
+  t.onerror = function(){
+    ygLoi = 'Không tải được thư viện YouGlish — có thể do mạng chặn hoặc đang ngoại tuyến.';
+    try{ renderContentPreserveScroll(); }catch(_){}
+  };
   document.head.appendChild(t);
+}
+// Canh chừng: quá thời gian mà iframe vẫn chưa xuất hiện thì báo cho người dùng biết,
+// KHÔNG để họ nhìn một khung trống rồi tưởng app hỏng.
+function ygCanhChung(){
+  if(ygDongHo) clearTimeout(ygDongHo);
+  ygDongHo = setTimeout(function(){
+    const fr = document.getElementById('fr_yg-box');
+    if(!fr && STATE.ygMo){
+      ygLoi = 'Chờ quá lâu mà video chưa hiện. Mạng có thể đang chặn youglish.com.';
+      try{ renderContentPreserveScroll(); }catch(_){}
+    }
+  }, 9000);
 }
 // YouGlish gọi hàm này khi thư viện nạp xong (tên hàm do họ quy định, phải để ở window).
 window.onYouglishAPIReady = function(){
@@ -17901,31 +18072,47 @@ window.onYouglishAPIReady = function(){
   if(ygCho){ const q = ygCho; ygCho = null; ygMo(q); }
 };
 let ygWidget = null, ygTuHienTai = '';
+const YG_CAO = 260;   // chiều cao thật của khung video, tính bằng pixel
 function ygMo(tu){
   tu = String(tu||'').trim();
   if(!tu) return;
   ygTuHienTai = tu;
   const hop = document.getElementById('yg-box');
   if(!hop) return;
-  if(!ygSan){ ygCho = tu; ygNap(); return; }
+  if(!ygSan){ ygCho = tu; ygLoi = null; ygNap(); ygCanhChung(); return; }
+  // Nếu iframe của lần trước đã bị màn hình vẽ lại xóa mất thì thực thể widget cũ đã "chết":
+  // gọi fetch() vào nó chỉ gửi postMessage tới một thẻ không còn tồn tại và IM LẶNG không làm gì.
+  // Đây chính là kiểu hỏng khó thấy nhất — phải dựng lại từ đầu.
+  if(ygWidget && !document.getElementById('fr_yg-box')) ygWidget = null;
   try{
     if(!ygWidget){
       ygWidget = new YG.Widget('yg-box', {
         // 4 = tiêu đề, 8 = phụ đề, 16 = chỉnh tốc độ, 64 = nút điều khiển, 512 = bảng phiên âm
         components: 4+8+16+64+512,
+        height: YG_CAO,          // BẮT BUỘC: không truyền thì iframe sinh ra chỉ cao 1px → nhìn như không mở được
         backgroundColor:'#11161d', textColor:'#8fa3b8', titleColor:'#c9d6e4',
         captionColor:'#7ec8ff', markerColor:'#FFC94A', queryColor:'#2CDBA8',
         panelsBackgroundColor:'#161c25', linkColor:'#2CDBA8',
         captionSize: 22, restrictionMode: 1, autoStart: 1,
-        title: 'Người bản xứ đọc "%query%" (%i%/%total%)'
+        title: 'Người bản xứ đọc "%query%" (%i%/%total%)',
+        events: { 'onError': function(ev){
+            ygLoi = 'YouGlish báo lỗi (mã ' + ((ev&&ev.code)||'?') + ').';
+            try{ renderContentPreserveScroll(); }catch(_){}
+          } }
       });
     }
+    ygLoi = null;
     // Giọng Anh–Mỹ mặc định vì phần lớn tài liệu trong app dùng Anh–Mỹ.
     ygWidget.fetch(tu, 'english', SETTINGS.ygGiong || 'us');
+    ygCanhChung();
   }catch(e){
-    const b = document.getElementById('yg-box');
-    if(b) b.innerHTML = `<div style="padding:20px;font-size:12px;color:#ff9a9a;text-align:center;">Không mở được: ${escapeHtml(e.message||'lỗi')}</div>`;
+    ygLoi = 'Không mở được: ' + ((e&&e.message)||'lỗi không rõ');
+    try{ renderContentPreserveScroll(); }catch(_){}
   }
+}
+function ygLinkNgoai(tu){
+  const g = (SETTINGS.ygGiong || 'us') === 'uk' ? 'uk' : 'us';
+  return 'https://youglish.com/pronounce/' + encodeURIComponent(tu) + '/english/' + g;
 }
 function ygDoiGiong(g){
   SETTINGS.ygGiong = g; saveSettings();
@@ -17948,12 +18135,14 @@ function ygKhoiHtml(tu){
   return `<div class="yg-wrap">
     <div class="yg-h">🎬 Người bản xứ đọc "${escapeHtml(tu)}"</div>
     <div class="yg-d">Video tự tua tới đúng chỗ nói từ này. Bấm ⏭ để nghe người khác đọc — mỗi người một giọng, nghe vài ba lượt sẽ thấy phần chung giữa họ, đó mới là âm chuẩn.</div>
+    ${ygLoi ? `<div class="yg-err">⚠️ ${escapeHtml(ygLoi)}<br>Bấm nút dưới để mở thẳng trên trang YouGlish.</div>` : ''}
     <div id="yg-box" class="yg-box"></div>
     <div class="yg-bar">
       <button class="form-btn ${giong==='us'?'':'cancel'}" data-action="yg-accent" data-g="us">🇺🇸 Anh–Mỹ</button>
       <button class="form-btn ${giong==='uk'?'':'cancel'}" data-action="yg-accent" data-g="uk">🇬🇧 Anh–Anh</button>
       <button class="form-btn cancel" data-action="yg-close">✕ Đóng</button>
     </div>
+    <a class="yg-out" href="${escapeHtml(ygLinkNgoai(tu))}" target="_blank" rel="noopener">↗ Mở "${escapeHtml(tu)}" trên trang YouGlish (nếu khung trên không chạy)</a>
     <div class="yg-credit">Powered by <a href="https://youglish.com" target="_blank" rel="noopener">YouGlish.com</a> · video từ YouTube</div>
   </div>`;
 }
@@ -20131,6 +20320,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dvTabEl){ STATE.dvTab = dvTabEl.getAttribute('data-k'); STATE.dvSpread = false; renderContent(); window.scrollTo(0,0); return; }
   const dvSpreadEl = e.target.closest('[data-action="dv-spread"]');
   if(dvSpreadEl){ STATE.dvSpread = true; renderContentPreserveScroll(); return; }
+  const dictPlayEl = e.target.closest('[data-action="dict-play-toggle"]');
+  if(dictPlayEl){ dictPhatDung(); return; }
+  const dictRewEl = e.target.closest('[data-action="dict-rewind"]');
+  if(dictRewEl){ dictTua(-DICT_TUA_GIAY); return; }
+  const dictFwdEl = e.target.closest('[data-action="dict-forward"]');
+  if(dictFwdEl){ dictTua(DICT_TUA_GIAY); return; }
   const ygOpenEl = e.target.closest('[data-action="yg-open"]');
   if(ygOpenEl){
     STATE.ygMo = ygOpenEl.getAttribute('data-word');
