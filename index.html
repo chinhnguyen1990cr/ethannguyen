@@ -702,6 +702,30 @@
   .aic-row.aic-nodata{opacity:.72;}
   .aic-note{flex:1; font-size:9.5px; color:var(--dim2); font-style:italic; line-height:1.4;}
   .aic-val.dim{color:var(--dim2);}
+  /* ===== HUY HIỆU THỜI TIẾT ===== */
+  .wx-bds{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px;}
+  .wx-bd{font-size:9.5px; font-weight:800; border-radius:20px; padding:2px 8px; white-space:nowrap;
+    background:rgba(255,255,255,.07); color:var(--dim);}
+  .wx-bd.rain{color:#5CC8FF; background:rgba(92,200,255,.14);}
+  .wx-bd.rain.hi{color:#3E8BF0; background:rgba(62,139,240,.22);}
+  .wx-bd.wind{color:var(--wc); background:color-mix(in srgb, var(--wc) 16%, transparent);}
+  .wx-bd.storm{color:#FFC94A; background:rgba(255,201,74,.18);}
+  .wx-bd.gust{color:#FF8A8A; background:rgba(255,90,110,.16);}
+  .wh-cell.storm{background:rgba(255,201,74,.09); border-radius:10px;}
+  .wh-w{display:flex; align-items:center; justify-content:center; gap:3px; margin-top:3px;}
+  .wh-w span{font-size:9px; font-weight:800; color:var(--wc); font-family:var(--num);}
+  .mc-warn{position:absolute; top:1px; right:2px; font-size:8.5px; color:#FFC94A; line-height:1;}
+  .mc-cell{position:relative;}
+  /* ===== NỢ HỌC (mục chưa làm + bù lịch) ===== */
+  .no-hoc{margin-top:11px; padding:11px 12px; border-radius:13px; background:rgba(255,255,255,.035);
+    border:1px solid var(--border);}
+  .no-h{font-size:12px; font-weight:800; color:#FF9A3D; margin-bottom:7px;}
+  .no-h.bu{color:var(--teal); margin-top:11px;}
+  .no-list{display:flex; flex-direction:column; gap:4px;}
+  .no-row{display:flex; gap:9px; align-items:baseline; font-size:11.5px; line-height:1.55;}
+  .no-row .t{flex:0 0 44px; font-weight:800; color:var(--dim2); font-family:var(--num); font-size:10.5px;}
+  .no-row .l{flex:1; color:var(--text);}
+  .no-note{font-size:10px; line-height:1.6; color:var(--dim2); margin-top:8px;}
   /* ===== LUẬN GIẢI AI ===== */
   .dv-ai-card{border-radius:14px; padding:13px; margin-bottom:11px; background:var(--panel2);
     border:1px solid var(--border);}
@@ -2367,7 +2391,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v158';
+const APP_VERSION = 'v162';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5630,6 +5654,8 @@ function dvCheckNewDay(){
     try{ renderContent(); }catch(_){}
     // Sang ngày mới thì xin luôn bản luận giải AI của ngày mới (nếu đã cấu hình key).
     try{ dvAiLamMoi(false); }catch(_){}
+    // Sang ngày mới: chốt nợ học của hôm qua và đẩy các mục chưa làm sang hôm nay.
+    try{ const nBu = buLichTuHomQua(); if(nBu) showToast('⏪','Đã bù '+nBu+' mục học', 'Các mục chưa làm hôm qua được thêm vào lịch tối nay, rút ngắn thời lượng để không vỡ lịch.'); }catch(_){}
     try{ showToast('🌅','Đã sang ngày mới','Luận giải Tử Vi & Bói Toán và gói học hôm nay đã được cập nhật.'); }catch(_){}
     return true;
   }
@@ -6256,6 +6282,7 @@ function dvLifeAreasHtml(){
 // Hai mục "Hôm nay" và "Vận trình" đã được đưa hẳn ra TRANG CHỦ (xem dvHomeCardHtml) vì đó là thứ cần
 // liếc mắt là thấy mỗi sáng. Vào mục đầy đủ thì chỉ còn bốn môn để tra cứu sâu.
 const DV_TABS = [
+  {k:'vantrinh', n:'Vận trình', ic:'🧭', d:'Hôm nay nên làm gì — tổng hợp cả bốn môn'},
   {k:'battu', n:'Bát Tự',    ic:'☰', d:'Quy luật · thời vận · cân bằng năng lượng'},
   {k:'tuvi',  n:'Tử Vi',     ic:'✦', d:'12 cung — sự việc và con người'},
   {k:'astro', n:'Chiêm tinh',ic:'♄', d:'Chân dung tâm lý'},
@@ -6551,8 +6578,9 @@ function renderDvToday(){
 }
 function renderDivination(){
   // Người dùng cũ có thể còn lưu tab 'today'/'linhvuc' — hai tab này đã dời ra trang chủ.
-  if(STATE.dvTab==='today' || STATE.dvTab==='linhvuc') STATE.dvTab = 'battu';
-  const tab = STATE.dvTab || 'battu';
+  // Người dùng cũ còn lưu 'today'/'linhvuc' — cả hai nay đã gộp vào tab 'vantrinh'.
+  if(STATE.dvTab==='today' || STATE.dvTab==='linhvuc') STATE.dvTab = 'vantrinh';
+  const tab = STATE.dvTab || 'vantrinh';
   const backRow = `<div class="kh-backrow"><div class="kh-backbtn" data-action="hub-open" data-target="hub">${svgIcon('back')}</div><div class="title">🔮 Tử Vi &amp; Bói Toán</div><div class="kh-homebtn" data-action="go-home" title="Về trang chính">🏠</div></div>`;
   const tabs = `<div class="dv-tabs">${DV_TABS.map(t=>`
       <div class="dv-tab ${tab===t.k?'on':''}" data-action="dv-tab" data-k="${t.k}">
@@ -6561,7 +6589,8 @@ function renderDivination(){
   const meta = DV_TABS.find(t=>t.k===tab) || DV_TABS[0];
   let body = '';
   try{
-    if(tab==='battu') body = renderDvBatTu();
+    if(tab==='vantrinh') body = `${dvMenhHtml()}${dvLifeAreasHtml()}`;
+    else if(tab==='battu') body = renderDvBatTu();
     else if(tab==='tuvi') body = renderDvTuVi();
     else if(tab==='astro') body = renderDvAstro();
     else body = renderDvTarot();
@@ -6593,13 +6622,10 @@ function dvHomeCardHtml(){
       <span class="dv-home-cta ${open?'open':''}">▾</span>
     </div>`;
   if(!open) return `<div class="dv-home">${head}</div>`;
-  const seg = `<div class="dv-home-seg">
-      <button class="${dvSub==='today'?'on':''}" data-action="dv-home-sub" data-sub="today">🗓️ Hôm nay</button>
-      <button class="${dvSub==='linhvuc'?'on':''}" data-action="dv-home-sub" data-sub="linhvuc">🧭 Vận trình</button>
-    </div>`;
-  const sub = dvSub==='linhvuc'
-    ? `${dvMenhHtml()}${dvLifeAreasHtml()}`
-    : `${dailySummaryHtml()}`;
+  // GỘP: không còn nút gạt "Hôm nay / Vận trình". Trang chủ chỉ hiện bản tin tổng hợp + dòng tổng quan
+  // ngày; muốn xem sâu thì vào mục Tử Vi & Bói Toán, nơi Vận trình là tab đầu tiên.
+  const seg = '';
+  const sub = `${dvNgayTongQuanHtml()}${dailySummaryHtml()}`;
   // DỌN CHỒNG CHÉO: trước đây khối này vẽ liền một lúc BỐN thứ nói về cùng một ngày —
   //   (1) bản tin tổng hợp mới, (2) thẻ tuviCardHtml() cũ còn sót lại từ bản trước,
   //   (3) một thẻ Tarot riêng nữa, (4) hai link "Xem đầy đủ" y hệt nhau.
@@ -6609,7 +6635,7 @@ function dvHomeCardHtml(){
   return `<div class="dv-home">${head}
     ${seg}
     ${sub}
-    <div class="dv-home-more" data-action="hub-open" data-target="divination">Xem đầy đủ Bát Tự · Tử Vi · Chiêm tinh · Tarot ›</div>
+    <div class="dv-home-more" data-action="hub-open" data-target="divination">Xem đầy đủ: Vận trình · Bát Tự · Tử Vi · Chiêm tinh · Tarot ›</div>
   </div>`;
 }
 
@@ -6746,8 +6772,9 @@ async function fetchWeatherToday(){
     // trung bình — hai thứ này là phần cải thiện độ chính xác thật sự, không phải đổi nguồn.
     const url = 'https://api.open-meteo.com/v1/forecast?latitude='+pos.lat+'&longitude='+pos.lon
       + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,is_day,weather_code'
-      + '&hourly=temperature_2m,weather_code,precipitation_probability'
+      + '&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_gusts_10m'
       + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
+      + ',wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum'
       + '&models=best_match&cell_selection=nearest&timezone=auto&forecast_days=16';
     const res = await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -6772,7 +6799,10 @@ async function fetchWeatherToday(){
         const D = d.daily || {}; const t = D.time || []; const out = {};
         for(let i=0;i<t.length;i++){
           out[t[i]] = {c: D.weather_code[i], max: Math.round(D.temperature_2m_max[i]), min: Math.round(D.temperature_2m_min[i]),
-                       r: D.precipitation_probability_max ? D.precipitation_probability_max[i] : null};
+                       r: D.precipitation_probability_max ? D.precipitation_probability_max[i] : null,
+                       w: D.wind_speed_10m_max ? Math.round(D.wind_speed_10m_max[i]) : null,
+                       g: D.wind_gusts_10m_max ? Math.round(D.wind_gusts_10m_max[i]) : null,
+                       mm: D.precipitation_sum ? Math.round(D.precipitation_sum[i]) : null};
         }
         return out;
       })(),
@@ -6784,9 +6814,11 @@ async function fetchWeatherToday(){
         let start = t.findIndex(x => { const dt = new Date(x); return dt.getDate()===now.getDate() && dt.getHours()===nowH; });
         if(start < 0) start = 0;
         const out = [];
-        for(let i=start+1; i<t.length && out.length<6; i++){
+        for(let i=start+1; i<t.length && out.length<10; i++){
           out.push({h: new Date(t[i]).getHours(), t: Math.round(H.temperature_2m[i]), c: H.weather_code[i],
-                    r: H.precipitation_probability ? H.precipitation_probability[i] : null});
+                    r: H.precipitation_probability ? H.precipitation_probability[i] : null,
+                    w: H.wind_speed_10m ? Math.round(H.wind_speed_10m[i]) : null,
+                    g: H.wind_gusts_10m ? Math.round(H.wind_gusts_10m[i]) : null});
         }
         return out;
       })()
@@ -6798,19 +6830,66 @@ async function fetchWeatherToday(){
     SETTINGS.weather = {day: todayKey(), at: Date.now(), err: true}; // thử lại sau 10 phút
   }finally{ _weatherFetching = false; }
 }
+// ---- GIÓ & CẢNH BÁO: quy đổi tốc độ gió sang cấp Beaufort để nói bằng ngôn ngữ người Việt quen dùng
+// ("gió cấp 6") thay vì chỉ đưa con số km/h. Ngưỡng theo thang Beaufort chuẩn.
+function wxCapGio(kmh){
+  const v = +kmh || 0;
+  const moc = [1,5,11,19,28,38,49,61,74,88,102,117];   // km/h — trần của cấp 0..11
+  let c = 12;
+  for(let i=0;i<moc.length;i++){ if(v < moc[i]){ c = i; break; } }
+  return c;
+}
+function wxGioMoTa(kmh){
+  const c = wxCapGio(kmh);
+  if(c <= 2) return {c, t:'lặng gió', mau:'#8B96A8', canhBao:false};
+  if(c <= 4) return {c, t:'gió nhẹ',  mau:'#5CD6C0', canhBao:false};
+  if(c <= 5) return {c, t:'gió vừa',  mau:'#FFC94A', canhBao:false};
+  if(c <= 7) return {c, t:'gió mạnh', mau:'#FF9A3D', canhBao:true};
+  return       {c, t:'gió rất mạnh', mau:'#FF5A6E', canhBao:true};
+}
+// Icon gió vẽ riêng — số vạch tăng theo cấp gió nên liếc mắt là biết mạnh hay nhẹ.
+function wxSvgGio(kmh, size){
+  const g = wxGioMoTa(kmh), z = size || 20;
+  const soVach = g.c <= 2 ? 1 : (g.c <= 4 ? 2 : 3);
+  const vach = [0,1,2].slice(0, soVach).map((i)=>{
+    const y = 34 + i*16, w = 44 - i*6;
+    return `<path d="M14 ${y} h${w} a7 7 0 1 0 -7 -7" fill="none" stroke="${g.mau}" stroke-width="7"
+      stroke-linecap="round" opacity="${1 - i*0.18}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 100 100" width="${z}" height="${z}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">${vach}</svg>`;
+}
+// Huy hiệu nhỏ gắn kèm mỗi ô giờ/ngày: mưa bao nhiêu %, gió cấp mấy, có giông bão không.
+// Chỉ hiện thứ ĐÁNG CHÚ Ý — trời đẹp gió nhẹ thì không hiện gì, để mắt không bị nhiễu.
+function wxBadges(code, rainPct, wind, gust){
+  const out = [];
+  const c = +code;
+  if(c >= 95) out.push(`<span class="wx-bd storm">⛈️ giông</span>`);
+  if(rainPct != null && rainPct >= 40) out.push(`<span class="wx-bd rain ${rainPct>=70?'hi':''}">💧 ${rainPct}%</span>`);
+  const g = wind != null ? wxGioMoTa(wind) : null;
+  if(g && g.c >= 4) out.push(`<span class="wx-bd wind" style="--wc:${g.mau};">💨 cấp ${g.c}</span>`);
+  if(gust != null && gust >= 50) out.push(`<span class="wx-bd gust">🌀 giật ${gust}</span>`);
+  return out.length ? `<div class="wx-bds">${out.join('')}</div>` : '';
+}
 function weatherChipHtml(){
   const w = weatherCache();
   if(!w) { fetchWeatherToday(); return `<div class="hc-weather loading"><span class="w-ic">${wxSvg(2,40)}</span><span class="w-tx">Đang lấy thời tiết…</span></div>`; }
   if(w.err) return `<div class="hc-weather"><span class="w-ic">${wxSvg(45,40)}</span><span class="w-tx">Chưa lấy được thời tiết — kiểm tra kết nối mạng và quyền vị trí.</span></div>`;
   const label = wmoInfo(w.code)[1];
-  const hours = (w.hours||[]).map(h=>
-    `<div class="wh-cell"><div class="wh-h">${pad(h.h)}h</div><div class="wh-ic">${wxSvg(h.c,22)}</div><div class="wh-t">${h.t}°</div>${h.r!=null?`<div class="wh-r ${h.r>=50?'high':''}">${h.r}%</div>`:''}</div>`
-  ).join('');
+  const hours = (w.hours||[]).map(h=>{
+    const g = h.w!=null ? wxGioMoTa(h.w) : null;
+    return `<div class="wh-cell ${(+h.c>=95)?'storm':''}">
+      <div class="wh-h">${pad(h.h)}h</div>
+      <div class="wh-ic">${wxSvg(h.c,24)}</div>
+      <div class="wh-t">${h.t}°</div>
+      ${h.r!=null?`<div class="wh-r ${h.r>=50?'high':''}">💧${h.r}%</div>`:''}
+      ${g?`<div class="wh-w" style="--wc:${g.mau};">${wxSvgGio(h.w,14)}<span>${h.w}</span></div>`:''}
+    </div>`;
+  }).join('');
   const place = SETTINGS.geoCity || WEATHER_FALLBACK.city;
   const meta = [];
   if(w.feels != null && Math.abs(w.feels - w.now) >= 1) meta.push('🌡️ cảm giác '+w.feels+'°');
   if(w.hum  != null) meta.push('💧 ẩm '+w.hum+'%');
-  if(w.wind != null) meta.push('🌬️ gió '+w.wind+' km/h');
+  if(w.wind != null){ const g = wxGioMoTa(w.wind); meta.push('💨 gió '+w.wind+' km/h · cấp '+g.c+' ('+g.t+')'); }
   if(w.rain != null) meta.push('☔ mưa '+w.rain+'%');
   const obs = w.obs ? (function(){ try{ const t=new Date(w.obs); return pad(t.getHours())+':'+pad(t.getMinutes()); }catch(_){ return ''; } })() : '';
   return `<div class="hc-weather">
@@ -6979,6 +7058,7 @@ function monthCalHtml(){
     cells += `<div class="mc-cell ${isToday?'now':''} ${sel?'pick':''}" data-action="hub-cal-pick" data-key="${k}">
       <div class="mc-d">${d}</div>
       ${ic ? `<div class="mc-ic">${ic}</div>` : `<div class="mc-dot ${full?'full':(some?'some':'')}"></div>`}
+      ${fc && (+fc.c>=95 || (fc.w!=null && wxCapGio(fc.w)>=6)) ? `<div class="mc-warn" title="Giông hoặc gió mạnh">⚠</div>` : ''}
     </div>`;
   }
   // Chi tiết ngày đang chọn
@@ -6992,7 +7072,9 @@ function monthCalHtml(){
     detail = `<div class="mc-detail">
       <div class="mcd-head">${WD_FULL[dt.getDay()]}, ${pad(dd)}/${pad(mm)}/${yy} · 📍 ${escapeHtml(place)}</div>
       ${fc ? `<div class="mcd-body"><span class="mcd-ic">${wxSvg(fc.c,34)}</span>
-          <span class="mcd-tx"><b>${wmoInfo(fc.c)[1]}</b>${fc.min}° – ${fc.max}°${fc.r!=null?` · 💧 mưa ${fc.r}%`:''}</span></div>`
+          <span class="mcd-tx"><b>${wmoInfo(fc.c)[1]}</b>${fc.min}° – ${fc.max}°${fc.r!=null?` · 💧 mưa ${fc.r}%`:''}${fc.mm?` · ${fc.mm}mm`:''}
+            ${fc.w!=null?`<br>💨 gió tối đa ${fc.w} km/h · cấp ${wxCapGio(fc.w)}${fc.g!=null?` · giật ${fc.g} km/h`:''}`:''}</span></div>
+          ${wxBadges(fc.c, fc.r, fc.w, fc.g)}`
         : `<div class="mcd-none">Chưa có dự báo cho ngày này (dự báo chỉ có trong 16 ngày tới).</div>`}
     </div>`;
   }
@@ -7871,7 +7953,7 @@ const AI_VOLUME_TARGET = {grammar:120, listen:80, speak:30, ipa:40, vocab:400, s
 function aiCollectSkillData(days){
   days = days || 30;
   const out = {};
-  AI_SKILLS.forEach(s=>{ out[s.key] = {count:0, scoreSum:0, scoreN:0, lastDate:null, recent:[], older:[]}; });
+  AI_SKILLS.forEach(s=>{ out[s.key] = {count:0, scoreSum:0, scoreN:0, lastDate:null, recent:[], older:[], ngayCo:0, ngayCo21:0}; });
   let d = new Date();
   for(let i=0;i<days;i++){
     const key = toKey(d);
@@ -7881,6 +7963,8 @@ function aiCollectSkillData(days){
       if(!row || !row.count) return;
       const o = out[s.key];
       o.count += row.count;
+      o.ngayCo++;                          // đếm SỐ NGÀY có đụng tới, không phải số lượt
+      if(i < 21) o.ngayCo21++;             // riêng cửa sổ 21 ngày dùng để chấm độ đều đặn
       if(row.score!==null){ o.scoreSum += row.score; o.scoreN++; (i<7?o.recent:(i<14?o.older:[])).push(row.score); }
       if(!o.lastDate) o.lastDate = key;   // vòng lặp đi lùi nên ngày đầu tiên gặp chính là gần nhất
     });
@@ -7891,6 +7975,10 @@ function aiCollectSkillData(days){
 // Ngưỡng số lượt tối thiểu để chấm điểm thành thạo cho từng kỹ năng. Đặt theo độ "nặng" của mỗi lượt:
 // một lượt Luyện nói dài vài phút nói lên nhiều hơn một câu trắc nghiệm từ vựng, nên ngưỡng thấp hơn.
 const AI_MIN_SAMPLE = {grammar:20, listen:15, speak:8, ipa:15, vocab:30, sent:20, dict:15, aichat:5};
+// Số ngày/21 ngày mà một kỹ năng NÊN được đụng tới, để coi là giữ nhịp tốt. Không phải kỹ năng nào
+// cũng cần luyện hằng ngày: từ vựng và câu thông dụng sống nhờ lặp lại ngắt quãng nên cần gần như mỗi
+// ngày; hội thoại AI mỗi tuần 2-3 buổi đã đủ tác dụng.
+const AI_NHIP_MUC_TIEU = {vocab:18, sent:16, listen:12, grammar:12, speak:12, ipa:10, dict:10, aichat:7};
 function aiSkillReport(){
   const raw = aiCollectSkillData(30);
   const today = new Date();
@@ -7906,13 +7994,17 @@ function aiSkillReport(){
     // đưa ra con số dễ gây hiểu nhầm — một người làm đúng 2/2 câu KHÔNG phải là người đã vững.
     const MIN_N = AI_MIN_SAMPLE[s.key] || 10;
     const duLieu = o.count >= MIN_N;
+    // ĐỀU ĐẶN (kỷ luật): bao nhiêu ngày trong 21 ngày qua có đụng tới kỹ năng này.
+    const nhipMuc = AI_NHIP_MUC_TIEU[s.key] || 12;
+    const deuDan = Math.min(100, Math.round((o.ngayCo21 || 0) / nhipMuc * 100));
     const mastery = (o.count===0) ? null
       : (!duLieu ? null
-      : Math.round((acc===null?45:acc)*0.5 + volPct*0.3 + fresh*0.2));
+      : Math.round((acc===null?45:acc)*0.45 + deuDan*0.30 + fresh*0.15 + volPct*0.10));
     const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
     const r7 = avg(o.recent), p7 = avg(o.older);
     const trend = (r7!==null && p7!==null) ? Math.round(r7-p7) : null;
-    return {...s, count:o.count, acc, volPct, daysSince, fresh, mastery, trend, lastDate:o.lastDate};
+    return {...s, count:o.count, acc, volPct, daysSince, fresh, mastery, trend, lastDate:o.lastDate,
+            ngayCo21:o.ngayCo21||0, nhipMuc, deuDan};
   });
   const done = skills.filter(s=>s.mastery!==null);
   const overall = done.length ? Math.round(done.reduce((s,x)=>s+x.mastery,0)/done.length) : null;
@@ -8122,8 +8214,116 @@ const FLOW_MAP = {
   grammar_game:    {k:'grammar',   row:'Ngữ pháp',       why:'Học quy tắc để tự ráp câu mới, thay vì chỉ thuộc lòng câu có sẵn.'},
   ai_chat:         {k:'aichat',    row:'Hội thoại AI',   why:'Nói qua lại thật: mục tiêu là trả lời trong 3 giây, không dịch thầm trong đầu.'}
 };
+// Nhiều việc trong lịch cùng trỏ về một dòng hoạt động (ví dụ Từ vựng xuất hiện 3 lần trong ngày:
+// học mới sáng, ôn trưa, ôn tối — cả ba đều đếm vào dòng "Từ vựng"). Nên không thể thấy count>0 là
+// tích hết cả ba. Quy tắc: sắp các việc cùng dòng theo giờ, việc thứ i chỉ được tích khi số lượt đã
+// làm đạt ít nhất i+1 — làm tới đâu tích tới đó.
+function syncFlowToSchedule(key){
+  key = key || todayKey();
+  if(isDayOff(key)) return false;
+  let act;
+  try{ act = englishActivityForDate(key); }catch(_){ return false; }
+  const plan = getPlanForKey(key).filter(t=>t.cat==='tieng_anh' && FLOW_MAP[t.kind]);
+  if(!plan.length) return false;
+  if(!LOG[key]) LOG[key] = {tasks:{}};
+  const rec = LOG[key];
+  if(!rec.tasks)  rec.tasks  = {};
+  if(!rec.failed) rec.failed = {};
+  const theoDong = {};
+  plan.forEach(t=>{ const r = FLOW_MAP[t.kind].row; (theoDong[r] = theoDong[r] || []).push(t); });
+  let changed = false;
+  Object.keys(theoDong).forEach(rowName=>{
+    const row = act.rows.find(r=>r.name===rowName);
+    const soLuot = row ? (row.count||0) : 0;
+    theoDong[rowName].sort((a,b)=>a.time.localeCompare(b.time)).forEach((t,i)=>{
+      if(soLuot >= i+1 && !rec.tasks[t.id]){
+        rec.tasks[t.id] = true;
+        if(rec.failed[t.id]) delete rec.failed[t.id];   // đã làm thì không còn là bỏ lỡ
+        changed = true;
+      }
+    });
+  });
+  if(changed) saveLog();
+  return changed;
+}
+// ================= NỢ HỌC: MỤC CHƯA XONG TRONG NGÀY + TỰ BÙ SANG NGÀY SAU =================
+// Trước đây "Hôm nay học được gì" chỉ khoe những thứ ĐÃ làm. Thứ thật sự cần biết lại là những thứ
+// CHƯA làm — vì đó mới là chỗ kế hoạch 400 giờ bị rò rỉ. Nay liệt kê rõ, và tự đẩy sang ngày sau.
+function flowMissingForKey(key){
+  key = key || todayKey();
+  if(isDayOff(key)) return [];
+  let act;
+  try{ act = englishActivityForDate(key); }catch(_){ return []; }
+  const plan = getPlanForKey(key).filter(t=>t.cat==='tieng_anh' && FLOW_MAP[t.kind]);
+  const theoDong = {};
+  plan.forEach(t=>{ const r = FLOW_MAP[t.kind].row; (theoDong[r] = theoDong[r] || []).push(t); });
+  const thieu = [];
+  Object.keys(theoDong).forEach(rowName=>{
+    const row = act.rows.find(r=>r.name===rowName);
+    const soLuot = row ? (row.count||0) : 0;
+    theoDong[rowName].sort((a,b)=>a.time.localeCompare(b.time)).forEach((t,i)=>{
+      if(soLuot < i+1) thieu.push({id:t.id, kind:t.kind, label:t.label, time:t.time, dur:t.dur, row:rowName});
+    });
+  });
+  return thieu.sort((a,b)=>a.time.localeCompare(b.time));
+}
+// Bù các mục chưa xong của NGÀY HÔM QUA vào hôm nay, dưới dạng việc thêm — có gắn cờ để biết là việc bù.
+// Nguyên tắc chống dồn ứ: mỗi ngày chỉ bù tối đa 3 mục, ưu tiên mục quan trọng nhất (theo AI_SKILLS
+// đang yếu nhất), và rút thời lượng còn 60% để bù được mà không vỡ lịch ngày mới.
+const BU_MAX_MOI_NGAY = 3;
+function buLichTuHomQua(){
+  const key = todayKey();
+  if(isDayOff(key)) return 0;
+  const yKey = toKey(addDays(parseKey(key), -1));
+  if(!LOG[yKey] || isDayOff(yKey)) return 0;
+  if(!LOG[key]) LOG[key] = {tasks:{}};
+  if(LOG[key].buTuNgay === yKey) return 0;          // đã bù cho cặp ngày này rồi
+  const thieu = flowMissingForKey(yKey);
+  LOG[key].buTuNgay = yKey;
+  if(!thieu.length){ saveLog(); return 0; }
+  // Ưu tiên: kỹ năng nào AI đang chấm yếu nhất thì bù trước.
+  let uuTien = {};
+  try{
+    const rep = aiSkillReport();
+    (rep.skills||[]).forEach(sk=>{ uuTien[AI_SKILL_ROWNAME[sk.key]] = (sk.mastery===null? -1 : sk.mastery); });
+  }catch(_){}
+  const chon = thieu.slice().sort((a,b)=>{
+    const ma = uuTien[a.row]===undefined ? 50 : uuTien[a.row];
+    const mb = uuTien[b.row]===undefined ? 50 : uuTien[b.row];
+    return ma - mb;
+  }).slice(0, BU_MAX_MOI_NGAY);
+  if(!LOG[key].customTasks) LOG[key].customTasks = [];
+  let them = 0;
+  const gioBu = ['20:05','20:40','21:15'];
+  chon.forEach((t, i)=>{
+    const id = 'bu_' + t.id + '_' + key;
+    if(LOG[key].customTasks.some(ct=>ct.id===id)) return;
+    LOG[key].customTasks.push({
+      id, time: gioBu[i] || '21:45',
+      dur: Math.max(10, Math.round((t.dur||20) * 0.6)),
+      label: '⏪ Bù: ' + t.label, cat:'tieng_anh', aiGenerated:true, buTu: yKey
+    });
+    them++;
+  });
+  if(them){ saveLog(); }
+  return them;
+}
+function flowMissingHtml(){
+  const thieu = flowMissingForKey(todayKey());
+  const bu = ((LOG[todayKey()]||{}).customTasks||[]).filter(ct=>ct.buTu);
+  if(!thieu.length && !bu.length) return '';
+  return `<div class="no-hoc">
+    ${thieu.length ? `<div class="no-h">📋 Hôm nay còn ${thieu.length} mục chưa làm</div>
+      <div class="no-list">${thieu.map(t=>`<div class="no-row"><span class="t">${escapeHtml(t.time)}</span><span class="l">${escapeHtml(t.label)}</span></div>`).join('')}</div>
+      <div class="no-note">Hết ngày mà vẫn còn, app sẽ tự đẩy tối đa ${BU_MAX_MOI_NGAY} mục quan trọng nhất sang ngày mai (rút còn 60% thời lượng để không vỡ lịch).</div>` : ''}
+    ${bu.length ? `<div class="no-h bu">⏪ Đang bù ${bu.length} mục từ hôm trước</div>
+      <div class="no-list">${bu.map(ct=>`<div class="no-row"><span class="t">${escapeHtml(ct.time)}</span><span class="l">${escapeHtml(ct.label.replace('⏪ Bù: ',''))}</span></div>`).join('')}</div>` : ''}
+  </div>`;
+}
 function todayFlowState(){
   ensureEnglishItems();
+  // Đồng bộ ngay mỗi lần dựng lại màn hình: học xong quay ra là Lịch đã tích sẵn.
+  try{ syncFlowToSchedule(todayKey()); }catch(_){}
   const act = englishActivityForDate(todayKey());
   const items = SETTINGS.englishItems || [];
   // TRƯỚC ĐÂY: "Học hôm nay" chạy ENGLISH_PLAN_ROTATION — một vòng xoay cố định theo thứ trong tuần,
@@ -16970,6 +17170,28 @@ function ipaDeepWordList(){
 // học tập, phản hồi ngay sau từng đơn vị nhỏ giúp ghi nhớ và sửa lỗi tốt hơn nhiều so với phản hồi dồn ở
 // cuối 1 khối lớn. Người học cũng có thể luyện lại đúng 1 từ yếu mà không phải làm lại cả bộ.
 function ipaDeepCurrentWord(s){ s = s || STATE.ipaDeepSession; return s && s.queue ? s.queue[s.qIdx] : null; }
+// Tra phiên âm IPA + âm trọng tâm của một từ. Ngân hàng đã có sẵn cả hai (cột [3] và [4]) từ
+// IPA_CHART_DATA, chỉ là trước đây màn Phân tích chuyên sâu không hề dùng tới — nên người học nhìn
+// thấy chữ "through" mà không biết nó đọc /θruː/, phải tự đoán rồi đọc sai ngay từ đầu.
+let IPA_WORD_MAP = null;
+function ipaOfWord(w){
+  if(!IPA_WORD_MAP){
+    IPA_WORD_MAP = {};
+    getIpaPracticeBank().forEach(r=>{
+      const k = String(r[0]||'').toLowerCase();
+      if(k && !IPA_WORD_MAP[k]) IPA_WORD_MAP[k] = {ipa: r[3]||'', focus: r[4]||''};
+    });
+  }
+  return IPA_WORD_MAP[String(w||'').toLowerCase()] || {ipa:'', focus:''};
+}
+// Khối hiển thị "chữ + phiên âm + âm trọng tâm" dùng chung cho mọi giai đoạn của màn phân tích sâu.
+function ipaWordBlockHtml(w, size){
+  const info = ipaOfWord(w);
+  const px = size || 38;
+  return `<div style="font-size:${px}px; font-weight:800; color:var(--text); letter-spacing:.3px;">${escapeHtml(w)}</div>
+    ${info.ipa ? `<div style="font-family:var(--mono); font-size:${Math.round(px*0.5)}px; font-weight:700; color:var(--teal); margin-top:2px;">/${escapeHtml(info.ipa)}/</div>` : ''}
+    ${info.focus ? `<div style="font-size:11px; color:var(--dim); margin-top:5px;">Âm trọng tâm: <b style="color:var(--gold); font-family:var(--mono);">/${escapeHtml(info.focus)}/</b></div>` : ''}`;
+}
 function openIpaDeepAnalysis(){
   navForward();
   ipaDeepRevokeRecordingUrl();
@@ -17057,9 +17279,18 @@ async function ipaDeepFinishSession(){
   const avg = scored.length ? Math.round(scored.reduce((sum,r)=>sum+(r.score||0),0)/scored.length) : 0;
   const passedCount = results.filter(r=>r.passed).length;
   const allPassed = results.length>0 && passedCount===results.length;
+  // Ghi TỪNG từ đã chấm vào speakPracticeLog — đây là nguồn duy nhất mà Thống kê (theo tuần/tháng/
+  // năm) và "Học hôm nay" đọc số liệu Luyện IPA. Trước đây phiên phân tích sâu không ghi gì cả nên
+  // luyện xong cả bộ mà thống kê vẫn hiện 0 từ, và Lịch làm việc không tự tích việc Luyện IPA.
+  if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
+  const hnay = todayKey();
+  scored.forEach(r=>{ SETTINGS.speakPracticeLog.push({date:hnay, level:'ipa', overall:r.score}); });
+  if(SETTINGS.speakPracticeLog.length>300) SETTINGS.speakPracticeLog = SETTINGS.speakPracticeLog.slice(-300);
   engGameAddScore(allPassed?8:5, `Luyện phát âm IPA chuyên sâu (${passedCount}/${results.length} từ đạt, TB ${avg}đ)`);
   engGameMarkActivity();
   saveSettings();
+  // Luyện xong thì "Lịch làm việc hằng ngày" tự tích việc Luyện IPA tương ứng (cùng cơ chế mục 4).
+  try{ syncFlowToSchedule(hnay); }catch(_){}
   s.phase = 'sessionDone';
   s.avgScore = avg; s.passedCount = passedCount; s.aiCalls = need.length ? 1 : 0; s.aiSkipped = (s.clips||[]).length - need.length;
   renderContent();
@@ -17147,18 +17378,77 @@ async function blobToBase64(blob){
 }
 // So khớp từ đích với những gì máy nghe được. Chỉ kết luận "đạt" khi khớp CHÍNH XÁC — gần đúng vẫn
 // đẩy lên AI, vì sai một âm cuối (/s/ vs /θ/) cũng có thể khiến máy nhận nhầm thành từ khác.
+// Ước lượng ĐỘ KHÓ của một từ với người học Việt Nam, 0 (dễ) → 1 (rất khó). Dùng để chấm điểm công
+// bằng hơn: đọc rõ "through" khó hơn đọc rõ "cat" rất nhiều, không thể cùng một điểm.
+function ipaWordKho(w){
+  w = String(w||'').toLowerCase();
+  let k = 0;
+  if(/th/.test(w))                         k += 0.30;   // /θ/ /ð/ — âm khó nhất
+  if(/^r|rr/.test(w))                      k += 0.15;   // /r/ cuộn lưỡi
+  if(/v/.test(w))                          k += 0.15;   // /v/ dễ thành /b/
+  if(/^(str|spr|scr|thr|spl)/.test(w))     k += 0.18;   // cụm 3 phụ âm đầu
+  else if(/^(sp|st|sk|sl|sm|sn|sw|tr|dr|pl|pr|br|cl|cr|fl|fr|gl|gr)/.test(w)) k += 0.12;
+  if(/(ed|s|es)$/.test(w))                 k += 0.10;   // đuôi dễ bị nuốt
+  if(/(l|ll)$/.test(w))                    k += 0.10;   // /l/ cuối từ
+  if(w.length >= 9)                        k += 0.18;
+  else if(w.length >= 7)                   k += 0.12;
+  else if(w.length >= 5)                   k += 0.05;
+  return Math.min(1, k);
+}
 function ipaDeepLocalCheck(word, heard){
   const w = String(word||'').toLowerCase().replace(/[^a-z']/g,'');
   const hs = String(heard||'').toLowerCase().split(/\s+/).map(x=>x.replace(/[^a-z']/g,'')).filter(Boolean);
   if(!w) return {score:null, needAi:true, text:''};
   if(!hs.length) return {score:null, needAi:true,
     text:'Máy chưa nhận diện được tiếng đọc của bạn. Bản ghi sẽ được AI nghe kỹ ở cuối bộ.'};
-  if(hs.some(h=>h===w)) return {score:88, needAi:false,
-    text:'Máy nhận diện ĐÚNG từ "'+word+'" từ chính bản ghi của bạn — nghĩa là phát âm đã đủ rõ để người nghe hiểu ngay, không lẫn sang từ khác. Từ này không cần AI phân tích thêm.'};
-  if(typeof speakWordsSimilar==='function' && hs.some(h=>speakWordsSimilar(h,w))) return {score:null, needAi:true,
-    text:'Máy nghe được gần giống "'+word+'" nhưng chưa chắc chắn — AI sẽ nghe kỹ ở cuối bộ.'};
-  return {score:null, needAi:true,
-    text:'Máy nghe thành "'+hs.join(' ')+'" thay vì "'+word+'" — AI sẽ nghe kỹ bản ghi ở cuối bộ để chỉ ra sai ở âm nào.'};
+  const kho = ipaWordKho(w);
+  if(hs.some(h=>h===w)){
+    // Khớp hẳn. Điểm 74–96 tuỳ độ khó của từ: đọc rõ một từ khó đáng nhiều điểm hơn một từ dễ.
+    const sc = Math.round(74 + kho*22);
+    const mucKho = kho>=0.55 ? 'từ khó' : (kho>=0.3 ? 'từ trung bình' : 'từ dễ');
+    return {score: sc, needAi:false, kho,
+      text:'Máy nghe ra ĐÚNG "'+word+'" — phát âm đủ rõ để người nghe hiểu ngay. Đây là '+mucKho+
+           ' (độ khó '+Math.round(kho*100)+'/100) nên được '+sc+' điểm. Điểm này đo ĐỘ RÕ TIẾNG, không phải độ chuẩn giọng bản xứ.'};
+  }
+  // Thử áp các phép thay âm điển hình lên chữ máy nghe được: nếu ra đúng từ đích thì kết luận được
+  // chắc chắn "đọc đúng từ, sai đúng một âm" — và biết luôn âm nào.
+  const VN_THAY_AM = [
+    [/^s/,   'th', '/θ/ (th)', 'Bạn đọc "th" thành "s". Đặt đầu lưỡi chạm nhẹ giữa hai hàm răng rồi thổi hơi ra, đừng để lưỡi lùi vào trong.'],
+    [/^t/,   'th', '/θ/ (th)', 'Bạn đọc "th" thành "t". "t" là bật hơi ở lợi, còn "th" phải đưa đầu lưỡi ra giữa hai hàm răng.'],
+    [/^f/,   'th', '/θ/ (th)', 'Bạn đọc "th" thành "f". "f" dùng răng chạm môi, "th" dùng răng chạm LƯỠI.'],
+    [/^d/,   'th', '/ð/ (th)', 'Bạn đọc "th" hữu thanh thành "d". Lưỡi phải ra giữa hai hàm răng và rung.'],
+    [/^z/,   'th', '/ð/ (th)', 'Bạn đọc "th" hữu thanh thành "z". Đưa đầu lưỡi ra chạm răng thay vì giữ sau răng.'],
+    [/b/,    'v',  '/v/',      'Bạn đọc "v" thành "b". "v" là răng cửa trên chạm môi dưới và RUNG, không chụm hai môi.'],
+    [/^z/,   'r',  '/r/',      'Bạn đọc "r" thành "z". Cuộn nhẹ đầu lưỡi về sau, không để lưỡi chạm vòm miệng.'],
+    [/^g/,   'r',  '/r/',      'Bạn đọc "r" thành "g" (kiểu "r" tiếng Việt miền Bắc). Âm /r/ tiếng Anh cuộn lưỡi, không bật ở cuống họng.'],
+    [/^l/,   'n',  '/n/',      'Lẫn l/n — chú ý đầu lưỡi và luồng hơi qua mũi.'],
+    [/^n/,   'l',  '/l/',      'Lẫn n/l — âm /l/ đầu lưỡi chạm lợi trên, hơi thoát hai bên lưỡi.'],
+  ];
+  for(const [tim, thay, ten, meo] of VN_THAY_AM){
+    for(const h of hs){
+      if(tim.test(h) && h.replace(tim, thay) === w){
+        const sc = Math.round(56 + kho*10);   // 56–66: đọc đúng từ, sai đúng một âm
+        return {score: sc, needAi:true, kho, amSai: ten,
+          text:'Máy nghe thành "'+h+'" thay vì "'+word+'" — bạn đọc đúng từ nhưng sai ở âm '+ten+'. '+meo+
+               ' Tạm chấm '+sc+' điểm; AI sẽ nghe kỹ bản ghi ở cuối bộ.'};
+      }
+    }
+  }
+  if(typeof speakWordsSimilar==='function' && hs.some(h=>speakWordsSimilar(h,w))){
+    // Gần giống: lấy chữ gần nhất, chấm theo mức lệch thật.
+    let best = hs[0], d = 99;
+    hs.forEach(h=>{ const x = (typeof speakLevenshtein==='function') ? speakLevenshtein(h,w) : 9; if(x<d){ d=x; best=h; } });
+    const tyLe = Math.max(0, 1 - d/Math.max(3, w.length));
+    const sc = Math.round(48 + tyLe*22);           // 48–70
+    return {score: sc, needAi:true, kho,
+      text:'Máy nghe thành "'+best+'" — gần đúng nhưng chưa khớp hẳn với "'+word+'" (lệch '+d+' ký tự). '+
+           'Tạm chấm '+sc+' điểm; AI sẽ nghe kỹ bản ghi ở cuối bộ để chỉ ra sai ở âm nào.'};
+  }
+  // Khác hẳn — vẫn cho điểm sàn theo độ khó thay vì để trống, nhưng nói rõ là chưa đạt.
+  const scXau = Math.round(24 + kho*14);           // 24–38
+  return {score: scXau, needAi:true, kho,
+    text:'Máy nghe thành "'+hs.join(' ')+'" thay vì "'+word+'" — người nghe sẽ hiểu sang từ khác. '+
+         'Tạm chấm '+scXau+' điểm; AI sẽ nghe kỹ bản ghi ở cuối bộ để chỉ ra sai ở âm nào.'};
 }
 async function analyzeIpaDeepRecording(blob){
   const s = STATE.ipaDeepSession; if(!s) return;
@@ -17242,7 +17532,7 @@ function renderIpaDeepAnalysis(item){
   if(s.phase==='intro'){
     body = `<div class="card" style="padding:22px; text-align:center;">
       <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em; margin-bottom:6px;">TỪ ĐANG LUYỆN</div>
-      <div style="font-size:38px; font-weight:800; color:var(--text); letter-spacing:.3px;">${escapeHtml(word)}</div>
+      ${ipaWordBlockHtml(word, 38)}
     </div>
     <div class="card" style="padding:16px; text-align:left;">
       <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
@@ -17259,7 +17549,7 @@ function renderIpaDeepAnalysis(item){
     const phase1 = s.subPhase===1;
     body = `<div class="card" style="padding:22px; text-align:center;">
       <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em; margin-bottom:4px;">TỪ ĐANG LUYỆN</div>
-      <div style="font-size:30px; font-weight:800; color:var(--text); margin-bottom:10px;">${escapeHtml(word)}</div>
+      <div style="margin-bottom:10px;">${ipaWordBlockHtml(word, 30)}</div>
       <div style="font-size:11.5px; font-weight:800; color:${phase1?'var(--gold)':'var(--teal)'}; margin-bottom:6px;">${phase1?'🐢 GIAI ĐOẠN 1 — Đọc CHẬM, tách rõ từng âm':'🗣️ GIAI ĐOẠN 2 — Đọc TỰ NHIÊN'}</div>
       <div style="font-size:44px; font-weight:800; font-family:var(--mono); color:var(--text);"><span id="ipa-deep-countdown-num">${s.secLeft}</span>s</div>
       <div style="font-size:11px; color:var(--dim); margin-top:6px;">${phase1?'Đọc thật chậm, tách rõ từng âm tiết của từ này':'Đọc lại đúng từ này với tốc độ tự nhiên'}</div>
@@ -17283,6 +17573,7 @@ function renderIpaDeepAnalysis(item){
     const isLastWord = s.qIdx>=total-1;
     const scoreCard = hasScore ? `<div class="card" style="padding:18px; text-align:center; border:1.5px solid ${passed?'var(--teal)':'#ff8080'};">
       <div style="font-size:11px; font-weight:800; color:var(--dim); letter-spacing:.03em;">ĐIỂM PHÁT ÂM "${escapeHtml(word).toUpperCase()}"</div>
+      ${ipaOfWord(word).ipa ? `<div style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--teal); margin-top:2px;">/${escapeHtml(ipaOfWord(word).ipa)}/</div>` : ''}
       <div style="font-size:40px; font-weight:800; font-family:var(--mono); color:${passed?'var(--teal)':'#ff8080'};">${s.score}<span style="font-size:16px; color:var(--dim);">/100</span></div>
       <div style="font-size:12.5px; font-weight:700; margin-top:4px; color:${passed?'var(--teal)':'#ff8080'};">${passed?'✅ ĐẠT':'❌ CHƯA ĐẠT — cần ≥ '+IPA_DEEP_PASS_SCORE+'đ'}</div>
     </div>` : `<div class="card" style="padding:16px; text-align:center; border:1.5px solid var(--gold);">
@@ -17309,7 +17600,7 @@ function renderIpaDeepAnalysis(item){
     const results = (s.results||[]).filter(Boolean);
     const rowsHtml = results.map(r=>`<div style="padding:9px 0; border-bottom:1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:700;">${escapeHtml(r.word)}</span>
+          <span style="font-size:13px; font-weight:700;">${escapeHtml(r.word)}${ipaOfWord(r.word).ipa?`<span style="font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--teal); margin-left:6px;">/${escapeHtml(ipaOfWord(r.word).ipa)}/</span>`:''}</span>
           <span style="font-size:12.5px; font-weight:800; color:${r.passed?'var(--teal)':'#ff8080'};">${typeof r.score==='number'?r.score+'đ':'—'} ${r.passed?'✅':(typeof r.score==='number'?'❌':'⏸')}</span>
         </div>
         ${r.text?`<div style="font-size:11px; color:var(--dim); line-height:1.6; margin-top:4px;">${escapeHtml(r.text)}</div>`:''}
@@ -17409,7 +17700,54 @@ function renderEnglishIPA(item){
     <div class="card" style="text-align:center; padding:16px; font-size:11px; color:var(--dim2); line-height:1.6;">
       💡 Bấm vào 1 nhóm để xổ ra danh sách âm, rồi bấm 1 âm để xem trang chi tiết: video hướng dẫn, sơ đồ khẩu hình, mẹo phát âm &amp; ví dụ luyện đọc.
     </div>
+    ${ipaHocCachHtml()}
   `;
+}
+// Sáu cặp âm mà người Việt nhầm nhiều nhất — nền tiếng Việt không có các âm này nên tai không phân
+// biệt được, dẫn tới đọc sai mà không hề biết mình sai. Luyện theo CẶP (minimal pairs) hiệu quả hơn
+// hẳn luyện từng âm rời, vì não học bằng cách so sánh chứ không phải ghi nhớ đơn lẻ.
+const IPA_CAP_AM_KHO = [
+  ['/θ/ vs /s/', 'think — sink',   'Tiếng Việt không có /θ/ nên miệng tự thay bằng "s" hoặc "t". Đặt đầu lưỡi chạm nhẹ răng trên rồi thổi hơi ra.'],
+  ['/ð/ vs /d/', 'they — day',     'Giống /θ/ nhưng có rung dây thanh. Đặt tay lên cổ họng, phải thấy rung mới đúng.'],
+  ['/v/ vs /b/', 'very — berry',   'Người Việt (nhất là miền Nam) hay đọc "v" thành "b". Răng trên phải chạm môi dưới.'],
+  ['/r/ vs /z/', 'right — zight',  'Lưỡi cuộn lên nhưng KHÔNG chạm vào đâu cả, không rung như "r" tiếng Việt.'],
+  ['/iː/ vs /ɪ/','sheep — ship',   'Không phải dài-ngắn mà là VỊ TRÍ lưỡi khác nhau: /iː/ căng và cao hơn, /ɪ/ chùng hơn.'],
+  ['/l/ cuối từ','call, feel, tell','Âm cuối bị nuốt là lỗi phổ biến nhất. Lưỡi phải chạm lợi trên và giữ lại một nhịp.'],
+];
+// Lộ trình học IPA — thứ tự các bước không tùy tiện mà theo nguyên lý học kỹ năng vận động: nghe
+// input chuẩn trước khi tự tạo âm, luyện chậm-đúng trước khi tăng tốc, phản hồi ngay sau mỗi đơn vị
+// nhỏ, và ôn lại ngắt quãng thay vì cày một lần rồi bỏ.
+function ipaHocCachHtml(){
+  const buoc = [
+    ['1', 'Nghe trước, đọc sau', 'Vào trang chi tiết của âm, xem video + nghe âm mẫu ít nhất 5 lần TRƯỚC khi tự đọc. Tai phải nhận ra âm đúng thì miệng mới tạo ra được — tự đọc trước sẽ khắc sâu thói quen sai.', 'var(--teal)'],
+    ['2', 'Nhìn khẩu hình, không đoán', 'Xem sơ đồ vị trí lưỡi/môi trong trang chi tiết. Phát âm là kỹ năng CƠ BẮP: biết chính xác đặt lưỡi ở đâu quan trọng hơn nghe đi nghe lại.', '#B78CFF'],
+    ['3', 'Luyện theo CẶP âm dễ nhầm', 'Đừng luyện từng âm rời. Đọc xen kẽ hai từ chỉ khác nhau đúng một âm (think/sink) — não học bằng so sánh, cách này nhanh hơn nhiều.', 'var(--gold)'],
+    ['4', 'Chậm & đúng trước, nhanh sau', 'Ở mục Phân tích chuyên sâu AI, giai đoạn 1 đọc thật chậm tách rõ từng âm, giai đoạn 2 mới đọc tốc độ tự nhiên. Đọc nhanh mà sai thì càng luyện càng khó sửa.', '#7ec8ff'],
+    ['5', 'Ôn ngắt quãng, mỗi ngày một ít', '10-15 phút mỗi ngày hiệu quả hơn 2 tiếng cuối tuần. Lịch làm việc đã đặt sẵn 20 phút Luyện IPA lúc 6:15 sáng — lúc miệng và tai còn tỉnh nhất.', '#ff9a76'],
+  ].map(([so,ten,mo,mau])=>`<div style="display:flex; gap:11px; padding:11px 0; border-bottom:1px solid var(--border);">
+      <div style="flex:0 0 26px; height:26px; border-radius:8px; background:${mau}; color:#0d1117; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center;">${so}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:3px;">${ten}</div>
+        <div style="font-size:11.5px; color:var(--dim); line-height:1.65;">${mo}</div>
+      </div>
+    </div>`).join('');
+  const capAm = IPA_CAP_AM_KHO.map(([c,vd,giai])=>`<div style="padding:9px 0; border-bottom:1px solid var(--border);">
+      <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+        <span style="font-family:var(--mono); font-size:12.5px; font-weight:800; color:var(--gold);">${c}</span>
+        <span class="ipa-hoc-vd" data-action="ipa-chart-speak" data-word="${escapeHtml(vd.split('—')[0].trim())}" style="font-size:12px; color:var(--teal); cursor:pointer;">🔊 ${escapeHtml(vd)}</span>
+      </div>
+      <div style="font-size:11px; color:var(--dim); line-height:1.6; margin-top:3px;">${giai}</div>
+    </div>`).join('');
+  return `<div class="card" style="padding:16px;">
+      <div style="font-size:12.5px; font-weight:800; color:var(--gold); margin-bottom:4px;">📚 Cách học IPA để tiến bộ nhanh</div>
+      <div style="font-size:11px; color:var(--dim2); line-height:1.6; margin-bottom:6px;">Năm bước dưới đây xếp theo đúng thứ tự nên làm — làm ngược thứ tự là lý do nhiều người luyện mãi không lên.</div>
+      ${buoc}
+    </div>
+    <div class="card" style="padding:16px;">
+      <div style="font-size:12.5px; font-weight:800; color:var(--gold); margin-bottom:4px;">⚠️ Sáu chỗ người Việt hay sai nhất</div>
+      <div style="font-size:11px; color:var(--dim2); line-height:1.6; margin-bottom:6px;">Bấm vào ví dụ để nghe. Sửa xong sáu chỗ này là độ rõ tiếng đã lên rất nhiều rồi.</div>
+      ${capAm}
+    </div>`;
 }
 // Trang riêng của 1 âm IPA — cách phát âm, mẹo, sơ đồ khẩu hình/vị trí lưỡi minh họa, và 10 từ ví dụ.
 function renderIpaDetail(item, sym){
