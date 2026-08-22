@@ -2160,6 +2160,26 @@
 .cv-hchip b{color:var(--text);font-weight:800;}
 .cv-hchip.hot{border-color:rgba(255,138,61,.45);}
 .cv-hchip.hot b{color:#FF8A3D;}
+/* ===== Khối Cố vấn tử vi gộp (v164) ===== */
+.cv-card.cv-tv{border-left-width:4px;background:linear-gradient(160deg,rgba(183,140,255,.07),transparent 60%),var(--card);}
+.cv-tv-nguon{font-size:10.5px;color:var(--dim2);line-height:1.6;margin:-4px 0 10px;}
+.cv-tv-nguon b{color:var(--dim);}
+.cv-tv-mangs{display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:11px;}
+.cv-tv-mang{display:flex;align-items:baseline;gap:8px;background:var(--card);padding:7px 10px;}
+.cv-tv-mang-n{flex:0 0 74px;font-size:11.5px;font-weight:800;color:var(--text);}
+.cv-tv-mang-b{flex:0 0 26px;font-size:10px;font-family:var(--mono);letter-spacing:-1px;}
+.cv-tv-mang-t{flex:1;font-size:11px;color:var(--dim);line-height:1.55;}
+.cv-tv-more{text-align:center;font-size:11px;font-weight:700;color:#B78CFF;padding:10px 0 2px;cursor:pointer;}
+.cv-tv-detail{margin-top:6px;border-top:1px solid var(--border);padding-top:8px;}
+.cv-tv-sec{margin-bottom:12px;}
+.cv-tv-sec-h{font-size:11px;font-weight:800;color:#B78CFF;letter-spacing:.03em;margin-bottom:6px;}
+.cv-tv-note{font-size:10.5px;color:var(--dim2);line-height:1.65;margin-top:11px;padding-top:9px;border-top:1px solid var(--border);}
+.cv-tv-note b{color:#ff9a76;}
+.cv-htv{display:flex;align-items:center;gap:8px;padding:8px 10px;margin:2px 0 9px;border-radius:10px;background:rgba(183,140,255,.08);border-left:3px solid var(--tvc);}
+.cv-htv-ic{font-size:15px;}
+.cv-htv-t{flex:1;font-size:12px;font-weight:700;color:var(--text);line-height:1.45;}
+.cv-htv-t b{color:var(--tvc);}
+.cv-htv-d{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--tvc);}
 /* ===== Chú thích icon thời tiết (v163) ===== */
 .wx-leg-toggle{text-align:center;font-size:11px;font-weight:700;color:var(--teal);padding:9px 0 3px;cursor:pointer;}
 .wx-leg{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:12px;}
@@ -2444,7 +2464,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v163';
+const APP_VERSION = 'v164';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6426,6 +6446,134 @@ function cvThuThap(){
 }
 
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CỐ VẤN TỬ VI  —  gộp cả 5 mục cũ thành MỘT khối duy nhất
+// ═══════════════════════════════════════════════════════════════════════════
+// Trước v163 phần này là 5 tab riêng: Vận trình · Bát Tự · Tử Vi · Chiêm tinh · Tarot. Mỗi sáng mở ra
+// phải bấm qua lại 5 chỗ, mỗi chỗ nói một kiểu về CÙNG một ngày — vừa mất thời gian vừa rối, và khi
+// bốn môn cho kết quả lệch nhau thì không biết tin cái nào.
+//
+// Bản này giữ NGUYÊN toàn bộ phép tính cũ (batTu, tuViChart, astroState, tarotToday, dvLifeAreas —
+// không sửa một dòng nào) nhưng chỉ hiện MỘT kết luận đã gộp: điểm tổng của cả bốn môn, hành nên
+// dùng, giờ hoàng đạo, bốn mảng đời sống mỗi mảng đúng một dòng, và việc nên làm / nên tránh. Ai
+// muốn xem số liệu gốc của từng môn thì mở khối "Chi tiết lá số" bên dưới — mặc định thu gọn.
+function cvTuViGop(){
+  const p = SETTINGS.profile || {};
+  if(!p.birthday) return null;
+  let A=null, t=null, tq=null, mang=[];
+  try{ A  = dailyAll(); }catch(_){}
+  try{ t  = tuviState(); }catch(_){}
+  try{ tq = dvNgayTongQuan(); }catch(_){}
+  try{ mang = dvLifeAreas() || []; }catch(_){}
+  if(!A && !t && !tq) return null;
+  return {A, t, tq, mang};
+}
+// Rút gọn mỗi mảng đời sống còn ĐÚNG MỘT DÒNG: tên · mức · câu ngắn nhất trong phần luận.
+function cvMangDong(a){
+  const bieu = a.sc>=2?'▲▲' : a.sc===1?'▲' : a.sc===0?'—' : a.sc===-1?'▼' : '▼▼';
+  const mau  = a.sc>=2?'#2CDBA8' : a.sc===1?'#7ec8ff' : a.sc===0?'var(--dim)' : a.sc===-1?'#FF9A76' : '#ff8080';
+  const cau  = String(a.tx||a.viec||'').replace(/<[^>]*>/g,'').split(/[.。]/)[0].trim();
+  return `<div class="cv-tv-mang">
+      <span class="cv-tv-mang-n">${escapeHtml(a.n)}</span>
+      <span class="cv-tv-mang-b" style="color:${mau};">${bieu}</span>
+      <span class="cv-tv-mang-t">${escapeHtml(cau)}</span>
+    </div>`;
+}
+function cvTuViHtml(){
+  const G = cvTuViGop();
+  if(!G){
+    return `<div class="cv-card cv-tv" style="--cvc:#B78CFF;">
+      <div class="cv-head"><span class="cv-ic">🔮</span>
+        <span class="cv-tieu">Cố vấn tử vi — cần ngày sinh để lập lá số</span></div>
+      <div class="cv-blk vs"><div class="cv-blk-h">VÌ SAO CHƯA CÓ</div>
+        <ul class="cv-ul"><li style="--bic:'▸'; color:var(--dim);"><span>Cả bốn môn (Bát Tự, Tử Vi, Chiêm tinh, Tarot) đều tính từ ngày sinh. Chưa có ngày sinh thì không lập được lá số.</span></li></ul></div>
+      <button class="form-btn" data-action="hub-open" data-target="profile" style="width:100%; margin-top:10px;">Nhập ngày sinh →</button>
+    </div>`;
+  }
+  const {A, t, tq, mang} = G;
+  const mau = (A && A.band && A.band.c) || (tq && tq.mau) || '#B78CFF';
+  const tieu = tq ? tq.tieuDe : (A ? A.band.n : 'Luận ngày hôm nay');
+  const diem = A ? A.total : null;
+
+  // ── VÌ SAO: gộp bằng chứng của cả bốn môn, mỗi môn một dòng ngắn ──
+  const vs = [];
+  if(t) vs.push(`Hôm nay là ngày <b>${escapeHtml(t.ngayCan+' '+t.ngayChi)}</b> (hành ${escapeHtml(t.nhNgay)}), bản mệnh bạn hành <b>${escapeHtml(t.nhChu)}</b> — quan hệ giữa hai hành này là <b>${escapeHtml((t.meta&&t.meta.n)||t.key)}</b>.`);
+  if(A && A.parts && A.parts.length){
+    const chiTiet = A.parts.map(x=>`${x.ic} ${x.mon} ${x.score>0?'+':''}${x.score}`).join(' · ');
+    vs.push(`Bốn môn cộng lại được <b>${A.total>0?'+':''}${A.total}</b> điểm — ${chiTiet}. Điểm này chỉ là cách xếp bốn góc nhìn cạnh nhau cho dễ so, <b>không phải xác suất</b>.`);
+    const lech = A.parts.map(x=>x.score);
+    if(Math.max(...lech) - Math.min(...lech) >= 3)
+      vs.push(`Lưu ý: bốn môn <b>lệch nhau khá nhiều</b> hôm nay (cao nhất ${Math.max(...lech)}, thấp nhất ${Math.min(...lech)}). Khi các môn không đồng thuận thì đừng bám vào con số tổng — hãy đọc phần việc nên làm bên dưới.`);
+  }
+  if(tq && Array.isArray(tq.ly)) tq.ly.slice(0,2).forEach(l=>vs.push(l));
+  if(t && t.xung) vs.push(`Chi ngày <b>xung</b> với chi năm sinh của bạn — theo lệ cũ là ngày nên chậm lại, không khởi sự lớn.`);
+  else if(t && t.hop) vs.push(`Chi ngày <b>hợp</b> với chi năm sinh của bạn — lệ cũ coi là ngày thuận để bàn bạc, ký kết, gặp người.`);
+
+  // ── NÊN LÀM ──
+  const lam = [];
+  if(t){
+    if(t.gio && t.gio.length) lam.push(`Giờ hoàng đạo hôm nay: <b>${t.gio.map(escapeHtml).join(' · ')}</b>. Xếp việc quan trọng nhất vào một trong các khung này.`);
+    if(t.nhTot) lam.push(`Hành nên dùng hôm nay là <b>${escapeHtml(t.nhTot)}</b>${t.sac?` — màu ${escapeHtml(t.sac)}`:''}${t.huong?`, hướng ${escapeHtml(t.huong)}`:''}. Cách dùng thực tế: chọn màu áo, chọn hướng ngồi làm việc.`);
+  }
+  if(A && A.parts){
+    const tot = A.parts.filter(x=>x.score>0);
+    (tot.length?tot:A.parts).slice(0,2).forEach(x=>{
+      const c = String(x.viec||'').replace(/<[^>]*>/g,'').trim();
+      if(c) lam.push(`<b>${x.ic} ${escapeHtml(x.mon)}:</b> ${escapeHtml(c)}`);
+    });
+  }
+  if(A && A.jobLine) lam.push(`<b>🎯 Áp vào việc kiểm hàng/QC:</b> ${A.jobLine}`);
+
+  // ── CẦN TRÁNH ──
+  const tranh = [];
+  if(A && A.parts){
+    A.parts.filter(x=>x.score<=0).slice(0,2).forEach(x=>{
+      const c = String(x.tranh||'').replace(/<[^>]*>/g,'').trim();
+      if(c) tranh.push(`<b>${x.ic} ${escapeHtml(x.mon)}:</b> ${escapeHtml(c)}`);
+    });
+  }
+  if(mang.length){
+    const xau = mang.filter(a=>a.sc<0).sort((a,b)=>a.sc-b.sc)[0];
+    if(xau) tranh.push(`Mảng <b>${escapeHtml(xau.n)}</b> đang là chỗ yếu nhất trong bốn mảng — hôm nay đừng đặt cược lớn vào đó.`);
+  }
+  if(!tranh.length) tranh.push('Hôm nay không hướng nào báo động. Điều duy nhất cần tránh là để một ngày thuận trôi qua mà không làm được gì đáng kể.');
+
+  const dong = (arr, ic, m) => (arr||[]).map(x=>`<li style="--bic:'${ic}'; color:${m};"><span>${x}</span></li>`).join('');
+  const moChiTiet = !!SETTINGS.cvTvChiTiet;
+
+  return `<div class="cv-card cv-tv" style="--cvc:${mau};">
+    <div class="cv-head">
+      <span class="cv-ic">🔮</span>
+      <span class="cv-tieu">${tieu}</span>
+      ${diem!==null ? `<span class="cv-diem">${diem>0?'+':''}${diem}</span>` : ''}
+    </div>
+    <div class="cv-tv-nguon">Gộp từ <b>Bát Tự · Tử Vi · Chiêm tinh · Tarot · Vận trình</b> — trước đây là 5 mục riêng, nay còn một.</div>
+    ${mang.length?`<div class="cv-tv-mangs">${mang.map(cvMangDong).join('')}</div>`:''}
+    <div class="cv-blk vs">
+      <div class="cv-blk-h">VÌ SAO LUẬN NHƯ VẬY</div>
+      <ul class="cv-ul">${dong(vs,'▸','var(--dim)')}</ul>
+    </div>
+    ${lam.length?`<div class="cv-blk lam"><div class="cv-blk-h" style="color:var(--teal);">NÊN LÀM</div>
+      <ul class="cv-ul">${dong(lam,'✓','var(--text)')}</ul></div>`:''}
+    ${tranh.length?`<div class="cv-blk tranh"><div class="cv-blk-h" style="color:#ff9a76;">CẦN TRÁNH</div>
+      <ul class="cv-ul">${dong(tranh,'✕','var(--text)')}</ul></div>`:''}
+    <div class="cv-tv-more" data-action="cv-tv-chitiet">${moChiTiet?'▴ Thu gọn chi tiết lá số':'▾ Xem chi tiết lá số từng môn'}</div>
+    ${moChiTiet ? `<div class="cv-tv-detail">${cvTuViChiTietHtml()}</div>` : ''}
+    <div class="cv-tv-note">⚠️ Phần này <b>không có cơ sở khoa học</b> và không kiểm chứng được — khác hẳn các mục bên dưới vốn đọc từ số liệu thật của bạn. Dùng nó như một khung để sắp xếp suy nghĩ và chọn thứ tự việc trong ngày; đừng dùng để quyết những chuyện hệ trọng thay cho thông tin thật.</div>
+  </div>`;
+}
+// Chi tiết từng môn — dùng lại đúng các hàm dựng sẵn, không tính lại gì.
+function cvTuViChiTietHtml(){
+  const khoi = [];
+  const thu = (ten, f) => { try{ const h = f(); if(h) khoi.push(`<div class="cv-tv-sec"><div class="cv-tv-sec-h">${ten}</div>${h}</div>`); }catch(e){} };
+  thu('☰ Bát Tự — tứ trụ &amp; ngũ hành', ()=>renderDvBatTu());
+  thu('✦ Tử Vi — 12 cung',               ()=>renderDvTuVi());
+  thu('♄ Chiêm tinh — chân dung tâm lý',  ()=>renderDvAstro());
+  thu('🂠 Tarot — lá bài trong ngày',      ()=>renderDvTarot());
+  return khoi.length ? khoi.join('') : '<div style="font-size:11.5px;color:var(--dim);padding:8px 0;">Chưa lập được chi tiết — kiểm tra lại ngày sinh trong Thông tin cá nhân.</div>';
+}
+
 // ---------- Giao diện ----------
 function cvThe(m){
   const dong = (arr, ic, mau) => (arr||[]).map(x=>`<li style="--bic:'${ic}'; color:${mau};"><span>${x}</span></li>`).join('');
@@ -6461,10 +6609,12 @@ function cvThanHtml(){
       <div class="cv-top-ngay">${ngay}</div>
       <div class="cv-top-mo">${cvMoDau(D)}</div>
     </div>
+    ${cvTuViHtml()}
     ${ND.map(cvThe).join('')}
     ${cvAiCardHtml(D)}
-    <div class="cv-foot">Mọi con số ở trên lấy từ dữ liệu trong máy bạn — lịch làm việc, việc đã tích, điểm luyện tập, thời tiết.
-      Không có phần nào là dự đoán tương lai. Nếu bạn thấy một nhận định sai, hãy đối chiếu dòng "Vì sao" — nó chỉ rõ con số nào dẫn tới kết luận đó.</div>`;
+    <div class="cv-foot">Màn này gộp hai thứ khác hẳn nhau về bản chất, nên đọc cũng nên khác nhau:<br>
+      <b>Khối tử vi (🔮)</b> gộp cả 5 mục cũ — Bát Tự, Tử Vi, Chiêm tinh, Tarot, Vận trình — làm một. Nó tính từ ngày sinh, <b>không kiểm chứng được</b>, dùng như khung tham khảo để sắp thứ tự việc.<br>
+      <b>Các khối còn lại</b> đọc từ số liệu thật trong máy bạn: lịch làm việc, việc đã tích, điểm luyện tập, thời tiết. Không có phần nào là dự đoán tương lai — thấy chỗ nào sai thì đối chiếu dòng "Vì sao", nó chỉ rõ con số nào dẫn tới kết luận đó.</div>`;
 }
 // ---------- Bản viết sâu bằng Claude (tùy chọn, cần API key) ----------
 // Khác bản cũ ở chỗ: prompt không còn nói về Can Chi/ngũ hành mà đưa thẳng số liệu thật cho AI đọc,
@@ -6525,6 +6675,12 @@ ${nhom || '  (chưa đủ dữ liệu)'}
 ${kn || '  (chưa mảng nào đủ dữ liệu)'}
 - Mảng bỏ lâu nhất: ${D.boLau[0] ? D.boLau[0].name+' — '+D.boLau[0].daysSince+' ngày' : 'không có'}
 - Thời tiết: ${D.wx ? `${D.wx.min}–${D.wx.max}°C, mưa ${D.wx.rain==null?'?':D.wx.rain}%, gió ${D.wx.wind==null?'?':D.wx.wind} km/h` : 'chưa lấy được'}
+${(function(){ try{ const G = cvTuViGop(); if(!G) return ''; const t=G.t, A=G.A;
+  return `
+ THAM KHẢO TỬ VI (người dùng có xem mục này, nhưng ĐÂY KHÔNG PHẢI DỮ LIỆU THẬT):
+- Ngày ${t?t.ngayCan+' '+t.ngayChi:'?'}, quan hệ với bản mệnh: ${t&&t.meta?t.meta.n:'?'}
+- Điểm gộp bốn môn: ${A?A.total:'?'} (${A&&A.band?A.band.n:'?'})
+- Giờ hoàng đạo: ${t&&t.gio?t.gio.join(', '):'?'}`; }catch(_){ return ''; } })()}
 
 YÊU CẦU:
 1. Viết bằng tiếng Việt, xưng "bạn", giọng một người cố vấn thẳng thắn và tôn trọng — không nịnh, không lên lớp, không sáo rỗng.
@@ -6532,7 +6688,8 @@ YÊU CẦU:
 3. Nếu một mảng chưa đủ dữ liệu thì nói thẳng là chưa đủ, đừng bịa.
 4. Cấu trúc: 1 đoạn mở nhận định tình hình → 2-3 đoạn phân tích chỗ đáng chú ý nhất (ưu tiên chỗ có chênh lệch số liệu rõ, vì đó mới là chỗ hành động được) → 1 đoạn chốt đúng MỘT việc quan trọng nhất nên làm hôm nay.
 5. Liên hệ với nghề kiểm hàng/QC khi thật sự có liên quan (ví dụ ngày phải đi nhà máy thì tiếng Anh nghe-nói quan trọng hơn ngữ pháp) — không có liên quan thì thôi, đừng gượng ép.
-6. Dài khoảng 250-350 chữ. Văn xuôi thuần, KHÔNG dùng dấu **, không markdown, không gạch đầu dòng.`;
+6. Dài khoảng 250-350 chữ. Văn xuôi thuần, KHÔNG dùng dấu **, không markdown, không gạch đầu dòng.
+7. Về phần THAM KHẢO TỬ VI (nếu có): người dùng thích đọc mục này nên bạn được phép nhắc tới, nhưng chỉ ở mức "theo lệ tử vi thì hôm nay là ngày X" và tối đa MỘT câu. Tuyệt đối không lấy nó làm căn cứ cho lời khuyên — mọi lời khuyên phải dựa trên số liệu thật. Nếu tử vi nói ngược với số liệu thật thì đi theo số liệu thật.`;
 }
 async function cvAiLam(){
   if(!SETTINGS.claudeApiKey){ showToast('🔑','Chưa có Claude API key','Vào Cài đặt để dán key.'); return; }
@@ -7086,12 +7243,26 @@ function dvHomeCardHtml(){
       <span class="dv-home-cta ${open?'open':''}">▾</span>
     </div>`;
   if(!open) return `<div class="dv-home">${head2}</div>`;
+  // Tử vi lên đầu, rồi mới tới nhận định số liệu đầu tiên.
+  let tvDong = '';
+  try{
+    const G = cvTuViGop();
+    if(G){
+      const nhan = G.tq ? G.tq.tieuDe : (G.A ? G.A.band.n : '');
+      const d = G.A ? G.A.total : null;
+      tvDong = `<div class="cv-htv" style="--tvc:${(G.A&&G.A.band&&G.A.band.c)||'#B78CFF'};">
+        <span class="cv-htv-ic">🔮</span>
+        <span class="cv-htv-t">${nhan}</span>
+        ${d!==null?`<span class="cv-htv-d">${d>0?'+':''}${d}</span>`:''}</div>`;
+    }
+  }catch(_){}
   let dau = '';
   try{
     const nd = cvNhanDinh(D);
     dau = nd.length ? cvThe(nd[0]) : '';
   }catch(_){}
   return `<div class="dv-home">${head2}
+    ${tvDong}
     <div class="cv-home-mo">${cvMoDau(D)}</div>
     ${chi.length?`<div class="cv-hchips">${chi.join('')}</div>`:''}
     ${dau}
@@ -19971,6 +20142,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ygCloseEl){ STATE.ygMo = null; ygWidget = null; ygTuHienTai=''; renderContentPreserveScroll(); return; }
   const ygAccEl = e.target.closest('[data-action="yg-accent"]');
   if(ygAccEl){ ygDoiGiong(ygAccEl.getAttribute('data-g')); return; }
+  const cvTvEl = e.target.closest('[data-action="cv-tv-chitiet"]');
+  if(cvTvEl){ SETTINGS.cvTvChiTiet = !SETTINGS.cvTvChiTiet; saveSettings(); renderContentPreserveScroll(); return; }
   const cvAiEl = e.target.closest('[data-action="cv-ai-lam"]');
   if(cvAiEl){ cvAiLam(); return; }
   const dvHomeEl = e.target.closest('[data-action="dv-home-toggle"]');
