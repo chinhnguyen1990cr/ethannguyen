@@ -2566,7 +2566,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v168';
+const APP_VERSION = 'v169';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15224,7 +15224,7 @@ function sdLuuLoi(){
   saveSettings(); pushToDrive();
   STATE.sdSuaLoi = false;
   showToast('✅','Đã lưu lời thoại','Lời thoại hiện ngay dưới video khi luyện.');
-  renderContent();
+  renderContent();   // đang ở màn sửa lời (không có video) nên vẽ cả màn là đúng
 }
 
 
@@ -15236,9 +15236,12 @@ async function sdLayLoiAi(recId){
   const rec = sdTimVideo(recId); if(!rec) return;
   if(!SETTINGS.geminiApiKey){
     STATE.sdLoi = 'Cần Gemini API key để tự lấy lời thoại. Vào Cài đặt → Hội thoại AI để dán key. (Vẫn có thể tự dán lời thoại bằng tay.)';
-    renderContent(); return;
+    if(!sdVe('sdErrWrap')) renderContent();
+    return;
   }
-  STATE.sdDangLay = true; STATE.sdLoi = null; renderContent();
+  STATE.sdDangLay = true; STATE.sdLoi = null;
+  // Chỉ vẽ lại vùng lời thoại + vùng lỗi — video ở trên vẫn chạy trong lúc AI đang nghe.
+  if(!(sdVe('sdTranWrap') && sdVe('sdErrWrap'))) renderContent();
   const prompt = `Bạn đang giúp một người Việt luyện SHADOWING tiếng Anh với video này.
 
 Nghe toàn bộ video và ghi lại lời nói thành các dòng ngắn, kèm mốc thời gian.
@@ -15292,7 +15295,8 @@ Chỉ trả về JSON.`;
       '. Bạn vẫn có thể tự dán lời thoại bằng tay.';
   }
   STATE.sdDangLay = false;
-  renderContent();
+  if(!(sdVe('sdTranWrap') && sdVe('sdErrWrap'))) renderContent();
+  if(sdPlayer) sdBatBam();
 }
 // Lời thoại dạng dòng: ưu tiên bản có mốc thời gian; không có thì tách từ chữ thô (không mốc).
 function sdDongLoi(rec){
@@ -15362,12 +15366,13 @@ function sdLapDong(i){
   const s = STATE.sdPhien; if(!s) return;
   s.lapIdx = (s.lapIdx===i) ? null : i;
   if(s.lapIdx!=null) sdTuaToiDong(i);
-  renderContentPreserveScroll();
-  setTimeout(()=>{ if(STATE.sdPhien) sdBatBam(); }, 120);
+  if(!(sdVe('sdBarWrap') && sdVe('sdTranWrap'))) renderContentPreserveScroll();
+  if(sdPlayer) sdBatBam();
 }
 function sdBatNghia(){
   SETTINGS.sdHienNghia = !SETTINGS.sdHienNghia; saveSettings();
-  renderContentPreserveScroll();
+  if(!sdVe('sdTranWrap')) renderContentPreserveScroll();
+  if(sdPlayer) sdBatBam();
 }
 
 // ---- Trình phát YouTube riêng cho shadowing ----
@@ -15380,7 +15385,11 @@ function sdDungPlayer(){
 function sdGanPlayer(videoId){
   if(!videoId) return;
   const gan = ()=>{
-    if(!document.getElementById(SD_HOLDER)) return;   // đã chuyển màn khác trước khi API sẵn sàng
+    const hop = document.getElementById(SD_HOLDER);
+    if(!hop) return;                                  // đã chuyển màn khác trước khi API sẵn sàng
+    // Nếu thẻ chứa ĐÃ có iframe sống thì thôi, đừng dựng lại — dựng lại sẽ làm video nhảy về đầu.
+    if(hop.querySelector && hop.querySelector('iframe')) return;
+    if(hop.tagName === 'IFRAME') return;
     sdDungPlayer();
     try{
       sdPlayer = new YT.Player(SD_HOLDER, {
@@ -15411,11 +15420,102 @@ function sdTocDo(){
 function sdDatTocDo(v){
   SETTINGS.sdToc = +v; saveSettings();
   try{ if(sdPlayer && sdPlayer.setPlaybackRate) sdPlayer.setPlaybackRate(sdTocDo()); }catch(e){}
-  renderContentPreserveScroll();
+  if(!sdVe('sdBarWrap')) renderContentPreserveScroll();
 }
 function sdPhatLai(){
   try{ if(sdPlayer && sdPlayer.seekTo){ sdPlayer.seekTo(0, true); sdPlayer.playVideo(); } }catch(e){}
 }
+
+
+// ── VẼ LẠI TỪNG PHẦN, KHÔNG ĐỤNG TỚI TRÌNH PHÁT ─────────────────────────
+// LỖI CỦA BẢN v167/v168 (người dùng báo: "vẫn không chạy video khi lấy lời thoại hoặc bắt đầu ghi âm"):
+// mọi thao tác trong màn shadowing đều gọi renderContent(), mà hàm đó ghi đè innerHTML của cả
+// #content — nghĩa là XOÁ luôn thẻ iframe YouTube mà trình phát đã cắm vào. Sau đó biến sdPlayer
+// vẫn trỏ tới một iframe đã chết: gọi playVideo() không lỗi, không làm gì, và không có dòng nào
+// gắn lại trình phát. Kết quả: bấm ghi âm là video biến mất — đúng lúc cần nhìn nhất.
+//
+// Cách sửa: mỗi vùng thay đổi được bọc trong một thẻ có id riêng, và chỉ ghi đè innerHTML của
+// ĐÚNG vùng đó. Khung video nằm ngoài mọi vùng này nên không bao giờ bị đụng tới.
+function sdNutGhiHtml(s){
+  return s.dangGhi
+    ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> ⏹ Dừng ghi âm · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
+    : `<button class="sd-mic" data-action="sd-ghi-bat">🎙️ Bắt đầu ghi âm</button>`;
+}
+function sdBarHtml(s){
+  const toc = sdTocDo();
+  const chips = SD_TOCDO.map(v=>`<button class="sd-toc ${v===toc?'on':''}" data-action="sd-toc" data-v="${v}">${v}×</button>`).join('');
+  return `<button class="sd-pl" data-action="sd-lai">⏮ Từ đầu</button>
+    ${s.lapIdx!=null?`<button class="sd-pl lap" data-action="sd-lap" data-i="${s.lapIdx}">🔁 Đang lặp dòng ${s.lapIdx+1} — bấm để thôi</button>`:''}
+    <div class="sd-tocwrap"><span class="sd-toclb">Tốc độ</span>${chips}</div>`;
+}
+function sdBanHtml(s){
+  if(!(s.ban||[]).length) return '';
+  return `<div class="sd-ban">
+      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi — nghe lại và so với video ở trên</div>
+      ${s.ban.map((b,i)=>`
+        <div class="sd-ban-row ${i===0?'moi':''}">
+          <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}</div>
+          <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"></audio>
+        </div>`).join('')}
+      <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Đừng bắt lỗi từng từ — nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không. Lệch nhịp là chỗ đáng luyện lại, chứ không phải phát âm từng từ.</div>
+    </div>`;
+}
+function sdLoiThoaiHtml(rec, s){
+  const ds = sdDongLoi(rec);
+  const coMoc = ds.length && ds[0].t!=null;
+  const hienNghia = !!SETTINGS.sdHienNghia;
+  if(STATE.sdDangLay){
+    return `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:26px; margin-bottom:8px;">🤖</div>
+      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và ghi lại lời thoại…</div>
+      <div style="margin-top:6px;">Video càng dài càng lâu, thường 20–60 giây. <b>Video ở trên vẫn xem được bình thường</b> trong lúc chờ.</div>
+    </div>`;
+  }
+  if(!ds.length){
+    return `<div class="sd-tran empty">Video này chưa có lời thoại. Shadowing không bắt buộc phải có, nhưng có thì bám nhịp dễ hơn rất nhiều — và có mốc thời gian thì bấm dòng nào là video nhảy tới đó.
+      <div style="display:flex; gap:9px; margin-top:11px;">
+        <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-ai" style="flex:1;">🤖 Lấy tự động</button>
+        <button class="form-btn cancel" data-action="sd-loi-mo" style="flex:1;">📄 Dán tay</button>
+      </div></div>`;
+  }
+  return `<div class="sd-tran-h">📄 Lời thoại
+      <button class="sd-tran-edit ${hienNghia?'on':''}" data-action="sd-nghia">🇻🇳 Nghĩa</button>
+      <button class="sd-tran-edit" data-action="sd-loi-ai" title="Lấy lại bằng AI">🤖</button>
+      <button class="sd-tran-edit" data-action="sd-loi-mo">✏️</button>
+    </div>
+    ${coMoc?`<div class="sd-tran-tip">Dòng đang được nói sẽ <b>tự sáng lên</b> và tự cuộn theo video. Bấm <b>mốc giờ</b> để nhảy tới dòng đó · bấm <b>🔁</b> để lặp đi lặp lại một dòng cho tới khi nói kịp.</div>`:''}
+    <div class="sd-tran ${coMoc?'comoc':''}">${ds.map((d,i)=>`
+      <div class="sd-line" id="sd-line-${i}">
+        ${coMoc?`<button class="sd-line-t" data-action="sd-seek" data-i="${i}" title="Nhảy tới ${sdFmt(d.t)}">${sdFmt(d.t)}</button>`:''}
+        <div class="sd-line-body">
+          <div class="sd-line-en">${escapeHtml(d.en)}</div>
+          ${(hienNghia && d.vi)?`<div class="sd-line-vi">${escapeHtml(d.vi)}</div>`:''}
+        </div>
+        ${coMoc?`<button class="sd-line-lap ${s.lapIdx===i?'on':''}" data-action="sd-lap" data-i="${i}" title="Lặp đi lặp lại dòng này">🔁</button>`:''}
+      </div>`).join('')}</div>`;
+}
+function sdErrHtml(s){
+  const e = (s && s.loi) || STATE.sdLoi;
+  return e ? `<div class="sd-err">⚠️ ${escapeHtml(e)}</div>` : '';
+}
+// Ghi đè ĐÚNG một vùng. Trả về true nếu vùng đó đang có trên màn hình.
+function sdVe(vung){
+  const s = STATE.sdPhien; if(!s) return false;
+  const rec = sdTimVideo(s.vidId); if(!rec) return false;
+  const el = document.getElementById(vung);
+  if(!el) return false;
+  if(vung==='sdMicWrap')  el.innerHTML = sdNutGhiHtml(s);
+  else if(vung==='sdBarWrap')  el.innerHTML = sdBarHtml(s);
+  else if(vung==='sdBanWrap')  el.innerHTML = sdBanHtml(s);
+  else if(vung==='sdTranWrap'){ el.innerHTML = sdLoiThoaiHtml(rec, s); sdDongHienTai = -1; }
+  else if(vung==='sdErrWrap')  el.innerHTML = sdErrHtml(s);
+  // Khối dính đổi màu khi đang ghi — sửa class, không vẽ lại.
+  const dinh = document.getElementById('sdDinh');
+  if(dinh) dinh.classList.toggle('ghi', !!s.dangGhi);
+  return true;
+}
+// Đang ở màn shadowing hay không — dùng để chọn giữa "vẽ từng phần" và "vẽ cả màn".
+function sdDangMo(){ return !!(STATE.sdPhien && document.getElementById(SD_HOLDER)); }
 
 // ---- Ghi âm bằng MediaRecorder của trình duyệt ----
 let sdRec = null, sdRecStream = null, sdRecChunks = [], sdDemGiay = null;
@@ -15432,14 +15532,15 @@ async function sdBatDauGhi(){
     sdRecStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
   }catch(e){
     s.loi = 'Không mở được micro. Kiểm tra quyền truy cập micro của app trong Cài đặt điện thoại.';
-    renderContent(); return;
+    if(!sdVe('sdErrWrap')) renderContent();
+    return;
   }
   let mime = 'audio/webm;codecs=opus';
   if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = 'audio/webm';
   if(!(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime))) mime = '';
   sdRecChunks = [];
   try{ sdRec = mime ? new MediaRecorder(sdRecStream, {mimeType:mime}) : new MediaRecorder(sdRecStream); }
-  catch(e){ try{ sdRec = new MediaRecorder(sdRecStream); }catch(e2){ s.loi = 'Không khởi tạo được bộ ghi âm.'; renderContent(); return; } }
+  catch(e){ try{ sdRec = new MediaRecorder(sdRecStream); }catch(e2){ s.loi = 'Không khởi tạo được bộ ghi âm.'; if(!sdVe('sdErrWrap')) renderContent(); return; } }
   sdRec.ondataavailable = ev => { if(ev.data && ev.data.size) sdRecChunks.push(ev.data); };
   sdRec.onstop = () => {
     const blob = new Blob(sdRecChunks, {type: (sdRec && sdRec.mimeType) || 'audio/webm'});
@@ -15457,10 +15558,12 @@ async function sdBatDauGhi(){
       try{ engGameAddScore(3, 'Shadowing: ' + ((rec&&rec.title)||'video')); engGameMarkActivity(); }catch(_){}
     }
     if(cur){ cur.dangGhi = false; cur.giay = 0; }
-    renderContent();
+    // Dừng ghi: chỉ dựng lại nút ghi + danh sách bản ghi. KHÔNG vẽ lại cả màn, nếu không thì
+    // iframe YouTube bị xoá đúng vào lúc người học cần nghe lại và so với bản gốc.
+    if(!(sdVe('sdMicWrap') && sdVe('sdBanWrap'))) renderContent();
   };
   try{ sdRec.start(); }
-  catch(e){ s.loi = 'Không bắt đầu ghi âm được.'; sdDonStream(); renderContent(); return; }
+  catch(e){ s.loi = 'Không bắt đầu ghi âm được.'; sdDonStream(); if(!sdVe('sdErrWrap')) renderContent(); return; }
   s.dangGhi = true; s.giay = 0; s.loi = null;
   try{ if(sdPlayer && sdPlayer.playVideo) sdPlayer.playVideo(); }catch(_){}
   if(sdDemGiay) clearInterval(sdDemGiay);
@@ -15472,7 +15575,8 @@ async function sdBatDauGhi(){
     if(el) el.textContent = sdFmt(cur.giay);
     if(cur.giay >= 300) sdDungGhi();      // chặn trên 5 phút, tránh ghi quên tắt
   }, 1000);
-  renderContent();
+  // Bắt đầu ghi: chỉ đổi nút + xoá thông báo lỗi cũ. Video vẫn đang chạy, không bị đụng tới.
+  if(!(sdVe('sdMicWrap') && sdVe('sdErrWrap'))) renderContent();
 }
 function sdDungGhi(){
   if(sdDemGiay){ clearInterval(sdDemGiay); sdDemGiay = null; }
@@ -15575,79 +15679,28 @@ function renderShadowPhien(item){
     return;
   }
 
-  const chips = SD_TOCDO.map(v=>`<button class="sd-toc ${v===toc?'on':''}" data-action="sd-toc" data-v="${v}">${v}×</button>`).join('');
-  const ds = sdDongLoi(rec);
-  const coMoc = ds.length && ds[0].t!=null;
-  const hienNghia = !!SETTINGS.sdHienNghia;
-
-  let loiHtml;
-  if(STATE.sdDangLay){
-    loiHtml = `<div class="sd-tran empty" style="text-align:center;">
-      <div style="font-size:26px; margin-bottom:8px;">🤖</div>
-      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và ghi lại lời thoại…</div>
-      <div style="margin-top:6px;">Video càng dài càng lâu, thường 20–60 giây. Đừng rời màn hình.</div>
-    </div>`;
-  } else if(ds.length){
-    loiHtml = `<div class="sd-tran ${coMoc?'comoc':''}">${ds.map((d,i)=>`
-      <div class="sd-line" id="sd-line-${i}">
-        ${coMoc?`<button class="sd-line-t" data-action="sd-seek" data-i="${i}" title="Nhảy tới ${sdFmt(d.t)}">${sdFmt(d.t)}</button>`:''}
-        <div class="sd-line-body">
-          <div class="sd-line-en">${escapeHtml(d.en)}</div>
-          ${(hienNghia && d.vi)?`<div class="sd-line-vi">${escapeHtml(d.vi)}</div>`:''}
-        </div>
-        ${coMoc?`<button class="sd-line-lap ${s.lapIdx===i?'on':''}" data-action="sd-lap" data-i="${i}" title="Lặp đi lặp lại dòng này">🔁</button>`:''}
-      </div>`).join('')}</div>`;
-  } else {
-    loiHtml = `<div class="sd-tran empty">Video này chưa có lời thoại. Shadowing không bắt buộc phải có, nhưng có thì bám nhịp dễ hơn rất nhiều — và có mốc thời gian thì bấm dòng nào là video nhảy tới đó.
-      <div style="display:flex; gap:9px; margin-top:11px;">
-        <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-ai" style="flex:1;">🤖 Lấy tự động</button>
-        <button class="form-btn cancel" data-action="sd-loi-mo" style="flex:1;">📄 Dán tay</button>
-      </div></div>`;
-  }
-
-  const nutGhi = s.dangGhi
-    ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> ⏹ Dừng ghi âm · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
-    : `<button class="sd-mic" data-action="sd-ghi-bat">🎙️ Bắt đầu ghi âm</button>`;
-
-  // Trình phát thứ hai — dựng ngay khi vừa dừng ghi, để nghe lại và so với bản gốc phía trên.
-  const banHtml = (s.ban||[]).length ? `
-    <div class="sd-ban">
-      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi — nghe lại và so với video ở trên</div>
-      ${s.ban.map((b,i)=>`
-        <div class="sd-ban-row ${i===0?'moi':''}">
-          <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}</div>
-          <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"></audio>
-        </div>`).join('')}
-      <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Đừng bắt lỗi từng từ — nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không. Lệch nhịp là chỗ đáng luyện lại, chứ không phải phát âm từng từ.</div>
-    </div>` : '';
+  // v169: mọi vùng có thể đổi đều nằm trong một thẻ có id riêng, để về sau chỉ ghi đè đúng vùng đó
+  // mà KHÔNG đụng tới khung video.
 
   // v168: KHỐI DÍNH ở đầu màn — video + nút ghi âm luôn nằm trong tầm mắt kể cả khi cuộn xuống đọc
   // lời thoại. Trước đây cuộn xuống là mất video, mà shadowing thì phải vừa nhìn miệng người ta vừa
   // đọc chữ vừa nói theo — không thấy video coi như mất một nửa bài tập.
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
-    ${(s.loi || STATE.sdLoi) ? `<div class="sd-err">⚠️ ${escapeHtml(s.loi || STATE.sdLoi)}</div>` : ''}
-    <div class="sd-dinh ${s.dangGhi?'ghi':''}">
+    <div id="sdErrWrap">${sdErrHtml(s)}</div>
+    <div class="sd-dinh ${s.dangGhi?'ghi':''}" id="sdDinh">
       <div class="video-embed-wrap"><div id="${SD_HOLDER}"></div></div>
-      <div class="sd-bar">
-        <button class="sd-pl" data-action="sd-lai">⏮ Từ đầu</button>
-        ${s.lapIdx!=null?`<button class="sd-pl lap" data-action="sd-lap" data-i="${s.lapIdx}">🔁 Đang lặp dòng ${s.lapIdx+1} — bấm để thôi</button>`:''}
-        <div class="sd-tocwrap"><span class="sd-toclb">Tốc độ</span>${chips}</div>
-      </div>
-      ${nutGhi}
+      <div class="sd-bar" id="sdBarWrap">${sdBarHtml(s)}</div>
+      <div id="sdMicWrap">${sdNutGhiHtml(s)}</div>
     </div>
     ${!sdHoTroGhiAm() ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : ''}
-    ${banHtml}
-    <div class="sd-tran-h">📄 Lời thoại
-      ${ds.length?`<button class="sd-tran-edit ${hienNghia?'on':''}" data-action="sd-nghia">🇻🇳 Nghĩa</button>`:''}
-      ${ds.length?`<button class="sd-tran-edit" data-action="sd-loi-ai" title="Lấy lại bằng AI">🤖</button>`:''}
-      ${ds.length?`<button class="sd-tran-edit" data-action="sd-loi-mo">✏️</button>`:''}
-    </div>
-    ${coMoc?`<div class="sd-tran-tip">Dòng đang được nói sẽ <b>tự sáng lên</b> và tự cuộn theo video. Bấm <b>mốc giờ</b> để nhảy tới dòng đó · bấm <b>🔁</b> để lặp đi lặp lại một dòng cho tới khi nói kịp.</div>`:''}
-    ${loiHtml}
+    <div id="sdBanWrap">${sdBanHtml(s)}</div>
+    <div id="sdTranWrap">${sdLoiThoaiHtml(rec, s)}</div>
     <div class="sd-foot">Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất, không đồng bộ lên Drive (file âm thanh quá nặng, mà giá trị của nó chỉ ở lúc so sánh ngay tại chỗ). Giữ tối đa 3 bản gần nhất.</div>`;
   sdDongHienTai = -1;
-  if(sdPlayer) sdBatBam();
+  // Cả màn vừa được vẽ lại nên thẻ chứa video là thẻ RỖNG mới — luôn gắn lại trình phát.
+  // Đây là lưới an toàn cho mọi trường hợp renderContent() được gọi từ nơi khác trong lúc đang luyện.
+  sdGanPlayer(rec.videoId);
 }
 
 // ---- Danh sách & thêm video ----
