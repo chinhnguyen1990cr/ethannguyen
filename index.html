@@ -2197,6 +2197,20 @@
 .dict-pl-btn{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:11px 4px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;}
 .dict-pl-btn.wide{flex:1.2;font-size:15px;background:linear-gradient(135deg,#2CDBA8,#1fa87f);color:#08110d;border:none;}
 .dict-pl-btn:active{opacity:.7;}
+.dict-toc-lb{font-size:9.5px;font-weight:800;color:var(--dim2);letter-spacing:.06em;margin:11px 0 5px;}
+.dict-toc-row{display:flex;gap:5px;}
+.dict-toc{flex:1;background:var(--card);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:8px 2px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--mono);}
+.dict-toc.on{background:linear-gradient(135deg,#7ec8ff,#4a8fd4);color:#07121c;border-color:transparent;}
+.dict-toc-mo{font-size:10.5px;color:var(--dim2);line-height:1.55;margin-top:6px;}
+.dict-thu{margin-top:12px;background:var(--panel2,rgba(255,255,255,.03));border:1px solid rgba(126,200,255,.35);border-radius:11px;padding:11px 12px;}
+.dict-thu.xong{border-color:rgba(44,219,168,.5);background:rgba(44,219,168,.06);}
+.dict-thu-h{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:800;color:#7ec8ff;margin-bottom:7px;}
+.dict-thu.xong .dict-thu-h{color:#2CDBA8;}
+.dict-thu-sc{font-family:var(--mono);font-size:13px;}
+.dict-thu-tt{font-size:11.5px;color:var(--dim);line-height:1.7;margin-top:8px;padding-top:7px;border-top:1px solid var(--border);}
+.dict-thu-tt b{color:var(--text);}
+.dict-thu-cha{font-size:10px;color:var(--dim2);margin-top:6px;}
+.dict-blank{color:#ff8080;font-family:var(--mono);letter-spacing:1px;padding:1px 3px;border-radius:4px;background:rgba(255,128,128,.09);}
 .dict-pl-bar{height:5px;background:var(--border);border-radius:3px;margin-top:9px;overflow:hidden;}
 .dict-pl-fill{height:100%;width:0%;background:linear-gradient(90deg,#2CDBA8,#7ec8ff);border-radius:3px;transition:width .18s linear;}
 .dict-pl-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--dim2);margin-top:5px;font-family:var(--mono);}
@@ -2493,7 +2507,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v165';
+const APP_VERSION = 'v166';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13367,6 +13381,8 @@ function dictStartLevel(levelKey){
 function dictPrepareCurrent(){
   const s = STATE.dictSession; if(!s) return;
   s.answered = null; s.typedValue = ''; s.result = null; s.playCount = 0;
+  s.thuHien = false; s.thuLan = 0;   // v166: câu mới thì xoá kết quả đối chiếu của câu cũ
+  try{ dictNgungTieng(); }catch(_){}
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
 }
 function dictTypedInput(value){
@@ -13421,7 +13437,11 @@ function dictSpeakCurrent(slow){
   s.playCount = (s.playCount||0)+1;
   try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
   try{
-    const p = speakEnglishRobust(sentence[2], {rate: slow?0.55:0.92, speedMul: slow?0.6:1});
+    // v166: tốc độ do người học chọn, áp cho CẢ HAI đường phát —
+    //   rate     → giọng máy của hệ điều hành (speechSynthesis)
+    //   speedMul → Google Cloud TTS
+    const toc = slow ? 0.5 : dictTocDo();
+    const p = speakEnglishRobust(sentence[2], {rate: toc, speedMul: toc});
     setTimeout(dictCapNhatThanh, 250);   // chờ audio có src rồi mới chạy thanh tiến trình
     if(p && p.catch) p.catch(()=>{ showToast('⚠️','Không đọc được câu này','Bấm nghe lại lần nữa, hoặc thoát ra vào lại bài nếu vẫn không nghe được.'); });
   }catch(e){
@@ -13429,9 +13449,7 @@ function dictSpeakCurrent(slow){
   }
 }
 function dictExitSession(){
-  if(dictThanhTimer){ clearInterval(dictThanhTimer); dictThanhTimer = null; }
-  try{ const a = dictAudioEl(); if(a) a.pause(); }catch(_){}
-  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(_){}
+  dictNgungTieng();
   STATE.dictSession = null; renderContent(); navBack();
 }
 // Tô màu bài chép của người học so với câu gốc: xanh = từ đúng (theo matchMask), đỏ/gạch chân = từ
@@ -13455,22 +13473,27 @@ function dictHighlightDiff(text, matchMask){
 // KHÔNG cho tua — chỉ có phát và dừng. Nay nếu có Cloud TTS key thì câu được tổng hợp thành một file
 // âm thanh thật (<audio>), lúc đó tua lùi/tới mới làm được. Không có key thì nói thẳng là không tua
 // được và chỉ phát lại từ đầu, chứ không giả vờ có nút rồi bấm không ăn.
-const DICT_TUA_GIAY = 3;
-function dictCoTua(){ return !!SETTINGS.cloudTtsApiKey; }
-function dictAudioEl(){ try{ return getSharedTtsAudioEl(); }catch(_){ return null; } }
-function dictTua(giay){
-  const a = dictAudioEl();
-  if(!dictCoTua() || !a || !a.src){
-    showToast('⏪','Chưa tua được','Nút tua cần Google Cloud TTS (giọng đọc thật). Chưa có thì bấm 🔊 để nghe lại từ đầu.');
-    return;
-  }
-  try{
-    const dai = isFinite(a.duration) ? a.duration : 0;
-    a.currentTime = Math.max(0, Math.min(dai || 1e9, (a.currentTime||0) + giay));
-    if(a.paused) a.play();
-    dictCapNhatThanh();
-  }catch(e){ showToast('⏪','Không tua được','Bấm 🔊 nghe lại từ đầu.'); }
+// v166: BỎ nút tua tới/tua lui. Lý do thực tế: tua chỉ chạy được khi có Cloud TTS key, mà phần lớn
+// thời gian app dùng giọng máy của hệ điều hành — nút bấm không ăn thì thà bỏ đi. Thay bằng NĂM MỨC
+// TỐC ĐỘ, thứ luôn hoạt động ở cả hai đường phát và hữu ích hơn nhiều cho chép chính tả: nghe chậm
+// để bắt từng âm cuối, nghe nhanh để quen tốc độ nói thật.
+const DICT_TOCDO = [
+  {v:0.50, n:'0.5×', d:'Rất chậm — tách rõ từng âm, dùng khi mới nghe lần đầu'},
+  {v:0.70, n:'0.7×', d:'Chậm — nghe rõ âm cuối và từ nối'},
+  {v:0.85, n:'0.85×',d:'Hơi chậm — gần tốc độ nói thường'},
+  {v:1.00, n:'1×',   d:'Tốc độ nói bình thường'},
+  {v:1.25, n:'1.25×',d:'Nhanh — luyện bắt kịp người bản xứ nói nhanh'},
+];
+function dictTocDo(){
+  const v = +SETTINGS.dictToc;
+  return DICT_TOCDO.some(x=>x.v===v) ? v : 1.00;
 }
+function dictDatTocDo(v){
+  SETTINGS.dictToc = +v; saveSettings();
+  dictSpeakCurrent(false);          // đổi tốc độ thì phát lại luôn để nghe ngay khác biệt
+  renderContentPreserveScroll();
+}
+function dictAudioEl(){ try{ return getSharedTtsAudioEl(); }catch(_){ return null; } }
 function dictPhatDung(){
   const a = dictAudioEl();
   if(a && a.src && !a.paused){ try{ a.pause(); }catch(_){} dictCapNhatThanh(); return; }
@@ -13479,6 +13502,12 @@ function dictPhatDung(){
     dictCapNhatThanh(); return;
   }
   dictSpeakCurrent(false);
+}
+// Dừng hẳn mọi đường phát tiếng (cả Cloud TTS lẫn giọng máy) — dùng khi thoát bài hoặc sang câu mới.
+function dictNgungTieng(){
+  try{ const a = dictAudioEl(); if(a){ a.pause(); } }catch(_){}
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(_){}
+  if(dictThanhTimer){ clearInterval(dictThanhTimer); dictThanhTimer = null; }
 }
 // Cập nhật thanh tiến trình mà KHÔNG vẽ lại cả màn hình — vẽ lại sẽ làm mất chữ đang gõ dở.
 let dictThanhTimer = null;
@@ -13500,17 +13529,71 @@ function dictCapNhatThanh(){
   dictThanhTimer = setInterval(ve, 200);
 }
 function dictThanhPhatHtml(s){
-  const co = dictCoTua();
+  const toc = dictTocDo();
+  const meta = DICT_TOCDO.find(x=>x.v===toc) || DICT_TOCDO[3];
+  const chips = DICT_TOCDO.map(x=>`<button class="dict-toc ${x.v===toc?'on':''}" data-action="dict-toc" data-v="${x.v}" title="${escapeHtml(x.d)}">${x.n}</button>`).join('');
   return `<div class="dict-player">
     <div class="dict-pl-row">
-      <button class="dict-pl-btn wide" id="dictPlayBtn" data-action="dict-play-toggle" title="Phát / tạm dừng">▶️</button>
-      <button class="dict-pl-btn" data-action="dict-rewind" title="Tua lùi ${DICT_TUA_GIAY} giây">⏪ ${DICT_TUA_GIAY}s</button>
-      <button class="dict-pl-btn" data-action="dict-forward" title="Tua tới ${DICT_TUA_GIAY} giây">${DICT_TUA_GIAY}s ⏩</button>
-      <button class="dict-pl-btn" data-action="dict-speak-slow" title="Nghe chậm">🐢</button>
+      <button class="dict-pl-btn wide" id="dictPlayBtn" data-action="dict-play-toggle" title="Phát / tạm dừng">▶️ Nghe</button>
+      <button class="dict-pl-btn" data-action="dict-speak-current" title="Phát lại từ đầu">🔁 Lại</button>
     </div>
+    <div class="dict-toc-lb">TỐC ĐỘ ĐỌC</div>
+    <div class="dict-toc-row">${chips}</div>
+    <div class="dict-toc-mo">${escapeHtml(meta.d)}</div>
     <div class="dict-pl-bar"><div class="dict-pl-fill" id="dictBarFill"></div></div>
     <div class="dict-pl-meta"><span id="dictBarTime"></span><span>${s.playCount>0?`đã nghe ${s.playCount} lần`:'nghe bao nhiêu lần tùy thích'}</span></div>
-    ${co ? '' : `<div class="dict-pl-note">⚠️ Nút tua cần Google Cloud TTS. Hiện đang dùng giọng máy của hệ điều hành — giọng máy không tua được, bấm ▶️ sẽ phát lại từ đầu.</div>`}
+  </div>`;
+}
+// ── ĐỐI CHIẾU THỬ: bấm được nhiều lần, KHÔNG kết thúc câu ────────────────
+// Yêu cầu: "so sánh câu mình gõ với đáp án, chữ nào đúng hiện xanh, chữ nào không có hiện đỏ,
+// cứ như vậy cho đến khi nghe được hết và đầy đủ câu."
+//
+// Một quyết định thiết kế cần nói rõ: nếu bấm đối chiếu mà HIỆN LUÔN các từ còn thiếu thì bài tập
+// mất hết ý nghĩa — chỉ cần bấm một lần là chép lại đáp án. Nên các từ chưa bắt được hiện dưới dạng
+// ô trống ▁▁▁ đúng bằng số chữ cái của từ đó, ở đúng vị trí trong câu. Bạn biết mình còn thiếu MẤY
+// từ, DÀI bao nhiêu, NẰM Ở ĐÂU — đủ để nghe lại có định hướng, nhưng vẫn phải tự nghe ra.
+function dictDoiChieuThu(){
+  const s = STATE.dictSession; if(!s) return;
+  const el = document.getElementById('dictTypedInputEl');
+  if(el) s.typedValue = el.value;
+  if(!String(s.typedValue||'').trim()){
+    showToast('✍️','Chưa gõ gì cả','Nghe câu rồi gõ những từ bạn nghe được vào ô bên trên, sau đó bấm Đối chiếu.');
+    return;
+  }
+  s.thuLan = (s.thuLan||0) + 1;
+  s.thuHien = true;
+  renderContentPreserveScroll();
+}
+function dictThuHtml(target, typed, lan){
+  const tw = speakNormalizeWords(target), hw = speakNormalizeWords(typed);
+  const maskDich = dictLcsExact(tw, hw);
+  const maskGo   = dictLcsExact(hw, tw);
+  const batDuoc = maskDich.filter(Boolean).length;
+  const thieu   = tw.length - batDuoc;
+  const sai     = hw.filter((w,i)=>!maskGo[i]).length;
+  const xong    = thieu===0 && sai===0;
+
+  const dongGo = hw.length
+    ? hw.map((w,i)=>`<span class="dict-w ${maskGo[i]?'ok':'no'}">${escapeHtml(w)}</span>`).join(' ')
+    : '<span style="color:var(--dim2);font-style:italic;">(trống)</span>';
+  // Từ chưa bắt được → ô trống đúng số chữ cái, đúng vị trí. Không lộ đáp án.
+  const dongCau = tw.map((w,i)=> maskDich[i]
+      ? `<span class="dict-w ok">${escapeHtml(w)}</span>`
+      : `<span class="dict-blank" title="còn thiếu ${w.length} chữ cái">${'▁'.repeat(Math.min(w.length,12))}</span>`
+    ).join(' ');
+
+  return `<div class="dict-thu ${xong?'xong':''}">
+    <div class="dict-thu-h">
+      <span>🔍 Đối chiếu lần ${lan}</span>
+      <span class="dict-thu-sc">${batDuoc}/${tw.length} từ</span>
+    </div>
+    <div class="dict-dc-row"><div class="dict-dc-lb">BẠN GÕ</div><div class="dict-dc-tx">${dongGo}</div></div>
+    <div class="dict-dc-row"><div class="dict-dc-lb">CÂU CẦN CHÉP</div><div class="dict-dc-tx">${dongCau}</div></div>
+    <div class="dict-thu-tt">${
+      xong ? '✅ Bạn đã chép đủ và đúng cả câu. Bấm <b>Chấm điểm</b> để tính kết quả.'
+           : `Còn <b>${thieu}</b> từ chưa bắt được${sai?` và <b>${sai}</b> từ gõ sai`:''}. Mỗi ô <span class="dict-blank">▁▁▁</span> là một từ còn thiếu, số gạch bằng số chữ cái của từ đó — nghe lại (thử hạ tốc độ xuống 0.5×) rồi gõ bổ sung và đối chiếu tiếp.`
+    }</div>
+    <div class="dict-thu-cha"><span class="dict-w ok">xanh</span> = đúng · <span class="dict-w no">đỏ</span> = gõ sai · <span class="dict-blank">▁▁</span> = chưa nghe ra. Không tính hoa/thường và dấu câu.</div>
   </div>`;
 }
 // ── Đối chiếu HAI CHIỀU ──────────────────────────────────────────────────
@@ -13674,7 +13757,16 @@ function renderDictSession(){
     <textarea id="dictTypedInputEl" class="vocab-type-input dict-ta ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
       placeholder="Gõ lại câu bạn nghe được…" ${s.answered!==null?'disabled':''}
       oninput="dictTypedInput(this.value)" onchange="dictTypedInput(this.value)" onblur="dictTypedInput(this.value)">${escapeHtml(s.typedValue||'')}</textarea>
-    ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="dict-typed-submit">✓ Kiểm tra</button>` : resultHtml}
+    ${s.answered===null ? `
+      ${s.thuHien ? dictThuHtml(sentence[2], s.typedValue||'', s.thuLan||1) : ''}
+      <div style="display:flex; gap:9px; margin-top:12px;">
+        <button class="form-btn cancel" style="flex:1;" data-action="dict-thu">🔍 Đối chiếu</button>
+        <button class="form-btn eng-quiz-nextbtn" style="flex:1;" data-action="dict-typed-submit">✓ Chấm điểm</button>
+      </div>
+      <div style="font-size:10.5px; color:var(--dim2); line-height:1.6; margin-top:7px; text-align:center;">
+        <b>Đối chiếu</b> bấm được nhiều lần — xem từ nào đúng, từ nào còn thiếu rồi nghe lại tiếp.
+        <b>Chấm điểm</b> mới kết thúc câu.
+      </div>` : resultHtml}
   </div>`;
   document.getElementById('content').innerHTML = `${dictSessionBackRow()}${progressWrap}${body}`;
 }
@@ -18522,7 +18614,6 @@ function renderIpaDeepAnalysis(item){
       </div>
     </div>
     <button class="form-btn btn-listen" data-action="${s.playingList?'ipa-deep-stop-list':'ipa-deep-play-list'}" style="width:100%; margin-top:12px;">${s.playingList?'⏹️ Dừng':'🔊 Nghe mẫu'}</button>
-    ${ygKhoiHtml(word)}
     <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-record-start" style="width:100%; margin-top:10px;">🎙️ Bắt đầu ghi âm</button>`;
   } else if(s.phase==='recording'){
     const phase1 = s.subPhase===1;
@@ -18571,7 +18662,6 @@ function renderIpaDeepAnalysis(item){
       <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:10px;">📋 Nhận xét chi tiết từ AI</div>
       <div style="font-size:12.5px; color:var(--text); line-height:1.75; white-space:pre-line;">${escapeHtml(s.resultText||'')}</div>
     </div>
-    ${ygKhoiHtml(word)}
     <div style="display:flex; gap:10px; margin-top:14px;">
       <button class="form-btn cancel" data-action="ipa-deep-retry" style="flex:1;">🔄 Ghi âm lại</button>
       <button class="form-btn eng-quiz-nextbtn" data-action="ipa-deep-next-word" style="flex:1;">${isLastWord?'🏁 Xem kết quả cả bộ':'Từ tiếp theo →'}</button>
@@ -20322,21 +20412,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dvSpreadEl){ STATE.dvSpread = true; renderContentPreserveScroll(); return; }
   const dictPlayEl = e.target.closest('[data-action="dict-play-toggle"]');
   if(dictPlayEl){ dictPhatDung(); return; }
-  const dictRewEl = e.target.closest('[data-action="dict-rewind"]');
-  if(dictRewEl){ dictTua(-DICT_TUA_GIAY); return; }
-  const dictFwdEl = e.target.closest('[data-action="dict-forward"]');
-  if(dictFwdEl){ dictTua(DICT_TUA_GIAY); return; }
-  const ygOpenEl = e.target.closest('[data-action="yg-open"]');
-  if(ygOpenEl){
-    STATE.ygMo = ygOpenEl.getAttribute('data-word');
-    renderContentPreserveScroll();
-    setTimeout(()=>ygMo(STATE.ygMo), 60);
-    return;
-  }
-  const ygCloseEl = e.target.closest('[data-action="yg-close"]');
-  if(ygCloseEl){ STATE.ygMo = null; ygWidget = null; ygTuHienTai=''; renderContentPreserveScroll(); return; }
-  const ygAccEl = e.target.closest('[data-action="yg-accent"]');
-  if(ygAccEl){ ygDoiGiong(ygAccEl.getAttribute('data-g')); return; }
+  const dictTocEl = e.target.closest('[data-action="dict-toc"]');
+  if(dictTocEl){ dictDatTocDo(dictTocEl.getAttribute('data-v')); return; }
+  const dictThuEl = e.target.closest('[data-action="dict-thu"]');
+  if(dictThuEl){ dictDoiChieuThu(); return; }
   const cvTvEl = e.target.closest('[data-action="cv-tv-chitiet"]');
   if(cvTvEl){ SETTINGS.cvTvChiTiet = !SETTINGS.cvTvChiTiet; saveSettings(); renderContentPreserveScroll(); return; }
   const cvAiEl = e.target.closest('[data-action="cv-ai-lam"]');
