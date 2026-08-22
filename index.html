@@ -2227,12 +2227,28 @@
 .sd-audio{width:100%;height:38px;}
 .sd-ban-tip{font-size:11px;color:var(--dim);line-height:1.7;padding-top:9px;border-top:1px solid var(--border);}
 .sd-ban-tip b{color:var(--text);}
-.sd-tran-h{font-size:12px;font-weight:800;color:var(--gold);margin:16px 0 8px;display:flex;align-items:center;gap:9px;}
-.sd-tran-edit{margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:7px;padding:4px 9px;font-size:10.5px;cursor:pointer;font-family:inherit;}
-.sd-tran{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 15px;font-size:14.5px;line-height:1.95;color:var(--text);}
-.sd-tran p{margin:0 0 11px;}
-.sd-tran p:last-child{margin-bottom:0;}
-.sd-tran.empty{font-size:11.5px;color:var(--dim);line-height:1.7;}
+.sd-tran-h{font-size:12px;font-weight:800;color:var(--gold);margin:16px 0 8px;display:flex;align-items:center;gap:7px;}
+.sd-tran-edit{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:7px;padding:4px 9px;font-size:10.5px;cursor:pointer;font-family:inherit;}
+.sd-tran-h .sd-tran-edit:first-of-type{margin-left:auto;}
+.sd-tran-edit.on{border-color:#2CDBA8;color:#2CDBA8;}
+.sd-tran-tip{font-size:10.5px;color:var(--dim2);line-height:1.65;margin-bottom:8px;}
+.sd-tran-tip b{color:var(--dim);}
+.sd-tran{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 9px;}
+.sd-tran.empty{font-size:11.5px;color:var(--dim);line-height:1.7;padding:14px 15px;}
+.sd-line{display:flex;align-items:flex-start;gap:8px;padding:8px 7px;border-radius:9px;transition:background .18s;}
+.sd-line.dang{background:rgba(255,201,74,.13);box-shadow:inset 3px 0 0 var(--gold);}
+.sd-line-t{flex:0 0 auto;background:var(--panel2,rgba(255,255,255,.05));border:1px solid var(--border);color:var(--dim);
+  border-radius:6px;padding:3px 6px;font-size:10px;font-family:var(--mono);cursor:pointer;margin-top:2px;}
+.sd-line.dang .sd-line-t{background:var(--gold);color:#171208;border-color:transparent;}
+.sd-line-body{flex:1;min-width:0;}
+.sd-line-en{font-size:14.5px;line-height:1.75;color:var(--text);}
+.sd-line.dang .sd-line-en{font-weight:600;}
+.sd-line-vi{font-size:11.5px;line-height:1.6;color:var(--dim);margin-top:3px;}
+.sd-line-lap{flex:0 0 auto;background:transparent;border:none;color:var(--dim2);font-size:14px;padding:2px 3px;cursor:pointer;opacity:.5;}
+.sd-line-lap.on{opacity:1;color:#B78CFF;}
+.sd-dinh{position:sticky;top:0;z-index:30;background:var(--bg,#0E1218);padding-bottom:10px;margin:0 -2px;}
+.sd-dinh.ghi{box-shadow:0 6px 18px -6px rgba(255,92,92,.5);}
+.sd-pl.lap{background:rgba(183,140,255,.14);border-color:rgba(183,140,255,.5);color:#B78CFF;font-size:11px;}
 .sd-foot{font-size:10.5px;color:var(--dim2);line-height:1.65;padding:14px 4px 24px;text-align:center;}
 /* ===== Nghe & chép chính tả — trình phát tua được (v165) ===== */
 .dict-player{background:var(--panel2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin:10px 0 12px;}
@@ -2550,7 +2566,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v167';
+const APP_VERSION = 'v168';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2973,6 +2989,7 @@ window.addEventListener('popstate', ()=>{
     try{ if(STATE.ipaDeepSession) ipaDeepCleanupMedia(); }catch(e){}
     try{ if(STATE.shadowSession) shadowCleanupMedia(); }catch(e){}
     // v167: rời màn shadowing mới thì dừng mic, dừng player, giải phóng các Blob ghi âm.
+    try{ sdNgungBam(); }catch(e){}
     try{ if(STATE.sdPhien){ sdDungGhi(); sdDonStream(); sdDungPlayer();
       (STATE.sdPhien.ban||[]).forEach(b=>{ try{ URL.revokeObjectURL(b.url); }catch(_){} }); } }catch(e){}
     const snap = NAV_STACK.pop();
@@ -15202,16 +15219,162 @@ function sdLuuLoi(){
   const rec = sdTimVideo((STATE.sdPhien||{}).vidId); if(!rec) return;
   const el = document.getElementById('sdLoiSua'); if(!el) return;
   rec.transcript = el.value.trim();
+  // Sửa tay thì bản có mốc thời gian cũ không còn khớp nữa — bỏ đi, tránh tô sáng sai dòng.
+  rec.lines = null; rec.loiTuAi = false;
   saveSettings(); pushToDrive();
   STATE.sdSuaLoi = false;
   showToast('✅','Đã lưu lời thoại','Lời thoại hiện ngay dưới video khi luyện.');
   renderContent();
 }
 
+
+// ── Tự lấy lời thoại bằng AI, KÈM MỐC THỜI GIAN ──────────────────────────
+// Gemini đọc thẳng video YouTube qua fileData.fileUri (không cần tải phụ đề thủ công). Điểm mấu chốt
+// là xin kèm MỐC THỜI GIAN từng dòng — có mốc thì mới làm được ba thứ quan trọng nhất của shadowing:
+// tô sáng đúng dòng đang nói, bấm dòng để tua tới, và lặp đi lặp lại một dòng cho tới khi bắt kịp.
+async function sdLayLoiAi(recId){
+  const rec = sdTimVideo(recId); if(!rec) return;
+  if(!SETTINGS.geminiApiKey){
+    STATE.sdLoi = 'Cần Gemini API key để tự lấy lời thoại. Vào Cài đặt → Hội thoại AI để dán key. (Vẫn có thể tự dán lời thoại bằng tay.)';
+    renderContent(); return;
+  }
+  STATE.sdDangLay = true; STATE.sdLoi = null; renderContent();
+  const prompt = `Bạn đang giúp một người Việt luyện SHADOWING tiếng Anh với video này.
+
+Nghe toàn bộ video và ghi lại lời nói thành các dòng ngắn, kèm mốc thời gian.
+
+Trả về DUY NHẤT một object JSON (không markdown, không giải thích) đúng dạng:
+{"lines":[{"t":<giây bắt đầu, số nguyên>,"en":"<câu tiếng Anh được nói ra>","vi":"<nghĩa tiếng Việt ngắn gọn>"}]}
+
+Quy tắc:
+- Mỗi dòng là MỘT câu hoặc một cụm ngắt nghỉ tự nhiên, dài khoảng 5-20 từ. Đây là đơn vị người học sẽ nói đuổi theo, nên đừng gộp cả đoạn dài vào một dòng.
+- "t" là giây bắt đầu của dòng đó trong video, phải tăng dần.
+- "en" ghi đúng lời được nói, giữ nguyên dạng rút gọn (I'm, don't, gonna...) vì người học cần bắt chước đúng cách nói thật.
+- "vi" dịch thoáng cho dễ hiểu, không cần dịch từng chữ.
+- Bỏ qua nhạc nền, tiếng vỗ tay, phần không có lời.
+- Nếu video dài, lấy tối đa 120 dòng đầu.
+Chỉ trả về JSON.`;
+  try{
+    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[
+          {fileData:{fileUri:'https://www.youtube.com/watch?v='+rec.videoId}},
+          {text:prompt}
+        ]}],
+        generationConfig:{temperature:0.2, maxOutputTokens:8192, responseMimeType:'application/json'}
+      })
+    });
+    if(!res.ok){
+      let msg = 'HTTP '+res.status;
+      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(_){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
+    let parsed;
+    try{ parsed = JSON.parse(txt); }
+    catch(_){ const m = txt.match(/\{[\s\S]*\}/); if(!m) throw new Error('AI trả về dữ liệu không đọc được.'); parsed = JSON.parse(m[0]); }
+    const raw = (parsed && parsed.lines) || [];
+    const lines = raw.map(l=>({
+      t:  Math.max(0, Math.floor(+l.t || 0)),
+      en: String(l.en||'').trim(),
+      vi: String(l.vi||'').trim()
+    })).filter(l=>l.en).sort((a,b)=>a.t-b.t);
+    if(!lines.length) throw new Error('AI không nghe được lời nào — video có thể không có tiếng nói, hoặc thử lại lần nữa.');
+    rec.lines = lines;
+    rec.transcript = lines.map(l=>l.en).join('\n');
+    rec.loiTuAi = true;
+    saveSettings(); pushToDrive();
+    showToast('✅','Đã lấy xong lời thoại', lines.length + ' dòng, có mốc thời gian — bấm vào dòng nào là video nhảy tới đó.');
+  }catch(e){
+    STATE.sdLoi = 'Không lấy được lời thoại: ' + ((e&&e.message)||'lỗi không rõ') +
+      '. Bạn vẫn có thể tự dán lời thoại bằng tay.';
+  }
+  STATE.sdDangLay = false;
+  renderContent();
+}
+// Lời thoại dạng dòng: ưu tiên bản có mốc thời gian; không có thì tách từ chữ thô (không mốc).
+function sdDongLoi(rec){
+  if(rec && Array.isArray(rec.lines) && rec.lines.length) return rec.lines;
+  const tho = String((rec&&rec.transcript)||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  return tho.map(en=>({t:null, en, vi:''}));
+}
+// ── Bám theo video: tô sáng dòng đang nói, cuộn tới, lặp một dòng ─────────
+// Đây là phần làm shadowing thực sự dùng được: khi đang ghi âm bạn KHÔNG phải dò mắt tìm chỗ, dòng
+// đang nói tự sáng lên. Cập nhật bằng cách sửa thẳng DOM chứ KHÔNG vẽ lại màn hình — vẽ lại sẽ huỷ
+// trình phát YouTube và cắt ngang việc ghi âm.
+let sdBamTimer = null, sdDongHienTai = -1;
+function sdChiSoDong(giay, ds){
+  let k = -1;
+  for(let i=0;i<ds.length;i++){ if(ds[i].t!=null && ds[i].t <= giay+0.25) k = i; else if(ds[i].t!=null) break; }
+  return k;
+}
+function sdBatBam(){
+  sdNgungBam();
+  sdBamTimer = setInterval(()=>{
+    const s = STATE.sdPhien; if(!s){ sdNgungBam(); return; }
+    if(!sdPlayer || typeof sdPlayer.getCurrentTime!=='function') return;
+    let gy = 0;
+    try{ gy = sdPlayer.getCurrentTime() || 0; }catch(_){ return; }
+    const rec = sdTimVideo(s.vidId); if(!rec) return;
+    const ds = sdDongLoi(rec);
+    if(!ds.length || ds[0].t==null) return;      // không có mốc thời gian thì không bám được
+
+    // Lặp một dòng (A-B repeat): quá điểm bắt đầu dòng kế thì nhảy về đầu dòng đang lặp.
+    if(s.lapIdx!=null && ds[s.lapIdx]){
+      const batDau = ds[s.lapIdx].t;
+      const ketThuc = (ds[s.lapIdx+1] ? ds[s.lapIdx+1].t : batDau + 20);
+      if(gy >= ketThuc || gy < batDau - 0.6){
+        try{ sdPlayer.seekTo(batDau, true); }catch(_){}
+        return;
+      }
+    }
+    const k = sdChiSoDong(gy, ds);
+    if(k !== sdDongHienTai){
+      const cu = document.getElementById('sd-line-'+sdDongHienTai);
+      if(cu) cu.classList.remove('dang');
+      const moi = document.getElementById('sd-line-'+k);
+      if(moi){
+        moi.classList.add('dang');
+        // Chỉ cuộn khi KHÔNG đang lặp một dòng (đang lặp thì dòng vốn đã nằm trong tầm mắt).
+        if(s.lapIdx==null){ try{ moi.scrollIntoView({block:'center', behavior:'smooth'}); }catch(_){} }
+      }
+      sdDongHienTai = k;
+    }
+  }, 250);
+}
+function sdNgungBam(){
+  if(sdBamTimer){ clearInterval(sdBamTimer); sdBamTimer = null; }
+  sdDongHienTai = -1;
+}
+function sdTuaToiDong(i){
+  const s = STATE.sdPhien; if(!s) return;
+  const rec = sdTimVideo(s.vidId); if(!rec) return;
+  const ds = sdDongLoi(rec); const d = ds[i];
+  if(!d || d.t==null){
+    showToast('⏱️','Dòng này chưa có mốc thời gian','Bấm "🤖 Lấy lời thoại tự động" để AI ghi lại kèm mốc thời gian, khi đó bấm dòng nào là nhảy tới đúng chỗ đó.');
+    return;
+  }
+  try{ sdPlayer.seekTo(d.t, true); sdPlayer.playVideo(); }catch(_){}
+}
+function sdLapDong(i){
+  const s = STATE.sdPhien; if(!s) return;
+  s.lapIdx = (s.lapIdx===i) ? null : i;
+  if(s.lapIdx!=null) sdTuaToiDong(i);
+  renderContentPreserveScroll();
+  setTimeout(()=>{ if(STATE.sdPhien) sdBatBam(); }, 120);
+}
+function sdBatNghia(){
+  SETTINGS.sdHienNghia = !SETTINGS.sdHienNghia; saveSettings();
+  renderContentPreserveScroll();
+}
+
 // ---- Trình phát YouTube riêng cho shadowing ----
 const SD_HOLDER = 'sd-yt-holder';
 let sdPlayer = null;
 function sdDungPlayer(){
+  sdNgungBam();
   if(sdPlayer){ try{ if(typeof sdPlayer.destroy==='function') sdPlayer.destroy(); }catch(e){} sdPlayer = null; }
 }
 function sdGanPlayer(videoId){
@@ -15223,7 +15386,7 @@ function sdGanPlayer(videoId){
       sdPlayer = new YT.Player(SD_HOLDER, {
         videoId,
         playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
-        events:{ onReady:()=>{ try{ sdPlayer.setPlaybackRate(sdTocDo()); }catch(e){} } }
+        events:{ onReady:()=>{ try{ sdPlayer.setPlaybackRate(sdTocDo()); }catch(e){} sdBatBam(); } }
       });
     }catch(e){}
   };
@@ -15325,8 +15488,8 @@ function sdFmt(gy){ gy=Math.max(0,gy|0); return Math.floor(gy/60)+':'+String(gy%
 function sdMoPhien(id){
   const rec = sdTimVideo(id); if(!rec) return;
   navForward();
-  STATE.sdPhien = {vidId:id, dangGhi:false, giay:0, ban:[], loi:null};
-  STATE.sdSuaLoi = false;
+  STATE.sdPhien = {vidId:id, dangGhi:false, giay:0, ban:[], loi:null, lapIdx:null};
+  STATE.sdSuaLoi = false; STATE.sdLoi = null; STATE.sdDangLay = false;
   renderContent();
   setTimeout(()=>sdGanPlayer(rec.videoId), 80);
   window.scrollTo(0,0);
@@ -15356,6 +15519,7 @@ function renderShadowHome(item){
         <div class="sd-lb" style="margin-top:12px;">LỜI THOẠI / TRANSCRIPT</div>
         <div class="sd-hint">Dán lời thoại vào đây để vừa nghe vừa đọc theo. Lấy nhanh: mở video trên YouTube → bấm <b>…</b> dưới video → <b>Hiện phụ đề</b> (Show transcript) → chép ra. Không có cũng luyện được, chỉ là khó bám hơn.</div>
         <textarea id="sdLoi" class="form-input sd-ta" placeholder="Dán lời thoại tiếng Anh ở đây…"></textarea>
+        <div class="sd-hint" style="margin-top:9px; margin-bottom:0;">💡 Để trống cũng được — thêm xong, vào bài rồi bấm <b>🤖 Lấy lời thoại tự động</b> là AI tự nghe video và ghi lại kèm <b>mốc thời gian từng dòng</b> (cần Gemini API key).</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-them-luu" style="width:100%; margin-top:14px;">➕ Thêm vào danh sách</button>
         <button class="form-btn cancel" data-action="sd-them-huy" style="width:100%; margin-top:9px;">Huỷ</button>
       </div>`;
@@ -15384,6 +15548,9 @@ function renderShadowHome(item){
         <div><b>3</b> Bấm 🎙️ ghi âm rồi shadow lại lần nữa.</div>
         <div><b>4</b> Nghe lại bản ghi ngay bên dưới, so với bản gốc — chỗ nào lệch nhịp là chỗ cần luyện.</div>
       </div>
+      <div class="sd-buoc" style="border-top:none; padding-top:0; margin-top:2px;">
+        <div style="padding-left:0; color:var(--dim2);">🤖 Thêm video xong, bấm <b style="position:static; display:inline; width:auto; height:auto; background:none; color:var(--text);">Lấy lời thoại tự động</b> để AI nghe video và ghi lại lời kèm mốc thời gian — khi luyện, dòng đang nói sẽ tự sáng lên.</div>
+      </div>
     </div>
     <div class="sd-add" data-action="sd-them-mo">➕ Thêm video YouTube của bạn</div>
     ${list.length ? `<div class="sd-list">${the}</div>`
@@ -15409,10 +15576,34 @@ function renderShadowPhien(item){
   }
 
   const chips = SD_TOCDO.map(v=>`<button class="sd-toc ${v===toc?'on':''}" data-action="sd-toc" data-v="${v}">${v}×</button>`).join('');
-  const loiHtml = rec.transcript
-    ? `<div class="sd-tran">${escapeHtml(rec.transcript).split(/\n+/).filter(x=>x.trim()).map(d=>`<p>${d}</p>`).join('')}</div>`
-    : `<div class="sd-tran empty">Chưa có lời thoại cho video này. Shadowing không bắt buộc phải có, nhưng có thì bám nhịp dễ hơn nhiều.
-         <button class="form-btn cancel" data-action="sd-loi-mo" style="width:100%; margin-top:10px;">📄 Dán lời thoại vào</button></div>`;
+  const ds = sdDongLoi(rec);
+  const coMoc = ds.length && ds[0].t!=null;
+  const hienNghia = !!SETTINGS.sdHienNghia;
+
+  let loiHtml;
+  if(STATE.sdDangLay){
+    loiHtml = `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:26px; margin-bottom:8px;">🤖</div>
+      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và ghi lại lời thoại…</div>
+      <div style="margin-top:6px;">Video càng dài càng lâu, thường 20–60 giây. Đừng rời màn hình.</div>
+    </div>`;
+  } else if(ds.length){
+    loiHtml = `<div class="sd-tran ${coMoc?'comoc':''}">${ds.map((d,i)=>`
+      <div class="sd-line" id="sd-line-${i}">
+        ${coMoc?`<button class="sd-line-t" data-action="sd-seek" data-i="${i}" title="Nhảy tới ${sdFmt(d.t)}">${sdFmt(d.t)}</button>`:''}
+        <div class="sd-line-body">
+          <div class="sd-line-en">${escapeHtml(d.en)}</div>
+          ${(hienNghia && d.vi)?`<div class="sd-line-vi">${escapeHtml(d.vi)}</div>`:''}
+        </div>
+        ${coMoc?`<button class="sd-line-lap ${s.lapIdx===i?'on':''}" data-action="sd-lap" data-i="${i}" title="Lặp đi lặp lại dòng này">🔁</button>`:''}
+      </div>`).join('')}</div>`;
+  } else {
+    loiHtml = `<div class="sd-tran empty">Video này chưa có lời thoại. Shadowing không bắt buộc phải có, nhưng có thì bám nhịp dễ hơn rất nhiều — và có mốc thời gian thì bấm dòng nào là video nhảy tới đó.
+      <div style="display:flex; gap:9px; margin-top:11px;">
+        <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-ai" style="flex:1;">🤖 Lấy tự động</button>
+        <button class="form-btn cancel" data-action="sd-loi-mo" style="flex:1;">📄 Dán tay</button>
+      </div></div>`;
+  }
 
   const nutGhi = s.dangGhi
     ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> ⏹ Dừng ghi âm · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
@@ -15430,20 +15621,33 @@ function renderShadowPhien(item){
       <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Đừng bắt lỗi từng từ — nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không. Lệch nhịp là chỗ đáng luyện lại, chứ không phải phát âm từng từ.</div>
     </div>` : '';
 
+  // v168: KHỐI DÍNH ở đầu màn — video + nút ghi âm luôn nằm trong tầm mắt kể cả khi cuộn xuống đọc
+  // lời thoại. Trước đây cuộn xuống là mất video, mà shadowing thì phải vừa nhìn miệng người ta vừa
+  // đọc chữ vừa nói theo — không thấy video coi như mất một nửa bài tập.
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
-    ${s.loi ? `<div class="sd-err">⚠️ ${escapeHtml(s.loi)}</div>` : ''}
-    <div class="video-embed-wrap"><div id="${SD_HOLDER}"></div></div>
-    <div class="sd-bar">
-      <button class="sd-pl" data-action="sd-lai">⏮ Từ đầu</button>
-      <div class="sd-tocwrap"><span class="sd-toclb">Tốc độ</span>${chips}</div>
+    ${(s.loi || STATE.sdLoi) ? `<div class="sd-err">⚠️ ${escapeHtml(s.loi || STATE.sdLoi)}</div>` : ''}
+    <div class="sd-dinh ${s.dangGhi?'ghi':''}">
+      <div class="video-embed-wrap"><div id="${SD_HOLDER}"></div></div>
+      <div class="sd-bar">
+        <button class="sd-pl" data-action="sd-lai">⏮ Từ đầu</button>
+        ${s.lapIdx!=null?`<button class="sd-pl lap" data-action="sd-lap" data-i="${s.lapIdx}">🔁 Đang lặp dòng ${s.lapIdx+1} — bấm để thôi</button>`:''}
+        <div class="sd-tocwrap"><span class="sd-toclb">Tốc độ</span>${chips}</div>
+      </div>
+      ${nutGhi}
     </div>
-    ${nutGhi}
     ${!sdHoTroGhiAm() ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : ''}
     ${banHtml}
-    <div class="sd-tran-h">📄 Lời thoại ${rec.transcript?`<button class="sd-tran-edit" data-action="sd-loi-mo">✏️ Sửa</button>`:''}</div>
+    <div class="sd-tran-h">📄 Lời thoại
+      ${ds.length?`<button class="sd-tran-edit ${hienNghia?'on':''}" data-action="sd-nghia">🇻🇳 Nghĩa</button>`:''}
+      ${ds.length?`<button class="sd-tran-edit" data-action="sd-loi-ai" title="Lấy lại bằng AI">🤖</button>`:''}
+      ${ds.length?`<button class="sd-tran-edit" data-action="sd-loi-mo">✏️</button>`:''}
+    </div>
+    ${coMoc?`<div class="sd-tran-tip">Dòng đang được nói sẽ <b>tự sáng lên</b> và tự cuộn theo video. Bấm <b>mốc giờ</b> để nhảy tới dòng đó · bấm <b>🔁</b> để lặp đi lặp lại một dòng cho tới khi nói kịp.</div>`:''}
     ${loiHtml}
     <div class="sd-foot">Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất, không đồng bộ lên Drive (file âm thanh quá nặng, mà giá trị của nó chỉ ở lúc so sánh ngay tại chỗ). Giữ tối đa 3 bản gần nhất.</div>`;
+  sdDongHienTai = -1;
+  if(sdPlayer) sdBatBam();
 }
 
 // ---- Danh sách & thêm video ----
@@ -20798,6 +21002,14 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdGhiBatEl){ sdBatDauGhi(); return; }
   const sdGhiDungEl = e.target.closest('[data-action="sd-ghi-dung"]');
   if(sdGhiDungEl){ sdDungGhi(); return; }
+  const sdLoiAiEl = e.target.closest('[data-action="sd-loi-ai"]');
+  if(sdLoiAiEl){ const s0 = STATE.sdPhien; if(s0) sdLayLoiAi(s0.vidId); return; }
+  const sdSeekEl = e.target.closest('[data-action="sd-seek"]');
+  if(sdSeekEl){ sdTuaToiDong(+sdSeekEl.getAttribute('data-i')); return; }
+  const sdLapEl = e.target.closest('[data-action="sd-lap"]');
+  if(sdLapEl){ sdLapDong(+sdLapEl.getAttribute('data-i')); return; }
+  const sdNghiaEl = e.target.closest('[data-action="sd-nghia"]');
+  if(sdNghiaEl){ sdBatNghia(); return; }
   const sdLoiMoEl = e.target.closest('[data-action="sd-loi-mo"]');
   if(sdLoiMoEl){ STATE.sdSuaLoi = true; renderContent(); window.scrollTo(0,0); return; }
   const sdLoiHuyEl = e.target.closest('[data-action="sd-loi-huy"]');
