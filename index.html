@@ -2250,6 +2250,18 @@
 .sd-dinh.ghi{box-shadow:0 6px 18px -6px rgba(255,92,92,.5);}
 .sd-pl.lap{background:rgba(183,140,255,.14);border-color:rgba(183,140,255,.5);color:#B78CFF;font-size:11px;}
 .sd-foot{font-size:10.5px;color:var(--dim2);line-height:1.65;padding:14px 4px 24px;text-align:center;}
+/* ===== Chép chính tả theo video (v170) ===== */
+.dv-bar{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;}
+.dv-bar-f{height:100%;background:linear-gradient(90deg,#4FA8FF,#2CDBA8);border-radius:2px;}
+.dv-ds-h{font-size:11.5px;font-weight:800;color:var(--dim);margin:12px 0 7px;}
+.dv-ds{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;}
+.dv-chip{min-width:30px;height:30px;border-radius:8px;background:var(--card);border:1px solid var(--border);
+  color:var(--dim2);font-size:11px;font-weight:700;font-family:var(--mono);cursor:pointer;padding:0 5px;}
+.dv-chip.xong{background:rgba(44,219,168,.16);border-color:rgba(44,219,168,.5);color:#2CDBA8;}
+.dv-chip.dang{border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;}
+.dv-tt{font-size:11px;font-weight:800;color:var(--dim2);letter-spacing:.03em;margin-bottom:9px;}
+.dv-huong{font-size:11.5px;color:var(--dim);line-height:1.7;margin-bottom:11px;}
+.dv-huong b{color:var(--text);}
 /* ===== Nghe & chép chính tả — trình phát tua được (v165) ===== */
 .dict-player{background:var(--panel2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin:10px 0 12px;}
 .dict-pl-row{display:flex;gap:7px;}
@@ -2566,7 +2578,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v169';
+const APP_VERSION = 'v170';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -2911,7 +2923,8 @@ function snapshotNav(){
     // Luyện tập shadowing (mục mới) — 2 lớp: addShadowOpen (màn thêm video) và shadowSession (đang
     // luyện 1 video theo 4 bước) — cùng lỗ hổng dạng như các mục trên nếu bỏ sót khỏi lịch sử.
     addShadowOpen: STATE.addShadowOpen, shadowSession: STATE.shadowSession,
-    sdHome: STATE.sdHome, sdPhien: STATE.sdPhien, sdThem: STATE.sdThem, sdSuaLoi: STATE.sdSuaLoi
+    sdHome: STATE.sdHome, sdPhien: STATE.sdPhien, sdThem: STATE.sdThem, sdSuaLoi: STATE.sdSuaLoi,
+    dvPhien: STATE.dvPhien, dvThem: STATE.dvThem
   };
 }
 function restoreNav(snap){
@@ -2942,6 +2955,8 @@ function restoreNav(snap){
   STATE.sdPhien  = snap.sdPhien!==undefined  ? snap.sdPhien  : null;
   STATE.sdThem   = snap.sdThem!==undefined   ? snap.sdThem   : false;
   STATE.sdSuaLoi = snap.sdSuaLoi!==undefined ? snap.sdSuaLoi : false;
+  STATE.dvPhien  = snap.dvPhien!==undefined  ? snap.dvPhien  : null;
+  STATE.dvThem   = snap.dvThem!==undefined   ? snap.dvThem   : false;
   // Gọi thoại (nếu đang mở) luôn gắn liền với STATE.aiChatSession — mọi lần restore đều coi như phiên
   // gọi đã kết thúc (mic/WS đã được popstate handler dọn dẹp phía trên trước khi restoreNav chạy tới).
   STATE.aiCallSession = null;
@@ -2990,6 +3005,7 @@ window.addEventListener('popstate', ()=>{
     try{ if(STATE.shadowSession) shadowCleanupMedia(); }catch(e){}
     // v167: rời màn shadowing mới thì dừng mic, dừng player, giải phóng các Blob ghi âm.
     try{ sdNgungBam(); }catch(e){}
+    try{ if(!STATE.dvPhien) dvDungPlayer(); }catch(e){}
     try{ if(STATE.sdPhien){ sdDungGhi(); sdDonStream(); sdDungPlayer();
       (STATE.sdPhien.ban||[]).forEach(b=>{ try{ URL.revokeObjectURL(b.url); }catch(_){} }); } }catch(e){}
     const snap = NAV_STACK.pop();
@@ -9903,7 +9919,7 @@ function reviewStart(kind){
   renderContent(); window.scrollTo(0,0);
   if(kind==='vocab')      ensureBankThen(()=>VOCAB_DATA,      fetchVocabData,      vocabStartDaily);
   else if(kind==='sentences') ensureBankThen(()=>COMMON_SENT_DATA, fetchCommonSentData, sentStartDaily);
-  else if(kind==='listening') ensureBankThen(()=>DICTATION_DATA,   fetchDictationData,   dictStartDaily);
+  else if(kind==='listening'){ STATE.dictHome = true; renderContent(); }
 }
 function vocabStartDaily(){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
@@ -12466,7 +12482,8 @@ function renderEnglishAV(item, mode){
   ensureEnglishItems();
   if(mode==='speaking'){ renderSpeakingPractice(item); return; }
   if(mode==='listening' && STATE.dictSession){ renderDictSession(); return; }
-  if(mode==='listening' && STATE.dictHome){ renderDictHome(item); return; }
+  // v170: mục chép chính tả nay chạy theo VIDEO (bỏ cấp độ CEFR + ngân hàng câu dựng sẵn).
+  if(mode==='listening' && (STATE.dictHome || STATE.dvPhien)){ renderDictVideoHome(item); return; }
   if(STATE.listenQuiz){ renderListenQuizUI(); return; }
   if(STATE.listenVideoWatch){ renderListenVideoWatch(item); return; }
   if(STATE.addListenVideoOpen){ renderAddListenVideoUI(item); return; }
@@ -13717,6 +13734,414 @@ function dictKhoiDoiChieuHtml(target, typed){
     <div class="dict-dc-goc">${escapeHtml(target)}</div>
     <div class="dict-dc-cha"><span class="dict-w ok">xanh</span> = khớp · <span class="dict-w no">đỏ</span> = sai hoặc thiếu. Không tính hoa/thường và dấu câu.</div>
   </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  NGHE & CHÉP CHÍNH TẢ THEO VIDEO  (v170)
+// ═══════════════════════════════════════════════════════════════════════════
+// Bỏ hoàn toàn cách cũ (5 cấp độ CEFR + ngân hàng câu dựng sẵn). Nay: dán link YouTube → AI nghe
+// video, tách ra từng câu kèm mốc thời gian → mỗi câu là một bài chép. Câu nào chép xong được đánh
+// dấu ✓ và LƯU LẠI; lần sau vào là làm tiếp từ câu chưa xong, không phải làm lại từ đầu.
+//
+// Bài học rút từ v169 được áp dụng ngay từ đầu ở đây: màn này có video, nên mọi thao tác chỉ vẽ lại
+// TỪNG VÙNG có id riêng. Không bao giờ gọi renderContent() giữa chừng — làm vậy là xoá iframe.
+
+function dvVideos(){
+  if(!Array.isArray(SETTINGS.dictVideos)) SETTINGS.dictVideos = [];
+  return SETTINGS.dictVideos;
+}
+function dvTim(id){ return dvVideos().find(v=>v.id===id) || null; }
+function dvXong(rec){ return (rec && rec.xong) ? Object.keys(rec.xong).filter(k=>rec.xong[k]).length : 0; }
+function dvTong(rec){ return (rec && Array.isArray(rec.lines)) ? rec.lines.length : 0; }
+function dvCauKeTiep(rec){
+  const ds = (rec && rec.lines) || [];
+  for(let i=0;i<ds.length;i++){ if(!(rec.xong||{})[i]) return i; }
+  return -1;   // xong hết
+}
+function dvThemVideo(){
+  const url = (document.getElementById('dvUrl')||{}).value || '';
+  const ten = (document.getElementById('dvTen')||{}).value || '';
+  const p = parseYouTubeUrl(url);
+  if(!p || p.type!=='video'){
+    STATE.dvLoi = 'Link không đúng. Cần link tới MỘT video YouTube, ví dụ https://www.youtube.com/watch?v=... hoặc https://youtu.be/...';
+    renderContent(); return;
+  }
+  const videoId = (p.embed.match(/embed\/([^?&/]+)/)||[])[1] || '';
+  if(!videoId){ STATE.dvLoi = 'Không đọc được mã video từ link này.'; renderContent(); return; }
+  const list = dvVideos();
+  if(list.some(v=>v.videoId===videoId)){ STATE.dvLoi = 'Video này đã có trong danh sách rồi.'; renderContent(); return; }
+  list.push({
+    id: 'dv_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    videoId, title: (ten.trim() || 'Bài chép ' + (list.length+1)),
+    lines: null, xong: {}, addedAt: todayKey()
+  });
+  SETTINGS.dictVideos = list; saveSettings(); pushToDrive();
+  STATE.dvLoi = null; STATE.dvThem = false;
+  showToast('✅','Đã thêm video','Bấm vào video rồi bấm "🤖 Phân tích" để AI tách câu.');
+  renderContent();
+}
+function dvXoaVideo(id){
+  SETTINGS.dictVideos = dvVideos().filter(v=>v.id!==id);
+  saveSettings(); pushToDrive(); renderContent();
+}
+// ── AI nghe video và tách thành từng CÂU để chép ─────────────────────────
+async function dvPhanTich(recId){
+  const rec = dvTim(recId); if(!rec) return;
+  if(!SETTINGS.geminiApiKey){
+    STATE.dvLoi = 'Cần Gemini API key để phân tích video. Vào Cài đặt → Hội thoại AI để dán key.';
+    if(!dvVe('dvErrWrap')) renderContent();
+    return;
+  }
+  STATE.dvDangPhanTich = true; STATE.dvLoi = null;
+  if(!(dvVe('dvBodyWrap') && dvVe('dvErrWrap'))) renderContent();
+  const prompt = `Bạn đang chuẩn bị bài NGHE-CHÉP CHÍNH TẢ tiếng Anh từ video này cho một người Việt.
+
+Nghe toàn bộ video và tách lời nói thành từng CÂU RIÊNG BIỆT, kèm mốc thời gian.
+
+Trả về DUY NHẤT một object JSON (không markdown) đúng dạng:
+{"lines":[{"t":<giây bắt đầu, số nguyên>,"en":"<đúng một câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>"}]}
+
+Quy tắc:
+- MỖI PHẦN TỬ LÀ MỘT CÂU, không gộp nhiều câu. Đây là đơn vị người học sẽ nghe rồi gõ lại, nên câu quá dài sẽ không chép nổi.
+- Câu lý tưởng dài 6-18 từ. Câu nào trong video dài hơn thì cắt ở chỗ ngắt nghỉ tự nhiên (sau dấu phẩy, sau liên từ).
+- "t" là giây bắt đầu của câu đó, phải tăng dần.
+- "en" ghi ĐÚNG từng chữ được nói, giữ dạng rút gọn (I'm, don't, gonna). Người học sẽ gõ lại chính xác nên sai một chữ là chấm sai.
+- Bỏ qua nhạc nền, tiếng cười, tiếng vỗ tay, đoạn không có lời.
+- Lấy tối đa 80 câu.
+Chỉ trả về JSON.`;
+  try{
+    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[
+          {fileData:{fileUri:'https://www.youtube.com/watch?v='+rec.videoId}},
+          {text:prompt}
+        ]}],
+        generationConfig:{temperature:0.2, maxOutputTokens:8192, responseMimeType:'application/json'}
+      })
+    });
+    if(!res.ok){
+      let msg = 'HTTP '+res.status;
+      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(_){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const txt = (((data.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
+    let parsed;
+    try{ parsed = JSON.parse(txt); }
+    catch(_){ const m = txt.match(/\{[\s\S]*\}/); if(!m) throw new Error('AI trả về dữ liệu không đọc được.'); parsed = JSON.parse(m[0]); }
+    const lines = ((parsed && parsed.lines) || []).map(l=>({
+      t: Math.max(0, Math.floor(+l.t || 0)),
+      en: String(l.en||'').trim(),
+      vi: String(l.vi||'').trim()
+    })).filter(l=>l.en && speakNormalizeWords(l.en).length >= 2).sort((a,b)=>a.t-b.t);
+    if(!lines.length) throw new Error('AI không nghe được câu nào — video có thể không có tiếng nói, hoặc thử lại.');
+    rec.lines = lines;
+    // Giữ nguyên tiến độ cũ nếu phân tích lại nhưng số câu không đổi; khác số câu thì đặt lại
+    // (vì chỉ số câu đã lệch, giữ lại sẽ đánh dấu ✓ nhầm câu — sai kiểu đó rất khó phát hiện).
+    if(!rec.xong || Object.keys(rec.xong).length && rec.soCauCu !== lines.length) rec.xong = rec.xong || {};
+    if(rec.soCauCu != null && rec.soCauCu !== lines.length) rec.xong = {};
+    rec.soCauCu = lines.length;
+    saveSettings(); pushToDrive();
+    showToast('✅','Đã tách xong', lines.length + ' câu — bắt đầu chép từ câu đầu tiên.');
+  }catch(e){
+    STATE.dvLoi = 'Không phân tích được: ' + ((e&&e.message)||'lỗi không rõ');
+  }
+  STATE.dvDangPhanTich = false;
+  if(!(dvVe('dvBodyWrap') && dvVe('dvErrWrap'))) renderContent();
+}
+
+// ── Trình phát riêng cho chép chính tả ───────────────────────────────────
+const DV_HOLDER = 'dv-yt-holder';
+let dvPlayer = null, dvCatTimer = null;
+function dvDungPlayer(){
+  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  if(dvPlayer){ try{ if(typeof dvPlayer.destroy==='function') dvPlayer.destroy(); }catch(e){} dvPlayer = null; }
+}
+function dvGanPlayer(videoId){
+  if(!videoId) return;
+  const gan = ()=>{
+    const hop = document.getElementById(DV_HOLDER);
+    if(!hop) return;
+    if(hop.querySelector && hop.querySelector('iframe')) return;   // đã có iframe sống, đừng dựng lại
+    dvDungPlayer();
+    try{
+      dvPlayer = new YT.Player(DV_HOLDER, {
+        videoId,
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        events:{ onReady:()=>{ try{ dvPlayer.setPlaybackRate(dvTocDo()); }catch(e){} } }
+      });
+    }catch(e){}
+  };
+  if(window.YT && window.YT.Player) gan();
+  else {
+    if(!document.getElementById('yt-iframe-api')){
+      const t = document.createElement('script');
+      t.id = 'yt-iframe-api'; t.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(t);
+    }
+    const truoc = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function(){ if(typeof truoc==='function') try{ truoc(); }catch(e){} gan(); };
+    let dem = 0;
+    const cho = setInterval(()=>{ if(window.YT && window.YT.Player){ clearInterval(cho); gan(); } if(++dem>40) clearInterval(cho); }, 250);
+  }
+}
+function dvTocDo(){
+  const v = +SETTINGS.dictToc;
+  return DICT_TOCDO.some(x=>x.v===v) ? v : 1;
+}
+function dvDatToc(v){
+  SETTINGS.dictToc = +v; saveSettings();
+  try{ if(dvPlayer && dvPlayer.setPlaybackRate) dvPlayer.setPlaybackRate(dvTocDo()); }catch(e){}
+  if(!dvVe('dvBarWrap')) renderContent();
+}
+// Phát ĐÚNG một câu rồi tự dừng — đây là điểm cốt lõi: nghe đi nghe lại một câu để chép,
+// chứ không phải xem hết cả video.
+function dvPhatCau(i){
+  const s = STATE.dvPhien; if(!s) return;
+  const rec = dvTim(s.vidId); if(!rec || !rec.lines) return;
+  const d = rec.lines[i]; if(!d) return;
+  const ketThuc = rec.lines[i+1] ? rec.lines[i+1].t : (d.t + 25);
+  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  try{
+    dvPlayer.seekTo(Math.max(0, d.t - 0.3), true);
+    dvPlayer.setPlaybackRate(dvTocDo());
+    dvPlayer.playVideo();
+  }catch(_){ return; }
+  s.nghe = (s.nghe||0) + 1;
+  dvCatTimer = setInterval(()=>{
+    if(!STATE.dvPhien || !dvPlayer){ clearInterval(dvCatTimer); dvCatTimer=null; return; }
+    let gy = 0;
+    try{ gy = dvPlayer.getCurrentTime() || 0; }catch(_){ return; }
+    if(gy >= ketThuc){
+      try{ dvPlayer.pauseVideo(); }catch(_){}
+      clearInterval(dvCatTimer); dvCatTimer = null;
+    }
+  }, 200);
+}
+// ── Chấm & đánh dấu ✓ ────────────────────────────────────────────────────
+function dvDoiChieu(){
+  const s = STATE.dvPhien; if(!s) return;
+  const el = document.getElementById('dvInput'); if(el) s.go = el.value;
+  if(!String(s.go||'').trim()){
+    showToast('✍️','Chưa gõ gì cả','Bấm 🔊 nghe câu rồi gõ lại vào ô bên dưới.');
+    return;
+  }
+  s.thuLan = (s.thuLan||0)+1; s.thuHien = true;
+  if(!dvVe('dvBodyWrap')) renderContent();
+}
+function dvChamDiem(){
+  const s = STATE.dvPhien; if(!s) return;
+  const rec = dvTim(s.vidId); if(!rec || !rec.lines) return;
+  const d = rec.lines[s.idx]; if(!d) return;
+  const el = document.getElementById('dvInput'); if(el) s.go = el.value;
+  if(!String(s.go||'').trim()){ showToast('✍️','Chưa gõ gì cả','Nghe rồi gõ lại trước khi chấm.'); return; }
+  const kq = dictScoreTyped(d.en, s.go);
+  s.ketQua = kq;
+  if(kq.passed){
+    rec.xong = rec.xong || {};
+    rec.xong[s.idx] = true;
+    saveSettings(); pushToDrive();
+    try{ engGameAddScore(2, 'Chép chính tả: ' + (rec.title||'video')); engGameMarkActivity(); }catch(_){}
+    if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
+  }
+  if(!dvVe('dvBodyWrap')) renderContent();
+}
+function dvCauKhac(i){
+  const s = STATE.dvPhien; if(!s) return;
+  s.idx = i; s.go = ''; s.thuHien = false; s.thuLan = 0; s.ketQua = null; s.nghe = 0;
+  if(!(dvVe('dvBodyWrap') && dvVe('dvDsWrap'))) renderContent();
+  setTimeout(()=>dvPhatCau(i), 120);
+}
+function dvCauTiep(){
+  const s = STATE.dvPhien; if(!s) return;
+  const rec = dvTim(s.vidId); if(!rec) return;
+  const kt = dvCauKeTiep(rec);
+  if(kt < 0){
+    s.xongHet = true;
+    if(!dvVe('dvBodyWrap')) renderContent();
+    return;
+  }
+  dvCauKhac(kt);
+}
+function dvMoPhien(id){
+  const rec = dvTim(id); if(!rec) return;
+  navForward();
+  const kt = Math.max(0, dvCauKeTiep(rec));
+  STATE.dvPhien = {vidId:id, idx:kt, go:'', thuHien:false, thuLan:0, ketQua:null, nghe:0, xongHet:false};
+  renderContent();
+  setTimeout(()=>dvGanPlayer(rec.videoId), 80);
+  window.scrollTo(0,0);
+}
+function dvDongPhien(){
+  dvDungPlayer();
+  STATE.dvPhien = null;
+  renderContent();
+}
+function dvDatLai(id){
+  const rec = dvTim(id); if(!rec) return;
+  rec.xong = {}; saveSettings(); pushToDrive();
+  showToast('↺','Đã đặt lại tiến độ','Tất cả câu quay về trạng thái chưa chép.');
+  renderContent();
+}
+
+// ── Giao diện: vẽ theo từng vùng (bài học v169) ──────────────────────────
+function dvErrHtml(){ return STATE.dvLoi ? `<div class="sd-err">⚠️ ${escapeHtml(STATE.dvLoi)}</div>` : ''; }
+function dvBarHtml(){
+  const toc = dvTocDo();
+  return `<span class="sd-toclb">Tốc độ</span>` + DICT_TOCDO.map(x=>
+    `<button class="dict-toc ${x.v===toc?'on':''}" data-action="dv-toc" data-v="${x.v}">${x.n}</button>`).join('');
+}
+function dvDsHtml(rec, s){
+  if(!rec.lines) return '';
+  return `<div class="dv-ds-h">📋 ${dvXong(rec)}/${rec.lines.length} câu đã chép xong</div>
+    <div class="dv-ds">${rec.lines.map((d,i)=>{
+      const xong = !!(rec.xong||{})[i];
+      const dang = s && s.idx===i;
+      return `<button class="dv-chip ${xong?'xong':''} ${dang?'dang':''}" data-action="dv-cau" data-i="${i}"
+        title="${xong?'Đã chép xong':'Chưa chép'} · ${sdFmt(d.t)}">${xong?'✓':(i+1)}</button>`;
+    }).join('')}</div>`;
+}
+function dvThanHtml(rec, s){
+  if(STATE.dvDangPhanTich){
+    return `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:26px; margin-bottom:8px;">🤖</div>
+      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và tách từng câu…</div>
+      <div style="margin-top:6px;">Video càng dài càng lâu, thường 20–60 giây. <b>Video ở trên vẫn xem được</b> trong lúc chờ.</div>
+    </div>`;
+  }
+  if(!rec.lines){
+    return `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:12px; line-height:1.75; margin-bottom:12px;">Video này chưa được tách câu. Bấm nút dưới để AI nghe video và cắt ra từng câu — mỗi câu sẽ thành một bài chép riêng.</div>
+      <button class="form-btn eng-quiz-nextbtn" data-action="dv-phantich" style="width:100%;">🤖 Phân tích video, tách câu</button>
+    </div>`;
+  }
+  if(s.xongHet || dvCauKeTiep(rec) < 0){
+    return `<div class="card" style="padding:22px 16px; text-align:center;">
+      <div style="font-size:36px; margin-bottom:8px;">🏁</div>
+      <div style="font-weight:800; font-size:15px; margin-bottom:5px;">Xong hết video này</div>
+      <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">Bạn đã chép đúng cả <b>${rec.lines.length}</b> câu. Thêm video khác để luyện tiếp, hoặc đặt lại tiến độ để chép lại từ đầu.</div>
+      <button class="form-btn cancel" data-action="dv-datlai" data-id="${rec.id}" style="width:100%; margin-top:14px;">↺ Đặt lại tiến độ video này</button>
+    </div>`;
+  }
+  const d = rec.lines[s.idx]; if(!d) return '';
+  const kq = s.ketQua;
+  const daXong = !!(rec.xong||{})[s.idx];
+  const conLai = rec.lines.length - dvXong(rec);
+
+  if(kq){
+    return `<div class="card eng-quiz-card">
+      <div class="dv-tt">Câu ${s.idx+1}/${rec.lines.length} · ${sdFmt(d.t)}</div>
+      <div class="vocab-scramble-result ${kq.passed?'ok':'no'}">${kq.passed
+        ? `✓ Đạt (${kq.acc}% từ đúng) — câu này đã được đánh dấu ✓`
+        : `✗ Chưa đạt (${kq.acc}% từ đúng) — cần ≥${DICT_PASS_ACC}%`}</div>
+      ${dictKhoiDoiChieuHtml(d.en, s.go||'')}
+      ${d.vi?`<div class="eng-quiz-explain">🇻🇳 ${escapeHtml(d.vi)}</div>`:''}
+      <div class="eng-quiz-actions" style="margin-top:10px;">
+        <button class="form-btn btn-listen" data-action="dv-nghe" style="flex:1;">🔊 Nghe lại câu</button>
+        <button class="form-btn cancel" data-action="dv-lam-lai" style="flex:1;">🔄 Chép lại</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" data-action="dv-tiep" style="width:100%; margin-top:9px;">
+        ${conLai>0?`Câu chưa chép tiếp theo → (còn ${conLai})`:'🏁 Xem kết quả'}
+      </button>
+    </div>`;
+  }
+  return `<div class="card eng-quiz-card">
+    <div class="dv-tt">Câu ${s.idx+1}/${rec.lines.length} · ${sdFmt(d.t)} ${daXong?'· <span style="color:#2CDBA8;">đã xong, đang chép lại</span>':''}</div>
+    <div class="dv-huong">🎧 Bấm <b>Nghe câu này</b> — video tự tua tới đúng câu và tự dừng khi hết câu. Nghe bao nhiêu lần tuỳ ý, rồi gõ lại chính xác những gì bạn nghe được.</div>
+    <button class="form-btn btn-listen" data-action="dv-nghe" style="width:100%;">🔊 Nghe câu này${s.nghe?` · đã nghe ${s.nghe} lần`:''}</button>
+    <textarea id="dvInput" class="vocab-type-input dict-ta" autocomplete="off" autocapitalize="off" spellcheck="false"
+      placeholder="Gõ lại câu bạn nghe được…" oninput="dvGoInput(this.value)" onchange="dvGoInput(this.value)" onblur="dvGoInput(this.value)">${escapeHtml(s.go||'')}</textarea>
+    ${s.thuHien ? dictThuHtml(d.en, s.go||'', s.thuLan||1) : ''}
+    <div style="display:flex; gap:9px; margin-top:12px;">
+      <button class="form-btn cancel" style="flex:1;" data-action="dv-doichieu">🔍 Đối chiếu</button>
+      <button class="form-btn eng-quiz-nextbtn" style="flex:1;" data-action="dv-cham">✓ Chấm điểm</button>
+    </div>
+    <div style="font-size:10.5px; color:var(--dim2); line-height:1.6; margin-top:7px; text-align:center;">
+      <b>Đối chiếu</b> bấm được nhiều lần, chưa kết thúc câu. <b>Chấm điểm</b> mới đánh dấu ✓.
+    </div>
+  </div>`;
+}
+function dvGoInput(v){ const s = STATE.dvPhien; if(s) s.go = v; }
+function dvVe(vung){
+  const s = STATE.dvPhien; if(!s) return false;
+  const rec = dvTim(s.vidId); if(!rec) return false;
+  const el = document.getElementById(vung); if(!el) return false;
+  if(vung==='dvBodyWrap') el.innerHTML = dvThanHtml(rec, s);
+  else if(vung==='dvDsWrap') el.innerHTML = dvDsHtml(rec, s);
+  else if(vung==='dvBarWrap') el.innerHTML = dvBarHtml();
+  else if(vung==='dvErrWrap') el.innerHTML = dvErrHtml();
+  return true;
+}
+function dvBackRow(t){
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="${t}">${svgIcon('back')}</div><div class="title">✍️ Nghe &amp; chép chính tả</div></div>`;
+}
+function renderDictVideoHome(item){
+  if(STATE.dvPhien) return renderDictVideoPhien(item);
+  const list = dvVideos();
+  if(STATE.dvThem){
+    document.getElementById('content').innerHTML = `
+      ${dvBackRow('dv-them-huy')}
+      <div class="card" style="padding:16px;">
+        ${dvErrHtml()}
+        <div class="sd-lb">LINK YOUTUBE <span style="color:#ff8080;">*</span></div>
+        <input id="dvUrl" class="form-input" type="url" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
+        <div class="sd-lb" style="margin-top:12px;">TÊN BÀI (để trống thì app tự đặt)</div>
+        <input id="dvTen" class="form-input" type="text" autocomplete="off" placeholder="Ví dụ: Tin ngắn BBC — giao thông">
+        <div class="sd-hint" style="margin-top:11px;">Thêm xong, mở bài rồi bấm <b>🤖 Phân tích video</b> — AI sẽ nghe và cắt thành từng câu. Mỗi câu là một bài chép riêng, chép xong đánh dấu ✓ và nhớ luôn cho lần sau.</div>
+        <button class="form-btn eng-quiz-nextbtn" data-action="dv-them-luu" style="width:100%; margin-top:14px;">➕ Thêm vào danh sách</button>
+        <button class="form-btn cancel" data-action="dv-them-huy" style="width:100%; margin-top:9px;">Huỷ</button>
+      </div>`;
+    return;
+  }
+  const the = list.map(v=>{
+    const tong = dvTong(v), xong = dvXong(v);
+    const pct = tong ? Math.round(xong/tong*100) : 0;
+    return `<div class="sd-card" data-action="dv-open" data-id="${v.id}">
+      <img class="sd-thumb" src="https://img.youtube.com/vi/${escapeHtml(v.videoId)}/mqdefault.jpg" alt="" loading="lazy">
+      <div class="sd-cbody">
+        <div class="sd-ctitle">${escapeHtml(v.title)}</div>
+        <div class="sd-cmeta">${tong ? `✍️ ${xong}/${tong} câu · ${pct}%` : 'chưa phân tích — mở ra rồi bấm 🤖'}</div>
+        ${tong?`<div class="dv-bar"><div class="dv-bar-f" style="width:${pct}%;"></div></div>`:''}
+      </div>
+      <button class="sd-del" data-action="dv-xoa" data-id="${v.id}" title="Xoá">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    ${dvBackRow('dict-home-close')}
+    <div id="dvErrWrap">${dvErrHtml()}</div>
+    <div class="card" style="padding:15px 16px; margin-bottom:13px;">
+      <div style="font-size:24px; text-align:center; margin-bottom:7px;">✍️🎧</div>
+      <div style="font-size:12px; color:var(--dim); line-height:1.75;">
+        Dán link video YouTube, AI sẽ <b style="color:var(--text);">nghe và cắt ra từng câu</b>. Mỗi câu là một bài chép: nghe câu đó (video tự tua tới và tự dừng), gõ lại, đối chiếu, chấm điểm.
+      </div>
+      <div class="sd-buoc">
+        <div><b>1</b> Nghe câu — bấm nghe lại bao nhiêu lần tuỳ ý, hạ tốc độ xuống 0.5× nếu khó.</div>
+        <div><b>2</b> Gõ lại chính xác, không cần đúng hoa/thường hay dấu câu.</div>
+        <div><b>3</b> Bấm <b>Đối chiếu</b> xem còn thiếu từ nào — bấm được nhiều lần.</div>
+        <div><b>4</b> Đạt ≥${DICT_PASS_ACC}% là câu được đánh dấu ✓ và <b>lưu lại</b> — lần sau vào làm tiếp câu chưa xong.</div>
+      </div>
+    </div>
+    <div class="sd-add" data-action="dv-them-mo" style="background:linear-gradient(120deg,#2454b0,#4FA8FF);">➕ Thêm video YouTube</div>
+    ${list.length ? `<div class="sd-list">${the}</div>`
+                  : `<div class="eng-av-empty">Chưa có video nào. Dán link YouTube ở nút phía trên để bắt đầu.</div>`}`;
+}
+function renderDictVideoPhien(item){
+  const s = STATE.dvPhien;
+  const rec = dvTim(s.vidId);
+  if(!rec){ STATE.dvPhien = null; return renderDictVideoHome(item); }
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="dv-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
+    <div id="dvErrWrap">${dvErrHtml()}</div>
+    <div class="sd-dinh">
+      <div class="video-embed-wrap"><div id="${DV_HOLDER}"></div></div>
+      <div class="sd-bar" id="dvBarWrap">${dvBarHtml()}</div>
+    </div>
+    <div id="dvDsWrap">${dvDsHtml(rec, s)}</div>
+    <div id="dvBodyWrap">${dvThanHtml(rec, s)}</div>
+    <div class="sd-foot">Tiến độ từng câu được lưu lại và đồng bộ qua Drive — thoát ra vào lại là làm tiếp đúng câu còn dở.</div>`;
+  dvGanPlayer(rec.videoId);
 }
 
 function dictBackRow(){
@@ -21069,6 +21494,36 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdLoiHuyEl){ STATE.sdSuaLoi = false; renderContent(); return; }
   const sdLoiLuuEl = e.target.closest('[data-action="sd-loi-luu"]');
   if(sdLoiLuuEl){ sdLuuLoi(); return; }
+  const dvThemMoEl = e.target.closest('[data-action="dv-them-mo"]');
+  if(dvThemMoEl){ STATE.dvThem = true; STATE.dvLoi = null; renderContent(); window.scrollTo(0,0); return; }
+  const dvThemHuyEl = e.target.closest('[data-action="dv-them-huy"]');
+  if(dvThemHuyEl){ STATE.dvThem = false; STATE.dvLoi = null; renderContent(); return; }
+  const dvThemLuuEl = e.target.closest('[data-action="dv-them-luu"]');
+  if(dvThemLuuEl){ dvThemVideo(); return; }
+  const dvXoaEl = e.target.closest('[data-action="dv-xoa"]');
+  if(dvXoaEl){ e.stopPropagation(); dvXoaVideo(dvXoaEl.getAttribute('data-id')); return; }
+  const dvOpenEl = e.target.closest('[data-action="dv-open"]');
+  if(dvOpenEl){ dvMoPhien(dvOpenEl.getAttribute('data-id')); return; }
+  const dvDongEl = e.target.closest('[data-action="dv-dong"]');
+  if(dvDongEl){ dvDongPhien(); return; }
+  const dvPhanTichEl = e.target.closest('[data-action="dv-phantich"]');
+  if(dvPhanTichEl){ const p = STATE.dvPhien; if(p) dvPhanTich(p.vidId); return; }
+  const dvTocEl = e.target.closest('[data-action="dv-toc"]');
+  if(dvTocEl){ dvDatToc(dvTocEl.getAttribute('data-v')); return; }
+  const dvNgheEl = e.target.closest('[data-action="dv-nghe"]');
+  if(dvNgheEl){ const p = STATE.dvPhien; if(p){ dvPhatCau(p.idx); dvVe('dvBodyWrap'); } return; }
+  const dvCauEl = e.target.closest('[data-action="dv-cau"]');
+  if(dvCauEl){ dvCauKhac(+dvCauEl.getAttribute('data-i')); return; }
+  const dvDoiChieuEl = e.target.closest('[data-action="dv-doichieu"]');
+  if(dvDoiChieuEl){ dvDoiChieu(); return; }
+  const dvChamEl = e.target.closest('[data-action="dv-cham"]');
+  if(dvChamEl){ dvChamDiem(); return; }
+  const dvTiepEl = e.target.closest('[data-action="dv-tiep"]');
+  if(dvTiepEl){ dvCauTiep(); return; }
+  const dvLamLaiEl = e.target.closest('[data-action="dv-lam-lai"]');
+  if(dvLamLaiEl){ const p = STATE.dvPhien; if(p){ p.go=''; p.ketQua=null; p.thuHien=false; p.thuLan=0; dvVe('dvBodyWrap'); } return; }
+  const dvDatLaiEl = e.target.closest('[data-action="dv-datlai"]');
+  if(dvDatLaiEl){ dvDatLai(dvDatLaiEl.getAttribute('data-id')); return; }
   const dictTocEl = e.target.closest('[data-action="dict-toc"]');
   if(dictTocEl){ dictDatTocDo(dictTocEl.getAttribute('data-v')); return; }
   const dictThuEl = e.target.closest('[data-action="dict-thu"]');
