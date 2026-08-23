@@ -2625,7 +2625,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v174';
+const APP_VERSION = 'v175';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13865,14 +13865,18 @@ function dvBoCau(en){
 // Chuẩn hoá danh sách câu AI trả về: ép mốc thời gian tăng dần và KHÔNG chồng lên nhau. Đây là gốc
 // của lỗi "bấm câu này lại nghe được vài chữ của câu trước" — AI hay đưa mốc kết thúc trễ hơn thực
 // tế, hoặc mốc bắt đầu sớm hơn.
-function dvLamSach(raw){
+function dvLamSach(raw, deDai){
   const ds = (raw||[]).map(l=>{
-    const t = Math.max(0, +l.t || 0);
-    let e = +l.e;
+    const c = dvChuanCau(l);
+    if(!c) return {t:0,e:0,en:'',vi:''};
+    const t = Math.max(0, c.t);
+    let e = c.e;
     if(!isFinite(e) || e <= t) e = 0;      // 0 = không rõ, sẽ suy ra từ câu kế tiếp
-    return {t: Math.round(t*10)/10, e: e?Math.round(e*10)/10:0,
-            en: String(l.en||'').trim(), vi: String(l.vi||'').trim()};
-  }).filter(l=>l.en && !dvBoCau(l.en)).sort((a,b)=>a.t-b.t);
+    return {t: Math.round(t*10)/10, e: e?Math.round(e*10)/10:0, en: c.en, vi: c.vi};
+  // "deDai" = chỉ bỏ câu không thể chép nổi (dưới 2 từ), giữ cả câu xã giao. Dùng khi bộ lọc
+  // chặt quét sạch không còn câu nào — thà có bài để chép còn hơn báo lỗi rồi trắng tay.
+  }).filter(l=>l.en && (deDai ? speakNormalizeWords(l.en).length >= 2 : !dvBoCau(l.en)))
+    .sort((a,b)=>a.t-b.t);
   for(let i=0;i<ds.length;i++){
     const sau = ds[i+1];
     if(!ds[i].e) ds[i].e = sau ? sau.t : (ds[i].t + 12);
@@ -13881,6 +13885,25 @@ function dvLamSach(raw){
     if(ds[i].e < ds[i].t + 0.6) ds[i].e = ds[i].t + 0.6;
   }
   return ds;
+}
+// Lấy MẢNG CÂU ra khỏi kết quả AI, chịu được mọi hình dạng nó trả về. Đây chính là chỗ hỏng:
+// mã cũ chỉ biết mỗi parsed.lines, nên Gemini trả mảng trần là coi như không có câu nào.
+function dvLayMang(p){
+  if(!p) return [];
+  if(Array.isArray(p)) return p;                       // mảng trần: [{...},{...}]
+  for(const k of ['lines','sentences','segments','transcript','captions','data','result','items']){
+    if(Array.isArray(p[k])) return p[k];
+  }
+  for(const k of Object.keys(p)) if(Array.isArray(p[k])) return p[k];   // khoá tên lạ nhưng giá trị là mảng
+  return [];
+}
+// Mỗi phần tử cũng có thể mang tên trường khác nhau — quy về một mối.
+function dvChuanCau(l){
+  if(!l || typeof l!=='object') return null;
+  const en = l.en || l.text || l.sentence || l.line || l.content || l.english || '';
+  const t  = (l.t!=null?l.t : l.start!=null?l.start : l.startTime!=null?l.startTime : l.begin);
+  const e  = (l.e!=null?l.e : l.end!=null?l.end : l.endTime);
+  return {t:+t||0, e:+e||0, en:String(en).trim(), vi:String(l.vi||l.vietnamese||l.translation||'').trim()};
 }
 // Đọc JSON từ AI. Nếu bị cắt cụt (video dài, hết ngân sách chữ) thì VỚT lấy những câu đã hoàn
 // chỉnh thay vì vứt sạch — thà được 40 câu còn hơn báo lỗi rồi mất trắng cả lần gọi.
@@ -13964,9 +13987,17 @@ Chỉ trả về JSON.`;
     let parsed = dvDocJson(txt);
     if(!parsed) throw new Error(vlDung==='MAX_TOKENS'
       ? 'Kết quả bị cắt giữa chừng vì video quá dài. Thử video ngắn hơn.'
-      : 'AI trả về dữ liệu không đọc được.');
-    const lines = dvLamSach((parsed && parsed.lines) || []);
-    if(!lines.length) throw new Error('AI không nghe được câu nào đáng chép — video có thể không có tiếng nói, hoặc toàn câu quá ngắn. Thử video khác.');
+      : 'AI trả về dữ liệu không đọc được. Nó nói: "' + txt.slice(0,180) + '"');
+    const tho = dvLayMang(parsed);
+    let lines = dvLamSach(tho);
+    // Bộ lọc quét sạch nhưng AI vẫn có trả câu → hạ chuẩn, giữ lại thay vì báo lỗi
+    if(!lines.length && tho.length) lines = dvLamSach(tho, true);
+    if(!lines.length){
+      // Báo SỐ LIỆU THẬT để biết hỏng ở đâu, thay vì một câu đoán mò
+      throw new Error(tho.length
+        ? 'Gemini trả về ' + tho.length + ' mục nhưng không đọc ra được câu tiếng Anh nào. Mẫu: ' + JSON.stringify(tho[0]).slice(0,160)
+        : 'Gemini không trả về câu nào (đã đọc ' + txt.length + ' ký tự trả lời). Nó nói: "' + txt.slice(0,180) + '"');
+    }
     rec.lines = lines;
     // Giữ nguyên tiến độ cũ nếu phân tích lại nhưng số câu không đổi; khác số câu thì đặt lại
     // (vì chỉ số câu đã lệch, giữ lại sẽ đánh dấu ✓ nhầm câu — sai kiểu đó rất khó phát hiện).
