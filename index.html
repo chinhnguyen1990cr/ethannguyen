@@ -2254,21 +2254,22 @@
 /* Video nhỏ lại — đây là bài NGHE. Muốn to thì bấm phóng to của YouTube. */
 .dv-vidwrap{max-width:320px;margin:0 auto;}
 .dv-dinh{padding-bottom:8px;}
-.dv-sum{display:flex;align-items:center;gap:10px;margin:9px 0 4px;}
-.dv-sum-l{font-size:11px;color:var(--dim);line-height:1.35;white-space:nowrap;}
-.dv-sum-l b{font-size:16px;color:#2CDBA8;font-family:var(--mono);}
+.dv-sum{display:flex;align-items:center;gap:9px;margin:8px 0 3px;}
+.dv-sum-l{font-size:10.5px;color:var(--dim);line-height:1.3;white-space:nowrap;}
+.dv-sum-l b{font-size:14.5px;color:#2CDBA8;font-family:var(--mono);}
 .dv-sum-l span{display:block;font-size:10px;color:var(--dim2);}
 .dv-sum-bar{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
 .dv-sum-f{height:100%;background:linear-gradient(90deg,#2CDBA8,#7ec8ff);border-radius:4px;transition:width .3s;}
 .dv-sum-p{font-size:13px;font-weight:800;font-family:var(--mono);color:#7ec8ff;}
-.dv-toc-lb{font-size:9.5px;font-weight:800;color:var(--dim2);letter-spacing:.05em;margin:9px 0 5px;}
-.dv-toc-row{display:flex;gap:6px;}
+.dv-toc-lb{font-size:8.5px;font-weight:800;color:var(--dim2);letter-spacing:.04em;margin:7px 0 4px;}
+.dv-toc-row{display:flex;gap:5px;}
+/* v172: khung tốc độ gọn lại — vẫn sáng và dễ bấm, nhưng không chiếm chỗ của danh sách câu */
 .dv-toc{flex:1;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
-  border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 2px;
-  font-size:12.5px;font-weight:800;font-family:var(--mono);cursor:pointer;}
+  border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 2px;
+  font-size:11px;font-weight:800;font-family:var(--mono);cursor:pointer;line-height:1.2;}
 .dv-toc.on{background:linear-gradient(135deg,#7ec8ff,#4a8fd4);color:#06121f;border-color:transparent;
-  box-shadow:0 3px 12px -3px rgba(126,200,255,.6);}
-.dv-toc-mo{font-size:10.5px;color:var(--dim2);line-height:1.5;margin-top:6px;}
+  box-shadow:0 2px 9px -3px rgba(126,200,255,.6);}
+.dv-toc-mo{font-size:9.5px;color:var(--dim2);line-height:1.45;margin-top:4px;}
 .dv-ds-h{font-size:11.5px;font-weight:700;color:var(--dim);margin:13px 0 8px;}
 .dv-ds-h b{color:var(--text);}
 .dv-rows{display:flex;flex-direction:column;gap:7px;}
@@ -2618,7 +2619,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v171';
+const APP_VERSION = 'v172';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13811,19 +13812,69 @@ function dvThemVideo(){
   if(!videoId){ STATE.dvLoi = 'Không đọc được mã video từ link này.'; renderContent(); return; }
   const list = dvVideos();
   if(list.some(v=>v.videoId===videoId)){ STATE.dvLoi = 'Video này đã có trong danh sách rồi.'; renderContent(); return; }
+  const id = 'dv_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const tuDat = ten.trim();
   list.push({
-    id: 'dv_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-    videoId, title: (ten.trim() || 'Bài chép ' + (list.length+1)),
-    lines: null, xong: {}, addedAt: todayKey()
+    id, videoId, title: (tuDat || 'Đang lấy tiêu đề…'),
+    tuDatTen: !!tuDat, lines: null, xong: {}, addedAt: todayKey()
   });
   SETTINGS.dictVideos = list; saveSettings(); pushToDrive();
   STATE.dvLoi = null; STATE.dvThem = false;
   showToast('✅','Đã thêm video','Bấm vào video rồi bấm "🤖 Phân tích" để AI tách câu.');
   renderContent();
+  if(!tuDat) dvLayTen(id);          // chạy nền, xong thì tự vẽ lại tên
+}
+// Lấy đúng tiêu đề của video trên YouTube. oEmbed là điểm cuối công khai, có CORS, không cần API
+// key — nên đây là cách rẻ nhất để tên bài trùng khớp với tên video thật thay vì "Bài nghe 1".
+async function dvLayTen(recId){
+  const rec = dvTim(recId); if(!rec || !rec.videoId) return;
+  let ten = '';
+  try{
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v='+rec.videoId)}&format=json`);
+    if(res.ok){ const j = await res.json(); ten = (j && j.title) ? String(j.title).trim() : ''; }
+  }catch(e){ /* mất mạng hoặc video riêng tư — im lặng dùng tên dự phòng */ }
+  const r2 = dvTim(recId); if(!r2) return;
+  r2.title = ten || ('Bài chép ' + (dvVideos().length));
+  saveSettings(); pushToDrive();
+  if(!(STATE.dvPhien && dvVe('dvListWrap'))) renderContent();
 }
 function dvXoaVideo(id){
   SETTINGS.dictVideos = dvVideos().filter(v=>v.id!==id);
   saveSettings(); pushToDrive(); renderContent();
+}
+// Câu không đáng chép: xã giao đầu/cuối video, kêu gọi đăng ký... Người dùng báo đúng: chép mấy câu
+// này chẳng học được gì mà vẫn chiếm một lượt. Chặn ở hai lớp — dặn AI bỏ, và lọc lại ở đây phòng
+// khi AI vẫn trả về.
+const DV_CAU_BO = [
+  /\bsubscribe\b/i, /\bmy channel\b/i, /\bthis channel\b/i, /\bhit the bell\b/i,
+  /\bnotification bell\b/i, /\blike and share\b/i, /\bwelcome back\b/i,
+  /\bthanks? (you )?for watching\b/i, /\bsee you (next|in the next)\b/i,
+  /\bmy name is\b/i, /\bdon't forget to\b/i, /\bleave a comment\b/i
+];
+const DV_TU_TOI_THIEU = 4;   // dưới 4 từ thì không thành bài chép được
+function dvBoCau(en){
+  if(speakNormalizeWords(en).length < DV_TU_TOI_THIEU) return true;
+  return DV_CAU_BO.some(rx=>rx.test(en));
+}
+// Chuẩn hoá danh sách câu AI trả về: ép mốc thời gian tăng dần và KHÔNG chồng lên nhau. Đây là gốc
+// của lỗi "bấm câu này lại nghe được vài chữ của câu trước" — AI hay đưa mốc kết thúc trễ hơn thực
+// tế, hoặc mốc bắt đầu sớm hơn.
+function dvLamSach(raw){
+  const ds = (raw||[]).map(l=>{
+    const t = Math.max(0, +l.t || 0);
+    let e = +l.e;
+    if(!isFinite(e) || e <= t) e = 0;      // 0 = không rõ, sẽ suy ra từ câu kế tiếp
+    return {t: Math.round(t*10)/10, e: e?Math.round(e*10)/10:0,
+            en: String(l.en||'').trim(), vi: String(l.vi||'').trim()};
+  }).filter(l=>l.en && !dvBoCau(l.en)).sort((a,b)=>a.t-b.t);
+  for(let i=0;i<ds.length;i++){
+    const sau = ds[i+1];
+    if(!ds[i].e) ds[i].e = sau ? sau.t : (ds[i].t + 12);
+    // câu này kéo dài quá điểm bắt đầu của câu sau → cắt đúng ở đó, không cho lấn sang
+    if(sau && ds[i].e > sau.t) ds[i].e = sau.t;
+    if(ds[i].e < ds[i].t + 0.6) ds[i].e = ds[i].t + 0.6;
+  }
+  return ds;
 }
 // ── AI nghe video và tách thành từng CÂU để chép ─────────────────────────
 async function dvPhanTich(recId){
@@ -13840,14 +13891,22 @@ async function dvPhanTich(recId){
 Nghe toàn bộ video và tách lời nói thành từng CÂU RIÊNG BIỆT, kèm mốc thời gian.
 
 Trả về DUY NHẤT một object JSON (không markdown) đúng dạng:
-{"lines":[{"t":<giây bắt đầu, số nguyên>,"en":"<đúng một câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>"}]}
+{"lines":[{"t":<giây câu BẮT ĐẦU, cho phép 1 số lẻ>,"e":<giây câu KẾT THÚC, cho phép 1 số lẻ>,"en":"<đúng một câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>"}]}
 
 Quy tắc:
 - MỖI PHẦN TỬ LÀ MỘT CÂU, không gộp nhiều câu. Đây là đơn vị người học sẽ nghe rồi gõ lại, nên câu quá dài sẽ không chép nổi.
 - Câu lý tưởng dài 6-18 từ. Câu nào trong video dài hơn thì cắt ở chỗ ngắt nghỉ tự nhiên (sau dấu phẩy, sau liên từ).
-- "t" là giây bắt đầu của câu đó, phải tăng dần.
+- MỐC THỜI GIAN PHẢI THẬT CHÍNH XÁC, đây là điều quan trọng nhất:
+  · "t" = đúng khoảnh khắc TỪ ĐẦU TIÊN của câu bắt đầu phát ra tiếng. Không lấy sớm hơn.
+  · "e" = đúng khoảnh khắc TỪ CUỐI CÙNG của câu vừa dứt. Không lấy trễ hơn.
+  · TUYỆT ĐỐI KHÔNG để hai câu chồng lên nhau: "t" của câu sau phải LỚN HƠN HOẶC BẰNG "e" của câu trước.
+  · Người học sẽ bấm nghe từng câu riêng lẻ. Nếu mốc lệch, họ sẽ nghe lẫn mấy chữ cuối của câu trước và không chép được.
+- BỎ QUA hoàn toàn (không đưa vào danh sách) những câu không đáng chép:
+  · Câu quá ngắn — dưới 4 từ, ví dụ "Hi everyone.", "Let's go.", "Okay.", "Right."
+  · Câu giới thiệu kênh / chào hỏi / xưng tên: "Welcome back to my channel", "My name is...", "Today I'm going to show you".
+  · Câu kêu gọi đăng ký, bấm chuông, thích, chia sẻ, bình luận, chào tạm biệt, cảm ơn đã xem.
+  · Nhạc nền, tiếng cười, tiếng vỗ tay, đoạn không có lời.
 - "en" ghi ĐÚNG từng chữ được nói, giữ dạng rút gọn (I'm, don't, gonna). Người học sẽ gõ lại chính xác nên sai một chữ là chấm sai.
-- Bỏ qua nhạc nền, tiếng cười, tiếng vỗ tay, đoạn không có lời.
 - Lấy tối đa 80 câu.
 Chỉ trả về JSON.`;
   try{
@@ -13871,12 +13930,8 @@ Chỉ trả về JSON.`;
     let parsed;
     try{ parsed = JSON.parse(txt); }
     catch(_){ const m = txt.match(/\{[\s\S]*\}/); if(!m) throw new Error('AI trả về dữ liệu không đọc được.'); parsed = JSON.parse(m[0]); }
-    const lines = ((parsed && parsed.lines) || []).map(l=>({
-      t: Math.max(0, Math.floor(+l.t || 0)),
-      en: String(l.en||'').trim(),
-      vi: String(l.vi||'').trim()
-    })).filter(l=>l.en && speakNormalizeWords(l.en).length >= 2).sort((a,b)=>a.t-b.t);
-    if(!lines.length) throw new Error('AI không nghe được câu nào — video có thể không có tiếng nói, hoặc thử lại.');
+    const lines = dvLamSach((parsed && parsed.lines) || []);
+    if(!lines.length) throw new Error('AI không nghe được câu nào đáng chép — video có thể không có tiếng nói, hoặc toàn câu quá ngắn. Thử video khác.');
     rec.lines = lines;
     // Giữ nguyên tiến độ cũ nếu phân tích lại nhưng số câu không đổi; khác số câu thì đặt lại
     // (vì chỉ số câu đã lệch, giữ lại sẽ đánh dấu ✓ nhầm câu — sai kiểu đó rất khó phát hiện).
@@ -13946,10 +14001,13 @@ function dvPhatCau(i){
   const s = STATE.dvPhien; if(!s) return;
   const rec = dvTim(s.vidId); if(!rec || !rec.lines) return;
   const d = rec.lines[i]; if(!d) return;
-  const ketThuc = rec.lines[i+1] ? rec.lines[i+1].t : (d.t + 25);
+  // Trước đây tua tới d.t - 0.3 để "khỏi hụt chữ đầu" — chính 0.3 giây đó là mấy chữ cuối của câu
+  // trước mà người dùng nghe thấy. Nay tua đúng vào mốc bắt đầu, và dừng đúng mốc kết thúc của
+  // chính câu này (mốc "e" do AI trả về, đã được chuẩn hoá cho khỏi chồng chéo).
+  const ketThuc = (+d.e > d.t) ? +d.e : (rec.lines[i+1] ? rec.lines[i+1].t : (d.t + 25));
   if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
   try{
-    dvPlayer.seekTo(Math.max(0, d.t - 0.3), true);
+    dvPlayer.seekTo(Math.max(0, d.t), true);
     dvPlayer.setPlaybackRate(dvTocDo());
     dvPlayer.playVideo();
   }catch(_){ return; }
@@ -13961,7 +14019,7 @@ function dvPhatCau(i){
       try{ dvPlayer.pauseVideo(); }catch(_){}
       clearInterval(dvCatTimer); dvCatTimer = null;
     }
-  }, 200);
+  }, 60);   // 200ms là đủ để chạy lố sang chữ đầu của câu sau — siết xuống 60ms
 }
 // ── Chấm & đánh dấu ✓ ────────────────────────────────────────────────────
 function dvDoiChieu(){
@@ -13991,11 +14049,14 @@ function dvChamDiem(){
   }
   if(!(dvVe('dvListWrap') && dvVe('dvBarWrap'))) renderContent();
 }
+// Mở một câu KHÔNG tự phát video. Người dùng báo đúng: vừa bấm mở là tiếng đã chạy trong khi mình
+// còn chưa kịp đeo tai nghe / chưa sẵn sàng nghe. Nay phải tự bấm "🔊 Nghe câu này" mới phát.
 function dvCauKhac(i){
   const s = STATE.dvPhien; if(!s) return;
+  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  try{ if(dvPlayer && dvPlayer.pauseVideo) dvPlayer.pauseVideo(); }catch(_){}
   s.idx = i; s.go = ''; s.thuHien = false; s.thuLan = 0; s.ketQua = null;
   if(!(dvVe('dvListWrap') && dvVe('dvBarWrap'))) renderContent();
-  setTimeout(()=>dvPhatCau(i), 150);
 }
 // Bấm vào tiêu đề một câu: đang mở thì đóng, đang đóng thì mở ra và phát luôn câu đó.
 function dvMoCau(i){
@@ -14061,7 +14122,7 @@ function dvBarHtml(rec, s){
       <div class="dv-sum-bar"><div class="dv-sum-f" style="width:${pct}%;"></div></div>
       <div class="dv-sum-p">${pct}%</div>
     </div>`:''}
-    <div class="dv-toc-lb">🎚️ TỐC ĐỘ ĐỌC — bấm là phát lại câu đang mở ngay</div>
+    <div class="dv-toc-lb">🎚️ TỐC ĐỘ — bấm là phát lại câu đang mở</div>
     <div class="dv-toc-row">${DICT_TOCDO.map(x=>
       `<button class="dv-toc ${x.v===toc?'on':''}" data-action="dv-toc" data-v="${x.v}">${x.n}</button>`).join('')}</div>
     <div class="dv-toc-mo">${escapeHtml(meta.d)}</div>`;
@@ -14074,7 +14135,7 @@ function dvDsHtml(rec, s){
   if(STATE.dvDangPhanTich) return dvThanHtml(rec, s);
   const het = dvCauKeTiep(rec) < 0;
   return `${het ? dvXongHetHtml(rec) : ''}
-    <div class="dv-ds-h">📋 Danh sách câu trong video — bấm <b>Kiểm tra</b> để chép câu đó</div>
+    <div class="dv-ds-h">📋 Danh sách câu trong video — bấm <b>Kiểm tra</b> để mở câu đó, rồi tự bấm <b>🔊 Nghe</b> khi đã sẵn sàng</div>
     <div class="dv-rows">${rec.lines.map((d,i)=>{
       const xong = !!(rec.xong||{})[i];
       const mo   = s && s.idx===i;
