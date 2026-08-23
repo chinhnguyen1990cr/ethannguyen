@@ -2625,7 +2625,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v173';
+const APP_VERSION = 'v174';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13937,12 +13937,9 @@ Chỉ trả về JSON.`;
           {fileData:{fileUri:'https://www.youtube.com/watch?v='+rec.videoId}},
           {text:prompt}
         ]}],
-        generationConfig:{
-          maxOutputTokens: 32768,          // 8192 quá ít: model vừa suy nghĩ vừa xuất 80 câu là hết sạch
-          thinkingLevel: 'low',            // dồn ngân sách cho phần trả lời, không dồn cho phần suy nghĩ
-          thinkingConfig: {thinkingLevel: 'low'},
-          responseMimeType: 'application/json'
-        }
+        // CHỈ dùng các trường đã được chứng minh chạy được ở những lời gọi khác trong app này.
+        // maxOutputTokens 32768 nằm dưới giới hạn xuất 65.536 của gemini-3.6-flash.
+        generationConfig:{temperature:0.2, maxOutputTokens:32768, responseMimeType:'application/json'}
       }),
       signal: dieuKhien.signal
     });
