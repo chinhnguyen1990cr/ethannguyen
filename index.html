@@ -2298,6 +2298,40 @@
   border:1px solid rgba(126,200,255,.4);border-radius:7px;padding:4px 9px;}
 .dv-row.mo .dv-row-btn{color:var(--dim2);border-color:var(--border);}
 .dv-row-body{padding:0 12px 13px;border-top:1px solid var(--border);padding-top:12px;}
+/* ── Khối luyện chép (v176): gọn, sáng, hai nút hay dùng nhất nằm cùng một hàng ── */
+.dvq{display:flex;flex-direction:column;gap:10px;}
+.dvq-row{display:flex;gap:8px;}
+.dvq-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  border-radius:12px;padding:12px 10px;font-size:13px;font-weight:800;cursor:pointer;line-height:1.2;
+  border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);
+  transition:transform .12s ease,box-shadow .2s ease,background .2s ease;}
+.dvq-btn:active{transform:scale(.97);}
+.dvq-btn.nghe{background:linear-gradient(135deg,#4FA8FF,#2454b0);border-color:transparent;color:#fff;
+  box-shadow:0 4px 14px -6px rgba(79,168,255,.85);}
+.dvq-btn.nghe.cho{background:linear-gradient(135deg,#7a8699,#5b6472);box-shadow:none;}
+.dvq-btn.nghe.chay,.dvq-btn.nghe.nghi{background:linear-gradient(135deg,#2CDBA8,#1f9e7a);color:#04211a;
+  box-shadow:0 4px 14px -6px rgba(44,219,168,.85);}
+.dvq-btn.doi{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.45);color:#FFD166;}
+.dvq-btn.cham{background:linear-gradient(135deg,#2CDBA8,#1f9e7a);border-color:transparent;color:#04211a;
+  box-shadow:0 4px 14px -6px rgba(44,219,168,.8);}
+.dvq-btn.phu{background:transparent;color:var(--dim);}
+.dvq-ta{width:100%;min-height:92px;border-radius:14px;padding:13px 14px;font-size:15px;line-height:1.6;
+  background:rgba(255,255,255,.04);border:1.5px solid var(--border);color:var(--text);
+  resize:vertical;outline:none;font-family:inherit;box-sizing:border-box;}
+.dvq-ta:focus{border-color:rgba(79,168,255,.7);background:rgba(79,168,255,.06);}
+.dvq-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  font-size:10.5px;color:var(--dim2);line-height:1.4;}
+.dvq-meta b{color:#7ec8ff;font-family:var(--mono);font-size:12.5px;}
+.dvq-cham{display:inline-block;width:9px;height:9px;border-radius:50%;background:currentColor;
+  animation:dvqNhay 1s ease-in-out infinite;}
+@keyframes dvqNhay{0%,100%{opacity:.25;}50%{opacity:1;}}
+.dvq-kq{display:flex;align-items:center;gap:10px;border-radius:12px;padding:11px 13px;
+  font-size:12.5px;font-weight:800;line-height:1.4;}
+.dvq-kq.dat{background:rgba(44,219,168,.14);border:1px solid rgba(44,219,168,.5);color:#2CDBA8;}
+.dvq-kq.chua{background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.45);color:#FF8A98;}
+.dvq-kq-so{font-family:var(--mono);font-size:19px;flex:0 0 auto;}
+.dvq-vi{font-size:12px;color:var(--dim);line-height:1.65;padding:9px 12px;border-radius:10px;
+  background:rgba(255,255,255,.03);border-left:2px solid rgba(126,200,255,.5);}
 .dv-bar{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;}
 .dv-bar-f{height:100%;background:linear-gradient(90deg,#4FA8FF,#2CDBA8);border-radius:2px;}
 .dv-ds-h{font-size:11.5px;font-weight:800;color:var(--dim);margin:12px 0 7px;}
@@ -2625,7 +2659,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v175';
+const APP_VERSION = 'v176';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14018,9 +14052,16 @@ Chỉ trả về JSON.`;
 
 // ── Trình phát riêng cho chép chính tả ───────────────────────────────────
 const DV_HOLDER = 'dv-yt-holder';
-let dvPlayer = null, dvCatTimer = null;
-function dvDungPlayer(){
+const DV_IM_TRUOC = 1500;   // im lặng để kịp chuẩn bị trước khi câu bắt đầu
+const DV_IM_SAU   = 1500;   // im lặng sau khi câu vừa dứt, không cắt cụt ngang tai
+let dvPlayer = null, dvCatTimer = null, dvChoTimer = null, dvDuoiTimer = null;
+function dvXoaHenGio(){
   if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  if(dvChoTimer){ clearTimeout(dvChoTimer);  dvChoTimer = null; }
+  if(dvDuoiTimer){ clearTimeout(dvDuoiTimer); dvDuoiTimer = null; }
+}
+function dvDungPlayer(){
+  dvXoaHenGio();
   if(dvPlayer){ try{ if(typeof dvPlayer.destroy==='function') dvPlayer.destroy(); }catch(e){} dvPlayer = null; }
 }
 function dvGanPlayer(videoId){
@@ -14069,7 +14110,8 @@ function dvDatToc(v){
 function dvNgheCaVideo(){
   const s = STATE.dvPhien; if(!s) return;
   dvLuuGo();
-  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  dvXoaHenGio();
+  s.phat = null;
   s.lienTuc = !s.lienTuc;
   try{
     if(s.lienTuc){
@@ -14081,6 +14123,20 @@ function dvNgheCaVideo(){
 }
 // Phát ĐÚNG một câu rồi tự dừng — đây là điểm cốt lõi: nghe đi nghe lại một câu để chép,
 // chứ không phải xem hết cả video.
+// Ba nhịp: IM 1.5s → phát đúng câu → IM 1.5s. Trạng thái nút được cập nhật bằng cách sửa
+// thẳng phần tử nút, KHÔNG vẽ lại cả khối — vẽ lại sẽ cướp con trỏ khỏi ô đang gõ.
+function dvNhanNutNghe(s){
+  if(s.phat==='cho')  return '<span class="dvq-cham"></span> Chuẩn bị…';
+  if(s.phat==='chay') return '🔈 Đang phát…';
+  if(s.phat==='nghi') return '🔈 Vừa hết câu…';
+  return s.daNghe ? '🔁 Nghe lại' : '🔊 Nghe câu';
+}
+function dvVeNutNghe(){
+  const s = STATE.dvPhien; if(!s) return;
+  const el = document.getElementById('dvNutNghe'); if(!el) return;
+  el.className = 'dvq-btn nghe ' + (s.phat || '');
+  el.innerHTML = dvNhanNutNghe(s);
+}
 function dvPhatCau(i){
   const s = STATE.dvPhien; if(!s) return;
   // Bấm nghe một câu = chủ động muốn cắt câu → thoát chế độ nghe liền mạch
@@ -14091,22 +14147,39 @@ function dvPhatCau(i){
   // trước mà người dùng nghe thấy. Nay tua đúng vào mốc bắt đầu, và dừng đúng mốc kết thúc của
   // chính câu này (mốc "e" do AI trả về, đã được chuẩn hoá cho khỏi chồng chéo).
   const ketThuc = (+d.e > d.t) ? +d.e : (rec.lines[i+1] ? rec.lines[i+1].t : (d.t + 25));
-  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
-  try{
-    dvPlayer.seekTo(Math.max(0, d.t), true);
-    dvPlayer.setPlaybackRate(dvTocDo());
-    dvPlayer.playVideo();
-  }catch(_){ return; }
-  dvCatTimer = setInterval(()=>{
-    // đang ở chế độ nghe liền mạch thì tuyệt đối không đụng vào trình phát
-    if(!STATE.dvPhien || STATE.dvPhien.lienTuc || !dvPlayer){ clearInterval(dvCatTimer); dvCatTimer=null; return; }
-    let gy = 0;
-    try{ gy = dvPlayer.getCurrentTime() || 0; }catch(_){ return; }
-    if(gy >= ketThuc){
-      try{ dvPlayer.pauseVideo(); }catch(_){}
-      clearInterval(dvCatTimer); dvCatTimer = null;
-    }
-  }, 60);   // 200ms là đủ để chạy lố sang chữ đầu của câu sau — siết xuống 60ms
+  dvXoaHenGio();
+  // NHỊP 1 — im lặng: dừng hẳn tiếng, chưa phát gì cả
+  try{ if(dvPlayer && dvPlayer.pauseVideo) dvPlayer.pauseVideo(); }catch(_){}
+  s.phat = 'cho'; s.daNghe = true; dvVeNutNghe();
+  dvChoTimer = setTimeout(()=>{
+    dvChoTimer = null;
+    const s2 = STATE.dvPhien; if(!s2) return;
+    // NHỊP 2 — phát đúng khoảng của câu này
+    try{
+      dvPlayer.seekTo(Math.max(0, d.t), true);
+      dvPlayer.setPlaybackRate(dvTocDo());
+      dvPlayer.playVideo();
+    }catch(_){ s2.phat = null; dvVeNutNghe(); return; }
+    s2.phat = 'chay'; dvVeNutNghe();
+    dvCatTimer = setInterval(()=>{
+      // đang ở chế độ nghe liền mạch thì tuyệt đối không đụng vào trình phát
+      if(!STATE.dvPhien || STATE.dvPhien.lienTuc || !dvPlayer){ dvXoaHenGio(); return; }
+      let gy = 0;
+      try{ gy = dvPlayer.getCurrentTime() || 0; }catch(_){ return; }
+      if(gy >= ketThuc){
+        try{ dvPlayer.pauseVideo(); }catch(_){}
+        clearInterval(dvCatTimer); dvCatTimer = null;
+        // NHỊP 3 — im lặng sau khi câu vừa dứt
+        const s3 = STATE.dvPhien; if(!s3) return;
+        s3.phat = 'nghi'; dvVeNutNghe();
+        dvDuoiTimer = setTimeout(()=>{
+          dvDuoiTimer = null;
+          const s4 = STATE.dvPhien; if(!s4) return;
+          s4.phat = null; dvVeNutNghe();
+        }, DV_IM_SAU);
+      }
+    }, 60);   // 200ms là đủ để chạy lố sang chữ đầu của câu sau — siết xuống 60ms
+  }, DV_IM_TRUOC);
 }
 // ── Chấm & đánh dấu ✓ ────────────────────────────────────────────────────
 function dvDoiChieu(){
@@ -14140,10 +14213,11 @@ function dvChamDiem(){
 // còn chưa kịp đeo tai nghe / chưa sẵn sàng nghe. Nay phải tự bấm "🔊 Nghe câu này" mới phát.
 function dvCauKhac(i){
   const s = STATE.dvPhien; if(!s) return;
-  if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
+  dvXoaHenGio();
   // đang nghe liền mạch thì mở câu khác cũng KHÔNG được dừng video
   if(!s.lienTuc){ try{ if(dvPlayer && dvPlayer.pauseVideo) dvPlayer.pauseVideo(); }catch(_){} }
   s.idx = i; s.go = ''; s.thuHien = false; s.thuLan = 0; s.ketQua = null;
+  s.phat = null; s.daNghe = false;
   if(!(dvVe('dvListWrap') && dvVe('dvBarWrap'))) renderContent();
 }
 // Bấm vào tiêu đề một câu: đang mở thì đóng, đang đóng thì mở ra và phát luôn câu đó.
@@ -14268,33 +14342,46 @@ function dvThanHtml(rec, s){
   const kq = s.ketQua;
   const conLai = rec.lines.length - dvXong(rec);
 
+  // SAU KHI CHẤM: chỉ còn Nghe lại + Chép lại. Bỏ hẳn "Câu chưa chép tiếp theo" — muốn sang câu
+  // nào thì bấm thẳng câu đó trong danh sách, đỡ bị đẩy đi chỗ khác ngoài ý muốn.
   if(kq){
-    return `<div class="vocab-scramble-result ${kq.passed?'ok':'no'}">${kq.passed
-        ? `✓ Đạt ${kq.acc}% — câu này đã được đánh dấu ✓`
-        : `✗ Chưa đạt (${kq.acc}%) — cần ≥${DICT_PASS_ACC}%`}</div>
-      ${dictKhoiDoiChieuHtml(d.en, s.go||'')}
-      ${d.vi?`<div class="eng-quiz-explain">🇻🇳 ${escapeHtml(d.vi)}</div>`:''}
-      <div style="display:flex; gap:9px; margin-top:11px;">
-        <button class="form-btn btn-listen" data-action="dv-nghe" style="flex:1;">🔊 Nghe lại</button>
-        <button class="form-btn cancel" data-action="dv-lam-lai" style="flex:1;">🔄 Chép lại</button>
+    return `<div class="dvq">
+      <div class="dvq-kq ${kq.passed?'dat':'chua'}">
+        <span class="dvq-kq-so">${kq.acc}%</span>
+        <span>${kq.passed ? 'Đạt — câu này đã đánh dấu ✓' : `Chưa đạt — cần ≥${DICT_PASS_ACC}%`}</span>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" data-action="dv-tiep" style="width:100%; margin-top:9px;">
-        ${conLai>0?`Câu chưa chép tiếp theo → (còn ${conLai})`:'🏁 Xong hết rồi'}
-      </button>`;
-  }
-  return `<button class="form-btn btn-listen" data-action="dv-nghe" style="width:100%;">🔊 Nghe câu này</button>
-    <textarea id="dvInput" class="vocab-type-input dict-ta" autocomplete="off" autocapitalize="off" spellcheck="false"
-      placeholder="Gõ lại câu bạn nghe được…" oninput="dvGoInput(this.value)" onchange="dvGoInput(this.value)" onblur="dvGoInput(this.value)">${escapeHtml(s.go||'')}</textarea>
-    ${s.thuHien ? dictThuHtml(d.en, s.go||'', s.thuLan||1) : ''}
-    <div style="display:flex; gap:9px; margin-top:11px;">
-      <button class="form-btn cancel" style="flex:1;" data-action="dv-doichieu">🔍 Đối chiếu</button>
-      <button class="form-btn eng-quiz-nextbtn" style="flex:1;" data-action="dv-cham">✓ Chấm điểm</button>
-    </div>
-    <div style="font-size:10.5px; color:var(--dim2); line-height:1.6; margin-top:7px; text-align:center;">
-      <b>Đối chiếu</b> xem còn thiếu từ nào — bấm nhiều lần được. <b>Chấm điểm</b> mới đánh dấu ✓.
+      ${dictKhoiDoiChieuHtml(d.en, s.go||'')}
+      ${d.vi?`<div class="dvq-vi">🇻🇳 ${escapeHtml(d.vi)}</div>`:''}
+      <div class="dvq-row">
+        <button class="dvq-btn nghe ${s.phat||''}" id="dvNutNghe" data-action="dv-nghe">${dvNhanNutNghe(s)}</button>
+        <button class="dvq-btn phu" data-action="dv-lam-lai">🔄 Chép lại</button>
+      </div>
     </div>`;
+  }
+  // ĐANG CHÉP: Nghe và Đối chiếu nằm CÙNG MỘT HÀNG ngay trên ô nhập — hai nút dùng nhiều nhất,
+  // ngón tay không phải chạy xuống cuối rồi lên lại.
+  const soTu = speakNormalizeWords(s.go||'').length;
+  return `<div class="dvq">
+    <div class="dvq-row">
+      <button class="dvq-btn nghe ${s.phat||''}" id="dvNutNghe" data-action="dv-nghe">${dvNhanNutNghe(s)}</button>
+      <button class="dvq-btn doi" data-action="dv-doichieu">🔍 Đối chiếu</button>
+    </div>
+    <textarea id="dvInput" class="dvq-ta" autocomplete="off" autocapitalize="off" spellcheck="false"
+      placeholder="Gõ lại câu bạn nghe được…" oninput="dvGoInput(this.value)" onchange="dvGoInput(this.value)" onblur="dvGoInput(this.value)">${escapeHtml(s.go||'')}</textarea>
+    <div class="dvq-meta">
+      <span>Không cần đúng hoa/thường hay dấu câu</span>
+      <span><b id="dvSoTu">${soTu}</b> từ</span>
+    </div>
+    ${s.thuHien ? dictThuHtml(d.en, s.go||'', s.thuLan||1) : ''}
+    <button class="dvq-btn cham" data-action="dv-cham">✓ Chấm điểm</button>
+  </div>`;
 }
-function dvGoInput(v){ const s = STATE.dvPhien; if(s) s.go = v; }
+function dvGoInput(v){
+  const s = STATE.dvPhien; if(s) s.go = v;
+  // cập nhật thẳng con số, không vẽ lại — vẽ lại là mất con trỏ đang gõ
+  const el = document.getElementById('dvSoTu');
+  if(el) el.textContent = String(speakNormalizeWords(v||'').length);
+}
 // LỖI người dùng báo: "đổi giữa các tốc độ thì mất phần câu trả lời". Nguyên nhân: ô nhập được
 // dựng lại từ s.go, mà s.go chỉ được cập nhật khi gõ xong (oninput). Nếu vẽ lại vì lý do khác —
 // đổi tốc độ chẳng hạn — thì những gì đang có TRONG ô nhập chưa kịp vào s.go và bị mất.
