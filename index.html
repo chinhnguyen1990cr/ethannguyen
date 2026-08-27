@@ -2298,6 +2298,31 @@
   border:1px solid rgba(126,200,255,.4);border-radius:7px;padding:4px 9px;}
 .dv-row.mo .dv-row-btn{color:var(--dim2);border-color:var(--border);}
 .dv-row-body{padding:0 12px 13px;border-top:1px solid var(--border);padding-top:12px;}
+/* ── Quản gia hôm nay (v177): câu ngắn, hai cột nên/đừng, số liệu giấu đi ── */
+.qg-chao-hop{padding:4px 2px 14px;}
+.qg-ngay{font-size:10.5px;color:var(--dim2);letter-spacing:.04em;margin-bottom:5px;}
+.qg-chao{font-size:19px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:5px;}
+.qg-tom{font-size:13.5px;color:var(--dim);line-height:1.6;}
+.qg-tom b{color:var(--text);}
+.qg-gap{display:flex;gap:11px;align-items:flex-start;background:rgba(255,201,74,.10);
+  border:1px solid rgba(255,201,74,.42);border-radius:14px;padding:13px 14px;margin-bottom:12px;}
+.qg-gap-ic{font-size:20px;line-height:1.2;flex:0 0 auto;}
+.qg-gap-chu{font-size:14px;font-weight:800;color:#FFD166;line-height:1.4;margin-bottom:3px;}
+.qg-gap-phu{font-size:12px;color:var(--dim);line-height:1.55;}
+.qg-hop{border-radius:14px;padding:13px 14px;margin-bottom:10px;border:1px solid var(--border);}
+.qg-hop.nen{background:rgba(44,219,168,.07);border-color:rgba(44,219,168,.34);}
+.qg-hop.dung{background:rgba(255,138,152,.06);border-color:rgba(255,138,152,.30);}
+.qg-hop-h{font-size:11px;font-weight:800;letter-spacing:.06em;margin-bottom:9px;}
+.qg-hop.nen .qg-hop-h{color:#2CDBA8;}
+.qg-hop.dung .qg-hop-h{color:#FF8A98;}
+.qg-ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+.qg-ul li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.55;color:var(--text);}
+.qg-ic{flex:0 0 auto;font-size:15px;line-height:1.4;}
+.qg-mo{text-align:center;font-size:11.5px;font-weight:700;color:var(--dim2);cursor:pointer;
+  padding:9px;border-radius:10px;border:1px dashed var(--border);margin-bottom:10px;}
+.qg-mo.lon{margin-top:4px;color:#7ec8ff;border-color:rgba(126,200,255,.35);}
+.qg-so{font-size:11.5px;color:var(--dim);line-height:1.85;padding:2px 4px 12px;}
+.qg-so b{color:var(--text);font-family:var(--mono);}
 /* ── Khối luyện chép (v176): gọn, sáng, hai nút hay dùng nhất nằm cùng một hàng ── */
 .dvq{display:flex;flex-direction:column;gap:10px;}
 .dvq-row{display:flex;gap:8px;}
@@ -2659,7 +2684,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v176';
+const APP_VERSION = 'v177';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6782,6 +6807,129 @@ function cvTuViChiTietHtml(){
   return khoi.length ? khoi.join('') : '<div style="font-size:11.5px;color:var(--dim);padding:8px 0;">Chưa lập được chi tiết — kiểm tra lại ngày sinh trong Thông tin cá nhân.</div>';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  QUẢN GIA HÔM NAY  —  cùng số liệu, nhưng nói bằng tiếng người
+// ═══════════════════════════════════════════════════════════════════════════
+const QG_MAX_NEN = 4, QG_MAX_DUNG = 3;
+function qgGioChu(t){ return String((t&&t.time)||'').slice(0,5); }
+function qgGioSo(t){ const p = String((t&&t.time)||'00:00').split(':'); return (+p[0]) + (+p[1])/60; }
+function qgTenNhom(c){ return (CATS[c] && CATS[c].label) ? CATS[c].label : c; }
+
+function qgBanTin(D){
+  // Dùng nguyên tên người dùng tự nhập. Cắt lấy "chữ cuối" là sai với người ghi kiểu
+  // "Chinh Nguyễn" — hoá ra gọi bằng họ. Không có cách nào đoán đúng cho mọi kiểu ghi.
+  const ten = ((SETTINGS.profile||{}).name || '').trim();
+  const g = D.gio;
+  const chao = (g<5 ? 'Khuya rồi' : g<11 ? 'Chào buổi sáng' : g<13 ? 'Trưa rồi'
+              : g<18 ? 'Chào buổi chiều' : 'Chào buổi tối') + (ten ? ', ' + escapeHtml(ten) : '') + '.';
+
+  // Một câu duy nhất về tình hình — không nhồi số
+  let tom;
+  if(D.nghi) tom = 'Hôm nay là ngày nghỉ. Cứ thong thả.';
+  else if(!D.planHnay.length) tom = 'Hôm nay chưa đặt việc nào cả. Rảnh thì thêm một hai việc nhẹ.';
+  else if(!D.conLai.length) tom = 'Xong hết việc hôm nay rồi. Nghỉ được rồi đấy.';
+  else {
+    const kt = D.sapToi[0];
+    tom = `Còn ${D.conLai.length} việc chưa làm.` + (kt ? ` Gần nhất là <b>${escapeHtml(kt.label)}</b> lúc ${qgGioChu(kt)}.` : '');
+  }
+
+  // Việc cần để mắt ngay bây giờ
+  let gap = null;
+  if(!D.nghi){
+    if(D.daQua.length){
+      const t = D.daQua[D.daQua.length-1];
+      gap = {ic:'⏰', chu:`“${escapeHtml(t.label)}” lỡ giờ ${qgGioChu(t)} mất rồi`,
+             phu: D.daQua.length > 1
+               ? `Còn ${D.daQua.length-1} việc nữa cũng đang trễ. Làm một cái thôi, đừng ôm hết.`
+               : 'Làm bù bây giờ vẫn kịp. Không kịp thì bỏ, mai làm đúng giờ là được.'};
+    } else if(D.sapToi.length){
+      const t = D.sapToi[0];
+      const con = Math.max(0, Math.round((qgGioSo(t) - g) * 60));
+      gap = {ic:'🔔',
+             chu: con <= 60 ? `Còn ${con} phút nữa tới “${escapeHtml(t.label)}”`
+                            : `Sắp tới: “${escapeHtml(t.label)}” lúc ${qgGioChu(t)}`,
+             phu: con <= 60 ? 'Chuẩn bị dần đi cho khỏi cập rập.'
+                            : 'Còn thong thả. Làm việc khác trước cũng được.'};
+    }
+  }
+
+  const nen = [], dung = [];
+  const gioYeu  = (D.xepGio.length >= 2 && D.xepGio[0].pct < 60) ? D.xepGio[0] : null;
+  const nhomYeu = (D.xepNhom.length >= 2 && D.xepNhom[0].pct < 60) ? D.xepNhom[0] : null;
+  const p = D.t14.pct;
+
+  // ── NÊN ──
+  if(D.wx && D.wx.rain != null && D.wx.rain >= 60)
+    nen.push({ic:'☔', chu:`Trời dễ mưa (${D.wx.rain}%). Việc ngoài trời làm sớm, hoặc chuyển vào nhà.`});
+  else if(D.wx && D.wx.max >= 35)
+    nen.push({ic:'🥵', chu:`Nắng gắt ${D.wx.max}°. Tập lúc sáng sớm hay chiều muộn, nhớ uống nhiều nước.`});
+  if(gioYeu)
+    nen.push({ic:'⏰', chu:`Việc lúc ${gioYeu.h} giờ hay bị bỏ nhất. Hôm nay thử làm sớm hơn 15 phút.`});
+  if(nhomYeu)
+    nen.push({ic:'🎯', chu:`Mảng ${escapeHtml(qgTenNhom(nhomYeu.cat))} đang đuối nhất. Làm nó trước lúc còn sức.`});
+  if(D.boLau.length)
+    nen.push({ic:'📚', chu:`${escapeHtml(D.boLau[0].name)} bỏ ${D.boLau[0].daysSince} ngày rồi. Mở ra 10 phút thôi cũng được.`});
+  if(p !== null && p < 50)
+    nen.push({ic:'✂️', chu:'Bớt lịch lại. Chọn 2–3 việc dễ nhất, làm cho xong hẳn.'});
+  if(D.chuoi >= 3)
+    nen.push({ic:'🔥', chu:`Đang được ${D.chuoi} ngày liền. Tích thêm một việc nữa là giữ được chuỗi.`});
+  if(!nen.length)
+    nen.push({ic:'🙂', chu:'Cứ theo lịch là ổn. Hôm nay chưa có gì đáng lo.'});
+
+  // ── ĐỪNG ──
+  if(D.daQua.length >= 3)
+    dung.push({ic:'🌙', chu:'Đừng cố làm bù hết trong tối nay. Chọn một việc thôi.'});
+  if(p !== null && p >= 85)
+    dung.push({ic:'➕', chu:'Đừng thêm việc mới. Đang chạy tốt thì cứ để yên.'});
+  else if(p !== null && p < 50)
+    dung.push({ic:'📅', chu:'Đừng giữ nguyên lịch rồi hẹn “mai cố hơn”. Cắt bớt đi đã.'});
+  if(gioYeu)
+    dung.push({ic:'⛔', chu:`Đừng xếp thêm việc vào khung ${gioYeu.h} giờ nữa.`});
+  if(D.wx && D.wx.max >= 35)
+    dung.push({ic:'☀️', chu:'Đừng ra ngoài tập lúc giữa trưa.'});
+  if(D.t14.ngayTrang > 0)
+    dung.push({ic:'🚫', chu:'Đừng để ngày trắng. Tích một việc nhỏ vẫn hơn là không có gì.'});
+  if(!dung.length)
+    dung.push({ic:'😌', chu:'Đừng ép mình quá. Làm được tới đâu tính tới đó.'});
+
+  // ── Số liệu gốc, để trong khối thu gọn ──
+  const so = [];
+  if(p !== null) so.push(`14 ngày qua làm xong <b>${D.t14.xong}/${D.t14.tongViec}</b> việc.`);
+  if(gioYeu) so.push(`Việc đặt lúc ${gioYeu.h} giờ: xong <b>${gioYeu.xong}/${gioYeu.tong}</b> lượt.`);
+  if(nhomYeu) so.push(`Mảng ${escapeHtml(qgTenNhom(nhomYeu.cat))}: xong <b>${nhomYeu.xong}/${nhomYeu.tong}</b> lượt.`);
+  if(D.chuoi > 0) so.push(`Chuỗi ngày hiện tại: <b>${D.chuoi}</b>.`);
+  if(D.wx) so.push(`Hôm nay <b>${D.wx.min}–${D.wx.max}°</b>${D.wx.rain!=null?`, khả năng mưa ${D.wx.rain}%`:''}.`);
+  if(!so.length) so.push('Mới dùng được vài hôm nên chưa có gì để đối chiếu. Vài ngày nữa sẽ rõ hơn.');
+
+  return {chao, tom, gap, nen: nen.slice(0, QG_MAX_NEN), dung: dung.slice(0, QG_MAX_DUNG), so};
+}
+
+function qgHtml(D){
+  const B = qgBanTin(D);
+  const d = new Date();
+  const THU = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  const dong = a => a.map(x=>`<li><span class="qg-ic">${x.ic}</span><span>${x.chu}</span></li>`).join('');
+  return `<div class="qg-chao-hop">
+      <div class="qg-ngay">${THU[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}</div>
+      <div class="qg-chao">${B.chao}</div>
+      <div class="qg-tom">${B.tom}</div>
+    </div>
+    ${B.gap ? `<div class="qg-gap">
+      <div class="qg-gap-ic">${B.gap.ic}</div>
+      <div><div class="qg-gap-chu">${B.gap.chu}</div><div class="qg-gap-phu">${B.gap.phu}</div></div>
+    </div>` : ''}
+    <div class="qg-hop nen">
+      <div class="qg-hop-h">Hôm nay nên</div>
+      <ul class="qg-ul">${dong(B.nen)}</ul>
+    </div>
+    <div class="qg-hop dung">
+      <div class="qg-hop-h">Hôm nay đừng</div>
+      <ul class="qg-ul">${dong(B.dung)}</ul>
+    </div>
+    <div class="qg-mo" data-action="cv-solieu">${SETTINGS.cvSoLieu?'▴ Ẩn con số':'▾ Quản gia dựa vào đâu?'}</div>
+    ${SETTINGS.cvSoLieu ? `<div class="qg-so">${B.so.map(x=>`<div>· ${x}</div>`).join('')}</div>` : ''}`;
+}
+
 // ---------- Giao diện ----------
 function cvThe(m){
   const dong = (arr, ic, mau) => (arr||[]).map(x=>`<li style="--bic:'${ic}'; color:${mau};"><span>${x}</span></li>`).join('');
@@ -6813,16 +6961,13 @@ function cvThanHtml(){
   const d = new Date();
   const THU = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
   const ngay = `${THU[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
-  return `<div class="cv-top">
-      <div class="cv-top-ngay">${ngay}</div>
-      <div class="cv-top-mo">${cvMoDau(D)}</div>
-    </div>
-    ${cvTuViHtml()}
-    ${ND.map(cvThe).join('')}
-    ${cvAiCardHtml(D)}
-    <div class="cv-foot">Màn này gộp hai thứ khác hẳn nhau về bản chất, nên đọc cũng nên khác nhau:<br>
-      <b>Khối tử vi (🔮)</b> gộp cả 5 mục cũ — Bát Tự, Tử Vi, Chiêm tinh, Tarot, Vận trình — làm một. Nó tính từ ngày sinh, <b>không kiểm chứng được</b>, dùng như khung tham khảo để sắp thứ tự việc.<br>
-      <b>Các khối còn lại</b> đọc từ số liệu thật trong máy bạn: lịch làm việc, việc đã tích, điểm luyện tập, thời tiết. Không có phần nào là dự đoán tương lai — thấy chỗ nào sai thì đối chiếu dòng "Vì sao", nó chỉ rõ con số nào dẫn tới kết luận đó.</div>`;
+  // Quản gia nói trước — ngắn, dễ đọc. Bản phân tích chi tiết và khối tử vi nằm trong hai khối
+  // thu gọn bên dưới, mở ra khi nào muốn xem, chứ không đổ hết ra màn hình mỗi sáng.
+  return `${qgHtml(D)}
+    <div class="qg-mo lon" data-action="cv-daydu">${SETTINGS.cvDayDu?'▴ Thu gọn bản phân tích':'▾ Xem bản phân tích đầy đủ'}</div>
+    ${SETTINGS.cvDayDu ? `${cvTuViHtml()}${ND.map(cvThe).join('')}${cvAiCardHtml(D)}` : ''}
+    <div class="cv-foot">Phần “nên / đừng” ở trên đọc từ lịch và số liệu thật trong máy bạn.
+      Khối tử vi nằm trong bản đầy đủ, tính từ ngày sinh — tham khảo cho vui thôi, đừng lấy làm căn cứ.</div>`;
 }
 // ---------- Bản viết sâu bằng Claude (tùy chọn, cần API key) ----------
 // Khác bản cũ ở chỗ: prompt không còn nói về Can Chi/ngũ hành mà đưa thẳng số liệu thật cho AI đọc,
@@ -21863,6 +22008,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictTocEl){ dictDatTocDo(dictTocEl.getAttribute('data-v')); return; }
   const dictThuEl = e.target.closest('[data-action="dict-thu"]');
   if(dictThuEl){ dictDoiChieuThu(); return; }
+  const cvSoEl = e.target.closest('[data-action="cv-solieu"]');
+  if(cvSoEl){ SETTINGS.cvSoLieu = !SETTINGS.cvSoLieu; saveSettings(); renderContentPreserveScroll(); return; }
+  const cvDdEl = e.target.closest('[data-action="cv-daydu"]');
+  if(cvDdEl){ SETTINGS.cvDayDu = !SETTINGS.cvDayDu; saveSettings(); renderContentPreserveScroll(); return; }
   const cvTvEl = e.target.closest('[data-action="cv-tv-chitiet"]');
   if(cvTvEl){ SETTINGS.cvTvChiTiet = !SETTINGS.cvTvChiTiet; saveSettings(); renderContentPreserveScroll(); return; }
   const cvAiEl = e.target.closest('[data-action="cv-ai-lam"]');
