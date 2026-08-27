@@ -2298,6 +2298,27 @@
   border:1px solid rgba(126,200,255,.4);border-radius:7px;padding:4px 9px;}
 .dv-row.mo .dv-row-btn{color:var(--dim2);border-color:var(--border);}
 .dv-row-body{padding:0 12px 13px;border-top:1px solid var(--border);padding-top:12px;}
+/* ── Học theo video (v178): video trên, ba thẻ, lời thoại tự cuộn ── */
+.hv-vidwrap{position:relative;max-width:460px;margin:0 auto 10px;}
+.hv-chip{position:absolute;left:50%;transform:translateX(-50%);bottom:9px;max-width:92%;
+  background:rgba(0,0,0,.72);color:#fff;font-size:12px;line-height:1.4;padding:5px 11px;
+  border-radius:8px;text-align:center;pointer-events:none;}
+.hv-chip:empty{display:none;}
+.hv-tabs{display:flex;gap:6px;margin-bottom:11px;}
+.hv-tab{flex:1;padding:9px 4px;border-radius:11px;font-size:12px;font-weight:800;cursor:pointer;
+  border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--dim);line-height:1.2;}
+.hv-tab.on{background:linear-gradient(135deg,#2CDBA8,#1f9e7a);color:#04211a;border-color:transparent;
+  box-shadow:0 3px 12px -5px rgba(44,219,168,.8);}
+.hv-loi{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:3px;
+  padding:4px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);}
+.hv-l{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;border-radius:9px;cursor:pointer;
+  opacity:.5;transition:opacity .18s ease,background .18s ease;}
+.hv-l:active{background:rgba(255,255,255,.05);}
+.hv-l.dang{opacity:1;background:rgba(126,200,255,.10);border-left:3px solid #2CDBA8;padding-left:6px;}
+.hv-t{flex:0 0 38px;font-size:10.5px;font-family:var(--mono);color:var(--dim2);padding-top:2px;}
+.hv-l.dang .hv-t{color:#2CDBA8;}
+.hv-x{flex:1;min-width:0;font-size:13.5px;line-height:1.55;color:var(--text);}
+.hv-w.now{color:#FFC94A;border-bottom:2px solid #FFC94A;}
 /* ── Quản gia hôm nay (v177): câu ngắn, hai cột nên/đừng, số liệu giấu đi ── */
 .qg-chao-hop{padding:4px 2px 14px;}
 .qg-ngay{font-size:10.5px;color:var(--dim2);letter-spacing:.04em;margin-bottom:5px;}
@@ -2684,7 +2705,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v177';
+const APP_VERSION = 'v178';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8745,7 +8766,8 @@ function defaultEnglishItems(){
     {id:'eng_ipa', name:'Luyện IPA', kind:'ipa'},
     {id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'},
     {id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'},
-    {id:'eng_aichat', name:'Hội thoại AI', kind:'aichat'}
+    {id:'eng_aichat', name:'Hội thoại AI', kind:'aichat'},
+    {id:'eng_hocvideo', name:'Học theo video', kind:'hocvideo'}
   ];
 }
 function ensureEnglishItems(){
@@ -8787,6 +8809,11 @@ function ensureEnglishItems(){
   // trong SETTINGS.shadowingVideos, không mất.
   if(Array.isArray(SETTINGS.englishItems) && SETTINGS.englishItems.some(i=>i.kind==='shadowing')){
     SETTINGS.englishItems = SETTINGS.englishItems.filter(i=>i.kind!=='shadowing');
+    saveSettings(); pushToDrive();
+  }
+  // Mục mới "Học theo video" (v178): gộp Phụ đề + Chép chính tả + Shadowing quanh MỘT video.
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='hocvideo')){
+    SETTINGS.englishItems.push({id:'eng_hocvideo', name:'Học theo video', kind:'hocvideo'});
     saveSettings(); pushToDrive();
   }
   // GỘP "Ngữ pháp" + "Luyện ngữ pháp" (v120): hai mục này trùng vai trò — mục Ngữ pháp vốn đã có lộ
@@ -9776,6 +9803,7 @@ function renderEnglishItem(){
   if(item.kind==='vocab') return renderEnglishVocab(item);
   if(item.kind==='sentences') return renderEnglishSentences(item);
   if(item.kind==='aichat') return renderAiChat(item);
+  if(item.kind==='hocvideo') return renderHocVideo(item);
   if(item.kind==='shadowing') return renderShadowingHome(item);
   return renderEnglishNotes(item);
 }
@@ -13963,6 +13991,381 @@ function dictKhoiDoiChieuHtml(target, typed){
 }
 
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  HỌC THEO VIDEO  —  một video, ba cách học
+// ═══════════════════════════════════════════════════════════════════════════
+// Trước đây "Nghe & chép chính tả" nằm trong Luyện nghe, "Luyện tập shadowing" nằm chỗ khác, mỗi
+// bên giữ một kho video riêng và mỗi bên bắt AI đọc lại video một lần. Thêm cùng một video vào
+// hai chỗ là tốn hai lần gọi AI cho cùng một nội dung.
+//
+// Nay: MỘT kho video dùng chung (SETTINGS.hvVideos). AI đọc một lần, cả ba thẻ cùng xài:
+//   · Phụ đề       — chạy video, lời thoại tự cuộn, dòng đang nói sáng lên, chữ đang đọc đổi màu
+//   · Chép chính tả — mở đúng bộ máy chép chính tả cũ, gắn vào video này
+//   · Shadowing     — mở đúng bộ máy shadowing cũ, gắn vào video này
+//
+// GIỚI HẠN THẬT, nói trước cho khỏi mất công: Gemini CHỈ đọc được video từ link YouTube. Facebook,
+// TikTok, Instagram... nó không xem được, mà các trang đó cũng chặn nhúng nên app không điều khiển
+// được để chạy đồng bộ. Dán link ngoài YouTube thì app báo thẳng chứ không giả vờ chạy.
+function hvVideos(){
+  if(!Array.isArray(SETTINGS.hvVideos)) SETTINGS.hvVideos = [];
+  return SETTINGS.hvVideos;
+}
+function hvTim(id){ return hvVideos().find(v=>v.id===id) || null; }
+// Gom kho cũ vào kho chung, giữ nguyên bản cũ (không xoá — lỡ sai còn quay lại được)
+function hvGomKhoCu(){
+  const kho = hvVideos();
+  let doi = false;
+  const them = (v, nguon)=>{
+    if(!v || !v.videoId) return;
+    if(kho.some(x=>x.videoId===v.videoId)) return;
+    kho.push({id:'hv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      videoId:v.videoId, title:v.title||'Video', lines:v.lines||null,
+      xong:v.xong||{}, soCauCu:v.soCauCu, addedAt:v.addedAt||todayKey(), nguon});
+    doi = true;
+  };
+  (Array.isArray(SETTINGS.dictVideos)?SETTINGS.dictVideos:[]).forEach(v=>them(v,'chinhta'));
+  (Array.isArray(SETTINGS.shadowingVideos)?SETTINGS.shadowingVideos:[]).forEach(v=>them(v,'shadowing'));
+  if(doi){ SETTINGS.hvVideos = kho; saveSettings(); pushToDrive(); }
+}
+function hvThemVideo(){
+  const url = (document.getElementById('hvUrl')||{}).value || '';
+  const ten = (document.getElementById('hvTen')||{}).value || '';
+  const p = parseYouTubeUrl(url);
+  if(!p || p.type!=='video'){
+    STATE.hvLoi = /facebook|tiktok|instagram|fb\.watch/i.test(url)
+      ? 'Link này không dùng được. AI chỉ đọc được video YouTube, và Facebook/TikTok cũng chặn nhúng nên app không chạy đồng bộ lời thoại được. Tìm video tương tự trên YouTube rồi dán vào đây.'
+      : 'Cần link tới MỘT video YouTube, ví dụ https://www.youtube.com/watch?v=... hoặc https://youtu.be/...';
+    renderContent(); return;
+  }
+  const videoId = (p.embed.match(/embed\/([^?&/]+)/)||[])[1] || '';
+  if(!videoId){ STATE.hvLoi = 'Không đọc được mã video từ link này.'; renderContent(); return; }
+  const kho = hvVideos();
+  if(kho.some(v=>v.videoId===videoId)){ STATE.hvLoi = 'Video này đã có trong danh sách rồi.'; renderContent(); return; }
+  const id = 'hv_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const tuDat = ten.trim();
+  kho.push({id, videoId, title: tuDat || 'Đang lấy tiêu đề…', tuDatTen: !!tuDat,
+            lines:null, xong:{}, addedAt: todayKey()});
+  SETTINGS.hvVideos = kho; saveSettings(); pushToDrive();
+  STATE.hvLoi = null; STATE.hvThem = false;
+  showToast('✅','Đã thêm video','Mở ra rồi bấm "🤖 Lấy lời thoại" để AI nghe và ghi lại.');
+  renderContent();
+  if(!tuDat) hvLayTen(id);
+}
+async function hvLayTen(recId){
+  const rec = hvTim(recId); if(!rec || !rec.videoId) return;
+  let ten = '';
+  try{
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v='+rec.videoId)}&format=json`);
+    if(res.ok){ const j = await res.json(); ten = (j && j.title) ? String(j.title).trim() : ''; }
+  }catch(e){}
+  const r2 = hvTim(recId); if(!r2) return;
+  r2.title = ten || ('Video ' + hvVideos().length);
+  saveSettings(); pushToDrive();
+  renderContent();
+}
+function hvXoaVideo(id){
+  SETTINGS.hvVideos = hvVideos().filter(v=>v.id!==id);
+  saveSettings(); pushToDrive(); renderContent();
+}
+// ── AI nghe video và ghi lại lời thoại ───────────────────────────────────
+// Dùng lại đúng bộ đọc kết quả đã tôi luyện ở v175 (dvDocJson + dvLayMang + dvLamSach) — nó chịu
+// được mọi hình dạng JSON Gemini trả về và vớt được cả kết quả bị cắt cụt.
+async function hvLayLoi(recId){
+  const rec = hvTim(recId); if(!rec) return;
+  if(!SETTINGS.geminiApiKey){
+    STATE.hvLoi = 'Cần Gemini API key. Vào Cài đặt → Hội thoại AI để dán key.';
+    renderContent(); return;
+  }
+  STATE.hvDangLay = true; STATE.hvLoi = null; renderContent();
+  const dieuKhien = new AbortController();
+  const heGio = setTimeout(()=>{ try{ dieuKhien.abort(); }catch(_){} }, 240000);
+  const prompt = `Nghe toàn bộ video này và ghi lại lời nói thành từng câu kèm mốc thời gian.
+
+Trả về DUY NHẤT một object JSON (không markdown) đúng dạng:
+{"lines":[{"t":<giây bắt đầu>,"e":<giây kết thúc>,"en":"<câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>"}]}
+
+Quy tắc:
+- MỖI PHẦN TỬ LÀ MỘT CÂU. Câu dài quá thì cắt ở chỗ ngắt nghỉ tự nhiên.
+- MỐC THỜI GIAN PHẢI CHÍNH XÁC: "t" là lúc từ đầu tiên phát ra tiếng, "e" là lúc từ cuối vừa dứt.
+  TUYỆT ĐỐI KHÔNG để hai câu chồng lên nhau — "t" câu sau phải >= "e" câu trước.
+  Lời thoại sẽ chạy đồng bộ theo video nên mốc lệch là chữ chạy sai nhịp.
+- "en" ghi ĐÚNG từng chữ được nói, giữ dạng rút gọn (I'm, don't, gonna).
+- Bỏ nhạc nền, tiếng cười, đoạn không có lời.
+- Lấy tối đa 200 câu.
+Chỉ trả về JSON.`;
+  try{
+    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[
+          {fileData:{fileUri:'https://www.youtube.com/watch?v='+rec.videoId}},
+          {text:prompt}
+        ]}],
+        generationConfig:{temperature:0.2, maxOutputTokens:32768, responseMimeType:'application/json'}
+      }),
+      signal: dieuKhien.signal
+    });
+    if(!res.ok){
+      let msg = 'HTTP '+res.status;
+      try{ const j = await res.json(); if(j&&j.error&&j.error.message) msg += ': '+j.error.message; }catch(_){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const cand = (data.candidates||[])[0] || null;
+    const chan = data.promptFeedback && data.promptFeedback.blockReason;
+    if(chan) throw new Error('Google từ chối xử lý video này (' + chan + ').');
+    if(!cand) throw new Error('Gemini không trả về kết quả. Video phải ở chế độ CÔNG KHAI.');
+    const txt = ((cand.content||{parts:[]}).parts||[]).map(p=>p.text||'').join('').trim();
+    if(!txt) throw new Error(cand.finishReason==='MAX_TOKENS'
+      ? 'Video quá dài. Thử video ngắn hơn (dưới ~15 phút).'
+      : 'Gemini không đọc được video (' + (cand.finishReason||'không rõ') + ').');
+    const parsed = dvDocJson(txt);
+    if(!parsed) throw new Error('Không đọc được kết quả. Nó nói: "' + txt.slice(0,150) + '"');
+    const tho = dvLayMang(parsed);
+    // Ở đây KHÔNG lọc câu ngắn/xã giao như bên chép chính tả — phụ đề phải đủ cả bài mới chạy khớp
+    let lines = (tho||[]).map(l=>{
+      const c = dvChuanCau(l); if(!c || !c.en) return null;
+      return {t: Math.max(0, Math.round(c.t*10)/10), e: c.e>c.t ? Math.round(c.e*10)/10 : 0, en: c.en, vi: c.vi};
+    }).filter(Boolean).sort((a,b)=>a.t-b.t);
+    for(let i=0;i<lines.length;i++){
+      const sau = lines[i+1];
+      if(!lines[i].e) lines[i].e = sau ? sau.t : (lines[i].t + 4);
+      if(sau && lines[i].e > sau.t) lines[i].e = sau.t;
+      if(lines[i].e < lines[i].t + 0.4) lines[i].e = lines[i].t + 0.4;
+    }
+    if(!lines.length) throw new Error('Gemini không nghe được câu nào (đã đọc ' + txt.length + ' ký tự).');
+    if(rec.soCauCu != null && rec.soCauCu !== lines.length) rec.xong = {};
+    rec.lines = lines; rec.soCauCu = lines.length;
+    saveSettings(); pushToDrive();
+    showToast('✅','Xong', lines.length + ' câu — bấm ▶️ để nghe, lời thoại chạy theo.');
+  }catch(e){
+    STATE.hvLoi = (e && e.name==='AbortError')
+      ? 'Quá 4 phút chưa xong — thường là video quá dài. Thử video ngắn hơn.'
+      : 'Không lấy được lời thoại: ' + ((e&&e.message)||'lỗi không rõ');
+  }
+  clearTimeout(heGio);
+  STATE.hvDangLay = false; renderContent();
+}
+// ── Trình phát + đồng bộ lời thoại ───────────────────────────────────────
+const HV_HOLDER = 'hv-yt-holder';
+let hvPlayer = null, hvNhip = null, hvDongCu = -1;
+function hvDungNhip(){ if(hvNhip){ clearInterval(hvNhip); hvNhip = null; } }
+function hvDungPlayer(){
+  hvDungNhip(); hvDongCu = -1;
+  if(hvPlayer){ try{ if(typeof hvPlayer.destroy==='function') hvPlayer.destroy(); }catch(e){} hvPlayer = null; }
+}
+function hvGanPlayer(videoId){
+  if(!videoId) return;
+  const gan = ()=>{
+    const hop = document.getElementById(HV_HOLDER);
+    if(!hop) return;
+    // iframe còn sống thì đừng dựng lại (dựng lại là video nhảy về đầu) — NHƯNG phải bật lại vòng
+    // đồng bộ, vì onReady sẽ không bắn nữa. Thiếu dòng này thì lời thoại đứng im dù video vẫn chạy.
+    if(hop.querySelector && hop.querySelector('iframe')){ if(hvPlayer) hvBatNhip(); return; }
+    try{
+      hvPlayer = new YT.Player(HV_HOLDER, {
+        videoId,
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        events:{ onReady:()=>{ hvBatNhip(); } }
+      });
+    }catch(e){}
+  };
+  if(window.YT && window.YT.Player) gan();
+  else {
+    if(!document.getElementById('yt-iframe-api')){
+      const t = document.createElement('script');
+      t.id = 'yt-iframe-api'; t.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(t);
+    }
+    const truoc = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function(){ if(typeof truoc==='function') try{ truoc(); }catch(e){} gan(); };
+    let dem = 0;
+    const cho = setInterval(()=>{ if(window.YT && window.YT.Player){ clearInterval(cho); gan(); } if(++dem>40) clearInterval(cho); }, 250);
+  }
+}
+// Tìm câu đang được nói tại giây "gy". Trả -1 nếu đang ở khoảng lặng giữa hai câu.
+function hvDongTaiGiay(lines, gy){
+  if(!lines || !lines.length) return -1;
+  for(let i=0;i<lines.length;i++){
+    if(gy >= lines[i].t && gy < (lines[i].e || lines[i].t+4)) return i;
+  }
+  return -1;
+}
+// Chữ nào đang được đọc tới. Gemini chỉ cho mốc THEO CÂU, không cho theo chữ — nên chia đều thời
+// lượng câu cho số chữ. Không chính xác tuyệt đối nhưng bám sát nhịp đọc và không bao giờ lệch câu.
+function hvChuTaiGiay(dong, gy){
+  if(!dong) return -1;
+  const tu = String(dong.en||'').trim().split(/\s+/);
+  if(!tu.length) return -1;
+  const dai = Math.max(0.3, (dong.e || dong.t+4) - dong.t);
+  const k = Math.floor((gy - dong.t) / dai * tu.length);
+  return Math.max(0, Math.min(tu.length-1, k));
+}
+function hvBatNhip(){
+  hvDungNhip();
+  hvNhip = setInterval(()=>{
+    if(!STATE.hvPhien || !hvPlayer){ hvDungNhip(); return; }
+    const rec = hvTim(STATE.hvPhien.vidId);
+    if(!rec || !rec.lines){ hvDungNhip(); return; }
+    let gy = 0;
+    try{ gy = hvPlayer.getCurrentTime() || 0; }catch(_){ return; }
+    const i = hvDongTaiGiay(rec.lines, gy);
+    if(i !== hvDongCu){
+      // trả dòng cũ về chữ thường
+      if(hvDongCu >= 0){
+        const cu = document.getElementById('hvL'+hvDongCu);
+        const cux = document.getElementById('hvX'+hvDongCu);
+        if(cu) cu.classList.remove('dang');
+        if(cux && rec.lines[hvDongCu]) cux.textContent = rec.lines[hvDongCu].en;
+      }
+      hvDongCu = i;
+      if(i >= 0){
+        const el = document.getElementById('hvL'+i);
+        const ex = document.getElementById('hvX'+i);
+        if(el) el.classList.add('dang');
+        if(ex) ex.innerHTML = String(rec.lines[i].en).trim().split(/\s+/)
+          .map((w,k)=>`<span class="hv-w" id="hvW${k}">${escapeHtml(w)}</span>`).join(' ');
+        // cuộn trong khung lời thoại, KHÔNG cuộn cả trang (cuộn cả trang là video trôi mất)
+        const khung = document.getElementById('hvLoiWrap');
+        if(khung && el) khung.scrollTop = Math.max(0, el.offsetTop - khung.clientHeight/2 + el.offsetHeight/2);
+        const chip = document.getElementById('hvChip');
+        if(chip) chip.textContent = rec.lines[i].en;
+      } else {
+        const chip = document.getElementById('hvChip');
+        if(chip) chip.textContent = '';
+      }
+    }
+    if(hvDongCu >= 0){
+      // Duyệt các chữ NGAY TRONG dòng đang nói. Bản đầu tôi viết vòng lặp không có biên, quét
+      // getElementById('hvW'+j) tới khi null — dựa vào việc trình duyệt trả null. Cách đó chạy được
+      // nhưng mong manh; đếm theo đúng số phần tử có thật thì không bao giờ chạy lố.
+      const ex = document.getElementById('hvX'+hvDongCu);
+      const ws = (ex && ex.querySelectorAll) ? ex.querySelectorAll('.hv-w') : [];
+      const k = hvChuTaiGiay(rec.lines[hvDongCu], gy);
+      for(let j=0; j<ws.length; j++) ws[j].classList.toggle('now', j === k);
+    }
+  }, 120);
+}
+function hvTuaDong(i){
+  const rec = hvTim((STATE.hvPhien||{}).vidId); if(!rec || !rec.lines || !rec.lines[i]) return;
+  try{ hvPlayer.seekTo(Math.max(0, rec.lines[i].t), true); hvPlayer.playVideo(); }catch(e){}
+}
+function hvMoPhien(id){
+  const rec = hvTim(id); if(!rec) return;
+  navForward();
+  STATE.hvPhien = {vidId:id, tab:'phude'};
+  hvDongCu = -1;
+  renderContent();
+  setTimeout(()=>hvGanPlayer(rec.videoId), 80);
+  window.scrollTo(0,0);
+}
+function hvDongPhien(){ hvDungPlayer(); STATE.hvPhien = null; renderContent(); }
+function hvDoiTab(tab){
+  const s = STATE.hvPhien; if(!s) return;
+  const rec = hvTim(s.vidId); if(!rec) return;
+  if(tab === 'chinhta'){
+    if(!rec.lines){ STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" trước đã.'; renderContent(); return; }
+    hvDungPlayer(); STATE.hvPhien = null; dvMoPhien(rec.id); return;
+  }
+  if(tab === 'shadowing'){
+    if(!rec.lines){ STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" trước đã.'; renderContent(); return; }
+    hvDungPlayer(); STATE.hvPhien = null; sdMoPhien(rec.id); return;
+  }
+  s.tab = 'phude'; renderContent();
+}
+// ── Giao diện ────────────────────────────────────────────────────────────
+function hvBackRow(t){
+  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="${t}">${svgIcon('back')}</div><div class="title">🎬 Học theo video</div></div>`;
+}
+function hvErrHtml(){ return STATE.hvLoi ? `<div class="sd-err">⚠️ ${escapeHtml(STATE.hvLoi)}</div>` : ''; }
+function renderHocVideo(item){
+  if(STATE.hvPhien) return renderHocVideoPhien(item);
+  hvGomKhoCu();
+  const list = hvVideos();
+  if(STATE.hvThem){
+    document.getElementById('content').innerHTML = `
+      ${hvBackRow('hv-them-huy')}
+      <div class="card" style="padding:16px;">
+        ${hvErrHtml()}
+        <div class="sd-lb">LINK YOUTUBE <span style="color:#ff8080;">*</span></div>
+        <input id="hvUrl" class="form-input" type="url" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
+        <div class="sd-lb" style="margin-top:12px;">TÊN BÀI (để trống thì app tự lấy tên video)</div>
+        <input id="hvTen" class="form-input" type="text" autocomplete="off" placeholder="Ví dụ: Talking about friends">
+        <div class="sd-hint" style="margin-top:11px;">Chỉ nhận link <b>YouTube</b>. Facebook, TikTok, Instagram thì AI không xem được video, mà các trang đó cũng chặn nhúng nên không chạy đồng bộ lời thoại được.</div>
+        <button class="form-btn eng-quiz-nextbtn" data-action="hv-them-luu" style="width:100%; margin-top:14px;">➕ Thêm vào danh sách</button>
+        <button class="form-btn cancel" data-action="hv-them-huy" style="width:100%; margin-top:9px;">Huỷ</button>
+      </div>`;
+    return;
+  }
+  const the = list.map(v=>{
+    const soCau = (v.lines||[]).length;
+    const xong = v.xong ? Object.keys(v.xong).filter(k=>v.xong[k]).length : 0;
+    return `<div class="sd-card" data-action="hv-open" data-id="${v.id}">
+      <img class="sd-thumb" src="https://img.youtube.com/vi/${escapeHtml(v.videoId)}/mqdefault.jpg" alt="" loading="lazy">
+      <div class="sd-cbody">
+        <div class="sd-ctitle">${escapeHtml(v.title)}</div>
+        <div class="sd-cmeta">${soCau ? `📝 ${soCau} câu${xong?` · chép xong ${xong}`:''}` : 'chưa có lời thoại — mở ra rồi bấm 🤖'}</div>
+      </div>
+      <button class="sd-del" data-action="hv-xoa" data-id="${v.id}" title="Xoá">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    ${hvBackRow('eng-back')}
+    ${hvErrHtml()}
+    <div class="card" style="padding:15px 16px; margin-bottom:13px;">
+      <div style="font-size:24px; text-align:center; margin-bottom:7px;">🎬</div>
+      <div style="font-size:12px; color:var(--dim); line-height:1.75;">
+        Thêm một video, AI nghe và ghi lại lời thoại. Rồi <b style="color:var(--text);">một video học được ba kiểu</b>:
+      </div>
+      <div class="sd-buoc">
+        <div><b>1</b> <b>Phụ đề</b> — xem video, lời thoại tự chạy theo, chữ đang đọc sáng lên.</div>
+        <div><b>2</b> <b>Chép chính tả</b> — nghe từng câu rồi gõ lại, app chấm điểm.</div>
+        <div><b>3</b> <b>Shadowing</b> — nghe rồi nói nhại theo, ghi âm lại để tự so.</div>
+      </div>
+    </div>
+    <div class="sd-add" data-action="hv-them-mo" style="background:linear-gradient(120deg,#1f9e7a,#2CDBA8);">➕ Thêm video YouTube</div>
+    ${list.length ? `<div class="sd-list">${the}</div>`
+                  : `<div class="eng-av-empty">Chưa có video nào. Dán link YouTube ở nút phía trên để bắt đầu.</div>`}`;
+}
+function hvLoiThoaiHtml(rec){
+  if(STATE.hvDangLay){
+    return `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:26px; margin-bottom:8px;">🤖</div>
+      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và ghi lời thoại…</div>
+      <div style="margin-top:6px;">Thường 20–60 giây. <b>Video ở trên vẫn xem được</b> trong lúc chờ.</div>
+    </div>`;
+  }
+  if(!rec.lines){
+    return `<div class="sd-tran empty" style="text-align:center;">
+      <div style="font-size:12px; line-height:1.75; margin-bottom:12px;">Video này chưa có lời thoại. Bấm nút dưới để AI nghe và ghi lại — sau đó cả ba thẻ đều dùng được.</div>
+      <button class="form-btn eng-quiz-nextbtn" data-action="hv-lay-loi" style="width:100%;">🤖 Lấy lời thoại</button>
+    </div>`;
+  }
+  return `<div class="hv-loi" id="hvLoiWrap">${rec.lines.map((d,i)=>
+    `<div class="hv-l" id="hvL${i}" data-action="hv-tua" data-i="${i}">
+      <span class="hv-t">${sdFmt(d.t)}</span>
+      <span class="hv-x" id="hvX${i}">${escapeHtml(d.en)}</span>
+    </div>`).join('')}</div>`;
+}
+function renderHocVideoPhien(item){
+  const s = STATE.hvPhien;
+  const rec = hvTim(s.vidId);
+  if(!rec){ STATE.hvPhien = null; return renderHocVideo(item); }
+  const tab = (t,n)=>`<button class="hv-tab ${s.tab===t?'on':''}" data-action="hv-tab" data-t="${t}">${n}</button>`;
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow"><div class="kh-backbtn" data-action="hv-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
+    ${hvErrHtml()}
+    <div class="hv-vidwrap">
+      <div class="video-embed-wrap"><div id="${HV_HOLDER}"></div></div>
+      <div class="hv-chip" id="hvChip"></div>
+    </div>
+    <div class="hv-tabs">${tab('phude','Phụ đề')}${tab('chinhta','Chép chính tả')}${tab('shadowing','Shadowing')}</div>
+    ${hvLoiThoaiHtml(rec)}
+    <div class="sd-foot">Bấm vào một dòng là video nhảy tới đúng chỗ đó.</div>`;
+  hvGanPlayer(rec.videoId);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  NGHE & CHÉP CHÍNH TẢ THEO VIDEO  (v170)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -13977,7 +14380,13 @@ function dvVideos(){
   if(!Array.isArray(SETTINGS.dictVideos)) SETTINGS.dictVideos = [];
   return SETTINGS.dictVideos;
 }
-function dvTim(id){ return dvVideos().find(v=>v.id===id) || null; }
+// Tìm cả trong kho chung của "Học theo video" — nhờ vậy thẻ Chép chính tả mở thẳng được bản ghi
+// dùng chung mà không phải nhân đôi dữ liệu.
+function dvTim(id){
+  return dvVideos().find(v=>v.id===id)
+      || (Array.isArray(SETTINGS.hvVideos) ? SETTINGS.hvVideos.find(v=>v.id===id) : null)
+      || null;
+}
 function dvXong(rec){ return (rec && rec.xong) ? Object.keys(rec.xong).filter(k=>rec.xong[k]).length : 0; }
 function dvTong(rec){ return (rec && Array.isArray(rec.lines)) ? rec.lines.length : 0; }
 function dvCauKeTiep(rec){
@@ -16079,7 +16488,11 @@ function sdVideos(){
   if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
   return SETTINGS.shadowingVideos;
 }
-function sdTimVideo(id){ return sdVideos().find(v=>v.id===id) || null; }
+function sdTimVideo(id){
+  return sdVideos().find(v=>v.id===id)
+      || (Array.isArray(SETTINGS.hvVideos) ? SETTINGS.hvVideos.find(v=>v.id===id) : null)
+      || null;
+}
 
 // ---- Thêm video từ link YouTube ----
 function sdThemVideo(){
@@ -21969,6 +22382,24 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdLoiHuyEl){ STATE.sdSuaLoi = false; renderContent(); return; }
   const sdLoiLuuEl = e.target.closest('[data-action="sd-loi-luu"]');
   if(sdLoiLuuEl){ sdLuuLoi(); return; }
+  const hvThemMoEl = e.target.closest('[data-action="hv-them-mo"]');
+  if(hvThemMoEl){ STATE.hvThem = true; STATE.hvLoi = null; renderContent(); window.scrollTo(0,0); return; }
+  const hvThemHuyEl = e.target.closest('[data-action="hv-them-huy"]');
+  if(hvThemHuyEl){ STATE.hvThem = false; STATE.hvLoi = null; renderContent(); return; }
+  const hvThemLuuEl = e.target.closest('[data-action="hv-them-luu"]');
+  if(hvThemLuuEl){ hvThemVideo(); return; }
+  const hvXoaEl = e.target.closest('[data-action="hv-xoa"]');
+  if(hvXoaEl){ e.stopPropagation(); hvXoaVideo(hvXoaEl.getAttribute('data-id')); return; }
+  const hvOpenEl = e.target.closest('[data-action="hv-open"]');
+  if(hvOpenEl){ hvMoPhien(hvOpenEl.getAttribute('data-id')); return; }
+  const hvDongEl = e.target.closest('[data-action="hv-dong"]');
+  if(hvDongEl){ hvDongPhien(); return; }
+  const hvLayEl = e.target.closest('[data-action="hv-lay-loi"]');
+  if(hvLayEl){ const p = STATE.hvPhien; if(p) hvLayLoi(p.vidId); return; }
+  const hvTabEl = e.target.closest('[data-action="hv-tab"]');
+  if(hvTabEl){ hvDoiTab(hvTabEl.getAttribute('data-t')); return; }
+  const hvTuaEl = e.target.closest('[data-action="hv-tua"]');
+  if(hvTuaEl){ hvTuaDong(+hvTuaEl.getAttribute('data-i')); return; }
   const dvThemMoEl = e.target.closest('[data-action="dv-them-mo"]');
   if(dvThemMoEl){ STATE.dvThem = true; STATE.dvLoi = null; renderContent(); window.scrollTo(0,0); return; }
   const dvThemHuyEl = e.target.closest('[data-action="dv-them-huy"]');
