@@ -2299,7 +2299,10 @@
 .dv-row.mo .dv-row-btn{color:var(--dim2);border-color:var(--border);}
 .dv-row-body{padding:0 12px 13px;border-top:1px solid var(--border);padding-top:12px;}
 /* ── Học theo video (v178): video trên, ba thẻ, lời thoại tự cuộn ── */
-.hv-vidwrap{position:relative;max-width:460px;margin:0 auto 10px;}
+/* Ghim video lại: cuộn danh sách lời thoại thế nào thì video vẫn nằm nguyên trên đầu, không phải
+   kéo ngược lên để nhìn. */
+.hv-vidwrap{position:sticky;top:0;z-index:6;max-width:460px;margin:0 auto 10px;
+  background:var(--bg,#0d1117);padding-bottom:6px;}
 .hv-chip{position:absolute;left:50%;transform:translateX(-50%);bottom:9px;max-width:92%;
   background:rgba(0,0,0,.72);color:#fff;font-size:12px;line-height:1.4;padding:5px 11px;
   border-radius:8px;text-align:center;pointer-events:none;}
@@ -2309,7 +2312,11 @@
   border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--dim);line-height:1.2;}
 .hv-tab.on{background:linear-gradient(135deg,#2CDBA8,#1f9e7a);color:#04211a;border-color:transparent;
   box-shadow:0 3px 12px -5px rgba(44,219,168,.8);}
-.hv-loi{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:3px;
+/* position:relative — thiếu dòng này thì offsetTop của các dòng con đo từ tận đầu trang, và mọi
+   phép tính cuộn đều sai. Nay tính bằng getBoundingClientRect nên không còn phụ thuộc, nhưng vẫn
+   giữ để không ai vô tình vấp lại. scroll-behavior:smooth cho chuyển dòng đỡ giật. */
+.hv-loi{position:relative;max-height:52vh;overflow-y:auto;overscroll-behavior:contain;
+  scroll-behavior:smooth;display:flex;flex-direction:column;gap:3px;
   padding:4px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);}
 .hv-l{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;border-radius:9px;cursor:pointer;
   opacity:.5;transition:opacity .18s ease,background .18s ease;}
@@ -2705,7 +2712,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v178';
+const APP_VERSION = 'v179';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14149,6 +14156,7 @@ Chỉ trả về JSON.`;
 }
 // ── Trình phát + đồng bộ lời thoại ───────────────────────────────────────
 const HV_HOLDER = 'hv-yt-holder';
+const HV_CHO_KEO_TAY = 4000;   // tự kéo tay xong thì ngừng tự cuộn 4 giây
 let hvPlayer = null, hvNhip = null, hvDongCu = -1;
 function hvDungNhip(){ if(hvNhip){ clearInterval(hvNhip); hvNhip = null; } }
 function hvDungPlayer(){
@@ -14226,9 +14234,7 @@ function hvBatNhip(){
         if(el) el.classList.add('dang');
         if(ex) ex.innerHTML = String(rec.lines[i].en).trim().split(/\s+/)
           .map((w,k)=>`<span class="hv-w" id="hvW${k}">${escapeHtml(w)}</span>`).join(' ');
-        // cuộn trong khung lời thoại, KHÔNG cuộn cả trang (cuộn cả trang là video trôi mất)
-        const khung = document.getElementById('hvLoiWrap');
-        if(khung && el) khung.scrollTop = Math.max(0, el.offsetTop - khung.clientHeight/2 + el.offsetHeight/2);
+        hvCuonToiDong(el);
         const chip = document.getElementById('hvChip');
         if(chip) chip.textContent = rec.lines[i].en;
       } else {
@@ -14247,6 +14253,21 @@ function hvBatNhip(){
     }
   }, 120);
 }
+// Đưa dòng đang nói về giữa khung. Đo bằng getBoundingClientRect chứ KHÔNG dùng offsetTop —
+// offsetTop phụ thuộc tổ tiên nào có position, thiếu một dòng CSS là con số sai hoàn toàn.
+function hvCuonToiDong(el){
+  const khung = document.getElementById('hvLoiWrap');
+  if(!khung || !el || !el.getBoundingClientRect || !khung.getBoundingClientRect) return;
+  // đang tự kéo tay thì để yên, đừng giật danh sách khỏi chỗ người ta đang đọc
+  if(Date.now() - (STATE.hvKeoTay || 0) < HV_CHO_KEO_TAY) return;
+  const rk = khung.getBoundingClientRect();
+  const re = el.getBoundingClientRect();
+  const lech = (re.top - rk.top) - (khung.clientHeight/2 - re.height/2);
+  const dich = Math.round((khung.scrollTop || 0) + lech);
+  khung.scrollTop = Math.max(0, dich);
+}
+// Người dùng chạm/kéo trong khung lời thoại thì tạm ngừng tự cuộn, cho họ đọc lại đoạn trước.
+function hvGhiKeoTay(){ STATE.hvKeoTay = Date.now(); }
 function hvTuaDong(i){
   const rec = hvTim((STATE.hvPhien||{}).vidId); if(!rec || !rec.lines || !rec.lines[i]) return;
   try{ hvPlayer.seekTo(Math.max(0, rec.lines[i].t), true); hvPlayer.playVideo(); }catch(e){}
@@ -14362,7 +14383,12 @@ function renderHocVideoPhien(item){
     </div>
     <div class="hv-tabs">${tab('phude','Phụ đề')}${tab('chinhta','Chép chính tả')}${tab('shadowing','Shadowing')}</div>
     ${hvLoiThoaiHtml(rec)}
-    <div class="sd-foot">Bấm vào một dòng là video nhảy tới đúng chỗ đó.</div>`;
+    <div class="sd-foot">Bấm vào một dòng là video nhảy tới đúng chỗ đó. Tự kéo tay thì lời thoại ngừng tự chạy 4 giây cho bạn đọc lại.</div>`;
+  const khung = document.getElementById('hvLoiWrap');
+  if(khung && khung.addEventListener){
+    khung.addEventListener('touchstart', hvGhiKeoTay, {passive:true});
+    khung.addEventListener('wheel', hvGhiKeoTay, {passive:true});
+  }
   hvGanPlayer(rec.videoId);
 }
 
