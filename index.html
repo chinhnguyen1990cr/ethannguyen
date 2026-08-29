@@ -2712,7 +2712,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v180';
+const APP_VERSION = 'v181';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9802,6 +9802,11 @@ function renderEnglishItem(){
   // kiểm tra TRƯỚC khi rẽ theo kind — nếu không, phiên shadowing được tạo ra nhưng màn hình vẫn đứng
   // ở danh sách video (đúng triệu chứng "bấm nút 🎤 mà không thấy gì").
   if(STATE.shadowSession) return renderShadowingSession(item);
+  // Chép chính tả & Shadowing cũng là LỚP PHỦ — mở được từ "Luyện nghe"/"Luyện nói" (đường cũ)
+  // lẫn từ tab trong "Học theo video" (đường mới). Nếu chỉ rẽ theo kind thì mở từ Học theo video
+  // là phiên có thật nhưng màn hình đứng im ở danh sách video. Kiểm ở đây thì đường nào cũng đúng.
+  if(STATE.dvPhien) return renderDictVideoPhien(item);
+  if(STATE.sdPhien) return renderShadowPhien(item);
   if(item.kind==='grammar') return renderEnglishGrammar(item);
   if(item.kind==='quiz') return renderEnglishQuiz(item);
   if(item.kind==='listening') return renderEnglishAV(item,'listening');
@@ -14288,11 +14293,11 @@ function hvDoiTab(tab){
   const rec = hvTim(s.vidId); if(!rec) return;
   if(tab === 'chinhta'){
     if(!rec.lines){ STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" trước đã.'; renderContent(); return; }
-    hvDungPlayer(); STATE.hvPhien = null; dvMoPhien(rec.id); return;
+    hvDungPlayer(); dvMoPhien(rec.id); return;
   }
   if(tab === 'shadowing'){
     if(!rec.lines){ STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" trước đã.'; renderContent(); return; }
-    hvDungPlayer(); STATE.hvPhien = null; sdMoPhien(rec.id); return;
+    hvDungPlayer(); sdMoPhien(rec.id); return;
   }
   s.tab = 'phude'; renderContent();
 }
