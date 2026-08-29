@@ -2210,6 +2210,9 @@
   display:flex;align-items:center;justify-content:center;
   background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.42);color:#FF8A98;}
 .hv-del:active{background:rgba(255,90,110,.26);}
+/* Đang chờ bấm lần hai để xoá — đổi hẳn màu và chữ cho khỏi bấm nhầm. */
+.hv-del.cho{width:auto;padding:0 11px;font-size:11.5px;font-weight:800;
+  background:#FF5A6E;border-color:transparent;color:#fff;}
 .sd-lb{font-size:9.5px;font-weight:800;color:var(--dim2);letter-spacing:.06em;margin-bottom:5px;}
 .sd-hint{font-size:11px;color:var(--dim);line-height:1.65;margin-bottom:7px;}
 .sd-hint b{color:var(--text);}
@@ -2761,7 +2764,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v183';
+const APP_VERSION = 'v184';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14128,17 +14131,23 @@ async function hvLayTen(recId){
   saveSettings(); pushToDrive();
   renderContent();
 }
+const HV_CHO_XOA = 4000;   // bấm lần hai trong 4 giây thì xoá thật
 function hvXoaVideo(id){
   const rec = hvTim(id);
-  const soCau = (rec && rec.lines) ? rec.lines.length : 0;
-  const xong  = (rec && rec.xong) ? Object.keys(rec.xong).filter(k=>rec.xong[k]).length : 0;
-  // Hỏi lại: xoá là mất luôn lời thoại AI đã lấy (tốn một lượt gọi AI để lấy lại) và toàn bộ
-  // tiến độ chép chính tả. Nói thẳng cái sẽ mất chứ không hỏi chung chung.
-  const nhac = 'Xoá video "' + ((rec && rec.title) || '') + '"?\n\n'
-    + (soCau ? 'Mất luôn lời thoại đã lấy (' + soCau + ' câu)' : 'Video này chưa có lời thoại')
-    + (xong ? ' và tiến độ chép ' + xong + ' câu' : '')
-    + '.\nKhông khôi phục lại được.';
-  if(!window.confirm(nhac)) return;
+  // Lần bấm ĐẦU: chỉ hỏi lại ngay trên nút. KHÔNG dùng window.confirm — trong app đã cài trên
+  // điện thoại, WebView thường chặn hộp thoại đó và trả về false, nên bấm xoá không có gì xảy ra.
+  if(STATE.hvXoaCho !== id || (Date.now() - (STATE.hvXoaLuc||0)) > HV_CHO_XOA){
+    STATE.hvXoaCho = id; STATE.hvXoaLuc = Date.now();
+    renderContent();
+    const soCau = (rec && rec.lines) ? rec.lines.length : 0;
+    const xong  = (rec && rec.xong) ? Object.keys(rec.xong).filter(k=>rec.xong[k]).length : 0;
+    showToast('⚠️','Bấm lần nữa để xoá',
+      (soCau ? 'Sẽ mất ' + soCau + ' câu lời thoại' : 'Video này chưa có lời thoại')
+      + (xong ? ' và tiến độ chép ' + xong + ' câu' : '') + '. Không lấy lại được.');
+    setTimeout(()=>{ if(STATE.hvXoaCho === id){ STATE.hvXoaCho = null; renderContent(); } }, HV_CHO_XOA);
+    return;
+  }
+  STATE.hvXoaCho = null; STATE.hvXoaLuc = 0;
   // Đang mở đúng video đó thì đóng phiên trước, nếu không màn hình trỏ vào một bản ghi đã biến mất.
   if(STATE.hvPhien && STATE.hvPhien.vidId === id){
     try{ hvDongPhien(); }catch(e){ STATE.hvPhien = null; }
@@ -14241,6 +14250,17 @@ function hvChiaSePlayer(){
   if(!hvPlayer) return;
   dvPlayer = hvPlayer; sdPlayer = hvPlayer;
 }
+// Mọi thao tác chạm vào video đều đi qua đây. Trả về trình phát nếu dùng được; nếu không thì
+// NÓI RA và tự thử nối lại — chứ không nuốt lỗi rồi để người dùng ngồi bấm mãi không hiểu vì sao.
+function hvLayPlayer(){
+  if(hvPlayer && typeof hvPlayer.seekTo === 'function'){ hvChiaSePlayer(); return hvPlayer; }
+  const rec = STATE.hvPhien ? hvTim(STATE.hvPhien.vidId) : null;
+  if(rec) { try{ hvGanPlayer(rec.videoId); }catch(e){} }
+  if(hvPlayer && typeof hvPlayer.seekTo === 'function'){ hvChiaSePlayer(); return hvPlayer; }
+  STATE.hvLoi = 'Video chưa sẵn sàng. Chờ khung video hiện lên rồi bấm lại — nếu vẫn không được, quay ra và mở lại video này.';
+  try{ hvVeVung('hvErrWrap'); }catch(e){}
+  return null;
+}
 // Mỗi thẻ cần một nhịp đồng bộ khác nhau, nhưng chỉ được chạy MỘT nhịp tại một thời điểm —
 // hai nhịp cùng sửa DOM là chữ nhấp nháy loạn.
 function hvNhipTheoTab(){
@@ -14256,7 +14276,12 @@ function hvGanPlayer(videoId){
     if(!hop) return;
     // iframe còn sống thì đừng dựng lại (dựng lại là video nhảy về đầu) — NHƯNG phải bật lại vòng
     // đồng bộ, vì onReady sẽ không bắn nữa. Thiếu dòng này thì lời thoại đứng im dù video vẫn chạy.
-    if(hop.querySelector && hop.querySelector('iframe')){ if(hvPlayer){ hvChiaSePlayer(); hvNhipTheoTab(); } return; }
+    if(hop.querySelector && hop.querySelector('iframe')){
+      if(hvPlayer){ hvChiaSePlayer(); hvNhipTheoTab(); return; }
+      // Khung còn iframe nhưng đã mất tay cầm → dọn sạch rồi dựng lại. Thoát ở đây (như bản cũ)
+      // là để nguyên một khung video không ai điều khiển được: mọi nút trong cả ba thẻ đều chết.
+      try{ hop.innerHTML = ''; }catch(e){}
+    }
     try{
       hvPlayer = new YT.Player(HV_HOLDER, {
         videoId,
@@ -14358,7 +14383,18 @@ function hvGhiKeoTay(){ STATE.hvKeoTay = Date.now(); }
 try{ window.addEventListener('resize', ()=>{ if(STATE.hvPhien) setTimeout(hvVuaKhungHinh, 60); }); }catch(e){}
 function hvTuaDong(i){
   const rec = hvTim((STATE.hvPhien||{}).vidId); if(!rec || !rec.lines || !rec.lines[i]) return;
-  try{ hvPlayer.seekTo(Math.max(0, rec.lines[i].t), true); hvPlayer.playVideo(); }catch(e){}
+  const p = hvLayPlayer(); if(!p) return;      // hết im lặng: không nối được thì báo
+  STATE.hvLoi = null; try{ hvVeVung('hvErrWrap'); }catch(e){}
+  try{
+    p.seekTo(Math.max(0, rec.lines[i].t), true);
+    p.playVideo();
+  }catch(e){
+    STATE.hvLoi = 'Không điều khiển được video: ' + ((e && e.message) || 'lỗi không rõ');
+    try{ hvVeVung('hvErrWrap'); }catch(_){}
+    return;
+  }
+  // Nhảy dòng ngay, đừng đợi nhịp đồng bộ 120ms — bấm là thấy phản hồi liền.
+  hvDongCu = -1; hvBatNhip();
 }
 function hvMoPhien(id){
   const rec = hvTim(id); if(!rec) return;
@@ -14521,7 +14557,8 @@ function renderHocVideo(item){
         <div class="sd-ctitle">${escapeHtml(v.title)}</div>
         <div class="sd-cmeta">${soCau ? `📝 ${soCau} câu${xong?` · chép xong ${xong}`:''}` : 'chưa có lời thoại — mở ra rồi bấm 🤖'}</div>
       </div>
-      <button class="hv-del" data-action="hv-xoa" data-id="${v.id}" title="Xoá video này">🗑</button>
+      <button class="hv-del ${STATE.hvXoaCho===v.id?'cho':''}" data-action="hv-xoa" data-id="${v.id}"
+        title="Xoá video này">${STATE.hvXoaCho===v.id?'Xoá?':'🗑'}</button>
     </div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
@@ -14924,9 +14961,13 @@ function dvPhatCau(i){
   dvXoaHenGio();
   // Đang ở trong màn "Học theo video" thì bảo đảm còn nắm trình phát (cử chỉ vuốt-lùi có thể đã
   // nhả nó ra). Không có dòng này thì bấm "Nghe câu" chẳng có gì xảy ra và cũng chẳng báo gì.
-  try{ if(typeof hvChiaSePlayer==='function' && STATE.hvPhien) hvChiaSePlayer(); }catch(_){}
+  if(STATE.hvPhien){
+    // Trong màn "Học theo video": lấy trình phát qua cửa chung, nó tự nối lại và tự báo nếu hỏng.
+    const p = hvLayPlayer(); if(!p) return;
+    STATE.hvLoi = null; try{ hvVeVung('hvErrWrap'); }catch(_){}
+  }
   if(!dvPlayer){
-    STATE.hvLoi = 'Chưa nối được với video. Bấm vào video cho nó chạy một chút rồi thử lại.';
+    STATE.hvLoi = 'Chưa nối được với video. Chờ khung video hiện lên rồi bấm lại.';
     try{ hvVeVung('hvErrWrap'); }catch(_){}
     return;
   }
@@ -16943,6 +16984,7 @@ function sdNgungBam(){
 function sdTuaToiDong(i){
   const s = STATE.sdPhien; if(!s) return;
   const rec = sdTimVideo(s.vidId); if(!rec) return;
+  if(STATE.hvPhien && typeof hvLayPlayer==='function'){ if(!hvLayPlayer()) return; }
   const ds = sdDongLoi(rec); const d = ds[i];
   if(!d || d.t==null){
     showToast('⏱️','Dòng này chưa có mốc thời gian','Bấm "🤖 Lấy lời thoại tự động" để AI ghi lại kèm mốc thời gian, khi đó bấm dòng nào là nhảy tới đúng chỗ đó.');
@@ -17048,11 +17090,14 @@ function sdCauTiep(){
   const rec = sdTimVideo(s.vidId); if(!rec) return;
   const ds = sdDongLoi(rec);
   const ke = (s.doiIdx != null) ? s.doiIdx + 1 : 0;
+  const p = (STATE.hvPhien && typeof hvLayPlayer==='function') ? hvLayPlayer() : sdPlayer;
+  if(!p) return;
   s.doi = false; s.doiIdx = null;
   sdVe('sdMicWrap');
   try{
-    if(ds[ke] && ds[ke].t != null) sdPlayer.seekTo(Math.max(0, ds[ke].t), true);
-    sdPlayer.playVideo();
+    if(ds[ke] && ds[ke].t != null) p.seekTo(Math.max(0, ds[ke].t), true);
+    p.playVideo();
+    sdDongHienTai = -1; sdBatBam();
   }catch(_){}
 }
 // Nghe lại chính câu vừa dứt — tua về đầu câu đó rồi chạy.
@@ -17061,11 +17106,14 @@ function sdDoiLap(){
   const rec = sdTimVideo(s.vidId); if(!rec) return;
   const ds = sdDongLoi(rec);
   const i = (s.doiIdx != null) ? s.doiIdx : 0;
+  const p = (STATE.hvPhien && typeof hvLayPlayer==='function') ? hvLayPlayer() : sdPlayer;
+  if(!p) return;
   s.doi = false;
   sdVe('sdMicWrap');
   try{
-    if(ds[i] && ds[i].t != null) sdPlayer.seekTo(Math.max(0, ds[i].t), true);
-    sdPlayer.playVideo();
+    if(ds[i] && ds[i].t != null) p.seekTo(Math.max(0, ds[i].t), true);
+    p.playVideo();
+    sdDongHienTai = -1; sdBatBam();
   }catch(_){}
 }
 function sdBatTatDungCau(){
