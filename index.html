@@ -2367,12 +2367,12 @@
 @keyframes hvLat{ from{opacity:0;transform:translateX(14px);} to{opacity:1;transform:none;} }
 @media(prefers-reduced-motion:reduce){ .hv-panel.hv-lat{animation:none;} }
 .hv-l{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;border-radius:9px;cursor:pointer;
-  opacity:.5;transition:opacity .18s ease,background .18s ease;}
+  opacity:.92;transition:opacity .18s ease,background .18s ease;}
 .hv-l:active{background:rgba(255,255,255,.05);}
-.hv-l.dang{opacity:1;background:rgba(126,200,255,.10);border-left:3px solid #2CDBA8;padding-left:6px;}
+.hv-l.dang{opacity:1;background:rgba(126,200,255,.16);border-left:3px solid #2CDBA8;padding-left:6px;}
 .hv-t{flex:0 0 38px;font-size:10.5px;font-family:var(--mono);color:var(--dim2);padding-top:2px;}
 .hv-l.dang .hv-t{color:#2CDBA8;}
-.hv-x{flex:1;min-width:0;font-size:15px;line-height:1.6;color:var(--text);}
+.hv-x{flex:1;min-width:0;font-size:15px;line-height:1.65;color:#EAF2FF;}
 /* Chữ đang được đọc tới — VÀNG, có gạch chân. */
 .hv-w.now{color:#FFC94A;border-bottom:2px solid #FFC94A;}
 /* Cụm từ thông dụng — XANH LỤC nền mờ, cố ý khác hẳn màu vàng ở trên để hai thứ không lẫn nhau:
@@ -2388,9 +2388,8 @@
 .hv-nut2.on{background:linear-gradient(135deg,#2CDBA8,#1f9e7a);color:#04211a;border-color:transparent;}
 .hv-chon-nhac{font-size:10.5px;color:var(--dim2);line-height:1.5;margin-bottom:7px;}
 /* Đang ở chế độ chọn từ: chạm vào chữ chứ không phải chạm vào dòng để tua. */
-.hv-loi.dangchon .hv-l{cursor:default;opacity:.85;}
-.hv-loi.dangchon .hv-w{cursor:pointer;}
-.hv-loi.dangchon .hv-w:active{background:rgba(126,200,255,.3);}
+
+
 /* Bảng chọn hiện NGAY DƯỚI dòng vừa chạm, không phải một khối trôi nổi đâu đó trên đầu. */
 .hv-chon-bang{background:rgba(126,200,255,.12);border:1px solid rgba(126,200,255,.5);
   border-radius:12px;padding:10px 12px;margin:8px 0 2px;}
@@ -2398,6 +2397,25 @@
 .hv-chon-x{margin-left:auto;flex:0 0 auto;background:transparent;border:none;color:var(--dim2);
   font-size:15px;padding:0 2px;cursor:pointer;line-height:1;}
 .hv-chon-chu{font-size:15px;font-weight:800;color:var(--text);line-height:1.4;}
+/* v191 — cách đọc + nút nghe của từ/cụm đang chọn */
+/* v191 — thẻ đếm từ tự lưu ở màn Luyện từ vựng */
+.voc-daluu{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:11px 13px;
+  border-radius:13px;cursor:pointer;
+  background:linear-gradient(135deg,rgba(44,219,168,.14),rgba(79,168,255,.10));
+  border:1px solid rgba(44,219,168,.42);}
+.voc-daluu:active{transform:scale(.99);}
+.voc-daluu-so{flex:0 0 auto;font-family:var(--mono);font-size:23px;font-weight:800;color:#2CDBA8;
+  min-width:38px;text-align:center;}
+.voc-daluu-h{font-size:12.5px;font-weight:800;color:var(--text);line-height:1.35;}
+.voc-daluu-p{font-size:10.5px;color:var(--dim);line-height:1.55;margin-top:2px;}
+.voc-daluu-p b{color:#FFD166;}
+.hv-chon-am{display:flex;align-items:center;gap:8px;margin-top:5px;}
+.hv-doc{width:30px;height:30px;flex:0 0 auto;border-radius:9px;border:1px solid rgba(79,168,255,.5);
+  background:rgba(79,168,255,.18);color:#9cccff;font-size:14px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;}
+.hv-doc:active{background:rgba(79,168,255,.42);}
+.hv-ipa{font-family:var(--mono);font-size:12.5px;color:#9cccff;}
+.hv-ipa:empty{display:none;}
 /* Chữ đang được chọn — xanh dương, khác cả vàng (đang đọc) lẫn xanh lục (cụm thông dụng). */
 .hv-w.chon{background:rgba(79,168,255,.32);color:#fff;border-radius:4px;padding:0 2px;}
 .hv-nhac2{flex:1;font-size:10px;color:var(--dim2);line-height:1.35;align-self:center;}
@@ -2839,7 +2857,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v190';
+const APP_VERSION = 'v191';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10019,8 +10037,10 @@ function vocabGopTuVideo(){
       doi = true;
     }
     if(x.n !== nMoi){ x.n = nMoi; doi = true; }
+    // Ô thứ 8 (chỉ số 7) là bảng các dạng từ — đúng ô mà màn Luyện từ vựng đã biết cách hiện.
     VOCAB_DATA.words.push([nMoi, x.chu, x.loai || 'cụm từ', VOC_CHU_DE_VIDEO,
-                           x.nghia, x.viDu || x.cauEn || '', x.viDuVi || x.vi || '']);
+                           x.nghia, x.viDu || x.cauEn || '', x.viDuVi || x.vi || '',
+                           (x.dangTu && Object.keys(x.dangTu).length) ? x.dangTu : undefined]);
   });
   // Đưa vào đầu thứ tự học: đây là từ CHÍNH BẠN chọn khi đang nghe, nên đáng học trước.
   if(Array.isArray(VOCAB_DATA.learnOrder)){
@@ -10569,6 +10589,27 @@ function vocabHomeSubNav(){
   return `<div class="seg" style="margin-bottom:14px;">
     <button class="${view==='daily'?'active':''}" data-action="vocab-set-view" data-view="daily">📅 Từ hôm nay</button>
     <button class="${view==='topics'?'active':''}" data-action="vocab-set-view" data-view="topics">📂 Chủ đề</button>
+  </div>
+  ${vocabDaLuuHtml()}`;
+}
+// Thẻ đếm những từ/cụm chính bạn nhặt được khi xem video.
+function vocabDaLuuHtml(){
+  let tu = [], cau = [];
+  try{ tu = (typeof hvKhoTu === 'function') ? hvKhoTu() : []; }catch(e){}
+  try{ cau = (typeof hvKhoCau === 'function') ? hvKhoCau() : []; }catch(e){}
+  const tong = tu.length + cau.length;
+  if(!tong) return '';
+  const sanSang = (x)=>{ try{ return hvSanSang(x); }catch(e){ return !!(x && x.nghia); } };
+  const xong = tu.filter(sanSang).length + cau.filter(sanSang).length;
+  const cho  = tong - xong;
+  return `<div class="voc-daluu" data-action="vocab-set-view" data-view="topics">
+    <div class="voc-daluu-so">${tong}</div>
+    <div class="voc-daluu-tx">
+      <div class="voc-daluu-h">Từ &amp; cụm bạn lưu khi xem video</div>
+      <div class="voc-daluu-p">${tu.length} từ vựng · ${cau.length} cụm câu`
+      + (cho ? ` — <b>${cho}</b> mục đang chờ AI dịch nghĩa` : ` — đã vào gói học hằng ngày`)
+      + `</div>
+    </div>
   </div>`;
 }
 function renderVocabDailyHome(){
@@ -14707,20 +14748,36 @@ function hvNapLaiVideo(){
 }
 // Vẽ lại ĐÚNG tấm nội dung + thanh thẻ. Không đụng tới khung video → video chạy liền mạch, và đây
 // chính là điều làm nó giống lật trang chứ không giống mở màn hình mới.
-function hvVeTam(){
+// tuyChon.giuCuon = giữ nguyên chỗ đang đọc; tuyChon.khongLat = không chạy hiệu ứng lật trang.
+// Hai thứ này chỉ dùng khi vẽ lại vì bạn vừa chạm một chữ — lúc đó không có gì "lật" cả, và nhảy
+// danh sách về đầu là bắt bạn cuộn lại từ đầu mỗi lần muốn lưu một từ.
+function hvVeTam(tuyChon){
+  const o = tuyChon || {};
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
   const tam = document.getElementById('hvPanel');
   if(!tam){ renderContent(); return; }
+  // Nhớ chỗ đang đọc TRƯỚC khi thay nội dung — sau đó phần tử cũ không còn nữa, hỏi cũng không ra.
+  const cuon = {};
+  if(o.giuCuon) ['hvLoiWrap','sdTran'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && typeof el.scrollTop === 'number') cuon[id] = el.scrollTop;
+  });
   const thanh = document.getElementById('hvTabs');
   if(thanh) thanh.innerHTML = hvTabsHtml(s);
   tam.innerHTML = hvPanelHtml(rec, s);
-  tam.className = 'hv-panel hv-lat';
+  tam.className = o.khongLat ? 'hv-panel' : 'hv-panel hv-lat';
   // bỏ rồi gắn lại lớp hiệu ứng để lần bấm sau vẫn chạy (cùng một lớp thì trình duyệt không chạy lại)
   if(tam.getBoundingClientRect) tam.getBoundingClientRect();
+  Object.keys(cuon).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) { try{ el.scrollTop = cuon[id]; }catch(_){} }
+  });
   hvVeVung('hvErrWrap');
   hvSauVeTam(rec, s);
 }
+// Vẽ lại vì vừa chạm chữ: giữ nguyên chỗ đang đọc, không hiệu ứng.
+function hvVeTamTaiCho(){ hvVeTam({giuCuon:true, khongLat:true}); }
 function hvVeVung(id){
   const el = document.getElementById(id);
   if(el && id === 'hvErrWrap') el.innerHTML = hvErrHtml();
@@ -15015,14 +15072,15 @@ function hvChonTu(i, j){
   else if(d.j === j){ STATE.hvChonDau = null; STATE.hvChonCuoi = null; }   // chạm lại chính nó = bỏ chọn
   else STATE.hvChonCuoi = {i, j};
   STATE.hvNghia = null;
-  hvVeTam();
+  hvVeTamTaiCho();
   try{ hvTraNghia(); }catch(e){}
 }
 // Đóng bảng chọn và cho video chạy tiếp.
 function hvThoiChon(){
   STATE.hvChonDau = null; STATE.hvChonCuoi = null; STATE.hvNghia = null;
-  hvVeTam();
-  try{ if(hvPlayer && hvPlayer.playVideo) hvPlayer.playVideo(); }catch(e){}
+  // KHÔNG tự chạy lại video. Đóng bảng xong bạn còn muốn đọc lại câu, tra thêm chữ khác —
+  // tiếng chạy ngay là cắt ngang. Muốn chạy thì bấm ▶.
+  hvVeTamTaiCho();
 }
 function hvCumDangChon(){
   const a = STATE.hvChonDau; if(!a) return null;
@@ -15048,7 +15106,11 @@ async function hvDichCum(chu, cauEn, cauVi){
     + '\nHãy giải nghĩa riêng cụm/từ: "' + chu + '".\n'
     + 'Trả về DUY NHẤT một JSON: {"nghia":"nghĩa tiếng Việt ngắn gọn của riêng cụm này",'
     + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
-    + '"viDu":"một câu tiếng Anh ngắn khác có dùng cụm này",ّ"viDuVi":"nghĩa tiếng Việt của câu ví dụ"}';
+    + '"phienAm":"phiên âm IPA của cụm này, ví dụ /ˈænsər/",'
+    + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"},'
+    + '"viDu":"một câu tiếng Anh ngắn khác có dùng cụm này",ّ"viDuVi":"nghĩa tiếng Việt của câu ví dụ"}\n'
+    + 'Với "dangTu": chỉ ghi những dạng CÓ THẬT trong tiếng Anh và cùng gốc từ. Dạng nào không có '
+    + 'thì BỎ HẲN khoá đó ra khỏi JSON, tuyệt đối không bịa. Nếu là cụm/thành ngữ thì để {}.';
   try{
     const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -15060,7 +15122,16 @@ async function hvDichCum(chu, cauEn, cauVi){
     const txt = (((j.candidates||[])[0]||{}).content||{}).parts?.map(p=>p.text||'').join('') || '';
     const o = dvDocJson(txt);
     if(!o || !o.nghia) return null;
+    // Lọc dạng từ: chỉ nhận chuỗi chữ cái, khác rỗng. AI hay trả về "-", "n/a", "không có".
+    const dt = {};
+    if(o.dangTu && typeof o.dangTu === 'object'){
+      ['n','v','adj','adv'].forEach(k=>{
+        const v = String(o.dangTu[k]||'').trim();
+        if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dt[k] = v;
+      });
+    }
     return {nghia:String(o.nghia).trim(), loai:String(o.loai||'cụm từ').trim(),
+            phienAm:String(o.phienAm||'').trim(), dangTu:dt,
             viDu:String(o.viDu||'').trim(), viDuVi:String(o.viDuVi||'').trim()};
   }catch(e){ return null; }
 }
@@ -15094,15 +15165,17 @@ function hvLuuChon(dich){
     const n = (STATE.hvNghia && STATE.hvNghia.nghia) ? STATE.hvNghia : null;
     kho.push({chu:c.chu, vi:c.vi, cauEn:c.cauEn||'', tu:'hocvideo', ngay:todayKey(),
               nghia: n ? n.nghia : undefined, loai: n ? n.loai : undefined,
-              viDu: n ? n.viDu : undefined, viDuVi: n ? n.viDuVi : undefined});
+              viDu: n ? n.viDu : undefined, viDuVi: n ? n.viDuVi : undefined,
+              // Lưu đủ các dạng từ + phiên âm để bên Luyện từ vựng hiện được ngay, không phải tra lại.
+              dangTu: (n && n.dangTu && Object.keys(n.dangTu).length) ? n.dangTu : undefined,
+              phienAm: (n && n.phienAm) ? n.phienAm : (hvPhienAmDangCo() || undefined)});
     saveSettings(); pushToDrive();
     showToast('✅', dich==='cau' ? 'Đã lưu vào Câu thông dụng' : 'Đã lưu vào Luyện từ vựng',
       n ? ('"' + c.chu + '" — ' + n.nghia) : ('"' + c.chu + '" — đang nhờ AI dịch nghĩa riêng của cụm này.'));
     try{ if(n){ vocabGopTuVideo(); sentGopTuVideo(); } else hvDichNhungCaiThieu(); }catch(e){}
   }
   STATE.hvChonDau = null; STATE.hvChonCuoi = null; STATE.hvNghia = null;
-  hvVeTam();
-  try{ if(hvPlayer && hvPlayer.playVideo) hvPlayer.playVideo(); }catch(e){}
+  hvVeTamTaiCho();          // lưu xong cũng đứng yên, chờ bạn bấm ▶
 }
 // Kho nghĩa đã tra. Nhớ theo cặp (cụm + câu chứa nó), vì cùng một từ trong hai câu khác nhau có
 // thể mang hai nghĩa khác nhau — đó chính là lý do phải tra theo ngữ cảnh.
@@ -15112,12 +15185,12 @@ async function hvTraNghia(){
   const c = hvCumDangChon(); if(!c || !c.chu){ STATE.hvNghia = null; return; }
   const khoa = hvKhoaNghia(c.chu, c.cauEn);
   const kho = hvNghiaKho();
-  if(kho[khoa]){ STATE.hvNghia = kho[khoa]; hvVeTam(); return; }
+  if(kho[khoa]){ STATE.hvNghia = kho[khoa]; hvVeTamTaiCho(); hvTraPhienAm(c.chu); return; }
   if(!SETTINGS.geminiApiKey){
     STATE.hvNghia = {loi:'Chưa có Gemini API key nên chưa tra nghĩa được. Vào Cài đặt → Hội thoại AI để dán key.'};
-    hvVeTam(); return;
+    hvVeTamTaiCho(); hvTraPhienAm(c.chu); return;
   }
-  STATE.hvNghia = {dangTra:true}; hvVeTam();
+  STATE.hvNghia = {dangTra:true}; hvVeTamTaiCho(); hvTraPhienAm(c.chu);
   const r = await hvDichCum(c.chu, c.cauEn || '', c.vi || '');
   // Trong lúc chờ, bạn có thể đã chạm sang từ khác. Dán nghĩa cũ lên từ mới là dạy sai — nên kiểm
   // lại xem còn đúng từ vừa hỏi không rồi mới hiện.
@@ -15125,9 +15198,51 @@ async function hvTraNghia(){
   if(!c2 || !c2.chu || hvKhoaNghia(c2.chu, c2.cauEn) !== khoa) return;
   if(r){ kho[khoa] = r; saveSettings(); STATE.hvNghia = r; }
   else STATE.hvNghia = {loi:'Chưa tra được nghĩa lúc này. Cứ lưu lại, app sẽ tự dịch sau.'};
-  hvVeTam();
+  hvVeTamTaiCho();
+}
+// Phiên âm của từ đang chọn. Tra một lần rồi nhớ, chạm lại là hiện ngay.
+function hvTraPhienAm(chu){
+  const t = String(chu||'').trim(); if(!t) return;
+  STATE.hvAm = STATE.hvAm || {};
+  if(STATE.hvAm[t] !== undefined){ return; }
+  // 1) kho IPA có sẵn trong app — chỉ dùng cho TỪ ĐƠN, vì kho đó lập theo từng từ.
+  if(t.indexOf(' ') < 0 && typeof ipaOfWord === 'function'){
+    const a = ipaOfWord(t);
+    if(a && a.ipa){ STATE.hvAm[t] = a.ipa; hvVeVungNghia(); return; }
+  }
+  // 2) từ điển mở. Cụm nhiều từ thì tra từ dài nhất trong cụm, còn hơn không có gì.
+  const tra = (t.indexOf(' ') < 0) ? t
+            : t.split(/\s+/).slice().sort((a,b)=>b.length-a.length)[0];
+  STATE.hvAm[t] = null;                     // đánh dấu đang tra, khỏi gọi chồng nhiều lần
+  try{
+    vocabFetchPhonetic(tra).then(ipa=>{
+      STATE.hvAm[t] = ipa || '';
+      hvVeVungNghia();
+    }).catch(()=>{ STATE.hvAm[t] = ''; });
+  }catch(e){ STATE.hvAm[t] = ''; }
+}
+// Chỉ vẽ lại ĐÚNG ô nghĩa, không đụng tới cả tấm — vẽ lại cả tấm là mất chỗ đang đọc lần nữa.
+function hvVeVungNghia(){
+  const el = document.getElementById('hvNghiaWrap');
+  if(el) el.innerHTML = hvNghiaHtml();
+  else hvVeTamTaiCho();
+}
+function hvPhienAmDangCo(){
+  const c = hvCumDangChon(); if(!c || !c.chu) return '';
+  const t = c.chu.trim();
+  const kho = STATE.hvAm || {};
+  if(kho[t]) return kho[t];
+  const n = STATE.hvNghia;
+  return (n && n.phienAm) ? n.phienAm : '';
+}
+// Đọc to từ/cụm đang chọn.
+function hvDocTuDangChon(){
+  const c = hvCumDangChon(); if(!c || !c.chu) return;
+  try{ speakEnglishRobust(c.chu); }catch(e){}
 }
 function hvNghiaHtml(){
+  const am = document.getElementById('hvIpa');
+  if(am) am.textContent = hvPhienAmDangCo();
   const n = STATE.hvNghia;
   if(!n) return '';
   if(n.dangTra) return `<div class="hv-nghia cho">Đang tra nghĩa trong ngữ cảnh câu này…</div>`;
@@ -15145,10 +15260,14 @@ function hvBangChonHtml(){
       <div class="hv-chon-chu">${escapeHtml(c.chu)}</div>
       <button class="hv-chon-x" data-action="hv-thoi-chon" title="Đóng và chạy tiếp">✕</button>
     </div>
+    <div class="hv-chon-am">
+      <button class="hv-doc" data-action="hv-doc-tu" title="Nghe cách đọc">🔊</button>
+      <span class="hv-ipa" id="hvIpa">${escapeHtml(hvPhienAmDangCo())}</span>
+    </div>
     <div class="hv-chon-mo">${c.nhieuTu
       ? 'Đang chọn cụm ' + c.soTu + ' từ — chạm từ khác để đổi'
       : 'Chạm thêm một từ nữa trong cùng dòng để lấy cả cụm'}</div>
-    ${hvNghiaHtml()}
+    <div id="hvNghiaWrap">${hvNghiaHtml()}</div>
     <div class="hv-chon-row">
       <button class="hv-chon-btn tu" data-action="hv-luu-tu">📗 Lưu từ vựng</button>
       <button class="hv-chon-btn cau" data-action="hv-luu-cau">💬 Lưu cụm câu</button>
@@ -23384,6 +23503,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvTabEl){ hvDoiTab(hvTabEl.getAttribute('data-t')); return; }
   const hvNghiaEl = e.target.closest('[data-action="hv-nghia"]');
   if(hvNghiaEl){ hvBatNghia(); return; }
+  const hvDocTuEl = e.target.closest('[data-action="hv-doc-tu"]');
+  if(hvDocTuEl){ e.stopPropagation(); hvDocTuDangChon(); return; }
   const hvThoiChonEl = e.target.closest('[data-action="hv-thoi-chon"]');
   if(hvThoiChonEl){ e.stopPropagation(); hvThoiChon(); return; }
   const hvChonEl = e.target.closest('[data-action="hv-chon"]');
