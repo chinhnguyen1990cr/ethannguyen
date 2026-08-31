@@ -2124,6 +2124,27 @@
     #navbar-inner{max-width:720px;}
     .avatar-modal-card{max-width:520px;}
   }
+  /* ══ v192 · MÀN HÌNH MÁY TÍNH: DÙNG HẾT BỀ NGANG NHƯ MỘT TRANG WEB ══
+     Trước đây app luôn bị ép vào một cột hẹp 720px kiểu điện thoại, dù màn hình rộng gấp đôi.
+     Từ 1000px trở lên: khung mở rộng ra, và riêng màn "Học theo video" tách hẳn thành HAI CỘT —
+     video nằm yên một bên, phần học nằm bên kia, vừa xem vừa theo dõi không phải cuộn lên xuống. */
+  @media (min-width:1000px){
+    #shell{max-width:1180px;}
+    #navbar-inner{max-width:1180px;}
+    #content{padding:20px 24px 28px;}
+  }
+  @media (min-width:1000px){
+    .hv-2cot{display:grid; grid-template-columns:minmax(340px, 44%) 1fr; gap:22px; align-items:start;}
+    /* Cột video dính lên đầu: cuộn phần học bên phải bao nhiêu thì video vẫn nằm nguyên đó. */
+    .hv-2cot > .hv-ghim{position:sticky; top:8px; margin:0; padding-bottom:0; box-shadow:none; background:transparent;}
+    .hv-2cot .hv-vidwrap{max-width:100%; margin-bottom:10px;}
+    .hv-2cot .hv-vidwrap.doc{height:min(60vh,520px); margin-left:0;}
+    .hv-cot-p{min-width:0;}
+    /* Khung lời thoại cao gần hết màn hình — đây mới là chỗ đáng chiếm chỗ trên máy tính. */
+    .hv-2cot .hv-loi{max-height:calc(100vh - 150px); min-height:340px;}
+    .hv-2cot .sd-tran{max-height:calc(100vh - 210px);}
+    .hv-2cot .hv-tabs{margin-bottom:2px;}
+  }
 .gemini-cd-bar{position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9999; display:flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:rgba(20,24,34,.94); border:1px solid #FFC94A55; color:#FFC94A; font-size:11.5px; font-weight:700; box-shadow:0 8px 26px rgba(0,0,0,.5); backdrop-filter:blur(8px); max-width:92vw;}
 .gemini-cd-bar b{color:#fff; font-size:13px;}
 .gemini-cd-bar .gcd-ic{font-size:14px;}
@@ -2857,7 +2878,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v191';
+const APP_VERSION = 'v192';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14455,8 +14476,15 @@ Chỉ trả về JSON.`;
     }).filter(Boolean).sort((a,b)=>a.t-b.t);
     for(let i=0;i<lines.length;i++){
       const sau = lines[i+1];
-      if(!lines[i].e) lines[i].e = sau ? sau.t : (lines[i].t + 4);
+      // Ước lượng theo số chữ trước, rồi mới nới ra bằng mốc AI nếu mốc hợp lý. Bản cũ lấy thẳng
+      // mốc câu kế tiếp làm mốc kết thúc — gặp lúc AI bỏ sót vài câu thì sinh ra một "câu" dài
+      // mấy chục giây, và chữ chạy trong câu đó bò chậm như đứng máy.
+      const soTu = String(lines[i].en||'').trim().split(/\s+/).filter(Boolean).length || 1;
+      const uoc = soTu / 2.6 + 0.5;
+      if(!lines[i].e) lines[i].e = lines[i].t + uoc;
       if(sau && lines[i].e > sau.t) lines[i].e = sau.t;
+      // Quá 1,6 lần mức nói được thì mốc đó sai — cắt về đúng ước lượng, đừng giữ lại phần thừa.
+      if(lines[i].e - lines[i].t > uoc * 1.6) lines[i].e = lines[i].t + uoc;
       if(lines[i].e < lines[i].t + 0.4) lines[i].e = lines[i].t + 0.4;
     }
     if(!lines.length) throw new Error('Gemini không nghe được câu nào (đã đọc ' + txt.length + ' ký tự).');
@@ -14542,7 +14570,9 @@ function hvGanPlayer(videoId){
     try{
       hvPlayer = new YT.Player(HV_HOLDER, {
         videoId,
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        // cc_load_policy:0 — đừng tự bật phụ đề của YouTube. Lời thoại đã nằm đủ ở danh sách
+        // bên dưới; chữ đè lên hình chỉ che mất khẩu hình người nói.
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, cc_load_policy:0 },
         events:{
           // Trình phát đổi trạng thái (chạy/dừng/hết) thì vẽ lại nút ▶/⏸ cho khớp — kể cả khi nó
           // dừng vì lý do khác chứ không phải bạn bấm.
@@ -14581,13 +14611,27 @@ function hvDongTaiGiay(lines, gy){
 }
 // Chữ nào đang được đọc tới. Gemini chỉ cho mốc THEO CÂU, không cho theo chữ — nên chia đều thời
 // lượng câu cho số chữ. Không chính xác tuyệt đối nhưng bám sát nhịp đọc và không bao giờ lệch câu.
+// Độ dài HỢP LÝ của một câu nói, tính theo số chữ. Đây là chỗ chữa bệnh "chữ chạy chậm rồi khựng".
+const HV_CHU_MOI_GIAY = 2.6;      // tốc độ nói tiếng Anh thường gặp
+function hvDaiCau(dong){
+  if(!dong) return 1;
+  const soTu = String(dong.en||'').trim().split(/\s+/).filter(Boolean).length || 1;
+  const uoc = soTu / HV_CHU_MOI_GIAY + 0.5;
+  const theoMoc = (dong.e != null && dong.e > dong.t) ? (dong.e - dong.t) : 0;
+  // Mốc AI HỢP LÝ (không quá 1,6 lần ước lượng, đủ chỗ cho người nói chậm) thì tin mốc — mốc thật
+  // bao giờ cũng chính xác hơn công thức. Mốc PHI LÝ thì bỏ hẳn và dùng ước lượng, KHÔNG nới thêm:
+  // nới thêm là chữ vẫn chạy chậm hơn tai nghe, chỉ đỡ hơn chứ chưa đúng.
+  if(theoMoc > 0 && theoMoc <= uoc * 1.6) return Math.max(0.4, theoMoc);
+  return Math.max(0.4, uoc);
+}
 function hvChuTaiGiay(dong, gy){
   if(!dong) return -1;
   const tu = String(dong.en||'').trim().split(/\s+/);
   if(!tu.length) return -1;
-  const dai = Math.max(0.3, (dong.e || dong.t+4) - dong.t);
-  const k = Math.floor((gy - dong.t) / dai * tu.length);
-  return Math.max(0, Math.min(tu.length-1, k));
+  const k = Math.floor((gy - dong.t) / hvDaiCau(dong) * tu.length);
+  // Đã đọc hết câu mà video vẫn chưa sang câu mới (mốc AI lệch) → không tô chữ nào nữa.
+  if(k >= tu.length) return -1;
+  return Math.max(0, k);
 }
 function hvBatNhip(){
   hvDungNhip();
@@ -14619,11 +14663,6 @@ function hvBatNhip(){
         if(ex) ex.innerHTML = hvChuHtml(rec.lines[i].en, i)
           + ((hvHienNghia() && rec.lines[i].vi) ? `<span class="hv-vi">${escapeHtml(rec.lines[i].vi)}</span>` : '');
         hvCuonToiDong(el, null, true);   // sang câu mới → kéo về bằng mọi giá
-        const chip = document.getElementById('hvChip');
-        if(chip) chip.textContent = rec.lines[i].en;
-      } else {
-        const chip = document.getElementById('hvChip');
-        if(chip) chip.textContent = '';
       }
     }
     if(hvDongCu >= 0){
@@ -15308,18 +15347,21 @@ function renderHocVideoPhien(item){
   // KHỐI GHIM = tiêu đề + video + thanh thẻ. Cuộn nội dung bên dưới thế nào thì ba thứ này vẫn nằm
   // nguyên trên đầu — vừa nhìn được video, vừa đổi thẻ được mà không phải kéo ngược lên.
   document.getElementById('content').innerHTML = `
+    <div class="hv-2cot">
     <div class="hv-ghim">
       <div class="kh-backrow" style="margin-bottom:6px;"><div class="kh-backbtn" data-action="hv-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
       <div class="hv-vidwrap${hvKhungDoc(rec) ? ' doc' : ''}" id="hvVidWrap">
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
-        <div class="hv-chip" id="hvChip"></div>
         <button class="hv-xoay" data-action="hv-xoay-khung" title="Đổi khung ngang/dọc">⇅</button>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
       </div>
       <div class="hv-tabs" id="hvTabs">${hvTabsHtml(s)}</div>
     </div>
-    <div id="hvErrWrap">${hvErrHtml()}</div>
-    <div class="hv-panel" id="hvPanel">${hvPanelHtml(rec, s)}</div>`;
+    <div class="hv-cot-p">
+      <div id="hvErrWrap">${hvErrHtml()}</div>
+      <div class="hv-panel" id="hvPanel">${hvPanelHtml(rec, s)}</div>
+    </div>
+    </div>`;
   hvSauVeTam(rec, s);
   hvDoHinh(rec);
   try{ setTimeout(hvVeNutPlay, 200); }catch(e){}
@@ -15591,7 +15633,9 @@ function dvGanPlayer(videoId){
     try{
       dvPlayer = new YT.Player(DV_HOLDER, {
         videoId,
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        // cc_load_policy:0 — đừng tự bật phụ đề của YouTube. Lời thoại đã nằm đủ ở danh sách
+        // bên dưới; chữ đè lên hình chỉ che mất khẩu hình người nói.
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, cc_load_policy:0 },
         events:{ onReady:()=>{ try{ dvPlayer.setPlaybackRate(dvTocDo()); }catch(e){} } }
       });
     }catch(e){}
@@ -17618,9 +17662,14 @@ function sdChuTaiGiay(ds, i, gy){
   const d = ds[i]; if(!d) return -1;
   const tu = String(d.en||'').trim().split(/\s+/);
   if(!tu.length) return -1;
-  const het = (d.e != null && d.e > d.t) ? d.e : (ds[i+1] && ds[i+1].t != null ? ds[i+1].t : d.t + 4);
-  const dai = Math.max(0.3, het - d.t);
-  return Math.max(0, Math.min(tu.length-1, Math.floor((gy - d.t) / dai * tu.length)));
+  // Dùng chung cách tính với thẻ Phụ đề (xem hvDaiCau): cùng một dữ liệu thì không được có hai
+  // cách hiểu, và bên này cũng dính đúng lỗi chữ bò chậm khi mốc AI kéo dài.
+  const dai = (typeof hvDaiCau === 'function')
+    ? hvDaiCau(d)
+    : Math.max(0.3, ((d.e != null && d.e > d.t) ? d.e : d.t + 4) - d.t);
+  const k = Math.floor((gy - d.t) / dai * tu.length);
+  if(k >= tu.length) return -1;
+  return Math.max(0, k);
 }
 function sdDungCau(){ return SETTINGS.sdDungCau !== false; }   // mặc định BẬT
 // Mốc kết thúc của một câu: ưu tiên mốc "e" do AI trả về, không có thì lấy mốc câu kế tiếp.
@@ -17745,7 +17794,9 @@ function sdGanPlayer(videoId){
     try{
       sdPlayer = new YT.Player(SD_HOLDER, {
         videoId,
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        // cc_load_policy:0 — đừng tự bật phụ đề của YouTube. Lời thoại đã nằm đủ ở danh sách
+        // bên dưới; chữ đè lên hình chỉ che mất khẩu hình người nói.
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, cc_load_policy:0 },
         events:{ onReady:()=>{ try{ sdPlayer.setPlaybackRate(sdTocDo()); }catch(e){} sdBatBam(); } }
       });
     }catch(e){}
@@ -18278,7 +18329,9 @@ function mountShadowPlayer(videoId){
     try{
       shadowYtPlayer = new YT.Player(SHADOW_YT_HOLDER_ID, {
         videoId,
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
+        // cc_load_policy:0 — đừng tự bật phụ đề của YouTube. Lời thoại đã nằm đủ ở danh sách
+        // bên dưới; chữ đè lên hình chỉ che mất khẩu hình người nói.
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, cc_load_policy:0 },
         events:{ onReady:()=>{ try{ shadowYtPlayer.setPlaybackRate(shadowStageSpeed((STATE.shadowSession||{}).stage)); }catch(e){} } }
       });
     }catch(e){ console.error('Lỗi gắn YouTube player Shadowing', e); }
