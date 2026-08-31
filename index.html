@@ -2798,7 +2798,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v185';
+const APP_VERSION = 'v186';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9951,9 +9951,44 @@ async function fetchVocabData(){
     VOCAB_DATA = {topics:[], words:[]};
   }
   vocabDataLoading = false;
+  try{ vocabGopTuVideo(); }catch(e){}
+  try{ hvDichNhungCaiThieu(); }catch(e){}    // mục nào còn thiếu nghĩa thì dịch nốt
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
+// Nối các từ/cụm bạn tự lưu khi xem video vào NGAY SAU ngân hàng gốc, để chúng dùng chung mọi thứ:
+// gói học mỗi ngày, lịch lặp lại ngắt quãng, và tất cả dạng bài tập đã có.
+const VOC_CHU_DE_VIDEO = 'video';
+function vocabGopTuVideo(){
+  if(!VOCAB_DATA || !Array.isArray(VOCAB_DATA.words)) return 0;
+  const kho = hvKhoTu().filter(hvSanSang);
+  // Bỏ phần đã nối lần trước rồi nối lại từ đầu — đơn giản và luôn đúng, kể cả khi bạn vừa lưu thêm.
+  VOCAB_DATA.words = VOCAB_DATA.words.filter(w => w[3] !== VOC_CHU_DE_VIDEO);
+  const goc = VOCAB_DATA.words.length;
+  if(!kho.length) return 0;
+  if(!VOCAB_DATA.topics.some(t => t.code === VOC_CHU_DE_VIDEO))
+    VOCAB_DATA.topics.push({code:VOC_CHU_DE_VIDEO, label:'Nhặt từ video', icon:'🎬'});
+  let doi = false;
+  kho.forEach((x, i) => {
+    const nMoi = goc + i + 1;
+    // Ngân hàng gốc dài thêm thì n dời — phải DỜI luôn tiến độ, nếu không tiến độ bám nhầm từ khác.
+    if(x.n && x.n !== nMoi && SETTINGS.vocabProgress && SETTINGS.vocabProgress[x.n]){
+      SETTINGS.vocabProgress[nMoi] = SETTINGS.vocabProgress[x.n];
+      delete SETTINGS.vocabProgress[x.n];
+      doi = true;
+    }
+    if(x.n !== nMoi){ x.n = nMoi; doi = true; }
+    VOCAB_DATA.words.push([nMoi, x.chu, x.loai || 'cụm từ', VOC_CHU_DE_VIDEO,
+                           x.nghia, x.viDu || x.cauEn || '', x.viDuVi || x.vi || '']);
+  });
+  // Đưa vào đầu thứ tự học: đây là từ CHÍNH BẠN chọn khi đang nghe, nên đáng học trước.
+  if(Array.isArray(VOCAB_DATA.learnOrder)){
+    const cua = kho.map(x => x.n);
+    VOCAB_DATA.learnOrder = cua.concat(VOCAB_DATA.learnOrder.filter(nn => cua.indexOf(nn) < 0));
+  }
+  if(doi){ saveSettings(); pushToDrive(); }
+  return kho.length;
+}
 // ---- Phiên âm IPA bên cạnh từ (item 3) ----
 // vocab-data.json (3050 từ) không có sẵn trường phiên âm — thay vì tự soạn tay 3050 phiên âm (dễ sai/
 // không nhất quán), tra cứu TỪ ĐIỂN THẬT qua Free Dictionary API (miễn phí, không cần key) mỗi khi hiện
@@ -13107,9 +13142,34 @@ async function fetchCommonSentData(){
     COMMON_SENT_DATA = {categories:[], sentences:[]};
   }
   commonSentDataLoading = false;
+  try{ sentGopTuVideo(); }catch(e){}
   if(STATE.tab==='english-item' && !STATE.sentSession) renderContent();
 }
 function sentByN(n){ if(!COMMON_SENT_DATA) return null; return COMMON_SENT_DATA.sentences[n-1] || null; }
+const SENT_NHOM_VIDEO = 'video';
+function sentGopTuVideo(){
+  if(!COMMON_SENT_DATA || !Array.isArray(COMMON_SENT_DATA.sentences)) return 0;
+  const kho = hvKhoCau().filter(hvSanSang);
+  COMMON_SENT_DATA.sentences = COMMON_SENT_DATA.sentences.filter(c => c[3] !== SENT_NHOM_VIDEO);
+  const goc = COMMON_SENT_DATA.sentences.length;
+  if(!kho.length) return 0;
+  if(!COMMON_SENT_DATA.categories.some(c => c.code === SENT_NHOM_VIDEO))
+    COMMON_SENT_DATA.categories.push({code:SENT_NHOM_VIDEO, label:'Nhặt từ video', icon:'🎬'});
+  let doi = false;
+  kho.forEach((x, i) => {
+    const nMoi = goc + i + 1;
+    if(x.n && x.n !== nMoi && SETTINGS.sentProgress && SETTINGS.sentProgress[x.n]){
+      SETTINGS.sentProgress[nMoi] = SETTINGS.sentProgress[x.n];
+      delete SETTINGS.sentProgress[x.n];
+      doi = true;
+    }
+    if(x.n !== nMoi){ x.n = nMoi; doi = true; }
+    // [n, tiếng Anh, phiên âm, nhóm, nghĩa tiếng Việt] — đúng hình dạng của ngân hàng gốc.
+    COMMON_SENT_DATA.sentences.push([nMoi, x.chu, '', SENT_NHOM_VIDEO, x.nghia]);
+  });
+  if(doi){ saveSettings(); pushToDrive(); }
+  return kho.length;
+}
 function sentCategories(){ return (COMMON_SENT_DATA && COMMON_SENT_DATA.categories) || []; }
 function sentCategoryMeta(code){ return sentCategories().find(c=>c.code===code) || {code, label:code, icon:'💬'}; }
 function sentByCategory(code){ if(!COMMON_SENT_DATA) return []; return COMMON_SENT_DATA.sentences.filter(s=>s[3]===code); }
@@ -13180,8 +13240,21 @@ function sentBuildDailyQueue(){
   const newCount = studyNewQuota('sent');
   const newOnes = [];
   const total = (COMMON_SENT_DATA && COMMON_SENT_DATA.sentences.length) || 300;
+  // Câu BẠN tự nhặt từ video được xếp lên đầu hàng chờ. Vòng lặp bên dưới chạy từ n=1, mà câu tự
+  // thêm luôn nằm cuối ngân hàng — không ưu tiên thì phải học hết vài trăm câu gốc mới tới lượt,
+  // tức là lưu xong gần như chẳng bao giờ gặp lại. Đây là thứ mình chủ động chọn, phải gặp sớm.
+  const cuaToi = (COMMON_SENT_DATA ? COMMON_SENT_DATA.sentences : [])
+    .filter(c => c[3] === 'video').map(c => c[0]);
+  for(const n of cuaToi){
+    if(newOnes.length >= newCount) break;
+    if(dueSet.has(n)) continue;
+    const p = prog[n];
+    if(p && p.introduced) continue;
+    newOnes.push(n);
+  }
   for(let n=1; n<=total && newOnes.length<newCount; n++){
     if(dueSet.has(n)) continue;
+    if(newOnes.indexOf(n) >= 0) continue;
     const p = prog[n];
     if(p && p.introduced) continue;
     newOnes.push(n);
@@ -14712,9 +14785,54 @@ function hvCumDangChon(){
   const dau = b ? Math.min(a.j, b.j) : a.j;
   const cuoi = b ? Math.max(a.j, b.j) : a.j;
   return { chu: tu.slice(dau, cuoi+1).join(' ').replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,''),
-           vi: rec.lines[a.i].vi || '', nhieuTu: (cuoi > dau) };
+           vi: rec.lines[a.i].vi || '', cauEn: rec.lines[a.i].en || '', nhieuTu: (cuoi > dau) };
 }
 function hvKhoTu(){ if(!Array.isArray(SETTINGS.hvTuDaLuu)) SETTINGS.hvTuDaLuu = []; return SETTINGS.hvTuDaLuu; }
+// Một mục chỉ được nhập vào ngân hàng khi đã có nghĩa riêng của chính nó (không phải nghĩa cả câu).
+function hvSanSang(x){ return !!(x && x.chu && x.nghia); }
+// Nhờ AI dịch đúng cụm trong ngữ cảnh câu. Trả về {nghia, loai, viDu, viDuVi} hoặc null.
+// Hỏng thì trả null chứ KHÔNG bịa — mục đó nằm chờ, lần sau mở app sẽ thử lại.
+async function hvDichCum(chu, cauEn, cauVi){
+  if(!SETTINGS.geminiApiKey) return null;
+  const nhac = 'Trong câu tiếng Anh: "' + cauEn + '"'
+    + (cauVi ? ' (nghĩa cả câu: "' + cauVi + '")' : '')
+    + '\nHãy giải nghĩa riêng cụm/từ: "' + chu + '".\n'
+    + 'Trả về DUY NHẤT một JSON: {"nghia":"nghĩa tiếng Việt ngắn gọn của riêng cụm này",'
+    + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
+    + '"viDu":"một câu tiếng Anh ngắn khác có dùng cụm này",ّ"viDuVi":"nghĩa tiếng Việt của câu ví dụ"}';
+  try{
+    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac.replace('ّ','')}]}],
+        generationConfig:{temperature:0.2, maxOutputTokens:2048, responseMimeType:'application/json'} })
+    });
+    if(!res.ok) return null;
+    const j = await res.json();
+    const txt = (((j.candidates||[])[0]||{}).content||{}).parts?.map(p=>p.text||'').join('') || '';
+    const o = dvDocJson(txt);
+    if(!o || !o.nghia) return null;
+    return {nghia:String(o.nghia).trim(), loai:String(o.loai||'cụm từ').trim(),
+            viDu:String(o.viDu||'').trim(), viDuVi:String(o.viDuVi||'').trim()};
+  }catch(e){ return null; }
+}
+// Chạy nền: tìm các mục chưa có nghĩa và dịch lần lượt. Gọi sau khi lưu và mỗi lần mở app.
+let hvDangDich = false;
+async function hvDichNhungCaiThieu(){
+  if(hvDangDich) return;
+  const cho = hvKhoTu().concat(hvKhoCau()).filter(x => x && x.chu && !x.nghia);
+  if(!cho.length) return;
+  hvDangDich = true;
+  try{
+    for(const x of cho.slice(0, 8)){          // mỗi lượt tối đa 8 mục, khỏi dội API
+      const r = await hvDichCum(x.chu, x.cauEn || '', x.vi || '');
+      if(r){ x.nghia = r.nghia; x.loai = r.loai; x.viDu = r.viDu; x.viDuVi = r.viDuVi; }
+    }
+    saveSettings(); pushToDrive();
+    vocabGopTuVideo(); sentGopTuVideo();
+    if(STATE.tab === 'english-item') renderContent();
+  }catch(e){ }
+  hvDangDich = false;
+}
 function hvKhoCau(){ if(!Array.isArray(SETTINGS.hvCauDaLuu)) SETTINGS.hvCauDaLuu = []; return SETTINGS.hvCauDaLuu; }
 function hvLuuChon(dich){
   const c = hvCumDangChon(); if(!c || !c.chu) return;
@@ -14722,9 +14840,11 @@ function hvLuuChon(dich){
   const co = kho.some(x => String(x.chu||'').toLowerCase() === c.chu.toLowerCase());
   if(co){ showToast('ℹ️','Đã có sẵn', '"' + c.chu + '" nằm trong danh sách rồi.'); }
   else{
-    kho.push({chu:c.chu, vi:c.vi, tu:'hocvideo', ngay:todayKey()});
+    kho.push({chu:c.chu, vi:c.vi, cauEn:c.cauEn||'', tu:'hocvideo', ngay:todayKey()});
     saveSettings(); pushToDrive();
-    showToast('✅', dich==='cau' ? 'Đã lưu vào Câu thông dụng' : 'Đã lưu vào Luyện từ vựng', '"' + c.chu + '"');
+    showToast('✅', dich==='cau' ? 'Đã lưu vào Câu thông dụng' : 'Đã lưu vào Luyện từ vựng',
+      '"' + c.chu + '" — đang nhờ AI dịch nghĩa riêng của cụm này.');
+    try{ hvDichNhungCaiThieu(); }catch(e){}
   }
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
   hvVeTam();
