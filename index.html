@@ -2391,9 +2391,18 @@
 .hv-loi.dangchon .hv-l{cursor:default;opacity:.85;}
 .hv-loi.dangchon .hv-w{cursor:pointer;}
 .hv-loi.dangchon .hv-w:active{background:rgba(126,200,255,.3);}
-.hv-chon-bang{background:rgba(126,200,255,.10);border:1px solid rgba(126,200,255,.45);
-  border-radius:12px;padding:10px 12px;margin-bottom:9px;}
+/* Bảng chọn hiện NGAY DƯỚI dòng vừa chạm, không phải một khối trôi nổi đâu đó trên đầu. */
+.hv-chon-bang{background:rgba(126,200,255,.12);border:1px solid rgba(126,200,255,.5);
+  border-radius:12px;padding:10px 12px;margin:8px 0 2px;}
+.hv-chon-top{display:flex;align-items:flex-start;gap:8px;}
+.hv-chon-x{margin-left:auto;flex:0 0 auto;background:transparent;border:none;color:var(--dim2);
+  font-size:15px;padding:0 2px;cursor:pointer;line-height:1;}
 .hv-chon-chu{font-size:15px;font-weight:800;color:var(--text);line-height:1.4;}
+/* Chữ đang được chọn — xanh dương, khác cả vàng (đang đọc) lẫn xanh lục (cụm thông dụng). */
+.hv-w.chon{background:rgba(79,168,255,.32);color:#fff;border-radius:4px;padding:0 2px;}
+.hv-nhac2{flex:1;font-size:10px;color:var(--dim2);line-height:1.35;align-self:center;}
+.hv-w{cursor:pointer;}
+.hv-w:active{background:rgba(126,200,255,.28);}
 .hv-chon-mo{font-size:10.5px;color:var(--dim2);margin:3px 0 8px;}
 .hv-chon-row{display:flex;gap:7px;}
 .hv-chon-btn{flex:1;border:none;border-radius:10px;padding:9px 6px;font-size:12px;font-weight:800;
@@ -2798,7 +2807,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v186';
+const APP_VERSION = 'v187';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14199,9 +14208,15 @@ function hvTim(id){ return hvVideos().find(v=>v.id===id) || null; }
 // Gom kho cũ vào kho chung, giữ nguyên bản cũ (không xoá — lỡ sai còn quay lại được)
 function hvGomKhoCu(){
   const kho = hvVideos();
+  // Danh sách videoId ĐÃ từng nhập sang. Nhập một lần rồi thì thôi — nếu không, video nào bạn xoá
+  // khỏi kho mới sẽ được nhập lại ngay ở lần vẽ màn hình kế tiếp, tức là xoá không bao giờ ăn.
+  if(!Array.isArray(SETTINGS.hvDaGom)) SETTINGS.hvDaGom = [];
+  const daGom = SETTINGS.hvDaGom;
   let doi = false;
   const them = (v, nguon)=>{
     if(!v || !v.videoId) return;
+    if(daGom.indexOf(v.videoId) >= 0) return;
+    daGom.push(v.videoId); doi = true;
     if(kho.some(x=>x.videoId===v.videoId)) return;
     kho.push({id:'hv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
       videoId:v.videoId, title:v.title||'Video', lines:v.lines||null,
@@ -14210,7 +14225,7 @@ function hvGomKhoCu(){
   };
   (Array.isArray(SETTINGS.dictVideos)?SETTINGS.dictVideos:[]).forEach(v=>them(v,'chinhta'));
   (Array.isArray(SETTINGS.shadowingVideos)?SETTINGS.shadowingVideos:[]).forEach(v=>them(v,'shadowing'));
-  if(doi){ SETTINGS.hvVideos = kho; saveSettings(); pushToDrive(); }
+  if(doi){ SETTINGS.hvVideos = kho; SETTINGS.hvDaGom = daGom; saveSettings(); pushToDrive(); }
 }
 function hvThemVideo(){
   const url = (document.getElementById('hvUrl')||{}).value || '';
@@ -14259,8 +14274,18 @@ function hvXoaVideo(id){
     try{ hvDongPhien(); }catch(e){ STATE.hvPhien = null; STATE.dvPhien = null; STATE.sdPhien = null; }
   }
   // Giữ lại bản sao + đúng vị trí cũ, để hoàn tác là về y chỗ cũ chứ không nhảy xuống cuối danh sách.
-  STATE.hvVuaXoa = { rec: rec, viTri: i, luc: Date.now() };
+  // Giữ cả bản gốc ở hai mảng cũ để hoàn tác còn trả lại được nguyên vẹn.
+  const vid = rec.videoId;
+  const goc = {
+    dict: (Array.isArray(SETTINGS.dictVideos) ? SETTINGS.dictVideos : []).filter(v => v.videoId === vid),
+    shad: (Array.isArray(SETTINGS.shadowingVideos) ? SETTINGS.shadowingVideos : []).filter(v => v.videoId === vid)
+  };
+  STATE.hvVuaXoa = { rec: rec, viTri: i, luc: Date.now(), vid: vid, goc: goc };
   SETTINGS.hvVideos = kho.filter(v => v.id !== id);
+  // XOÁ LUÔN BẢN GỐC ở hai mảng cũ. Thiếu bước này thì hvGomKhoCu() nhập nó lại ngay ở lần vẽ
+  // màn hình kế tiếp — chính là lý do bấm xoá mà video vẫn nằm nguyên đó.
+  if(Array.isArray(SETTINGS.dictVideos))      SETTINGS.dictVideos      = SETTINGS.dictVideos.filter(v => v.videoId !== vid);
+  if(Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = SETTINGS.shadowingVideos.filter(v => v.videoId !== vid);
   saveSettings(); pushToDrive(); renderContent();
   setTimeout(()=>{
     if(STATE.hvVuaXoa && STATE.hvVuaXoa.rec && STATE.hvVuaXoa.rec.id === id){
@@ -14273,6 +14298,13 @@ function hvHoanTacXoa(){
   const h = STATE.hvVuaXoa; if(!h || !h.rec) return;
   const kho = hvVideos();
   if(!kho.some(v => v.id === h.rec.id)) kho.splice(Math.min(h.viTri, kho.length), 0, h.rec);
+  // Trả lại luôn bản gốc ở hai mảng cũ, để hoàn tác là về đúng như chưa từng xoá.
+  if(h.goc){
+    if(!Array.isArray(SETTINGS.dictVideos)) SETTINGS.dictVideos = [];
+    if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
+    (h.goc.dict||[]).forEach(v=>{ if(!SETTINGS.dictVideos.some(x=>x.videoId===v.videoId)) SETTINGS.dictVideos.push(v); });
+    (h.goc.shad||[]).forEach(v=>{ if(!SETTINGS.shadowingVideos.some(x=>x.videoId===v.videoId)) SETTINGS.shadowingVideos.push(v); });
+  }
   STATE.hvVuaXoa = null;
   saveSettings(); pushToDrive(); renderContent();
   showToast('↩️','Đã lấy lại video', 'Lời thoại và tiến độ chép vẫn còn nguyên.');
@@ -14407,7 +14439,13 @@ function hvGanPlayer(videoId){
       hvPlayer = new YT.Player(HV_HOLDER, {
         videoId,
         playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1 },
-        events:{ onReady:()=>{ hvChiaSePlayer(); hvNhipTheoTab(); } }
+        events:{ onReady:()=>{
+          hvChiaSePlayer(); hvNhipTheoTab();
+          if(STATE.hvTuChay){
+            STATE.hvTuChay = false;
+            try{ hvPlayer.seekTo(0, true); hvPlayer.playVideo(); }catch(e){}
+          }
+        } }
       });
     }catch(e){}
   };
@@ -14565,6 +14603,20 @@ function hvDoiTab(tab){
   if(s.tab === 'chinhta') dvLuuGo();
   s.tab = tab;
   hvVeTam();
+  hvNapLaiVideo();
+}
+// Nạp lại video TỪ ĐẦU cho thẻ vừa chọn: huỷ trình phát cũ, dọn khung, dựng lại và chạy.
+// (v182 giữ video chạy liền mạch qua các thẻ; nay đổi theo yêu cầu — mỗi thẻ bắt đầu lại từ 0.)
+function hvNapLaiVideo(){
+  const s = STATE.hvPhien; if(!s) return;
+  const rec = hvTim(s.vidId); if(!rec || !rec.videoId) return;
+  dvXoaHenGio(); sdNgungBam(); hvDungNhip();
+  dvPlayer = null; sdPlayer = null;
+  hvDungPlayer();                                  // huỷ hẳn trình phát cũ
+  const hop = document.getElementById(HV_HOLDER);
+  if(hop) { try{ hop.innerHTML = ''; }catch(e){} } // dọn khung để dựng cái mới
+  STATE.hvTuChay = true;                           // dựng xong thì tự chạy, không bắt bấm thêm
+  hvGanPlayer(rec.videoId);
 }
 // Vẽ lại ĐÚNG tấm nội dung + thanh thẻ. Không đụng tới khung video → video chạy liền mạch, và đây
 // chính là điều làm nó giống lật trang chứ không giống mở màn hình mới.
@@ -14752,10 +14804,18 @@ function hvTimCum(tu){
 function hvChuHtml(en, iDong){
   const tu = String(en||'').trim().split(/\s+/).filter(Boolean);
   const cum = hvTimCum(tu);
-  return tu.map((w,j)=>
-    `<span class="hv-w${cum[j]?' cum':''}" id="hvW${j}"`
-    + (STATE.hvChonTu ? ` data-action="hv-chon" data-i="${iDong}" data-j="${j}"` : '')
-    + `>${escapeHtml(w)}</span>`).join(' ');
+  const d = STATE.hvChonDau, c = STATE.hvChonCuoi;
+  return tu.map((w,j)=>{
+    // Đang chọn tới đâu thì tô tới đó, để thấy rõ mình đang lấy cụm dài bao nhiêu.
+    let dangChon = false;
+    if(d && d.i === iDong){
+      const a = c ? Math.min(d.j, c.j) : d.j;
+      const b = c ? Math.max(d.j, c.j) : d.j;
+      dangChon = (j >= a && j <= b);
+    }
+    return `<span class="hv-w${cum[j]?' cum':''}${dangChon?' chon':''}" id="hvW${j}"`
+      + ` data-action="hv-chon" data-i="${iDong}" data-j="${j}">${escapeHtml(w)}</span>`;
+  }).join(' ');
 }
 function hvHienNghia(){ return !!SETTINGS.hvHienNghia; }
 function hvBatNghia(){
@@ -14770,11 +14830,20 @@ function hvBatChonTu(){
 }
 // Chọn một từ, hoặc một CỤM: chạm từ đầu rồi chạm từ cuối trong cùng một dòng.
 function hvChonTu(i, j){
+  // Dừng video NGAY. Bạn vừa nghe thấy một từ lạ và muốn giữ lại — để video chạy tiếp là mất mạch.
+  try{ if(hvPlayer && hvPlayer.pauseVideo) hvPlayer.pauseVideo(); }catch(e){}
   const d = STATE.hvChonDau;
   if(!d || d.i !== i){ STATE.hvChonDau = {i, j}; STATE.hvChonCuoi = null; }
   else if(STATE.hvChonCuoi){ STATE.hvChonDau = {i, j}; STATE.hvChonCuoi = null; }
+  else if(d.j === j){ STATE.hvChonDau = null; STATE.hvChonCuoi = null; }   // chạm lại chính nó = bỏ chọn
   else STATE.hvChonCuoi = {i, j};
   hvVeTam();
+}
+// Đóng bảng chọn và cho video chạy tiếp.
+function hvThoiChon(){
+  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  hvVeTam();
+  try{ if(hvPlayer && hvPlayer.playVideo) hvPlayer.playVideo(); }catch(e){}
 }
 function hvCumDangChon(){
   const a = STATE.hvChonDau; if(!a) return null;
@@ -14785,7 +14854,8 @@ function hvCumDangChon(){
   const dau = b ? Math.min(a.j, b.j) : a.j;
   const cuoi = b ? Math.max(a.j, b.j) : a.j;
   return { chu: tu.slice(dau, cuoi+1).join(' ').replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,''),
-           vi: rec.lines[a.i].vi || '', cauEn: rec.lines[a.i].en || '', nhieuTu: (cuoi > dau) };
+           vi: rec.lines[a.i].vi || '', cauEn: rec.lines[a.i].en || '',
+           nhieuTu: (cuoi > dau), soTu: (cuoi - dau + 1) };
 }
 function hvKhoTu(){ if(!Array.isArray(SETTINGS.hvTuDaLuu)) SETTINGS.hvTuDaLuu = []; return SETTINGS.hvTuDaLuu; }
 // Một mục chỉ được nhập vào ngân hàng khi đã có nghĩa riêng của chính nó (không phải nghĩa cả câu).
@@ -14848,15 +14918,21 @@ function hvLuuChon(dich){
   }
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
   hvVeTam();
+  try{ if(hvPlayer && hvPlayer.playVideo) hvPlayer.playVideo(); }catch(e){}
 }
 function hvBangChonHtml(){
   const c = hvCumDangChon(); if(!c || !c.chu) return '';
   return `<div class="hv-chon-bang">
-    <div class="hv-chon-chu">${escapeHtml(c.chu)}</div>
-    <div class="hv-chon-mo">${c.nhieuTu ? 'Đang chọn một cụm' : 'Chạm thêm một từ nữa để chọn cả cụm'}</div>
+    <div class="hv-chon-top">
+      <div class="hv-chon-chu">${escapeHtml(c.chu)}</div>
+      <button class="hv-chon-x" data-action="hv-thoi-chon" title="Đóng và chạy tiếp">✕</button>
+    </div>
+    <div class="hv-chon-mo">${c.nhieuTu
+      ? 'Đang chọn cụm ' + c.soTu + ' từ — chạm từ khác để đổi'
+      : 'Chạm thêm một từ nữa trong cùng dòng để lấy cả cụm'}</div>
     <div class="hv-chon-row">
-      <button class="hv-chon-btn tu" data-action="hv-luu-tu">📗 Luyện từ vựng</button>
-      <button class="hv-chon-btn cau" data-action="hv-luu-cau">💬 Câu thông dụng</button>
+      <button class="hv-chon-btn tu" data-action="hv-luu-tu">📗 Lưu từ vựng</button>
+      <button class="hv-chon-btn cau" data-action="hv-luu-cau">💬 Lưu cụm câu</button>
     </div>
   </div>`;
 }
@@ -14875,18 +14951,16 @@ function hvLoiThoaiHtml(rec){
     </div>`;
   }
   const nghia = hvHienNghia();
-  const chon  = !!STATE.hvChonTu;
   return `<div class="hv-thanh2">
       <button class="hv-nut2 ${nghia?'on':''}" data-action="hv-nghia">🇻🇳 Dịch</button>
-      <button class="hv-nut2 ${chon?'on':''}" data-action="hv-chontu">🔖 Chọn từ để lưu</button>
+      <span class="hv-nhac2">Chạm vào một từ bất kỳ để dừng video và lưu nó</span>
     </div>
-    ${chon ? `<div class="hv-chon-nhac">Chạm vào một từ để chọn. Chạm thêm một từ nữa trong cùng dòng để lấy cả cụm.</div>` : ''}
-    <div id="hvChonWrap">${hvBangChonHtml()}</div>
-    <div class="hv-loi ${chon?'dangchon':''}" id="hvLoiWrap">${rec.lines.map((d,i)=>
-    `<div class="hv-l" id="hvL${i}"${chon?'':` data-action="hv-tua" data-i="${i}"`}>
-      <span class="hv-t"${chon?` data-action="hv-tua" data-i="${i}"`:''}>${sdFmt(d.t)}</span>
-      <span class="hv-x" id="hvX${i}">${(chon||nghia) ? hvChuHtml(d.en, i) : escapeHtml(d.en)}${
+    <div class="hv-loi" id="hvLoiWrap">${rec.lines.map((d,i)=>
+    `<div class="hv-l" id="hvL${i}">
+      <span class="hv-t" data-action="hv-tua" data-i="${i}">${sdFmt(d.t)}</span>
+      <span class="hv-x" id="hvX${i}">${hvChuHtml(d.en, i)}${
         (nghia && d.vi) ? `<span class="hv-vi">${escapeHtml(d.vi)}</span>` : ''}</span>
+      ${(STATE.hvChonDau && STATE.hvChonDau.i === i) ? hvBangChonHtml() : ''}
     </div>`).join('')}</div>`;
 }
 function renderHocVideoPhien(item){
@@ -23069,8 +23143,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvTabEl){ hvDoiTab(hvTabEl.getAttribute('data-t')); return; }
   const hvNghiaEl = e.target.closest('[data-action="hv-nghia"]');
   if(hvNghiaEl){ hvBatNghia(); return; }
-  const hvChonTuEl = e.target.closest('[data-action="hv-chontu"]');
-  if(hvChonTuEl){ hvBatChonTu(); return; }
+  const hvThoiChonEl = e.target.closest('[data-action="hv-thoi-chon"]');
+  if(hvThoiChonEl){ e.stopPropagation(); hvThoiChon(); return; }
   const hvChonEl = e.target.closest('[data-action="hv-chon"]');
   if(hvChonEl){ e.stopPropagation();
     hvChonTu(+hvChonEl.getAttribute('data-i'), +hvChonEl.getAttribute('data-j')); return; }
