@@ -2807,7 +2807,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v187';
+const APP_VERSION = 'v188';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14390,6 +14390,24 @@ Chỉ trả về JSON.`;
 }
 // ── Trình phát + đồng bộ lời thoại ───────────────────────────────────────
 const HV_HOLDER = 'hv-yt-holder';
+// HỘP cố định bao ngoài ô đích. Cần nó vì YT.Player THAY THẾ ô đích bằng iframe và destroy() xoá
+// hẳn iframe đi — tức là sau một lần huỷ thì #hv-yt-holder không còn tồn tại nữa. Có hộp thì lúc
+// nào cũng dựng lại được ô đích, không bao giờ rơi vào cảnh "tìm không thấy chỗ dựng" → màn hình đen.
+const HV_BOX = 'hvVidBox';
+// Dựng lại một ô đích trống bên trong hộp. Trả về ô đó, hoặc null nếu chưa có hộp trên màn hình.
+function hvOTrong(){
+  const box = document.getElementById(HV_BOX);
+  if(box){ try{ box.innerHTML = '<div id="' + HV_HOLDER + '"></div>'; }catch(e){} }
+  return document.getElementById(HV_HOLDER);
+}
+// Có iframe YouTube còn sống trên màn hình hay không. Sau khi dựng, ô đích CHÍNH LÀ iframe (mang
+// cùng id); trước khi dựng thì nó là một div rỗng. Phải xét cả hai kiểu.
+function hvIframeSong(){
+  const el = document.getElementById(HV_HOLDER);
+  if(!el) return false;
+  if(el.tagName === 'IFRAME') return true;
+  return !!(el.querySelector && el.querySelector('iframe'));
+}
 const HV_CHO_KEO_TAY = 4000;   // tự kéo tay xong thì ngừng tự cuộn 4 giây
 let hvPlayer = null, hvNhip = null, hvDongCu = -1;
 function hvDungNhip(){ if(hvNhip){ clearInterval(hvNhip); hvNhip = null; } }
@@ -14425,16 +14443,18 @@ function hvNhipTheoTab(){
 function hvGanPlayer(videoId){
   if(!videoId) return;
   const gan = ()=>{
-    const hop = document.getElementById(HV_HOLDER);
-    if(!hop) return;
-    // iframe còn sống thì đừng dựng lại (dựng lại là video nhảy về đầu) — NHƯNG phải bật lại vòng
-    // đồng bộ, vì onReady sẽ không bắn nữa. Thiếu dòng này thì lời thoại đứng im dù video vẫn chạy.
-    if(hop.querySelector && hop.querySelector('iframe')){
-      if(hvPlayer){ hvChiaSePlayer(); hvNhipTheoTab(); return; }
-      // Khung còn iframe nhưng đã mất tay cầm → dọn sạch rồi dựng lại. Thoát ở đây (như bản cũ)
-      // là để nguyên một khung video không ai điều khiển được: mọi nút trong cả ba thẻ đều chết.
-      try{ hop.innerHTML = ''; }catch(e){}
+    // iframe còn sống VÀ còn tay cầm → dùng lại, đừng dựng lại (dựng lại là video nhảy về đầu) —
+    // NHƯNG phải bật lại vòng đồng bộ, vì onReady sẽ không bắn nữa. Thiếu dòng này thì lời thoại
+    // đứng im dù video vẫn chạy.
+    if(hvIframeSong() && hvPlayer && typeof hvPlayer.seekTo === 'function'){
+      hvChiaSePlayer(); hvNhipTheoTab(); return;
     }
+    // Còn lại thì dựng mới. Bỏ hẳn tay cầm cũ trước — nó đang trỏ vào một iframe không dùng được nữa.
+    if(hvPlayer){ try{ if(typeof hvPlayer.destroy==='function') hvPlayer.destroy(); }catch(e){} hvPlayer = null; }
+    // Tự dựng lại ô đích. ĐÂY là dòng chữa bệnh màn hình đen: bản cũ chỉ đi tìm ô đích, mà ô đó đã
+    // bị destroy() xoá mất, nên nó thoát ra và không dựng gì cả.
+    const hop = hvOTrong();
+    if(!hop) return;
     try{
       hvPlayer = new YT.Player(HV_HOLDER, {
         videoId,
@@ -14605,17 +14625,23 @@ function hvDoiTab(tab){
   hvVeTam();
   hvNapLaiVideo();
 }
-// Nạp lại video TỪ ĐẦU cho thẻ vừa chọn: huỷ trình phát cũ, dọn khung, dựng lại và chạy.
-// (v182 giữ video chạy liền mạch qua các thẻ; nay đổi theo yêu cầu — mỗi thẻ bắt đầu lại từ 0.)
+// Nạp lại video TỪ ĐẦU cho thẻ vừa chọn.
+// v187 làm việc này bằng cách HUỶ trình phát rồi dựng lại — và đó là lý do màn hình video đen:
+// destroy() xoá luôn ô đích khỏi trang, lần dựng sau tìm không thấy chỗ nên bỏ cuộc.
+// Nay chỉ tua về giây 0 rồi chạy. Vẫn đúng yêu cầu "bắt đầu lại từ đầu cho thẻ đang chọn", mà
+// không đụng gì tới iframe nên không có gì để hỏng.
 function hvNapLaiVideo(){
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec || !rec.videoId) return;
   dvXoaHenGio(); sdNgungBam(); hvDungNhip();
-  dvPlayer = null; sdPlayer = null;
-  hvDungPlayer();                                  // huỷ hẳn trình phát cũ
-  const hop = document.getElementById(HV_HOLDER);
-  if(hop) { try{ hop.innerHTML = ''; }catch(e){} } // dọn khung để dựng cái mới
-  STATE.hvTuChay = true;                           // dựng xong thì tự chạy, không bắt bấm thêm
+  if(hvPlayer && typeof hvPlayer.seekTo === 'function'){
+    try{ hvPlayer.seekTo(0, true); hvPlayer.playVideo(); }catch(e){}
+    hvChiaSePlayer(); hvNhipTheoTab();
+    return;
+  }
+  // Chỉ khi thật sự chưa có trình phát (mới mở màn, hoặc vừa mất tay cầm) mới dựng — và dựng xong
+  // thì tự chạy từ đầu.
+  STATE.hvTuChay = true;
   hvGanPlayer(rec.videoId);
 }
 // Vẽ lại ĐÚNG tấm nội dung + thanh thẻ. Không đụng tới khung video → video chạy liền mạch, và đây
@@ -14973,7 +14999,7 @@ function renderHocVideoPhien(item){
     <div class="hv-ghim">
       <div class="kh-backrow" style="margin-bottom:6px;"><div class="kh-backbtn" data-action="hv-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
       <div class="hv-vidwrap">
-        <div class="video-embed-wrap"><div id="${HV_HOLDER}"></div></div>
+        <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-chip" id="hvChip"></div>
       </div>
       <div class="hv-tabs" id="hvTabs">${hvTabsHtml(s)}</div>
