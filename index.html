@@ -2898,7 +2898,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v193';
+const APP_VERSION = 'v194';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14529,11 +14529,27 @@ function hvKhoangThieu(lines){
   if(!Array.isArray(lines) || !lines.length) return [];
   const ra = [];
   for(let i=0;i<lines.length-1;i++){
-    const het = (lines[i].e != null && lines[i].e > lines[i].t) ? lines[i].e : lines[i].t;
+    // KHÔNG tin mốc "e" đang lưu. Lời thoại lấy từ bản cũ có e = mốc bắt đầu câu kế tiếp, nên
+    // khoảng trống nào đo ra cũng bằng 0 và app tưởng lời thoại đã liền mạch — đó chính là lý do
+    // v193 không vá được gì cho video của bạn. Đo bằng độ dài NÓI ĐƯỢC THẬT của câu.
+    const het = lines[i].t + hvDaiCau(lines[i]);
     const sau = lines[i+1].t;
     if(sau - het >= HV_KHOANG_TRONG) ra.push({a: Math.max(0, het - 1), b: sau + 1});
   }
   return ra;
+}
+// Chuẩn hoá lại mốc kết thúc cho lời thoại lấy từ bản cũ. Làm một lần cho mỗi video rồi đánh dấu.
+// Việc này còn giúp Shadowing dừng đúng lúc câu vừa dứt, thay vì đợi tới tận câu sau.
+function hvChuanMoc(rec){
+  if(!rec || !Array.isArray(rec.lines) || rec.mocChuan) return false;
+  let doi = false;
+  rec.lines.forEach(d=>{
+    const dung = d.t + hvDaiCau(d);
+    if(d.e == null || d.e > dung + 0.05){ d.e = Math.round(dung*10)/10; doi = true; }
+  });
+  rec.mocChuan = true;
+  if(doi){ saveSettings(); }
+  return doi;
 }
 // Hỏi AI riêng MỘT khoảng thời gian. Chỉ nghe đúng đoạn đó nên nó ghi được đầy đủ hơn nhiều so
 // với bắt nghe cả video một lượt.
@@ -14601,7 +14617,7 @@ async function hvLayNotPhanThieu(recId){
       const moi = await hvNgheDoan(rec.videoId, k.a, k.b);
       if(moi.length){ rec.lines = hvTronLoi(rec.lines, moi); them += moi.length; }
     }
-    if(them){ rec.soCauCu = rec.lines.length; saveSettings(); pushToDrive(); }
+    if(them){ rec.soCauCu = rec.lines.length; rec.mocChuan = true; saveSettings(); pushToDrive(); }
   }catch(e){ }
   STATE.hvDangVa = false;
   try{ hvVeTam(); }catch(e){}
@@ -15046,7 +15062,7 @@ function renderHocVideo(item){
          <button data-action="hv-hoantac">↩️ Hoàn tác</button>
        </div>` : '';
   document.getElementById('content').innerHTML = `
-    ${hvBackRow('eng-back')}
+    ${hvBackRow('english-item-back')}
     ${hvErrHtml()}
     ${hoanTac}
     <div class="card" style="padding:15px 16px; margin-bottom:13px;">
@@ -15490,7 +15506,8 @@ function hvLoiThoaiHtml(rec){
     ${STATE.hvDangVa
       ? `<div class="hv-va cho">🩹 Đang hỏi lại AI cho những đoạn bị bỏ sót…</div>`
       : (thieu.length
-        ? `<div class="hv-va">Còn <b>${thieu.length}</b> đoạn chưa có lời (AI nghe cả video một lượt hay bỏ sót).
+        ? `<div class="hv-va">Còn <b>${thieu.length}</b> đoạn chưa có lời, tổng khoảng
+             <b>${Math.round(thieu.reduce((t,k)=>t+(k.b-k.a),0))}</b> giây (AI nghe cả video một lượt hay bỏ sót).
              <button class="hv-va-nut" data-action="hv-va-loi">🩹 Lấy nốt phần thiếu</button></div>`
         : '')}
     <div class="hv-loi" id="hvLoiWrap">${rec.lines.map((d,i)=>
@@ -15523,8 +15540,18 @@ function renderHocVideoPhien(item){
       <div class="hv-panel" id="hvPanel">${hvPanelHtml(rec, s)}</div>
     </div>
     </div>`;
+  // Chuẩn hoá mốc TRƯỚC khi vẽ phần còn lại, để dải báo "còn đoạn chưa có lời" hiện đúng ngay.
+  try{ hvChuanMoc(rec); }catch(e){}
   hvSauVeTam(rec, s);
   hvDoHinh(rec);
+  // Tự vá phần thiếu — một lần cho mỗi video trong mỗi lần mở app, khỏi gọi API lặp lại.
+  try{
+    STATE.hvDaVa = STATE.hvDaVa || {};
+    if(!STATE.hvDaVa[rec.id] && SETTINGS.geminiApiKey && hvKhoangThieu(rec.lines).length){
+      STATE.hvDaVa[rec.id] = true;
+      setTimeout(()=>{ hvLayNotPhanThieu(rec.id); }, 900);
+    }
+  }catch(e){}
   try{ setTimeout(hvVeNutPlay, 200); }catch(e){}
   hvGanPlayer(rec.videoId);
 }
