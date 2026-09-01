@@ -2160,6 +2160,26 @@
 .gemini-cd-bar{position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9999; display:flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:rgba(20,24,34,.94); border:1px solid #FFC94A55; color:#FFC94A; font-size:11.5px; font-weight:700; box-shadow:0 8px 26px rgba(0,0,0,.5); backdrop-filter:blur(8px); max-width:92vw;}
 .gemini-cd-bar b{color:#fff; font-size:13px;}
 .gemini-cd-bar .gcd-ic{font-size:14px;}
+.gemini-cd-bar .gcd-x{margin-left:4px;opacity:.7;font-size:12px;}
+.gemini-cd-bar{cursor:pointer;}
+/* ══ v196 · ĐIỆN THOẠI: BẢNG CHỌN TỪ GỌN LẠI ══
+   Trên màn hình hẹp, bảng chọn cao gần bằng nửa khung lời thoại — đẩy hết chữ xuống dưới và
+   khiến cảm giác "màn hình nhảy đi chỗ khác" càng rõ. Thu lại cho vừa mắt, vẫn đủ đọc. */
+@media (max-width:700px){
+  .hv-chon-bang{padding:7px 9px;margin:6px 0 2px;border-radius:10px;}
+  .hv-chon-chu{font-size:13.5px;line-height:1.3;}
+  .hv-chon-mo{font-size:9.5px;margin:2px 0 6px;}
+  .hv-chon-am{gap:6px;margin-top:3px;}
+  .hv-doc{width:26px;height:26px;font-size:12.5px;border-radius:8px;}
+  .hv-ipa{font-size:11.5px;}
+  .hv-chon-btn{padding:7px 5px;font-size:11px;border-radius:9px;}
+  .hv-chon-x{width:22px;height:22px;}
+  .hv-nghia{margin-top:6px;padding:6px 8px;border-radius:8px;}
+  .hv-nghia-vi{font-size:12.5px;line-height:1.4;}
+  .hv-nghia-loai{font-size:9px;padding:0 4px;margin-left:5px;}
+  .hv-nghia-vd{margin-top:4px;font-size:10.5px;line-height:1.5;}
+  .hv-nghia.cho,.hv-nghia.loi{font-size:10.5px;}
+}
 
 /* ===== Cố vấn hôm nay (v163) ===== */
 .cv-top{padding:14px 16px;margin-bottom:12px;border-radius:16px;background:linear-gradient(135deg,rgba(44,219,168,.10),rgba(79,168,255,.07));border:1px solid var(--border);}
@@ -2900,7 +2920,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v195';
+const APP_VERSION = 'v196';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14863,6 +14883,9 @@ function hvBatNhip(){
 // batBuoc = true: vừa sang câu mới, kéo về bằng mọi giá. Đây là điều bạn yêu cầu — "không cần biết
 // đang kéo chuột đi đâu, hết một câu thì màn hình chạy về câu đang được đọc".
 function hvCuonToiDong(el, khungId, batBuoc){
+  // Đang mở bảng chọn từ thì TUYỆT ĐỐI không tự cuộn. Bạn vừa chạm một chữ để đọc nghĩa mà màn
+  // hình lại kéo đi chỗ khác thì đúng là không dùng được.
+  if(STATE.hvChonDau) return;
   const khung = document.getElementById(khungId || 'hvLoiWrap');
   if(!khung || !el || !el.getBoundingClientRect || !khung.getBoundingClientRect) return;
   // Trong CÙNG một câu thì tôn trọng tay người dùng: đang kéo lên đọc lại thì đừng giật xuống.
@@ -14973,6 +14996,13 @@ function hvNapLaiVideo(){
 // tuyChon.giuCuon = giữ nguyên chỗ đang đọc; tuyChon.khongLat = không chạy hiệu ứng lật trang.
 // Hai thứ này chỉ dùng khi vẽ lại vì bạn vừa chạm một chữ — lúc đó không có gì "lật" cả, và nhảy
 // danh sách về đầu là bắt bạn cuộn lại từ đầu mỗi lần muốn lưu một từ.
+// Đo dòng neo đang nằm cách mép trên màn hình bao nhiêu pixel. Trả về null nếu không đo được.
+function hvDoNeo(id){
+  const el = id ? document.getElementById(id) : null;
+  if(!el || !el.getBoundingClientRect) return null;
+  const r = el.getBoundingClientRect();
+  return (r && typeof r.top === 'number') ? r.top : null;
+}
 function hvVeTam(tuyChon){
   const o = tuyChon || {};
   const s = STATE.hvPhien; if(!s) return;
@@ -14985,6 +15015,10 @@ function hvVeTam(tuyChon){
     const el = document.getElementById(id);
     if(el && typeof el.scrollTop === 'number') cuon[id] = el.scrollTop;
   });
+  // Dòng neo = dòng bạn vừa chạm. Giữ NÓ đứng yên trên màn hình là cách duy nhất đúng cho cả
+  // điện thoại (cuộn cả trang) lẫn máy tính (cuộn trong khung).
+  const neoId = (o.giuCuon && STATE.hvChonDau) ? ('hvL' + STATE.hvChonDau.i) : null;
+  const neoTruoc = hvDoNeo(neoId);
   const thanh = document.getElementById('hvTabs');
   if(thanh) thanh.innerHTML = hvTabsHtml(s);
   tam.innerHTML = hvPanelHtml(rec, s);
@@ -14995,6 +15029,29 @@ function hvVeTam(tuyChon){
     const el = document.getElementById(id);
     if(el) { try{ el.scrollTop = cuon[id]; }catch(_){} }
   });
+  // Bù phần lệch của dòng neo. Bù vào khung lời thoại trước; khung đã cuộn hết cỡ (điện thoại
+  // thường rơi vào trường hợp này) thì bù nốt vào trang.
+  if(neoId && neoTruoc != null){
+    const neoSau = hvDoNeo(neoId);
+    if(neoSau != null){
+      let lech = neoSau - neoTruoc;
+      if(Math.abs(lech) > 1){
+        const khung = document.getElementById('hvLoiWrap');
+        if(khung && typeof khung.scrollTop === 'number'){
+          const truoc = khung.scrollTop;
+          try{ khung.scrollTop = truoc + lech; }catch(_){}
+          lech -= (khung.scrollTop - truoc);          // phần khung nuốt được
+        }
+        if(Math.abs(lech) > 1){
+          try{
+            const y = (window.pageYOffset != null) ? window.pageYOffset
+                    : (document.documentElement ? document.documentElement.scrollTop : 0);
+            if(window.scrollTo) window.scrollTo(0, Math.max(0, y + lech));
+          }catch(_){}
+        }
+      }
+    }
+  }
   hvVeVung('hvErrWrap');
   hvSauVeTam(rec, s);
 }
@@ -16457,13 +16514,23 @@ function geminiCooldownLeftSec(){ return Math.max(0, Math.ceil((GEMINI_GATE.cool
 function geminiSleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 function geminiParseRetrySec(msg){ const m = /retry in ([\d.]+)\s*s/i.exec(msg||''); return m ? Math.ceil(parseFloat(m[1])) : 0; }
 function geminiNoteRateLimit(msg){
-  const sec = geminiParseRetrySec(msg) || 35;
-  const until = Date.now() + Math.min(Math.max(sec+2, 5), 75)*1000;
+  // Google có nói "retry in Ns" thì nghe theo. Không nói thì 20 giây — bản cũ để 35 giây, cộng
+  // với việc mỗi lần thử lại đều cộng dồn, thành ra khoá lâu hơn mức thật rất nhiều.
+  const sec = geminiParseRetrySec(msg) || 20;
+  const until = Date.now() + Math.min(Math.max(sec+2, 5), 60)*1000;
   if(until > GEMINI_GATE.cooldownUntil) GEMINI_GATE.cooldownUntil = until;
+  geminiHienDaiCho();
 }
+// Dải đếm ngược chỉ hiện trong 6 giây sau lần bạn vừa chạm phải hạn mức. Hết 6 giây thì tự ẩn,
+// đồng hồ chờ vẫn chạy ngầm — bấm lại lúc còn hạn mức thì nó hiện ra lần nữa.
+let geminiHienDaiToi = 0;
+function geminiHienDaiCho(){ geminiHienDaiToi = Date.now() + 6000; }
+function geminiAnDai(){ geminiHienDaiToi = 0; const el = document.getElementById('geminiCooldownBar'); if(el) el.remove(); }
 // Chờ tới lượt gọi: vừa tôn trọng thời gian "hạ nhiệt" sau khi dính 429, vừa tự giới hạn số request
 // trong 60 giây gần nhất để KHÔNG BAO GIỜ chạm ngưỡng miễn phí ngay từ đầu.
 async function geminiWaitTurn(){
+  // Bấm lúc đang phải chờ thì hiện dải lại — bằng không bạn bấm mà không thấy gì xảy ra.
+  if(geminiCooldownLeftSec() > 0) geminiHienDaiCho();
   for(;;){
     const now = Date.now();
     GEMINI_GATE.times = GEMINI_GATE.times.filter(t => now - t < 60000);
@@ -16488,7 +16555,9 @@ async function geminiFetch(url, init){
     if(res.status===429 || res.status===503){
       let raw = '';
       try{ raw = await res.clone().text(); }catch(e){}
-      geminiNoteRateLimit(raw);
+      // CHỈ ghi nhận ở lần đầu. Bản cũ ghi nhận cả 3 lần thử, mỗi lần lại đẩy đồng hồ chờ ra xa
+      // thêm — một cú bấm hỏng khoá bạn gần hai phút trong khi Google chỉ đòi chờ vài chục giây.
+      if(attempt === 1) geminiNoteRateLimit(raw);
       last = res;
       if(attempt < MAX){ continue; }
       return res;
@@ -16502,14 +16571,18 @@ async function geminiFetch(url, init){
 function geminiCooldownBannerTick(){
   const left = geminiCooldownLeftSec();
   let el = document.getElementById('geminiCooldownBar');
-  if(left <= 0){ if(el) el.remove(); return; }
+  // Hết hạn chờ, HOẶC đã qua 6 giây kể từ lúc bạn chạm phải hạn mức → ẩn đi. Đang đọc phụ đề mà
+  // có một dải chữ nằm đè giữa màn hình suốt phút thì vướng mắt chứ không giúp được gì.
+  if(left <= 0 || Date.now() > geminiHienDaiToi){ if(el) el.remove(); return; }
   if(!el){
     el = document.createElement('div');
     el.id = 'geminiCooldownBar';
     el.className = 'gemini-cd-bar';
+    el.title = 'Chạm để ẩn';
+    if(el.addEventListener) el.addEventListener('click', geminiAnDai);
     document.body.appendChild(el);
   }
-  el.innerHTML = `<span class="gcd-ic">⏳</span><span>Hạn mức AI miễn phí — thử lại được sau <b>${left}</b> giây</span>`;
+  el.innerHTML = `<span class="gcd-ic">⏳</span><span>Hạn mức AI miễn phí — thử lại được sau <b>${left}</b> giây</span><span class="gcd-x">✕</span>`;
 }
 setInterval(geminiCooldownBannerTick, 1000);
 
