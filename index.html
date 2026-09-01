@@ -2144,10 +2144,12 @@
     #navbar-inner{max-width:min(1860px, 94vw);}
   }
   @media (min-width:1000px){
-    .hv-2cot{display:grid; grid-template-columns:minmax(340px, 44%) 1fr; gap:22px; align-items:start;}
+    .hv-2cot{display:grid; grid-template-columns:minmax(420px, 54%) 1fr; gap:20px; align-items:start;}
     /* Cột video dính lên đầu: cuộn phần học bên phải bao nhiêu thì video vẫn nằm nguyên đó. */
     .hv-2cot > .hv-ghim{position:sticky; top:8px; margin:0; padding-bottom:0; box-shadow:none; background:transparent;}
     .hv-2cot .hv-vidwrap{max-width:100%; margin-bottom:10px;}
+    /* v195 — video to hơn theo yêu cầu: bỏ trần 520px của bản điện thoại, cho nó dùng hết cột. */
+    .hv-2cot .hv-vidwrap:not(.doc){max-width:none;}
     .hv-2cot .hv-vidwrap.doc{height:min(60vh,520px); margin-left:0;}
     .hv-cot-p{min-width:0;}
     /* Khung lời thoại cao gần hết màn hình — đây mới là chỗ đáng chiếm chỗ trên máy tính. */
@@ -2898,7 +2900,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v194';
+const APP_VERSION = 'v195';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14525,6 +14527,10 @@ Chỉ trả về JSON.`;
 // Khoảng trống trong lời thoại: hai câu liên tiếp cách nhau quá lâu thì chắc chắn AI đã bỏ sót.
 // Ngưỡng 18 giây — dài hơn bất kỳ câu nói bình thường nào, nên không báo nhầm.
 const HV_KHOANG_TRONG = 18;
+// Vá từ tốn: mỗi lần bấm tối đa 3 đoạn, giữa hai lượt nghỉ 6 giây. Đây là con số đổi lấy việc
+// KHÔNG đụng trần hạn mức miễn phí — thà vá làm nhiều đợt còn hơn vá một phát rồi chết cả buổi.
+const HV_VA_MOI_LUOT = 3;
+const HV_VA_NGHI = 6000;
 function hvKhoangThieu(lines){
   if(!Array.isArray(lines) || !lines.length) return [];
   const ra = [];
@@ -14610,18 +14616,34 @@ async function hvLayNotPhanThieu(recId){
   if(!SETTINGS.geminiApiKey) return 0;
   let cho = hvKhoangThieu(rec.lines);
   if(!cho.length) return 0;
+  const tongDoan = cho.length;
   STATE.hvDangVa = true; try{ hvVeTam(); }catch(e){}
-  let them = 0;
+  let them = 0, xongDoan = 0, dungTran = false;
   try{
-    for(const k of cho.slice(0, 8)){          // tối đa 8 khoảng mỗi lượt, khỏi dội API
+    // Mỗi lượt tối đa 3 đoạn, giữa hai lượt nghỉ 6 giây. Bản miễn phí của Gemini tính theo số lượt
+    // mỗi phút, mà "nghe video" là loại nặng nhất — bắn liên tiếp là đụng trần, và khi đó cả tra
+    // nghĩa lẫn lấy lời thoại đều bị chặn theo.
+    for(const k of cho.slice(0, HV_VA_MOI_LUOT)){
+      if(typeof geminiCooldownLeftSec === 'function' && geminiCooldownLeftSec() > 0){ dungTran = true; break; }
       const moi = await hvNgheDoan(rec.videoId, k.a, k.b);
       if(moi.length){ rec.lines = hvTronLoi(rec.lines, moi); them += moi.length; }
+      xongDoan++;
+      if(xongDoan < HV_VA_MOI_LUOT) await new Promise(r=>setTimeout(r, HV_VA_NGHI));
     }
     if(them){ rec.soCauCu = rec.lines.length; rec.mocChuan = true; saveSettings(); pushToDrive(); }
   }catch(e){ }
   STATE.hvDangVa = false;
   try{ hvVeTam(); }catch(e){}
-  if(them) showToast('✅','Đã lấy thêm ' + them + ' câu còn thiếu', 'Lời thoại giờ bám sát video hơn.');
+  const conLai = hvKhoangThieu(rec.lines).length;
+  if(dungTran){
+    showToast('⏳','Hết hạn mức AI trong phút này',
+      'Đã vá ' + them + ' câu. Chờ chừng một phút rồi bấm 🩹 tiếp — còn ' + conLai + ' đoạn.');
+  } else if(them){
+    showToast('✅','Đã lấy thêm ' + them + ' câu',
+      conLai ? ('Còn ' + conLai + ' đoạn — bấm 🩹 lần nữa khi bạn muốn.') : 'Lời thoại đã liền mạch.');
+  } else {
+    showToast('ℹ️','Chưa lấy thêm được câu nào', 'Thử bấm 🩹 lại sau một chút.');
+  }
   return them;
 }
 // ── Trình phát + đồng bộ lời thoại ───────────────────────────────────────
@@ -14748,14 +14770,50 @@ function hvDaiCau(dong){
   if(theoMoc > 0 && theoMoc <= uoc * 1.6) return Math.max(0.4, theoMoc);
   return Math.max(0.4, uoc);
 }
+// Trọng số thời gian của một chữ. Nói "communication" mất lâu hơn nói "a" rất nhiều, nên không
+// thể chia đều. 0.45 là phần cố định cho quãng ngắt giữa hai chữ; phần còn lại theo số ký tự.
+function hvNangChu(w){
+  const n = String(w||'').replace(/[^A-Za-z']/g,'').length || 1;
+  return 0.45 + n * 0.55;
+}
+// Mốc bắt đầu (theo tỉ lệ 0..1 trong câu) của từng chữ. Tính một lần rồi nhớ theo câu, vì vòng
+// đồng bộ chạy 120ms một lần — tính lại mỗi nhịp là phí.
+const hvMocChuCache = {};
+function hvMocChu(en){
+  const khoa = String(en||'');
+  if(hvMocChuCache[khoa]) return hvMocChuCache[khoa];
+  const tu = khoa.trim().split(/\s+/).filter(Boolean);
+  const nang = tu.map(hvNangChu);
+  const tong = nang.reduce((a,b)=>a+b, 0) || 1;
+  const moc = []; let don = 0;
+  for(let i=0;i<nang.length;i++){ moc.push(don / tong); don += nang[i]; }
+  moc.push(1);
+  hvMocChuCache[khoa] = moc;
+  return moc;
+}
 function hvChuTaiGiay(dong, gy){
   if(!dong) return -1;
-  const tu = String(dong.en||'').trim().split(/\s+/);
+  const tu = String(dong.en||'').trim().split(/\s+/).filter(Boolean);
   if(!tu.length) return -1;
-  const k = Math.floor((gy - dong.t) / hvDaiCau(dong) * tu.length);
+  const dai = hvDaiCau(dong);
+  const ti = (gy - dong.t) / dai;
   // Đã đọc hết câu mà video vẫn chưa sang câu mới (mốc AI lệch) → không tô chữ nào nữa.
-  if(k >= tu.length) return -1;
-  return Math.max(0, k);
+  if(ti >= 1) return -1;
+  if(ti <= 0) return 0;
+  const moc = hvMocChu(dong.en);
+  for(let i = tu.length - 1; i >= 0; i--) if(ti >= moc[i]) return i;
+  return 0;
+}
+// Khoảng thời gian (giây, tính từ đầu video) mà chữ thứ a..b được nói. Dùng cho nút 🔊.
+function hvKhoangChu(dong, a, b){
+  if(!dong || dong.t == null) return null;
+  const tu = String(dong.en||'').trim().split(/\s+/).filter(Boolean);
+  if(!tu.length) return null;
+  const dai = hvDaiCau(dong);
+  const moc = hvMocChu(dong.en);
+  const i = Math.max(0, Math.min(tu.length - 1, a));
+  const j = Math.max(i, Math.min(tu.length - 1, b));
+  return { t0: dong.t + moc[i] * dai, t1: dong.t + moc[j + 1] * dai, soTu: tu.length };
 }
 function hvBatNhip(){
   hvDungNhip();
@@ -15272,15 +15330,15 @@ async function hvDichCum(chu, cauEn, cauVi){
     + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
     + '"phienAm":"phiên âm IPA của cụm này, ví dụ /ˈænsər/",'
     + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"},'
-    + '"viDu":"một câu tiếng Anh ngắn khác có dùng cụm này",ّ"viDuVi":"nghĩa tiếng Việt của câu ví dụ"}\n'
+    + '}\n'
     + 'Với "dangTu": chỉ ghi những dạng CÓ THẬT trong tiếng Anh và cùng gốc từ. Dạng nào không có '
     + 'thì BỎ HẲN khoá đó ra khỏi JSON, tuyệt đối không bịa. Nếu là cụm/thành ngữ thì để {}.\n'
-    + 'VIẾT THẬT NGẮN. "nghia" tối đa 12 chữ, "viDu" tối đa 10 từ. Không giải thích thêm gì.';
+    + 'VIẾT THẬT NGẮN GỌN: "nghia" tối đa 12 chữ. KHÔNG viết câu ví dụ, KHÔNG giải thích thêm gì.';
   try{
     const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac.replace('ّ','')}]}],
-        generationConfig:{temperature:0.1, maxOutputTokens:400, responseMimeType:'application/json'} })
+        generationConfig:{temperature:0.1, maxOutputTokens:220, responseMimeType:'application/json'} })
     });
     if(!res.ok) return null;
     const j = await res.json();
@@ -15372,7 +15430,9 @@ async function hvTraNghia(){
   const c2 = hvCumDangChon();
   if(!c2 || !c2.chu || hvKhoaNghia(c2.chu, c2.cauEn) !== khoa) return;
   if(r){ kho[khoa] = r; saveSettings(); STATE.hvNghia = r; }
-  else STATE.hvNghia = {loi:'Chưa tra được nghĩa lúc này. Cứ lưu lại, app sẽ tự dịch sau.'};
+  else STATE.hvNghia = {loi: (typeof geminiCooldownLeftSec === 'function' && geminiCooldownLeftSec() > 0)
+      ? ('Hết hạn mức AI miễn phí, thử lại sau ' + geminiCooldownLeftSec() + ' giây. Cứ lưu từ lại, app sẽ dịch sau.')
+      : 'Chưa tra được nghĩa lúc này. Cứ lưu lại, app sẽ tự dịch sau.'};
   hvVeTamTaiCho();
 }
 // Phiên âm của từ đang chọn. Tra một lần rồi nhớ, chạm lại là hiện ngay.
@@ -15420,15 +15480,22 @@ function hvDocTuDangChon(){
   const dong = (rec && Array.isArray(rec.lines) && d) ? rec.lines[d.i] : null;
   const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer() : null;
   if(dong && p && dong.t != null){
-    const tu = String(dong.en||'').trim().split(/\s+/).filter(Boolean);
     const cc = STATE.hvChonCuoi;
     const a = Math.min(d.j, cc ? cc.j : d.j);
     const b = Math.max(d.j, cc ? cc.j : d.j);
+    const kh = hvKhoangChu(dong, a, b);
     const dai = hvDaiCau(dong);
-    // Mốc theo chữ là ƯỚC LƯỢNG, không phải mốc thật — nên nới hai đầu để chắc chắn không cắt cụt
-    // mất âm đầu hay âm cuối, và giữ tối thiểu 0,7 giây.
-    const t0 = Math.max(0, dong.t + (a / tu.length) * dai - 0.28);
-    let  t1 = dong.t + ((b + 1) / tu.length) * dai + 0.28;
+    let t0, t1;
+    // Câu ngắn (≤6 chữ) hoặc bạn chọn quá nửa câu → phát THẲNG CẢ CÂU. Mốc theo chữ chỉ là ước
+    // lượng; ở câu ngắn sai một chữ là trượt hẳn ra ngoài, nghe dư còn hơn nghe nhầm.
+    if(!kh || kh.soTu <= 6 || (b - a + 1) >= kh.soTu / 2){
+      t0 = Math.max(0, dong.t - 0.15);
+      t1 = dong.t + dai + 0.25;
+    } else {
+      // Nới hai đầu 0,3 giây cho chắc không cắt cụt âm đầu/âm cuối.
+      t0 = Math.max(0, kh.t0 - 0.3);
+      t1 = kh.t1 + 0.3;
+    }
     if(t1 - t0 < 0.7) t1 = t0 + 0.7;
     hvNgungDoc();
     try{
@@ -15508,7 +15575,7 @@ function hvLoiThoaiHtml(rec){
       : (thieu.length
         ? `<div class="hv-va">Còn <b>${thieu.length}</b> đoạn chưa có lời, tổng khoảng
              <b>${Math.round(thieu.reduce((t,k)=>t+(k.b-k.a),0))}</b> giây (AI nghe cả video một lượt hay bỏ sót).
-             <button class="hv-va-nut" data-action="hv-va-loi">🩹 Lấy nốt phần thiếu</button></div>`
+             <button class="hv-va-nut" data-action="hv-va-loi">🩹 Vá ${Math.min(thieu.length, 3)} đoạn</button></div>`
         : '')}
     <div class="hv-loi" id="hvLoiWrap">${rec.lines.map((d,i)=>
     `<div class="hv-l" id="hvL${i}" data-action="hv-tua" data-i="${i}">
@@ -15544,14 +15611,9 @@ function renderHocVideoPhien(item){
   try{ hvChuanMoc(rec); }catch(e){}
   hvSauVeTam(rec, s);
   hvDoHinh(rec);
-  // Tự vá phần thiếu — một lần cho mỗi video trong mỗi lần mở app, khỏi gọi API lặp lại.
-  try{
-    STATE.hvDaVa = STATE.hvDaVa || {};
-    if(!STATE.hvDaVa[rec.id] && SETTINGS.geminiApiKey && hvKhoangThieu(rec.lines).length){
-      STATE.hvDaVa[rec.id] = true;
-      setTimeout(()=>{ hvLayNotPhanThieu(rec.id); }, 900);
-    }
-  }catch(e){}
+  // v195: BỎ HẲN việc tự động vá. Mỗi đoạn vá là một lượt "nghe video" — thứ tốn hạn mức nhất
+  // của Gemini miễn phí. Tự bắn 8 lượt lúc mở video là đụng trần ngay, rồi tra nghĩa cũng chết
+  // theo. Nay chỉ vá khi BẠN bấm nút, và vá từ tốn.
   try{ setTimeout(hvVeNutPlay, 200); }catch(e){}
   hvGanPlayer(rec.videoId);
 }
@@ -17848,13 +17910,12 @@ let sdBamTimer = null, sdDongHienTai = -1;
 // CÂU nên chia đều cho số chữ — không chính xác tuyệt đối nhưng bám sát nhịp và không lệch câu.
 function sdChuTaiGiay(ds, i, gy){
   const d = ds[i]; if(!d) return -1;
+  // Dùng CHUNG một hàm với thẻ Phụ đề. Cùng một dữ liệu thì không được có hai cách hiểu — và
+  // bên này cũng phải được hưởng cách chia theo độ dài từng chữ.
+  if(typeof hvChuTaiGiay === 'function') return hvChuTaiGiay(d, gy);
   const tu = String(d.en||'').trim().split(/\s+/);
   if(!tu.length) return -1;
-  // Dùng chung cách tính với thẻ Phụ đề (xem hvDaiCau): cùng một dữ liệu thì không được có hai
-  // cách hiểu, và bên này cũng dính đúng lỗi chữ bò chậm khi mốc AI kéo dài.
-  const dai = (typeof hvDaiCau === 'function')
-    ? hvDaiCau(d)
-    : Math.max(0.3, ((d.e != null && d.e > d.t) ? d.e : d.t + 4) - d.t);
+  const dai = Math.max(0.3, ((d.e != null && d.e > d.t) ? d.e : d.t + 4) - d.t);
   const k = Math.floor((gy - d.t) / dai * tu.length);
   if(k >= tu.length) return -1;
   return Math.max(0, k);
