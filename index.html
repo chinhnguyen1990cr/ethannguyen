@@ -2477,6 +2477,9 @@
   background:rgba(79,168,255,.18);color:#9cccff;font-size:14px;line-height:1;cursor:pointer;
   display:flex;align-items:center;justify-content:center;padding:0;}
 .hv-doc:active{background:rgba(79,168,255,.42);}
+/* v197 — nút 🅰 máy đọc riêng đúng từ, để cạnh nút 🔊 nghe cả câu trong video */
+.hv-doc.may{border-color:rgba(183,140,255,.5);background:rgba(183,140,255,.16);color:#c9a9ff;}
+.hv-doc.may:active{background:rgba(183,140,255,.4);}
 .hv-ipa{font-family:var(--mono);font-size:12.5px;color:#9cccff;}
 .hv-ipa:empty{display:none;}
 /* Chữ đang được chọn — xanh dương, khác cả vàng (đang đọc) lẫn xanh lục (cụm thông dụng). */
@@ -2920,7 +2923,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v196';
+const APP_VERSION = 'v197';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14463,7 +14466,10 @@ Trả về DUY NHẤT một object JSON (không markdown) đúng dạng:
 {"lines":[{"t":<giây bắt đầu>,"e":<giây kết thúc>,"en":"<câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>","cum":["<cụm thông dụng có trong câu>"]}]}
 
 Quy tắc:
-- MỖI PHẦN TỬ LÀ MỘT CÂU. Câu dài quá thì cắt ở chỗ ngắt nghỉ tự nhiên.
+- MỖI PHẦN TỬ PHẢI LÀ MỘT CÂU HOÀN CHỈNH, kết thúc bằng dấu chấm, chấm hỏi hoặc chấm than.
+  TUYỆT ĐỐI KHÔNG cắt một câu ra làm hai phần tử. Không được có phần tử nào bắt đầu bằng chữ
+  thường hay bằng dấu phẩy — đó là dấu hiệu bạn vừa cắt đôi một câu.
+  Câu quá dài (trên 30 chữ) thì vẫn để nguyên một phần tử, đừng cắt.
 - MỐC THỜI GIAN PHẢI CHÍNH XÁC: "t" là lúc từ đầu tiên phát ra tiếng, "e" là lúc từ cuối vừa dứt.
   TUYỆT ĐỐI KHÔNG để hai câu chồng lên nhau — "t" câu sau phải >= "e" câu trước.
   Lời thoại sẽ chạy đồng bộ theo video nên mốc lệch là chữ chạy sai nhịp.
@@ -14516,6 +14522,9 @@ Chỉ trả về JSON.`;
                     && enTh.indexOf(x.toLowerCase()) >= 0).slice(0, 4);
       return {t: Math.max(0, Math.round(c.t*10)/10), e: c.e>c.t ? Math.round(c.e*10)/10 : 0, en: c.en, vi: c.vi, cum};
     }).filter(Boolean).sort((a,b)=>a.t-b.t);
+    // Nối lại những câu AI lỡ cắt đôi, RỒI mới tính mốc kết thúc — tính trước thì mốc của nửa
+    // câu bị vứt đi, uổng.
+    lines = hvGopCauVo(lines);
     for(let i=0;i<lines.length;i++){
       const sau = lines[i+1];
       // Ước lượng theo số chữ trước, rồi mới nới ra bằng mốc AI nếu mốc hợp lý. Bản cũ lấy thẳng
@@ -14569,6 +14578,13 @@ function hvKhoangThieu(lines){
 function hvChuanMoc(rec){
   if(!rec || !Array.isArray(rec.lines) || rec.mocChuan) return false;
   let doi = false;
+  // Nối lại những câu bị cắt đôi từ lần lấy lời thoại trước. Số dòng đổi thì tiến độ chép chính
+  // tả theo chỉ số cũ không còn đúng nữa — phải xoá, thà làm lại còn hơn đánh dấu nhầm câu.
+  const truocGop = rec.lines.length;
+  rec.lines = hvGopCauVo(rec.lines);
+  if(rec.lines.length !== truocGop){
+    rec.xong = {}; rec.soCauCu = rec.lines.length; doi = true;
+  }
   rec.lines.forEach(d=>{
     const dung = d.t + hvDaiCau(d);
     if(d.e == null || d.e > dung + 0.05){ d.e = Math.round(dung*10)/10; doi = true; }
@@ -14609,6 +14625,43 @@ async function hvNgheDoan(videoId, a, b){
     }).filter(Boolean);
   }catch(e){ return []; }
 }
+// Dòng sau có phải là ĐUÔI BỊ CẮT của dòng trước không.
+// Dấu hiệu chắc chắn: dòng trước chưa kết thúc bằng dấu chấm/hỏi/than, mà dòng sau lại bắt đầu
+// bằng chữ thường hoặc bằng dấu phẩy. Người ta không mở đầu một câu mới như thế bao giờ.
+function hvNoiTiep(truoc, sau){
+  const a = String(truoc||'').trim();
+  const b = String(sau||'').trim();
+  if(!a || !b) return false;
+  if(/[.!?…"”')\]]$/.test(a)) return false;      // câu trước đã kết thúc đàng hoàng
+  const c0 = b.charAt(0);
+  if(c0 === ',' || c0 === '-' || c0 === '—' || c0 === '–') return true;
+  if(/^[a-z]/.test(b)) return true;
+  return false;
+}
+// Nối lại những câu bị AI cắt đôi.
+function hvGopCauVo(lines){
+  if(!Array.isArray(lines) || lines.length < 2) return lines;
+  const ra = [Object.assign({}, lines[0])];
+  for(let i=1;i<lines.length;i++){
+    const truoc = ra[ra.length-1];
+    const nay = lines[i];
+    // Chỉ nối khi hai dòng SÁT NHAU về thời gian. Cách nhau xa nghĩa là hai câu thật, ở giữa AI
+    // bỏ sót đoạn nào đó — nối vào là dán nhầm hai câu chẳng liên quan.
+    const hetTruoc = (truoc.e != null && truoc.e > truoc.t) ? truoc.e : truoc.t;
+    const gan = (nay.t - hetTruoc) <= 2.5;
+    // và không để câu nối lại dài quá 40 chữ — một dòng dài thượt cũng khó đọc theo.
+    const soTu = String(truoc.en + ' ' + nay.en).trim().split(/\s+/).filter(Boolean).length;
+    if(gan && soTu <= 40 && hvNoiTiep(truoc.en, nay.en)){
+      truoc.en = truoc.en.trim() + ' ' + nay.en.trim();
+      truoc.vi = [truoc.vi, nay.vi].map(x=>String(x||'').trim()).filter(Boolean).join(' ');
+      truoc.e  = nay.e;
+      if(Array.isArray(nay.cum) && nay.cum.length) truoc.cum = (truoc.cum||[]).concat(nay.cum);
+      continue;
+    }
+    ra.push(Object.assign({}, nay));
+  }
+  return ra;
+}
 // Trộn các câu mới vào lời thoại đã có, bỏ trùng, sắp lại và tính lại mốc kết thúc.
 function hvTronLoi(lines, them){
   const ra = lines.slice();
@@ -14618,6 +14671,10 @@ function hvTronLoi(lines, them){
     if(!trung) ra.push(m);
   });
   ra.sort((x,y)=>x.t-y.t);
+  // Nối lại câu bị cắt đôi TRƯỚC khi tính mốc kết thúc — vá thêm câu mới vào cũng có thể tạo ra
+  // đúng tình huống "nửa câu này, nửa câu kia".
+  const gop = hvGopCauVo(ra);
+  ra.length = 0; gop.forEach(x=>ra.push(x));
   for(let i=0;i<ra.length;i++){
     const sau = ra[i+1];
     const soTu = String(ra[i].en||'').trim().split(/\s+/).filter(Boolean).length || 1;
@@ -15460,6 +15517,9 @@ function hvLuuChon(dich){
 // Kho nghĩa đã tra. Nhớ theo cặp (cụm + câu chứa nó), vì cùng một từ trong hai câu khác nhau có
 // thể mang hai nghĩa khác nhau — đó chính là lý do phải tra theo ngữ cảnh.
 function hvNghiaKho(){ if(!SETTINGS.hvNghiaKho || typeof SETTINGS.hvNghiaKho !== 'object') SETTINGS.hvNghiaKho = {}; return SETTINGS.hvNghiaKho; }
+// Kho nhớ THEO RIÊNG TỪ (không kèm câu). Nghĩa theo ngữ cảnh vẫn chính xác hơn, nhưng nghĩa từng
+// tra được của chính từ đó bao giờ cũng gần đúng — hiện ngay còn hơn bắt chờ mạng lần nữa.
+function hvNghiaKhoTu(){ if(!SETTINGS.hvNghiaKhoTu || typeof SETTINGS.hvNghiaKhoTu !== 'object') SETTINGS.hvNghiaKhoTu = {}; return SETTINGS.hvNghiaKhoTu; }
 function hvKhoaNghia(chu, cauEn){ return String(chu||'').toLowerCase() + '§' + String(cauEn||'').slice(0,70).toLowerCase(); }
 // Nghĩa có sẵn trong ngân hàng 3000 từ của app — hiện ĐƯỢC NGAY, không cần mạng.
 function hvNghiaCoSan(chu){
@@ -15473,20 +15533,32 @@ async function hvTraNghia(){
   const khoa = hvKhoaNghia(c.chu, c.cauEn);
   const kho = hvNghiaKho();
   if(kho[khoa]){ STATE.hvNghia = kho[khoa]; hvVeTamTaiCho(); hvTraPhienAm(c.chu); return; }
-  // Chưa hỏi AI xong thì đưa nghĩa có sẵn ra trước — bạn thấy ngay thay vì nhìn dòng "đang tra".
-  const sanCo = hvNghiaCoSan(c.chu);
+  // Chưa hỏi AI xong thì đưa CÁI GÌ ĐÓ ra ngay. Thứ tự ưu tiên: từ này đã tra ở câu khác →
+  // ngân hàng 3000 từ của app → nghĩa cả câu (có sẵn trong lời thoại, không tốn gì).
+  const khoTu = hvNghiaKhoTu();
+  const tKhoa = String(c.chu||'').toLowerCase().trim();
+  let sanCo = khoTu[tKhoa] || hvNghiaCoSan(c.chu);
+  if(!sanCo && c.vi) sanCo = {nghia:'', cauVi: c.vi, tamThoi:true};
+  else if(sanCo) sanCo = Object.assign({}, sanCo, {tamThoi:true, cauVi: c.vi || ''});
   if(!SETTINGS.geminiApiKey){
-    STATE.hvNghia = {loi:'Chưa có Gemini API key nên chưa tra nghĩa được. Vào Cài đặt → Hội thoại AI để dán key.'};
+    STATE.hvNghia = sanCo
+      ? Object.assign({}, sanCo, {khongKey:true})
+      : {loi:'Chưa có Gemini API key nên chưa tra nghĩa được. Vào Cài đặt → Hội thoại AI để dán key.'};
     hvVeTamTaiCho(); hvTraPhienAm(c.chu); return;
   }
   STATE.hvNghia = sanCo ? Object.assign({dangTra:true}, sanCo) : {dangTra:true};
   hvVeTamTaiCho(); hvTraPhienAm(c.chu);
-  const r = await hvDichCum(c.chu, c.cauEn || '', c.vi || '');
+  // Chờ tối đa 5 giây. Quá đó thì thôi, giữ nguyên thứ đang hiện — bắt bạn nhìn dòng "đang tra"
+  // mãi thì thà nhận là chưa tra được.
+  const r = await Promise.race([
+    hvDichCum(c.chu, c.cauEn || '', c.vi || ''),
+    new Promise(rs=>setTimeout(()=>rs(null), 5000))
+  ]);
   // Trong lúc chờ, bạn có thể đã chạm sang từ khác. Dán nghĩa cũ lên từ mới là dạy sai — nên kiểm
   // lại xem còn đúng từ vừa hỏi không rồi mới hiện.
   const c2 = hvCumDangChon();
   if(!c2 || !c2.chu || hvKhoaNghia(c2.chu, c2.cauEn) !== khoa) return;
-  if(r){ kho[khoa] = r; saveSettings(); STATE.hvNghia = r; }
+  if(r){ kho[khoa] = r; khoTu[tKhoa] = {nghia:r.nghia, loai:r.loai}; saveSettings(); STATE.hvNghia = r; }
   else STATE.hvNghia = {loi: (typeof geminiCooldownLeftSec === 'function' && geminiCooldownLeftSec() > 0)
       ? ('Hết hạn mức AI miễn phí, thử lại sau ' + geminiCooldownLeftSec() + ' giây. Cứ lưu từ lại, app sẽ dịch sau.')
       : 'Chưa tra được nghĩa lúc này. Cứ lưu lại, app sẽ tự dịch sau.'};
@@ -15530,6 +15602,13 @@ function hvPhienAmDangCo(){
 // Đọc to từ/cụm đang chọn — LẤY CHÍNH ĐOẠN TIẾNG TRONG VIDEO.
 let hvHenDungDoc = null;
 function hvNgungDoc(){ if(hvHenDungDoc){ clearTimeout(hvHenDungDoc); hvHenDungDoc = null; } }
+// Máy đọc riêng đúng từ/cụm đang chọn. Giọng máy, nhưng đúng tuyệt đối từ đó — bù cho chỗ mà
+// video không làm được vì không có mốc theo chữ.
+function hvDocBangMay(){
+  const c = hvCumDangChon(); if(!c || !c.chu) return;
+  try{ hvNgungDoc(); }catch(e){}
+  try{ speakEnglishRobust(c.chu); }catch(e){}
+}
 function hvDocTuDangChon(){
   const c = hvCumDangChon(); if(!c || !c.chu) return;
   const s = STATE.hvPhien, d = STATE.hvChonDau;
@@ -15537,22 +15616,12 @@ function hvDocTuDangChon(){
   const dong = (rec && Array.isArray(rec.lines) && d) ? rec.lines[d.i] : null;
   const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer() : null;
   if(dong && p && dong.t != null){
-    const cc = STATE.hvChonCuoi;
-    const a = Math.min(d.j, cc ? cc.j : d.j);
-    const b = Math.max(d.j, cc ? cc.j : d.j);
-    const kh = hvKhoangChu(dong, a, b);
     const dai = hvDaiCau(dong);
-    let t0, t1;
-    // Câu ngắn (≤6 chữ) hoặc bạn chọn quá nửa câu → phát THẲNG CẢ CÂU. Mốc theo chữ chỉ là ước
-    // lượng; ở câu ngắn sai một chữ là trượt hẳn ra ngoài, nghe dư còn hơn nghe nhầm.
-    if(!kh || kh.soTu <= 6 || (b - a + 1) >= kh.soTu / 2){
-      t0 = Math.max(0, dong.t - 0.15);
-      t1 = dong.t + dai + 0.25;
-    } else {
-      // Nới hai đầu 0,3 giây cho chắc không cắt cụt âm đầu/âm cuối.
-      t0 = Math.max(0, kh.t0 - 0.3);
-      t1 = kh.t1 + 0.3;
-    }
+    // PHÁT CẢ CÂU. Không đoán vị trí chữ nữa: AI chỉ cho mốc theo CÂU, nên mọi vị trí trong câu
+    // đều là ước lượng, lại cộng thêm sai số của chính mốc mở đầu. Ba vòng chỉnh cách đoán vẫn
+    // trượt. Cả câu thì luôn đúng, và chắc chắn có chứa từ bạn vừa chọn.
+    let t0 = Math.max(0, dong.t - 0.15);
+    let t1 = dong.t + dai + 0.25;
     if(t1 - t0 < 0.7) t1 = t0 + 0.7;
     hvNgungDoc();
     try{
@@ -15575,9 +15644,10 @@ function hvNghiaHtml(){
   const n = STATE.hvNghia;
   if(!n) return '';
   if(n.dangTra && !n.nghia) return `<div class="hv-nghia cho">Đang tra nghĩa trong ngữ cảnh câu này…</div>`;
-  if(n.dangTra && n.nghia) return `<div class="hv-nghia">
-    <div class="hv-nghia-vi">${escapeHtml(n.nghia)}${n.loai?`<span class="hv-nghia-loai">${escapeHtml(n.loai)}</span>`:''}</div>
-    <div class="hv-nghia-vd" style="opacity:.75;">Nghĩa chung trong từ điển của app — đang hỏi AI nghĩa đúng theo câu này…</div>
+  if((n.dangTra || n.tamThoi) && (n.nghia || n.cauVi)) return `<div class="hv-nghia">
+    ${n.nghia ? `<div class="hv-nghia-vi">${escapeHtml(n.nghia)}${n.loai?`<span class="hv-nghia-loai">${escapeHtml(n.loai)}</span>`:''}</div>` : ''}
+    ${n.cauVi ? `<div class="hv-nghia-vd">🇻🇳 ${escapeHtml(n.cauVi)}</div>` : ''}
+    <div class="hv-nghia-vd" style="opacity:.7;">${n.nghia ? 'Nghĩa đã tra trước đó' : 'Nghĩa cả câu'}${n.khongKey ? ' — chưa có API key nên chưa hỏi được nghĩa theo ngữ cảnh.' : ' — đang hỏi AI nghĩa đúng theo câu này…'}</div>
   </div>`;
   if(n.loi)     return `<div class="hv-nghia loi">${escapeHtml(n.loi)}</div>`;
   if(!n.nghia)  return '';
@@ -15594,7 +15664,8 @@ function hvBangChonHtml(){
       <button class="hv-chon-x" data-action="hv-thoi-chon" title="Đóng và chạy tiếp">✕</button>
     </div>
     <div class="hv-chon-am">
-      <button class="hv-doc" data-action="hv-doc-tu" title="Nghe cách đọc">🔊</button>
+      <button class="hv-doc" data-action="hv-doc-tu" title="Nghe CẢ CÂU trong video — giọng thật, chắc chắn có từ này">🔊</button>
+      <button class="hv-doc may" data-action="hv-doc-may" title="Máy đọc riêng đúng từ này">🅰</button>
       <span class="hv-ipa" id="hvIpa">${escapeHtml(hvPhienAmDangCo())}</span>
     </div>
     <div class="hv-chon-mo">${c.nhieuTu
@@ -23882,6 +23953,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvNghiaEl){ hvBatNghia(); return; }
   const hvDocTuEl = e.target.closest('[data-action="hv-doc-tu"]');
   if(hvDocTuEl){ e.stopPropagation(); hvDocTuDangChon(); return; }
+  const hvDocMayEl = e.target.closest('[data-action="hv-doc-may"]');
+  if(hvDocMayEl){ e.stopPropagation(); hvDocBangMay(); return; }
   const hvThoiChonEl = e.target.closest('[data-action="hv-thoi-chon"]');
   if(hvThoiChonEl){ e.stopPropagation(); hvThoiChon(); return; }
   const hvChonEl = e.target.closest('[data-action="hv-chon"]');
