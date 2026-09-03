@@ -3145,7 +3145,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v203';
+const APP_VERSION = 'v204';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -16834,31 +16834,101 @@ function sdXoaVideo(id){
 }
 // Đọc lời thoại dán tay. Nhận đủ mọi kiểu YouTube xuất ra:
 //   "0:15 text"  ·  "0:15\ntext"  ·  "00:01:23 text"  ·  "[00:15] text"  ·  và cả text trơn không mốc.
-// YouTube cắt phụ đề theo ĐỘ DÀI DÒNG, hoàn toàn không đếm xỉa tới câu: một câu có thể nằm vắt
-// qua ba đoạn, mà một đoạn cũng có thể chứa cuối câu này và đầu câu kia. Bộ nối câu của v197 viết
-// cho lời thoại AI (mỗi phần tử vốn đã gần một câu) nên đem dùng ở đây thì nó nối mãi không dừng,
-// ra một dòng dài chứa hai ba câu.
-// Cách đúng cho phụ đề: gom hết chữ thành một dòng chảy, rồi CẮT LẠI THEO DẤU CÂU. Mỗi câu nhận
-// mốc giờ của đoạn chứa chữ đầu tiên của nó — nên bấm dòng vẫn tua đúng chỗ.
-function hvTachCauTheoMoc(cot){
-  const tu = [];
+// ═══ CẮT PHỤ ĐỀ YOUTUBE THÀNH TỪNG DÒNG HỌC ĐƯỢC ═══
+// LỖI v203: tôi cắt theo dấu chấm câu. Nhưng phụ đề TỰ ĐỘNG của YouTube — loại chiếm phần lớn
+// video — KHÔNG có một dấu chấm nào: chữ thường tuốt, không phẩy, không chấm. Không có chỗ nào để
+// cắt, nên cả bài dồn thành một dòng, chỉ dừng lại ở cái trần 45 chữ tôi đặt cho có. Đúng như bạn
+// thấy: "các câu rất dài".
+// Nay xét trước xem bản chép lời thuộc loại nào rồi mới chọn cách cắt.
+
+// Dọn rác trong phụ đề: [Music], [Applause], [ __ ], dấu ">>" của người nói.
+function hvDonPhuDe(t){
+  return String(t||'')
+    .replace(/\[[^\]]{0,40}\]/g, ' ')
+    .replace(/^\s*>>+\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+// Bản chép lời này CÓ dấu câu thật hay không? Đủ 1/5 số đoạn kết thúc bằng dấu chấm/hỏi/than thì
+// coi là có — người ta gõ tay, hoặc kênh có phụ đề chuẩn.
+function hvCoDauCau(cot){
+  let het = 0, tong = 0;
   (cot||[]).forEach(c=>{
-    String((c&&c.en)||'').trim().split(/\s+/).filter(Boolean).forEach(w=>tu.push({w, t:c.t}));
+    const t = String((c&&c.en)||'').trim(); if(!t) return;
+    tong++;
+    if(/[.!?…][\"'\)\]]?$/.test(t)) het++;
   });
+  if(tong < 3) return /[.!?]/.test((cot||[]).map(c=>(c&&c.en)||'').join(' '));
+  return (het / tong) >= 0.2;
+}
+const HV_TU_MOT_DONG = 12;    // đích: mỗi dòng khoảng chừng này chữ
+const HV_TU_TRAN_GOM = 16;    // đích: mỗi dòng khoảng chừng này chữ — vừa một hơi đọc
+const HV_TU_TOI_DA   = 26;    // trần cứng cho bản CÓ dấu câu, cắt ở dấu phẩy gần nhất
+// Bản CÓ dấu câu: cắt theo câu. Câu nào dài quá thì cắt ở dấu phẩy gần trần nhất.
+function hvCatTheoDauCau(cot){
+  const tu = [];
+  cot.forEach(c=>{ c.en.split(/\s+/).filter(Boolean).forEach(w=>tu.push({w, t:c.t})); });
   const ra = [];
   let cum = [], moc = null;
+  const day = ()=>{ if(cum.length){ ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; moc = null; } };
   for(let i=0;i<tu.length;i++){
     if(moc === null) moc = tu[i].t;
     cum.push(tu[i].w);
     const hetCau = /[.!?…][\"'\)\]]?$/.test(tu[i].w);
     const ke = tu[i+1];
-    // Cắt khi gặp dấu kết câu VÀ chữ kế viết hoa (hoặc đã hết). Chữ kế viết thường thì đó là dấu
-    // chấm trong "Mr." hay "U.S." chứ không phải hết câu.
-    const cat = (hetCau && (!ke || /^["'(\[]?[A-Z0-9]/.test(ke.w))) || cum.length >= 45;
-    if(cat){ ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; moc = null; }
+    // Dấu chấm mà chữ kế viết thường thì đó là "Mr." hay "U.S.", không phải hết câu.
+    if(hetCau && (!ke || /^["'(\[]?[A-Z0-9]/.test(ke.w))){ day(); continue; }
+    if(cum.length >= HV_TU_TOI_DA){
+      // quá dài: lùi về dấu phẩy gần nhất trong nửa sau của cụm rồi cắt ở đó
+      let cat = -1;
+      for(let k = cum.length - 1; k >= Math.floor(HV_TU_TOI_DA/2); k--){ if(/[,;:]$/.test(cum[k])){ cat = k; break; } }
+      if(cat > 0){
+        const con = cum.slice(cat+1);
+        cum = cum.slice(0, cat+1);
+        const mocCon = tu[i - con.length + 1] ? tu[i - con.length + 1].t : moc;
+        day();
+        cum = con; moc = mocCon;
+      } else day();
+    }
   }
-  if(cum.length) ra.push({t:moc, en:cum.join(' '), vi:''});
+  day();
   return ra;
+}
+// Bản KHÔNG có dấu câu (phụ đề tự động): không có gì để cắt theo câu, mà cũng không nên cắt giữa
+// một đoạn — mốc giờ gắn với đoạn, cắt bừa là mốc sai. Nên gom nguyên từng đoạn lại cho tới khi
+// đủ dài để đọc thành một hơi.
+function hvGomTheoDoDai(cot){
+  const ra = [];
+  let cum = [], moc = null, dem = 0;
+  cot.forEach(c=>{
+    const w = c.en.split(/\s+/).filter(Boolean).length;
+    // Sắp vượt trần thì chốt dòng TRƯỚC khi thêm — tránh dòng dài lê thê vì đoạn cuối to.
+    if(cum.length && dem + w > HV_TU_TRAN_GOM){
+      ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; dem = 0; moc = null;
+    }
+    if(moc === null) moc = c.t;
+    cum.push(c.en); dem += w;
+    if(dem >= HV_TU_MOT_DONG){ ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; dem = 0; moc = null; }
+  });
+  if(cum.length){
+    // Đuôi còn lẻ vài chữ thì nhập vào dòng trước, đừng để một dòng cụt lủn.
+    if(dem < 6 && ra.length) ra[ra.length-1].en += ' ' + cum.join(' ');
+    else ra.push({t:moc, en:cum.join(' '), vi:''});
+  }
+  return ra;
+}
+function hvTachCauTheoMoc(cot){
+  const sach = [];
+  (cot||[]).forEach(c=>{
+    const en = hvDonPhuDe(c && c.en);
+    if(!en) return;
+    // Phụ đề cuộn của YouTube hay lặp nguyên dòng trước — bỏ bản trùng, khỏi đọc hai lần.
+    const truoc = sach[sach.length-1];
+    if(truoc && truoc.en.toLowerCase() === en.toLowerCase()) return;
+    sach.push({t: c.t, en});
+  });
+  if(!sach.length) return [];
+  return hvCoDauCau(sach) ? hvCatTheoDauCau(sach) : hvGomTheoDoDai(sach);
 }
 function hvDocLoiDan(raw){
   const dong = String(raw||'').replace(/\r/g,'').split('\n');
