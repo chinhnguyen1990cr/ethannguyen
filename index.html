@@ -2654,6 +2654,40 @@
 .yg-bar .form-btn{flex:1;margin:0;}
 .yg-credit{font-size:9.5px;color:var(--dim2);text-align:center;margin-top:8px;}
 .yg-credit a{color:var(--dim);}
+/* ══ v203 · GỌN LẠI ══ */
+.hv-hero{display:flex; align-items:center; gap:11px; background:rgba(255,255,255,.04);
+  border:1px solid var(--border); border-left:3px solid #2CDBA8; border-radius:12px;
+  padding:10px 12px; margin-bottom:10px;}
+.hv-hero .hv-hero-ic{width:34px; height:34px; border-radius:10px; font-size:17px;}
+.hv-hero-tx b{font-size:13.5px;}
+.hv-hero-tx small{font-size:10px;}
+.hv-hanmuc{display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:12px; margin-bottom:10px;}
+.hv-hanmuc .hm-ic{font-size:16px;}
+.hv-hanmuc .hm-tt{flex:1; min-width:0;}
+.hv-hanmuc .hm-tt b{font-size:11.5px;}
+.hv-hanmuc .hm-tt b span{color:#2CDBA8;}
+.hv-hanmuc.canh .hm-tt b span{color:#FF9A76;}
+.hv-hanmuc .hm-tt small{font-size:9.5px; margin-top:1px;}
+.hm-thanh{display:block; height:3px; border-radius:2px; background:rgba(255,255,255,.09); margin-top:5px; overflow:hidden;}
+.hm-thanh b{display:block; height:100%; background:#2CDBA8;}
+.hv-hanmuc.canh .hm-thanh b{background:#FF9A76;}
+.hv-them{padding:11px; font-size:12.5px; border-radius:12px; box-shadow:none; margin-bottom:11px;}
+.hv-ds{gap:9px;}
+.hv-the{padding:8px; border-radius:12px; gap:10px;}
+.hv-the-anh{width:96px; border-radius:9px;}
+.hv-the-tt{font-size:12px;}
+.hv-the-play{width:24px; height:24px; font-size:10px;}
+.hv-the-chip{margin-top:5px;}
+/* hướng dẫn chép phụ đề — chia hai nhóm, có ví dụ mẫu */
+.hv-hd-nhom{margin-top:11px;}
+.hv-hd-tt{font-size:11.5px; font-weight:800; color:var(--text); margin-bottom:5px;}
+.hv-hd-note{margin-top:6px; padding:7px 9px; border-radius:8px; background:rgba(255,255,255,.05);
+  font-size:10.5px; line-height:1.65; color:var(--dim2);}
+.hv-hd-mau{margin-top:11px; border:1px dashed var(--border); border-radius:9px; padding:8px 10px;}
+.hv-hd-mau-lb{font-size:10px; color:var(--dim2); margin-bottom:5px;}
+.hv-hd-mau pre{margin:0; font-family:var(--mono); font-size:10.5px; line-height:1.6; color:var(--dim);
+  white-space:pre-wrap;}
+
 /* ══ v202 · HỌC THEO VIDEO — DANH SÁCH & HẠN MỨC AI ══ */
 .hv-hero{background:linear-gradient(135deg,rgba(44,219,168,.14),rgba(79,168,255,.12));
   border:1px solid rgba(44,219,168,.34); border-radius:16px; padding:14px 15px; margin-bottom:12px;}
@@ -3111,7 +3145,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v202';
+const APP_VERSION = 'v203';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14076,18 +14110,10 @@ function renderHocVideo(item){
     ${hvErrHtml()}
     ${hoanTac}
     <div class="hv-hero">
-      <div class="hv-hero-top">
-        <span class="hv-hero-ic">🎬</span>
-        <div class="hv-hero-tx">
-          <b>Học theo video</b>
-          <small>Một video, ba kiểu học — lời thoại dùng chung</small>
-        </div>
-        <span class="hv-hero-so">${list.length}</span>
-      </div>
-      <div class="hv-ba">
-        <div class="hv-ba-o"><span>📄</span><b>Phụ đề</b><small>chữ chạy theo video, chạm từ để lưu</small></div>
-        <div class="hv-ba-o"><span>✍️</span><b>Chép chính tả</b><small>nghe từng câu rồi gõ lại, app chấm</small></div>
-        <div class="hv-ba-o"><span>🎙️</span><b>Shadowing</b><small>nói nhại theo, ghi âm lại để tự so</small></div>
+      <span class="hv-hero-ic">🎬</span>
+      <div class="hv-hero-tx">
+        <b>Học theo video</b>
+        <small>${list.length} video · Phụ đề · Chép chính tả · Shadowing</small>
       </div>
     </div>
     ${geminiHanMucHtml()}
@@ -15339,7 +15365,10 @@ const GEMINI_CHAT_MODEL = 'gemini-3.6-flash';
 // dính 429, (3) một banner đếm ngược toàn cục cho người dùng biết chính xác còn bao lâu nữa dùng được.
 // Danh sách model dùng lần lượt. Mỗi model có rổ hạn mức miễn phí RIÊNG, nên hết model đầu vẫn
 // còn model sau. Model nào máy chủ trả về "không tồn tại" thì bị gạch tên vĩnh viễn — không đoán mò.
-const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+// CHỈ MỘT model. Đã thử 2.5-flash và 2.0-flash: chúng không đọc được video YouTube qua fileData
+// nên phần lấy lời thoại luôn hỏng — để trong danh sách chỉ tổ thử một lượt vô ích rồi mới báo lỗi.
+// Bộ máy chuyển model vẫn còn nguyên phía dưới, thêm tên vào đây là dùng lại được ngay.
+const GEMINI_MODELS = ['gemini-3.6-flash'];
 const GEMINI_NGAY_MAC_DINH = 20;      // hạn mức ngày của gói miễn phí, sẽ ghi đè nếu máy chủ nói khác
 function geminiKho(){
   const hnay = todayKey();
@@ -16805,6 +16834,32 @@ function sdXoaVideo(id){
 }
 // Đọc lời thoại dán tay. Nhận đủ mọi kiểu YouTube xuất ra:
 //   "0:15 text"  ·  "0:15\ntext"  ·  "00:01:23 text"  ·  "[00:15] text"  ·  và cả text trơn không mốc.
+// YouTube cắt phụ đề theo ĐỘ DÀI DÒNG, hoàn toàn không đếm xỉa tới câu: một câu có thể nằm vắt
+// qua ba đoạn, mà một đoạn cũng có thể chứa cuối câu này và đầu câu kia. Bộ nối câu của v197 viết
+// cho lời thoại AI (mỗi phần tử vốn đã gần một câu) nên đem dùng ở đây thì nó nối mãi không dừng,
+// ra một dòng dài chứa hai ba câu.
+// Cách đúng cho phụ đề: gom hết chữ thành một dòng chảy, rồi CẮT LẠI THEO DẤU CÂU. Mỗi câu nhận
+// mốc giờ của đoạn chứa chữ đầu tiên của nó — nên bấm dòng vẫn tua đúng chỗ.
+function hvTachCauTheoMoc(cot){
+  const tu = [];
+  (cot||[]).forEach(c=>{
+    String((c&&c.en)||'').trim().split(/\s+/).filter(Boolean).forEach(w=>tu.push({w, t:c.t}));
+  });
+  const ra = [];
+  let cum = [], moc = null;
+  for(let i=0;i<tu.length;i++){
+    if(moc === null) moc = tu[i].t;
+    cum.push(tu[i].w);
+    const hetCau = /[.!?…][\"'\)\]]?$/.test(tu[i].w);
+    const ke = tu[i+1];
+    // Cắt khi gặp dấu kết câu VÀ chữ kế viết hoa (hoặc đã hết). Chữ kế viết thường thì đó là dấu
+    // chấm trong "Mr." hay "U.S." chứ không phải hết câu.
+    const cat = (hetCau && (!ke || /^["'(\[]?[A-Z0-9]/.test(ke.w))) || cum.length >= 45;
+    if(cat){ ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; moc = null; }
+  }
+  if(cum.length) ra.push({t:moc, en:cum.join(' '), vi:''});
+  return ra;
+}
 function hvDocLoiDan(raw){
   const dong = String(raw||'').replace(/\r/g,'').split('\n');
   const ra = [];
@@ -16833,11 +16888,9 @@ function hvDocLoiDan(raw){
   const coMoc = ra.some(x=>x.t != null);
   if(!coMoc) return {lines: null, tho: ra.map(x=>x.en).join('\n')};
   const cot = ra.filter(x=>x.t != null).sort((a,b)=>a.t-b.t);
-  // Phụ đề YouTube chạy liền mạch: đoạn này hết là đoạn kế bắt đầu. Ghi rõ mốc kết thúc bằng mốc
-  // mở đầu của đoạn sau — nếu không, bộ nối câu tưởng giữa hai đoạn có khoảng lặng dài và không
-  // dám nối, thành ra câu vẫn bị cắt đôi y như lúc chưa sửa.
-  for(let i=0;i<cot.length;i++) cot[i].e = (i+1 < cot.length) ? cot[i+1].t : (cot[i].t + 4);
-  const gop = (typeof hvGopCauVo === 'function') ? hvGopCauVo(cot) : cot;
+  const gop = hvTachCauTheoMoc(cot);
+  // Phụ đề YouTube chạy liền mạch: câu này hết là câu kế bắt đầu.
+  for(let i=0;i<gop.length;i++) gop[i].e = (i+1 < gop.length) ? gop[i+1].t : (gop[i].t + 4);
   return {lines: gop, tho: gop.map(x=>x.en).join('\n')};
 }
 // Hướng dẫn chép phụ đề thẳng từ YouTube — đường lấy lời thoại KHÔNG tốn hạn mức AI.
@@ -16858,16 +16911,49 @@ function hvLoiThanThien(msg){
 }
 function hvHuongDanChepHtml(){
   return `<div class="hv-huongdan">
-    <div class="hv-hd-h">📋 Chép phụ đề thẳng từ YouTube — không tốn hạn mức AI</div>
-    <ol class="hv-hd-ol">
-      <li>Mở video trên YouTube (trình duyệt máy tính hoặc bản web trên điện thoại).</li>
-      <li>Bấm <b>…thêm</b> dưới video → <b>Hiển thị bản chép lời</b> (Show transcript).</li>
-      <li>Bôi đen toàn bộ khung bản chép lời rồi copy.</li>
-      <li>Dán vào ô dưới đây. App tự đọc mốc thời gian, tự nối câu bị cắt đôi.</li>
-    </ol>
-    <div class="hv-hd-ct">Giữ nguyên phần mốc giờ khi chép — có mốc thì bấm dòng là video nhảy tới đúng chỗ, chữ chạy theo video, và chép chính tả dùng được.</div>
+    <div class="hv-hd-h">📋 Lấy phụ đề thẳng từ YouTube — không tốn một lượt AI nào</div>
+
+    <div class="hv-hd-nhom">
+      <div class="hv-hd-tt">💻 Trên máy tính</div>
+      <ol class="hv-hd-ol">
+        <li>Mở video trên <b>youtube.com</b>.</li>
+        <li>Ngay dưới khung video, bên phải tên kênh, bấm nút <b>…</b> (hoặc <b>Thêm</b>).</li>
+        <li>Chọn <b>Hiển thị bản chép lời</b> — tiếng Anh là <b>Show transcript</b>.
+            Một khung chữ hiện ra bên phải, mỗi dòng có mốc giờ ở đầu.</li>
+        <li>Bấm vào khung đó, nhấn <b>Ctrl + A</b> rồi <b>Ctrl + C</b> (máy Mac: <b>⌘ + A</b>, <b>⌘ + C</b>).</li>
+        <li>Quay lại đây, bấm vào ô bên dưới rồi <b>Ctrl + V</b> để dán. Bấm <b>💾 Lưu lời thoại</b>.</li>
+      </ol>
+    </div>
+
+    <div class="hv-hd-nhom">
+      <div class="hv-hd-tt">📱 Trên điện thoại</div>
+      <ol class="hv-hd-ol">
+        <li>Mở video trong <b>ứng dụng YouTube</b>.</li>
+        <li>Bấm vào <b>phần mô tả</b> ngay dưới tiêu đề video để mở rộng nó ra.</li>
+        <li>Kéo xuống, bấm nút <b>Hiện bản chép lời</b> (Show transcript).</li>
+        <li>Chạm giữ một dòng bất kỳ → chọn <b>Chọn tất cả</b> → <b>Sao chép</b>.</li>
+        <li>Quay lại app, chạm giữ ô bên dưới → <b>Dán</b>. Bấm <b>💾 Lưu lời thoại</b>.</li>
+      </ol>
+      <div class="hv-hd-note">Không thấy nút "Hiện bản chép lời"? Mở YouTube bằng <b>trình duyệt Chrome</b> trên điện thoại,
+        bấm menu ⋮ → <b>Trang máy tính</b>, rồi làm theo cách của máy tính ở trên.</div>
+    </div>
+
+    <div class="hv-hd-mau">
+      <div class="hv-hd-mau-lb">Dán vào trông như thế này là đúng:</div>
+      <pre>0:00
+Hi everyone, welcome back
+0:04
+to the channel. Today we
+0:07
+are going to talk about...</pre>
+    </div>
+
+    <div class="hv-hd-ct"><b>Giữ nguyên phần mốc giờ</b> khi chép. Có mốc thì bấm dòng nào là video nhảy tới đúng chỗ đó,
+      chữ chạy theo video, và Chép chính tả dùng được. Không có mốc thì chỉ đọc được chữ.
+      Video nào không có phụ đề trên YouTube thì mới cần tới AI.</div>
   </div>`;
 }
+
 // Bảng hạn mức AI: đếm ngay trong máy, không hỏi Google được vì Google không có API cho việc này.
 function geminiHanMucHtml(){
   const q = geminiKho(), hong = geminiModelHong();
@@ -16883,18 +16969,26 @@ function geminiHanMucHtml(){
     </div>`;
   }).join('');
   const con = geminiConLai();
+  const m0 = GEMINI_MODELS[0];
+  const dung = geminiDaDung(m0), tran = geminiTran(m0);
+  const pct = Math.min(100, Math.round(dung/Math.max(1,tran)*100));
   return `<div class="hv-hanmuc ${con?'':'canh'}">
-    <div class="hm-top">
-      <span class="hm-ic">${con ? '🔋' : '🪫'}</span>
-      <div class="hm-tt"><b>Hạn mức AI hôm nay</b><small>Còn khoảng <b>${con}</b> lượt · đặt lại lúc 0:00</small></div>
+    <span class="hm-ic">${con ? '🔋' : '🪫'}</span>
+    <div class="hm-tt">
+      <b>Hạn mức AI hôm nay: <span>${dung}/${tran}</span></b>
+      <small>${con ? ('còn ' + con + ' lượt · đặt lại lúc 0:00') : 'đã hết · đặt lại lúc 0:00 · dùng cách chép phụ đề'}</small>
+      <i class="hm-thanh"><b style="width:${pct}%;"></b></i>
     </div>
-    <div class="hm-ds">${the}</div>
-    <div class="hm-ct">App tự đếm số lượt đã gọi trong ngày. Nếu bạn dùng cùng API key ở nơi khác thì con số thật có thể ít hơn. Hết model này app tự chuyển sang model kế.</div>
   </div>`;
 }
 function sdLuuLoi(){
-  const rec = sdTimVideo((STATE.sdPhien||{}).vidId); if(!rec) return;
-  const el = document.getElementById('sdLoiSua'); if(!el) return;
+  // Lấy video theo phiên nào ĐANG mở: Shadowing riêng lẻ, hoặc màn gộp "Học theo video".
+  const vid = (STATE.sdPhien||{}).vidId || (STATE.hvPhien||{}).vidId;
+  const rec = sdTimVideo(vid) || (typeof hvTim === 'function' ? hvTim(vid) : null);
+  if(!rec){ showToast('⚠️','Không tìm thấy video','Thử quay ra danh sách rồi mở lại video này.'); return; }
+  const el = document.getElementById('sdLoiSua');
+  if(!el){ showToast('⚠️','Không đọc được ô nhập','Thử đóng rồi mở lại màn dán lời thoại.'); return; }
+  if(!String(el.value||'').trim()){ showToast('✍️','Ô lời thoại đang trống','Dán phần bản chép lời copy từ YouTube vào rồi bấm Lưu.'); return; }
   const doc = hvDocLoiDan(el.value);
   rec.transcript = doc ? doc.tho : el.value.trim();
   // Dán có kèm mốc thời gian thì giữ nguyên mốc — bấm dòng tua được, chữ chạy theo video được,
@@ -16903,6 +16997,11 @@ function sdLuuLoi(){
   rec.loiTuAi = false; rec.mocChuan = false; rec.xong = {};
   saveSettings(); pushToDrive();
   STATE.sdSuaLoi = false;
+  // Lời thoại đổi thì mọi thứ tính theo nó phải tính lại: mốc chuẩn, dòng đang bám, phiên chép chính tả.
+  STATE.hvLoi = null; STATE.hvDangLay = false;
+  try{ if(typeof sdXoaVetSang === 'function') sdXoaVetSang(); }catch(_){}
+  try{ if(typeof hvChuanMoc === 'function') hvChuanMoc(rec); }catch(_){}
+  STATE.dvPhien = null;
   const soMoc = (rec.lines||[]).length;
   showToast('✅','Đã lưu lời thoại',
     soMoc ? ('Đọc được ' + soMoc + ' câu KÈM mốc thời gian — bấm dòng nào là video nhảy tới đó.')
