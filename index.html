@@ -2166,9 +2166,6 @@
    Trên màn hình hẹp, bảng chọn cao gần bằng nửa khung lời thoại — đẩy hết chữ xuống dưới và
    khiến cảm giác "màn hình nhảy đi chỗ khác" càng rõ. Thu lại cho vừa mắt, vẫn đủ đọc. */
 @media (max-width:700px){
-  .hv-chon-bang{position:fixed;left:8px;right:8px;bottom:8px;z-index:80;margin:0;
-    padding:8px 10px;border-radius:12px;background:rgba(17,22,31,.97);
-    border-color:rgba(126,200,255,.6);box-shadow:0 10px 30px rgba(0,0,0,.55);}
   .hv-chon-chu{font-size:13.5px;line-height:1.3;}
   .hv-chon-so{font-size:9px;}
   .hv-doc{width:26px;height:26px;font-size:12.5px;border-radius:8px;}
@@ -2657,6 +2654,22 @@
 .yg-bar .form-btn{flex:1;margin:0;}
 .yg-credit{font-size:9.5px;color:var(--dim2);text-align:center;margin-top:8px;}
 .yg-credit a{color:var(--dim);}
+
+/* ══ v199 · BẢNG CHỌN TỪ TRÊN ĐIỆN THOẠI ══
+   Đặt ở CUỐI bảng kiểu dáng là có chủ ý: mấy dòng này phải đè được lên khối .hv-chon-bang gốc.
+   Ở v198 tôi đặt chúng trước khối đó nên nền đặc không bao giờ ăn — bảng vẫn trong suốt, chữ
+   lời thoại xuyên qua. Cùng độ ưu tiên thì khối đứng sau mới thắng. */
+@media (max-width:700px){
+  .hv-chon-bang{position:fixed; left:8px; right:8px; bottom:8px; z-index:80; margin:0;
+    padding:9px 11px; border-radius:13px;
+    background:#131A24;                      /* ĐẶC hoàn toàn, không phải màu pha trong suốt */
+    border:1.5px solid rgba(126,200,255,.75);
+    box-shadow:0 -2px 0 rgba(0,0,0,.25), 0 12px 34px rgba(0,0,0,.7);}
+  .hv-chon-bang .hv-chon-chu{color:#fff;}
+}
+@supports (backdrop-filter: blur(2px)){
+  @media (max-width:700px){ .hv-chon-bang{background:#131A24F2; backdrop-filter:blur(10px);} }
+}
 </style>
 </head>
 <body>
@@ -2921,7 +2934,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v198';
+const APP_VERSION = 'v199';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14972,6 +14985,7 @@ function hvTuaDong(i){
     return;
   }
   // Nhảy dòng ngay, đừng đợi nhịp đồng bộ 120ms — bấm là thấy phản hồi liền.
+  hvXoaVetSang();               // (v199) xoá vệt sáng dòng cũ trước khi bỏ chỉ số cũ đi
   hvDongCu = -1; hvBatNhip();
 }
 function hvMoPhien(id){
@@ -15057,6 +15071,16 @@ function hvDoNeo(id){
   if(!el || !el.getBoundingClientRect) return null;
   const r = el.getBoundingClientRect();
   return (r && typeof r.top === 'number') ? r.top : null;
+}
+// Cùng lý do với sdXoaVetSang: sắp bỏ hvDongCu đi thì phải quét sạch bằng tay trước, vì vòng
+// đồng bộ chỉ biết xoá đúng một dòng mà nó nhớ được.
+function hvXoaVetSang(){
+  const s = STATE.hvPhien; if(!s) return;
+  const rec = hvTim(s.vidId); if(!rec || !Array.isArray(rec.lines)) return;
+  for(let k=0; k<rec.lines.length; k++){
+    const dong = document.getElementById('hvL'+k);
+    if(dong && dong.classList){ try{ dong.classList.remove('dang'); }catch(_){} }
+  }
 }
 function hvVeTam(tuyChon){
   const o = tuyChon || {};
@@ -17979,7 +18003,7 @@ function sdBatBam(){
       const batDau = ds[s.lapIdx].t;
       const ketThuc = (ds[s.lapIdx+1] ? ds[s.lapIdx+1].t : batDau + 20);
       if(gy >= ketThuc || gy < batDau - 0.6){
-        try{ sdPlayer.seekTo(sdMocPhat(ds, s.lapIdx), true); }catch(_){}
+        try{ sdTuaChinh(sdPlayer, sdMocPhat(ds, s.lapIdx)); }catch(_){}
         return;
       }
     }
@@ -18012,15 +18036,49 @@ function sdBatBam(){
 }
 function sdNgungBam(){
   if(sdBamTimer){ clearInterval(sdBamTimer); sdBamTimer = null; }
+  sdXoaVetSang();
   sdDongHienTai = -1;
 }
-const SD_BU_TUA = 0.45;
+// Quét sạch nền vàng trên MỌI dòng, không tin vào một chỉ số nào cả. Dùng trước mỗi lần đặt lại
+// mốc bám — lúc đó chỉ số cũ sắp bị bỏ đi, tra theo nó là tra vào chỗ trống.
+// Duyệt THEO ID chứ không theo bộ chọn lớp: id là thứ chính hàm vẽ đã đặt ra, nên chắc chắn khớp.
+function sdXoaVetSang(){
+  const s = STATE.sdPhien; if(!s) return;
+  const rec = sdTimVideo(s.vidId); if(!rec) return;
+  const soDong = sdDongLoi(rec).length;
+  for(let k=0; k<soDong; k++){
+    const dong = document.getElementById('sd-line-'+k);
+    if(dong && dong.classList){ try{ dong.classList.remove('dang'); }catch(_){} }
+    const o = document.getElementById('sd-x-'+k);
+    if(o && o.querySelectorAll){
+      const chu = o.querySelectorAll('.sd-w');
+      for(let j=0; j<chu.length; j++){ try{ chu[j].classList.remove('now'); }catch(_){} }
+    }
+  }
+}
 function sdMocPhat(ds, i){
   const d = ds && ds[i]; if(!d || d.t == null) return 0;
-  const ke = ds[i+1];
-  const dai = (ke && ke.t != null) ? (ke.t - d.t) : 4;
-  const bu = Math.max(0, Math.min(SD_BU_TUA, dai / 4));
-  return Math.max(0, d.t + bu);
+  return Math.max(0, d.t);        // đúng mốc đầu câu, không cộng thêm gì
+}
+// Tua rồi ĐO LẠI. Nếu trình phát rơi sớm hơn chỗ xin quá 0,3 giây (nó nhảy về khung hình khoá
+// trước đó vì đoạn này chưa tải), tua thêm lần nữa — lúc đó đã có bộ đệm nên rơi đúng chỗ.
+// Tối đa hai lần, để hỏng mạng cũng không quay vòng vô tận.
+const SD_LECH_CHO_PHEP = 0.3;
+function sdTuaChinh(p, giay){
+  if(!p || typeof p.seekTo !== 'function') return;
+  const t = Math.max(0, giay);
+  try{ p.seekTo(t, true); }catch(_){ return; }
+  let lan = 0;
+  const kiem = ()=>{
+    lan++;
+    let gy = null;
+    try{ gy = p.getCurrentTime(); }catch(_){ return; }
+    if(typeof gy === 'number' && gy < t - SD_LECH_CHO_PHEP && lan <= 2){
+      try{ p.seekTo(t, true); }catch(_){}
+      setTimeout(kiem, 280);
+    }
+  };
+  setTimeout(kiem, 280);
 }
 function sdTuaToiDong(i){
   const s = STATE.sdPhien; if(!s) return;
@@ -18031,7 +18089,8 @@ function sdTuaToiDong(i){
     showToast('⏱️','Dòng này chưa có mốc thời gian','Bấm "🤖 Lấy lời thoại tự động" để AI ghi lại kèm mốc thời gian, khi đó bấm dòng nào là nhảy tới đúng chỗ đó.');
     return;
   }
-  try{ sdPlayer.seekTo(sdMocPhat(ds, i), true); sdPlayer.playVideo(); }catch(_){}
+  try{ sdTuaChinh(sdPlayer, sdMocPhat(ds, i)); sdPlayer.playVideo(); }catch(_){}
+  sdXoaVetSang();                 // xoá vệt vàng ở dòng cũ TRƯỚC khi đặt lại mốc bám
   sdDongHienTai = -1; sdBatBam();
 }
 function sdLapDong(i){
