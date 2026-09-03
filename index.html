@@ -3145,7 +3145,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v205';
+const APP_VERSION = 'v206';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13494,6 +13494,75 @@ async function hvNgheDoan(videoId, a, b){
     }).filter(Boolean);
   }catch(e){ return []; }
 }
+// Nhờ AI chấm câu cho MỘT phần bản chép lời. Chỉ gửi CHỮ, không gửi video — nhẹ và nhanh hơn
+// nhiều so với bắt AI nghe lại cả video.
+async function hvHoiChamCau(vanBan){
+  const nhac = 'Dưới đây là bản chép lời tự động của một video, KHÔNG có dấu câu.\n'
+    + 'Hãy thêm dấu chấm câu và viết hoa đầu câu cho đúng.\n'
+    + 'BẮT BUỘC: giữ NGUYÊN từng chữ, đúng thứ tự. Không thêm chữ, không bớt chữ, không sửa chữ, '
+    + 'không dịch, không tóm tắt, không thêm lời nào của bạn.\n'
+    + 'Chỉ được phép thêm các dấu . , ? ! và viết hoa chữ cái đầu câu.\n'
+    + 'Trả về DUY NHẤT phần văn bản đã chấm câu.\n\n' + vanBan;
+  const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac}]}],
+      generationConfig:{temperature:0, maxOutputTokens:32768} })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const j = await res.json();
+  const cand = (j.candidates||[])[0]; if(!cand) return '';
+  return ((cand.content||{parts:[]}).parts||[]).map(p=>p.text||'').join('').trim();
+}
+// Chấm câu cho cả bản chép lời rồi cắt lại: mỗi dòng đúng một câu.
+async function hvChamCauAI(vidId){
+  const rec = hvTim(vidId);
+  if(!rec || !Array.isArray(rec.lines) || !rec.lines.length){
+    showToast('⚠️','Chưa có lời thoại','Lấy hoặc dán lời thoại trước đã.'); return;
+  }
+  if(!SETTINGS.geminiApiKey){
+    showToast('🔑','Chưa có khoá AI','Vào Cài đặt dán khoá Gemini rồi quay lại.'); return;
+  }
+  const tu = hvTuTheoMoc(rec.lines);
+  if(!tu.length) return;
+  const lo = [];
+  for(let i=0;i<tu.length;i+=HV_CHAM_LO) lo.push(tu.slice(i, i+HV_CHAM_LO));
+  STATE.hvChamCau = {xong:0, tong:lo.length};
+  STATE.hvLoi = null;
+  try{ hvVeTam({giuCuon:true}); }catch(_){}
+  const raTu = [];
+  let hong = 0;
+  try{
+    for(const phan of lo){
+      let ghep = null;
+      try{ ghep = hvGhepChamCau(phan, await hvHoiChamCau(phan.map(x=>x.w).join(' '))); }
+      catch(e){ hong++; if(hong >= 2) throw e; }
+      if(!ghep) hong++;
+      phan.forEach((x,k)=> raTu.push({w: (ghep ? ghep[k] : x.w), t: x.t, nghi: x.nghi}));
+      STATE.hvChamCau.xong++;
+      try{ hvVeTam({giuCuon:true}); }catch(_){}
+    }
+  }catch(e){
+    STATE.hvChamCau = null;
+    STATE.hvLoi = hvLoiThanThien(e);
+    try{ hvVeTam({giuCuon:true}); }catch(_){ renderContent(); }
+    return;
+  }
+  STATE.hvChamCau = null;
+  const lines = hvTachTheoDauChamTu(raTu);
+  if(!lines.length || !hvCoDauCau(lines)){
+    STATE.hvLoi = 'AI trả về bản không chấm câu được. Lời thoại vẫn giữ nguyên như cũ.';
+    try{ hvVeTam({giuCuon:true}); }catch(_){ renderContent(); }
+    return;
+  }
+  // Số dòng đổi thì chỉ số cũ của chép chính tả trỏ nhầm câu — xoá, thà làm lại còn hơn sai.
+  rec.lines = lines; rec.xong = {}; rec.soCauCu = lines.length;
+  rec.mocChuan = false; rec.mocChuan2 = false; rec.daChamCau = true;
+  try{ hvChuanMoc(rec); }catch(_){}
+  saveSettings(); pushToDrive();
+  STATE.dvPhien = null;
+  showToast('✅','Đã chấm câu xong', 'Nay mỗi dòng là một câu — tất cả ' + lines.length + ' câu.');
+  renderContent();
+}
 // Dòng sau có phải là ĐUÔI BỊ CẮT của dòng trước không.
 // Dấu hiệu chắc chắn: dòng trước chưa kết thúc bằng dấu chấm/hỏi/than, mà dòng sau lại bắt đầu
 // bằng chữ thường hoặc bằng dấu phẩy. Người ta không mở đầu một câu mới như thế bao giờ.
@@ -14504,6 +14573,15 @@ function hvLoiThoaiHtml(rec){
     </div>
     ${STATE.hvDangVa
       ? `<div class="hv-va cho">🩹 Đang hỏi lại AI cho những đoạn bị bỏ sót…</div>`
+      : (STATE.hvChamCau
+        ? `<div class="hv-va cho">✨ AI đang chấm câu… phần <b>${STATE.hvChamCau.xong + 1}</b>/<b>${STATE.hvChamCau.tong}</b>. Video ở trên vẫn xem được.</div>`
+        : '')}
+    ${(!STATE.hvChamCau && !rec.daChamCau && !hvCoDauCau(rec.lines)
+        && rec.lines.reduce((n,d)=>n + String(d.en||'').split(/\s+/).length, 0) >= 40)
+      ? `<div class="hv-va">Phụ đề này <b>không có dấu chấm câu</b> — các dòng đang cắt theo chỗ người nói ngắt hơi.
+           <button class="hv-va-nut" data-action="hv-cham-cau">✨ Chấm câu bằng AI (~${Math.max(1, Math.ceil(rec.lines.reduce((n,d)=>n + String(d.en||'').split(/\s+/).length, 0) / HV_CHAM_LO))} lượt)</button></div>`
+      : ''}
+    ${STATE.hvChamCau ? ''
       : (thieu.length
         ? `<div class="hv-va">Còn <b>${thieu.length}</b> đoạn chưa có lời, tổng khoảng
              <b>${Math.round(thieu.reduce((t,k)=>t+(k.b-k.a),0))}</b> giây (AI nghe cả video một lượt hay bỏ sót).
@@ -16947,6 +17025,129 @@ function hvGomTheoDoDai(cot){
   }
   return ra;
 }
+// ── TÁCH CÂU CHO PHỤ ĐỀ TỰ ĐỘNG ─────────────────────────────────────────────
+// Phụ đề tự động của YouTube không có một dấu chấm nào, nên không có chỗ nào để biết câu kết thúc
+// ở đâu. Hai đường giải quyết, dùng được cả hai:
+//   1) MIỄN PHÍ — nghe theo KHOẢNG LẶNG. Người ta nói hết một câu thì ngừng lấy hơi; chỗ ngừng đó
+//      hiện ra trong mốc giờ. Không cần AI, không tốn hạn mức.
+//   2) NHỜ AI — gửi nguyên văn bản cho Gemini chấm câu hộ rồi ghép lại ĐÚNG TỪNG CHỮ để giữ mốc.
+const HV_NGHI_HET_CAU = 0.45;   // im chừng này giây trở lên: coi như vừa dứt một câu
+const HV_CHAM_LO      = 1400;   // mỗi lượt hỏi AI chấm câu tối đa chừng này chữ
+
+// Tốc độ nói THẬT của người trong video, đo từ chính bản chép lời. Mỗi người nói một nhịp; lấy
+// phân vị 75% vì những đoạn nói liền một mạch mới phản ánh đúng tốc độ, đoạn có khoảng lặng
+// bị kéo dài ra nên rơi xuống nhóm dưới.
+function hvTocDoNoi(cot){
+  const r = [];
+  for(let i=0;i+1<(cot||[]).length;i++){
+    const n = String(cot[i].en||'').trim().split(/\s+/).filter(Boolean).length;
+    const d = (cot[i+1].t||0) - (cot[i].t||0);
+    if(n >= 3 && d > 0.3 && d < 12) r.push(n/d);
+  }
+  if(r.length < 5) return HV_CHU_MOI_GIAY;
+  r.sort((a,b)=>a-b);
+  return Math.max(1.8, Math.min(5, r[Math.min(r.length-1, Math.floor(r.length*0.75))]));
+}
+// Rải mốc giờ xuống TỪNG CHỮ, và ghi lại sau mỗi chữ người ta im bao lâu.
+function hvTuTheoMoc(cot){
+  const ds = (cot||[]).filter(c=>c && String(c.en||'').trim());
+  const toc = hvTocDoNoi(ds);
+  const ra = [];
+  for(let i=0;i<ds.length;i++){
+    const tu = String(ds[i].en).trim().split(/\s+/).filter(Boolean);
+    const bd = ds[i].t || 0;
+    const noi = tu.length / toc;                                  // nói hết đoạn này mất chừng đó
+    const sau = ds[i+1] ? (ds[i+1].t || (bd + noi)) : (bd + noi);
+    // Đừng rải chữ ra khắp khoảng lặng — chữ sẽ bò chậm hơn tai nghe. Chỉ rải trong phần nói.
+    const rong = Math.max(0.2, Math.min(Math.max(0.2, sau - bd), noi));
+    const buoc = rong / tu.length;
+    for(let k=0;k<tu.length;k++) ra.push({w: tu[k], t: Math.round((bd + k*buoc)*100)/100, nghi: 0});
+    if(ds[i+1]) ra[ra.length-1].nghi = Math.max(0, Math.round((sau - bd - rong)*100)/100);
+  }
+  return ra;
+}
+function hvDayDong(ra, cum, moc){
+  if(cum.length) ra.push({t: moc, en: cum.join(' '), vi:''});
+}
+// Cắt theo chỗ ngắt hơi. Dòng kết thúc ở chỗ người nói ngừng, nên hiếm khi một dòng ôm chữ của
+// hai câu khác nhau — đúng thứ khó chịu mà bản gom-theo-độ-dài gây ra.
+function hvTachTheoKhoangNghi(tu){
+  const ra = [];
+  let cum = [], moc = null;
+  for(let i=0;i<tu.length;i++){
+    if(moc === null) moc = tu[i].t;
+    cum.push(tu[i].w);
+    const hetCau = /[.!?…]["')\]]?$/.test(tu[i].w) && cum.length >= 2;
+    const ngungHoi = tu[i].nghi >= HV_NGHI_HET_CAU && cum.length >= 4;
+    if(hetCau || ngungHoi || cum.length >= HV_TU_CAT_DONG){
+      hvDayDong(ra, cum, moc); cum = []; moc = null;
+    }
+  }
+  if(cum.length){
+    if(cum.length < 4 && ra.length) ra[ra.length-1].en += ' ' + cum.join(' ');
+    else hvDayDong(ra, cum, moc);
+  }
+  return ra;
+}
+// Cắt theo dấu chấm câu, làm việc trên danh sách TỪNG CHỮ (đã có mốc riêng) chứ không phải theo
+// đoạn — dùng sau khi AI chấm câu xong.
+function hvTachTheoDauChamTu(tu){
+  const ra = [];
+  let cum = [], moc = null;
+  for(let i=0;i<tu.length;i++){
+    if(moc === null) moc = tu[i].t;
+    cum.push(tu[i].w);
+    if(/[.!?…]["')\]]?$/.test(tu[i].w) && cum.length >= 2){
+      hvDayDong(ra, cum, moc); cum = []; moc = null; continue;
+    }
+    if(cum.length >= HV_TU_TOI_DA){
+      let cat = -1;
+      for(let k = cum.length-1; k >= Math.floor(HV_TU_TOI_DA/2); k--) if(/[,;:]$/.test(cum[k])){ cat = k; break; }
+      if(cat > 0){
+        const con = cum.slice(cat+1);
+        const mocCon = tu[i - con.length + 1] ? tu[i - con.length + 1].t : moc;
+        cum = cum.slice(0, cat+1);
+        hvDayDong(ra, cum, moc);
+        cum = con; moc = mocCon;
+      } else { hvDayDong(ra, cum, moc); cum = []; moc = null; }
+    }
+  }
+  if(cum.length){
+    if(cum.length < 4 && ra.length) ra[ra.length-1].en += ' ' + cum.join(' ');
+    else hvDayDong(ra, cum, moc);
+  }
+  return ra;
+}
+function hvChuanSoSanh(w){ return String(w||'').toLowerCase().replace(/[^a-z0-9']/g,''); }
+// Ghép bản ĐÃ CHẤM CÂU trở lại danh sách chữ gốc, để giữ nguyên mốc giờ của từng chữ. Chỉ nhận
+// khi khớp gần trọn vẹn: AI lỡ sửa chữ hay bỏ chữ thì thà giữ bản cũ, còn hơn dán mốc sai chỗ.
+function hvGhepChamCau(goc, vanBan){
+  const moi = String(vanBan||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+  if(!moi.length) return null;
+  const ra = [];
+  let j = 0, lech = 0;
+  for(let i=0;i<goc.length;i++){
+    const can = hvChuanSoSanh(goc[i].w);
+    let k = -1;
+    for(let d=0; d<=3 && j+d < moi.length; d++) if(hvChuanSoSanh(moi[j+d]) === can){ k = j+d; break; }
+    if(k < 0){ ra.push(goc[i].w); lech++; continue; }
+    ra.push(moi[k]); j = k + 1;
+  }
+  if(lech > Math.max(3, goc.length * 0.15)) return null;
+  return ra;
+}
+// Có tin được chỗ ngắt hơi không? Vài bản chép lời có mốc giờ đều tăm tắp (mỗi đoạn đúng 3 giây
+// chẳng hạn) — khi đó khoảng lặng đo ra chỉ là nhiễu, không nói lên chỗ nào hết câu. Dấu hiệu:
+// phần lớn dòng bị cắt vì chạm trần độ dài chứ không phải vì gặp chỗ ngừng. Gặp vậy thì thà gom
+// theo độ dài cho các dòng đều đặn, còn hơn cắt bừa.
+function hvNgatHoiDangTin(ra){
+  if(!ra || !ra.length) return false;
+  const d = ra.map(l => String(l.en||'').split(/\s+/).filter(Boolean).length);
+  // Dòng XẤU = chạm trần độ dài (bị cắt vì hết chỗ chứ không phải vì gặp chỗ ngừng), hoặc cụt lủn
+  // vài chữ. Chỗ ngừng thật thì hiếm khi sinh ra hai loại đó.
+  const xau = d.filter(n => n >= HV_TU_CAT_DONG || n < 5).length;
+  return xau <= ra.length / 4;
+}
 function hvTachCauTheoMoc(cot){
   const sach = [];
   (cot||[]).forEach(c=>{
@@ -16958,7 +17159,11 @@ function hvTachCauTheoMoc(cot){
     sach.push({t: c.t, en});
   });
   if(!sach.length) return [];
-  return hvCoDauCau(sach) ? hvCatTheoDauCau(sach) : hvGomTheoDoDai(sach);
+  // v206: bản không dấu câu nay cắt theo CHỖ NGẮT HƠI thay vì gom cho đủ 12 chữ. Gom theo độ dài
+  // thì một dòng hay ôm nửa câu này nửa câu kia; ngắt hơi thì đúng chỗ người ta dứt câu.
+  if(hvCoDauCau(sach)) return hvCatTheoDauCau(sach);
+  const theoNghi = hvTachTheoKhoangNghi(hvTuTheoMoc(sach));
+  return hvNgatHoiDangTin(theoNghi) ? theoNghi : hvGomTheoDoDai(sach);
 }
 function hvDocLoiDan(raw){
   const dong = String(raw||'').replace(/\r/g,'').split('\n');
@@ -23154,6 +23359,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvDongEl){ hvDongPhien(); return; }
   const hvVaEl = e.target.closest('[data-action="hv-va-loi"]');
   if(hvVaEl){ e.stopPropagation(); const p0 = STATE.hvPhien; if(p0) hvLayNotPhanThieu(p0.vidId); return; }
+  const hvChamEl = e.target.closest('[data-action="hv-cham-cau"]');
+  if(hvChamEl){ e.stopPropagation(); const pc = STATE.hvPhien; if(pc) hvChamCauAI(pc.vidId); return; }
   const hvLayEl = e.target.closest('[data-action="hv-lay-loi"]');
   if(hvLayEl){ const p = STATE.hvPhien; if(p) hvLayLoi(p.vidId); return; }
   const hvPlayEl = e.target.closest('[data-action="hv-playpause"]');
