@@ -2271,13 +2271,13 @@
 .sd-toc{background:var(--card);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:8px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--mono);}
 .sd-toc.on{background:linear-gradient(135deg,#B78CFF,#7a4fd0);color:#12091f;border-color:transparent;}
 /* v208 — ba hàng điều khiển Shadowing xếp thành bảng: nhãn một cột, nút một cột, thẳng hàng. */
-.sd-dieu{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;width:100%;margin-top:9px;
-  padding:10px 12px;border:1px solid var(--border);border-radius:13px;background:rgba(255,255,255,.025);}
-.sd-dieu-lb{display:flex;flex-direction:column;gap:1px;white-space:nowrap;}
-.sd-dieu-lb b{font-size:11.5px;color:var(--fg);font-weight:800;}
-.sd-dieu-lb i{font-size:9.5px;color:var(--dim2);font-style:normal;font-weight:600;}
-.sd-dieu-ch{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
-.sd-dieu-ch .sd-toc{min-width:54px;text-align:center;padding:7px 8px;}
+.sd-dieu{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:center;width:100%;margin-top:7px;
+  padding:7px 9px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.025);}
+.sd-dieu-lb{display:flex;flex-direction:column;gap:0;white-space:nowrap;}
+.sd-dieu-lb b{font-size:10.5px;color:var(--fg);font-weight:800;line-height:1.25;}
+.sd-dieu-lb i{font-size:8.5px;color:var(--dim2);font-style:normal;font-weight:600;line-height:1.25;}
+.sd-dieu-ch{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.sd-dieu-ch .sd-toc{min-width:42px;text-align:center;padding:4px 7px;font-size:10.5px;border-radius:7px;}
 /* v208 — thanh chọn số câu của Chép chính tả */
 .dv-chon{border:1px solid rgba(255,209,102,.34);background:rgba(255,209,102,.07);border-radius:13px;
   padding:11px 13px;margin-bottom:10px;}
@@ -3168,7 +3168,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v208';
+const APP_VERSION = 'v209';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3588,6 +3588,15 @@ function navBack(){
 }
 window.addEventListener('popstate', ()=>{
   if(NAV_STACK.length){
+    // v209: mốc nào trỏ về ĐÚNG màn đang mở thì tiêu thụ luôn rồi lùi tiếp — người dùng bấm một
+    // lần là phải thấy màn hình đổi, không phải bấm hai ba lần cho hết mốc thừa.
+    try{
+      if(NAV_STACK.length > 1 && JSON.stringify(NAV_STACK[NAV_STACK.length-1]) === JSON.stringify(snapshotNav())){
+        NAV_STACK.pop();
+        history.back();
+        return;
+      }
+    }catch(_){}
     // QUAN TRỌNG: cử chỉ vuốt back (kích hoạt popstate trực tiếp, KHÔNG đi qua nút back trong app như
     // speakPracticeExit()/listenQuizExit()) trước đây KHÔNG dừng audio đang phát — giọng mẫu TTS lẫn
     // bản ghi âm "nghe lại giọng bạn" của Luyện nói/Luyện IPA, hay audio câu hỏi của Luyện nghe — nên
@@ -13997,6 +14006,10 @@ function hvDongPhien(){
   STATE.hvPhien = null; STATE.hvLoi = null;
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
   renderContent();
+  // v209 — SỬA LỖI "bấm back 2-3 lần mới ăn": hvMoPhien() đẩy MỘT mốc lịch sử, nhưng đóng phiên
+  // lại không tiêu thụ mốc đó. Mỗi lần mở rồi đóng một video là để lại một mốc mồ côi; lần sau
+  // bấm back ở màn danh sách, mốc mồ côi kéo ngược vào lại phiên video vừa đóng.
+  navBack();
 }
 function hvDoiTab(tab){
   // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
@@ -14425,6 +14438,19 @@ function hvThieuNghia(rec){
   rec.lines.forEach((d,i)=>{ if(!String((d&&d.vi)||'').trim()) ra.push(i); });
   return ra;
 }
+// v209 — DỊCH KHÔNG TỐN HẠN MỨC AI.
+// Google có một đường dịch mở, không cần khoá, không tính vào hạn mức Gemini. Gửi từng câu một
+// nên nghĩa luôn về ĐÚNG câu đó, không bao giờ lệch dòng. Bốn câu một lượt cho nhanh.
+const HV_DICH_SONG_SONG = 4;
+async function hvDichMienPhi(cau){
+  const u = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q='
+          + encodeURIComponent(String(cau||'').slice(0, 1800));
+  const res = await fetch(u);
+  if(!res.ok) throw new Error('Đường dịch miễn phí trả về ' + res.status);
+  const j = await res.json();
+  const doan = (j && j[0]) ? j[0] : [];
+  return doan.map(x=>(x && x[0]) ? x[0] : '').join('').trim();
+}
 async function hvHoiDich(cau){
   const nhac = 'Dịch từng câu tiếng Anh dưới đây sang tiếng Việt tự nhiên, đúng văn nói.\n'
     + 'Trả về DUY NHẤT JSON dạng {"vi":["câu 1","câu 2", ...]} — đúng thứ tự, ĐÚNG '
@@ -14450,35 +14476,44 @@ async function hvDichLoiThoai(vidId){
   if(!rec || !Array.isArray(rec.lines) || !rec.lines.length) return;
   const thieu = hvThieuNghia(rec);
   if(!thieu.length) return;                                  // đã có nghĩa đủ rồi
-  if(!SETTINGS.geminiApiKey){
-    showToast('🔑','Chưa có khoá AI','Vào Cài đặt dán khoá Gemini rồi bấm Dịch lại.'); return;
-  }
-  if(geminiConLai() <= 0){
-    showToast('⏳','Hết hạn mức AI hôm nay','Hạn mức đặt lại lúc 0:00. Lời thoại tiếng Anh vẫn đọc được bình thường.');
-    return;
-  }
-  const lo = [];
-  for(let i=0;i<thieu.length;i+=HV_DICH_LO) lo.push(thieu.slice(i, i+HV_DICH_LO));
-  STATE.hvDangDich = {xong:0, tong:lo.length};
+  STATE.hvDangDich = {xong:0, tong:thieu.length, cach:'mienphi'};
   const veLai = ()=>{ try{ if(STATE.hvPhien) hvVeTam({giuCuon:true}); else renderContentPreserveScroll(); }catch(_){} };
   veLai();
+  // ĐƯỜNG 1 — miễn phí, không đụng tới hạn mức AI. Chạy 4 câu một lượt cho nhanh.
   let hong = 0;
-  try{
-    for(const phan of lo){
-      const vi = await hvHoiDich(phan.map(i=>rec.lines[i].en));
-      if(vi) phan.forEach((i,k)=>{ if(vi[k]) rec.lines[i].vi = vi[k]; });
-      else hong++;
-      STATE.hvDangDich.xong++;
-      veLai();
-    }
-  }catch(e){
-    STATE.hvDangDich = null;
-    STATE.hvLoi = hvLoiThanThien(e);
-    veLai(); return;
+  for(let i=0;i<thieu.length && hong < 6; i+=HV_DICH_SONG_SONG){
+    const nhom = thieu.slice(i, i+HV_DICH_SONG_SONG);
+    await Promise.all(nhom.map(async k=>{
+      try{
+        const vi = await hvDichMienPhi(rec.lines[k].en);
+        if(vi) rec.lines[k].vi = vi; else hong++;
+      }catch(_){ hong++; }
+    }));
+    STATE.hvDangDich.xong = Math.min(thieu.length, i + nhom.length);
+    veLai();
+  }
+  let con = hvThieuNghia(rec);
+  // ĐƯỜNG 2 — chỉ dùng tới AI khi đường miễn phí hỏng (mất mạng, Google chặn). Đỡ được lượt nào
+  // hay lượt đó: hạn mức AI để dành cho việc lấy lời thoại và chấm câu.
+  if(con.length && SETTINGS.geminiApiKey && geminiConLai() > 0){
+    const lo = [];
+    for(let i=0;i<con.length;i+=HV_DICH_LO) lo.push(con.slice(i, i+HV_DICH_LO));
+    STATE.hvDangDich = {xong:0, tong:lo.length, cach:'ai'};
+    veLai();
+    try{
+      for(const phan of lo){
+        const vi = await hvHoiDich(phan.map(i=>rec.lines[i].en));
+        if(vi) phan.forEach((i,k)=>{ if(vi[k]) rec.lines[i].vi = vi[k]; });
+        STATE.hvDangDich.xong++;
+        veLai();
+      }
+    }catch(e){ STATE.hvLoi = hvLoiThanThien(e); }
+    con = hvThieuNghia(rec);
   }
   STATE.hvDangDich = null;
   saveSettings(); pushToDrive();
-  if(hong >= lo.length) showToast('⚠️','Chưa dịch được','AI trả về không khớp số dòng. Thử lại sau.');
+  if(con.length >= rec.lines.length) showToast('⚠️','Chưa dịch được','Kiểm tra lại mạng rồi bấm Dịch lần nữa.');
+  else if(con.length) showToast('ℹ️','Dịch xong phần lớn','Còn ' + con.length + ' câu chưa dịch được, bấm Dịch lần nữa là xong.');
   veLai();
 }
 function hvBatNghia(){
@@ -14697,7 +14732,8 @@ function hvLoiThoaiHtml(rec){
     ${STATE.hvDangVa
       ? `<div class="hv-va cho">🩹 Đang hỏi lại AI cho những đoạn bị bỏ sót…</div>`
       : (STATE.hvDangDich
-        ? `<div class="hv-va cho">🇻🇳 Đang dịch lời thoại… phần <b>${STATE.hvDangDich.xong + 1}</b>/<b>${STATE.hvDangDich.tong}</b>. Video ở trên vẫn xem được.</div>`
+        ? `<div class="hv-va cho">🇻🇳 Đang dịch lời thoại… <b>${STATE.hvDangDich.xong}</b>/<b>${STATE.hvDangDich.tong}</b>${
+             STATE.hvDangDich.cach === 'mienphi' ? ' · không tốn hạn mức AI' : ' · đang nhờ AI'}. Video ở trên vẫn xem được.</div>`
         : '')}
     ${STATE.hvDangDich ? '' : (STATE.hvChamCau
         ? `<div class="hv-va cho">✨ AI đang chấm câu… phần <b>${STATE.hvChamCau.xong + 1}</b>/<b>${STATE.hvChamCau.tong}</b>. Video ở trên vẫn xem được.</div>`
@@ -15300,6 +15336,7 @@ function dvDongPhien(){
   dvDungPlayer();
   STATE.dvPhien = null;
   renderContent();
+  navBack();     // v209: trả lại mốc lịch sử mà dvMoPhien() đã đẩy, khỏi để mốc mồ côi
 }
 function dvDatLai(id){
   const rec = dvTim(id); if(!rec) return;
@@ -17250,22 +17287,35 @@ function hvTocDoNoi(cot){
   r.sort((a,b)=>a-b);
   return Math.max(1.8, Math.min(5, r[Math.min(r.length-1, Math.floor(r.length*0.75))]));
 }
+// Đoạn phụ đề dài hơn mức nói được chừng này giây thì cuối đoạn mới THẬT SỰ có khoảng lặng.
+const HV_NGHI_THAT = 0.35;
 // Rải mốc giờ xuống TỪNG CHỮ, và ghi lại sau mỗi chữ người ta im bao lâu.
+// v209 — sửa hai chỗ làm mốc chữ rơi SỚM hơn tiếng thật (thủ phạm của cả "lặp câu dính đuôi câu
+// trước" lẫn "chữ chạy trước video"):
+//   a) Trước đây LUÔN ép phần chữ vào đúng "số chữ ÷ tốc độ", ngắn hơn khoảng cách thật giữa hai
+//      đoạn. Chữ bị dồn hết về đầu đoạn, nên tua tới một câu bắt đầu ở giữa đoạn là rơi sớm. Nay
+//      chỉ co lại khi đoạn dài hơn hẳn mức nói được — lúc đó mới thật sự có khoảng lặng ở cuối.
+//   b) Trước đây chia đều mỗi chữ một khoảng như nhau. Chữ dài đọc lâu hơn chữ ngắn, nên nay chia
+//      theo độ dài từng chữ — dùng chung hvMocChu() với phần tô vệt sáng.
 function hvTuTheoMoc(cot){
   const ds = (cot||[]).filter(c=>c && String(c.en||'').trim());
   const toc = hvTocDoNoi(ds);
   const ra = [];
   for(let i=0;i<ds.length;i++){
-    const tu = String(ds[i].en).trim().split(/\s+/).filter(Boolean);
+    const en = String(ds[i].en).trim();
+    const tu = en.split(/\s+/).filter(Boolean);
     const bd = ds[i].t || 0;
     const noi = tu.length / toc;                                  // nói hết đoạn này mất chừng đó
     const sau = ds[i+1] ? (ds[i+1].t || (bd + noi)) : (bd + noi);
-    // Đừng rải chữ ra khắp khoảng lặng — chữ sẽ bò chậm hơn tai nghe. Chỉ rải trong phần nói.
-    const rong = Math.max(0.2, Math.min(Math.max(0.2, sau - bd), noi));
-    const buoc = rong / tu.length;
-    // "c" = mốc của ĐOẠN chứa chữ này. Mốc từng chữ là ước lượng; khi lấy mốc mở đầu một dòng thì
-    // lùi lại một chút cho chắc, nhưng không được lùi quá đầu đoạn.
-    for(let k=0;k<tu.length;k++) ra.push({w: tu[k], t: Math.round((bd + k*buoc)*100)/100, c: bd, nghi: 0});
+    const cach = Math.max(0.2, sau - bd);
+    const rong = (cach > noi + HV_NGHI_THAT) ? noi : cach;
+    let moc = [];
+    try{ moc = hvMocChu(en) || []; }catch(_){ moc = []; }
+    // "c" = mốc của ĐOẠN chứa chữ này (mốc YouTube ghi, chính xác). "d" = chữ MỞ ĐẦU đoạn.
+    for(let k=0;k<tu.length;k++){
+      const ti = (moc[k] != null) ? moc[k] : (k / tu.length);
+      ra.push({w: tu[k], t: Math.round((bd + rong * ti)*100)/100, c: bd, d: k === 0, nghi: 0});
+    }
     if(ds[i+1]) ra[ra.length-1].nghi = Math.max(0, Math.round((sau - bd - rong)*100)/100);
   }
   return ra;
@@ -17276,6 +17326,9 @@ const HV_LUI_DAU_DONG = 0.1;
 function hvMocDong(w){
   if(!w) return 0;
   const c = (w.c != null) ? w.c : w.t;
+  // v209: chữ MỞ ĐẦU một đoạn phụ đề mang đúng mốc YouTube ghi — chính xác, lấy nguyên, không lùi
+  // thêm nửa giây nào. Chỉ chữ nằm GIỮA đoạn mới là ước lượng, mới cần lùi một chút cho chắc.
+  if(w.d) return Math.max(0, Math.round(c * 100) / 100);
   return Math.max(0, Math.round(Math.max(c, w.t - HV_LUI_DAU_DONG) * 100) / 100);
 }
 function hvDayDong(ra, cum, moc){
@@ -17637,7 +17690,9 @@ function sdHetCau(ds, i){
 }
 function sdChiSoDong(giay, ds){
   let k = -1;
-  for(let i=0;i<ds.length;i++){ if(ds[i].t!=null && ds[i].t <= giay+0.25) k = i; else if(ds[i].t!=null) break; }
+  // v209: rút khoảng "nhìn trước" từ 0,25 xuống 0,1 giây. Nhìn trước nhiều quá thì dòng sáng lên
+  // trước lúc người ta bắt đầu nói — đúng cái cảm giác chữ chạy trước video.
+  for(let i=0;i<ds.length;i++){ if(ds[i].t!=null && ds[i].t <= giay+0.1) k = i; else if(ds[i].t!=null) break; }
   return k;
 }
 function sdBatBam(){
@@ -18109,6 +18164,7 @@ function sdDongPhien(){
   if(s && s.ban) s.ban.forEach(b=>{ try{ URL.revokeObjectURL(b.url); }catch(_){} });
   STATE.sdPhien = null; STATE.sdSuaLoi = false;
   renderContent();
+  navBack();     // v209: trả lại mốc lịch sử mà sdMoPhien() đã đẩy, khỏi để mốc mồ côi
 }
 
 // ---- Giao diện: danh sách video ----
