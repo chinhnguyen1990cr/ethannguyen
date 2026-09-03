@@ -3145,7 +3145,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v204';
+const APP_VERSION = 'v205';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13416,15 +13416,41 @@ function hvKhoangThieu(lines){
   }
   return ra;
 }
+const HV_TU_CAT_DONG = 20;   // dài hơn chừng này chữ là quá một hơi đọc — phải cắt nhỏ
+// Cắt nhỏ những dòng dài lê thê của phụ đề không dấu câu. Mốc chia đều theo vị trí chữ trong
+// dòng: dòng gốc chạy từ t đến e, mảnh thứ k bắt đầu ở đúng tỉ lệ số chữ đứng trước nó.
+function hvCatDongDai(lines){
+  if(!Array.isArray(lines) || !lines.length) return lines;
+  const ra = [];
+  lines.forEach(d=>{
+    const tu = String((d&&d.en)||'').trim().split(/\s+/).filter(Boolean);
+    if(tu.length <= HV_TU_CAT_DONG){ ra.push(d); return; }
+    const bd = d.t || 0;
+    const kt = (d.e != null && d.e > bd) ? d.e : bd + hvDaiCau(d);
+    const soManh = Math.ceil(tu.length / HV_TU_MOT_DONG);
+    const moiManh = Math.ceil(tu.length / soManh);
+    for(let i=0;i<tu.length;i+=moiManh){
+      const phan = tu.slice(i, i + moiManh);
+      const t = Math.round((bd + (kt - bd) * (i / tu.length)) * 10) / 10;
+      const e = Math.round((bd + (kt - bd) * Math.min(1, (i + phan.length) / tu.length)) * 10) / 10;
+      ra.push(Object.assign({}, d, {t, e, en: phan.join(' '),
+        vi: i === 0 ? (d.vi||'') : '', cum: i === 0 ? (d.cum||[]) : []}));
+    }
+  });
+  return ra;
+}
 // Chuẩn hoá lại mốc kết thúc cho lời thoại lấy từ bản cũ. Làm một lần cho mỗi video rồi đánh dấu.
 // Việc này còn giúp Shadowing dừng đúng lúc câu vừa dứt, thay vì đợi tới tận câu sau.
 function hvChuanMoc(rec){
-  if(!rec || !Array.isArray(rec.lines) || rec.mocChuan) return false;
+  // mocChuan2: cờ mới của v205. Video lưu từ bản cũ chỉ có mocChuan nên sẽ được chuẩn hoá
+  // lại đúng một lần — đó là cách những dòng dài đã lỡ lưu được cắt nhỏ mà không cần chép lại.
+  if(!rec || !Array.isArray(rec.lines) || rec.mocChuan2) return false;
   let doi = false;
   // Nối lại những câu bị cắt đôi từ lần lấy lời thoại trước. Số dòng đổi thì tiến độ chép chính
   // tả theo chỉ số cũ không còn đúng nữa — phải xoá, thà làm lại còn hơn đánh dấu nhầm câu.
   const truocGop = rec.lines.length;
   rec.lines = hvGopCauVo(rec.lines);
+  if(!hvCoDauCau(rec.lines)) rec.lines = hvCatDongDai(rec.lines);
   if(rec.lines.length !== truocGop){
     rec.xong = {}; rec.soCauCu = rec.lines.length; doi = true;
   }
@@ -13432,7 +13458,7 @@ function hvChuanMoc(rec){
     const dung = d.t + hvDaiCau(d);
     if(d.e == null || d.e > dung + 0.05){ d.e = Math.round(dung*10)/10; doi = true; }
   });
-  rec.mocChuan = true;
+  rec.mocChuan = true; rec.mocChuan2 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -13484,6 +13510,10 @@ function hvNoiTiep(truoc, sau){
 // Nối lại những câu bị AI cắt đôi.
 function hvGopCauVo(lines){
   if(!Array.isArray(lines) || lines.length < 2) return lines;
+  // Phụ đề TỰ ĐỘNG của YouTube không có một dấu chấm nào. Khi đó dấu hiệu "dòng trước chưa kết
+  // thúc bằng dấu chấm" đúng với MỌI dòng, nối theo nó là dán cả bài thành một dòng dài thượt.
+  // Không dấu câu thì không có căn cứ để nối — để nguyên.
+  if(!hvCoDauCau(lines)) return lines;
   const ra = [Object.assign({}, lines[0])];
   for(let i=1;i<lines.length;i++){
     const truoc = ra[ra.length-1];
@@ -17064,7 +17094,7 @@ function sdLuuLoi(){
   // Dán có kèm mốc thời gian thì giữ nguyên mốc — bấm dòng tua được, chữ chạy theo video được,
   // chép chính tả cũng dùng được. Dán chữ trơn thì bỏ mốc cũ đi, tránh tô sáng sai dòng.
   rec.lines = (doc && doc.lines && doc.lines.length) ? doc.lines : null;
-  rec.loiTuAi = false; rec.mocChuan = false; rec.xong = {};
+  rec.loiTuAi = false; rec.mocChuan = false; rec.mocChuan2 = false; rec.xong = {};
   saveSettings(); pushToDrive();
   STATE.sdSuaLoi = false;
   // Lời thoại đổi thì mọi thứ tính theo nó phải tính lại: mốc chuẩn, dòng đang bám, phiên chép chính tả.
