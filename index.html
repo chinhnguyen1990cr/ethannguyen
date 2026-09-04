@@ -2288,6 +2288,14 @@
 .dv-so{flex:1;min-width:62px;background:var(--card);border:1px solid var(--border);color:var(--dim);
   border-radius:9px;padding:8px 6px;font-size:11.5px;font-weight:700;cursor:pointer;}
 .dv-so.on{background:linear-gradient(135deg,#FFD166,#e0a83a);color:#241a05;border-color:transparent;}
+/* v211 — nút xin AI bổ sung chi tiết cho một từ đã lưu */
+.voc-ct-nut{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:2px;align-items:center;
+  background:rgba(183,140,255,.14);border:1px solid rgba(183,140,255,.5);color:#D9C4FF;
+  border-radius:11px;padding:9px 12px;font-size:12.5px;font-weight:800;cursor:pointer;}
+.voc-ct-nut i{font-style:normal;font-weight:600;font-size:10px;color:var(--dim2);}
+.voc-ct{margin-top:10px;border-radius:11px;padding:9px 12px;font-size:11.5px;font-weight:700;}
+.voc-ct.dang{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.4);color:#FFD166;}
+.voc-ct.xong{background:rgba(44,219,168,.10);border:1px solid rgba(44,219,168,.35);color:#2CDBA8;}
 /* Nút ghi âm nhỏ lại: trước chiếm trọn bề ngang và cao 17px padding, đẩy lời thoại xuống quá sâu.
    Nay là một nút vừa tay nằm canh giữa, chỗ tiết kiệm được nhường cho lời thoại. */
 /* Video đang đứng chờ ở cuối một câu. Đặt NGAY trên nút ghi âm, trong khối ghim — không phải
@@ -3178,7 +3186,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v210';
+const APP_VERSION = 'v211';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8962,6 +8970,95 @@ async function fetchVocabData(){
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
+// ── v211: LẤY CHI TIẾT ĐẦY ĐỦ MỘT TỪ BẰNG AI ────────────────────────────────
+// Vòng dịch nền chạy miễn phí nên chỉ có NGHĨA. Khi bạn muốn học kỹ một từ thì bấm nút này: một
+// lượt AI cho riêng từ đó, đổi lại được phiên âm, các dạng từ, và mấy câu ví dụ có dịch.
+async function hvChiTietTuAI(chu, cauEn){
+  if(!SETTINGS.geminiApiKey) throw new Error('Chưa có khoá AI trong Cài đặt.');
+  const nhac = 'Cho từ/cụm tiếng Anh: "' + String(chu||'').trim() + '".'
+    + (cauEn ? ('\nNó xuất hiện trong câu: "' + cauEn + '" — hãy bám nghĩa dùng trong câu này.') : '')
+    + '\nTrả về DUY NHẤT một JSON:\n'
+    + '{"nghia":"nghĩa tiếng Việt ngắn gọn, tối đa 15 chữ",'
+    + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
+    + '"phienAm":"phiên âm IPA, ví dụ /ˈænsər/",'
+    + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"},'
+    + '"viDu":[["câu ví dụ tiếng Anh","nghĩa tiếng Việt"], ... 4 câu]}\n'
+    + 'Với "dangTu": chỉ ghi dạng CÓ THẬT và cùng gốc từ; dạng nào không có thì bỏ hẳn khoá đó, '
+    + 'tuyệt đối không bịa. Cụm/thành ngữ thì để {}.\n'
+    + 'Với "viDu": 4 câu ngắn, đời thường, dùng đúng từ này, mỗi câu dưới 14 chữ.';
+  const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac}]}],
+      generationConfig:{temperature:0.2, maxOutputTokens:1200, responseMimeType:'application/json'} })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const j = await res.json();
+  const cand = (j.candidates||[])[0]; if(!cand) return null;
+  const o = dvDocJson(((cand.content||{parts:[]}).parts||[]).map(p=>p.text||'').join('').trim());
+  if(!o || typeof o !== 'object') return null;
+  const dt = {};
+  if(o.dangTu && typeof o.dangTu === 'object'){
+    ['n','v','adj','adv'].forEach(k=>{
+      const v = String(o.dangTu[k]||'').trim();
+      if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dt[k] = v;
+    });
+  }
+  const vd = Array.isArray(o.viDu) ? o.viDu
+    .map(x=>Array.isArray(x) ? [String(x[0]||'').trim(), String(x[1]||'').trim()] : null)
+    .filter(x=>x && x[0]) : [];
+  return { nghia:String(o.nghia||'').trim(), loai:String(o.loai||'').trim(),
+           phienAm:String(o.phienAm||'').trim(), dangTu:dt, viDu:vd };
+}
+// Tìm mục ĐÃ LƯU (từ hoặc cụm câu) theo đúng chữ.
+function hvTimMucDaLuu(chu){
+  const c = String(chu||'').trim().toLowerCase();
+  if(!c) return null;
+  const trong = (kho)=>(kho||[]).filter(Boolean).find(x=>String(x.chu||'').trim().toLowerCase() === c);
+  return trong(hvKhoTu()) || trong(hvKhoCau()) || null;
+}
+async function vocabLayChiTiet(n){
+  const w = vocabWordByN(n);
+  if(!w) return;
+  const muc = hvTimMucDaLuu(w[1]);
+  if(!muc){
+    showToast('ℹ️','Từ này đã có sẵn chi tiết','Nút lấy chi tiết chỉ dành cho từ bạn tự lưu khi xem video.');
+    return;
+  }
+  if(!SETTINGS.geminiApiKey){
+    showToast('🔑','Chưa có khoá AI','Vào Cài đặt dán khoá Gemini rồi bấm lại.'); return;
+  }
+  if(geminiConLai() <= 0){
+    showToast('⏳','Hết hạn mức AI hôm nay','Hạn mức đặt lại lúc 0:00. Nghĩa của từ vẫn dùng học bình thường.');
+    return;
+  }
+  STATE.vocabDangLay = n;
+  try{ renderContentPreserveScroll(); }catch(_){}
+  try{
+    const r = await hvChiTietTuAI(muc.chu, muc.cauEn || '');
+    if(r){
+      if(r.nghia)   muc.nghia   = r.nghia;
+      if(r.loai)    muc.loai    = r.loai;
+      if(r.phienAm) muc.phienAm = r.phienAm;
+      if(r.dangTu && Object.keys(r.dangTu).length) muc.dangTu = r.dangTu;
+      if(r.viDu && r.viDu.length){
+        muc.viDu   = r.viDu[0][0];
+        muc.viDuVi = r.viDu[0][1] || '';
+        muc.viDuThem = r.viDu.slice(1);
+      }
+      muc.chiTiet = true;
+      saveSettings(); pushToDrive();
+      try{ vocabGopTuVideo(); sentGopTuVideo(); }catch(_){}
+      showToast('✅','Đã lấy chi tiết', 'Có phiên âm, các dạng từ và ' + (r.viDu||[]).length + ' câu ví dụ.');
+    }else{
+      showToast('⚠️','AI trả về không đọc được','Thử lại sau một chút.');
+    }
+  }catch(e){
+    STATE.hvLoi = null;
+    showToast('⚠️','Chưa lấy được chi tiết', hvLoiThanThien(e));
+  }
+  STATE.vocabDangLay = null;
+  try{ renderContentPreserveScroll(); }catch(_){}
+}
 // Nối các từ/cụm bạn tự lưu khi xem video vào NGAY SAU ngân hàng gốc, để chúng dùng chung mọi thứ:
 // gói học mỗi ngày, lịch lặp lại ngắt quãng, và tất cả dạng bài tập đã có.
 const VOC_CHU_DE_VIDEO = 'video';
@@ -8985,9 +9082,11 @@ function vocabGopTuVideo(){
     }
     if(x.n !== nMoi){ x.n = nMoi; doi = true; }
     // Ô thứ 8 (chỉ số 7) là bảng các dạng từ — đúng ô mà màn Luyện từ vựng đã biết cách hiện.
+    // Ô thứ 9 (chỉ số 8) = mấy câu ví dụ phụ, đúng ô mà màn Luyện từ vựng đã biết cách hiện.
     VOCAB_DATA.words.push([nMoi, x.chu, x.loai || 'cụm từ', VOC_CHU_DE_VIDEO,
                            x.nghia, x.viDu || x.cauEn || '', x.viDuVi || x.vi || '',
-                           (x.dangTu && Object.keys(x.dangTu).length) ? x.dangTu : undefined]);
+                           (x.dangTu && Object.keys(x.dangTu).length) ? x.dangTu : undefined,
+                           (Array.isArray(x.viDuThem) && x.viDuThem.length) ? x.viDuThem : undefined]);
   });
   // Đưa vào đầu thứ tự học: đây là từ CHÍNH BẠN chọn khi đang nghe, nên đáng học trước.
   if(Array.isArray(VOCAB_DATA.learnOrder)){
@@ -9040,6 +9139,21 @@ function vocabAttachPhonetic(word, elId){
 const VOCAB_FORM_LABELS = {n:'Danh từ', n2:'Danh từ', n3:'Danh từ', v:'Động từ', v2:'Động từ', adj:'Tính từ', adj2:'Tính từ', adv:'Trạng từ', adv2:'Trạng từ'};
 // Hiện các dạng từ loại khác (danh từ/động từ/tính từ/trạng từ) của từ đang học, nếu dữ liệu có (word[7]).
 // Chỉ 1 phần từ vựng (lô đầu) đã có dữ liệu này — các từ còn lại sẽ được bổ sung dần ở các bản cập nhật sau.
+// v211: nút xin AI bổ sung chi tiết cho từ mình tự lưu khi xem video. Từ trong ngân hàng gốc đã
+// đủ sẵn nên không bày nút, khỏi tốn lượt vô ích.
+function vocabNutChiTietHtml(word){
+  if(!word || word[3] !== VOC_CHU_DE_VIDEO) return '';
+  const n = word[0];
+  if(STATE.vocabDangLay === n){
+    return `<div class="voc-ct dang">🤖 Đang hỏi AI chi tiết của từ này…</div>`;
+  }
+  const duCt = !!(word[7] && Object.keys(word[7]).length) && Array.isArray(word[8]) && word[8].length;
+  if(duCt) return `<div class="voc-ct xong">✓ Đã có phiên âm, các dạng từ và câu ví dụ</div>`;
+  return `<button class="form-btn voc-ct-nut" data-action="vocab-chitiet" data-n="${n}">
+      🤖 Lấy chi tiết đầy đủ (1 lượt AI)
+      <i>phiên âm · các dạng từ · 4 câu ví dụ có dịch</i>
+    </button>`;
+}
 function vocabFormsHtml(forms){
   if(!forms || typeof forms!=='object' || !Object.keys(forms).length) return '';
   const chips = Object.keys(forms).map(k=>`<div class="vocab-form-chip"><span class="vfc-label">${escapeHtml(VOCAB_FORM_LABELS[k]||k)}</span><span class="vfc-word">${escapeHtml(forms[k])}</span></div>`).join('');
@@ -9699,6 +9813,7 @@ function renderVocabSession(){
       <div class="eng-quiz-actions" style="justify-content:center;">
         <button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe phát âm</button>
       </div>
+      ${vocabNutChiTietHtml(word)}
       ${extraExHtml}
       <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-intro-continue">Đã hiểu, bắt đầu luyện →</button>
     </div>`;
@@ -14474,8 +14589,11 @@ async function hvDichMienPhi(cau){
   const doan = (j && j[0]) ? j[0] : [];
   return doan.map(x=>(x && x[0]) ? x[0] : '').join('').trim();
 }
-async function hvHoiDich(cau){
-  const nhac = 'Dịch từng câu tiếng Anh dưới đây sang tiếng Việt tự nhiên, đúng văn nói.\n'
+async function hvHoiDich(cau, boiCanh){
+  const nhac = (boiCanh ? ('Đây là lời thoại liên tiếp của MỘT video. Bối cảnh xung quanh:\n"'
+                 + String(boiCanh).slice(0, 900) + '"\n\n') : '')
+    + 'Dịch từng câu tiếng Anh dưới đây sang tiếng Việt tự nhiên, đúng văn nói, BÁM ĐÚNG mạch của '
+    + 'đoạn hội thoại trên (đại từ, chủ ngữ ẩn, câu nói tắt phải hiểu theo câu trước).\n'
     + 'Trả về DUY NHẤT JSON dạng {"vi":["câu 1","câu 2", ...]} — đúng thứ tự, ĐÚNG '
     + cau.length + ' phần tử, không thêm không bớt. Không giải thích gì thêm.\n\n'
     + cau.map((x,i)=>(i+1) + '. ' + x).join('\n');
@@ -14494,6 +14612,30 @@ async function hvHoiDich(cau){
   if(!Array.isArray(vi) || vi.length !== cau.length) return null;
   return vi.map(x=>String(x||'').trim());
 }
+// v211 — DỊCH THEO NGỮ CẢNH.
+// Dịch lẻ từng câu thì mất mạch: "That's it." đứng một mình dịch kiểu khác hẳn khi nó nằm sau
+// "So you just press this button." Nay gửi CẢ CỤM mấy câu liền nhau trong một lượt để bên dịch
+// nhìn thấy trước sau. Ghép lại chỉ nhận khi số đoạn khớp đúng — lệch là bỏ, quay về dịch lẻ.
+const HV_DICH_CUM = 5;          // mỗi lượt gửi mấy câu liền nhau
+async function hvDichMienPhiCum(cau){
+  const u = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q='
+          + encodeURIComponent(cau.join('\n').slice(0, 1800));
+  const res = await fetch(u);
+  if(!res.ok) throw new Error('Đường dịch miễn phí trả về ' + res.status);
+  const j = await res.json();
+  const doan = (j && j[0]) ? j[0] : [];
+  // Gom các mảnh theo đúng số dòng đã gửi: mỗi mảnh mang theo nguyên văn ở ô [1], dựa vào dấu
+  // xuống dòng trong đó để biết mảnh nào thuộc câu nào.
+  const ra = []; let cur = '';
+  for(const m of doan){
+    const dich = (m && m[0]) ? String(m[0]) : '';
+    const goc  = (m && m[1]) ? String(m[1]) : '';
+    cur += dich;
+    if(/\n/.test(goc) || /\n/.test(dich)){ ra.push(cur.replace(/\n/g,' ').trim()); cur = ''; }
+  }
+  if(cur.trim()) ra.push(cur.replace(/\n/g,' ').trim());
+  return (ra.length === cau.length) ? ra : null;      // lệch dòng thì bỏ, để bên gọi dịch lẻ
+}
 async function hvDichLoiThoai(vidId){
   const rec = hvTimBatKy(vidId);
   if(!rec || !Array.isArray(rec.lines) || !rec.lines.length) return;
@@ -14502,16 +14644,23 @@ async function hvDichLoiThoai(vidId){
   STATE.hvDangDich = {xong:0, tong:thieu.length, cach:'mienphi'};
   const veLai = ()=>{ try{ if(STATE.hvPhien) hvVeTam({giuCuon:true}); else renderContentPreserveScroll(); }catch(_){} };
   veLai();
-  // ĐƯỜNG 1 — miễn phí, không đụng tới hạn mức AI. Chạy 4 câu một lượt cho nhanh.
+  // ĐƯỜNG 1 — miễn phí, không đụng tới hạn mức AI. Gửi từng CỤM câu liền nhau để dịch bám ngữ
+  // cảnh; cụm nào ghép lệch dòng thì mới hạ xuống dịch lẻ từng câu.
   let hong = 0;
-  for(let i=0;i<thieu.length && hong < 6; i+=HV_DICH_SONG_SONG){
-    const nhom = thieu.slice(i, i+HV_DICH_SONG_SONG);
-    await Promise.all(nhom.map(async k=>{
-      try{
-        const vi = await hvDichMienPhi(rec.lines[k].en);
-        if(vi) rec.lines[k].vi = vi; else hong++;
-      }catch(_){ hong++; }
-    }));
+  for(let i=0;i<thieu.length && hong < 6; i+=HV_DICH_CUM){
+    const nhom = thieu.slice(i, i+HV_DICH_CUM);
+    let theoCum = null;
+    try{ theoCum = await hvDichMienPhiCum(nhom.map(k=>rec.lines[k].en)); }catch(_){ theoCum = null; }
+    if(theoCum){
+      nhom.forEach((k,z)=>{ if(theoCum[z]) rec.lines[k].vi = theoCum[z]; });
+    }else{
+      await Promise.all(nhom.map(async k=>{
+        try{
+          const vi = await hvDichMienPhi(rec.lines[k].en);
+          if(vi) rec.lines[k].vi = vi; else hong++;
+        }catch(_){ hong++; }
+      }));
+    }
     STATE.hvDangDich.xong = Math.min(thieu.length, i + nhom.length);
     veLai();
   }
@@ -14525,7 +14674,10 @@ async function hvDichLoiThoai(vidId){
     veLai();
     try{
       for(const phan of lo){
-        const vi = await hvHoiDich(phan.map(i=>rec.lines[i].en));
+        // đưa vài câu trước và sau làm bối cảnh, để AI dịch không lạc mạch
+        const a = Math.max(0, phan[0] - 2), b = Math.min(rec.lines.length, phan[phan.length-1] + 3);
+        const boiCanh = rec.lines.slice(a, b).map(x=>x.en).join(' ');
+        const vi = await hvHoiDich(phan.map(i=>rec.lines[i].en), boiCanh);
         if(vi) phan.forEach((i,k)=>{ if(vi[k]) rec.lines[i].vi = vi[k]; });
         STATE.hvDangDich.xong++;
         veLai();
@@ -17726,6 +17878,8 @@ function sdBatBam(){
   sdNgungBam();
   sdBamTimer = setInterval(()=>{
     const s = STATE.sdPhien; if(!s){ sdNgungBam(); return; }
+    // v211: đang nghe lại bản ghi của mình thì để yên cho nó tô chữ, đừng giành.
+    if(sdDangNgheBan) return;
     if(!sdPlayer || typeof sdPlayer.getCurrentTime!=='function') return;
     let gy = 0;
     try{ gy = sdPlayer.getCurrentTime() || 0; }catch(_){ return; }
@@ -17952,27 +18106,53 @@ function sdChuTheoTiLe(moc, ti, n){
   }
   return j;
 }
-// v210: nghe lại giọng mình thì chữ chạy theo, giống lúc nghe video — dễ soi chỗ nào mình đọc
-// vấp, chỗ nào ngắt sai nhịp.
+// v211 — nghe lại giọng mình thì chữ chạy NGAY TRÊN KHUNG LỜI THOẠI, đúng dòng mình vừa đọc.
+// Bản v210 chỉ tô trong ô nhỏ dưới bản ghi, mà ô đó lại hay trống vì không lấy được câu; nhìn ra
+// ngoài đúng như "chữ không chạy". Nay tô thẳng vào dòng lời thoại — chỗ mắt đang nhìn.
+let sdDangNgheBan = false;      // đang nghe lại bản ghi → nhịp bám video nhường sân, khỏi giành nhau
+function sdBanDongIdx(el){
+  const row = el && el.closest ? el.closest('.sd-ban-row') : null;
+  const v = row && row.getAttribute ? row.getAttribute('data-idx') : null;
+  const i = (v == null) ? -1 : parseInt(v, 10);
+  return (isNaN(i) || i < 0) ? -1 : i;
+}
 function sdBanChay(el){
   try{
-    const row = el && el.closest ? el.closest('.sd-ban-row') : null;
-    const box = row && row.querySelector ? row.querySelector('.sd-ban-tx') : null;
-    if(!box || !box.querySelectorAll) return;
-    const ws = box.querySelectorAll('.sd-bw');
-    if(!ws || !ws.length) return;
+    const i = sdBanDongIdx(el);
+    if(i < 0) return;
+    sdDangNgheBan = true;
+    const dong = document.getElementById('sd-line-' + i);
+    const oChu = document.getElementById('sd-x-' + i);
+    if(!dong || !oChu) return;
+    // Dòng đang nghe lại: sáng lên như lúc video chạy tới đó.
+    try{ sdXoaVetSang(); }catch(_){}
+    dong.classList.add('dang');
+    const s = STATE.sdPhien;
+    const rec = s ? sdTimVideo(s.vidId) : null;
+    const ds = rec ? sdDongLoi(rec) : [];
+    const cau = (ds[i] && ds[i].en) ? String(ds[i].en) : '';
+    if(!cau) return;
+    const tu = cau.trim().split(/\s+/).filter(Boolean);
+    // Dựng ô cho từng chữ nếu chưa có (lần đầu nghe lại dòng này).
+    if(!oChu.querySelectorAll || !oChu.querySelectorAll('.sd-w').length){
+      oChu.innerHTML = tu.map((w,j)=>`<span class="sd-w" id="sdW${j}">${escapeHtml(w)}</span>`).join(' ');
+    }
+    const ws = oChu.querySelectorAll('.sd-w');
     const dai = (el.duration && isFinite(el.duration) && el.duration > 0) ? el.duration : 0;
     const ti = dai ? Math.min(1, (el.currentTime || 0) / dai) : 0;
     let moc = [];
-    try{ moc = JSON.parse(box.getAttribute('data-moc') || '[]'); }catch(_){ moc = []; }
-    const j = el.paused && !el.currentTime ? -1 : sdChuTheoTiLe(moc, ti, ws.length);
-    for(let k = 0; k < ws.length; k++) ws[k].classList.toggle('now', k === j);
+    try{ moc = hvMocChu(cau.trim()) || []; }catch(_){ moc = []; }
+    const j0 = sdChuTheoTiLe(moc, ti, ws.length);
+    for(let k = 0; k < ws.length; k++) ws[k].classList.toggle('now', k === j0);
+    try{ hvCuonToiDong(dong, 'sdTran', false); }catch(_){}
   }catch(_){}
 }
 function sdBanThoiChay(el){
+  sdDangNgheBan = false;
   try{
-    const row = el && el.closest ? el.closest('.sd-ban-row') : null;
-    const ws = row && row.querySelectorAll ? row.querySelectorAll('.sd-bw') : [];
+    const i = sdBanDongIdx(el);
+    const oChu = (i >= 0) ? document.getElementById('sd-x-' + i) : null;
+    const ws = (oChu && oChu.querySelectorAll) ? oChu.querySelectorAll('.sd-w') : [];
     for(let k = 0; k < ws.length; k++) ws[k].classList.remove('now');
   }catch(_){}
 }
@@ -17984,10 +18164,9 @@ function sdBanHtml(s){
         const tu = String(b.en||'').trim().split(/\s+/).filter(Boolean);
         let moc = [];
         try{ moc = tu.length ? (hvMocChu(String(b.en||'').trim()) || []) : []; }catch(_){ moc = []; }
-        return `<div class="sd-ban-row ${i===0?'moi':''}">
-          <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}</div>
-          ${tu.length ? `<div class="sd-ban-tx" data-moc="${escapeHtml(JSON.stringify(moc))}">${
-            tu.map((w,j)=>`<span class="sd-bw" id="sdB${i}w${j}">${escapeHtml(w)}</span>`).join(' ')}</div>` : ''}
+        return `<div class="sd-ban-row ${i===0?'moi':''}" data-idx="${(b.idx==null?-1:b.idx)}">
+          <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
+            tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</div>
           <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"
                  ontimeupdate="sdBanChay(this)" onended="sdBanThoiChay(this)" onpause="sdBanThoiChay(this)"></audio>
         </div>`;}).join('')}
@@ -18181,14 +18360,14 @@ async function sdBatDauGhi(){
       // Trình phát thứ hai được dựng NGAY tại đây — đúng yêu cầu "instantly generate a secondary player".
       const url = URL.createObjectURL(blob);
       cur.ban = cur.ban || [];
-      // v210: nhớ luôn CÂU vừa đọc, để lúc nghe lại có chữ chạy theo giọng của mình.
-      let cauDoc = '';
+      // v211: câu đã được ghi nhớ từ lúc BẮT ĐẦU ghi (cur.ghiIdx) — chắc ăn hơn hỏi lại lúc dừng.
+      let cauDoc = '', iDoc = -1;
       try{
         const recc = sdTimVideo(cur.vidId); const dsx = recc ? sdDongLoi(recc) : [];
-        const ix = sdDongDangChon();
-        if(ix >= 0 && dsx[ix]) cauDoc = String(dsx[ix].en || '');
+        iDoc = (typeof cur.ghiIdx === 'number' && cur.ghiIdx >= 0) ? cur.ghiIdx : sdDongDangChon();
+        if(iDoc >= 0 && dsx[iDoc]) cauDoc = String(dsx[iDoc].en || '');
       }catch(_){}
-      cur.ban.unshift({url, giay: cur.giay||0, en: cauDoc,
+      cur.ban.unshift({url, giay: cur.giay||0, en: cauDoc, idx: iDoc,
         luc: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       // Giữ tối đa 3 bản gần nhất; bản cũ hơn giải phóng luôn để không rò bộ nhớ.
       while(cur.ban.length > 3){ const bo = cur.ban.pop(); try{ URL.revokeObjectURL(bo.url); }catch(_){} }
@@ -18204,6 +18383,9 @@ async function sdBatDauGhi(){
   try{ sdRec.start(); }
   catch(e){ s.loi = 'Không bắt đầu ghi âm được.'; sdDonStream(); if(!sdVe('sdErrWrap')) renderContent(); return; }
   s.dangGhi = true; s.giay = 0; s.loi = null;
+  // v211: nhớ câu đang đọc NGAY LÚC BẮT ĐẦU ghi. Bản v210 lấy lúc DỪNG ghi — khi đó video đã
+  // trôi sang câu khác hoặc bỏ chọn, nên hay không lấy được câu nào, và về sau chữ không chạy.
+  try{ s.ghiIdx = sdDongDangChon(); }catch(_){ s.ghiIdx = -1; }
   // Bấm ghi là câu đang chọn chạy lại TỪ ĐẦU, và tiếng video hạ xuống mức bạn đã đặt.
   sdApVidVol();
   if(sdChayLaiCauDangChon() < 0){
@@ -23734,6 +23916,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvDongEl){ hvDongPhien(); return; }
   const hvVaEl = e.target.closest('[data-action="hv-va-loi"]');
   if(hvVaEl){ e.stopPropagation(); const p0 = STATE.hvPhien; if(p0) hvLayNotPhanThieu(p0.vidId); return; }
+  const vocCtEl = e.target.closest('[data-action="vocab-chitiet"]');
+  if(vocCtEl){ e.stopPropagation(); vocabLayChiTiet(+vocCtEl.getAttribute('data-n')); return; }
   const dvSoEl = e.target.closest('[data-action="dv-socau"]');
   if(dvSoEl){ e.stopPropagation(); dvDatSoCau(+dvSoEl.getAttribute('data-v')); return; }
   const hvChamEl = e.target.closest('[data-action="hv-cham-cau"]');
