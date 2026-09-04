@@ -2324,7 +2324,22 @@
 .sd-bw{transition:color .12s;}
 .sd-bw.now{color:#FFC94A;border-bottom:2px solid #FFC94A;font-weight:700;}
 .sd-ban .sd-audio{height:30px;}
-.sd-ban-lb{font-size:10px;color:var(--dim2);font-family:var(--mono);margin-bottom:5px;}
+.sd-ban-lb{font-size:10px;color:var(--dim2);font-family:var(--mono);margin-bottom:5px;display:flex;align-items:center;gap:8px;}
+.sd-ban-lb>span{flex:1;min-width:0;}
+.sd-ban-xoa{flex:none;width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.1);color:#FF6B6B;font-size:11px;font-weight:800;line-height:1;cursor:pointer;padding:0;}
+.sd-ban-xoa:active{background:rgba(255,107,107,.25);}
+.sd-dem{margin-top:7px;font-size:13px;font-weight:800;color:#FFC94A;font-family:var(--mono);min-height:17px;}
+.hv-kt{margin-top:11px;border-radius:11px;padding:10px 12px;border:1px solid var(--border);background:var(--panel2,rgba(255,255,255,.03));font-size:11.5px;line-height:1.75;}
+.hv-kt.tot{border-color:rgba(44,219,168,.45);}
+.hv-kt.xau{border-color:rgba(255,201,74,.5);}
+.hv-kt-h{font-size:12px;font-weight:800;margin-bottom:6px;}
+.hv-kt.tot .hv-kt-h{color:#2CDBA8;}
+.hv-kt.xau .hv-kt-h{color:#FFC94A;}
+.hv-kt-xt{margin-top:8px;border-top:1px solid var(--border);padding-top:8px;}
+.hv-kt-xt-lb{font-size:10px;color:var(--dim2);font-family:var(--mono);margin-bottom:5px;}
+.hv-kt-cau{font-size:11.5px;color:var(--text);line-height:1.8;padding:2px 0;}
+.hv-kt-cau b{color:#7FB3FF;font-family:var(--mono);font-size:10px;margin-right:6px;}
+.hv-kt-nut{margin-top:10px;width:100%;}
 .sd-audio{width:100%;height:38px;}
 .sd-ban-tip{font-size:11px;color:var(--dim);line-height:1.7;padding-top:9px;border-top:1px solid var(--border);}
 .sd-ban-tip b{color:var(--text);}
@@ -3186,7 +3201,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v212';
+const APP_VERSION = 'v213';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14952,6 +14967,8 @@ function renderHocVideoPhien(item){
       <div class="card" style="padding:16px;">
         ${hvHuongDanChepHtml()}
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:240px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
+        <button class="form-btn" data-action="sd-kt-dau" style="width:100%; margin-top:10px;">🔍 Kiểm tra dấu câu trước khi lưu</button>
+        <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
     return;
@@ -17740,6 +17757,121 @@ function geminiHanMucHtml(){
     </div>
   </div>`;
 }
+// ══════════════════════════════════════════════════════════════════════════
+// v213 — KIEM TRA DAU CAU TRUOC KHI LUU LOI THOAI
+// Phu de tu dong cua YouTube phan lon KHONG co dau cham cau. Khong co dau thi may chi con
+// cach doan cho ngat theo khoang lang + do dai, va doan sai la ca bai vo cau — dung roi moi
+// biet thi mat cong dan lai tu dau. Nay bam mot nut la biet ngay, va sua duoc ngay tai cho.
+// ══════════════════════════════════════════════════════════════════════════
+function hvKtDau(raw){
+  const txt = String(raw||'').trim();
+  if(!txt) return {trong:true};
+  let doc = null;
+  try{ doc = hvDocLoiDan(txt); }catch(_){ doc = null; }
+  const lines = (doc && doc.lines) ? doc.lines : [];
+  const chu = lines.length ? lines.map(l=>String(l.en||'')).join(' ') : txt;
+  const soTu = chu.split(/\s+/).filter(Boolean).length;
+  const soDau = (chu.match(/[.!?…]/g) || []).length;
+  let coDau = false;
+  try{ coDau = lines.length ? hvCoDauCau(lines) : (soDau >= 2 && soDau >= soTu/40); }catch(_){ coDau = false; }
+  // Cat thu y HET nhu luc chay that, de nhin thay dung cai minh se nhan duoc.
+  let xem = [];
+  try{
+    if(lines.length){
+      let ls = hvGopCauVo(lines.slice());
+      if(!hvCoDauCau(ls)) ls = hvCatDongDai(ls);
+      xem = (ls||[]).slice(0, 6).map(l=>({t: l.t, en: String(l.en||'')}));
+    }
+  }catch(_){ xem = []; }
+  // Khong co moc gio thi cat tho theo dau cham. Viet bang replace + split chu KHONG dung
+  // lookbehind (?<=...) — engine cu khong hieu la ca file script chet ngay tu luc doc.
+  if(!xem.length){
+    xem = chu.replace(/([.!?…])\s+/g, '$1\u0001').split('\u0001')
+             .filter(c=>c.trim()).slice(0,6).map(c=>({t:null, en:c.trim()}));
+  }
+  return {trong:false, coMoc: lines.length, soTu, soDau, coDau, xem};
+}
+function hvKtDauHtml(k){
+  if(!k) return '';
+  if(k.trong) return `<div class="hv-kt xau"><div class="hv-kt-h">✍️ Ô lời thoại đang trống</div>Dán bản chép lời copy từ YouTube vào rồi bấm kiểm tra lại.</div>`;
+  const mocTxt = k.coMoc ? ('Đọc được <b>' + k.coMoc + '</b> đoạn có mốc giờ.') : 'Không thấy mốc giờ nào — chỉ dùng để đọc chữ, không bấm dòng tua video được.';
+  const dauTxt = k.coDau
+    ? ('Có <b>' + k.soDau + '</b> dấu chấm câu trên <b>' + k.soTu + '</b> chữ — <b>cắt câu theo dấu chấm</b>, mỗi dòng đúng một câu.')
+    : ('Chỉ có <b>' + k.soDau + '</b> dấu chấm câu trên <b>' + k.soTu + '</b> chữ — <b>gần như không có dấu</b>. Máy phải đoán chỗ ngắt theo khoảng lặng và độ dài, nên câu sẽ bị cắt lệch nhiều.');
+  const con = (typeof geminiConLai === 'function') ? geminiConLai() : 0;
+  const nut = k.coDau ? ''
+    : (!SETTINGS.geminiApiKey
+        ? `<div class="hv-kt-xt" style="color:var(--dim);">Muốn AI chấm câu hộ thì vào Cài đặt → Hội thoại AI dán khoá Gemini trước.</div>`
+        : (con > 0
+            ? `<button class="form-btn eng-quiz-nextbtn hv-kt-nut" data-action="sd-cham-dau">✨ Để AI chấm câu ngay tại đây (~${Math.max(1, Math.ceil(k.soTu / HV_CHAM_LO))} lượt, còn ${con})</button>`
+            : `<div class="hv-kt-xt" style="color:var(--dim);">Hạn mức AI hôm nay đã hết. Vẫn lưu được, nhưng câu sẽ cắt theo khoảng lặng.</div>`));
+  const xem = (k.xem||[]).map((c,i)=>`<div class="hv-kt-cau">${c.t!=null?('<b>'+sdFmt(Math.floor(c.t))+'</b>'):''}${escapeHtml(c.en)}</div>`).join('');
+  return `<div class="hv-kt ${k.coDau?'tot':'xau'}">
+    <div class="hv-kt-h">${k.coDau ? '✅ Phụ đề này có dấu câu — cắt câu sẽ chuẩn' : '⚠️ Phụ đề này thiếu dấu câu — cắt câu sẽ lệch'}</div>
+    <div>${mocTxt}</div>
+    <div>${dauTxt}</div>
+    ${xem ? `<div class="hv-kt-xt"><div class="hv-kt-xt-lb">Lưu xong sẽ cắt ra như thế này:</div>${xem}</div>` : ''}
+    ${nut}
+  </div>`;
+}
+function sdKtDau(){
+  const el = document.getElementById('sdLoiSua');
+  if(!el) return;
+  STATE.sdKtDau = hvKtDau(el.value);
+  const w = document.getElementById('sdKtWrap');
+  if(w) w.innerHTML = hvKtDauHtml(STATE.sdKtDau); else renderContent();
+}
+// Cham cau NGAY TREN O NHAP, giu nguyen moc gio: hoi AI theo tung me chu, ghep lai theo tung
+// chu goc (hvGhepChamCau tu choi neu AI viet lai bai), roi dung lai van ban dan dang
+// "mm:ss / cau" — dung dinh dang YouTube nen luu vao la chay ngay.
+async function sdChamDauAI(){
+  const el = document.getElementById('sdLoiSua');
+  if(!el){ showToast('⚠️','Không đọc được ô nhập','Đóng rồi mở lại màn dán lời thoại.'); return; }
+  if(!SETTINGS.geminiApiKey){ showToast('🔑','Chưa có khoá AI','Vào Cài đặt → Hội thoại AI dán khoá Gemini.'); return; }
+  let doc = null;
+  try{ doc = hvDocLoiDan(el.value); }catch(_){ doc = null; }
+  if(!doc || !(doc.lines||[]).length){ showToast('⚠️','Chưa thấy mốc giờ','Chép cả phần mốc giờ từ YouTube vào thì AI mới chấm câu mà vẫn giữ được mốc.'); return; }
+  const tu = hvTuTheoMoc(doc.lines);
+  if(!tu.length){ showToast('⚠️','Không đọc được chữ nào',''); return; }
+  const lo = [];
+  for(let i=0;i<tu.length;i+=HV_CHAM_LO) lo.push(tu.slice(i, i+HV_CHAM_LO));
+  const w = document.getElementById('sdKtWrap');
+  const ve = t => { if(w) w.innerHTML = `<div class="hv-kt xau"><div class="hv-kt-h">🤖 AI đang chấm câu…</div>${t}</div>`; };
+  ve('Đang xử lý mẻ 1/' + lo.length + '. Đừng rời màn hình này.');
+  const raTu = [];
+  let hong = 0;
+  try{
+    for(let i=0;i<lo.length;i++){
+      const phan = lo[i];
+      let ghep = null;
+      try{ ghep = hvGhepChamCau(phan, await hvHoiChamCau(phan.map(x=>x.w).join(' '))); }
+      catch(e){ hong++; if(hong >= 2) throw e; }
+      if(!ghep) hong++;
+      phan.forEach((x,k)=> raTu.push({w: (ghep ? ghep[k] : x.w), t: x.t}));
+      ve('Xong ' + (i+1) + '/' + lo.length + ' mẻ.');
+    }
+  }catch(e){
+    STATE.sdKtDau = hvKtDau(el.value);
+    if(w) w.innerHTML = hvKtDauHtml(STATE.sdKtDau);
+    showToast('⚠️','AI chấm câu không xong', String((e&&e.message)||e).slice(0,140));
+    return;
+  }
+  // Dung lai van ban: moi cau mot khoi, mo dau bang moc gio cua chu dau cau.
+  const khoi = [];
+  let cur = [], tDau = null;
+  for(const x of raTu){
+    if(tDau == null) tDau = x.t;
+    cur.push(x.w);
+    if(/[.!?…]["')\]]?$/.test(x.w)){
+      khoi.push({t: tDau, en: cur.join(' ')}); cur = []; tDau = null;
+    }
+  }
+  if(cur.length) khoi.push({t: tDau, en: cur.join(' ')});
+  el.value = khoi.map(k=> (k.t!=null ? sdFmt(Math.floor(k.t)) + '\n' : '') + k.en).join('\n');
+  STATE.sdKtDau = hvKtDau(el.value);
+  if(w) w.innerHTML = hvKtDauHtml(STATE.sdKtDau);
+  showToast('✅','Đã chấm câu xong', 'Cắt ra ' + khoi.length + ' câu, mốc giờ giữ nguyên. Xem thử bên dưới rồi bấm 💾 Lưu lời thoại.');
+}
 function sdLuuLoi(){
   // Lấy video theo phiên nào ĐANG mở: Shadowing riêng lẻ, hoặc màn gộp "Học theo video".
   const vid = (STATE.sdPhien||{}).vidId || (STATE.hvPhien||{}).vidId;
@@ -18112,7 +18244,8 @@ function sdNutGhiHtml(s){
   const ghi = s.dangGhi
     ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> Dừng · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
     : `<button class="sd-mic" data-action="sd-ghi-bat">🎙️ Ghi âm</button>`;
-  return ghi + `<div class="sd-ghi-ct">Bấm ghi âm là câu đang chọn chạy lại từ đầu. Micro đã bật khử vọng và lọc tạp âm; muốn bản ghi sạch tuyệt đối thì đeo tai nghe, hoặc để "Tiếng video khi ghi" ở mức Nhỏ/Tắt.</div>`;
+  return ghi + (s.dangGhi ? `<div class="sd-dem" id="sdDemNguoc"></div>` : '')
+    + `<div class="sd-ghi-ct">Bấm ghi âm là câu đang chọn chạy lại từ đầu, có <b>2 giây lấy hơi</b> trước khi chữ bắt đầu chạy. Micro đã bật khử vọng và lọc tạp âm; muốn bản ghi sạch tuyệt đối thì đeo tai nghe, hoặc để "Tiếng video khi ghi" ở mức Nhỏ/Tắt.</div>`;
 }
 // v208: ba hàng nút xếp thành một bảng hai cột — nhãn một cột, nút một cột. Nhãn thẳng hàng,
 // nút bằng nhau, mỗi hàng một việc; không còn cảnh mỗi hàng lệch một kiểu.
@@ -18153,7 +18286,14 @@ let sdDangNgheBan = false;      // đang nghe lại bản ghi → nhịp bám vi
 // chạy theo thời gian đã ghi. Video thì vẫn đứng yên (v210) — chạy chữ là để bạn bám nhịp, không
 // phải để nghe lại.
 let sdNhipGhi = null;
-function sdNgungNhipGhi(){ if(sdNhipGhi){ clearInterval(sdNhipGhi); sdNhipGhi = null; } }
+// v213 — bam ghi xong con 2 giay lay hoi roi cau moi chay. Khoang im nay nam LUON trong ban
+// ghi, nen luc nghe lai phai bo qua dung 2 giay do (xem sdBanChay).
+const SD_TRE_GHI = 2;
+function sdNgungNhipGhi(){
+  if(sdNhipGhi){ clearInterval(sdNhipGhi); sdNhipGhi = null; }
+  const dn = document.getElementById('sdDemNguoc');
+  if(dn) dn.textContent = '';
+}
 function sdBatNhipGhi(i){
   sdNgungNhipGhi();
   if(i == null || i < 0) return;
@@ -18167,7 +18307,7 @@ function sdBatNhipGhi(i){
   try{ dai = Math.max(1, hvDaiCau(d)); }catch(_){ dai = Math.max(1, tu.length / 2.6); }
   let moc = [];
   try{ moc = hvMocChu(cau) || []; }catch(_){ moc = []; }
-  const batDau = Date.now();
+  const batDau = Date.now() + SD_TRE_GHI * 1000;   // 2 giay lay hoi truoc da
   try{ sdXoaVetSang(); }catch(_){}
   const dong = document.getElementById('sd-line-' + i);
   const oChu = document.getElementById('sd-x-' + i);
@@ -18180,6 +18320,15 @@ function sdBatNhipGhi(i){
     const o = document.getElementById('sd-x-' + i);
     const ws = (o && o.querySelectorAll) ? o.querySelectorAll('.sd-w') : [];
     if(!ws.length) return;
+    const dn = document.getElementById('sdDemNguoc');
+    const conCho = batDau - Date.now();
+    if(conCho > 0){
+      // Chua toi luc: chua to chu nao, chi dem nguoc cho minh kip lay hoi.
+      if(dn) dn.textContent = '⏳ Chuẩn bị… ' + Math.ceil(conCho / 1000);
+      for(let k=0;k<ws.length;k++) ws[k].classList.remove('now');
+      return;
+    }
+    if(dn && dn.textContent) dn.textContent = '';
     const ti = Math.min(1, (Date.now() - batDau) / 1000 / dai);
     const j0 = sdChuTheoTiLe(moc, ti, ws.length);
     for(let k=0;k<ws.length;k++) ws[k].classList.toggle('now', k === j0);
@@ -18194,7 +18343,16 @@ function sdBanDongIdx(el, i){
   const k = (v == null) ? -1 : parseInt(v, 10);
   return (isNaN(k) || k < 0) ? -1 : k;
 }
-function sdBanChay(el, iTruyen){
+// v213 — do dai THAT cua ban ghi. File .webm do MediaRecorder de ra khong ghi do dai vao
+// header, nen el.duration tra ve Infinity tren Chrome/Android; day chinh la ly do chu dung im
+// o chu dau suot v211-v212. Khong tin duoc thi dung do dai da bam gio duoc luc ghi.
+function sdBanDaiThuc(el, giayD){
+  const d = el ? el.duration : 0;
+  if(d && isFinite(d) && d > 0) return d;
+  const g = Number(giayD);
+  return (g && isFinite(g) && g > 0) ? g : 0;
+}
+function sdBanChay(el, iTruyen, giayD, tre){
   try{
     const i = sdBanDongIdx(el, iTruyen);
     if(i < 0) return;
@@ -18216,8 +18374,12 @@ function sdBanChay(el, iTruyen){
       oChu.innerHTML = tu.map((w,j)=>`<span class="sd-w" id="sdW${j}">${escapeHtml(w)}</span>`).join(' ');
     }
     const ws = oChu.querySelectorAll('.sd-w');
-    const dai = (el.duration && isFinite(el.duration) && el.duration > 0) ? el.duration : 0;
-    const ti = dai ? Math.min(1, (el.currentTime || 0) / dai) : 0;
+    const dai = sdBanDaiThuc(el, giayD);
+    // Dau ban ghi co 2 giay im (nhip dem nguoc luc bam ghi) — bo qua doan do thi chu moi
+    // chay dung nhip voi giong minh doc.
+    const bo = Math.max(0, Math.min(Number(tre) || 0, dai - 0.4));
+    const con = dai - bo;
+    const ti = con > 0 ? Math.max(0, Math.min(1, ((el.currentTime || 0) - bo) / con)) : 0;
     let moc = [];
     try{ moc = hvMocChu(cau.trim()) || []; }catch(_){ moc = []; }
     const j0 = sdChuTheoTiLe(moc, ti, ws.length);
@@ -18234,21 +18396,33 @@ function sdBanThoiChay(el, iTruyen){
     for(let k = 0; k < ws.length; k++) ws[k].classList.remove('now');
   }catch(_){}
 }
+// v213 — xoa mot doan ghi am. Giai phong luon blob URL de khong ro bo nho, va chi ve lai
+// dung khung danh sach ban ghi — dung toi iframe YouTube o day la mat video.
+function sdXoaBan(k){
+  const s = STATE.sdPhien;
+  if(!s || !Array.isArray(s.ban) || isNaN(k) || k < 0 || k >= s.ban.length) return;
+  const bo = s.ban.splice(k, 1)[0];
+  try{ if(bo && bo.url) URL.revokeObjectURL(bo.url); }catch(_){}
+  try{ sdBanThoiChay(null, -1); }catch(_){}
+  if(!sdVe('sdBanWrap')) renderContent();
+  showToast('🗑️','Đã xoá đoạn ghi âm', s.ban.length ? ('Còn ' + s.ban.length + ' đoạn.') : 'Ghi lại lúc nào cũng được.');
+}
 function sdBanHtml(s){
   if(!(s.ban||[]).length) return '';
   return `<div class="sd-ban">
       <div class="sd-ban-h">🎧 Giọng bạn vừa ghi</div>
       ${s.ban.map((b,i)=>{
         const tu = String(b.en||'').trim().split(/\s+/).filter(Boolean);
-        let moc = [];
-        try{ moc = tu.length ? (hvMocChu(String(b.en||'').trim()) || []) : []; }catch(_){ moc = []; }
-        return `<div class="sd-ban-row ${i===0?'moi':''}" data-idx="${(b.idx==null?-1:b.idx)}">
-          <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
-            tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</div>
+        const ix = (b.idx==null?-1:b.idx);
+        const gd = (b.giayD && isFinite(b.giayD)) ? Number(b.giayD).toFixed(2) : (b.giay||0);
+        const tr = (b.tre && isFinite(b.tre)) ? Number(b.tre).toFixed(2) : 0;
+        return `<div class="sd-ban-row ${i===0?'moi':''}" data-idx="${ix}">
+          <div class="sd-ban-lb"><span>${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
+            tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</span><button class="sd-ban-xoa" data-action="sd-ban-xoa" data-k="${i}" title="Xoá đoạn ghi âm này">✕</button></div>
           <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"
-                 ontimeupdate="sdBanChay(this,${(b.idx==null?-1:b.idx)})"
-                 onended="sdBanThoiChay(this,${(b.idx==null?-1:b.idx)})"
-                 onpause="sdBanThoiChay(this,${(b.idx==null?-1:b.idx)})"></audio>
+                 ontimeupdate="sdBanChay(this,${ix},${gd},${tr})"
+                 onended="sdBanThoiChay(this,${ix})"
+                 onpause="sdBanThoiChay(this,${ix})"></audio>
         </div>`;}).join('')}
       <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không.</div>
     </div>`;
@@ -18447,7 +18621,10 @@ async function sdBatDauGhi(){
         iDoc = (typeof cur.ghiIdx === 'number' && cur.ghiIdx >= 0) ? cur.ghiIdx : sdDongDangChon();
         if(iDoc >= 0 && dsx[iDoc]) cauDoc = String(dsx[iDoc].en || '');
       }catch(_){}
-      cur.ban.unshift({url, giay: cur.giay||0, en: cauDoc, idx: iDoc,
+      // v213: bam gio chinh xac tu luc bat dau ghi. Khong the trong cay vao el.duration cua
+      // the <audio> — file webm cua MediaRecorder khong co do dai trong header.
+      const giayD = cur.batLuc ? Math.max(0.3, (Date.now() - cur.batLuc) / 1000) : (cur.giay||0);
+      cur.ban.unshift({url, giay: cur.giay||0, giayD, tre: (cur.tre||0), en: cauDoc, idx: iDoc,
         luc: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       // Giữ tối đa 3 bản gần nhất; bản cũ hơn giải phóng luôn để không rò bộ nhớ.
       while(cur.ban.length > 3){ const bo = cur.ban.pop(); try{ URL.revokeObjectURL(bo.url); }catch(_){} }
@@ -18466,6 +18643,8 @@ async function sdBatDauGhi(){
   // v211: nhớ câu đang đọc NGAY LÚC BẮT ĐẦU ghi. Bản v210 lấy lúc DỪNG ghi — khi đó video đã
   // trôi sang câu khác hoặc bỏ chọn, nên hay không lấy được câu nào, và về sau chữ không chạy.
   try{ s.ghiIdx = sdDongDangChon(); }catch(_){ s.ghiIdx = -1; }
+  // v213: moc gio that + do tre dau ban ghi, de luc nghe lai chu chay dung nhip.
+  s.batLuc = Date.now(); s.tre = SD_TRE_GHI;
   // Chữ bắt đầu chạy từ chữ đầu của câu đang chọn, dẫn nhịp cho mình đọc theo.
   setTimeout(()=>{ try{ sdBatNhipGhi((STATE.sdPhien||{}).ghiIdx); }catch(_){} }, 60);
   // Bấm ghi là câu đang chọn chạy lại TỪ ĐẦU, và tiếng video hạ xuống mức bạn đã đặt.
@@ -18586,6 +18765,8 @@ function renderShadowPhien(item){
       <div class="card" style="padding:16px;">
         ${hvHuongDanChepHtml()}
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:220px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
+        <button class="form-btn" data-action="sd-kt-dau" style="width:100%; margin-top:10px;">🔍 Kiểm tra dấu câu trước khi lưu</button>
+        <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
     return;
@@ -23978,11 +24159,17 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const sdNghiaEl = e.target.closest('[data-action="sd-nghia"]');
   if(sdNghiaEl){ sdBatNghia(); return; }
   const sdLoiMoEl = e.target.closest('[data-action="sd-loi-mo"]');
-  if(sdLoiMoEl){ STATE.sdSuaLoi = true; renderContent(); window.scrollTo(0,0); return; }
+  if(sdLoiMoEl){ STATE.sdSuaLoi = true; STATE.sdKtDau = null; renderContent(); window.scrollTo(0,0); return; }
   const sdLoiHuyEl = e.target.closest('[data-action="sd-loi-huy"]');
-  if(sdLoiHuyEl){ STATE.sdSuaLoi = false; renderContent(); return; }
+  if(sdLoiHuyEl){ STATE.sdSuaLoi = false; STATE.sdKtDau = null; renderContent(); return; }
   const sdLoiLuuEl = e.target.closest('[data-action="sd-loi-luu"]');
-  if(sdLoiLuuEl){ sdLuuLoi(); return; }
+  if(sdLoiLuuEl){ STATE.sdKtDau = null; sdLuuLoi(); return; }
+  const sdKtDauEl = e.target.closest('[data-action="sd-kt-dau"]');
+  if(sdKtDauEl){ sdKtDau(); return; }
+  const sdChamDauEl = e.target.closest('[data-action="sd-cham-dau"]');
+  if(sdChamDauEl){ sdChamDauAI(); return; }
+  const sdBanXoaEl = e.target.closest('[data-action="sd-ban-xoa"]');
+  if(sdBanXoaEl){ e.stopPropagation(); sdXoaBan(parseInt(sdBanXoaEl.getAttribute('data-k'), 10)); return; }
   const hvThemMoEl = e.target.closest('[data-action="hv-them-mo"]');
   if(hvThemMoEl){ STATE.hvThem = true; STATE.hvLoi = null; renderContent(); window.scrollTo(0,0); return; }
   const hvThemHuyEl = e.target.closest('[data-action="hv-them-huy"]');
