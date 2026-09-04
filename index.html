@@ -2301,15 +2301,21 @@
 .sd-tiep.lap{background:rgba(255,255,255,.07);color:var(--dim);border:1px solid var(--border);}
 .sd-tiep:active{transform:scale(.97);}
 .sd-pl.on{background:rgba(255,201,74,.16);border-color:rgba(255,201,74,.5);color:#FFD166;}
-.sd-mic{display:block;margin:8px auto 4px;min-width:150px;border:none;border-radius:11px;
-  padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+/* v210: nút ghi âm thu nhỏ, nhường chỗ cho lời thoại. */
+.sd-mic{display:block;margin:6px auto 3px;min-width:118px;border:none;border-radius:9px;
+  padding:6px 15px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;
   background:linear-gradient(135deg,#2CDBA8,#1fa87f);color:#07130e;}
 .sd-mic.dang{background:linear-gradient(135deg,#ff5c5c,#c62f2f);color:#fff;}
 .sd-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;margin-right:5px;animation:livePulse 1.1s ease-in-out infinite;}
-.sd-ban{margin-top:14px;background:var(--panel2,rgba(255,255,255,.03));border:1px solid rgba(44,219,168,.35);border-radius:13px;padding:13px 14px;}
-.sd-ban-h{font-size:12.5px;font-weight:800;color:#2CDBA8;margin-bottom:10px;}
-.sd-ban-row{margin-bottom:11px;}
+/* v210: khối bản ghi gọn lại; thêm dòng chữ chạy theo giọng của chính mình. */
+.sd-ban{margin-top:9px;background:var(--panel2,rgba(255,255,255,.03));border:1px solid rgba(44,219,168,.3);border-radius:11px;padding:8px 10px;}
+.sd-ban-h{font-size:11px;font-weight:800;color:#2CDBA8;margin-bottom:6px;}
+.sd-ban-row{margin-bottom:7px;}
 .sd-ban-row.moi .sd-ban-lb{color:#2CDBA8;}
+.sd-ban-tx{font-size:12.5px;line-height:1.6;color:var(--dim);margin:2px 0 3px;}
+.sd-bw{transition:color .12s;}
+.sd-bw.now{color:#FFC94A;border-bottom:2px solid #FFC94A;font-weight:700;}
+.sd-ban .sd-audio{height:30px;}
 .sd-ban-lb{font-size:10px;color:var(--dim2);font-family:var(--mono);margin-bottom:5px;}
 .sd-audio{width:100%;height:38px;}
 .sd-ban-tip{font-size:11px;color:var(--dim);line-height:1.7;padding-top:9px;border-top:1px solid var(--border);}
@@ -2432,13 +2438,17 @@
 .hv-panel.hv-lat{animation:hvLat .22s ease-out;}
 @keyframes hvLat{ from{opacity:0;transform:translateX(14px);} to{opacity:1;transform:none;} }
 @media(prefers-reduced-motion:reduce){ .hv-panel.hv-lat{animation:none;} }
-.hv-l{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;border-radius:9px;cursor:pointer;
-  opacity:.92;transition:opacity .18s ease,background .18s ease;}
+/* v210 — Phụ đề dùng CHUNG một kiểu với Shadowing: cùng khoảng cách, mốc giờ là con chip, dòng
+   đang đọc tô vàng có vạch bên trái. Hai thẻ cùng một dữ liệu thì không nên nhìn ra hai kiểu. */
+.hv-l{display:flex;gap:8px;align-items:flex-start;padding:8px 7px;border-radius:9px;cursor:pointer;
+  transition:background .18s;}
 .hv-l:active{background:rgba(255,255,255,.05);}
-.hv-l.dang{opacity:1;background:rgba(126,200,255,.16);border-left:3px solid #2CDBA8;padding-left:6px;}
-.hv-t{flex:0 0 38px;font-size:10.5px;font-family:var(--mono);color:var(--dim2);padding-top:2px;}
-.hv-l.dang .hv-t{color:#2CDBA8;}
-.hv-x{flex:1;min-width:0;font-size:15px;line-height:1.65;color:#EAF2FF;}
+.hv-l.dang{background:rgba(255,201,74,.13);box-shadow:inset 3px 0 0 var(--gold);}
+.hv-t{flex:0 0 auto;background:var(--panel2,rgba(255,255,255,.05));border:1px solid var(--border);color:var(--dim);
+  border-radius:6px;padding:3px 6px;font-size:10px;font-family:var(--mono);margin-top:2px;}
+.hv-l.dang .hv-t{background:var(--gold);color:#171208;border-color:transparent;}
+.hv-x{flex:1;min-width:0;font-size:14.5px;line-height:1.75;color:var(--text);}
+.hv-l.dang .hv-x{font-weight:600;}
 /* Chữ đang được đọc tới — VÀNG, có gạch chân. */
 .hv-w.now{color:#FFC94A;border-bottom:2px solid #FFC94A;}
 /* Cụm từ thông dụng — XANH LỤC nền mờ, cố ý khác hẳn màu vàng ở trên để hai thứ không lẫn nhau:
@@ -3168,7 +3178,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v209';
+const APP_VERSION = 'v210';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -3588,15 +3598,11 @@ function navBack(){
 }
 window.addEventListener('popstate', ()=>{
   if(NAV_STACK.length){
-    // v209: mốc nào trỏ về ĐÚNG màn đang mở thì tiêu thụ luôn rồi lùi tiếp — người dùng bấm một
-    // lần là phải thấy màn hình đổi, không phải bấm hai ba lần cho hết mốc thừa.
-    try{
-      if(NAV_STACK.length > 1 && JSON.stringify(NAV_STACK[NAV_STACK.length-1]) === JSON.stringify(snapshotNav())){
-        NAV_STACK.pop();
-        history.back();
-        return;
-      }
-    }catch(_){}
+    // v210 — GỠ chốt chặn của v209. Ý định của nó là nuốt các mốc thừa, nhưng những hàm đóng
+    // phiên (hvDongPhien…) đã tự xoá STATE rồi mới gọi navBack(); lúc đó mốc trên cùng ĐÚNG BẰNG
+    // màn đang mở, chốt chặn tưởng là mốc thừa nên nuốt luôn rồi lùi thêm một nấc — bấm back
+    // trong màn video lại văng thẳng ra "Học tiếng Anh". Nay ba cặp mở/đóng đã cân nhau rồi thì
+    // không cần chốt chặn đó nữa.
     // QUAN TRỌNG: cử chỉ vuốt back (kích hoạt popstate trực tiếp, KHÔNG đi qua nút back trong app như
     // speakPracticeExit()/listenQuizExit()) trước đây KHÔNG dừng audio đang phát — giọng mẫu TTS lẫn
     // bản ghi âm "nghe lại giọng bạn" của Luyện nói/Luyện IPA, hay audio câu hỏi của Luyện nghe — nên
@@ -14011,6 +14017,19 @@ function hvDongPhien(){
   // bấm back ở màn danh sách, mốc mồ côi kéo ngược vào lại phiên video vừa đóng.
   navBack();
 }
+// v210: mỗi thẻ một tốc độ riêng. Phụ đề luôn chạy tốc độ gốc; Chép chính tả và Shadowing giữ
+// tốc độ của riêng nó. Trình phát dùng CHUNG cho cả ba thẻ nên phải đặt lại mỗi lần đổi thẻ,
+// không thì chỉnh chậm bên Chép chính tả xong sang Shadowing vẫn chậm y vậy.
+function hvTocTheoTab(tab){
+  if(tab === 'chinhta')   return (typeof dvTocDo === 'function') ? dvTocDo() : 1;
+  if(tab === 'shadowing') return (typeof sdTocDo === 'function') ? sdTocDo() : 1;
+  return 1;
+}
+function hvApTocTab(){
+  const s = STATE.hvPhien; if(!s) return;
+  const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer() : null;
+  try{ if(p && p.setPlaybackRate) p.setPlaybackRate(hvTocTheoTab(s.tab)); }catch(_){}
+}
 function hvDoiTab(tab){
   // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
@@ -14037,6 +14056,8 @@ function hvDoiTab(tab){
   s.tab = tab;
   hvVeTam();
   hvNapLaiVideo();
+  hvApTocTab();                       // đặt lại ngay
+  setTimeout(hvApTocTab, 400);        // và một lần nữa sau khi trình phát nạp xong
 }
 // Nạp lại video TỪ ĐẦU cho thẻ vừa chọn.
 // v187 làm việc này bằng cách HUỶ trình phát rồi dựng lại — và đó là lý do màn hình video đen:
@@ -14203,12 +14224,14 @@ function hvPanelHtml(rec, s){
   if(s.tab === 'shadowing'){
     const ss = STATE.sdPhien;
     if(!ss) return '<div class="sd-tran empty">Chưa mở được bài shadowing.</div>';
+    // v210: LỜI THOẠI lên ngay dưới thanh điều khiển. Trước đây nút ghi âm và mấy bản ghi chiếm
+    // hết chỗ trên, đẩy lời thoại xuống dưới màn hình — đang ghi âm mà phải vừa đọc vừa cuộn.
     return `<div id="sdErrWrap">${sdErrHtml(ss)}</div>
       <div class="sd-bar" id="sdBarWrap">${sdBarHtml(ss)}</div>
+      <div id="sdTranWrap">${sdLoiThoaiHtml(rec, ss)}</div>
       <div id="sdMicWrap">${sdNutGhiHtml(ss)}</div>
       ${!sdHoTroGhiAm() ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : ''}
       <div id="sdBanWrap">${sdBanHtml(ss)}</div>
-      <div id="sdTranWrap">${sdLoiThoaiHtml(rec, ss)}</div>
       <div class="sd-foot">Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất. Giữ tối đa 3 bản gần nhất.</div>`;
   }
   return `${hvLoiThoaiHtml(rec)}
@@ -14609,9 +14632,13 @@ async function hvDichNhungCaiThieu(){
   if(!cho.length) return;
   hvDangDich = true;
   try{
-    for(const x of cho.slice(0, 8)){          // mỗi lượt tối đa 8 mục, khỏi dội API
-      const r = await hvDichCum(x.chu, x.cauEn || '', x.vi || '');
-      if(r){ x.nghia = r.nghia; x.loai = r.loai; x.viDu = r.viDu; x.viDuVi = r.viDuVi; }
+    // v210 — SỬA LỖI: lưu một từ mà lại nhảy ra thông báo "hết hạn mức AI". Vòng dịch nền này
+    // trước đây gọi Gemini cho TỪNG mục, nên chỉ lưu vài từ là ăn hết hạn mức của cả ngày. Nay
+    // dùng đường dịch miễn phí — lưu bao nhiêu từ cũng không đụng tới một lượt AI nào.
+    for(const x of cho.slice(0, 12)){
+      let ng = null;
+      try{ ng = await hvDichMienPhi(x.chu); }catch(_){ ng = null; }
+      if(ng) x.nghia = ng;
     }
     saveSettings(); pushToDrive();
     vocabGopTuVideo(); sentGopTuVideo();
@@ -17790,7 +17817,9 @@ function sdTuaChinh(p, giay){
   };
   setTimeout(kiem, 280);
 }
-function sdTuaToiDong(i){
+// dung=true → về đầu dòng rồi DỪNG (bấm 🔁 lặp, hoặc bấm ghi âm).
+// dung=false → về đầu dòng rồi CHẠY (bấm thẳng vào một dòng để nghe câu đó).
+function sdTuaToiDong(i, dung){
   const s = STATE.sdPhien; if(!s) return;
   const rec = sdTimVideo(s.vidId); if(!rec) return;
   if(STATE.hvPhien && typeof hvLayPlayer==='function'){ if(!hvLayPlayer()) return; }
@@ -17799,14 +17828,20 @@ function sdTuaToiDong(i){
     showToast('⏱️','Dòng này chưa có mốc thời gian','Bấm "🤖 Lấy lời thoại tự động" để AI ghi lại kèm mốc thời gian, khi đó bấm dòng nào là nhảy tới đúng chỗ đó.');
     return;
   }
-  try{ sdTuaChinh(sdPlayer, sdMocPhat(ds, i)); sdPlayer.playVideo(); }catch(_){}
+  // v210: bấm 🔁 lặp thì về đầu dòng rồi DỪNG, chờ bạn bấm ▶. Còn bấm THẲNG vào một dòng để
+  // nghe câu đó thì vẫn chạy luôn như cũ — hai thao tác khác nhau, đừng gộp làm một.
+  try{
+    sdTuaChinh(sdPlayer, sdMocPhat(ds, i));
+    if(dung) sdPlayer.pauseVideo(); else sdPlayer.playVideo();
+  }catch(_){}
   sdXoaVetSang();                 // xoá vệt vàng ở dòng cũ TRƯỚC khi đặt lại mốc bám
   sdDongHienTai = -1; sdBatBam();
+  try{ hvVeNutPlay(); }catch(_){}
 }
 function sdLapDong(i){
   const s = STATE.sdPhien; if(!s) return;
   s.lapIdx = (s.lapIdx===i) ? null : i;
-  if(s.lapIdx!=null) sdTuaToiDong(i);
+  if(s.lapIdx!=null) sdTuaToiDong(i, true);     // bật lặp: về đầu dòng rồi dừng, chờ bấm ▶
   if(!(sdVe('sdBarWrap') && sdVe('sdTranWrap'))) renderContentPreserveScroll();
   if(sdPlayer) sdBatBam();
 }
@@ -17907,16 +17942,56 @@ function sdBarHtml(s){
       ${hang('🔉','Tiếng video','lúc đang ghi âm', nut(SD_VIDVOL, vv, 'sd-vidvol', null))}
     </div>`;
 }
+// Chữ thứ mấy đang được đọc, khi mới nghe được ti (0..1) đoạn ghi âm.
+function sdChuTheoTiLe(moc, ti, n){
+  if(!n) return -1;
+  let j = 0;
+  for(let k = n - 1; k >= 0; k--){
+    const m = (moc && moc[k] != null) ? moc[k] : (k / n);
+    if(ti >= m){ j = k; break; }
+  }
+  return j;
+}
+// v210: nghe lại giọng mình thì chữ chạy theo, giống lúc nghe video — dễ soi chỗ nào mình đọc
+// vấp, chỗ nào ngắt sai nhịp.
+function sdBanChay(el){
+  try{
+    const row = el && el.closest ? el.closest('.sd-ban-row') : null;
+    const box = row && row.querySelector ? row.querySelector('.sd-ban-tx') : null;
+    if(!box || !box.querySelectorAll) return;
+    const ws = box.querySelectorAll('.sd-bw');
+    if(!ws || !ws.length) return;
+    const dai = (el.duration && isFinite(el.duration) && el.duration > 0) ? el.duration : 0;
+    const ti = dai ? Math.min(1, (el.currentTime || 0) / dai) : 0;
+    let moc = [];
+    try{ moc = JSON.parse(box.getAttribute('data-moc') || '[]'); }catch(_){ moc = []; }
+    const j = el.paused && !el.currentTime ? -1 : sdChuTheoTiLe(moc, ti, ws.length);
+    for(let k = 0; k < ws.length; k++) ws[k].classList.toggle('now', k === j);
+  }catch(_){}
+}
+function sdBanThoiChay(el){
+  try{
+    const row = el && el.closest ? el.closest('.sd-ban-row') : null;
+    const ws = row && row.querySelectorAll ? row.querySelectorAll('.sd-bw') : [];
+    for(let k = 0; k < ws.length; k++) ws[k].classList.remove('now');
+  }catch(_){}
+}
 function sdBanHtml(s){
   if(!(s.ban||[]).length) return '';
   return `<div class="sd-ban">
-      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi — nghe lại và so với video ở trên</div>
-      ${s.ban.map((b,i)=>`
-        <div class="sd-ban-row ${i===0?'moi':''}">
+      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi</div>
+      ${s.ban.map((b,i)=>{
+        const tu = String(b.en||'').trim().split(/\s+/).filter(Boolean);
+        let moc = [];
+        try{ moc = tu.length ? (hvMocChu(String(b.en||'').trim()) || []) : []; }catch(_){ moc = []; }
+        return `<div class="sd-ban-row ${i===0?'moi':''}">
           <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}</div>
-          <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"></audio>
-        </div>`).join('')}
-      <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Đừng bắt lỗi từng từ — nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không. Lệch nhịp là chỗ đáng luyện lại, chứ không phải phát âm từng từ.</div>
+          ${tu.length ? `<div class="sd-ban-tx" data-moc="${escapeHtml(JSON.stringify(moc))}">${
+            tu.map((w,j)=>`<span class="sd-bw" id="sdB${i}w${j}">${escapeHtml(w)}</span>`).join(' ')}</div>` : ''}
+          <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"
+                 ontimeupdate="sdBanChay(this)" onended="sdBanThoiChay(this)" onpause="sdBanThoiChay(this)"></audio>
+        </div>`;}).join('')}
+      <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không.</div>
     </div>`;
 }
 function sdLoiThoaiHtml(rec, s){
@@ -18004,8 +18079,11 @@ function sdChayLaiCauDangChon(){
   if(i < 0 || !ds[i] || ds[i].t == null) return -1;
   const p = (STATE.hvPhien && typeof hvLayPlayer === 'function') ? hvLayPlayer() : sdPlayer;
   if(!p) return -1;
-  try{ sdTuaChinh(p, sdMocPhat(ds, i)); p.playVideo(); }catch(_){ return -1; }
+  // v210: về đúng đầu câu rồi DỪNG. Người dùng bấm ▶ mới chạy — đang chuẩn bị lấy hơi mà video
+  // tự chạy thì bao giờ cũng hụt mất một hai chữ đầu.
+  try{ sdTuaChinh(p, sdMocPhat(ds, i)); p.pauseVideo(); }catch(_){ return -1; }
   sdXoaVetSang(); sdDongHienTai = -1; sdBatBam();
+  try{ hvVeNutPlay(); }catch(_){}
   return i;
 }
 // ---- Âm lượng giọng thu + tiếng video lúc ghi ----
@@ -18103,7 +18181,15 @@ async function sdBatDauGhi(){
       // Trình phát thứ hai được dựng NGAY tại đây — đúng yêu cầu "instantly generate a secondary player".
       const url = URL.createObjectURL(blob);
       cur.ban = cur.ban || [];
-      cur.ban.unshift({url, giay: cur.giay||0, luc: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
+      // v210: nhớ luôn CÂU vừa đọc, để lúc nghe lại có chữ chạy theo giọng của mình.
+      let cauDoc = '';
+      try{
+        const recc = sdTimVideo(cur.vidId); const dsx = recc ? sdDongLoi(recc) : [];
+        const ix = sdDongDangChon();
+        if(ix >= 0 && dsx[ix]) cauDoc = String(dsx[ix].en || '');
+      }catch(_){}
+      cur.ban.unshift({url, giay: cur.giay||0, en: cauDoc,
+        luc: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       // Giữ tối đa 3 bản gần nhất; bản cũ hơn giải phóng luôn để không rò bộ nhớ.
       while(cur.ban.length > 3){ const bo = cur.ban.pop(); try{ URL.revokeObjectURL(bo.url); }catch(_){} }
       const rec = sdTimVideo(cur.vidId);
