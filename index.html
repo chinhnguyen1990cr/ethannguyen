@@ -2435,6 +2435,38 @@
 .hv-ghim{position:sticky;top:0;z-index:8;background:var(--bg,#0d1117);
   padding-bottom:8px;margin:0 -2px;box-shadow:0 10px 14px -12px rgba(0,0,0,.9);}
 .hv-vidwrap{position:relative;width:100%;max-width:520px;margin:0 auto 8px;}
+/* v214 — TOÀN MÀN HÌNH: khung video phủ kín, phụ đề nằm trong video như trên YouTube. */
+.hv-vidwrap.full{position:fixed;inset:0;width:100vw;max-width:none;height:100vh;margin:0;
+  z-index:9000;background:#000;display:flex;align-items:center;justify-content:center;}
+.hv-vidwrap.full .video-embed-wrap{width:100%;height:100%;padding-bottom:0;}
+.hv-vidwrap.full.doc{height:100vh;aspect-ratio:auto;}
+body.hv-khoa-cuon{overflow:hidden;}
+.hv-toanman{position:absolute;top:6px;right:6px;z-index:4;width:30px;height:30px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.55);color:#fff;font-size:14px;
+  line-height:1;cursor:pointer;padding:0;}
+.hv-toanman:active{background:rgba(0,0,0,.8);}
+.hv-vidwrap.full .hv-toanman{top:12px;right:12px;width:38px;height:38px;font-size:17px;}
+/* Khung phụ đề: chỉ hiện khi toàn màn hình. Ngoài toàn màn thì lời thoại đã có sẵn bên dưới rồi. */
+.hv-cap{display:none;}
+.hv-vidwrap.full .hv-cap{display:block;position:absolute;left:50%;transform:translateX(-50%);
+  bottom:9%;max-width:min(92%,900px);z-index:5;background:rgba(8,10,14,.78);border-radius:10px;
+  padding:9px 16px;text-align:center;pointer-events:none;}
+.hv-cap-en{font-size:clamp(17px,3.1vw,30px);font-weight:700;line-height:1.4;color:#FFD84D;
+  text-shadow:0 2px 6px rgba(0,0,0,.85);}
+.hv-capw{transition:color .12s;}
+.hv-capw.now{color:#fff;text-shadow:0 0 12px rgba(255,216,77,.95);}
+/* Bản dịch để MÀU KHÁC hẳn tiếng Anh, nhìn một cái là phân biệt được ngay. */
+.hv-cap-vi{margin-top:4px;font-size:clamp(13px,2.2vw,20px);font-weight:600;line-height:1.45;
+  color:#6FD8FF;text-shadow:0 2px 6px rgba(0,0,0,.85);}
+/* v214 — vạch mức tiếng vào lúc đang ghi */
+.sd-muc{display:flex;align-items:center;gap:8px;margin-top:7px;}
+.sd-muc-khung{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;}
+.sd-muc-thanh{height:100%;width:0;border-radius:99px;background:#2CDBA8;transition:width .1s linear;}
+.sd-muc-thanh.cam{background:#6B7280;}
+.sd-muc-thanh.vo{background:#FF6B6B;}
+.sd-muc-lb{flex:0 0 auto;font-size:10px;color:var(--dim2);font-family:var(--mono);}
+.sd-dieu-ct{margin-top:8px;font-size:10.5px;line-height:1.65;color:var(--dim2);}
+.sd-ban-tt{font-weight:700;color:#FFC94A;margin-left:6px;font-size:10px;}
 .hv-chip{position:absolute;left:50%;transform:translateX(-50%);bottom:9px;max-width:92%;
   background:rgba(0,0,0,.72);color:#fff;font-size:12px;line-height:1.4;padding:5px 11px;
   border-radius:8px;text-align:center;pointer-events:none;}
@@ -3201,7 +3233,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v213';
+const APP_VERSION = 'v214';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14128,6 +14160,7 @@ function hvMoPhien(id){
   window.scrollTo(0,0);
 }
 function hvDongPhien(){
+  try{ hvThoatToanMan(); }catch(_){}
   // MỌI bước dọn dẹp đều bọc lỗi riêng. Trước đây vài bước để trần: chỉ cần một bước ném lỗi là
   // hàm chết giữa chừng, phiên không được xoá, màn hình không vẽ lại — nhìn ra ngoài đúng y như
   // "bấm back không có tác dụng gì".
@@ -14331,6 +14364,7 @@ function hvSauVeTam(rec, s){
       khung.addEventListener('touchstart', hvGhiKeoTay, {passive:true});
       khung.addEventListener('wheel', hvGhiKeoTay, {passive:true});
     }
+    try{ sdGanBan(); }catch(_){}
   }
   hvNhipTheoTab();
   // Đo sau khi trình duyệt đã dựng xong bố cục — đo ngay trong cùng nhịp thì rect chưa đúng.
@@ -14548,6 +14582,87 @@ function hvPlayPause(){
   try{ if(hvDangChay()) p.pauseVideo(); else p.playVideo(); }catch(e){}
   try{ setTimeout(hvVeNutPlay, 150); }catch(e){}
 }
+// v214 — TOAN MAN HINH + PHU DE CHAY TRONG VIDEO.
+// Chay bang mot nhip rieng 150ms doc thang gio cua trinh phat, KHONG bam vao nhip cua the
+// "Phụ đề" hay "Shadowing" — nho vay bat o the nao cung chay, va the nao doi cach to sang thi
+// phu de cung khong hong theo.
+let hvCapNhip = null;
+function hvCapNgung(){
+  if(hvCapNhip){ clearInterval(hvCapNhip); hvCapNhip = null; }
+  const el = document.getElementById('hvCap');
+  if(el){ el.innerHTML = ''; el.__k = null; }
+}
+function hvCapBat(){
+  hvCapNgung();
+  hvCapNhip = setInterval(()=>{
+    const el = document.getElementById('hvCap');
+    if(!el){ hvCapNgung(); return; }
+    const s = STATE.hvPhien; if(!s){ hvCapNgung(); return; }
+    const rec = (typeof hvTim === 'function' ? hvTim(s.vidId) : null) || sdTimVideo(s.vidId);
+    if(!rec) return;
+    const ds = sdDongLoi(rec);
+    if(!ds.length || ds[0].t == null){
+      if(el.__k !== 'x'){ el.__k = 'x'; el.innerHTML = '<div class="hv-cap-en">Lời thoại chưa có mốc thời gian nên chưa chạy theo video được.</div>'; }
+      return;
+    }
+    const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer() : sdPlayer;
+    let gy = 0;
+    try{ if(!p || !p.getCurrentTime) return; gy = p.getCurrentTime() || 0; }catch(_){ return; }
+    const k = sdChiSoDong(gy, ds);
+    if(k < 0 || !ds[k]){ if(el.__k !== -1){ el.__k = -1; el.innerHTML = ''; } return; }
+    const hienNghia = !!SETTINGS.sdHienNghia;
+    if(el.__k !== k || el.__ng !== hienNghia){
+      el.__k = k; el.__ng = hienNghia;
+      const tu = String(ds[k].en || '').trim().split(/\s+/).filter(Boolean);
+      el.innerHTML = `<div class="hv-cap-en">${tu.map((w,j)=>`<span class="hv-capw">${escapeHtml(w)}</span>`).join(' ')}</div>`
+        + ((hienNghia && ds[k].vi) ? `<div class="hv-cap-vi">${escapeHtml(ds[k].vi)}</div>` : '');
+    }
+    // Tô vàng đậm đúng chữ đang được nói.
+    try{
+      const ws = el.querySelectorAll('.hv-capw');
+      const j0 = sdChuTaiGiay(ds, k, gy);
+      for(let j=0;j<ws.length;j++) ws[j].classList.toggle('now', j === j0);
+    }catch(_){}
+  }, 150);
+}
+function hvToanMan(){
+  const w = document.getElementById('hvVidWrap');
+  if(!w){ showToast('⚠️','Chưa mở video',''); return; }
+  const dangFull = !!(w.classList && w.classList.contains('full'));
+  if(dangFull){ hvThoatToanMan(); return; }
+  if(w.classList) w.classList.add('full');
+  document.body && document.body.classList && document.body.classList.add('hv-khoa-cuon');
+  // Xin toàn màn hình thật nếu máy cho — điện thoại sẽ ẩn luôn thanh trình duyệt và xoay được.
+  try{
+    const xin = w.requestFullscreen || w.webkitRequestFullscreen || w.webkitEnterFullscreen;
+    if(xin) { const r = xin.call(w); if(r && r.catch) r.catch(()=>{}); }
+  }catch(_){}
+  try{ if(screen.orientation && screen.orientation.lock) { const r = screen.orientation.lock('landscape'); if(r && r.catch) r.catch(()=>{}); } }catch(_){}
+  hvCapBat();
+  try{ hvVuaKhungHinh(); }catch(_){}
+}
+function hvThoatToanMan(){
+  const w = document.getElementById('hvVidWrap');
+  if(w && w.classList) w.classList.remove('full');
+  document.body && document.body.classList && document.body.classList.remove('hv-khoa-cuon');
+  try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(_){}
+  try{
+    const ra = document.exitFullscreen || document.webkitExitFullscreen;
+    if(ra && (document.fullscreenElement || document.webkitFullscreenElement)) { const r = ra.call(document); if(r && r.catch) r.catch(()=>{}); }
+  }catch(_){}
+  hvCapNgung();
+  try{ hvVuaKhungHinh(); }catch(_){}
+}
+// Thoát bằng cử chỉ back của máy: trình duyệt tự bỏ toàn màn hình, app phải bỏ theo, nếu không
+// khung video kẹt ở kiểu dáng toàn màn giữa trang.
+try{
+  document.addEventListener('fullscreenchange', ()=>{
+    if(!document.fullscreenElement){
+      const w = document.getElementById('hvVidWrap');
+      if(w && w.classList && w.classList.contains('full')) hvThoatToanMan();
+    }
+  });
+}catch(_){}
 function hvXoayKhung(){
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
@@ -14981,6 +15096,8 @@ function renderHocVideoPhien(item){
       <div class="kh-backrow" style="margin-bottom:6px;"><div class="kh-backbtn" data-action="hv-dong">${svgIcon('back')}</div><div class="title">${escapeHtml(rec.title)}</div></div>
       <div class="hv-vidwrap${hvKhungDoc(rec) ? ' doc' : ''}" id="hvVidWrap">
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
+        <div class="hv-cap" id="hvCap"></div>
+        <button class="hv-toanman" data-action="hv-toanman" title="Xem toàn màn hình, lời thoại chạy trong video">⛶</button>
         <button class="hv-xoay" data-action="hv-xoay-khung" title="Đổi khung ngang/dọc">⇅</button>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
       </div>
@@ -18244,7 +18361,9 @@ function sdNutGhiHtml(s){
   const ghi = s.dangGhi
     ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> Dừng · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
     : `<button class="sd-mic" data-action="sd-ghi-bat">🎙️ Ghi âm</button>`;
-  return ghi + (s.dangGhi ? `<div class="sd-dem" id="sdDemNguoc"></div>` : '')
+  return ghi + (s.dangGhi ? `<div class="sd-dem" id="sdDemNguoc"></div>
+      <div class="sd-muc"><div class="sd-muc-khung"><div class="sd-muc-thanh" id="sdMucThanh"></div></div>
+        <span class="sd-muc-lb" id="sdMucLb">đang nghe…</span></div>` : '')
     + `<div class="sd-ghi-ct">Bấm ghi âm là câu đang chọn chạy lại từ đầu, có <b>2 giây lấy hơi</b> trước khi chữ bắt đầu chạy. Micro đã bật khử vọng và lọc tạp âm; muốn bản ghi sạch tuyệt đối thì đeo tai nghe, hoặc để "Tiếng video khi ghi" ở mức Nhỏ/Tắt.</div>`;
 }
 // v208: ba hàng nút xếp thành một bảng hai cột — nhãn một cột, nút một cột. Nhãn thẳng hàng,
@@ -18264,9 +18383,11 @@ function sdBarHtml(s){
   return `${s.lapIdx!=null?`<button class="sd-pl lap" data-action="sd-lap" data-i="${s.lapIdx}">🔁 Đang lặp dòng ${s.lapIdx+1} — bấm để thôi</button>`:''}
     <div class="sd-dieu">
       ${hang('⏩','Tốc độ','video chạy nhanh hay chậm', nut(SD_TOCDO, toc, 'sd-toc', v=>v+'×'))}
-      ${hang('🎙️','Giọng thu','khuếch đại tiếng của bạn', nut(SD_GAIN, g, 'sd-gain', v=>v+'×'))}
+      ${hang('🎙️','Giọng thu', g===0 ? ('tự đo — đang dùng ' + sdGainThuc() + '×') : 'khuếch đại tiếng của bạn', nut(SD_GAIN, g, 'sd-gain', null))}
       ${hang('🔉','Tiếng video','lúc đang ghi âm', nut(SD_VIDVOL, vv, 'sd-vidvol', null))}
-    </div>`;
+    </div>
+    <div class="sd-dieu-ct">Đã có <b>bộ nén tiếng</b> nên vặn to không bị vỡ. Để <b>Tự động</b> là app tự đo giọng bạn sau mỗi lần ghi rồi chỉnh dần cho vừa.${
+      vv === 100 ? ' Không đeo tai nghe mà để tiếng video <b>Bật</b> thì tiếng video lọt vào micro — nên để <b>Nhỏ</b> hoặc <b>Tắt</b>.' : ''}</div>`;
 }
 // Chữ thứ mấy đang được đọc, khi mới nghe được ti (0..1) đoạn ghi âm.
 function sdChuTheoTiLe(moc, ti, n){
@@ -18387,6 +18508,50 @@ function sdBanChay(el, iTruyen, giayD, tre){
     try{ hvCuonToiDong(dong, 'sdTran', false); }catch(_){}
   }catch(_){}
 }
+// v214 — nhip rieng cho luc nghe lai ban ghi.
+let sdBanNhip = null, sdBanEl = null;
+function sdBanNgungNhip(i){
+  if(sdBanNhip){ clearInterval(sdBanNhip); sdBanNhip = null; }
+  sdBanEl = null;
+  sdDangNgheBan = false;
+  const tt = document.getElementById('sdBanTinh');
+  if(tt) tt.textContent = '';
+  try{ sdBanThoiChay(null, (typeof i === 'number') ? i : -1); }catch(_){}
+}
+function sdBanBatNhip(a, i, gd, tre){
+  sdBanNgungNhip(-1);
+  if(!(i >= 0) || !a) return;
+  sdDangNgheBan = true;               // nhip bam theo video nhuong san
+  sdBanEl = a;
+  const tt = document.getElementById('sdBanTinh');
+  if(tt) tt.textContent = '▶ đang chạy chữ theo giọng bạn…';
+  try{ sdBanChay(a, i, gd, tre); }catch(_){}
+  sdBanNhip = setInterval(()=>{
+    if(!sdBanEl || sdBanEl.paused || sdBanEl.ended){ sdBanNgungNhip(i); return; }
+    try{ sdBanChay(sdBanEl, i, gd, tre); }catch(_){}
+  }, 100);
+}
+// Gan tay vao tung the audio sau moi lan ve lai danh sach ban ghi.
+function sdGanBan(){
+  const w = document.getElementById('sdBanWrap');
+  if(!w || !w.querySelectorAll) return 0;
+  const ds = w.querySelectorAll('.sd-audio');
+  let n = 0;
+  for(let k = 0; k < ds.length; k++){
+    const a = ds[k];
+    if(!a || a.__daGanBan || !a.addEventListener) continue;
+    a.__daGanBan = true; n++;
+    const i   = parseInt(a.getAttribute('data-idx'), 10);
+    const gd  = parseFloat(a.getAttribute('data-dai'));
+    const tre = parseFloat(a.getAttribute('data-tre'));
+    a.addEventListener('play',    ()=> sdBanBatNhip(a, i, gd, tre));
+    a.addEventListener('playing', ()=> sdBanBatNhip(a, i, gd, tre));
+    a.addEventListener('seeked',  ()=>{ if(!a.paused) sdBanBatNhip(a, i, gd, tre); });
+    a.addEventListener('pause',   ()=> sdBanNgungNhip(i));
+    a.addEventListener('ended',   ()=> sdBanNgungNhip(i));
+  }
+  return n;
+}
 function sdBanThoiChay(el, iTruyen){
   sdDangNgheBan = false;
   try{
@@ -18410,7 +18575,7 @@ function sdXoaBan(k){
 function sdBanHtml(s){
   if(!(s.ban||[]).length) return '';
   return `<div class="sd-ban">
-      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi</div>
+      <div class="sd-ban-h">🎧 Giọng bạn vừa ghi <span class="sd-ban-tt" id="sdBanTinh"></span></div>
       ${s.ban.map((b,i)=>{
         const tu = String(b.en||'').trim().split(/\s+/).filter(Boolean);
         const ix = (b.idx==null?-1:b.idx);
@@ -18419,10 +18584,8 @@ function sdBanHtml(s){
         return `<div class="sd-ban-row ${i===0?'moi':''}" data-idx="${ix}">
           <div class="sd-ban-lb"><span>${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
             tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</span><button class="sd-ban-xoa" data-action="sd-ban-xoa" data-k="${i}" title="Xoá đoạn ghi âm này">✕</button></div>
-          <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"
-                 ontimeupdate="sdBanChay(this,${ix},${gd},${tr})"
-                 onended="sdBanThoiChay(this,${ix})"
-                 onpause="sdBanThoiChay(this,${ix})"></audio>
+          <audio class="sd-audio" id="sdBanAu${i}" controls preload="metadata" src="${escapeHtml(b.url)}"
+                 data-idx="${ix}" data-dai="${gd}" data-tre="${tr}"></audio>
         </div>`;}).join('')}
       <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không.</div>
     </div>`;
@@ -18477,7 +18640,7 @@ function sdVe(vung){
   if(!el) return false;
   if(vung==='sdMicWrap')  el.innerHTML = sdNutGhiHtml(s);
   else if(vung==='sdBarWrap')  el.innerHTML = sdBarHtml(s);
-  else if(vung==='sdBanWrap')  el.innerHTML = sdBanHtml(s);
+  else if(vung==='sdBanWrap'){ el.innerHTML = sdBanHtml(s); try{ sdGanBan(); }catch(_){} }
   else if(vung==='sdTranWrap'){ el.innerHTML = sdLoiThoaiHtml(rec, s); sdDongHienTai = -1; }
   else if(vung==='sdErrWrap')  el.innerHTML = sdErrHtml(s);
   // Khối dính đổi màu khi đang ghi — sửa class, không vẽ lại.
@@ -18491,6 +18654,51 @@ function sdDangMo(){ return !!(STATE.sdPhien && document.getElementById(SD_HOLDE
 // ---- Ghi âm bằng MediaRecorder của trình duyệt ----
 let sdRec = null, sdRecStream = null, sdRecChunks = [], sdDemGiay = null;
 let sdAudioCtx = null, sdGainNode = null, sdVolCu = null;
+// v214 — nhánh đo mức tiếng vào + nhịp vẽ vạch. Đây là thứ trả lời được câu "micro có nghe
+// thấy mình không" NGAY LÚC ĐANG GHI, thay vì ghi xong mở ra nghe mới biết là hỏng.
+let sdPhanTich = null, sdMucNhip = null, sdMucDinh = 0, sdMucTong = 0, sdMucDem = 0;
+function sdDocMuc(){
+  if(!sdPhanTich) return 0;
+  try{
+    const n = sdPhanTich.fftSize;
+    const buf = new Uint8Array(n);
+    if(sdPhanTich.getByteTimeDomainData) sdPhanTich.getByteTimeDomainData(buf); else return 0;
+    let tong = 0;
+    for(let i=0;i<n;i++){ const d = (buf[i] - 128) / 128; tong += d*d; }
+    return Math.sqrt(tong / n);          // RMS 0…1
+  }catch(_){ return 0; }
+}
+function sdBatDoMuc(){
+  sdNgungDoMuc();
+  sdMucDinh = 0; sdMucTong = 0; sdMucDem = 0;
+  sdMucNhip = setInterval(()=>{
+    const r = sdDocMuc();
+    if(r > 0){ sdMucTong += r; sdMucDem++; if(r > sdMucDinh) sdMucDinh = r; }
+    const el = document.getElementById('sdMucThanh');
+    if(el && el.style){
+      // Thang loga cho dễ nhìn: nói bình thường rơi vào khoảng giữa vạch.
+      const pt = Math.max(0, Math.min(100, Math.round((20*Math.log10(Math.max(r,1e-4)) + 60) * 1.9)));
+      el.style.width = pt + '%';
+      el.className = 'sd-muc-thanh' + (pt < 12 ? ' cam' : (pt > 92 ? ' vo' : ''));
+    }
+    const lb = document.getElementById('sdMucLb');
+    if(lb) lb.textContent = (sdMucDem < 6) ? 'đang nghe…'
+      : (sdMucDinh < 0.02 ? 'chưa nghe thấy gì — kiểm tra micro'
+      : (sdMucDinh > 0.85 ? 'to quá, dễ vỡ tiếng' : 'nghe rõ'));
+  }, 100);
+}
+function sdNgungDoMuc(){ if(sdMucNhip){ clearInterval(sdMucNhip); sdMucNhip = null; } }
+// Ghi xong thì tự tính lại mức khuếch đại hợp lý cho lần sau: đưa mức trung bình về khoảng 0,12
+// (mức nghe thoải mái), chặn trong 0,8×…4× để không nhảy vọt vì một tiếng động lạ.
+function sdChotGainTuDong(){
+  if(sdGain() !== 0 || sdMucDem < 8) return;
+  const tb = sdMucTong / sdMucDem;
+  if(!(tb > 0.0015)) return;
+  const cu = sdGainThuc();
+  const moi = Math.max(0.8, Math.min(4, cu * (0.12 / tb)));
+  SETTINGS.sdGainDo = Math.round(moi * 10) / 10;
+  saveSettings();
+}
 // Câu đang được chọn để luyện: ưu tiên dòng đang lặp, rồi tới dòng đang chạy, cuối cùng mới dò
 // theo giây hiện tại. Bấm ghi âm là quay về ĐẦU câu đó — shadowing mà bắt đầu từ giữa câu thì
 // không luyện được gì.
@@ -18520,12 +18728,14 @@ function sdChayLaiCauDangChon(){
   return i;
 }
 // ---- Âm lượng giọng thu + tiếng video lúc ghi ----
-const SD_GAIN = [1, 1.5, 2, 3];
-function sdGain(){ const v = +SETTINGS.sdGain; return SD_GAIN.indexOf(v) >= 0 ? v : 1; }
+// v214: đặt tên theo cảm nhận chứ không phải con số nhân — kèm mức "Tự động" tự đo giọng bạn.
+const SD_GAIN = [{v:0,n:'Tự động'}, {v:1,n:'Nhỏ'}, {v:1.8,n:'Vừa'}, {v:2.8,n:'To'}, {v:4,n:'Rất to'}];
+const SD_GAIN_V = SD_GAIN.map(o=>o.v);
+function sdGain(){ const v = +SETTINGS.sdGain; return SD_GAIN_V.indexOf(v) >= 0 ? v : 0; }
 function sdDatGain(v){
-  SETTINGS.sdGain = +v || 1; saveSettings();
+  SETTINGS.sdGain = (v === '0' || v === 0) ? 0 : (+v || 1); saveSettings();
   // Đang ghi thì đổi được ngay, không phải ghi lại từ đầu.
-  try{ if(sdGainNode) sdGainNode.gain.value = sdGain(); }catch(_){}
+  try{ if(sdGainNode) sdGainNode.gain.value = sdGainThuc(); }catch(_){}
   if(!sdVe('sdBarWrap')) renderContentPreserveScroll();
 }
 // Tiếng video trong lúc ghi: 100 = giữ nguyên · 30 = nhỏ lại · 0 = tắt hẳn.
@@ -18533,6 +18743,14 @@ function sdDatGain(v){
 // Bộ khử vọng của trình duyệt lọc được phần lớn, nhưng muốn SẠCH TUYỆT ĐỐI thì hoặc đeo tai
 // nghe, hoặc hạ tiếng video xuống. Đây là chỗ để bạn chọn.
 const SD_VIDVOL = [{v:100,n:'Bật'}, {v:30,n:'Nhỏ'}, {v:0,n:'Tắt'}];
+// Hệ số khuếch đại thật sự dùng cho bộ ghi. Chọn "Tự động" (0) thì lấy mức đã đo được ở lần
+// ghi gần nhất; chưa đo lần nào thì tạm 1.8× — mức an toàn cho phần lớn micro điện thoại.
+function sdGainThuc(){
+  const v = sdGain();
+  if(v > 0) return v;
+  const d = +SETTINGS.sdGainDo;
+  return (d >= 0.6 && d <= 6) ? d : 1.8;
+}
 function sdVidVol(){ const v = SETTINGS.sdVidVol; return (v === 0 || v === 30 || v === 100) ? v : 30; }
 function sdDatVidVol(v){
   SETTINGS.sdVidVol = +v; saveSettings();
@@ -18572,10 +18790,11 @@ async function sdBatDauGhi(){
   try{
     // echoCancellation: chính là bộ khử tiếng loa vọng vào micro — thứ giữ cho tiếng video không
     // lọt vào bản ghi. noiseSuppression: cắt tạp âm nền (quạt, xe, tủ lạnh).
-    // autoGainControl: chỉ bật khi bạn để mức khuếch đại 1×; nếu bạn tự tăng lên thì tắt nó đi,
-    // bằng không hai bộ chỉnh âm lượng đánh nhau và tiếng bị phập phồng.
+    // v214 — TẮT HẲN bộ chỉnh âm lượng tự động của trình duyệt. App đã có bộ khuếch đại + bộ nén
+    // động riêng ở mọi mức, để cả hai cùng chạy là hai bộ chỉnh âm đánh nhau, tiếng phập phồng
+    // theo nhịp thở và mức đo được cũng không còn tin được để tự chỉnh.
     sdRecStream = await navigator.mediaDevices.getUserMedia({audio:{
-      echoCancellation:true, noiseSuppression:true, autoGainControl: sdGain() === 1, channelCount:1}});
+      echoCancellation:true, noiseSuppression:true, autoGainControl:false, channelCount:1}});
   }catch(e){
     s.loi = 'Không mở được micro. Kiểm tra quyền truy cập micro của app trong Cài đặt điện thoại.';
     if(!sdVe('sdErrWrap')) renderContent();
@@ -18589,16 +18808,35 @@ async function sdBatDauGhi(){
   // không phân biệt được gì. Chèn một tầng Gain giữa micro và bộ ghi là xong — máy nào không có
   // Web Audio thì bỏ qua tầng này, ghi thẳng luồng gốc, không hỏng.
   let luong = sdRecStream;
-  if(sdGain() !== 1){
+  // v214: dựng chuỗi ở MỌI mức. Trước đây mức 1× thì bỏ qua — nhưng bộ nén và vạch đo mức có
+  // ích ở cả mức nhỏ nhất, mà mức "Tự động" thì bắt buộc phải có nhánh đo mới chỉnh được.
+  {
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
       if(AC){
         sdAudioCtx = new AC();
         const nguon = sdAudioCtx.createMediaStreamSource(sdRecStream);
         sdGainNode = sdAudioCtx.createGain();
-        sdGainNode.gain.value = sdGain();
+        sdGainNode.gain.value = sdGainThuc();
+        // v214 — BỘ NÉN ĐỘNG. Trước đây chỉ có một bộ khuếch đại: vặn to lên thì chỗ nào bạn
+        // đọc mạnh là vỡ tiếng, nghe lại còn tệ hơn để nhỏ. Bộ nén giữ lại đúng mấy đỉnh đó,
+        // nên kéo to được mà không rè. Thông số theo kiểu giọng nói: ngưỡng -24dB, tỉ lệ 4:1,
+        // bám nhanh (3ms) nhả vừa (250ms) để không "bơm" theo nhịp thở.
+        let cuoi = sdGainNode;
+        try{
+          const nen = sdAudioCtx.createDynamicsCompressor();
+          nen.threshold.value = -24; nen.knee.value = 24; nen.ratio.value = 4;
+          nen.attack.value = 0.003; nen.release.value = 0.25;
+          sdGainNode.connect(nen); cuoi = nen;
+        }catch(_){ cuoi = sdGainNode; }
+        // Nhánh đo mức — chỉ để hiện vạch, không nằm trên đường ghi.
+        try{
+          sdPhanTich = sdAudioCtx.createAnalyser();
+          sdPhanTich.fftSize = 512; sdPhanTich.smoothingTimeConstant = 0.6;
+          cuoi.connect(sdPhanTich);
+        }catch(_){ sdPhanTich = null; }
         const dich = sdAudioCtx.createMediaStreamDestination();
-        nguon.connect(sdGainNode); sdGainNode.connect(dich);
+        nguon.connect(sdGainNode); cuoi.connect(dich);
         luong = dich.stream;
       }
     }catch(_){ luong = sdRecStream; }
@@ -18645,6 +18883,7 @@ async function sdBatDauGhi(){
   try{ s.ghiIdx = sdDongDangChon(); }catch(_){ s.ghiIdx = -1; }
   // v213: moc gio that + do tre dau ban ghi, de luc nghe lai chu chay dung nhip.
   s.batLuc = Date.now(); s.tre = SD_TRE_GHI;
+  try{ sdBatDoMuc(); }catch(_){}
   // Chữ bắt đầu chạy từ chữ đầu của câu đang chọn, dẫn nhịp cho mình đọc theo.
   setTimeout(()=>{ try{ sdBatNhipGhi((STATE.sdPhien||{}).ghiIdx); }catch(_){} }, 60);
   // Bấm ghi là câu đang chọn chạy lại TỪ ĐẦU, và tiếng video hạ xuống mức bạn đã đặt.
@@ -18667,11 +18906,14 @@ async function sdBatDauGhi(){
 function sdDungGhi(){
   if(sdDemGiay){ clearInterval(sdDemGiay); sdDemGiay = null; }
   try{ sdNgungNhipGhi(); }catch(_){}
+  try{ sdChotGainTuDong(); sdNgungDoMuc(); }catch(_){}
   try{ if(sdRec && sdRec.state !== 'inactive') sdRec.stop(); }catch(e){ sdDonStream(); }
   try{ if(sdPlayer && sdPlayer.pauseVideo) sdPlayer.pauseVideo(); }catch(_){}
   sdTraVidVol();       // trả tiếng video về đúng mức trước khi ghi
 }
 function sdDonStream(){
+  try{ sdNgungDoMuc(); }catch(e){}
+  sdPhanTich = null;
   try{ if(sdRecStream) sdRecStream.getTracks().forEach(t=>t.stop()); }catch(e){}
   try{ if(sdAudioCtx && sdAudioCtx.close) sdAudioCtx.close(); }catch(e){}
   sdAudioCtx = null; sdGainNode = null;
@@ -18791,6 +19033,7 @@ function renderShadowPhien(item){
     <div id="sdTranWrap">${sdLoiThoaiHtml(rec, s)}</div>
     <div class="sd-foot">Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất, không đồng bộ lên Drive (file âm thanh quá nặng, mà giá trị của nó chỉ ở lúc so sánh ngay tại chỗ). Giữ tối đa 3 bản gần nhất.</div>`;
   sdDongHienTai = -1;
+  try{ sdGanBan(); }catch(_){}      // v214: nối tay từng thẻ audio, không dùng handler viết trong HTML
   // Cả màn vừa được vẽ lại nên thẻ chứa video là thẻ RỖNG mới — luôn gắn lại trình phát.
   // Đây là lưới an toàn cho mọi trường hợp renderContent() được gọi từ nơi khác trong lúc đang luyện.
   sdGanPlayer(rec.videoId);
@@ -24182,6 +24425,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvXoaEl){ e.stopPropagation(); hvXoaVideo(hvXoaEl.getAttribute('data-id')); return; }
   const hvOpenEl = e.target.closest('[data-action="hv-open"]');
   if(hvOpenEl){ hvMoPhien(hvOpenEl.getAttribute('data-id')); return; }
+  const hvToanManEl = e.target.closest('[data-action="hv-toanman"]');
+  if(hvToanManEl){ e.stopPropagation(); hvToanMan(); return; }
   const hvDongEl = e.target.closest('[data-action="hv-dong"]');
   if(hvDongEl){ hvDongPhien(); return; }
   const hvVaEl = e.target.closest('[data-action="hv-va-loi"]');
