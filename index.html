@@ -2322,7 +2322,18 @@
 .sd-ban-row.moi .sd-ban-lb{color:#2CDBA8;}
 .sd-ban-tx{font-size:12.5px;line-height:1.6;color:var(--dim);margin:2px 0 3px;}
 .sd-bw{transition:color .12s;}
-.sd-bw.now{color:#FFC94A;border-bottom:2px solid #FFC94A;font-weight:700;}
+.sd-bw.now{color:#FFC94A;font-weight:700;}
+/* v217 — VỆT SÓNG DÙNG CHUNG cho mọi chỗ chữ chạy theo tiếng: danh sách lời thoại ở "Phụ đề"
+   (.hv-w), ở "Shadowing" (.sd-w, .sd-bw) và khung phụ đề trong video (.hv-capw). Trước đây chỉ
+   khung trong video mới có sóng, hai danh sách ngoài vẫn gạch chân cứng — mỗi nơi một kiểu. */
+.hv-w,.sd-w,.sd-bw,.hv-capw{position:relative;transition:color .14s;}
+.hv-w::after,.sd-w::after,.sd-bw::after,.hv-capw::after{
+  content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,rgba(255,201,74,0),#FFC94A 28%,#FFF4CE 50%,#FFC94A 72%,rgba(255,201,74,0));
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform .22s cubic-bezier(.22,.9,.3,1),opacity .3s;}
+.hv-w.now::after,.sd-w.now::after,.sd-bw.now::after,.hv-capw.now::after{transform:scaleX(1);opacity:1;}
+.hv-w.qua::after,.sd-w.qua::after,.sd-bw.qua::after,.hv-capw.qua::after{transform:scaleX(1);opacity:.3;}
 .sd-ban .sd-audio{height:30px;}
 .sd-ban-lb{font-size:10px;color:var(--dim2);font-family:var(--mono);margin-bottom:5px;display:flex;align-items:center;gap:8px;}
 .sd-ban-lb>span{flex:1;min-width:0;}
@@ -2357,7 +2368,7 @@
 @media(min-width:560px){ .sd-tran{max-height:calc(100dvh - 560px);} }
 .sd-tran.empty{max-height:none;min-height:0;overflow:visible;}
 /* Cùng màu vàng, cùng gạch chân với thẻ Phụ đề — hai chỗ nhìn giống nhau thì mắt không phải học lại. */
-.sd-w.now{color:#FFC94A;border-bottom:2px solid #FFC94A;}
+.sd-w.now{color:#FFC94A;}
 .sd-tran.empty{font-size:11.5px;color:var(--dim);line-height:1.7;padding:14px 15px;}
 .sd-line{display:flex;align-items:flex-start;gap:8px;padding:8px 7px;border-radius:9px;transition:background .18s;}
 .sd-line.dang{background:rgba(255,201,74,.13);box-shadow:inset 3px 0 0 var(--gold);}
@@ -2475,7 +2486,8 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-cap{display:none;}
 /* v216 — khung phụ đề KÉO NGANG hết bề rộng khung video. Bản v215 bó lại giữa màn nên câu dài
    bị dồn thành 7-8 dòng, che kín cả video. */
-.hv-vidwrap.full .hv-cap,
+/* v217 — CHỈ lớp .cc mới hiện phụ đề. Bỏ .full ra khỏi đây: phóng to màn hình không được
+   tự bật phụ đề, phải theo đúng công tắc CC bạn đã chọn. */
 .hv-vidwrap.cc .hv-cap{display:block;position:absolute;left:2%;right:2%;bottom:8%;z-index:5;
   background:rgba(8,10,14,.76);border-radius:10px;padding:8px 14px;text-align:center;
   pointer-events:auto;cursor:pointer;}
@@ -2485,16 +2497,9 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
   text-shadow:0 2px 6px rgba(0,0,0,.9);}
 .hv-cap.co2 .hv-cap-en{font-size:clamp(17px,2.1vw,27px);}
 .hv-cap.co3 .hv-cap-en{font-size:clamp(20px,2.8vw,34px);}
-/* v216 — HIỆU ỨNG SÓNG: vệt sáng lướt qua từng chữ thay cho gạch chân cứng. Chữ đã đọc qua
-   giữ lại vệt mờ, nên nhìn cả câu thấy con sóng đang chạy tới đâu. */
-.hv-capw{position:relative;transition:color .14s;}
-.hv-capw::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;
-  background:linear-gradient(90deg,rgba(255,201,74,0),#FFC94A 28%,#FFF4CE 50%,#FFC94A 72%,rgba(255,201,74,0));
-  transform:scaleX(0);transform-origin:left center;transition:transform .22s cubic-bezier(.22,.9,.3,1),opacity .3s;}
+/* v217 — vệt sóng của khung phụ đề nay dùng chung bộ quy tắc với .hv-w / .sd-w ở trên. */
 .hv-capw.qua{color:var(--text,#e8eef5);}
-.hv-capw.qua::after{transform:scaleX(1);opacity:.3;}
 .hv-capw.now{color:#FFC94A;}
-.hv-capw.now::after{transform:scaleX(1);opacity:1;}
 /* Bản dịch: đúng tông của .sd-line-vi / .hv-x-vi bên danh sách lời thoại, chỉ thêm bóng cho dễ đọc. */
 .hv-cap-vi{margin-top:3px;font-size:clamp(12px,1.25vw,17px);font-weight:500;line-height:1.5;
   color:var(--dim,#9aa7b4);text-shadow:0 2px 6px rgba(0,0,0,.9);}
@@ -2548,11 +2553,11 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-x{flex:1;min-width:0;font-size:14.5px;line-height:1.75;color:var(--text);}
 .hv-l.dang .hv-x{font-weight:600;}
 /* Chữ đang được đọc tới — VÀNG, có gạch chân. */
-.hv-w.now{color:#FFC94A;border-bottom:2px solid #FFC94A;}
+.hv-w.now{color:#FFC94A;}
 /* Cụm từ thông dụng — XANH LỤC nền mờ, cố ý khác hẳn màu vàng ở trên để hai thứ không lẫn nhau:
    vàng là "đang nói tới đây", xanh là "cụm này đáng thuộc". */
 .hv-w.cum{color:#7BE3C0;background:rgba(44,219,168,.13);border-radius:4px;padding:0 2px;}
-.hv-w.cum.now{color:#FFC94A;background:rgba(255,201,74,.16);border-bottom:2px solid #FFC94A;}
+.hv-w.cum.now{color:#FFC94A;background:rgba(255,201,74,.16);}
 /* Nghĩa tiếng Việt của câu, nằm ngay dưới, chữ nhỏ hơn cho khỏi át bản gốc. */
 .hv-vi{display:block;font-size:12.5px;line-height:1.5;color:var(--dim);margin-top:3px;}
 /* Hai nút bật/tắt trên đầu danh sách lời thoại. */
@@ -3276,7 +3281,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v216';
+const APP_VERSION = 'v217';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14143,7 +14148,11 @@ function hvBatNhip(){
       const ex = document.getElementById('hvX'+hvDongCu);
       const ws = (ex && ex.querySelectorAll) ? ex.querySelectorAll('.hv-w') : [];
       const k = hvChuTaiGiay(rec.lines[hvDongCu], gy);
-      for(let j=0; j<ws.length; j++) ws[j].classList.toggle('now', j === k);
+      // v217: đánh dấu cả những chữ ĐÃ ĐỌC QUA để vệt sóng còn thấy được là đang tới đâu.
+      for(let j=0; j<ws.length; j++){
+        ws[j].classList.toggle('now', j === k);
+        ws[j].classList.toggle('qua', k >= 0 && j < k);
+      }
     }
   }, 120);
 }
@@ -14696,8 +14705,8 @@ function hvApCap(){
   if(!w || !w.classList) return;
   // v216 — CC là công tắc DUY NHẤT. Bản v215 còn tự bật khi màn hình nằm ngang; trên máy tính
   // màn hình luôn nằm ngang nên phụ đề luôn hiện, tắt công tắc cũng không đổi được gì.
-  const toanMan = !!(w.classList.contains && w.classList.contains('full'));
-  const hien = !!SETTINGS.hvCap || toanMan;
+  // v217: toàn màn hình KHÔNG còn là ngoại lệ. Phụ đề chỉ theo công tắc CC.
+  const hien = !!SETTINGS.hvCap;
   w.classList.toggle('cc', !!SETTINGS.hvCap);
   const nut = document.querySelector('[data-action="hv-cap-bat"]');
   if(nut && nut.classList) nut.classList.toggle('on', !!SETTINGS.hvCap);
@@ -14763,7 +14772,7 @@ function hvToanMan(){
   if(!w){ showToast('⚠️','Chưa mở video',''); return; }
   const dangFull = !!(w.classList && w.classList.contains('full'));
   if(dangFull){ hvThoatToanMan(); return; }
-  if(w.classList){ w.classList.add('full'); w.classList.add('cc'); }
+  if(w.classList) w.classList.add('full');   // v217: không tự bật .cc nữa
   document.body && document.body.classList && document.body.classList.add('hv-khoa-cuon');
   // Xin toàn màn hình thật nếu máy cho — điện thoại sẽ ẩn luôn thanh trình duyệt và xoay được.
   try{
@@ -18368,7 +18377,10 @@ function sdBatBam(){
       const ex = document.getElementById('sd-x-'+sdDongHienTai);
       const ws = (ex && ex.querySelectorAll) ? ex.querySelectorAll('.sd-w') : [];
       const j0 = sdChuTaiGiay(ds, sdDongHienTai, gy);
-      for(let j=0; j<ws.length; j++) ws[j].classList.toggle('now', j === j0);
+      for(let j=0; j<ws.length; j++){
+        ws[j].classList.toggle('now', j === j0);
+        ws[j].classList.toggle('qua', j0 >= 0 && j < j0);
+      }
     }
   }, 120);
 }
@@ -18550,10 +18562,10 @@ function sdNutGhiHtml(s){
   const ghi = s.dangGhi
     ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> Dừng · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
     : `<button class="sd-mic" data-action="sd-ghi-bat">🎙️ Ghi âm</button>`;
-  return ghi + (s.dangGhi ? `<div class="sd-dem" id="sdDemNguoc"></div>
+  return ghi + (s.dangGhi ? `<div class="sd-dem" id="sdDemNguoc">⏹ Đọc xong câu là tự dừng</div>
       <div class="sd-muc"><div class="sd-muc-khung"><div class="sd-muc-thanh" id="sdMucThanh"></div></div>
         <span class="sd-muc-lb" id="sdMucLb">đang nghe…</span></div>` : '')
-    + `<div class="sd-ghi-ct">Bấm ghi âm là câu đang chọn chạy lại từ đầu, có <b>2 giây lấy hơi</b> trước khi chữ bắt đầu chạy. Micro đã bật khử vọng và lọc tạp âm; muốn bản ghi sạch tuyệt đối thì đeo tai nghe, hoặc để "Tiếng video khi ghi" ở mức Nhỏ/Tắt.</div>`;
+    + `<div class="sd-ghi-ct">Bấm ghi âm là câu đang chọn chạy lại từ đầu, có <b>2 giây lấy hơi</b> trước khi chữ bắt đầu chạy, và <b>đọc hết câu là tự dừng</b> — không phải bấm lại. Micro đã bật khử vọng và lọc tạp âm; muốn bản ghi sạch tuyệt đối thì đeo tai nghe, hoặc để "Tiếng video khi ghi" ở mức Nhỏ/Tắt.</div>`;
 }
 // v208: ba hàng nút xếp thành một bảng hai cột — nhãn một cột, nút một cột. Nhãn thẳng hàng,
 // nút bằng nhau, mỗi hàng một việc; không còn cảnh mỗi hàng lệch một kiểu.
@@ -18599,6 +18611,9 @@ let sdNhipGhi = null;
 // v213 — bam ghi xong con 2 giay lay hoi roi cau moi chay. Khoang im nay nam LUON trong ban
 // ghi, nen luc nghe lai phai bo qua dung 2 giay do (xem sdBanChay).
 const SD_TRE_GHI = 2;
+// Đọc xong câu thì chờ thêm chừng này giây rồi mới cắt — đủ để câu cuối không bị hụt chữ,
+// mà cũng không để thừa một đoạn im dài.
+const SD_DU_GHI = 1.2;
 function sdNgungNhipGhi(){
   if(sdNhipGhi){ clearInterval(sdNhipGhi); sdNhipGhi = null; }
   const dn = document.getElementById('sdDemNguoc');
@@ -18627,6 +18642,12 @@ function sdBatNhipGhi(i){
   sdNhipGhi = setInterval(()=>{
     const cur = STATE.sdPhien;
     if(!cur || !cur.dangGhi){ sdNgungNhipGhi(); return; }
+    // v217 — đọc hết câu là TỰ DỪNG, không phải bấm thêm lần nữa.
+    if(Date.now() - batDau >= (dai + SD_DU_GHI) * 1000){
+      sdNgungNhipGhi();
+      try{ sdDungGhi(); }catch(_){}
+      return;
+    }
     const o = document.getElementById('sd-x-' + i);
     const ws = (o && o.querySelectorAll) ? o.querySelectorAll('.sd-w') : [];
     if(!ws.length) return;
@@ -18641,7 +18662,10 @@ function sdBatNhipGhi(i){
     if(dn && dn.textContent) dn.textContent = '';
     const ti = Math.min(1, (Date.now() - batDau) / 1000 / dai);
     const j0 = sdChuTheoTiLe(moc, ti, ws.length);
-    for(let k=0;k<ws.length;k++) ws[k].classList.toggle('now', k === j0);
+    for(let k=0;k<ws.length;k++){
+      ws[k].classList.toggle('now', k === j0);
+      ws[k].classList.toggle('qua', j0 >= 0 && k < j0);
+    }
   }, 120);
 }
 // v212: số dòng được TRUYỀN THẲNG vào hàm (ontimeupdate="sdBanChay(this,2)") thay vì đi dò
@@ -18693,7 +18717,10 @@ function sdBanChay(el, iTruyen, giayD, tre){
     let moc = [];
     try{ moc = hvMocChu(cau.trim()) || []; }catch(_){ moc = []; }
     const j0 = sdChuTheoTiLe(moc, ti, ws.length);
-    for(let k = 0; k < ws.length; k++) ws[k].classList.toggle('now', k === j0);
+    for(let k = 0; k < ws.length; k++){
+      ws[k].classList.toggle('now', k === j0);
+      ws[k].classList.toggle('qua', j0 >= 0 && k < j0);
+    }
     try{ hvCuonToiDong(dong, 'sdTran', false); }catch(_){}
   }catch(_){}
 }
