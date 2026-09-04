@@ -2441,14 +2441,25 @@
 .hv-vidwrap.full .video-embed-wrap{width:100%;height:100%;padding-bottom:0;}
 .hv-vidwrap.full.doc{height:100vh;aspect-ratio:auto;}
 body.hv-khoa-cuon{overflow:hidden;}
-.hv-toanman{position:absolute;top:6px;right:6px;z-index:4;width:30px;height:30px;border-radius:9px;
-  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.55);color:#fff;font-size:14px;
-  line-height:1;cursor:pointer;padding:0;}
-.hv-toanman:active{background:rgba(0,0,0,.8);}
-.hv-vidwrap.full .hv-toanman{top:12px;right:12px;width:38px;height:38px;font-size:17px;}
-/* Khung phụ đề: chỉ hiện khi toàn màn hình. Ngoài toàn màn thì lời thoại đã có sẵn bên dưới rồi. */
+/* v215 — hai nút này nằm ở góc DƯỚI, không đụng vào ⇅ (trên-phải) và ▶ (trên-trái). Bản v214
+   đặt ⛶ ngay dưới nút ⇅ nên nó bị đè mất hoàn toàn — có nút mà không ai bấm được. */
+.hv-toanman,.hv-capnut{position:absolute;bottom:7px;z-index:6;height:30px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.62);color:#fff;font-size:14px;
+  line-height:1;cursor:pointer;padding:0 9px;display:flex;align-items:center;justify-content:center;}
+.hv-toanman{right:7px;width:32px;padding:0;}
+.hv-capnut{right:45px;font-size:11px;font-weight:800;letter-spacing:.4px;}
+.hv-capnut.on{background:#FFD84D;color:#171208;border-color:transparent;}
+.hv-toanman:active,.hv-capnut:active{background:rgba(0,0,0,.85);}
+.hv-vidwrap.full .hv-toanman{bottom:14px;right:14px;width:40px;height:40px;font-size:18px;}
+.hv-vidwrap.full .hv-capnut{bottom:14px;right:62px;height:40px;font-size:13px;}
+/* Toàn màn hình phải nổi lên trên khối ghim (z-index:8), nếu không nó bị kẹt dưới. */
+body.hv-khoa-cuon .hv-ghim{z-index:9000;}
+/* v215 — Phụ đề hiện khi: bật công tắc CC, HOẶC đang toàn màn hình, HOẶC màn hình nằm ngang.
+   Bản v214 chỉ hiện ở đúng một trường hợp (lớp .full do nút của tôi bật), nên phóng to bằng
+   cách thông thường là không thấy gì — đúng như bạn báo. */
 .hv-cap{display:none;}
-.hv-vidwrap.full .hv-cap{display:block;position:absolute;left:50%;transform:translateX(-50%);
+.hv-vidwrap.full .hv-cap,
+.hv-vidwrap.cc .hv-cap{display:block;position:absolute;left:50%;transform:translateX(-50%);
   bottom:9%;max-width:min(92%,900px);z-index:5;background:rgba(8,10,14,.78);border-radius:10px;
   padding:9px 16px;text-align:center;pointer-events:none;}
 .hv-cap-en{font-size:clamp(17px,3.1vw,30px);font-weight:700;line-height:1.4;color:#FFD84D;
@@ -3233,7 +3244,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v214';
+const APP_VERSION = 'v215';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14161,6 +14172,7 @@ function hvMoPhien(id){
 }
 function hvDongPhien(){
   try{ hvThoatToanMan(); }catch(_){}
+  try{ hvCapNgung(); }catch(_){}
   // MỌI bước dọn dẹp đều bọc lỗi riêng. Trước đây vài bước để trần: chỉ cần một bước ném lỗi là
   // hàm chết giữa chừng, phiên không được xoá, màn hình không vẽ lại — nhìn ra ngoài đúng y như
   // "bấm back không có tác dụng gì".
@@ -14366,6 +14378,9 @@ function hvSauVeTam(rec, s){
     }
     try{ sdGanBan(); }catch(_){}
   }
+  // v215: nhịp phụ đề chạy suốt màn video. Trước đây chỉ bật khi vào toàn màn hình bằng nút của
+  // tôi, nên mọi cách phóng to khác đều không có chữ.
+  try{ hvApCap(); }catch(_){}
   hvNhipTheoTab();
   // Đo sau khi trình duyệt đã dựng xong bố cục — đo ngay trong cùng nhịp thì rect chưa đúng.
   try{ setTimeout(hvVuaKhungHinh, 30); }catch(e){}
@@ -14593,7 +14608,7 @@ function hvCapNgung(){
   if(el){ el.innerHTML = ''; el.__k = null; }
 }
 function hvCapBat(){
-  hvCapNgung();
+  if(hvCapNhip) return;          // đang chạy rồi thì thôi, gọi lại không dựng thêm bộ đếm
   hvCapNhip = setInterval(()=>{
     const el = document.getElementById('hvCap');
     if(!el){ hvCapNgung(); return; }
@@ -14625,12 +14640,41 @@ function hvCapBat(){
     }catch(_){}
   }, 150);
 }
+// v215 — công tắc phụ đề trong video, ĐỘC LẬP với toàn màn hình. Đây mới là thứ bạn cần:
+// phóng to bằng cách thông thường (xoay ngang, nút của trình duyệt) vẫn xem được phụ đề.
+function hvCapCongTac(){
+  SETTINGS.hvCap = !SETTINGS.hvCap;
+  saveSettings();
+  hvApCap();
+  showToast(SETTINGS.hvCap ? '💬' : '🚫',
+    SETTINGS.hvCap ? 'Đã bật phụ đề trong video' : 'Đã tắt phụ đề trong video',
+    SETTINGS.hvCap ? 'Lời thoại chạy ngay trong khung video. Bấm 🇻🇳 Nghĩa để thêm bản dịch bên dưới.'
+                   : 'Lời thoại vẫn chạy ở danh sách bên dưới như cũ.');
+}
+// Đặt lớp .cc theo công tắc, và tự bật khi màn hình nằm ngang (lúc đó khung video to, chỗ trống
+// bên dưới không còn nhiều — xem phụ đề ngay trong video là hợp lý nhất).
+function hvApCap(){
+  const w = document.getElementById('hvVidWrap');
+  if(!w || !w.classList) return;
+  let ngang = false;
+  try{ ngang = !!(window.matchMedia && window.matchMedia('(orientation: landscape)').matches); }catch(_){}
+  const hien = !!SETTINGS.hvCap || ngang || (w.classList.contains && w.classList.contains('full'));
+  w.classList.toggle('cc', !!SETTINGS.hvCap || ngang);
+  const nut = document.querySelector('[data-action="hv-cap-bat"]');
+  if(nut && nut.classList) nut.classList.toggle('on', !!SETTINGS.hvCap);
+  // Không hiện thì không chạy nhịp — vừa đỡ tốn pin, vừa không giành nhịp với vòng bám video.
+  if(hien) hvCapBat(); else hvCapNgung();
+}
+try{
+  window.addEventListener('resize', ()=>{ try{ if(STATE.hvPhien) hvApCap(); }catch(_){} });
+  window.addEventListener('orientationchange', ()=>{ try{ setTimeout(hvApCap, 120); }catch(_){} });
+}catch(_){}
 function hvToanMan(){
   const w = document.getElementById('hvVidWrap');
   if(!w){ showToast('⚠️','Chưa mở video',''); return; }
   const dangFull = !!(w.classList && w.classList.contains('full'));
   if(dangFull){ hvThoatToanMan(); return; }
-  if(w.classList) w.classList.add('full');
+  if(w.classList){ w.classList.add('full'); w.classList.add('cc'); }
   document.body && document.body.classList && document.body.classList.add('hv-khoa-cuon');
   // Xin toàn màn hình thật nếu máy cho — điện thoại sẽ ẩn luôn thanh trình duyệt và xoay được.
   try{
@@ -14638,19 +14682,19 @@ function hvToanMan(){
     if(xin) { const r = xin.call(w); if(r && r.catch) r.catch(()=>{}); }
   }catch(_){}
   try{ if(screen.orientation && screen.orientation.lock) { const r = screen.orientation.lock('landscape'); if(r && r.catch) r.catch(()=>{}); } }catch(_){}
-  hvCapBat();
+  try{ hvApCap(); }catch(_){}
   try{ hvVuaKhungHinh(); }catch(_){}
 }
 function hvThoatToanMan(){
   const w = document.getElementById('hvVidWrap');
   if(w && w.classList) w.classList.remove('full');
   document.body && document.body.classList && document.body.classList.remove('hv-khoa-cuon');
+  try{ hvApCap(); }catch(_){}      // ra khỏi toàn màn thì trả .cc về đúng công tắc
   try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(_){}
   try{
     const ra = document.exitFullscreen || document.webkitExitFullscreen;
     if(ra && (document.fullscreenElement || document.webkitFullscreenElement)) { const r = ra.call(document); if(r && r.catch) r.catch(()=>{}); }
   }catch(_){}
-  hvCapNgung();
   try{ hvVuaKhungHinh(); }catch(_){}
 }
 // Thoát bằng cử chỉ back của máy: trình duyệt tự bỏ toàn màn hình, app phải bỏ theo, nếu không
@@ -15097,7 +15141,8 @@ function renderHocVideoPhien(item){
       <div class="hv-vidwrap${hvKhungDoc(rec) ? ' doc' : ''}" id="hvVidWrap">
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-cap" id="hvCap"></div>
-        <button class="hv-toanman" data-action="hv-toanman" title="Xem toàn màn hình, lời thoại chạy trong video">⛶</button>
+        <button class="hv-capnut${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
+        <button class="hv-toanman" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
         <button class="hv-xoay" data-action="hv-xoay-khung" title="Đổi khung ngang/dọc">⇅</button>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
       </div>
@@ -24425,6 +24470,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvXoaEl){ e.stopPropagation(); hvXoaVideo(hvXoaEl.getAttribute('data-id')); return; }
   const hvOpenEl = e.target.closest('[data-action="hv-open"]');
   if(hvOpenEl){ hvMoPhien(hvOpenEl.getAttribute('data-id')); return; }
+  const hvCapBatEl = e.target.closest('[data-action="hv-cap-bat"]');
+  if(hvCapBatEl){ e.stopPropagation(); hvCapCongTac(); return; }
   const hvToanManEl = e.target.closest('[data-action="hv-toanman"]');
   if(hvToanManEl){ e.stopPropagation(); hvToanMan(); return; }
   const hvDongEl = e.target.closest('[data-action="hv-dong"]');
