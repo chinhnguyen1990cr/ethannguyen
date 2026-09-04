@@ -3186,7 +3186,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v211';
+const APP_VERSION = 'v212';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14794,7 +14794,11 @@ async function hvDichNhungCaiThieu(){
     }
     saveSettings(); pushToDrive();
     vocabGopTuVideo(); sentGopTuVideo();
-    if(STATE.tab === 'english-item') renderContent();
+    // v212 — SỬA LỖI "lưu từ xong video nhảy về đầu": vòng dịch nền chạy xong thì gọi
+    // renderContent(), mà lệnh đó dựng lại CẢ MÀN HÌNH, kể cả khung video — trình phát bị gắn
+    // lại từ giây 0. Đang mở một video thì chỉ vẽ lại phần nội dung, không đụng tới khung video.
+    if(STATE.hvPhien){ try{ hvVeTam({giuCuon:true, khongLat:true}); }catch(_){} }
+    else if(STATE.tab === 'english-item') renderContent();
   }catch(e){ }
   hvDangDich = false;
 }
@@ -17880,6 +17884,13 @@ function sdBatBam(){
     const s = STATE.sdPhien; if(!s){ sdNgungBam(); return; }
     // v211: đang nghe lại bản ghi của mình thì để yên cho nó tô chữ, đừng giành.
     if(sdDangNgheBan) return;
+    // v212: đang ghi âm thì nhịp chạy chữ của phần ghi âm giữ sân.
+    if(s.dangGhi) return;
+    // v212: video đang DỪNG mà đã có dòng đang chọn thì giữ nguyên. Trước đây vẫn chạy tiếp và
+    // tính theo mốc giờ chưa kịp cập nhật, nên hay kéo màn hình về dòng đầu tiên.
+    try{
+      if(sdPlayer.getPlayerState && sdPlayer.getPlayerState() !== 1 && sdDongHienTai >= 0) return;
+    }catch(_){}
     if(!sdPlayer || typeof sdPlayer.getCurrentTime!=='function') return;
     let gy = 0;
     try{ gy = sdPlayer.getCurrentTime() || 0; }catch(_){ return; }
@@ -17989,8 +18000,36 @@ function sdTuaToiDong(i, dung){
     if(dung) sdPlayer.pauseVideo(); else sdPlayer.playVideo();
   }catch(_){}
   sdXoaVetSang();                 // xoá vệt vàng ở dòng cũ TRƯỚC khi đặt lại mốc bám
-  sdDongHienTai = -1; sdBatBam();
+  // v212 — SỬA LỖI "bấm lặp thì transcript nhảy lên dòng trên cùng": trước đây đặt
+  // sdDongHienTai = -1 rồi để nhịp bám tự tìm lại. Nhưng lệnh tua chạy KHÔNG đồng bộ — nhịp bám
+  // đọc phải mốc giờ CŨ (thường là 0), tính ra dòng 0 rồi kéo màn hình lên đầu. Nay chốt thẳng
+  // dòng đang chọn và kéo tới đúng nó, khỏi phải đoán.
+  if(dung){
+    sdDongHienTai = i;
+    sdVeDongDangChon(i);
+  }else{
+    sdDongHienTai = -1;
+  }
+  sdBatBam();
   try{ hvVeNutPlay(); }catch(_){}
+}
+// Tô sáng đúng một dòng và kéo nó vào tầm mắt — dùng khi đã biết chắc dòng nào, không cần đoán
+// theo mốc giờ của trình phát.
+function sdVeDongDangChon(i){
+  try{
+    const s = STATE.sdPhien; if(!s || i == null || i < 0) return;
+    const rec = sdTimVideo(s.vidId); if(!rec) return;
+    const ds = sdDongLoi(rec);
+    const d = ds[i]; if(!d) return;
+    const dong = document.getElementById('sd-line-' + i);
+    const oChu = document.getElementById('sd-x-' + i);
+    if(dong && dong.classList) dong.classList.add('dang');
+    if(oChu){
+      const tu = String(d.en||'').trim().split(/\s+/).filter(Boolean);
+      oChu.innerHTML = tu.map((w,j)=>`<span class="sd-w" id="sdW${j}">${escapeHtml(w)}</span>`).join(' ');
+    }
+    if(dong) hvCuonToiDong(dong, 'sdTran', true);
+  }catch(_){}
 }
 function sdLapDong(i){
   const s = STATE.sdPhien; if(!s) return;
@@ -18110,15 +18149,54 @@ function sdChuTheoTiLe(moc, ti, n){
 // Bản v210 chỉ tô trong ô nhỏ dưới bản ghi, mà ô đó lại hay trống vì không lấy được câu; nhìn ra
 // ngoài đúng như "chữ không chạy". Nay tô thẳng vào dòng lời thoại — chỗ mắt đang nhìn.
 let sdDangNgheBan = false;      // đang nghe lại bản ghi → nhịp bám video nhường sân, khỏi giành nhau
-function sdBanDongIdx(el){
+// v212 — ĐANG GHI ÂM thì chữ vẫn chạy để dẫn nhịp đọc: bắt đầu từ chữ ĐẦU của câu đang chọn,
+// chạy theo thời gian đã ghi. Video thì vẫn đứng yên (v210) — chạy chữ là để bạn bám nhịp, không
+// phải để nghe lại.
+let sdNhipGhi = null;
+function sdNgungNhipGhi(){ if(sdNhipGhi){ clearInterval(sdNhipGhi); sdNhipGhi = null; } }
+function sdBatNhipGhi(i){
+  sdNgungNhipGhi();
+  if(i == null || i < 0) return;
+  const s = STATE.sdPhien; if(!s) return;
+  const rec = sdTimVideo(s.vidId); if(!rec) return;
+  const ds = sdDongLoi(rec);
+  const d = ds[i]; if(!d || !d.en) return;
+  const cau = String(d.en).trim();
+  const tu = cau.split(/\s+/).filter(Boolean);
+  let dai = 3;
+  try{ dai = Math.max(1, hvDaiCau(d)); }catch(_){ dai = Math.max(1, tu.length / 2.6); }
+  let moc = [];
+  try{ moc = hvMocChu(cau) || []; }catch(_){ moc = []; }
+  const batDau = Date.now();
+  try{ sdXoaVetSang(); }catch(_){}
+  const dong = document.getElementById('sd-line-' + i);
+  const oChu = document.getElementById('sd-x-' + i);
+  if(dong && dong.classList) dong.classList.add('dang');
+  if(oChu) oChu.innerHTML = tu.map((w,j)=>`<span class="sd-w" id="sdW${j}">${escapeHtml(w)}</span>`).join(' ');
+  try{ if(dong) hvCuonToiDong(dong, 'sdTran', true); }catch(_){}
+  sdNhipGhi = setInterval(()=>{
+    const cur = STATE.sdPhien;
+    if(!cur || !cur.dangGhi){ sdNgungNhipGhi(); return; }
+    const o = document.getElementById('sd-x-' + i);
+    const ws = (o && o.querySelectorAll) ? o.querySelectorAll('.sd-w') : [];
+    if(!ws.length) return;
+    const ti = Math.min(1, (Date.now() - batDau) / 1000 / dai);
+    const j0 = sdChuTheoTiLe(moc, ti, ws.length);
+    for(let k=0;k<ws.length;k++) ws[k].classList.toggle('now', k === j0);
+  }, 120);
+}
+// v212: số dòng được TRUYỀN THẲNG vào hàm (ontimeupdate="sdBanChay(this,2)") thay vì đi dò
+// ngược lên DOM bằng closest(). Bản v211 dò DOM nên chỉ cần một mắt xích hụt là chữ đứng im.
+function sdBanDongIdx(el, i){
+  if(typeof i === 'number' && i >= 0) return i;
   const row = el && el.closest ? el.closest('.sd-ban-row') : null;
   const v = row && row.getAttribute ? row.getAttribute('data-idx') : null;
-  const i = (v == null) ? -1 : parseInt(v, 10);
-  return (isNaN(i) || i < 0) ? -1 : i;
+  const k = (v == null) ? -1 : parseInt(v, 10);
+  return (isNaN(k) || k < 0) ? -1 : k;
 }
-function sdBanChay(el){
+function sdBanChay(el, iTruyen){
   try{
-    const i = sdBanDongIdx(el);
+    const i = sdBanDongIdx(el, iTruyen);
     if(i < 0) return;
     sdDangNgheBan = true;
     const dong = document.getElementById('sd-line-' + i);
@@ -18147,10 +18225,10 @@ function sdBanChay(el){
     try{ hvCuonToiDong(dong, 'sdTran', false); }catch(_){}
   }catch(_){}
 }
-function sdBanThoiChay(el){
+function sdBanThoiChay(el, iTruyen){
   sdDangNgheBan = false;
   try{
-    const i = sdBanDongIdx(el);
+    const i = sdBanDongIdx(el, iTruyen);
     const oChu = (i >= 0) ? document.getElementById('sd-x-' + i) : null;
     const ws = (oChu && oChu.querySelectorAll) ? oChu.querySelectorAll('.sd-w') : [];
     for(let k = 0; k < ws.length; k++) ws[k].classList.remove('now');
@@ -18168,7 +18246,9 @@ function sdBanHtml(s){
           <div class="sd-ban-lb">${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
             tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</div>
           <audio class="sd-audio" controls preload="metadata" src="${escapeHtml(b.url)}"
-                 ontimeupdate="sdBanChay(this)" onended="sdBanThoiChay(this)" onpause="sdBanThoiChay(this)"></audio>
+                 ontimeupdate="sdBanChay(this,${(b.idx==null?-1:b.idx)})"
+                 onended="sdBanThoiChay(this,${(b.idx==null?-1:b.idx)})"
+                 onpause="sdBanThoiChay(this,${(b.idx==null?-1:b.idx)})"></audio>
         </div>`;}).join('')}
       <div class="sd-ban-tip">Nghe xen kẽ: bản gốc một câu → bản của bạn câu đó. Nghe xem <b>chỗ nhấn</b> và <b>chỗ ngắt</b> có trùng nhau không.</div>
     </div>`;
@@ -18386,6 +18466,8 @@ async function sdBatDauGhi(){
   // v211: nhớ câu đang đọc NGAY LÚC BẮT ĐẦU ghi. Bản v210 lấy lúc DỪNG ghi — khi đó video đã
   // trôi sang câu khác hoặc bỏ chọn, nên hay không lấy được câu nào, và về sau chữ không chạy.
   try{ s.ghiIdx = sdDongDangChon(); }catch(_){ s.ghiIdx = -1; }
+  // Chữ bắt đầu chạy từ chữ đầu của câu đang chọn, dẫn nhịp cho mình đọc theo.
+  setTimeout(()=>{ try{ sdBatNhipGhi((STATE.sdPhien||{}).ghiIdx); }catch(_){} }, 60);
   // Bấm ghi là câu đang chọn chạy lại TỪ ĐẦU, và tiếng video hạ xuống mức bạn đã đặt.
   sdApVidVol();
   if(sdChayLaiCauDangChon() < 0){
@@ -18405,6 +18487,7 @@ async function sdBatDauGhi(){
 }
 function sdDungGhi(){
   if(sdDemGiay){ clearInterval(sdDemGiay); sdDemGiay = null; }
+  try{ sdNgungNhipGhi(); }catch(_){}
   try{ if(sdRec && sdRec.state !== 'inactive') sdRec.stop(); }catch(e){ sdDonStream(); }
   try{ if(sdPlayer && sdPlayer.pauseVideo) sdPlayer.pauseVideo(); }catch(_){}
   sdTraVidVol();       // trả tiếng video về đúng mức trước khi ghi
