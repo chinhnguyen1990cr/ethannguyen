@@ -3307,7 +3307,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v218';
+const APP_VERSION = 'v219';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9682,10 +9682,15 @@ function wbHoiLaiAI(){
 }
 // Màn PHIÊN HỌC gộp: phần thân câu hỏi vẫn do đúng bộ máy cũ vẽ (giữ nguyên 13 dạng câu hỏi),
 // ở đây chỉ lo màn nghỉ giữa hiệp và màn kết quả cho cả hàng đợi.
+function wbVe(html){
+  const el = document.getElementById('content');
+  if(el) el.innerHTML = html;
+  return html;            // trả về luôn để bài kiểm thử soi được cả hai đường
+}
 function renderWbSession(){
   const w = STATE.wbSession;
   if(!w) return '';
-  if(w.resting) return `${englishItemBackRow(WB_TEN)}${studyRestCardHtml(w, WB_TEN)}`;
+  if(w.resting) return wbVe(`${englishItemBackRow(WB_TEN)}${studyRestCardHtml(w, WB_TEN)}`);
   if(w.finished){
     const tong = w.q.length;
     const pct = tong ? Math.round(w.correct / tong * 100) : 0;
@@ -9695,7 +9700,7 @@ function renderWbSession(){
     const loi = pct >= 90 ? '🌟 Rất chắc. Cứ nhịp này là vốn nói tăng đều mỗi ngày.'
               : pct >= 70 ? ('👍 Khá. Còn ' + sai + ' mục chưa chắc — mai app sẽ tự đưa lại đúng mấy mục đó trước.')
               : ('💡 Hôm nay hơi đuối. ' + sai + ' mục sai đã được hẹn ôn sớm; đừng vội thêm mục mới.');
-    return `${englishItemBackRow(WB_TEN)}
+    return wbVe(`${englishItemBackRow(WB_TEN)}
       <div class="card eng-quiz-result">
         <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">Phần hôm nay</div>
         <div class="score">${w.correct}/${tong}</div>
@@ -9711,17 +9716,34 @@ function renderWbSession(){
           Từ vựng <b style="color:var(--text);">${vs.learned}</b>/${vs.total} · Mẫu câu <b style="color:var(--text);">${cs.learned}</b>/${cs.total}
         </div>
         <div style="font-size:12.5px; color:var(--text); line-height:1.6; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">${loi}</div>
-      </div>`;
+      </div>`);
   }
+  // Thân câu hỏi vẫn do đúng bộ máy cũ dựng ra — mà hai hàm đó TỰ GHI vào #content, nên ở đây
+  // chỉ việc gọi, không được bọc thêm lần ghi nữa (bọc là ghi đè mất chính nó).
   if(STATE.vocabSession) return renderVocabSession();
   if(STATE.sentSession)  return renderSentSession();
-  return `${englishItemBackRow(WB_TEN)}<div class="card">Không dựng được câu hỏi.</div>`;
+  return wbVe(`${englishItemBackRow(WB_TEN)}<div class="card">Không dựng được câu hỏi.</div>`);
 }
 
 // Màn CHÍNH của mục gộp.
 function renderEnglishWordbank(item){
+  ensureEnglishItems();
   if(STATE.wbKho === 'tu')  return renderEnglishVocab(item);
   if(STATE.wbKho === 'cau') return renderEnglishSentences(item);
+  // Ngân hàng nằm ở file JSON riêng, tải không đồng bộ. Không gọi thì lần đầu vào mục là mọi
+  // con số bằng 0 và nút bấm không có gì để chạy — đúng lỗi ở v218.
+  let dangTai = false;
+  if(!VOCAB_DATA){ try{ fetchVocabData(); }catch(_){} dangTai = true; }
+  if(!COMMON_SENT_DATA){ try{ fetchCommonSentData(); }catch(_){} dangTai = true; }
+  if(dangTai){
+    return wbVe(`${englishItemBackRow(item.name || WB_TEN)}
+      <div class="card" style="text-align:center; padding:26px 18px;">
+        <div style="font-size:26px; margin-bottom:8px;">📚</div>
+        <div style="color:var(--gold); font-weight:800; font-size:13px;">Đang tải kho từ vựng và mẫu câu…</div>
+        <div style="margin-top:7px; font-size:12px; color:var(--dim); line-height:1.7;">Chỉ mất một hai giây. Nếu đứng lâu quá thì bấm back rồi vào lại.</div>
+        <button class="form-btn cancel" data-action="wb-lai" style="width:100%; margin-top:14px;">🔄 Thử lại</button>
+      </div>`);
+  }
   const vs = (typeof vocabStats === 'function') ? vocabStats() : {learned:0,total:0,mastered:0,due:0};
   const cs = (typeof sentStats === 'function') ? sentStats() : {learned:0,total:0,mastered:0,due:0};
   const soTu  = (VOCAB_DATA ? (vocabBuildDailyQueue()||[]).length : 0);
@@ -9743,7 +9765,7 @@ function renderEnglishWordbank(item){
       ` : `<div class="wb-cho-sub">Không còn mục nào phải chờ.</div>`}
     </div>` : '';
 
-  return `${englishItemBackRow(item.name || WB_TEN)}
+  return wbVe(`${englishItemBackRow(item.name || WB_TEN)}
     <div class="card wb-hero">
       <div class="wb-hero-top">
         <div><div class="wb-hero-lb">Phần hôm nay</div><div class="wb-hero-so">${tong}</div></div>
@@ -9764,7 +9786,7 @@ function renderEnglishWordbank(item){
         <span class="wb-lane-ic">💬</span>
         <span class="wb-lane-tx"><b>Kho mẫu câu</b><small>${cs.learned}/${cs.total} câu · 🏆 ${cs.mastered||0} thuộc lòng</small></span>
       </button>
-    </div>`;
+    </div>`);
 }
 function vocabStartDaily(){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
@@ -24451,6 +24473,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const nhuaBackEl = e.target.closest('[data-action="nhua-back"]');
   if(nhuaBackEl){ STATE.tab = 'kiemhang'; renderContent(); window.scrollTo(0,0); navBack(); return; }
+  const wbLaiEl = e.target.closest('[data-action="wb-lai"]');
+  if(wbLaiEl){ renderContent(); return; }
   const wbStartEl = e.target.closest('[data-action="wb-start"]');
   if(wbStartEl){ wbBatDau(); return; }
   const wbExitEl = e.target.closest('[data-action="wb-exit"]');
@@ -24476,10 +24500,19 @@ document.getElementById('content').addEventListener('click',(e)=>{
       if(STATE.quiz){ STATE.quiz = null; renderContent(); return; }  // đang làm bài → về màn chọn đề
       STATE.ggPractice = false; renderContent(); navBack(); window.scrollTo(0,0); return;
     }
+    // v219 — LUYỆN IPA: bóc ĐÚNG MỘT lớp mỗi lần bấm, theo thứ tự từ trong ra ngoài.
+    if(STATE.ipaDeepSession){ STATE.ipaDeepSession = null; renderContent(); window.scrollTo(0,0); return; }
+    if(STATE.ipaDetailSym){ STATE.ipaDetailSym = null; STATE.ipaVideoIdx = 0; renderContent(); window.scrollTo(0,0); return; }
+    if(STATE.ipaChartSubgroup){ STATE.ipaChartSubgroup = null; renderContent(); return; }
+    if(STATE.ipaChartGroup){ STATE.ipaChartGroup = null; renderContent(); return; }
     // Dọn dẹp phòng hờ 2 lớp Nghe & chép chính tả (item 1) — nút back chung này nhảy thẳng ra "Học
     // tiếng Anh" (đổi STATE.tab) nên phải tự xóa, không thể trông chờ riêng dict-home-close/dict-exit-
     // session (những action đó chỉ chạy khi bấm ĐÚNG nút back lồng trong màn dictHome/dictSession).
     STATE.dictSession = null; STATE.dictHome = false;
+    // …và dọn nốt mọi lớp IPA còn sót, để lần sau mở mục là vào từ đầu chứ không rơi vào giữa chừng.
+    STATE.ipaDeepSession = null; STATE.ipaDetailSym = null;
+    STATE.ipaChartSubgroup = null; STATE.ipaChartGroup = null; STATE.ipaVideoIdx = 0;
+    STATE.wbSession = null; STATE.wbKho = null;
     STATE.tab = 'english'; renderContent(); window.scrollTo(0,0); navBack();
     return;
   }
