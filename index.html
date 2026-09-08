@@ -2445,6 +2445,32 @@
    kéo ngược lên để nhìn. */
 .hv-ghim{position:sticky;top:0;z-index:8;background:var(--bg,#0d1117);
   padding-bottom:8px;margin:0 -2px;box-shadow:0 10px 14px -12px rgba(0,0,0,.9);}
+/* v218 — mục gộp "Từ vựng & Mẫu câu" */
+.wb-hero{padding:15px 16px;}
+.wb-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.wb-hero-lb{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim2);}
+.wb-hero-so{font-size:34px;font-weight:900;line-height:1.1;color:var(--text);}
+.wb-hero-chuoi{flex:0 0 auto;font-size:11px;font-weight:800;color:#FFC94A;background:rgba(255,201,74,.12);
+  border:1px solid rgba(255,201,74,.32);border-radius:999px;padding:5px 10px;}
+.wb-hero-tach{display:flex;gap:14px;margin-top:6px;font-size:12px;color:var(--dim);font-weight:700;}
+.wb-hero-ct{margin-top:10px;font-size:10.5px;line-height:1.7;color:var(--dim2);}
+.wb-cho{margin-top:12px;padding:13px 15px;border:1px solid rgba(255,201,74,.34);}
+.wb-cho-h{font-size:12px;font-weight:800;color:#FFC94A;margin-bottom:7px;}
+.wb-cho-ok{font-size:11.5px;color:var(--dim);line-height:1.7;margin-bottom:5px;}
+.wb-cho-sub{font-size:11.5px;color:var(--dim);line-height:1.7;}
+.wb-cho-ds{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.wb-cho-chip{font-size:11px;font-weight:600;color:var(--text);background:rgba(255,255,255,.06);
+  border:1px solid var(--border);border-radius:7px;padding:3px 8px;}
+.wb-cho-chip.cau{color:#7BE3C0;border-color:rgba(44,219,168,.3);background:rgba(44,219,168,.09);}
+.wb-cho-chip.mo{color:var(--dim2);font-style:italic;}
+.wb-lane{display:flex;flex-direction:column;gap:9px;margin-top:12px;}
+.wb-lane-nut{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  padding:13px 15px;border-radius:13px;border:1px solid var(--border);background:var(--panel2,rgba(255,255,255,.04));}
+.wb-lane-nut:active{background:rgba(255,255,255,.09);}
+.wb-lane-ic{flex:0 0 auto;font-size:21px;}
+.wb-lane-tx{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.wb-lane-tx b{font-size:13.5px;color:var(--text);}
+.wb-lane-tx small{font-size:11px;color:var(--dim);}
 .hv-vidwrap{position:relative;width:100%;max-width:520px;margin:0 auto 8px;}
 /* v214 — TOÀN MÀN HÌNH: khung video phủ kín, phụ đề nằm trong video như trên YouTube. */
 .hv-vidwrap.full{position:fixed;inset:0;width:100vw;max-width:none;height:100vh;margin:0;
@@ -3281,7 +3307,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v217';
+const APP_VERSION = 'v218';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7993,14 +8019,17 @@ function ensureEnglishItems(){
     SETTINGS.englishItems.push({id:'eng_ipa', name:'Luyện IPA', kind:'ipa'});
     saveSettings(); pushToDrive();
   }
-  // Di trú tương tự cho mục mới "Luyện từ vựng" (3000 từ, học theo lịch mỗi ngày + ôn tập xen kẽ).
-  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='vocab')){
-    SETTINGS.englishItems.push({id:'eng_vocab', name:'Luyện từ vựng', kind:'vocab'});
+  // v218 — GỘP "Luyện từ vựng" + "Câu thông dụng" thành MỘT mục "Từ vựng & Mẫu câu".
+  // Tiến độ cũ (SETTINGS.vocabProgress / sentProgress / chuỗi ngày / thống kê) nằm riêng nên
+  // KHÔNG mất gì khi hai mục cũ biến khỏi danh sách — mục mới đọc thẳng vào chính hai kho đó.
+  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='wordbank')){
+    const iCu = SETTINGS.englishItems.findIndex(i=>i.kind==='vocab' || i.kind==='sentences');
+    const mucMoi = {id:'eng_wordbank', name:WB_TEN, kind:'wordbank'};
+    if(iCu >= 0) SETTINGS.englishItems.splice(iCu, 0, mucMoi); else SETTINGS.englishItems.push(mucMoi);
     saveSettings(); pushToDrive();
   }
-  // Di trú tương tự cho mục mới "Câu thông dụng" (300 câu giao tiếp hằng ngày người bản xứ hay dùng).
-  if(Array.isArray(SETTINGS.englishItems) && !SETTINGS.englishItems.some(i=>i.kind==='sentences')){
-    SETTINGS.englishItems.push({id:'eng_sentences', name:'Câu thông dụng', kind:'sentences'});
+  if(Array.isArray(SETTINGS.englishItems) && SETTINGS.englishItems.some(i=>i.kind==='vocab' || i.kind==='sentences')){
+    SETTINGS.englishItems = SETTINGS.englishItems.filter(i=>i.kind!=='vocab' && i.kind!=='sentences');
     saveSettings(); pushToDrive();
   }
   // Di trú tương tự cho mục mới "Hội thoại AI" (luyện phản xạ nói qua lại với Gemini — tự do hoặc
@@ -9019,6 +9048,8 @@ function renderEnglishItem(){
   if(item.kind==='listening') return renderEnglishAV(item,'listening');
   if(item.kind==='speaking') return renderEnglishAV(item,'speaking');
   if(item.kind==='ipa') return renderEnglishIPA(item);
+  if(STATE.wbSession) return renderWbSession(item);
+  if(item.kind==='wordbank') return renderEnglishWordbank(item);
   if(item.kind==='vocab') return renderEnglishVocab(item);
   if(item.kind==='sentences') return renderEnglishSentences(item);
   if(item.kind==='aichat') return renderAiChat(item);
@@ -9537,6 +9568,204 @@ function reviewStart(kind){
   else if(kind==='sentences') ensureBankThen(()=>COMMON_SENT_DATA, fetchCommonSentData, sentStartDaily);
   else if(kind==='listening'){ STATE.dictHome = true; renderContent(); }
 }
+// ═══════════════════════════════════════════════════════════════════════
+//  v218 — "TỪ VỰNG & MẪU CÂU": một hàng đợi trộn, hai bộ máy cũ vẫn dựng câu hỏi
+// ═══════════════════════════════════════════════════════════════════════
+const WB_TEN = 'Từ vựng & Mẫu câu';
+
+// Trộn hai hàng đợi theo TỈ LỆ chứ không cắt lát cố định: bên nào đang đi chậm hơn (theo phần
+// trăm đã dùng) thì tới lượt bên đó. Nhờ vậy 12 từ + 4 câu vẫn rải đều cả phiên, không dồn cục
+// 12 từ trước rồi 4 câu sau — mà đảo ngữ cảnh liên tục mới là chỗ trí nhớ bám chắc.
+function wbTron(tu, cau){
+  const A = (tu||[]).length, B = (cau||[]).length, ra = [];
+  let ia = 0, ib = 0;
+  for(let k = 0; k < A + B; k++){
+    const pa = A ? ia / A : 2, pb = B ? ib / B : 2;
+    if(ia < A && (pa <= pb || ib >= B)) ra.push({t:'tu',  n:tu[ia++]});
+    else if(ib < B)                     ra.push({t:'cau', n:cau[ib++]});
+    else if(ia < A)                     ra.push({t:'tu',  n:tu[ia++]});
+  }
+  return ra;
+}
+function wbTong(){ const w = STATE.wbSession; return w ? w.q.length : 0; }
+function wbPct(){ const w = STATE.wbSession; return (w && w.q.length) ? Math.round(w.idx / w.q.length * 100) : 0; }
+function wbNhanDem(){
+  const w = STATE.wbSession; if(!w) return '';
+  const it = w.q[w.idx] || {};
+  return (it.t === 'cau' ? 'Câu ' : 'Từ ') + (w.idx + 1) + '/' + w.q.length;
+}
+// Nạp mục đang tới lượt: dựng một phiên CON đúng một phần tử rồi để chính bộ máy cũ lo phần
+// sinh câu hỏi. Không đụng vào cách hai bộ máy đó làm việc, nên 13 dạng câu hỏi giữ nguyên.
+function wbNapItem(){
+  const w = STATE.wbSession; if(!w) return;
+  const it = w.q[w.idx]; if(!it) return;
+  if(it.t === 'tu'){
+    STATE.sentSession = null;
+    STATE.vocabSession = {mode:'wb', topic:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}};
+    try{ vocabPrepareCurrent(); }catch(_){}
+  } else {
+    STATE.vocabSession = null;
+    STATE.sentSession = {mode:'wb', category:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}};
+    try{ sentPrepareCurrent(); }catch(_){}
+  }
+}
+// Trả lời xong một mục thì gom kết quả về hàng đợi chung rồi đi tiếp. Sai thì đẩy mục đó xuống
+// cuối hàng để gặp lại ngay trong phiên — nhớ lại lúc trí nhớ còn nóng là lúc bám chắc nhất.
+function wbTiep(dung){
+  const w = STATE.wbSession; if(!w) return;
+  const it = w.q[w.idx];
+  if(dung) w.correct++;
+  else if(it){
+    const khoa = it.t + ':' + it.n;
+    if(w.missed.indexOf(khoa) < 0){ w.missed.push(khoa); w.q.push({t:it.t, n:it.n}); }
+  }
+  if(w.idx < w.q.length - 1){
+    w.idx++;
+    wbNapItem();
+    if(studyShouldRest(w)) w.resting = true;
+  } else {
+    w.finished = true;
+    STATE.vocabSession = null; STATE.sentSession = null;
+    try{ engGameMarkActivity(); }catch(_){}
+  }
+  renderContent();
+}
+function wbBatDau(){
+  if(!VOCAB_DATA || !COMMON_SENT_DATA){
+    if(!VOCAB_DATA) fetchVocabData();
+    if(!COMMON_SENT_DATA) fetchCommonSentData();
+    showToast('⏳','Đang tải dữ liệu','Thử lại sau một giây nữa nhé.'); return;
+  }
+  const tu  = vocabBuildDailyQueue() || [];
+  const cau = sentBuildDailyQueue() || [];
+  const q = wbTron(tu, cau);
+  if(!q.length){
+    showToast('🎉','Xong hết phần hôm nay!','Cả từ lẫn mẫu câu đều đã học và ôn đủ. Mai quay lại, hoặc mở kho bên dưới để luyện thêm.');
+    return;
+  }
+  navForward();
+  // ids trỏ CÙNG mảng với q: cơ chế "nghỉ giữa hiệp" (studyShouldRest/studyRestCardHtml) chỉ đọc
+  // s.idx và s.ids.length, nên dùng lại được nguyên vẹn mà không phải sửa gì bên đó.
+  STATE.wbSession = {q, ids:q, idx:0, correct:0, missed:[], finished:false, tuDau:tu.length, cauDau:cau.length};
+  wbNapItem();
+  renderContent(); window.scrollTo(0,0);
+}
+function wbThoat(){
+  STATE.wbSession = null; STATE.vocabSession = null; STATE.sentSession = null;
+  renderContent(); navBack();
+}
+
+// ── Kho từ đang chờ AI (nhặt từ "Học theo video") ───────────────────────
+// Mục nào đã được AI bổ sung nghĩa thì hvSanSang() cho qua và vocabGopTuVideo()/sentGopTuVideo()
+// nạp thẳng vào ngân hàng — tức là nó BIẾN MẤT khỏi danh sách chờ và có mặt trong kho. Mục nào
+// chưa có nghĩa thì nằm lại đây, thấy được, đếm được, và bấm một nút là hỏi lại.
+function wbDangCho(){
+  const ra = [];
+  try{ hvKhoTu().forEach(x => { if(!hvSanSang(x)) ra.push({t:'tu', x}); }); }catch(_){}
+  try{ hvKhoCau().forEach(x => { if(!hvSanSang(x)) ra.push({t:'cau', x}); }); }catch(_){}
+  return ra;
+}
+function wbDaNap(){
+  let a = 0, b = 0;
+  try{ a = hvKhoTu().filter(hvSanSang).length; }catch(_){}
+  try{ b = hvKhoCau().filter(hvSanSang).length; }catch(_){}
+  return a + b;
+}
+function wbHoiLaiAI(){
+  if(!SETTINGS.geminiApiKey){
+    showToast('🔑','Chưa có khoá AI','Vào Cài đặt → Hội thoại AI dán khoá Gemini, rồi bấm lại nút này.'); return;
+  }
+  const cho = wbDangCho();
+  if(!cho.length){ showToast('✅','Không còn mục nào chờ','Tất cả đã có nghĩa và đã nằm trong kho.'); return; }
+  showToast('🤖','Đang hỏi AI…','Xong mục nào là mục đó rời khỏi danh sách chờ và vào thẳng kho.');
+  try{ hvDichNhungCaiThieu(); }catch(_){}
+}
+// Màn PHIÊN HỌC gộp: phần thân câu hỏi vẫn do đúng bộ máy cũ vẽ (giữ nguyên 13 dạng câu hỏi),
+// ở đây chỉ lo màn nghỉ giữa hiệp và màn kết quả cho cả hàng đợi.
+function renderWbSession(){
+  const w = STATE.wbSession;
+  if(!w) return '';
+  if(w.resting) return `${englishItemBackRow(WB_TEN)}${studyRestCardHtml(w, WB_TEN)}`;
+  if(w.finished){
+    const tong = w.q.length;
+    const pct = tong ? Math.round(w.correct / tong * 100) : 0;
+    const sai = w.missed.length;
+    const vs = (typeof vocabStats === 'function') ? vocabStats() : {learned:0,total:0};
+    const cs = (typeof sentStats === 'function') ? sentStats() : {learned:0,total:0};
+    const loi = pct >= 90 ? '🌟 Rất chắc. Cứ nhịp này là vốn nói tăng đều mỗi ngày.'
+              : pct >= 70 ? ('👍 Khá. Còn ' + sai + ' mục chưa chắc — mai app sẽ tự đưa lại đúng mấy mục đó trước.')
+              : ('💡 Hôm nay hơi đuối. ' + sai + ' mục sai đã được hẹn ôn sớm; đừng vội thêm mục mới.');
+    return `${englishItemBackRow(WB_TEN)}
+      <div class="card eng-quiz-result">
+        <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">Phần hôm nay</div>
+        <div class="score">${w.correct}/${tong}</div>
+        <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác${sai ? (' · ' + sai + ' mục cần ôn lại') : ''}</div>
+        <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
+          <button class="form-btn eng-quiz-nextbtn" data-action="wb-start">🔁 Học tiếp phần còn lại</button>
+          <button class="form-btn cancel" data-action="wb-exit">✓ Hoàn tất</button>
+        </div>
+      </div>
+      <div class="card" style="text-align:left; margin-top:14px; padding:14px 16px; border:1px solid #2CDBA855;">
+        <div style="font-size:12px; font-weight:800; color:var(--teal); margin-bottom:8px;">📊 Tổng kho</div>
+        <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
+          Từ vựng <b style="color:var(--text);">${vs.learned}</b>/${vs.total} · Mẫu câu <b style="color:var(--text);">${cs.learned}</b>/${cs.total}
+        </div>
+        <div style="font-size:12.5px; color:var(--text); line-height:1.6; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">${loi}</div>
+      </div>`;
+  }
+  if(STATE.vocabSession) return renderVocabSession();
+  if(STATE.sentSession)  return renderSentSession();
+  return `${englishItemBackRow(WB_TEN)}<div class="card">Không dựng được câu hỏi.</div>`;
+}
+
+// Màn CHÍNH của mục gộp.
+function renderEnglishWordbank(item){
+  if(STATE.wbKho === 'tu')  return renderEnglishVocab(item);
+  if(STATE.wbKho === 'cau') return renderEnglishSentences(item);
+  const vs = (typeof vocabStats === 'function') ? vocabStats() : {learned:0,total:0,mastered:0,due:0};
+  const cs = (typeof sentStats === 'function') ? sentStats() : {learned:0,total:0,mastered:0,due:0};
+  const soTu  = (VOCAB_DATA ? (vocabBuildDailyQueue()||[]).length : 0);
+  const soCau = (COMMON_SENT_DATA ? (sentBuildDailyQueue()||[]).length : 0);
+  const tong  = soTu + soCau;
+  const cho   = wbDangCho();
+  const daNap = wbDaNap();
+  const chuoi = (SETTINGS.vocabStreak && SETTINGS.vocabStreak.streak) || 0;
+
+  const choHtml = (cho.length || daNap) ? `
+    <div class="card wb-cho">
+      <div class="wb-cho-h">🎬 Nhặt từ "Học theo video"</div>
+      ${daNap ? `<div class="wb-cho-ok">✅ <b>${daNap}</b> mục đã có nghĩa và đã nằm trong kho — học chung với phần còn lại.</div>` : ''}
+      ${cho.length ? `
+        <div class="wb-cho-sub"><b>${cho.length}</b> mục đang chờ AI bổ sung nghĩa. Có nghĩa rồi là tự rời khỏi đây và vào kho.</div>
+        <div class="wb-cho-ds">${cho.slice(0,12).map(o=>`<span class="wb-cho-chip ${o.t==='cau'?'cau':''}">${escapeHtml(String(o.x.chu||''))}</span>`).join('')}${
+          cho.length>12 ? `<span class="wb-cho-chip mo">+${cho.length-12} nữa</span>` : ''}</div>
+        <button class="form-btn eng-quiz-nextbtn" data-action="wb-ai" style="width:100%; margin-top:11px;">🤖 Nhờ AI bổ sung nghĩa cho ${cho.length} mục</button>
+      ` : `<div class="wb-cho-sub">Không còn mục nào phải chờ.</div>`}
+    </div>` : '';
+
+  return `${englishItemBackRow(item.name || WB_TEN)}
+    <div class="card wb-hero">
+      <div class="wb-hero-top">
+        <div><div class="wb-hero-lb">Phần hôm nay</div><div class="wb-hero-so">${tong}</div></div>
+        <div class="wb-hero-chuoi">🔥 ${chuoi} ngày liên tiếp</div>
+      </div>
+      <div class="wb-hero-tach"><span>📖 ${soTu} từ</span><span>💬 ${soCau} mẫu câu</span></div>
+      <button class="form-btn eng-quiz-nextbtn" data-action="wb-start" style="width:100%; margin-top:12px;">
+        ${tong ? '▶️ Bắt đầu — từ và câu trộn lẫn' : '🎉 Hôm nay đã xong'}</button>
+      <div class="wb-hero-ct">Từ vựng và mẫu câu <b>xen kẽ nhau</b> trong cùng một phiên. Phải đổi ngữ cảnh liên tục thì trí nhớ mới bám chắc — học dồn một loại xong mới sang loại kia dễ thuộc vẹt.</div>
+    </div>
+    ${choHtml}
+    <div class="wb-lane">
+      <button class="wb-lane-nut" data-action="wb-kho" data-k="tu">
+        <span class="wb-lane-ic">📖</span>
+        <span class="wb-lane-tx"><b>Kho từ vựng</b><small>${vs.learned}/${vs.total} từ · 🏆 ${vs.mastered||0} thuộc lòng</small></span>
+      </button>
+      <button class="wb-lane-nut" data-action="wb-kho" data-k="cau">
+        <span class="wb-lane-ic">💬</span>
+        <span class="wb-lane-tx"><b>Kho mẫu câu</b><small>${cs.learned}/${cs.total} câu · 🏆 ${cs.mastered||0} thuộc lòng</small></span>
+      </button>
+    </div>`;
+}
 function vocabStartDaily(){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
   const ids = vocabBuildDailyQueue();
@@ -9705,6 +9934,9 @@ function vocabTypedSubmit(){
 }
 function vocabNext(){
   const s = STATE.vocabSession; if(!s) return;
+  // v218 — đang chạy trong phiên gộp thì đây không phải chỗ quyết định đi tiếp hay dừng:
+  // phiên con chỉ có ĐÚNG MỘT mục, hàng đợi thật nằm ở wbSession.
+  if(s.mode === 'wb'){ wbTiep(!!s.isCorrectAnswer); return; }
   if(s.idx < s.ids.length-1){
     s.idx++;
     vocabPrepareCurrent();
@@ -9878,11 +10110,13 @@ function renderVocabSession(){
   const n = s.ids[s.idx];
   const word = vocabWordByN(n);
   if(!word) return `<div class="card">Không tải được dữ liệu từ vựng.</div>`;
-  const progressPct = Math.round((s.idx/s.ids.length)*100);
+  // v218: phiên gộp thì con số phải là của hàng đợi chung, không phải của phiên con một mục.
+  const wbg = (s.mode === 'wb') ? STATE.wbSession : null;
+  const progressPct = wbg ? wbPct() : Math.round((s.idx/s.ids.length)*100);
   const progressWrap = `<div class="eng-quiz-progress-wrap">
     <div class="eng-quiz-progress-top">
-      <span class="eng-quiz-progress-badge count">Từ ${s.idx+1}/${s.ids.length}</span>
-      <span class="eng-quiz-progress-badge correct">✓ Đúng ${s.correct}</span>
+      <span class="eng-quiz-progress-badge count">${wbg ? wbNhanDem() : ('Từ ' + (s.idx+1) + '/' + s.ids.length)}</span>
+      <span class="eng-quiz-progress-badge correct">✓ Đúng ${wbg ? wbg.correct : s.correct}</span>
     </div>
     <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
   </div>`;
@@ -12731,6 +12965,7 @@ function sentTypedSubmit(){
 }
 function sentNext(){
   const s = STATE.sentSession; if(!s) return;
+  if(s.mode === 'wb'){ wbTiep(!!s.isCorrectAnswer); return; }   // v218 — xem chú thích ở vocabNext
   if(s.idx < s.ids.length-1){ s.idx++; sentPrepareCurrent(); if(studyShouldRest(s)) s.resting = true; renderContent(); }
   else { s.finished = true; renderContent(); }
 }
@@ -12823,11 +13058,12 @@ function renderSentSession(){
   const n = s.ids[s.idx];
   const sentence = sentByN(n);
   if(!sentence) return `${englishItemBackRow('Câu thông dụng')}<div class="card">Không tải được dữ liệu.</div>`;
-  const progressPct = Math.round((s.idx/s.ids.length)*100);
+  const wbg = (s.mode === 'wb') ? STATE.wbSession : null;      // v218 — xem chú thích ở renderVocabSession
+  const progressPct = wbg ? wbPct() : Math.round((s.idx/s.ids.length)*100);
   const progressWrap = `<div class="eng-quiz-progress-wrap">
     <div class="eng-quiz-progress-top">
-      <span class="eng-quiz-progress-badge count">Câu ${s.idx+1}/${s.ids.length}</span>
-      <span class="eng-quiz-progress-badge correct">✓ Đúng ${s.correct}</span>
+      <span class="eng-quiz-progress-badge count">${wbg ? wbNhanDem() : ('Câu ' + (s.idx+1) + '/' + s.ids.length)}</span>
+      <span class="eng-quiz-progress-badge correct">✓ Đúng ${wbg ? wbg.correct : s.correct}</span>
     </div>
     <div class="eng-quiz-progress-bar"><div class="eng-quiz-progress-bar-fill" style="width:${progressPct}%;"></div></div>
   </div>`;
@@ -24167,13 +24403,13 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // Nghỉ giữa hiệp: học tiếp / dừng hôm nay (dùng chung cho Từ vựng, Câu thông dụng, Chép chính tả)
   const restContEl = e.target.closest('[data-action="study-rest-continue"]');
   if(restContEl){
-    const cur = (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
+    const cur = (STATE.wbSession&&STATE.wbSession.resting&&STATE.wbSession) || (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
     if(cur){ cur.resting = false; renderContent(); }
     return;
   }
   const restStopEl = e.target.closest('[data-action="study-rest-stop"]');
   if(restStopEl){
-    const cur = (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
+    const cur = (STATE.wbSession&&STATE.wbSession.resting&&STATE.wbSession) || (STATE.vocabSession&&STATE.vocabSession.resting&&STATE.vocabSession) || (STATE.sentSession&&STATE.sentSession.resting&&STATE.sentSession) || (STATE.dictSession&&STATE.dictSession.resting&&STATE.dictSession);
     // Dừng sớm: cắt danh sách còn lại để phần kết quả tính đúng trên số câu ĐÃ LÀM, không bị chia cho
     // tổng số câu dự kiến (nếu không, dừng giữa chừng sẽ hiện điểm thấp oan dù làm đúng hết).
     if(cur){ cur.ids = cur.ids.slice(0, cur.idx); cur.resting = false; cur.finished = true; renderContent(); }
@@ -24215,8 +24451,19 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const nhuaBackEl = e.target.closest('[data-action="nhua-back"]');
   if(nhuaBackEl){ STATE.tab = 'kiemhang'; renderContent(); window.scrollTo(0,0); navBack(); return; }
+  const wbStartEl = e.target.closest('[data-action="wb-start"]');
+  if(wbStartEl){ wbBatDau(); return; }
+  const wbExitEl = e.target.closest('[data-action="wb-exit"]');
+  if(wbExitEl){ wbThoat(); return; }
+  const wbAiEl = e.target.closest('[data-action="wb-ai"]');
+  if(wbAiEl){ wbHoiLaiAI(); return; }
+  const wbKhoEl = e.target.closest('[data-action="wb-kho"]');
+  if(wbKhoEl){ STATE.wbKho = wbKhoEl.getAttribute('data-k') || 'tu'; navForward(); renderContent(); window.scrollTo(0,0); return; }
   const engItemBackEl = e.target.closest('[data-action="english-item-back"]');
   if(engItemBackEl){
+    // v218 — đang xem một kho bên trong mục gộp thì back phải đóng ĐÚNG một lớp (về màn gộp),
+    // không nhảy thẳng ra "Học tiếng Anh".
+    if(STATE.wbKho && !STATE.wbSession){ STATE.wbKho = null; navBack(); return; }
     // Nếu đang mở "trang riêng" 1 chủ đề ngữ pháp (bên trong iframe), nút back ở đầu màn hình cũng
     // phải đóng trang riêng đó TRƯỚC (đúng 1 lớp), không được nhảy thẳng ra "Học tiếng Anh" — khớp
     // với hành vi vuốt-back. navBack() sẽ tiêu thụ đúng mốc lịch sử đó và tự render lại (iframe nạp
