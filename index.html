@@ -1928,6 +1928,33 @@
   .vocab-scramble-slot.filled{border-color:var(--teal); background:rgba(44,219,168,0.12);}
   .vocab-scramble-slot.empty{border-style:dashed; color:var(--dim2);}
   .vocab-scramble-pool{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+/* ═══ v220 — 4 dạng bài mới: nối cặp, đọc to chấm điểm, nghe-gõ ═══ */
+.qz-mp-dem{font-size:11.5px;color:var(--dim);text-align:center;margin:-2px 0 10px;}
+.qz-mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.qz-mp-col{display:flex;flex-direction:column;gap:8px;}
+.qz-mp-o{padding:11px 10px;border-radius:12px;border:1px solid var(--border);background:var(--card2,rgba(255,255,255,.04));
+  font-size:13.5px;font-weight:700;line-height:1.35;text-align:center;cursor:pointer;
+  transition:transform .12s,border-color .16s,background .16s,opacity .2s;}
+.qz-mp-o.vi{font-weight:600;color:var(--gold);}
+.qz-mp-o.chon{border-color:var(--blue);background:rgba(90,160,255,.16);transform:scale(1.03);}
+.qz-mp-o.xong{opacity:.34;border-style:dashed;cursor:default;transform:none;}
+.qz-mp-o.sai{border-color:#FF6B6B;background:rgba(255,107,107,.16);animation:qzLac .3s;}
+@keyframes qzLac{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+.qz-say-doc{font-size:30px;font-weight:900;letter-spacing:.5px;margin:6px 0 2px;line-height:1.25;}
+.qz-say-doc.cau{font-size:20px;letter-spacing:0;}
+.qz-say-ipa{font-family:var(--mono);font-size:13px;color:var(--dim);margin-bottom:8px;}
+.qz-say-trangthai{font-size:12.5px;color:var(--teal);font-weight:700;margin-top:8px;}
+.qz-say-song{display:flex;justify-content:center;align-items:flex-end;gap:4px;height:30px;margin-top:6px;}
+.qz-say-song span{width:4px;border-radius:2px;background:var(--teal);animation:qzSong .9s ease-in-out infinite;}
+.qz-say-song span:nth-child(1){animation-delay:0s;}   .qz-say-song span:nth-child(2){animation-delay:.12s;}
+.qz-say-song span:nth-child(3){animation-delay:.24s;} .qz-say-song span:nth-child(4){animation-delay:.36s;}
+.qz-say-song span:nth-child(5){animation-delay:.48s;}
+@keyframes qzSong{0%,100%{height:7px;opacity:.5;}50%{height:28px;opacity:1;}}
+.qz-say-diem{font-size:38px;font-weight:900;line-height:1;margin-top:6px;}
+.qz-say-diem span{font-size:16px;font-weight:800;margin-left:2px;}
+.qz-say-diem.ok{color:var(--teal);} .qz-say-diem.no{color:#FF9B6B;}
+.qz-say-nghe{font-size:12px;color:var(--dim);font-style:italic;margin-top:8px;line-height:1.5;}
+.qz-lt-hint{font-size:11.5px;color:var(--dim);margin:2px 0 10px;}
   .vocab-scramble-tile{width:36px; height:40px; border-radius:10px; border:1px solid var(--border); background:var(--panel);
     display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; color:var(--text); cursor:pointer;}
   .vocab-scramble-tile:active{transform:scale(0.93);}
@@ -3307,7 +3334,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v219';
+const APP_VERSION = 'v220';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9489,6 +9516,54 @@ function vocabScrambleLetters(w){
   do { arr = shuffleArr(arr); tries++; } while(arr.join('')===letters.join('') && tries<8);
   return arr.map((ch,i)=>({ch, id:i, used:false}));
 }
+// ═══════════════════════════════════════════════════════════════════════
+//  v220 — "ĐỌC TO — CHẤM PHÁT ÂM": một bộ nghe/chấm dùng chung cho cả hai bộ máy
+//  Không mượn lại engine của "Luyện nói" vì engine đó dựng cho cả ĐOẠN dài (cắt lát, Cloud STT,
+//  ghi lại tiếng để nghe lại...) — quá nặng cho một lượt đọc đúng một từ hoặc một câu ngắn.
+// ═══════════════════════════════════════════════════════════════════════
+const QZ_SAY_DAT = 70;          // đọc khớp từ 70% trở lên là tính đúng
+let qzSayRec = null;
+function qzSayDung(){
+  if(qzSayRec){ try{ qzSayRec.onresult=null; qzSayRec.onerror=null; qzSayRec.onend=null; qzSayRec.stop(); }catch(_){ } }
+  qzSayRec = null;
+}
+// Chấm theo TỈ LỆ số từ khớp được, không đòi khớp tuyệt đối: máy nhận diện giọng nói lệch một hai ký
+// tự là chuyện thường (xem speakWordsSimilar), bắt khớp cứng sẽ trừ điểm oan người đọc đúng.
+function qzSayDiem(nghe, dich){
+  const A = speakNormalizeWords(dich), B = speakNormalizeWords(nghe);
+  if(!A.length) return 0;
+  const con = B.slice(); let trung = 0;
+  A.forEach(w=>{
+    const i = con.findIndex(x=>speakWordsSimilar(x, w));
+    if(i>=0){ trung++; con.splice(i,1); }
+  });
+  return Math.round(trung / A.length * 100);
+}
+function qzSayBatDau(dich, xong){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('⚠️','Máy chưa hỗ trợ nghe','Thiết bị này chưa có nhận diện giọng nói. Mở app bằng Chrome trên Android hoặc máy tính để dùng dạng bài này.'); return false; }
+  qzSayDung();
+  let cuoi = '', daXong = false;
+  const ket = (txt)=>{ if(daXong) return; daXong = true; qzSayDung(); xong(txt, qzSayDiem(txt, dich)); };
+  const r = new SR();
+  r.lang = 'en-US'; r.continuous = false; r.interimResults = true; r.maxAlternatives = 1;
+  r.onresult = (e)=>{ let t=''; for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript + ' '; cuoi = t.trim(); };
+  r.onerror = ()=>{ ket(cuoi); };
+  r.onend   = ()=>{ ket(cuoi); };
+  qzSayRec = r;
+  try{ r.start(); }catch(_){ qzSayDung(); return false; }
+  // Lưới an toàn 8 giây: trên nhiều máy Android, onend đôi khi không bao giờ bắn ra — thiếu cái này
+  // là nút ghi âm kẹt ở trạng thái "đang nghe" vĩnh viễn, đúng loại lỗi đã gặp ở Luyện nói.
+  setTimeout(()=>{ if(qzSayRec === r && !daXong){ try{ r.stop(); }catch(_){ ket(cuoi); } } }, 8000);
+  return true;
+}
+// Khối kết quả sau khi đọc — dùng chung, chỉ khác chuỗi đáp án truyền vào.
+function qzSayKetQuaHtml(s, dapAn){
+  const d = Number(s.sayScore)||0;
+  return `<div class="qz-say-diem ${s.isCorrectAnswer?'ok':'no'}">${d}<span>%</span></div>
+    <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:6px;">${s.isCorrectAnswer?'✓ Phát âm đạt!':`✗ Chưa đạt (cần ${QZ_SAY_DAT}%) — đáp án: ${escapeHtml(dapAn)}`}</div>
+    ${s.sayText ? `<div class="qz-say-nghe">Máy nghe được: “${escapeHtml(s.sayText)}”</div>` : `<div class="qz-say-nghe">Máy chưa nghe được gì — thử đọc to và gần mic hơn.</div>`}`;
+}
 function vocabPrepareCurrent(){
   const s = STATE.vocabSession; if(!s) return;
   const n = s.ids[s.idx];
@@ -9511,6 +9586,15 @@ function vocabPrepareCurrent(){
   if(box>=1) types.push('listen_en_vi');
   if(box>=2) types.push('unscramble');
   if(box>=3 && word[1].replace(/\s+/g,'').length>=3) types.push('type_en');
+  // v220 — 3 dạng bài mới cho từ vựng:
+  //  • match_pairs  (nối cặp từ–nghĩa): mở ngay từ box 0. Nhận diện SONG SONG 4 cặp một lúc buộc phải
+  //    phân biệt các từ gần nghĩa với nhau, việc mà trắc nghiệm 1 câu 4 đáp án không ép được.
+  //  • listen_type  (nghe rồi gõ lại): mở từ box 2 — nghe hiểu + viết đúng chính tả, khó hơn nghe-chọn.
+  //  • say_it       (đọc to, chấm phát âm): mở từ box 1, chỉ khi máy thật sự có nhận diện giọng nói,
+  //    nếu không sẽ ra một dạng bài không thể trả lời được (bài học rút từ lỗi mic của Luyện nói).
+  types.push('match_pairs');
+  if(box>=2 && word[1].replace(/\s+/g,'').length>=3) types.push('listen_type');
+  if(box>=1 && (window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây — cảm giác đa dạng thật sự thay vì luôn ra đúng 1 kiểu dự đoán được.
   const exType = pickVariedType(types, s.lastExType);
@@ -9520,8 +9604,23 @@ function vocabPrepareCurrent(){
     s.scrambleSel = [];
     return;
   }
-  if(exType==='type_en'){
+  if(exType==='type_en' || exType==='listen_type'){
     s.typedValue = '';
+    return;
+  }
+  if(exType==='say_it'){
+    s.sayBusy = false; s.sayText = ''; s.sayScore = null;
+    return;
+  }
+  if(exType==='match_pairs'){
+    // 4 cặp: từ đang học + 3 từ gây nhiễu cùng chủ đề (cùng bộ nhiễu mà trắc nghiệm vẫn dùng, nên
+    // độ khó nhất quán với các dạng khác chứ không phải 3 từ ngẫu nhiên dễ loại trừ).
+    const khac = vocabPickDistractorWords(word, 3) || [];
+    const cap = [word].concat(khac).filter(Boolean).map(w=>({k:w[0], en:w[1], vi:w[4]}));
+    s.mpPairs = cap;
+    s.mpLeft  = shuffleArr(cap.map(p=>p.k));
+    s.mpRight = shuffleArr(cap.map(p=>p.k));
+    s.mpSel = null; s.mpDone = {}; s.mpWrong = 0; s.mpBad = null;
     return;
   }
   const distractors = vocabPickDistractorWords(word, 3);
@@ -9718,10 +9817,14 @@ function renderWbSession(){
         <div style="font-size:12.5px; color:var(--text); line-height:1.6; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">${loi}</div>
       </div>`);
   }
-  // Thân câu hỏi vẫn do đúng bộ máy cũ dựng ra — mà hai hàm đó TỰ GHI vào #content, nên ở đây
-  // chỉ việc gọi, không được bọc thêm lần ghi nữa (bọc là ghi đè mất chính nó).
-  if(STATE.vocabSession) return renderVocabSession();
-  if(STATE.sentSession)  return renderSentSession();
+  // Thân câu hỏi do đúng bộ máy cũ dựng ra, nhưng hai hàm NÀY chỉ TRẢ chuỗi chứ không ghi
+  // (bên ngoài, renderEnglishVocab/renderEnglishSentences mới là chỗ ghi). Nên ở đây phải tự
+  // ghi, kèm hàng nút back của mục gộp.
+  // Lưu ý bất đối xứng có thật giữa hai bộ máy cũ: renderSentSession TỰ kèm hàng nút back ở cuối,
+  // còn renderVocabSession thì KHÔNG (bên ngoài renderEnglishVocab mới thêm). Nên chỉ nhánh từ vựng
+  // mới được bọc thêm hàng back — bọc cả hai là màn câu có hai hàng back chồng nhau.
+  if(STATE.vocabSession) return wbVe(`${englishItemBackRow(WB_TEN)}${renderVocabSession()}`);
+  if(STATE.sentSession)  return wbVe(renderSentSession(WB_TEN));
   return wbVe(`${englishItemBackRow(WB_TEN)}<div class="card">Không dựng được câu hỏi.</div>`);
 }
 
@@ -9922,6 +10025,39 @@ function vocabScrambleTap(letterId){
     vocabFinishAnswer(built===target);
   }
   renderContent();
+}
+// ---- Bài "Nối cặp từ – nghĩa": chạm 1 từ tiếng Anh rồi chạm nghĩa tiếng Việt tương ứng ----
+function vocabMatchTap(ben, key){
+  const s = STATE.vocabSession; if(!s || s.answered!==null) return;
+  if(s.mpDone && s.mpDone[key]) return;                 // cặp đã nối xong thì thôi
+  if(ben === 'en'){ s.mpSel = (s.mpSel===key ? null : key); s.mpBad = null; renderContent(); return; }
+  if(s.mpSel === null || s.mpSel === undefined) return;  // chưa chọn vế tiếng Anh thì chưa ghép được
+  if(s.mpSel === key){ s.mpDone[key] = true; s.mpSel = null; s.mpBad = null; }
+  else { s.mpWrong = (s.mpWrong||0) + 1; s.mpBad = key; s.mpSel = null; }
+  // Chỉ tính ĐÚNG khi nối trọn 4 cặp mà KHÔNG sai lần nào — nếu cho phép sai rồi thử lại vẫn tính
+  // đúng thì bài này biến thành trò loại trừ, mất hẳn giá trị kiểm tra trí nhớ.
+  if((s.mpPairs||[]).every(p=>s.mpDone[p.k])){
+    s.answered = true;
+    vocabFinishAnswer((s.mpWrong||0) === 0);
+  }
+  renderContent();
+}
+// ---- Bài "Đọc to — chấm phát âm" ----
+function vocabSayStart(){
+  const s = STATE.vocabSession; if(!s || s.answered!==null || s.sayBusy) return;
+  const word = vocabWordByN(s.ids[s.idx]); if(!word) return;
+  const chay = qzSayBatDau(word[1], (txt, diem)=>{
+    const t = STATE.vocabSession; if(!t || t.answered!==null) return;
+    t.sayBusy = false; t.sayText = txt; t.sayScore = diem;
+    t.answered = true;
+    vocabFinishAnswer(diem >= QZ_SAY_DAT);
+    renderContent();
+  });
+  if(chay){ s.sayBusy = true; s.sayText = ''; s.sayScore = null; renderContent(); }
+}
+function vocabSayCancel(){
+  const s = STATE.vocabSession; if(!s) return;
+  qzSayDung(); s.sayBusy = false; renderContent();
 }
 function vocabScrambleUndoLast(){
   const s = STATE.vocabSession; if(!s || s.answered!==null) return;
@@ -10191,6 +10327,71 @@ function renderVocabSession(){
         <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe từ</button>
       </div>
       <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Từ tiếp →':'🏁 Xem kết quả'}</button>` : ''}
+    </div>`;
+  }
+  if(s.exType==='match_pairs'){
+    const pairs = s.mpPairs || [];
+    const byK = (k)=>pairs.find(p=>p.k===k) || {};
+    const oL = (s.mpLeft||[]).map(k=>{
+      const xong = !!(s.mpDone && s.mpDone[k]);
+      return `<div class="qz-mp-o ${xong?'xong':''} ${s.mpSel===k?'chon':''}" ${(!xong && s.answered===null)?`data-action="vocab-mp-tap" data-side="en" data-key="${k}"`:''}>${escapeHtml(byK(k).en||'')}</div>`;
+    }).join('');
+    const oR = (s.mpRight||[]).map(k=>{
+      const xong = !!(s.mpDone && s.mpDone[k]);
+      return `<div class="qz-mp-o vi ${xong?'xong':''} ${s.mpBad===k?'sai':''}" ${(!xong && s.answered===null)?`data-action="vocab-mp-tap" data-side="vi" data-key="${k}"`:''}>${escapeHtml(byK(k).vi||'')}</div>`;
+    }).join('');
+    const daNoi = pairs.filter(p=>s.mpDone && s.mpDone[p.k]).length;
+    return `${progressWrap}
+    <div class="card eng-quiz-card">
+      <div class="eng-quiz-q">🔗 Nối mỗi từ với đúng nghĩa của nó — chạm từ tiếng Anh trước, rồi chạm nghĩa</div>
+      <div class="qz-mp-dem">Đã nối ${daNoi}/${pairs.length}${(s.mpWrong||0)?` · ✗ sai ${s.mpWrong} lần`:''}</div>
+      <div class="qz-mp-grid"><div class="qz-mp-col">${oL}</div><div class="qz-mp-col">${oR}</div></div>
+      ${s.answered!==null ? `
+      <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:12px;">${s.isCorrectAnswer?'✓ Nối đúng hết ngay lần đầu!':`✗ Có ${s.mpWrong} lần nối nhầm — nhớ kỹ hơn nhé`}</div>
+      <div class="eng-quiz-explain">💡 ${escapeHtml(word[1])} = ${escapeHtml(word[4])}</div>
+      <div class="eng-quiz-actions">
+        <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe từ</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Từ tiếp →':'🏁 Xem kết quả'}</button>` : ''}
+    </div>`;
+  }
+  if(s.exType==='say_it'){
+    return `${progressWrap}
+    <div class="card eng-quiz-card" style="text-align:center;">
+      <div class="eng-quiz-q" style="text-align:center;">🎤 Đọc to từ này — máy sẽ chấm phát âm</div>
+      <div class="qz-say-doc">${escapeHtml(word[1])}</div>
+      <div class="qz-say-ipa">${escapeHtml(word[2]||'')}</div>
+      <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:16px;">🇻🇳 ${escapeHtml(word[4])}</div>
+      ${s.answered===null ? (s.sayBusy
+        ? `<div class="qz-say-song"><span></span><span></span><span></span><span></span><span></span></div>
+           <div class="qz-say-trangthai">Đang nghe… đọc to và rõ</div>
+           <button class="form-btn cancel" style="width:100%; margin-top:12px;" data-action="vocab-say-cancel">✕ Hủy lượt đọc</button>`
+        : `<div class="eng-quiz-actions" style="justify-content:center; margin-bottom:10px;"><button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe mẫu trước</button></div>
+           <button class="form-btn eng-quiz-nextbtn" style="width:100%;" data-action="vocab-say-start">🎤 Bấm rồi đọc</button>`)
+      : `${qzSayKetQuaHtml(s, word[1])}
+      <div class="eng-quiz-actions" style="margin-top:10px;">
+        <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe mẫu</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Từ tiếp →':'🏁 Xem kết quả'}</button>`}
+    </div>`;
+  }
+  if(s.exType==='listen_type'){
+    const target = word[1];
+    const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
+    return `${progressWrap}
+    <div class="card eng-quiz-card" style="text-align:center;">
+      <div class="eng-quiz-q" style="text-align:center;">🎧 Nghe rồi gõ lại từ vừa nghe</div>
+      <div class="qz-lt-hint">${target.replace(/\s+/g,'').length} chữ cái${s.answered!==null?'':' · nghe được bao nhiêu lần tuỳ ý'}</div>
+      <div class="eng-quiz-actions" style="justify-content:center; margin-bottom:12px;"><button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe lại</button></div>
+      <input id="vocabTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="Gõ từ vừa nghe…" value="${escapeHtml(s.typedValue||'')}"
+        ${s.answered!==null?'disabled':''}
+        oninput="vocabTypedInput(this.value)" onchange="vocabTypedInput(this.value)" onblur="vocabTypedInput(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault(); vocabTypedSubmit();}">
+      ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-typed-submit">✓ Kiểm tra</button>` : `
+      <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(target)}`}</div>
+      <div class="eng-quiz-explain">💡 ${escapeHtml(target)} = ${escapeHtml(word[4])}</div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Từ tiếp →':'🏁 Xem kết quả'}</button>`}
     </div>`;
   }
   if(s.exType==='type_en'){
@@ -12823,6 +13024,14 @@ function sentPrepareCurrent(){
   if(box>=3 && blank) types.push('listen_fill');
   if(box>=4) types.push('dialogue');
   if(box>=5 && wordCount<=8) types.push('type_en');
+  // v220 — 3 dạng bài mới cho mẫu câu:
+  //  • mc_ex      (chọn từ điền vào câu): khoét 1 từ khỏi câu, chọn 1 trong 4 từ. Khác hẳn listen_fill
+  //    ở chỗ KHÔNG cần nghe và KHÔNG phải gõ — kiểm tra đúng phần "từ nào hợp ngữ cảnh câu này".
+  //  • say_it     (đọc to, chấm phát âm): mở từ box 2, chỉ khi máy có nhận diện giọng nói.
+  //  • listen_type(nghe rồi gõ lại CẢ CÂU): mở từ box 4 với câu ngắn — nặng hơn listen_fill (1 từ).
+  if(box>=1 && blank) types.push('mc_ex');
+  if(box>=2 && (window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
+  if(box>=4 && wordCount<=9) types.push('listen_type');
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây.
   const exType = pickVariedType(types, s.lastExType);
@@ -12838,8 +13047,34 @@ function sentPrepareCurrent(){
     s.typedValue = '';
     return;
   }
-  if(exType==='type_en'){
+  if(exType==='type_en' || exType==='listen_type'){
     s.typedValue = '';
+    return;
+  }
+  if(exType==='say_it'){
+    s.sayBusy = false; s.sayText = ''; s.sayScore = null;
+    return;
+  }
+  if(exType==='mc_ex'){
+    s.blankWord = blank.word;
+    s.blankSentence = blank.blanked;
+    // Từ gây nhiễu lấy từ CHÍNH các câu khác trong kho (khoét ra bằng đúng hàm sentBlankWord), nên
+    // chúng luôn là từ có thật ở cùng đăng ký ngôn ngữ — nhiễu bịa ra ngẫu nhiên sẽ dễ loại trừ.
+    const khac = sentPickDistractors(sentence, 8, 1, sentence[1]) || [];
+    const daCo = {}; daCo[blank.word.toLowerCase()] = 1;
+    const nhieu = [];
+    khac.forEach(o=>{
+      if(nhieu.length >= 3) return;
+      const b = sentBlankWord(o, box);
+      if(!b) return;
+      const k = b.word.toLowerCase();
+      if(daCo[k]) return;
+      daCo[k] = 1; nhieu.push(b.word);
+    });
+    ['something','together','already'].forEach(w=>{ if(nhieu.length<3 && !daCo[w]){ daCo[w]=1; nhieu.push(w); } });
+    const all = shuffleArr([{t:blank.word, correct:true}].concat(nhieu.map(t=>({t, correct:false}))));
+    s.options = all.map(o=>o.t);
+    s.correctIdx = all.findIndex(o=>o.correct);
     return;
   }
   if(exType==='dialogue'){
@@ -12980,7 +13215,7 @@ function sentTypedSubmit(){
   const norm = (x)=>String(x||'').trim().toLowerCase().replace(/[^a-z0-9' ]/g,'').replace(/\s+/g,' ').trim();
   const n = s.ids[s.idx];
   const sentence = sentByN(n);
-  const target = s.exType==='type_en' ? (sentence && sentence[1]) : s.blankWord;
+  const target = (s.exType==='type_en' || s.exType==='listen_type') ? (sentence && sentence[1]) : s.blankWord;
   s.answered = true;
   sentFinishAnswer(norm(liveVal)===norm(target));
   renderContent();
@@ -12990,6 +13225,22 @@ function sentNext(){
   if(s.mode === 'wb'){ wbTiep(!!s.isCorrectAnswer); return; }   // v218 — xem chú thích ở vocabNext
   if(s.idx < s.ids.length-1){ s.idx++; sentPrepareCurrent(); if(studyShouldRest(s)) s.resting = true; renderContent(); }
   else { s.finished = true; renderContent(); }
+}
+function sentSayStart(){
+  const s = STATE.sentSession; if(!s || s.answered!==null || s.sayBusy) return;
+  const sentence = sentByN(s.ids[s.idx]); if(!sentence) return;
+  const chay = qzSayBatDau(sentence[1], (txt, diem)=>{
+    const t = STATE.sentSession; if(!t || t.answered!==null) return;
+    t.sayBusy = false; t.sayText = txt; t.sayScore = diem;
+    t.answered = true;
+    sentFinishAnswer(diem >= QZ_SAY_DAT);
+    renderContent();
+  });
+  if(chay){ s.sayBusy = true; s.sayText = ''; s.sayScore = null; renderContent(); }
+}
+function sentSayCancel(){
+  const s = STATE.sentSession; if(!s) return;
+  qzSayDung(); s.sayBusy = false; renderContent();
 }
 function sentSpeakCurrent(){
   const s = STATE.sentSession; if(!s) return;
@@ -13062,12 +13313,15 @@ function renderSentCategoriesGrid(){
   return `<div class="eng-section-label">📂 Duyệt theo tình huống (${cats.length} tình huống · 370 câu)</div>
   <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu…</div>'}</div>`;
 }
-function renderSentSession(){
+function renderSentSession(tenMan){
   const s = STATE.sentSession;
-  if(s.resting) return `${englishItemBackRow('Câu thông dụng')}${studyRestCardHtml(s,'Câu thông dụng')}`;
+  // Tên hiển thị trên hàng nút back: khi đang chạy trong phiên gộp "Từ vựng & Mẫu câu" thì phải
+  // mang tên mục gộp, không phải "Câu thông dụng" (mục đó đã không còn tồn tại riêng nữa).
+  const TEN = tenMan || 'Câu thông dụng';
+  if(s.resting) return `${englishItemBackRow(TEN)}${studyRestCardHtml(s,'Câu thông dụng')}`;
   if(s.finished){
     const pct = Math.round((s.correct/s.ids.length)*100);
-    return `${englishItemBackRow('Câu thông dụng')}
+    return `${englishItemBackRow(TEN)}
     <div class="card eng-quiz-result">
       <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">${s.mode==='category'?sentCategoryMeta(s.category).label:'Câu hôm nay'}</div>
       <div class="score">${s.correct}/${s.ids.length}</div>
@@ -13079,7 +13333,7 @@ function renderSentSession(){
   }
   const n = s.ids[s.idx];
   const sentence = sentByN(n);
-  if(!sentence) return `${englishItemBackRow('Câu thông dụng')}<div class="card">Không tải được dữ liệu.</div>`;
+  if(!sentence) return `${englishItemBackRow(TEN)}<div class="card">Không tải được dữ liệu.</div>`;
   const wbg = (s.mode === 'wb') ? STATE.wbSession : null;      // v218 — xem chú thích ở renderVocabSession
   const progressPct = wbg ? wbPct() : Math.round((s.idx/s.ids.length)*100);
   const progressWrap = `<div class="eng-quiz-progress-wrap">
@@ -13140,6 +13394,40 @@ function renderSentSession(){
       </div>
       <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>`}
     </div>`;
+  } else if(s.exType==='say_it'){
+    body = `<div class="card eng-quiz-card" style="text-align:center;">
+      <div class="eng-quiz-q" style="text-align:center;">🎤 Đọc to câu này — máy sẽ chấm phát âm</div>
+      <div class="qz-say-doc cau">${escapeHtml(sentence[1])}</div>
+      <div class="qz-say-ipa">${escapeHtml(sentence[2]||'')}</div>
+      <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:16px;">🇻🇳 ${escapeHtml(sentence[4])}</div>
+      ${s.answered===null ? (s.sayBusy
+        ? `<div class="qz-say-song"><span></span><span></span><span></span><span></span><span></span></div>
+           <div class="qz-say-trangthai">Đang nghe… đọc trọn câu, to và rõ</div>
+           <button class="form-btn cancel" style="width:100%; margin-top:12px;" data-action="sent-say-cancel">✕ Hủy lượt đọc</button>`
+        : `<div class="eng-quiz-actions" style="justify-content:center; margin-bottom:10px;"><button class="form-btn btn-listen" data-action="sent-speak-current">🔊 Nghe mẫu trước</button></div>
+           <button class="form-btn eng-quiz-nextbtn" style="width:100%;" data-action="sent-say-start">🎤 Bấm rồi đọc</button>`)
+      : `${qzSayKetQuaHtml(s, sentence[1])}
+      <div class="eng-quiz-actions" style="margin-top:10px;">
+        <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe mẫu</button>
+      </div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>`}
+    </div>`;
+  } else if(s.exType==='listen_type'){
+    const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
+    body = `<div class="card eng-quiz-card" style="text-align:center;">
+      <div class="eng-quiz-q" style="text-align:center;">🎧 Nghe rồi gõ lại cả câu</div>
+      <div class="qz-lt-hint">${sentence[1].trim().split(/\s+/).length} từ${s.answered!==null?'':' · nghe lại bao nhiêu lần tuỳ ý'}</div>
+      <div class="eng-quiz-actions" style="justify-content:center; margin-bottom:12px;"><button class="form-btn btn-listen" data-action="sent-speak-current">🔊 Nghe lại</button></div>
+      <input id="sentTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="Gõ cả câu vừa nghe…" value="${escapeHtml(s.typedValue||'')}"
+        ${s.answered!==null?'disabled':''}
+        oninput="sentTypedInput(this.value)" onchange="sentTypedInput(this.value)" onblur="sentTypedInput(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault(); sentTypedSubmit();}">
+      ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
+      <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(sentence[1])}`}</div>
+      <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[4])}</div>
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>`}
+    </div>`;
   } else if(s.exType==='type_en'){
     // Item 6: gõ lại cả câu tiếng Anh — mức nhớ chủ động cao nhất, chỉ mở khi đã thuộc kỹ (box>=5).
     const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
@@ -13196,7 +13484,10 @@ function renderSentSession(){
     </div>`;
   } else {
     const isListenChoice = s.exType==='listen_choice';
-    const questionText = isListenChoice ? '🎧 Nghe rồi chọn nghĩa đúng' : (s.exType==='mc_en_vi' ? `"${sentence[1]}" nghĩa là gì?` : `Câu nào có nghĩa: "${sentence[4]}"?`);
+    const isMcEx = s.exType==='mc_ex';
+    const questionText = isListenChoice ? '🎧 Nghe rồi chọn nghĩa đúng'
+      : isMcEx ? `✍️ Chọn từ điền vào chỗ trống: "${s.blankSentence||''}"`
+      : (s.exType==='mc_en_vi' ? `"${sentence[1]}" nghĩa là gì?` : `Câu nào có nghĩa: "${sentence[4]}"?`);
     const optLetters = ['A','B','C','D'];
     const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
     const opts = s.options.map((opt,i)=>{
@@ -13217,14 +13508,14 @@ function renderSentSession(){
       ${listenFirstBtn}
       ${opts}
       ${s.answered!==null ? `
-        <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[2])}${isListenChoice?' — '+escapeHtml(sentence[1]):''}</div>
+        <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[2])}${(isListenChoice||isMcEx)?' — '+escapeHtml(sentence[1]):''}</div>
         <div class="eng-quiz-actions">
           <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe câu</button>
         </div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp →':'🏁 Xem kết quả'}</button>` : ''}
     </div>`;
   }
-  return `${englishItemBackRow('Câu thông dụng')}${progressWrap}${body}`;
+  return `${englishItemBackRow(TEN)}${progressWrap}${body}`;
 }
 function renderEnglishSentences(item){
   ensureEnglishItems();
@@ -24562,6 +24853,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(vocabAnswerEl){ vocabAnswer(parseInt(vocabAnswerEl.getAttribute('data-opt'),10)); return; }
   const vocabScrambleTapEl = e.target.closest('[data-action="vocab-scramble-tap"]');
   if(vocabScrambleTapEl){ vocabScrambleTap(parseInt(vocabScrambleTapEl.getAttribute('data-letter-id'),10)); return; }
+  const vocabMpTapEl = e.target.closest('[data-action="vocab-mp-tap"]');
+  if(vocabMpTapEl){ vocabMatchTap(vocabMpTapEl.getAttribute('data-side'), parseInt(vocabMpTapEl.getAttribute('data-key'),10)); return; }
+  const vocabSayStartEl = e.target.closest('[data-action="vocab-say-start"]');
+  if(vocabSayStartEl){ vocabSayStart(); return; }
+  const vocabSayCancelEl = e.target.closest('[data-action="vocab-say-cancel"]');
+  if(vocabSayCancelEl){ vocabSayCancel(); return; }
+  const sentSayStartEl = e.target.closest('[data-action="sent-say-start"]');
+  if(sentSayStartEl){ sentSayStart(); return; }
+  const sentSayCancelEl = e.target.closest('[data-action="sent-say-cancel"]');
+  if(sentSayCancelEl){ sentSayCancel(); return; }
   const vocabScrambleUndoEl = e.target.closest('[data-action="vocab-scramble-undo"]');
   if(vocabScrambleUndoEl){ vocabScrambleUndoLast(); return; }
   const vocabTypedSubmitEl = e.target.closest('[data-action="vocab-typed-submit"]');
