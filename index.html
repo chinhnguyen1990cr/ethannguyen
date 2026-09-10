@@ -1968,17 +1968,15 @@
 .hv-ct-m.cau{color:#B78CFF; background:rgba(183,140,255,.14); border:1px solid rgba(183,140,255,.4);}
 /* v224 mục 4 — TẤM CHE TỐI phủ từ đáy video lên, mặc định 1/4, kéo được 10–60%.
    Nền tối đặc (không phải làm mờ) vì phụ đề in sẵn trong hình rất tương phản, mờ vẫn đọc lỏm được. */
-.hv-dai-mo{position:absolute; left:0; right:0; bottom:0; height:25%; pointer-events:none; z-index:3;
-  background:linear-gradient(to top, rgba(0,0,0,.97) 0%, rgba(0,0,0,.95) 72%, rgba(0,0,0,0) 100%);}
+.hv-dai-mo{position:absolute; left:0; right:0; bottom:0; height:34%; pointer-events:none; z-index:3;
+  --hv-dam:.96;
+  background:linear-gradient(to top,
+    rgba(0,0,0,var(--hv-dam)) 0%,
+    rgba(0,0,0,var(--hv-dam)) 78%,
+    rgba(0,0,0,calc(var(--hv-dam) * .55)) 92%,
+    rgba(0,0,0,0) 100%);}
 /* Bật tấm che thì phụ đề của app dời vào NẰM GIỮA tấm che — che xong mà chữ nằm ngoài thì vô nghĩa. */
-.hv-vidwrap.che.cc .hv-cap{bottom:calc(var(--hv-che, 25%) / 2); transform:translateY(50%);}
-.hv-che-thanh{position:absolute; right:6px; bottom:44px; z-index:7; display:none;
-  align-items:center; gap:6px; padding:5px 9px; border-radius:999px;
-  background:rgba(0,0,0,.72); border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(6px);}
-.hv-che-thanh.hien{display:flex;}
-.hv-che-thanh span{font-size:10px; color:#cfd6e4;}
-.hv-che-thanh b{font-size:10.5px; color:#FFC94A; min-width:30px; text-align:right;}
-.hv-che-thanh input[type=range]{width:88px; accent-color:#FFC94A;}
+.hv-vidwrap.che.cc .hv-cap{bottom:calc(var(--hv-che, 34%) / 2); transform:translateY(50%);}
 /* v224 mục 6 — che lưới "Video khác" của YouTube lúc video dừng hoặc hết. */
 .hv-che-dx{position:absolute; inset:0; z-index:6; cursor:pointer;
   background:rgba(8,10,14,.94); display:flex; align-items:center; justify-content:center;}
@@ -2013,6 +2011,25 @@
 .sd-vol b{font-size:11.5px; color:#FFC94A; min-width:38px; text-align:right;}
 .sd-vol span{font-size:12px;}
 .hv-ct-tx{color:var(--dim); font-style:italic;}
+/* v225 mục 1 — thẻ "đã lưu nhưng chưa có nghĩa" và dòng nhắc dưới thẻ từ điển. */
+.hv-td.cho{background:rgba(255,201,74,.07); border-color:rgba(255,201,74,.3);}
+.hv-td.cho .hv-td-nghia{color:var(--dim); font-weight:700; font-size:12.5px; font-style:italic;}
+.hv-td-nhac{margin-top:7px; font-size:11px; line-height:1.55; color:var(--dim2);}
+/* v225 mục 2 — bảng chỉnh tấm che, nổi ngay dưới nút ▤ trong khung video. */
+.hv-che-bang{position:absolute; top:44px; right:8px; z-index:7; width:196px;
+  display:none; padding:9px 10px 10px; border-radius:12px;
+  background:rgba(12,14,22,.94); border:1px solid var(--border);
+  box-shadow:0 10px 26px rgba(0,0,0,.5);}
+.hv-che-bang.hien{display:block;}
+.hv-che-h{display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800;
+  color:var(--gold); margin-bottom:8px;}
+.hv-che-x{margin-left:auto; background:none; border:none; color:var(--dim);
+  font-size:13px; line-height:1; cursor:pointer; padding:2px 3px;}
+.hv-che-bang label{display:flex; align-items:center; gap:7px; margin-top:6px;}
+.hv-che-bang label span{font-size:10.5px; color:var(--dim); min-width:52px;}
+.hv-che-bang input[type=range]{flex:1; accent-color:#FFC94A; min-width:0;}
+.hv-che-bang label b{font-size:10.5px; color:#FFC94A; min-width:32px; text-align:right;
+  font-family:var(--mono);}
 .hv-doc.cc{font-size:11px; font-weight:900; letter-spacing:.3px;}
 .hv-chon-vid{width:100%; margin-top:8px; padding:9px 10px; border-radius:11px; font-size:12.5px; font-weight:800;
   border:1px solid rgba(44,219,168,.5); background:rgba(44,219,168,.13); color:var(--teal); cursor:pointer;
@@ -2539,6 +2556,40 @@
 .hv-ghim{position:sticky;top:0;z-index:8;background:var(--bg,#0d1117);
   padding-bottom:8px;margin:0 -2px;box-shadow:0 10px 14px -12px rgba(0,0,0,.9);}
 /* v218 — mục gộp "Từ vựng & Mẫu câu" */
+/* v225 mục 4a — thanh tiến độ khi AI bổ sung cả hàng đợi một lượt. */
+.wb-bs{margin-top:11px;}
+.wb-bs-h{font-size:11.5px; font-weight:700; color:var(--gold); margin-bottom:6px;}
+.wb-bs-thanh{height:7px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden;}
+.wb-bs-thanh i{display:block; height:100%; border-radius:99px;
+  background:linear-gradient(90deg,#FFC94A,#7ee0c0); transition:width .25s ease;}
+/* v225 mục 4c — bảng mức độ thuộc. */
+.wb-md{padding:14px 15px;}
+.wb-md-h{font-size:12.5px; font-weight:800; color:var(--text); display:flex;
+  align-items:baseline; gap:8px;}
+.wb-md-h span{font-size:10.5px; font-weight:600; color:var(--dim2); margin-left:auto;}
+.wb-md-trong{margin-top:8px; font-size:11.5px; line-height:1.6; color:var(--dim);}
+.wb-md-thanh{display:flex; height:9px; border-radius:99px; overflow:hidden; margin-top:10px;
+  background:rgba(255,255,255,.07);}
+.wb-md-thanh i{display:block; height:100%;}
+.wb-md-thanh i.t{background:#7ee0c0;}
+.wb-md-thanh i.d{background:#FFC94A;}
+.wb-md-thanh i.c{background:#e0705f;}
+.wb-md-chu{display:flex; flex-wrap:wrap; gap:12px; margin-top:9px;}
+.wb-md-chu span{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--dim);}
+.wb-md-chu b{color:var(--text); font-weight:800;}
+.wb-md-chu i{width:8px; height:8px; border-radius:3px; display:inline-block;}
+.wb-md-chu i.t{background:#7ee0c0;}
+.wb-md-chu i.d{background:#FFC94A;}
+.wb-md-chu i.c{background:#e0705f;}
+.wb-md-yeu{margin-top:11px; padding-top:10px; border-top:1px solid var(--border);
+  font-size:11px; color:var(--dim); line-height:1.9;}
+.wb-md-yeu.ok{color:#7ee0c0;}
+.wb-md-yeu b{color:var(--text); display:block; margin-bottom:6px; font-size:11px;}
+.wb-md-tag{display:inline-block; margin:0 5px 5px 0; padding:3px 8px; border-radius:7px;
+  background:rgba(224,112,95,.13); border:1px solid rgba(224,112,95,.3);
+  color:var(--text); font-size:11px;}
+.wb-md-tag i{font-style:normal; color:#e0705f; margin-left:5px; font-size:10px;}
+.wb-md-nhac{margin-top:10px; font-size:10.5px; line-height:1.65; color:var(--dim2);}
 .wb-hero{padding:15px 16px;}
 .wb-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .wb-hero-lb{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim2);}
@@ -3398,7 +3449,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v224';
+const APP_VERSION = 'v225';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9647,9 +9698,9 @@ function vocabPrepareCurrent(){
   // đa dạng thêm kỹ năng nghe giống hệt Câu thông dụng đã có.
   let types = ['mc_en_vi','mc_vi_en'];
   if(vocabExampleHasWord(word)) types.push('fill_blank');
-  if(box>=1) types.push('listen_en_vi');
-  if(box>=2) types.push('unscramble');
-  if(box>=3 && word[1].replace(/\s+/g,'').length>=3) types.push('type_en');
+  types.push('listen_en_vi');                     // nghe hiểu nên có ngay từ đầu, không phải chờ
+  if(box>=1) types.push('unscramble');
+  if(box>=2 && word[1].replace(/\s+/g,'').length>=3) types.push('type_en');
   // v220 — 3 dạng bài mới cho từ vựng:
   //  • match_pairs  (nối cặp từ–nghĩa): mở ngay từ box 0. Nhận diện SONG SONG 4 cặp một lúc buộc phải
   //    phân biệt các từ gần nghĩa với nhau, việc mà trắc nghiệm 1 câu 4 đáp án không ép được.
@@ -9657,8 +9708,8 @@ function vocabPrepareCurrent(){
   //  • say_it       (đọc to, chấm phát âm): mở từ box 1, chỉ khi máy thật sự có nhận diện giọng nói,
   //    nếu không sẽ ra một dạng bài không thể trả lời được (bài học rút từ lỗi mic của Luyện nói).
   types.push('match_pairs');
-  if(box>=2 && word[1].replace(/\s+/g,'').length>=3) types.push('listen_type');
-  if(box>=1 && (window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
+  if(box>=1 && word[1].replace(/\s+/g,'').length>=3) types.push('listen_type');
+  if((window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây — cảm giác đa dạng thật sự thay vì luôn ra đúng 1 kiểu dự đoán được.
   const exType = pickVariedType(types, s.lastExType);
@@ -9732,6 +9783,61 @@ function reviewStart(kind){
   else if(kind==='listening'){ STATE.dictHome = true; renderContent(); }
 }
 // ═══════════════════════════════════════════════════════════════════════
+// v225 mục 4c — quy hộp Leitner về ba mức dễ hiểu, và tìm ra những mục còn chông chênh.
+function wbMucDo(){
+  const ra = {thuoc:0, dangNho:0, chuaChac:0, chuaHoc:0, yeu:[]};
+  const gom = (ds, layTien, ten)=>{
+    (ds||[]).forEach(o=>{
+      let p = null;
+      try{ p = layTien(o); }catch(_){ p = null; }
+      if(!p || !p.introduced){ ra.chuaHoc++; return; }
+      const b = p.box || 0;
+      if(b >= 4) ra.thuoc++;
+      else if(b >= 2) ra.dangNho++;
+      else {
+        ra.chuaChac++;
+        if(ra.yeu.length < 12) ra.yeu.push({chu: ten(o), sai: p.wrong||0, loai: (layTien === wbTienTu ? 'từ' : 'câu')});
+      }
+    });
+  };
+  try{ gom(((VOCAB_DATA||{}).words)||[], wbTienTu, w=>w[1]); }catch(_){ }
+  try{ gom(((COMMON_SENT_DATA||{}).sentences)||[], wbTienCau, c=>c[1]); }catch(_){ }
+  ra.daHoc = ra.thuoc + ra.dangNho + ra.chuaChac;
+  // Sắp mục sai nhiều lên trước — đó là chỗ đáng để mắt nhất.
+  ra.yeu.sort((a,b)=> (b.sai||0) - (a.sai||0));
+  return ra;
+}
+function wbTienTu(w){ try{ return (SETTINGS.vocabProgress||{})[w[0]] || null; }catch(_){ return null; } }
+function wbTienCau(c){ try{ return (SETTINGS.sentProgress||{})[c[0]] || null; }catch(_){ return null; } }
+function wbMucDoHtml(){
+  let m = {thuoc:0, dangNho:0, chuaChac:0, daHoc:0, yeu:[]};
+  try{ m = wbMucDo(); }catch(_){ }
+  if(!m.daHoc){
+    return `<div class="card wb-md"><div class="wb-md-h">📊 Mức độ thuộc</div>
+      <div class="wb-md-trong">Chưa có mục nào được học. Bấm “Bắt đầu học” ở trên, vài lượt là bảng này có số.</div></div>`;
+  }
+  const pct = (n)=> Math.round(n / m.daHoc * 100);
+  const yeu = m.yeu.length
+    ? `<div class="wb-md-yeu"><b>Cần để mắt${m.chuaChac > m.yeu.length ? (' (' + m.yeu.length + '/' + m.chuaChac + ')') : ''}:</b>
+         ${m.yeu.map(x=>`<span class="wb-md-tag">${escapeHtml(String(x.chu).slice(0,28))}${x.sai?`<i>✗${x.sai}</i>`:''}</span>`).join('')}
+       </div>`
+    : `<div class="wb-md-yeu ok">👍 Không còn mục nào ở mức chưa chắc.</div>`;
+  return `<div class="card wb-md">
+    <div class="wb-md-h">📊 Mức độ thuộc <span>${m.daHoc} mục đã học</span></div>
+    <div class="wb-md-thanh">
+      <i class="t" style="width:${pct(m.thuoc)}%;"></i>
+      <i class="d" style="width:${pct(m.dangNho)}%;"></i>
+      <i class="c" style="width:${pct(m.chuaChac)}%;"></i>
+    </div>
+    <div class="wb-md-chu">
+      <span><i class="t"></i>Đã thuộc <b>${m.thuoc}</b></span>
+      <span><i class="d"></i>Đang nhớ <b>${m.dangNho}</b></span>
+      <span><i class="c"></i>Chưa chắc <b>${m.chuaChac}</b></span>
+    </div>
+    ${yeu}
+    <div class="wb-md-nhac">Trả lời đúng thì mục đó được hẹn ôn xa dần (1 → 3 → 7 → 14 → 30 ngày); sai một lần là tụt bậc và mai gặp lại ngay. Cứ học đều, app tự lo lịch.</div>
+  </div>`;
+}
 //  v218 — "TỪ VỰNG & MẪU CÂU": một hàng đợi trộn, hai bộ máy cũ vẫn dựng câu hỏi
 // ═══════════════════════════════════════════════════════════════════════
 const WB_TEN = 'Từ vựng & Mẫu câu';
@@ -9834,14 +9940,44 @@ function wbDaNap(){
   try{ b = hvKhoCau().filter(hvSanSang).length; }catch(_){}
   return a + b;
 }
-function wbHoiLaiAI(){
-  if(!SETTINGS.geminiApiKey){
-    showToast('🔑','Chưa có khoá AI','Vào Cài đặt → Hội thoại AI dán khoá Gemini, rồi bấm lại nút này.'); return;
-  }
+let wbDangBoSung = false;
+async function wbHoiLaiAI(){
+  if(wbDangBoSung){ showToast('⏳','Đang chạy rồi','Chờ hết hàng chờ đã.'); return; }
   const cho = wbDangCho();
   if(!cho.length){ showToast('✅','Không còn mục nào chờ','Tất cả đã có nghĩa và đã nằm trong kho.'); return; }
-  showToast('🤖','Đang hỏi AI…','Xong mục nào là mục đó rời khỏi danh sách chờ và vào thẳng kho.');
-  try{ hvDichNhungCaiThieu(); }catch(_){}
+  wbDangBoSung = true;
+  STATE.wbBoSung = {xong:0, tong:cho.length};
+  try{ renderContentPreserveScroll(); }catch(_){ }
+  // Nghĩa lấy bằng đường dịch MIỄN PHÍ nên chạy hết bao nhiêu mục cũng không tốn lượt AI nào.
+  // Chi tiết (dạng từ, câu ví dụ) mới cần khoá AI, và chỉ làm khi còn hạn mức — hết thì dừng ở
+  // phần nghĩa chứ không bỏ dở cả mẻ.
+  let xong = 0, hong = 0;
+  for(const m of cho){
+    const x = m.x;
+    if(!x || x.nghia){ xong++; continue; }
+    try{
+      const ng = await hvDichMienPhi(x.chu);
+      if(ng){ x.nghia = ng; }
+      else hong++;
+    }catch(_){ hong++; }
+    xong++;
+    STATE.wbBoSung = {xong, tong:cho.length};
+    // Vẽ lại thanh tiến độ tại chỗ, không dựng lại cả màn (dựng lại là giật và mất chỗ cuộn).
+    const el = document.getElementById('wbBoSungThanh');
+    if(el) el.style.width = Math.round(xong / cho.length * 100) + '%';
+    const n = document.getElementById('wbBoSungSo');
+    if(n) n.textContent = xong + '/' + cho.length;
+    if(hong >= 8) break;                       // mạng hỏng thì dừng, đừng quay vòng vô ích
+  }
+  saveSettings(); pushToDrive();
+  try{ vocabGopTuVideo(); sentGopTuVideo(); }catch(_){ }
+  wbDangBoSung = false; STATE.wbBoSung = null;
+  const con = wbDangCho().length;
+  showToast(con ? '⚠️' : '✅',
+    con ? ('Xong phần lớn — còn ' + con + ' mục') : ('Đã bổ sung xong ' + xong + ' mục'),
+    con ? 'Mấy mục còn lại chưa dịch được (thường do mạng). Bấm lại lần nữa lúc mạng ổn.'
+        : 'Tất cả đã có nghĩa và đã vào kho, sẵn sàng đưa vào bài học.');
+  try{ renderContent(); }catch(_){ }
 }
 // Màn PHIÊN HỌC gộp: phần thân câu hỏi vẫn do đúng bộ máy cũ vẽ (giữ nguyên 13 dạng câu hỏi),
 // ở đây chỉ lo màn nghỉ giữa hiệp và màn kết quả cho cả hàng đợi.
@@ -9928,7 +10064,10 @@ function renderEnglishWordbank(item){
         <div class="wb-cho-sub"><b>${cho.length}</b> mục đang chờ AI bổ sung nghĩa. Có nghĩa rồi là tự rời khỏi đây và vào kho.</div>
         <div class="wb-cho-ds">${cho.slice(0,12).map(o=>`<span class="wb-cho-chip ${o.t==='cau'?'cau':''}">${escapeHtml(String(o.x.chu||''))}</span>`).join('')}${
           cho.length>12 ? `<span class="wb-cho-chip mo">+${cho.length-12} nữa</span>` : ''}</div>
-        <button class="form-btn eng-quiz-nextbtn" data-action="wb-ai" style="width:100%; margin-top:11px;">🤖 Nhờ AI bổ sung nghĩa cho ${cho.length} mục</button>
+        ${STATE.wbBoSung
+          ? `<div class="wb-bs"><div class="wb-bs-h">🤖 Đang bổ sung <b id="wbBoSungSo">${STATE.wbBoSung.xong}/${STATE.wbBoSung.tong}</b></div>
+               <div class="wb-bs-thanh"><i id="wbBoSungThanh" style="width:${Math.round(STATE.wbBoSung.xong/Math.max(1,STATE.wbBoSung.tong)*100)}%;"></i></div></div>`
+          : `<button class="form-btn eng-quiz-nextbtn" data-action="wb-ai" style="width:100%; margin-top:11px;">🤖 Bổ sung tất cả ${cho.length} mục một lượt</button>`}
       ` : `<div class="wb-cho-sub">Không còn mục nào phải chờ.</div>`}
     </div>` : '';
 
@@ -9944,6 +10083,7 @@ function renderEnglishWordbank(item){
       <div class="wb-hero-ct">Từ vựng và mẫu câu <b>xen kẽ nhau</b> trong cùng một phiên. Phải đổi ngữ cảnh liên tục thì trí nhớ mới bám chắc — học dồn một loại xong mới sang loại kia dễ thuộc vẹt.</div>
     </div>
     ${choHtml}
+    ${wbMucDoHtml()}
     <div class="wb-lane">
       <button class="wb-lane-nut" data-action="wb-kho" data-k="tu">
         <span class="wb-lane-ic">📖</span>
@@ -13083,19 +13223,19 @@ function sentPrepareCurrent(){
   // Item 6: thêm "type_en" (gõ lại cả câu tiếng Anh sau khi nghe/đọc nghĩa) cho box cao nhất — mức nhớ
   // chủ động sâu nhất, giống hệt "type_en" đã có ở Luyện từ vựng, áp dụng cho câu ngắn để không quá khó gõ.
   let types = ['mc_en_vi','mc_vi_en'];
-  if(box>=1) types.push('listen_choice');
-  if(box>=2 && wordCount>=3 && wordCount<=9) types.push('unscramble_words');
-  if(box>=3 && blank) types.push('listen_fill');
-  if(box>=4) types.push('dialogue');
-  if(box>=5 && wordCount<=8) types.push('type_en');
+  types.push('listen_choice');
+  if(box>=1 && wordCount>=3 && wordCount<=9) types.push('unscramble_words');
+  if(box>=2 && blank) types.push('listen_fill');
+  if(box>=3) types.push('dialogue');
+  if(box>=4 && wordCount<=8) types.push('type_en');
   // v220 — 3 dạng bài mới cho mẫu câu:
   //  • mc_ex      (chọn từ điền vào câu): khoét 1 từ khỏi câu, chọn 1 trong 4 từ. Khác hẳn listen_fill
   //    ở chỗ KHÔNG cần nghe và KHÔNG phải gõ — kiểm tra đúng phần "từ nào hợp ngữ cảnh câu này".
   //  • say_it     (đọc to, chấm phát âm): mở từ box 2, chỉ khi máy có nhận diện giọng nói.
   //  • listen_type(nghe rồi gõ lại CẢ CÂU): mở từ box 4 với câu ngắn — nặng hơn listen_fill (1 từ).
-  if(box>=1 && blank) types.push('mc_ex');
-  if(box>=2 && (window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
-  if(box>=4 && wordCount<=9) types.push('listen_type');
+  if(blank) types.push('mc_ex');
+  if((window.SpeechRecognition || window.webkitSpeechRecognition)) types.push('say_it');
+  if(box>=3 && wordCount<=9) types.push('listen_type');
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây.
   const exType = pickVariedType(types, s.lastExType);
@@ -15653,17 +15793,23 @@ function hvCapDoiCo(){
 // Bật/tắt dải mờ che phụ đề in sẵn trong khung hình.
 function hvMoPhu(){
   SETTINGS.hvMoPhu = !SETTINGS.hvMoPhu;
+  STATE.hvCheMo = !!SETTINGS.hvMoPhu;      // bật che thì mở luôn bảng chỉnh cho tiện
   saveSettings();
   try{ hvVeDaiMo(); }catch(_){ }
   showToast(SETTINGS.hvMoPhu ? '▤' : '👁️',
     SETTINGS.hvMoPhu ? 'Đã che phụ đề in trong hình' : 'Đã bỏ tấm che',
-    SETTINGS.hvMoPhu ? ('Tấm che tối cao ' + hvCheCao() + '% khung hình, kéo thanh bên cạnh để chỉnh. Phụ đề của app tự dời vào giữa tấm che.')
+    SETTINGS.hvMoPhu ? ('Cao ' + hvCheCao() + '%, đậm ' + hvCheDam() + '%. Kéo hai thanh trong bảng để chỉnh vừa đúng video này. Phụ đề của app tự dời vào giữa tấm che.')
                      : 'Khung hình trở lại nguyên vẹn.');
 }
-const HV_CHE_MAC = 25;                       // 1/4 chiều cao video — mặc định theo yêu cầu
+const HV_CHE_MAC = 34;      // đủ trùm hai dòng phụ đề — 25% cũ hở mất dòng trên
+const HV_DAM_MAC = 96;      // độ đậm mặc định (%) — phụ đề in sẵn tương phản rất cao
 function hvCheCao(){
   const v = Number(SETTINGS.hvCheCao);
-  return (isFinite(v) && v >= 10 && v <= 60) ? Math.round(v) : HV_CHE_MAC;
+  return (isFinite(v) && v >= 15 && v <= 70) ? Math.round(v) : HV_CHE_MAC;
+}
+function hvCheDam(){
+  const v = Number(SETTINGS.hvCheDam);
+  return (isFinite(v) && v >= 40 && v <= 100) ? Math.round(v) : HV_DAM_MAC;
 }
 function hvVeDaiMo(){
   const box = document.getElementById(HV_BOX); if(!box) return;
@@ -15675,7 +15821,11 @@ function hvVeDaiMo(){
       el.id = 'hvDaiMo'; el.className = 'hv-dai-mo';
       box.appendChild(el);
     }
-    if(el.style) el.style.height = hvCheCao() + '%';
+    if(el.style){
+      el.style.height = hvCheCao() + '%';
+      // Đổ nền bằng biến để chỉnh độ đậm mà không phải viết lại cả chuỗi gradient.
+      el.style.setProperty('--hv-dam', (hvCheDam() / 100).toFixed(2));
+    }
   }
   // Phụ đề của app phải nằm GIỮA tấm che, không thì che xong lại không đọc được chữ.
   const wrap = document.getElementById('hvVidWrap');
@@ -15686,14 +15836,28 @@ function hvVeDaiMo(){
   const b = document.getElementById('hvMoBtn');
   if(b && b.classList){ if(SETTINGS.hvMoPhu) b.classList.add('on'); else b.classList.remove('on'); }
   const th = document.getElementById('hvCheThanh');
-  if(th && th.classList){ if(SETTINGS.hvMoPhu) th.classList.add('hien'); else th.classList.remove('hien'); }
-  const nh = document.getElementById('hvCheNhan');
-  if(nh) nh.textContent = hvCheCao() + '%';
+  if(th && th.classList){ if(SETTINGS.hvMoPhu && STATE.hvCheMo) th.classList.add('hien'); else th.classList.remove('hien'); }
+  const nh = document.getElementById('hvCheNhan');  if(nh) nh.textContent = hvCheCao() + '%';
+  const nd = document.getElementById('hvDamNhan');  if(nd) nd.textContent = hvCheDam() + '%';
 }
 function hvDatCheCao(v, keo){
-  SETTINGS.hvCheCao = Math.max(10, Math.min(60, Math.round(+v || HV_CHE_MAC)));
+  const n = Number(v);
+  SETTINGS.hvCheCao = Math.max(15, Math.min(70, Math.round(isFinite(n) ? n : HV_CHE_MAC)));
   hvVeDaiMo();
   if(!keo) saveSettings();
+}
+function hvDatCheDam(v, keo){
+  const n = Number(v);
+  SETTINGS.hvCheDam = Math.max(40, Math.min(100, Math.round(isFinite(n) ? n : HV_DAM_MAC)));
+  hvVeDaiMo();
+  if(!keo) saveSettings();
+}
+// Nút ▤ nay có hai việc: chạm nhanh = bật/tắt che, chạm khi ĐANG bật = mở/đóng bảng chỉnh.
+function hvCheBang(){
+  if(!SETTINGS.hvMoPhu){ hvMoPhu(); STATE.hvCheMo = true; }
+  else STATE.hvCheMo = !STATE.hvCheMo;
+  const b = document.getElementById('hvCheThanh');
+  if(b && b.classList){ if(STATE.hvCheMo && SETTINGS.hvMoPhu) b.classList.add('hien'); else b.classList.remove('hien'); }
 }
 // Bật/tắt phụ đề gốc của YouTube ngay trên trình phát đang chạy — không dựng lại video (dựng lại
 // là mất chỗ đang xem). Trình phát HTML5 dùng module 'captions', bản cũ dùng 'cc' — gọi cả hai.
@@ -16245,12 +16409,36 @@ function hvTraTuDien(chu){
   const k = String(chu||'').trim().toLowerCase();
   if(!k) return null;
   let ra = null;
-  const soi = (ds)=>{ try{ (ds||[]).forEach(x=>{ if(!ra && String(x.chu||'').toLowerCase() === k) ra = x; }); }catch(_){ } };
+  // 1) Mục bạn tự lưu từ video (có thể kèm dạng từ + câu ví dụ do AI bổ sung).
+  const soi = (ds)=>{ try{ (ds||[]).forEach(x=>{ if(!ra && x && x.nghia && String(x.chu||'').toLowerCase() === k) ra = x; }); }catch(_){ } };
   soi(hvKhoTu()); soi(hvKhoCau());
-  return (ra && ra.nghia) ? ra : null;      // chưa có nghĩa thì coi như chưa vào từ điển
+  if(ra) return ra;
+  // 2) KHO CÓ SẴN CỦA APP — chỗ v224 tôi bỏ sót. 3000 từ vựng + kho mẫu câu đều đã có nghĩa sẵn,
+  //    không phải chờ AI gì cả; không soi tới thì chạm từ thường gặp nào cũng ra rỗng.
+  try{
+    const w = ((VOCAB_DATA||{}).words||[]).find(x => String(x[1]||'').toLowerCase() === k);
+    if(w) return {chu:w[1], nghia:w[4], loai:'', phienAm:w[2]||'',
+                  viDu: (w[5] ? [[w[5], w[6]||'']] : []), tuKho:'app'};
+  }catch(_){ }
+  try{
+    const c = ((COMMON_SENT_DATA||{}).sentences||[]).find(x => String(x[1]||'').toLowerCase() === k);
+    if(c) return {chu:c[1], nghia:c[4], loai:'mẫu câu', phienAm:'', viDu:[], tuKho:'app'};
+  }catch(_){ }
+  // 3) Có lưu nhưng AI CHƯA kịp bổ sung nghĩa — nói thẳng ra, đừng im lặng.
+  let cho = null;
+  const soiCho = (ds)=>{ try{ (ds||[]).forEach(x=>{ if(!cho && x && String(x.chu||'').toLowerCase() === k) cho = x; }); }catch(_){ } };
+  soiCho(hvKhoTu()); soiCho(hvKhoCau());
+  if(cho) return {chu:cho.chu, dangCho:true};
+  return null;
 }
 function hvTuDienHtml(chu){
   const m = hvTraTuDien(chu);
+  if(m && m.dangCho){
+    return `<div class="hv-td cho">
+      <div class="hv-td-h">📖 Đã lưu — đang chờ nghĩa</div>
+      <div class="hv-td-nhac">Bấm “🤖 Bổ sung tất cả” ở mục <b>Từ vựng &amp; Mẫu câu</b> là xong một lượt cho mọi mục đang chờ.</div>
+    </div>`;
+  }
   if(!m) return '';
   const dt = (m.dangTu && typeof m.dangTu === 'object') ? m.dangTu : {};
   const ten = {n:'danh từ', v:'động từ', adj:'tính từ', adv:'trạng từ'};
@@ -16263,7 +16451,9 @@ function hvTuDienHtml(chu){
       return en ? `<div><b>${escapeHtml(en)}</b>${vi?`<span>${escapeHtml(vi)}</span>`:''}</div>` : '';
     }).join('')}</div>` : '';
   return `<div class="hv-td">
-    <div class="hv-td-h">📖 Từ điển của bạn${m.loai?`<span class="hv-td-loai">${escapeHtml(m.loai)}</span>`:''}</div>
+    <div class="hv-td-h">📖 ${m.tuKho === 'app' ? 'Thư viện của app' : 'Từ điển của bạn'}${
+      m.phienAm?`<span class="hv-td-loai">${escapeHtml(m.phienAm)}</span>`:''}${
+      m.loai?`<span class="hv-td-loai">${escapeHtml(m.loai)}</span>`:''}</div>
     <div class="hv-td-nghia">${escapeHtml(m.nghia)}</div>
     ${dang ? `<div class="hv-td-dangs">${dang}</div>` : ''}
     ${vdHtml}
@@ -16380,12 +16570,17 @@ function renderHocVideoPhien(item){
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-cap" id="hvCap" data-action="hv-cap-co" title="Chạm để đổi cỡ chữ phụ đề"></div>
         <button class="hv-doc cc${SETTINGS.hvCcGoc ? ' on' : ''}" id="hvCcBtn" data-action="hv-cc-goc" title="Bật/tắt phụ đề có sẵn của video YouTube">CC</button>
-        <button class="hv-doc${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-mo-phu" title="Che phụ đề in sẵn trong khung hình">▤</button>
-        <div class="hv-che-thanh${SETTINGS.hvMoPhu ? ' hien' : ''}" id="hvCheThanh">
-          <span>Cao</span>
-          <input type="range" min="10" max="60" step="2" value="${hvCheCao()}"
-            oninput="hvDatCheCao(this.value, true)" onchange="hvDatCheCao(this.value)">
-          <b id="hvCheNhan">${hvCheCao()}%</b>
+        <button class="hv-doc${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
+        <div class="hv-che-bang${(SETTINGS.hvMoPhu && STATE.hvCheMo) ? ' hien' : ''}" id="hvCheThanh">
+          <div class="hv-che-h">▤ Tấm che phụ đề<button class="hv-che-x" data-action="hv-mo-phu" title="Tắt tấm che">✕</button></div>
+          <label><span>Chiều cao</span>
+            <input type="range" min="15" max="70" step="1" value="${hvCheCao()}"
+              oninput="hvDatCheCao(this.value, true)" onchange="hvDatCheCao(this.value)">
+            <b id="hvCheNhan">${hvCheCao()}%</b></label>
+          <label><span>Độ đậm</span>
+            <input type="range" min="40" max="100" step="2" value="${hvCheDam()}"
+              oninput="hvDatCheDam(this.value, true)" onchange="hvDatCheDam(this.value)">
+            <b id="hvDamNhan">${hvCheDam()}%</b></label>
         </div>
         <button class="hv-capnut${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
         <button class="hv-toanman" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
@@ -19746,13 +19941,19 @@ function sdBarHtml(s){
     <div class="sd-dieu">
       ${hang('⏩','Tốc độ','video chạy nhanh hay chậm', nut(SD_TOCDO, toc, 'sd-toc', v=>v+'×'))}
       ${hang('🎙️','Giọng thu', g===0 ? ('tự đo — đang dùng ' + sdGainThuc() + '×') : 'khuếch đại tiếng của bạn', nut(SD_GAIN, g, 'sd-gain', null))}
-      ${hang('🔉','Tiếng video','kéo tới đâu nghe tới đó, kể cả đang ghi',
+      ${hang('🔉','Tiếng video','mức nghe lúc KHÔNG thu',
         `<div class="sd-vol"><span>🔈</span>
            <input class="sd-vol-tt" type="range" min="0" max="100" step="5" value="${vv}"
              oninput="sdDatVidVol(this.value, true)" onchange="sdDatVidVol(this.value)">
            <span>🔊</span><b id="sdVolNhan">${vv}%</b></div>`)}
+      ${hang('🔇','Khi đang thu','cách duy nhất chắc ăn trên điện thoại',
+        `<button class="sd-toc ${sdCamKhiThu()?'on':''}" data-action="sd-cam-thu">${
+           sdCamKhiThu() ? '🔇 Tắt hẳn tiếng video' : '🔊 Vẫn để tiếng video'}</button>`)}
     </div>
-    <div class="sd-dieu-ct">Đổi mức nào là áp ngay, kể cả đang ghi. Đã có <b>bộ nén tiếng</b> nên vặn to không bị vỡ. Để <b>Tự động</b> là app tự đo giọng bạn sau mỗi lần ghi rồi chỉnh dần cho vừa.${
+    <div class="sd-dieu-ct">${sdCamKhiThu()
+      ? 'Đang <b>tắt hẳn tiếng video lúc thu</b> — bản thu chỉ còn giọng bạn.'
+      : '<b>Lưu ý:</b> điện thoại KHÔNG cho trang web đặt âm lượng phát (chỉ phím cứng làm được), nên thanh trượt trên chỉ ăn trên máy tính. Muốn bản thu sạch trên điện thoại thì bật công tắc tắt hẳn ở trên, hoặc đeo tai nghe.'}
+    Đã có <b>bộ nén tiếng</b> nên vặn to không bị vỡ. Để <b>Tự động</b> là app tự đo giọng bạn sau mỗi lần ghi rồi chỉnh dần cho vừa.${
       vv === 100 ? ' Không đeo tai nghe mà để tiếng video <b>Bật</b> thì tiếng video lọt vào micro — nên để <b>Nhỏ</b> hoặc <b>Tắt</b>.' : ''}</div>`;
 }
 // Chữ thứ mấy đang được đọc, khi mới nghe được ti (0..1) đoạn ghi âm.
@@ -20246,6 +20447,18 @@ function sdDatVidVol(v, keoTruot){
   if(keoTruot) return;
   if(!sdVe('sdBarWrap')) renderContentPreserveScroll();
 }
+// Đang thu mà bật công tắc này thì video CÂM HẲN — cách duy nhất chắc chắn trên điện thoại.
+function sdCamKhiThu(){ return SETTINGS.sdCamKhiThu !== false; }
+function sdDatCamKhiThu(){
+  SETTINGS.sdCamKhiThu = !sdCamKhiThu();
+  saveSettings();
+  try{ sdApVidVol(); }catch(_){ }
+  if(!sdVe('sdBarWrap')) renderContentPreserveScroll();
+  showToast(sdCamKhiThu() ? '🔇' : '🔊',
+    sdCamKhiThu() ? 'Sẽ tắt hẳn tiếng video khi thu' : 'Vẫn để tiếng video khi thu',
+    sdCamKhiThu() ? 'Bản thu chỉ còn giọng bạn. Muốn vừa nghe vừa đọc thì đeo tai nghe rồi tắt công tắc này.'
+                  : 'Nhớ đeo tai nghe — không thì micro thu luôn cả tiếng video.');
+}
 function sdApVidVol(conThu){
   const p = (STATE.hvPhien && typeof hvLayPlayer === 'function') ? hvLayPlayer(true) : sdPlayer;   // dọn nền
   if(!p || typeof p.setVolume !== 'function'){
@@ -20262,7 +20475,9 @@ function sdApVidVol(conThu){
       const g = p.getVolume();
       if(typeof g === 'number' && g > 0) sdVolCu = g;
     }
-    const v = sdVidVol();
+    const s = STATE.sdPhien;
+    // Đang thu + bật công tắc → CÂM HẲN. mute() là lệnh duy nhất điện thoại thật sự nghe theo.
+    const v = (s && s.dangGhi && sdCamKhiThu()) ? 0 : sdVidVol();
     if(v === 0){ if(p.mute) p.mute(); }
     else { if(p.unMute) p.unMute(); p.setVolume(v); }
     return true;
@@ -25991,10 +26206,14 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvDocTuEl){ e.stopPropagation(); hvDocBangMay(); return; }
   const hvDanhDauEl = e.target.closest('[data-action="hv-danh-dau"]');
   if(hvDanhDauEl){ hvBatDanhDau(); return; }
+  const sdCamThuEl = e.target.closest('[data-action="sd-cam-thu"]');
+  if(sdCamThuEl){ sdDatCamKhiThu(); return; }
   const hvCcGocEl = e.target.closest('[data-action="hv-cc-goc"]');
   if(hvCcGocEl){ hvCcGoc(); return; }
+  const hvCheBangEl = e.target.closest('[data-action="hv-che-bang"]');
+  if(hvCheBangEl){ hvCheBang(); return; }
   const hvMoPhuEl = e.target.closest('[data-action="hv-mo-phu"]');
-  if(hvMoPhuEl){ hvMoPhu(); return; }
+  if(hvMoPhuEl){ hvMoPhu(); STATE.hvCheMo = false; return; }
   const hvLuuGopEl = e.target.closest('[data-action="hv-luu-gop"]');
   if(hvLuuGopEl){ hvLuuGop(hvLuuGopEl.getAttribute('data-loai')); return; }
   const hvDocVideoEl = e.target.closest('[data-action="hv-nghe-video"]');
