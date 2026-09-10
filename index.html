@@ -2011,12 +2011,17 @@
 .sd-vol b{font-size:11.5px; color:#FFC94A; min-width:38px; text-align:right;}
 .sd-vol span{font-size:12px;}
 .hv-ct-tx{color:var(--dim); font-style:italic;}
+/* v226 mục 3 — một dòng nhắc thay cho cả trang hướng dẫn cũ. */
+.hv-hd-gon{font-size:11.5px; line-height:1.65; color:var(--dim); margin-bottom:9px;}
+.hv-hd-gon b{color:var(--text);}
+.hv-sl-hang{display:flex; gap:8px; margin-top:10px;}
+.hv-sl-hang .form-btn{flex:1; margin:0;}
 /* v225 mục 1 — thẻ "đã lưu nhưng chưa có nghĩa" và dòng nhắc dưới thẻ từ điển. */
 .hv-td.cho{background:rgba(255,201,74,.07); border-color:rgba(255,201,74,.3);}
 .hv-td.cho .hv-td-nghia{color:var(--dim); font-weight:700; font-size:12.5px; font-style:italic;}
 .hv-td-nhac{margin-top:7px; font-size:11px; line-height:1.55; color:var(--dim2);}
 /* v225 mục 2 — bảng chỉnh tấm che, nổi ngay dưới nút ▤ trong khung video. */
-.hv-che-bang{position:absolute; top:44px; right:8px; z-index:7; width:196px;
+.hv-che-bang{position:absolute; bottom:44px; right:8px; z-index:8; width:206px;
   display:none; padding:9px 10px 10px; border-radius:12px;
   background:rgba(12,14,22,.94); border:1px solid var(--border);
   box-shadow:0 10px 26px rgba(0,0,0,.5);}
@@ -2645,11 +2650,19 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-2cot.ben .hv-cot-p{flex:1;min-width:0;}
 .hv-2cot.ben .hv-loi,.hv-2cot.ben .sd-tran{max-height:calc(100vh - 96px);min-height:260px;}
 .hv-2cot.ben .hv-tabs{margin-bottom:4px;}
-.hv-doc{position:absolute;bottom:7px;right:83px;z-index:6;height:30px;padding:0 9px;border-radius:9px;
+.hv-doc{position:absolute;bottom:7px;right:83px;z-index:7;height:30px;padding:0 9px;border-radius:9px;
   border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.62);color:#fff;font-size:13px;
   line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .hv-doc.on{background:#4FA8FF;color:#04121f;border-color:transparent;}
 .hv-doc:active{background:rgba(0,0,0,.85);}
+/* v226 mục 2 — MỖI NÚT MỘT CHỖ. Trước đây cả hai cùng right:83px nên đè khít lên nhau. */
+.hv-doc.cc{right:83px;}
+.hv-doc.mo{right:126px;}
+/* …và toàn màn hình thì cả hàng cùng dời xuống 14px, thẳng hàng với ⛶ và CC-app. */
+.hv-vidwrap.full .hv-doc{bottom:14px;height:40px;font-size:15px;padding:0 12px;}
+.hv-vidwrap.full .hv-doc.cc{right:106px;}
+.hv-vidwrap.full .hv-doc.mo{right:156px;}
+.hv-vidwrap.full .hv-che-bang{top:auto;bottom:62px;right:14px;width:230px;}
 /* v215 — Phụ đề hiện khi: bật công tắc CC, HOẶC đang toàn màn hình, HOẶC màn hình nằm ngang.
    Bản v214 chỉ hiện ở đúng một trường hợp (lớp .full do nút của tôi bật), nên phóng to bằng
    cách thông thường là không thấy gì — đúng như bạn báo. */
@@ -3449,7 +3462,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v225';
+const APP_VERSION = 'v226';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14295,46 +14308,58 @@ function hvHoanTacXoa(){
 // ── AI nghe video và ghi lại lời thoại ───────────────────────────────────
 // Dùng lại đúng bộ đọc kết quả đã tôi luyện ở v175 (dvDocJson + dvLayMang + dvLamSach) — nó chịu
 // được mọi hình dạng JSON Gemini trả về và vớt được cả kết quả bị cắt cụt.
-async function hvLayLoi(recId){
-  const rec = hvTim(recId); if(!rec) return;
-  if(!SETTINGS.geminiApiKey){
-    STATE.hvLoi = 'Cần Gemini API key. Vào Cài đặt → Hội thoại AI để dán key.';
-    renderContent(); return;
-  }
-  STATE.hvDangLay = true; STATE.hvLoi = null; renderContent();
-  const dieuKhien = new AbortController();
-  const heGio = setTimeout(()=>{ try{ dieuKhien.abort(); }catch(_){} }, 240000);
-  const prompt = `Nghe toàn bộ video này và ghi lại lời nói thành từng câu kèm mốc thời gian.
+// ══════════════════════════════════════════════════════════════════════════
+// v226 mục 1 — NGHE THEO TỪNG KHOẢNG, KHÔNG NGHE MỘT LƯỢT CẢ VIDEO
+// Bản cũ đưa nguyên video dài cho Gemini và xin về tối đa 200 câu trong một lần trả lời. Hai chỗ
+// hỏng ngay tại đó: (1) câu trả lời đụng trần maxOutputTokens nên bị cắt cụt ở giữa — phần đuôi
+// video mất trắng, đúng cái "còn 16 đoạn chưa có lời, 693 giây" bạn chụp lại; (2) nghe một mạch
+// 20 phút thì mốc giờ ở nửa sau trôi dần, chữ chạy lệch.
+// Nay chia video thành các cửa sổ 6 phút và hỏi từng cửa sổ. Mỗi lần trả lời ngắn nên không bị
+// cắt, và mốc trong một cửa sổ ngắn thì bám sát hơn nhiều. Vá tay trở thành lưới an toàn chứ
+// không còn là bước bắt buộc.
+// ══════════════════════════════════════════════════════════════════════════
+const HV_CUA_SO = 360;          // 6 phút mỗi lượt hỏi
+const HV_LUAT_CHUNG = `
+- MỖI PHẦN TỬ PHẢI LÀ MỘT CÂU HOÀN CHỈNH, kết thúc bằng dấu chấm, chấm hỏi hoặc chấm than.
+  TUYỆT ĐỐI KHÔNG cắt một câu ra làm hai phần tử. Không phần tử nào được bắt đầu bằng chữ thường
+  hay bằng dấu phẩy — đó là dấu hiệu vừa cắt đôi một câu. Câu dài trên 30 chữ vẫn để nguyên.
+- "en" ghi ĐÚNG TỪNG CHỮ được nói, giữ dạng rút gọn (I'm, don't, gonna). Không diễn đạt lại,
+  không rút gọn ý, không bỏ chữ đệm nếu người ta có nói.
+- MỐC THỜI GIAN CHÍNH XÁC TỚI 0,1 GIÂY: "t" là lúc từ đầu tiên phát ra tiếng, "e" là lúc từ cuối
+  vừa dứt. Hai câu KHÔNG được chồng mốc. Lời thoại chạy đồng bộ theo video nên mốc lệch là chữ
+  chạy sai nhịp.
+- Bỏ nhạc nền, tiếng cười, đoạn không có lời.
+- "cum": các CỤM TỪ THÔNG DỤNG có trong chính câu đó — collocation, cụm động từ, thành ngữ, mẫu
+  câu hay lặp (ví dụ "a lot of", "end up", "figure out"). Mỗi cụm là chuỗi từ liền nhau CHÉP ĐÚNG
+  NGUYÊN VĂN từ "en". Tối đa 4 cụm mỗi câu. KHÔNG bịa cụm không có trong câu.
+Chỉ trả về JSON, không markdown.`;
+function hvPromptCuaSo(a, b){
+  const pham = (a == null)
+    ? 'Nghe TOÀN BỘ video này và ghi lại lời nói thành từng câu kèm mốc thời gian.'
+    : `Nghe video này và ghi lại lời nói TRONG KHOẢNG TỪ GIÂY ${a} ĐẾN GIÂY ${b}.
+CHỈ lấy các câu bắt đầu trong khoảng đó — bỏ qua hết phần trước giây ${a} và sau giây ${b}.
+Mốc "t"/"e" tính từ ĐẦU VIDEO (không tính từ đầu khoảng). Đừng bỏ sót câu nào trong khoảng này.`;
+  return `${pham}
 
-Trả về DUY NHẤT một object JSON (không markdown) đúng dạng:
+Trả về DUY NHẤT một object JSON đúng dạng:
 {"lines":[{"t":<giây bắt đầu>,"e":<giây kết thúc>,"en":"<câu tiếng Anh được nói>","vi":"<nghĩa tiếng Việt>","cum":["<cụm thông dụng có trong câu>"]}]}
 
-Quy tắc:
-- MỖI PHẦN TỬ PHẢI LÀ MỘT CÂU HOÀN CHỈNH, kết thúc bằng dấu chấm, chấm hỏi hoặc chấm than.
-  TUYỆT ĐỐI KHÔNG cắt một câu ra làm hai phần tử. Không được có phần tử nào bắt đầu bằng chữ
-  thường hay bằng dấu phẩy — đó là dấu hiệu bạn vừa cắt đôi một câu.
-  Câu quá dài (trên 30 chữ) thì vẫn để nguyên một phần tử, đừng cắt.
-- MỐC THỜI GIAN PHẢI CHÍNH XÁC: "t" là lúc từ đầu tiên phát ra tiếng, "e" là lúc từ cuối vừa dứt.
-  TUYỆT ĐỐI KHÔNG để hai câu chồng lên nhau — "t" câu sau phải >= "e" câu trước.
-  Lời thoại sẽ chạy đồng bộ theo video nên mốc lệch là chữ chạy sai nhịp.
-- "en" ghi ĐÚNG từng chữ được nói, giữ dạng rút gọn (I'm, don't, gonna).
-- Bỏ nhạc nền, tiếng cười, đoạn không có lời.
-- "cum": liệt kê các CỤM TỪ THÔNG DỤNG xuất hiện trong chính câu đó — collocation, cụm động từ
-  (phrasal verb), thành ngữ, mẫu câu hay lặp lại (ví dụ "a lot of", "end up", "figure out",
-  "be about to"). Mỗi cụm phải là chuỗi từ liền nhau CHÉP ĐÚNG NGUYÊN VĂN từ "en", giữ nguyên chữ
-  hoa/thường. Câu nào không có thì để mảng rỗng. Tối đa 4 cụm mỗi câu, ưu tiên cụm đáng học nhất.
-  KHÔNG bịa cụm không có trong câu, và KHÔNG kể những từ đơn thông thường.
-- Lấy tối đa 200 câu.
-Chỉ trả về JSON.`;
+Quy tắc:${HV_LUAT_CHUNG}`;
+}
+// Một lượt hỏi Gemini kèm video, trả về mảng câu ĐÃ chuẩn hoá. Tách riêng để cả bộ lấy theo
+// cửa sổ, bộ vá đoạn và bộ đối chiếu bản dán đều dùng chung một đường — ba đường thì ba kiểu lỗi.
+async function hvHoiGemini(videoId, prompt, msCho){
+  const dieuKhien = new AbortController();
+  const heGio = setTimeout(()=>{ try{ dieuKhien.abort(); }catch(_){} }, msCho || 180000);
   try{
     const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         contents:[{role:'user', parts:[
-          {fileData:{fileUri:'https://www.youtube.com/watch?v='+rec.videoId}},
+          {fileData:{fileUri:'https://www.youtube.com/watch?v='+videoId}},
           {text:prompt}
         ]}],
-        generationConfig:{temperature:0.2, maxOutputTokens:32768, responseMimeType:'application/json'}
+        generationConfig:{temperature:0.15, maxOutputTokens:32768, responseMimeType:'application/json'}
       }),
       signal: dieuKhien.signal
     });
@@ -14350,13 +14375,13 @@ Chỉ trả về JSON.`;
     if(!cand) throw new Error('Gemini không trả về kết quả. Video phải ở chế độ CÔNG KHAI.');
     const txt = ((cand.content||{parts:[]}).parts||[]).map(p=>p.text||'').join('').trim();
     if(!txt) throw new Error(cand.finishReason==='MAX_TOKENS'
-      ? 'Video quá dài. Thử video ngắn hơn (dưới ~15 phút).'
+      ? 'Câu trả lời quá dài nên bị cắt.'
       : 'Gemini không đọc được video (' + (cand.finishReason||'không rõ') + ').');
     const parsed = dvDocJson(txt);
     if(!parsed) throw new Error('Không đọc được kết quả. Nó nói: "' + txt.slice(0,150) + '"');
     const tho = dvLayMang(parsed);
-    // Ở đây KHÔNG lọc câu ngắn/xã giao như bên chép chính tả — phụ đề phải đủ cả bài mới chạy khớp
-    let lines = (tho||[]).map(l=>{
+    // Ở đây KHÔNG lọc câu ngắn/xã giao như bên chép chính tả — phụ đề phải đủ cả bài mới chạy khớp.
+    return (tho||[]).map(l=>{
       const c = dvChuanCau(l); if(!c || !c.en) return null;
       // Chỉ nhận cụm nào THẬT SỰ có mặt nguyên văn trong câu. AI thỉnh thoảng trả về cụm đã bị
       // sửa dạng (thêm "to", đổi thì) — tô một cụm không có trong câu là đánh dấu sai chỗ.
@@ -14366,36 +14391,123 @@ Chỉ trả về JSON.`;
                     && enTh.indexOf(x.toLowerCase()) >= 0).slice(0, 4);
       return {t: Math.max(0, Math.round(c.t*10)/10), e: c.e>c.t ? Math.round(c.e*10)/10 : 0, en: c.en, vi: c.vi, cum};
     }).filter(Boolean).sort((a,b)=>a.t-b.t);
-    // Nối lại những câu AI lỡ cắt đôi, RỒI mới tính mốc kết thúc — tính trước thì mốc của nửa
-    // câu bị vứt đi, uổng.
-    lines = hvGopCauVo(lines);
-    for(let i=0;i<lines.length;i++){
-      const sau = lines[i+1];
-      // Ước lượng theo số chữ trước, rồi mới nới ra bằng mốc AI nếu mốc hợp lý. Bản cũ lấy thẳng
-      // mốc câu kế tiếp làm mốc kết thúc — gặp lúc AI bỏ sót vài câu thì sinh ra một "câu" dài
-      // mấy chục giây, và chữ chạy trong câu đó bò chậm như đứng máy.
-      const soTu = String(lines[i].en||'').trim().split(/\s+/).filter(Boolean).length || 1;
-      const uoc = soTu / 2.6 + 0.5;
-      if(!lines[i].e) lines[i].e = lines[i].t + uoc;
-      if(sau && lines[i].e > sau.t) lines[i].e = sau.t;
-      // Quá 1,6 lần mức nói được thì mốc đó sai — cắt về đúng ước lượng, đừng giữ lại phần thừa.
-      if(lines[i].e - lines[i].t > uoc * 1.6) lines[i].e = lines[i].t + uoc;
-      if(lines[i].e < lines[i].t + 0.4) lines[i].e = lines[i].t + 0.4;
+  } finally { clearTimeout(heGio); }
+}
+// Chốt danh sách câu vào video: bỏ trùng, nối câu bị cắt đôi, rồi mới tính mốc kết thúc.
+function hvApLoiMoi(rec, tho){
+  let lines = (tho||[]).slice().sort((a,b)=>a.t-b.t);
+  // Hai cửa sổ liền nhau hay trả về cùng một câu ở chỗ giáp ranh — giữ bản đầu tiên.
+  const daCo = {}, loc = [];
+  lines.forEach(l=>{
+    const khoa = Math.round(l.t) + '|' + String(l.en||'').trim().toLowerCase().slice(0,40);
+    if(daCo[khoa]) return;
+    daCo[khoa] = 1; loc.push(l);
+  });
+  lines = hvGopCauVo(loc);
+  for(let i=0;i<lines.length;i++){
+    const sau = lines[i+1];
+    // Ước lượng theo số chữ trước, rồi mới nới ra bằng mốc AI nếu mốc hợp lý. Lấy thẳng mốc câu
+    // kế làm mốc kết thúc thì gặp lúc AI bỏ sót vài câu sẽ sinh ra một "câu" dài mấy chục giây,
+    // và chữ chạy trong câu đó bò chậm như đứng máy.
+    const soTu = String(lines[i].en||'').trim().split(/\s+/).filter(Boolean).length || 1;
+    const uoc = soTu / 2.6 + 0.5;
+    if(!lines[i].e) lines[i].e = lines[i].t + uoc;
+    if(sau && lines[i].e > sau.t) lines[i].e = sau.t;
+    if(lines[i].e - lines[i].t > uoc * 1.6) lines[i].e = lines[i].t + uoc;
+    if(lines[i].e < lines[i].t + 0.4) lines[i].e = lines[i].t + 0.4;
+  }
+  if(rec.soCauCu != null && rec.soCauCu !== lines.length) rec.xong = {};
+  rec.lines = lines; rec.soCauCu = lines.length;
+  saveSettings(); pushToDrive();
+  return lines;
+}
+async function hvLayLoi(recId){
+  const rec = hvTim(recId); if(!rec) return;
+  if(!SETTINGS.geminiApiKey){
+    STATE.hvLoi = 'Cần Gemini API key. Vào Cài đặt → Hội thoại AI để dán key.';
+    renderContent(); return;
+  }
+  STATE.hvDangLay = true; STATE.hvLoi = null; STATE.hvTienLay = null; renderContent();
+  // Độ dài video quyết định chia mấy cửa sổ. Không hỏi được trình phát thì thôi hỏi một lượt
+  // như cũ — thà kém chính xác còn hơn đứng im.
+  let dai = 0;
+  try{ const p = hvLayPlayer(true); if(p && p.getDuration) dai = p.getDuration() || 0; }catch(_){ }
+  const cua = [];
+  if(dai > HV_CUA_SO * 1.2){
+    for(let a = 0; a < dai; a += HV_CUA_SO) cua.push([Math.round(a), Math.round(Math.min(dai, a + HV_CUA_SO))]);
+  }
+  try{
+    let gom = [];
+    if(!cua.length){
+      gom = await hvHoiGemini(rec.videoId, hvPromptCuaSo(null, null), 240000);
+    } else {
+      for(let k = 0; k < cua.length; k++){
+        STATE.hvTienLay = {k:k+1, n:cua.length, a:cua[k][0], b:cua[k][1]};
+        try{ hvVeVung('hvErrWrap'); renderContent(); }catch(_){ }
+        let phan = [];
+        try{ phan = await hvHoiGemini(rec.videoId, hvPromptCuaSo(cua[k][0], cua[k][1]), 180000); }
+        catch(e){ if(k === 0) throw e; }        // hỏng ngay cửa sổ đầu thì báo; hỏng giữa chừng thì đi tiếp, phần thiếu để bộ vá lo
+        // Cắt đúng phạm vi đã hỏi, nới 2 giây hai đầu cho câu nằm vắt qua ranh giới.
+        gom = gom.concat((phan||[]).filter(l => l.t >= cua[k][0] - 2 && l.t < cua[k][1] + 2));
+        if(k < cua.length - 1) await new Promise(r=>setTimeout(r, HV_VA_NGHI));
+      }
     }
-    if(!lines.length) throw new Error('Gemini không nghe được câu nào (đã đọc ' + txt.length + ' ký tự).');
-    if(rec.soCauCu != null && rec.soCauCu !== lines.length) rec.xong = {};
-    rec.lines = lines; rec.soCauCu = lines.length;
-    saveSettings(); pushToDrive();
-    showToast('✅','Xong', lines.length + ' câu — đang dò xem còn đoạn nào bị bỏ sót…');
-    // AI nghe cả video một lượt hay bỏ sót cả đoạn dài. Dò ngay và hỏi lại riêng từng khoảng.
+    if(!gom.length) throw new Error('Gemini không nghe được câu nào.');
+    const lines = hvApLoiMoi(rec, gom);
+    showToast('✅','Xong', lines.length + ' câu' + (cua.length ? (' từ ' + cua.length + ' lượt nghe') : '') + ' — đang dò xem còn sót đoạn nào…');
+    // Lưới an toàn: chia cửa sổ rồi vẫn có thể sót vài chỗ AI nghe không ra. Dò và hỏi lại riêng.
     try{ setTimeout(()=>{ hvLayNotPhanThieu(rec.id); }, 300); }catch(e){}
   }catch(e){
     STATE.hvLoi = (e && e.name==='AbortError')
-      ? 'Quá 4 phút chưa xong — thường là video quá dài. Thử video ngắn hơn.'
+      ? 'Quá lâu chưa xong — mạng chậm hoặc video quá dài. Thử lại lần nữa.'
       : hvLoiThanThien((e&&e.message)||'lỗi không rõ');
   }
-  clearTimeout(heGio);
-  STATE.hvDangLay = false; renderContent();
+  STATE.hvDangLay = false; STATE.hvTienLay = null; renderContent();
+}
+// ── AI ĐỐI CHIẾU BẢN DÁN VỚI VIDEO ───────────────────────────────────────
+// Bản chép lời của YouTube gần như luôn đúng CHỮ nhưng cắt dòng tuỳ tiện (giữa câu), thiếu dấu
+// câu, và mốc giờ chỉ đúng tới cả khối. Đưa cả bản dán LẪN video cho Gemini rồi bảo nó căn lại:
+// nó không phải tự nghe ra từng chữ nữa — việc khó nhất đã có sẵn — chỉ phải chia câu và chỉnh mốc.
+// Vì thế kết quả chính xác hơn hẳn so với bắt nó nghe chay.
+async function hvDoiChieuLoi(){
+  const el = document.getElementById('sdLoiSua');
+  if(!el || !String(el.value||'').trim()){
+    showToast('📋','Chưa có gì để đối chiếu','Dán bản chép lời từ YouTube vào ô bên dưới trước đã.'); return;
+  }
+  if(!SETTINGS.geminiApiKey){
+    showToast('🔑','Chưa có Gemini API key','Vào Cài đặt → Hội thoại AI để dán key.'); return;
+  }
+  const rec = hvTim((STATE.hvPhien||{}).vidId) || sdTimVideo((STATE.sdPhien||{}).vidId);
+  if(!rec || !rec.videoId){ showToast('🎬','Không tìm thấy video',''); return; }
+  if(STATE.hvDangDoi) return;
+  STATE.hvDangDoi = true; renderContent();
+  const thoTe = String(el.value).slice(0, 60000);
+  const prompt = `Dưới đây là bản chép lời tự động của YouTube cho video này. Nó ĐÚNG về từ ngữ
+nhưng cắt dòng giữa câu, thiếu dấu câu, và mốc giờ chỉ chính xác tới từng khối.
+
+Hãy đối chiếu với âm thanh thật của video rồi trả lại lời thoại đã chỉnh:
+- GỘP các dòng bị cắt lại thành CÂU HOÀN CHỈNH, thêm dấu chấm/hỏi/than cho đúng.
+- Giữ NGUYÊN VĂN từ ngữ của bản chép lời trừ khi nghe rõ là nó chép sai; sửa thì sửa đúng cái
+  từ nghe được, không diễn đạt lại.
+- CĂN LẠI mốc: "t" là lúc từ đầu tiên của câu phát ra tiếng, "e" là lúc từ cuối vừa dứt, chính
+  xác tới 0,1 giây. Hai câu không được chồng mốc lên nhau.
+- Bỏ [Music], [Applause], tiếng cười và các dòng không phải lời nói.
+- "vi": dịch nghĩa tiếng Việt. "cum": tối đa 4 cụm thông dụng chép nguyên văn từ "en".
+
+Trả về DUY NHẤT JSON: {"lines":[{"t":0,"e":0,"en":"","vi":"","cum":[]}]}
+
+BẢN CHÉP LỜI CỦA YOUTUBE:
+${thoTe}`;
+  try{
+    const lines = await hvHoiGemini(rec.videoId, prompt, 180000);
+    if(!lines.length) throw new Error('Không nhận được câu nào.');
+    hvApLoiMoi(rec, lines);
+    STATE.sdSuaLoi = false; STATE.sdKtDau = null;
+    showToast('✅','Đã đối chiếu xong', lines.length + ' câu, mốc giờ đã căn theo tiếng thật trong video.');
+  }catch(e){
+    showToast('⚠️','Đối chiếu không xong', hvLoiThanThien((e&&e.message)||'lỗi không rõ'));
+  }
+  STATE.hvDangDoi = false; renderContent();
 }
 // Khoảng trống trong lời thoại: hai câu liên tiếp cách nhau quá lâu thì chắc chắn AI đã bỏ sót.
 // Ngưỡng 18 giây — dài hơn bất kỳ câu nói bình thường nào, nên không báo nhầm.
@@ -14876,14 +14988,57 @@ function hvKhoangChu(dong, a, b){
   const j = Math.max(i, Math.min(tu.length - 1, b));
   return { t0: dong.t + moc[i] * dai, t1: dong.t + moc[j + 1] * dai, soTu: tu.length };
 }
+const HV_DH_TRAN = 0.45;   // tự chạy tiếp tối đa 0,45s; mất mẫu thì thà đứng còn hơn trôi
+let hvDhMau = null, hvDhLuc = 0;
+function hvBayGio(){
+  try{ if(typeof performance !== 'undefined' && performance.now) return performance.now(); }catch(_){ }
+  return Date.now();
+}
+let hvDhQuet = 0;   // thời điểm lần quét trước, để suy ra mốc nhảy nằm ở đâu
+function hvDongHoLai(){ hvDhMau = null; hvDhLuc = 0; hvDhQuet = 0; }
+// Độ bù do bạn tự chỉnh. Mỗi máy, mỗi trình duyệt trễ một kiểu; để sẵn một nấc xoay còn hơn
+// bắt tôi đoán một con số rồi lại sai trên máy bạn.
+function hvBuTre(){
+  const v = Number(SETTINGS.hvBuTre);
+  return (isFinite(v) && v >= -0.5 && v <= 1) ? v : 0;
+}
+function hvDatBuTre(v, keo){
+  const n = Number(v);
+  SETTINGS.hvBuTre = Math.max(-0.5, Math.min(1, Math.round((isFinite(n) ? n : 0) * 20) / 20));
+  const nh = document.getElementById('hvBuTreNhan');
+  if(nh) nh.textContent = (SETTINGS.hvBuTre > 0 ? '+' : '') + SETTINGS.hvBuTre.toFixed(2) + 's';
+  if(!keo) saveSettings();
+}
+function hvGioMuot(p, toc, dangChay){
+  let mau;
+  try{ mau = p && p.getCurrentTime ? p.getCurrentTime() : null; }catch(_){ return null; }
+  if(typeof mau !== 'number' || !isFinite(mau)) return null;
+  // Video đang dừng thì không được tự chạy tiếp — chạy tiếp là vệt chữ bò đi trong lúc hình đứng.
+  if(dangChay === false){ hvDongHoLai(); return mau + hvBuTre(); }
+  const bay = hvBayGio();
+  const r = (typeof toc === 'number' && toc > 0.05) ? toc : 1;
+  if(hvDhMau === null || mau !== hvDhMau){
+    // Số vừa nhảy. Nó nhảy vào lúc nào thì không ai biết, chỉ chắc là SAU lần quét trước và
+    // TRƯỚC lần quét này — nên lấy điểm giữa. Chốt vào "bay" như bản đầu là tự nhận mình chậm
+    // nửa nhịp quét, và cái chậm đó dồn hết về một phía (đo được 0,058 giây, luôn trễ).
+    hvDhMau = mau;
+    hvDhLuc = (hvDhQuet > 0 && bay > hvDhQuet && bay - hvDhQuet < 600) ? (hvDhQuet + bay) / 2 : bay;
+  }
+  hvDhQuet = bay;
+  const troi = Math.min(Math.max(0, (bay - hvDhLuc) / 1000) * r, HV_DH_TRAN);
+  return mau + troi + hvBuTre();
+}
 function hvBatNhip(){
   hvDungNhip();
   hvNhip = setInterval(()=>{
     if(!STATE.hvPhien || !hvPlayer){ hvDungNhip(); return; }
     const rec = hvTim(STATE.hvPhien.vidId);
     if(!rec || !rec.lines){ hvDungNhip(); return; }
-    let gy = 0;
-    try{ gy = hvPlayer.getCurrentTime() || 0; }catch(_){ return; }
+    let chay = true;
+    try{ if(hvPlayer.getPlayerState) chay = (hvPlayer.getPlayerState() === 1); }catch(_){ }
+    const gyM = hvGioMuot(hvPlayer, (typeof hvTocTheoTab === 'function' ? hvTocTheoTab() : 1), chay);
+    if(gyM == null) return;
+    const gy = gyM;
     const i = hvDongTaiGiay(rec.lines, gy);
     if(i !== hvDongCu){
       // trả dòng cũ về chữ thường
@@ -15713,8 +15868,12 @@ function hvCapBat(){
       return;
     }
     const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer(true) : sdPlayer;   // dọn nền — im lặng
-    let gy = 0;
-    try{ if(!p || !p.getCurrentTime) return; gy = p.getCurrentTime() || 0; }catch(_){ return; }
+    if(!p || !p.getCurrentTime) return;
+    let chay = true;
+    try{ if(p.getPlayerState) chay = (p.getPlayerState() === 1); }catch(_){ }
+    const gyC = hvGioMuot(p, (typeof hvTocTheoTab === 'function' ? hvTocTheoTab() : 1), chay);
+    if(gyC == null) return;
+    const gy = gyC;
     const k = sdChiSoDong(gy, ds);
     if(k < 0 || !ds[k]){ if(el.__k !== -1){ el.__k = -1; el.innerHTML = ''; } return; }
     const hienNghia = !!SETTINGS.sdHienNghia;
@@ -15812,6 +15971,10 @@ function hvCheDam(){
   return (isFinite(v) && v >= 40 && v <= 100) ? Math.round(v) : HV_DAM_MAC;
 }
 function hvVeDaiMo(){
+  // Nhãn trước tiên: nó chỉ phụ thuộc vào con số, không phụ thuộc khung video có sẵn hay chưa.
+  // Để nó sau lệnh thoát sớm bên dưới là kéo thanh mà số đứng im (lỗi v225).
+  const nh0 = document.getElementById('hvCheNhan');  if(nh0) nh0.textContent = hvCheCao() + '%';
+  const nd0 = document.getElementById('hvDamNhan');  if(nd0) nd0.textContent = hvCheDam() + '%';
   const box = document.getElementById(HV_BOX); if(!box) return;
   let el = document.getElementById('hvDaiMo');
   if(!SETTINGS.hvMoPhu){ if(el) el.remove(); }
@@ -15837,9 +16000,28 @@ function hvVeDaiMo(){
   if(b && b.classList){ if(SETTINGS.hvMoPhu) b.classList.add('on'); else b.classList.remove('on'); }
   const th = document.getElementById('hvCheThanh');
   if(th && th.classList){ if(SETTINGS.hvMoPhu && STATE.hvCheMo) th.classList.add('hien'); else th.classList.remove('hien'); }
-  const nh = document.getElementById('hvCheNhan');  if(nh) nh.textContent = hvCheCao() + '%';
-  const nd = document.getElementById('hvDamNhan');  if(nd) nd.textContent = hvCheDam() + '%';
 }
+function hvTruotXuLy(e, thaTay){
+  const el = e && e.target; if(!el) return;
+  const nut = (el.closest && el.closest('[data-truot]')) || el;
+  const ten = nut.getAttribute ? nut.getAttribute('data-truot') : null;
+  if(!ten) return;
+  const v = nut.value;
+  // thaTay=false là đang kéo → KHÔNG lưu, KHÔNG vẽ lại (vẽ lại là thay mất chính thanh đang
+  // giữ dưới ngón tay). thaTay=true là buông ra → lúc đó mới lưu.
+  const keo = !thaTay;
+  if(ten === 'hv-che-cao')      hvDatCheCao(v, keo);
+  else if(ten === 'hv-che-dam') hvDatCheDam(v, keo);
+  else if(ten === 'sd-vid-vol') sdDatVidVol(v, keo);
+  else if(ten === 'hv-bu-tre')  hvDatBuTre(v, keo);
+}
+try{
+  const _oND = document.getElementById('content');
+  if(_oND && _oND.addEventListener){
+    _oND.addEventListener('input',  (e)=>{ try{ hvTruotXuLy(e, false); }catch(_){ } });
+    _oND.addEventListener('change', (e)=>{ try{ hvTruotXuLy(e, true);  }catch(_){ } });
+  }
+}catch(_){ }
 function hvDatCheCao(v, keo){
   const n = Number(v);
   SETTINGS.hvCheCao = Math.max(15, Math.min(70, Math.round(isFinite(n) ? n : HV_CHE_MAC)));
@@ -16483,8 +16665,13 @@ function hvLoiThoaiHtml(rec){
   if(STATE.hvDangLay){
     return `<div class="sd-tran empty" style="text-align:center;">
       <div style="font-size:26px; margin-bottom:8px;">🤖</div>
-      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">AI đang nghe video và ghi lời thoại…</div>
-      <div style="margin-top:6px;">Thường 20–60 giây. <b>Video ở trên vẫn xem được</b> trong lúc chờ.</div>
+      <div style="color:var(--gold); font-weight:700; font-size:12.5px;">${STATE.hvTienLay
+        ? ('AI đang nghe phút ' + Math.round(STATE.hvTienLay.a/60) + '–' + Math.round(STATE.hvTienLay.b/60)
+           + ' (lượt ' + STATE.hvTienLay.k + '/' + STATE.hvTienLay.n + ')…')
+        : 'AI đang nghe video và ghi lời thoại…'}</div>
+      <div style="margin-top:6px;">${STATE.hvTienLay
+        ? 'Video dài thì chia thành nhiều lượt ngắn — cách này mốc giờ bám sát hơn và không bị cắt cụt phần cuối.'
+        : 'Thường 20–60 giây.'} <b>Video ở trên vẫn xem được</b> trong lúc chờ.</div>
     </div>`;
   }
   if(!rec.lines){
@@ -16552,9 +16739,13 @@ function renderHocVideoPhien(item){
     document.getElementById('content').innerHTML = `
       <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-loi-huy">${svgIcon('back')}</div><div class="title">📋 Dán lời thoại</div></div>
       <div class="card" style="padding:16px;">
-        ${hvHuongDanChepHtml()}
+        <div class="hv-hd-gon">📋 Dán bản chép lời của YouTube vào đây — <b>giữ nguyên các mốc giờ</b>.
+          Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:240px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
-        <button class="form-btn" data-action="sd-kt-dau" style="width:100%; margin-top:10px;">🔍 Kiểm tra dấu câu trước khi lưu</button>
+        <div class="hv-sl-hang">
+          <button class="form-btn" data-action="sd-kt-dau">🔍 Dấu câu</button>
+          <button class="form-btn" data-action="hv-doi-chieu">${STATE.hvDangDoi ? '⏳ AI đang đối chiếu…' : '🤖 AI đối chiếu'}</button>
+        </div>
         <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
@@ -16570,16 +16761,14 @@ function renderHocVideoPhien(item){
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-cap" id="hvCap" data-action="hv-cap-co" title="Chạm để đổi cỡ chữ phụ đề"></div>
         <button class="hv-doc cc${SETTINGS.hvCcGoc ? ' on' : ''}" id="hvCcBtn" data-action="hv-cc-goc" title="Bật/tắt phụ đề có sẵn của video YouTube">CC</button>
-        <button class="hv-doc${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
+        <button class="hv-doc mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
         <div class="hv-che-bang${(SETTINGS.hvMoPhu && STATE.hvCheMo) ? ' hien' : ''}" id="hvCheThanh">
           <div class="hv-che-h">▤ Tấm che phụ đề<button class="hv-che-x" data-action="hv-mo-phu" title="Tắt tấm che">✕</button></div>
           <label><span>Chiều cao</span>
-            <input type="range" min="15" max="70" step="1" value="${hvCheCao()}"
-              oninput="hvDatCheCao(this.value, true)" onchange="hvDatCheCao(this.value)">
+            <input type="range" min="15" max="70" step="1" value="${hvCheCao()}" data-truot="hv-che-cao">
             <b id="hvCheNhan">${hvCheCao()}%</b></label>
           <label><span>Độ đậm</span>
-            <input type="range" min="40" max="100" step="2" value="${hvCheDam()}"
-              oninput="hvDatCheDam(this.value, true)" onchange="hvDatCheDam(this.value)">
+            <input type="range" min="40" max="100" step="2" value="${hvCheDam()}" data-truot="hv-che-dam">
             <b id="hvDamNhan">${hvCheDam()}%</b></label>
         </div>
         <button class="hv-capnut${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
@@ -19695,8 +19884,9 @@ function sdBatBam(){
       if(sdPlayer.getPlayerState && sdPlayer.getPlayerState() !== 1 && sdDongHienTai >= 0) return;
     }catch(_){}
     if(!sdPlayer || typeof sdPlayer.getCurrentTime!=='function') return;
-    let gy = 0;
-    try{ gy = sdPlayer.getCurrentTime() || 0; }catch(_){ return; }
+    const gyM = hvGioMuot(sdPlayer, (typeof sdTocDo === 'function' ? sdTocDo() : 1), true);
+    if(gyM == null) return;
+    const gy = gyM;
     const rec = sdTimVideo(s.vidId); if(!rec) return;
     const ds = sdDongLoi(rec);
     if(!ds.length || ds[0].t==null) return;      // không có mốc thời gian thì không bám được
@@ -19943,9 +20133,12 @@ function sdBarHtml(s){
       ${hang('🎙️','Giọng thu', g===0 ? ('tự đo — đang dùng ' + sdGainThuc() + '×') : 'khuếch đại tiếng của bạn', nut(SD_GAIN, g, 'sd-gain', null))}
       ${hang('🔉','Tiếng video','mức nghe lúc KHÔNG thu',
         `<div class="sd-vol"><span>🔈</span>
-           <input class="sd-vol-tt" type="range" min="0" max="100" step="5" value="${vv}"
-             oninput="sdDatVidVol(this.value, true)" onchange="sdDatVidVol(this.value)">
+           <input class="sd-vol-tt" type="range" min="0" max="100" step="5" value="${vv}" data-truot="sd-vid-vol">
            <span>🔊</span><b id="sdVolNhan">${vv}%</b></div>`)}
+      ${hang('⏱️','Bù trễ chữ','kéo phải nếu chữ còn chạy sau tiếng',
+        `<div class="sd-vol"><span>🐢</span>
+           <input class="sd-vol-tt" type="range" min="-0.5" max="1" step="0.05" value="${hvBuTre()}" data-truot="hv-bu-tre">
+           <span>🐇</span><b id="hvBuTreNhan">${(hvBuTre()>0?'+':'') + hvBuTre().toFixed(2)}s</b></div>`)}
       ${hang('🔇','Khi đang thu','cách duy nhất chắc ăn trên điện thoại',
         `<button class="sd-toc ${sdCamKhiThu()?'on':''}" data-action="sd-cam-thu">${
            sdCamKhiThu() ? '🔇 Tắt hẳn tiếng video' : '🔊 Vẫn để tiếng video'}</button>`)}
@@ -20441,10 +20634,11 @@ function sdDatVidVol(v, keoTruot){
   sdApVidVol();
   const nhan = document.getElementById('sdVolNhan');
   if(nhan) nhan.textContent = sdVidVol() + '%';
-  saveSettings();
   // Đang kéo thanh trượt thì TUYỆT ĐỐI không vẽ lại — vẽ lại là thay mất chính cái thanh đang
-  // giữ dưới ngón tay, kéo được một nấc rồi tuột tay.
+  // giữ dưới ngón tay, kéo được một nấc rồi tuột tay. Và cũng KHÔNG lưu: saveSettings() kéo theo
+  // pushToDrive(), đẩy cả kho dữ liệu lên mạng theo từng pixel ngón tay trượt thì máy nào chịu nổi.
   if(keoTruot) return;
+  saveSettings();
   if(!sdVe('sdBarWrap')) renderContentPreserveScroll();
 }
 // Đang thu mà bật công tắc này thì video CÂM HẲN — cách duy nhất chắc chắn trên điện thoại.
@@ -20722,9 +20916,13 @@ function renderShadowPhien(item){
     document.getElementById('content').innerHTML = `
       <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-loi-huy">${svgIcon('back')}</div><div class="title">Lời thoại</div></div>
       <div class="card" style="padding:16px;">
-        ${hvHuongDanChepHtml()}
+        <div class="hv-hd-gon">📋 Dán bản chép lời của YouTube vào đây — <b>giữ nguyên các mốc giờ</b>.
+          Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:220px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
-        <button class="form-btn" data-action="sd-kt-dau" style="width:100%; margin-top:10px;">🔍 Kiểm tra dấu câu trước khi lưu</button>
+        <div class="hv-sl-hang">
+          <button class="form-btn" data-action="sd-kt-dau">🔍 Dấu câu</button>
+          <button class="form-btn" data-action="hv-doi-chieu">${STATE.hvDangDoi ? '⏳ AI đang đối chiếu…' : '🤖 AI đối chiếu'}</button>
+        </div>
         <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
@@ -26186,6 +26384,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvToanManEl){ e.stopPropagation(); hvToanMan(); return; }
   const hvDongEl = e.target.closest('[data-action="hv-dong"]');
   if(hvDongEl){ hvDongPhien(); return; }
+  const hvDoiEl = e.target.closest('[data-action="hv-doi-chieu"]');
+  if(hvDoiEl){ e.stopPropagation(); hvDoiChieuLoi(); return; }
   const hvVaEl = e.target.closest('[data-action="hv-va-loi"]');
   if(hvVaEl){ e.stopPropagation(); const p0 = STATE.hvPhien; if(p0) hvLayNotPhanThieu(p0.vidId); return; }
   const vocCtEl = e.target.closest('[data-action="vocab-chitiet"]');
