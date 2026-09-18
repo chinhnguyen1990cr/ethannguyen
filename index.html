@@ -2654,6 +2654,21 @@
 .wb-dang-x i{font-style:normal; color:var(--dim2); margin-right:5px; font-size:9.5px;}
 .wb-bai-nhac{position:relative; font-size:11px; color:var(--dim2); font-style:italic; padding-bottom:4px;}
 .wb-bai-duoi{position:relative; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); text-align:left;}
+/* v229 — HAI KHUNG: lá bài bên trái, hồ sơ bên phải. Điện thoại xếp dọc, màn rộng nằm cạnh nhau. */
+.wb-doi{display:grid; grid-template-columns:1fr; gap:12px; align-items:start;}
+.wb-ho{padding:14px 15px; border-radius:18px; text-align:left;
+  background:linear-gradient(170deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border:1px solid var(--border); box-shadow:0 10px 28px -20px #000;}
+.wb-th-khoi{margin-bottom:11px;}
+.wb-th-ten{display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800;
+  color:var(--text); margin-bottom:6px;}
+.wb-th-ten span{width:19px; height:19px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:10px; background:var(--anh, rgba(255,255,255,.14)); color:var(--vien, var(--text));}
+@media(min-width:820px){
+  .wb-doi.mo{grid-template-columns:minmax(260px,340px) 1fr;}
+  .wb-doi.mo .wb-bai{position:sticky; top:8px;}
+  .wb-ho{max-height:calc(100vh - 210px); overflow-y:auto;}
+}
 .wb-vd-h{font-size:10.5px; font-weight:800; color:var(--dim2); letter-spacing:.4px; margin:10px 0 7px;}
 .wb-vd-h:first-child{margin-top:0;}
 .wb-vd-ds{display:flex; flex-direction:column; gap:7px;}
@@ -2779,6 +2794,10 @@
   color:#2CDBA8; font-weight:800;}
 .dlgq-loa{margin-top:4px; background:none; border:1px solid var(--border); border-radius:9px;
   padding:5px 11px; font-size:11px; color:var(--dim); cursor:pointer; font-family:inherit;}
+/* v229 — câu hỏi có chỗ trống: tách câu ra một khối riêng cho dễ đọc, và nêu rõ ràng buộc. */
+.qz-cau{margin-top:9px; padding:11px 13px; border-radius:11px; font-size:15px; line-height:1.6;
+  font-weight:600; color:var(--text); background:rgba(0,0,0,.22); border:1px solid var(--border);}
+.qz-cau-vi{margin-top:6px; font-size:11.5px; color:var(--dim); line-height:1.55;}
 .wb-hero{padding:15px 16px;}
 .wb-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .wb-hero-lb{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim2);}
@@ -3655,7 +3674,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v228';
+const APP_VERSION = 'v229';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9541,8 +9560,8 @@ async function fetchVocabData(){
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
-const VD_CAN = 5;          // mỗi từ cần ít nhất chừng này câu mới coi là đủ
-const VD_NGAY_TOI_DA = 14;  // mỗi ngày tự nạp nền tối đa chừng này mục, để không nướng hết hạn mức
+const VD_CAN = 10;         // mỗi từ cần ít nhất chừng này câu mới coi là đủ
+const VD_NGAY_TOI_DA = 12;  // mỗi lượt tự nạp nền tối đa chừng này mục, để không nướng hết hạn mức
 function vdKho(){
   if(!SETTINGS.viDuKho || typeof SETTINGS.viDuKho !== 'object') SETTINGS.viDuKho = {};
   return SETTINGS.viDuKho;
@@ -9555,8 +9574,13 @@ function vdLay(chu){
   const k = vdKhoa(chu); if(!k) return null;
   const o = vdKho()[k];
   if(!o) return null;
+  // Dữ liệu lấy từ bản trước chỉ có "hoiThoai" — quy về dạng tình huống để mọi nơi đọc một kiểu.
+  let th = Array.isArray(o.tinhHuong) ? o.tinhHuong : [];
+  if(!th.length && Array.isArray(o.hoiThoai) && o.hoiThoai.length) th = [{ten:'Tình huống đời thường', luot:o.hoiThoai}];
   return {viDu: Array.isArray(o.viDu) ? o.viDu : [],
           hoiThoai: Array.isArray(o.hoiThoai) ? o.hoiThoai : [],
+          tinhHuong: th,
+          phienAm: String(o.phienAm||''),
           dangTu: (o.dangTu && typeof o.dangTu === 'object') ? o.dangTu : {},
           luc: o.luc || 0};
 }
@@ -9576,8 +9600,14 @@ function vdGom(chu, viDuGoc){
   if(Array.isArray(viDuGoc)) viDuGoc.forEach(v=>them(v[0], v[1]));
   return ra;
 }
-function vdDu(chu, viDuGoc){ return vdGom(chu, viDuGoc).length >= VD_CAN; }
+function vdDu(chu, viDuGoc){
+  // Cụm thì đủ khi có tình huống dùng; từ đơn thì đủ khi có đủ số câu.
+  if(vdLaCum(chu)) return vdTinhHuong(chu).length > 0 && vdGom(chu, viDuGoc).length >= VD_CAN;
+  return vdGom(chu, viDuGoc).length >= VD_CAN;
+}
 function vdHoiThoai(chu){ const o = vdLay(chu); return o ? o.hoiThoai : []; }
+function vdTinhHuong(chu){ const o = vdLay(chu); return o ? o.tinhHuong : []; }
+function vdPhienAm(chu){ const o = vdLay(chu); return o ? (o.phienAm || '') : ''; }
 function vdDangTu(chu){ const o = vdLay(chu); return o ? o.dangTu : {}; }
 // Một lượt hỏi AI cho đúng một mục. Trả về đối tượng đã chuẩn hoá và đã ghi vào kho.
 async function vdLayAI(chu, nghia){
@@ -9587,20 +9617,25 @@ async function vdLayAI(chu, nghia){
   const nhac = cum
     ? ('Cụm từ tiếng Anh: "' + chu + '"' + (nghia ? (' (nghĩa: ' + nghia + ')') : '') + '.\n'
        + 'Trả về DUY NHẤT một JSON:\n'
-       + '{"viDu":[["câu tiếng Anh","nghĩa tiếng Việt"], ... đúng 5 câu],'
-       + '"hoiThoai":[["A","lời thoại"],["B","lời thoại"], ... 6 lượt]}\n'
-       + 'Với "viDu": 5 câu NGẮN, đời thường, mỗi câu dùng đúng cụm này, mỗi câu dưới 14 chữ.\n'
-       + 'Với "hoiThoai": một đoạn hội thoại THẬT giữa hai người (A và B) trong tình huống đời '
-       + 'thường, 6 lượt nói, trong đó có ÍT NHẤT MỘT lượt dùng đúng cụm "' + chu + '" nguyên văn. '
-       + 'Mỗi lượt dưới 16 chữ, nói như người thật nói chứ không phải văn viết.')
+       + '{"viDu":[["câu tiếng Anh","nghĩa tiếng Việt"], ... đúng 10 câu],'
+       + '"tinhHuong":[{"ten":"tên tình huống ngắn bằng tiếng Việt",'
+       + '"luot":[["A","lời thoại"],["B","lời thoại"], ... 6 lượt]}, ... đúng 3 tình huống]}\n'
+       + 'Với "viDu": đúng 10 câu NGẮN, đời thường, mỗi câu dùng đúng cụm này, mỗi câu dưới 14 chữ. '
+       + 'Rải cho đủ các kiểu dùng khác nhau của cụm, đừng viết 10 câu na ná nhau.\n'
+       + 'Với "tinhHuong": đúng 3 tình huống KHÁC HẲN NHAU (ví dụ: với bạn bè, ở nơi làm việc, '
+       + 'với người lạ). Mỗi tình huống là một đoạn hội thoại THẬT giữa A và B, 6 lượt nói, trong '
+       + 'đó có ÍT NHẤT MỘT lượt dùng đúng cụm "' + chu + '" nguyên văn. Mỗi lượt dưới 16 chữ, '
+       + 'nói như người thật nói chứ không phải văn viết.')
     : ('Từ tiếng Anh: "' + chu + '"' + (nghia ? (' (nghĩa: ' + nghia + ')') : '') + '.\n'
        + 'Trả về DUY NHẤT một JSON:\n'
-       + '{"viDu":[["câu tiếng Anh","nghĩa tiếng Việt"], ... đúng 5 câu],'
+       + '{"viDu":[["câu tiếng Anh","nghĩa tiếng Việt"], ... đúng 10 câu],'
+       + '"phienAm":"phiên âm IPA, ví dụ /ˈænsər/",'
        + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"}}\n'
-       + 'Với "viDu": đúng 5 câu NGẮN, đời thường, kiểu câu người ta thật sự nói hằng ngày '
-       + '(không phải câu sách giáo khoa), mỗi câu dưới 14 chữ và dùng đúng từ này.\n'
-       + 'Nếu từ có nhiều dạng (danh/động/tính/trạng) thì trong 5 câu hãy rải cho đủ các dạng đó, '
-       + 'mỗi dạng ít nhất một câu.\n'
+       + 'Với "viDu": đúng 10 câu NGẮN, đời thường, kiểu câu người ta thật sự nói hằng ngày trong '
+       + 'lúc trò chuyện (không phải câu sách giáo khoa), mỗi câu dưới 14 chữ và dùng đúng từ này. '
+       + 'Đừng viết 10 câu na ná nhau — rải ra nhiều hoàn cảnh khác nhau.\n'
+       + 'Nếu từ có nhiều dạng (danh/động/tính/trạng) thì trong 10 câu hãy rải cho đủ các dạng đó, '
+       + 'mỗi dạng ít nhất hai câu.\n'
        + 'Với "dangTu": chỉ ghi dạng CÓ THẬT và cùng gốc từ; dạng nào không có thì bỏ hẳn khoá đó, '
        + 'tuyệt đối không bịa.');
   const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
@@ -9617,12 +9652,20 @@ async function vdLayAI(chu, nghia){
     if(Array.isArray(v)) return [String(v[0]||'').trim(), String(v[1]||'').trim()];
     if(v && typeof v === 'object') return [String(v.en||'').trim(), String(v.vi||'').trim()];
     return ['',''];
-  }).filter(v=>v[0]).slice(0, 8);
-  const hoiThoai = (Array.isArray(o.hoiThoai) ? o.hoiThoai : []).map(v=>{
+  }).filter(v=>v[0]).slice(0, 14);
+  const doLuot = (ds)=>(Array.isArray(ds) ? ds : []).map(v=>{
     if(Array.isArray(v)) return [String(v[0]||'').trim().slice(0,12), String(v[1]||'').trim()];
     if(v && typeof v === 'object') return [String(v.ai||v.who||'').trim().slice(0,12), String(v.noi||v.text||'').trim()];
     return ['',''];
   }).filter(v=>v[1]).slice(0, 8);
+  // Ba tình huống khác nhau cho một cụm. Bản cũ chỉ nhận một đoạn (khoá "hoiThoai") — vẫn đọc để
+  // không bỏ phí dữ liệu đã lấy trước đây.
+  let tinhHuong = (Array.isArray(o.tinhHuong) ? o.tinhHuong : []).map(x=>({
+    ten: String((x && x.ten) || '').trim().slice(0, 40),
+    luot: doLuot(x && x.luot)
+  })).filter(x=>x.luot.length >= 2).slice(0, 4);
+  const hoiThoai = doLuot(o.hoiThoai);
+  if(!tinhHuong.length && hoiThoai.length) tinhHuong = [{ten:'Tình huống đời thường', luot:hoiThoai}];
   const dangTu = {};
   if(o.dangTu && typeof o.dangTu === 'object'){
     ['n','v','adj','adv'].forEach(x=>{
@@ -9630,8 +9673,9 @@ async function vdLayAI(chu, nghia){
       if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dangTu[x] = v;
     });
   }
-  if(!viDu.length && !hoiThoai.length) throw new Error('AI trả về rỗng.');
-  vdKho()[k] = {viDu, hoiThoai, dangTu, luc: Date.now()};
+  if(!viDu.length && !tinhHuong.length) throw new Error('AI trả về rỗng.');
+  const phienAm = String(o.phienAm||'').trim().slice(0, 40);
+  vdKho()[k] = {viDu, hoiThoai, tinhHuong, dangTu, phienAm, luc: Date.now()};
   saveSettings();
   return vdLay(chu);
 }
@@ -10113,8 +10157,17 @@ function qzSayDungCloud(){
 }
 // Ghi âm rồi gửi lên Cloud. Tự dừng sau 6 giây — đọc một từ hay một câu ngắn thì thừa sức, mà
 // không để nút kẹt ở trạng thái "đang nghe" nếu người dùng quên bấm dừng.
+// Bản thu gần nhất, để nghe lại. Thu lượt mới thì bỏ bản cũ đi, không giữ nhiều cho nặng bộ nhớ.
+let qzSayUrl = null;
+function qzSayXoaBan(){
+  if(qzSayUrl){ try{ URL.revokeObjectURL(qzSayUrl); }catch(_){ } qzSayUrl = null; }
+}
+function qzSayNgheLai(){
+  if(!qzSayUrl){ showToast('🎧','Chưa có bản thu nào','Bấm đọc một lượt rồi mới nghe lại được.'); return; }
+  try{ const a = new Audio(qzSayUrl); a.play(); }catch(_){ }
+}
 async function qzSayBatDauCloud(dich, xong){
-  qzSayDung();
+  qzSayDung(); qzSayXoaBan();
   let stream;
   try{ stream = await navigator.mediaDevices.getUserMedia(SPEAK_AUDIO_CONSTRAINTS); }
   catch(_){
@@ -10138,6 +10191,8 @@ async function qzSayBatDauCloud(dich, xong){
     let nghe = '';
     try{
       const blob = new Blob(mieng, {type: mr.mimeType || 'audio/webm'});
+      // Giữ lại để nghe lại. Làm TRƯỚC khi gửi đi chấm, vì chấm có thể hỏng mà bản thu thì vẫn dùng được.
+      try{ qzSayUrl = URL.createObjectURL(blob); }catch(_){ }
       if(blob.size > 800) nghe = await transcribeCloudStt(blob, dich);
     }catch(e){
       showToast('⚠️','Chấm điểm không xong', hvLoiThanThien((e && e.message) || 'lỗi không rõ'));
@@ -10174,6 +10229,15 @@ function qzSayBatDau(dich, xong){
   return true;
 }
 // Khối kết quả sau khi đọc — dùng chung, chỉ khác chuỗi đáp án truyền vào.
+// Còn mục nào phía sau nữa không? Trong mục gộp thì phải hỏi hàng đợi LỚN, không phải hàng đợi con.
+function qzConTiep(s){
+  const w = STATE.wbSession;
+  if(w && Array.isArray(w.q)) return w.idx < w.q.length - 1;
+  return !!(s && Array.isArray(s.ids) && s.idx < s.ids.length - 1);
+}
+function qzNhanTiep(s){
+  return qzConTiep(s) ? 'Câu tiếp theo →' : '🏁 Xong lượt — xem tổng kết';
+}
 function qzSayKetQuaHtml(s, dapAn){
   const d = Number(s.sayScore)||0;
   return `<div class="qz-say-diem ${s.isCorrectAnswer?'ok':'no'}">${d}<span>%</span></div>
@@ -10716,6 +10780,16 @@ function wbHoiThoaiHtml(ds, chu){
     </div>`;
   }).join('')}</div>`;
 }
+// Các tình huống dùng một cụm — mỗi tình huống một đoạn hội thoại riêng, có tên gọi để nhớ được
+// "cụm này hợp lúc nào". Đây mới là thứ dạy cách DÙNG, khác hẳn với việc biết nghĩa.
+function wbTinhHuongHtml(ds, chu){
+  if(!ds || !ds.length) return '';
+  return ds.map((x, i)=>`
+    <div class="wb-th-khoi">
+      <div class="wb-th-ten"><span>${i+1}</span>${escapeHtml(x.ten || 'Tình huống ' + (i+1))}</div>
+      ${wbHoiThoaiHtml(x.luot, chu)}
+    </div>`).join('');
+}
 // Một mặt thẻ. Mặt trước chỉ có tiếng Anh — cố tình KHÔNG để lộ gì thêm, vì giá trị của thẻ nằm ở
 // khoảnh khắc bạn phải tự bật ra nghĩa trước khi lật. Mặt sau mới đổ hết ra: nghĩa, các dạng từ,
 // và năm câu thật (cụm thì là một đoạn hội thoại).
@@ -10737,37 +10811,42 @@ function wbTheHtml(){
   const tenDang = {n:'danh từ', v:'động từ', adj:'tính từ', adv:'trạng từ'};
   const dangHtml = dangTu.length
     ? `<div class="wb-dang">${dangTu.map(k=>`<span class="wb-dang-x"><i>${tenDang[k]}</i>${escapeHtml(dt[k])}</span>`).join('')}</div>` : '';
-  const thieu = vd.length < VD_CAN && !ht.length;
+  const thieu = !vdDu(m.en, goc);
   const nutCham = WB_MUC.map(x=>
     `<button class="wb-cham" data-action="wb-cham" data-muc="${x.k}" style="--mc:${x.mau};">
        <span class="wb-cham-ic">${x.ic}</span><span class="wb-cham-ten">${x.ten}</span>
        <span class="wb-cham-mo">${x.mo}</span></button>`).join('');
+  const am = m.phienAm || vdPhienAm(m.en);
+  const th = vdTinhHuong(m.en);
   return `<div class="wb-the-dau">
       <span class="wb-the-luot">Lượt ${w.theLuot || 1} · thẻ ${so}/${tong}</span>
       <span class="wb-the-hang" style="color:${hang.vien};">${hang.ten}</span>
     </div>
-    <div class="wb-bai${lat ? ' lat' : ''}${w.dangLat ? ' quay' : ''}" id="wbBai"
-         style="--vien:${hang.vien}; --anh:${hang.anh};" data-action="wb-lat">
-      <span class="wb-bai-sang"></span>
-      <div class="wb-bai-tren">
-        <span class="wb-bai-nhan">${nhan}</span>
-        ${wbChamHang(m.p)}
+    <div class="wb-doi${lat ? ' mo' : ''}">
+      <div class="wb-bai${lat ? ' lat' : ''}${w.dangLat ? ' quay' : ''}" id="wbBai"
+           style="--vien:${hang.vien}; --anh:${hang.anh};" data-action="wb-lat">
+        <span class="wb-bai-sang"></span>
+        <div class="wb-bai-tren">
+          <span class="wb-bai-nhan">${nhan}</span>
+          ${wbChamHang(m.p)}
+        </div>
+        <div class="wb-bai-giua">
+          <div class="wb-the-en">${escapeHtml(m.en)}</div>
+          ${am ? `<div class="wb-the-am">${escapeHtml(am)}</div>` : ''}
+          ${lat ? `<div class="wb-the-vi">${escapeHtml(m.vi)}</div>` : ''}
+        </div>
+        ${lat ? '' : `<div class="wb-bai-nhac">Tự bật ra nghĩa trong đầu — rồi chạm để lật</div>`}
+        <span class="wb-bai-goc"></span>
       </div>
-      <div class="wb-bai-giua">
-        <div class="wb-the-en">${escapeHtml(m.en)}</div>
-        ${m.phienAm ? `<div class="wb-the-am">${escapeHtml(m.phienAm)}</div>` : ''}
-        ${lat ? `<div class="wb-the-vi">${escapeHtml(m.vi)}</div>${dangHtml}` : ''}
-      </div>
-      ${lat
-        ? `<div class="wb-bai-duoi">
-             ${ht.length ? `<div class="wb-vd-h">💬 Dùng trong hội thoại</div>${wbHoiThoaiHtml(ht, m.en)}` : ''}
-             ${vd.length ? `<div class="wb-vd-h">📝 ${vd.length} câu thường nói</div>${wbViDuHtml(vd)}` : ''}
-             ${thieu ? `<div class="wb-vd-cho">${SETTINGS.geminiApiKey
-                 ? 'Đang soạn thêm ví dụ cho mục này… lát nữa quay lại là có đủ.'
-                 : 'Muốn có đủ 5 ví dụ cho mỗi mục thì dán khoá Gemini trong Cài đặt — app sẽ tự soạn và nhớ luôn.'}</div>` : ''}
-           </div>`
-        : `<div class="wb-bai-nhac">Tự bật ra nghĩa trong đầu — rồi chạm để lật</div>`}
-      <span class="wb-bai-goc"></span>
+      ${lat ? `<div class="wb-ho">
+          ${dangHtml ? `<div class="wb-vd-h">🔤 Các dạng của từ này</div>${dangHtml}` : ''}
+          ${th.length ? `<div class="wb-vd-h">🎭 ${th.length} tình huống dùng cụm này</div>${wbTinhHuongHtml(th, m.en)}`
+                      : (ht.length ? `<div class="wb-vd-h">💬 Dùng trong hội thoại</div>${wbHoiThoaiHtml(ht, m.en)}` : '')}
+          ${vd.length ? `<div class="wb-vd-h">📝 ${vd.length} câu thường nói</div>${wbViDuHtml(vd)}` : ''}
+          ${thieu ? `<div class="wb-vd-cho">${SETTINGS.geminiApiKey
+              ? 'Đang soạn thêm ví dụ cho mục này… lát nữa quay lại là có đủ ' + VD_CAN + ' câu.'
+              : 'Muốn có đủ ' + VD_CAN + ' ví dụ cho mỗi mục thì dán khoá Gemini trong Cài đặt — app sẽ tự soạn và nhớ luôn.'}</div>` : ''}
+        </div>` : ''}
     </div>
     <div class="wb-the-nut">
       <button class="form-btn" data-action="wb-doc-the">🔊 Nghe</button>
@@ -11349,7 +11428,7 @@ function renderVocabSession(){
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe từ</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   }
   if(s.exType==='match_pairs'){
@@ -11372,7 +11451,7 @@ function renderVocabSession(){
       ${s.answered!==null ? `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:12px;">${s.isCorrectAnswer?'✓ Nối đúng hết ngay lần đầu!':`✗ Có ${s.mpWrong} lần nối nhầm — nhớ kỹ hơn nhé`}</div>
       ${vocabMpTongKetHtml(s)}
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   }
   if(s.exType==='say_it'){
@@ -11380,7 +11459,7 @@ function renderVocabSession(){
     <div class="card eng-quiz-card" style="text-align:center;">
       <div class="eng-quiz-q" style="text-align:center;">🎤 Đọc to từ này — máy sẽ chấm phát âm</div>
       <div class="qz-say-doc">${escapeHtml(word[1])}</div>
-      <div class="qz-say-ipa">${escapeHtml(word[2]||'')}</div>
+      <div class="qz-say-ipa">${escapeHtml(word[2] || vdPhienAm(word[1]) || '')}</div>
       <div style="font-size:13px; color:var(--gold); font-weight:700; margin-bottom:16px;">🇻🇳 ${escapeHtml(word[4])}</div>
       ${s.answered===null ? (s.sayBusy
         ? `<div class="qz-say-song"><span></span><span></span><span></span><span></span><span></span></div>
@@ -11391,8 +11470,9 @@ function renderVocabSession(){
       : `${qzSayKetQuaHtml(s, word[1])}
       <div class="eng-quiz-actions" style="margin-top:10px;">
         <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe mẫu</button>
+        <button class="form-btn btn-listen" data-action="qz-nghe-lai" style="flex:1;">🎧 Nghe lại giọng mình</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   }
   if(s.exType==='listen_type'){
@@ -11415,7 +11495,7 @@ function renderVocabSession(){
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(target)}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(target)} = ${escapeHtml(word[4])}</div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   }
   if(s.exType==='type_en'){
@@ -11437,11 +11517,11 @@ function renderVocabSession(){
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="vocab-speak-current" style="flex:1;">🔊 Nghe từ</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   }
   const questionText = s.exType==='mc_en_vi' ? `${word[1]} (${word[2]}) nghĩa là gì?`
-    : s.exType==='fill_blank' ? `Điền từ còn thiếu: "${vocabBlankSentence(word)}"`
+    : s.exType==='fill_blank' ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:<div class="qz-cau">${escapeHtml(vocabBlankSentence(word))}</div>`
     : s.exType==='listen_en_vi' ? `🔊 Nghe từ vừa phát, chọn đúng nghĩa tiếng Việt`
     : `Từ tiếng Anh nào có nghĩa: "${word[4]}"?`;
   // Item 6: dạng "listen_en_vi" KHÔNG hiện chữ tiếng Anh — chỉ có nút phát âm, buộc luyện nghe thật sự
@@ -11474,7 +11554,7 @@ function renderVocabSession(){
         <button class="form-btn btn-translate" data-action="vocab-toggle-translate" style="flex:1;">${s.showTranslate?'🙈 Ẩn dịch':'🇻🇳 Dịch câu ví dụ'}</button>
       </div>
       ${translateHtml}
-      <button class="form-btn eng-quiz-nextbtn" data-action="vocab-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+      <button class="form-btn eng-quiz-nextbtn" data-action="vocab-next" style="width:100%; margin-top:8px;">${qzNhanTiep(s)}</button>` : ''}
   </div>`;
 }
 function renderEnglishVocab(item){
@@ -14140,8 +14220,13 @@ function sentScrambleWords(text){
 }
 // Chọn 1 từ nội dung (>=3 ký tự chữ cái, bỏ qua từ quá ngắn kiểu a/to/is) để làm chỗ trống cho bài
 // "Nghe & điền từ" — người học nghe câu qua TTS rồi gõ đúng từ còn thiếu, luyện cả nghe lẫn nhớ chủ động.
+const SENT_BLANK_MIN_TU = 4;   // câu ngắn hơn chừng này thì khoét xong chẳng còn ngữ cảnh nào
 function sentBlankWord(sentence, seed){
   const words = sentence[1].trim().split(/\s+/);
+  // Khoét một từ khỏi câu ba chữ là còn lại hai chữ — không đủ để đoán ra từ nào. Câu một chữ thì
+  // còn tệ hơn: đề bài thành đúng một chỗ trống. Cả hai trường hợp đều trả về null để bộ chọn
+  // dạng bài bỏ qua, chứ không ra một câu hỏi không trả lời được.
+  if(words.length < SENT_BLANK_MIN_TU) return null;
   const candidates = words.map((w,i)=>({w, i, clean:w.replace(/[^a-zA-Z']/g,'')})).filter(c=>c.clean.length>=3);
   if(!candidates.length) return null;
   const pick = candidates[(sentence[0]+(seed||0)) % candidates.length];
@@ -14540,7 +14625,7 @@ function renderSentSession(tenMan){
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe câu</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   } else if(s.exType==='listen_fill'){
     const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
@@ -14561,7 +14646,7 @@ function renderSentSession(tenMan){
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe lại</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   } else if(s.exType==='say_it'){
     body = `<div class="card eng-quiz-card" style="text-align:center;">
@@ -14579,7 +14664,7 @@ function renderSentSession(tenMan){
       <div class="eng-quiz-actions" style="margin-top:10px;">
         <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe mẫu</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   } else if(s.exType==='listen_type'){
     const inputCls = s.answered===null ? '' : (s.isCorrectAnswer?'correct':'wrong');
@@ -14595,7 +14680,7 @@ function renderSentSession(tenMan){
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(sentence[1])}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[4])}</div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   } else if(s.exType==='type_en'){
     // Item 6: gõ lại cả câu tiếng Anh — mức nhớ chủ động cao nhất, chỉ mở khi đã thuộc kỹ (box>=5).
@@ -14614,7 +14699,7 @@ function renderSentSession(tenMan){
       <div class="eng-quiz-actions">
         <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe lại</button>
       </div>
-      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>`}
+      <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   } else if(s.exType==='dialogue' && s.dlgDoan){
     const d = s.dlgDoan;
@@ -14653,7 +14738,7 @@ function renderSentSession(tenMan){
         <div class="eng-quiz-actions">
           <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe cụm</button>
         </div>
-        <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+        <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="sent-next">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   } else if(s.exType==='dialogue'){
     const opener = s.dialogueOpener || {en:'', vi:''};
@@ -14688,13 +14773,13 @@ function renderSentSession(tenMan){
         <div class="eng-quiz-actions">
           <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe câu B</button>
         </div>
-        <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+        <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   } else {
     const isListenChoice = s.exType==='listen_choice';
     const isMcEx = s.exType==='mc_ex';
     const questionText = isListenChoice ? '🎧 Nghe rồi chọn nghĩa đúng'
-      : isMcEx ? `✍️ Chọn từ điền vào chỗ trống: "${s.blankSentence||''}"`
+      : isMcEx ? `✍️ Điền vào chỗ trống<div class="qz-cau">${escapeHtml(s.blankSentence||'')}</div><div class="qz-cau-vi">🇻🇳 ${escapeHtml(sentence[4]||'')}</div>`
       : (s.exType==='mc_en_vi' ? `"${sentence[1]}" nghĩa là gì?` : `Câu nào có nghĩa: "${sentence[4]}"?`);
     const optLetters = ['A','B','C','D'];
     const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
@@ -14720,7 +14805,7 @@ function renderSentSession(tenMan){
         <div class="eng-quiz-actions">
           <button class="form-btn btn-listen" data-action="sent-speak-current" style="flex:1;">🔊 Nghe câu</button>
         </div>
-        <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : ''}
+        <button class="form-btn eng-quiz-nextbtn" data-action="sent-next" style="width:100%; margin-top:8px;">${qzNhanTiep(s)}</button>` : ''}
     </div>`;
   }
   return `${englishItemBackRow(TEN)}${progressWrap}${body}`;
@@ -18698,7 +18783,7 @@ function renderDictSession(){
       <button class="form-btn btn-listen" data-action="dict-speak-current" style="flex:1;">🔊 Nghe lại</button>
       <button class="form-btn cancel" data-action="dict-speak-slow" style="flex:1;">🐢 Nghe chậm</button>
     </div>
-    <button class="form-btn eng-quiz-nextbtn" data-action="dict-next" style="width:100%; margin-top:8px;">${s.idx<s.ids.length-1?'Câu tiếp theo →':'🏁 Xong lượt — xem tổng kết'}</button>` : '';
+    <button class="form-btn eng-quiz-nextbtn" data-action="dict-next" style="width:100%; margin-top:8px;">${qzNhanTiep(s)}</button>` : '';
   const body = `<div class="card eng-quiz-card">
     <div class="eng-quiz-q" style="text-align:center;">✍️ Nghe rồi gõ lại CHÍNH XÁC câu bạn nghe được</div>
     ${dictThanhPhatHtml(s)}
@@ -27102,6 +27187,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
     }catch(_){ }
     return;
   }
+  const qzNgheLaiEl = e.target.closest('[data-action="qz-nghe-lai"]');
+  if(qzNgheLaiEl){ e.stopPropagation(); qzSayNgheLai(); return; }
   const wbDocCauEl = e.target.closest('[data-action="wb-doc-cau"]');
   if(wbDocCauEl){ e.stopPropagation(); wbDocCau(wbDocCauEl.getAttribute('data-cau')); return; }
   const wbDocTheEl = e.target.closest('[data-action="wb-doc-the"]');
