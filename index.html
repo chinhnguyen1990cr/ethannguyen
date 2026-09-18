@@ -3674,7 +3674,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v229';
+const APP_VERSION = 'v230';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9561,12 +9561,43 @@ async function fetchVocabData(){
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
 const VD_CAN = 10;         // mỗi từ cần ít nhất chừng này câu mới coi là đủ
+// Cụm thì thứ dạy được là TÌNH HUỐNG, không phải mười câu na ná nhau. Có tình huống cộng
+// vài câu biến thể là đã dùng học được, nên bắt đủ mười câu chỉ khiến app đi hỏi AI vô ích.
+const VD_CAN_CUM = 4;
 const VD_NGAY_TOI_DA = 12;  // mỗi lượt tự nạp nền tối đa chừng này mục, để không nướng hết hạn mức
 function vdKho(){
   if(!SETTINGS.viDuKho || typeof SETTINGS.viDuKho !== 'object') SETTINGS.viDuKho = {};
   return SETTINGS.viDuKho;
 }
 function vdKhoa(chu){ return String(chu||'').trim().toLowerCase(); }
+// Kho soạn tay, tải kèm app. Không có thì thôi, mọi thứ vẫn chạy.
+let VIDU_DATA = null, viDuDangTai = false;
+function fetchViDuData(){
+  if(VIDU_DATA || viDuDangTai) return;
+  viDuDangTai = true;
+  fetch('vidu-data.json').then(r=>r.ok ? r.json() : null).then(j=>{
+    if(j && typeof j === 'object') VIDU_DATA = j;
+    viDuDangTai = false;
+    try{ if(STATE.wbSession) renderContent(); }catch(_){ }
+  }).catch(()=>{ viDuDangTai = false; });
+}
+function vdTay(chu){
+  const k = vdKhoa(chu);
+  if(!k) return null;
+  if(!VIDU_DATA){ fetchViDuData(); return null; }
+  const o = (VIDU_DATA.muc || {})[k];
+  return o || null;
+}
+// Ví dụ nằm sẵn trong ngân hàng từ vựng — cột 8 của mỗi bản ghi.
+function vdNganHang(chu){
+  const k = vdKhoa(chu);
+  if(!k || !VOCAB_DATA || !Array.isArray(VOCAB_DATA.words)) return [];
+  try{
+    const w = VOCAB_DATA.words.find(x => String(x[1]||'').toLowerCase() === k);
+    if(w && Array.isArray(w[8])) return w[8].filter(v=>Array.isArray(v) && v[0]);
+  }catch(_){ }
+  return [];
+}
 // Cụm hay từ đơn? Quyết định ở đây một lần, mọi nơi khác hỏi lại hàm này — không thì mỗi chỗ tự
 // đoán một kiểu và hai màn hình cùng một mục lại hiện hai thứ khác nhau.
 function vdLaCum(chu){ return String(chu||'').trim().indexOf(' ') > 0; }
@@ -9597,18 +9628,38 @@ function vdGom(chu, viDuGoc){
   };
   const o = vdLay(chu);
   if(o) o.viDu.forEach(v=>them(v[0], v[1]));
+  const t = vdTay(chu);
+  if(t && Array.isArray(t.viDu)) t.viDu.forEach(v=>them(v[0], v[1]));
+  vdNganHang(chu).forEach(v=>them(v[0], v[1]));
   if(Array.isArray(viDuGoc)) viDuGoc.forEach(v=>them(v[0], v[1]));
   return ra;
 }
 function vdDu(chu, viDuGoc){
   // Cụm thì đủ khi có tình huống dùng; từ đơn thì đủ khi có đủ số câu.
-  if(vdLaCum(chu)) return vdTinhHuong(chu).length > 0 && vdGom(chu, viDuGoc).length >= VD_CAN;
+  if(vdLaCum(chu)) return vdTinhHuong(chu).length > 0 && vdGom(chu, viDuGoc).length >= VD_CAN_CUM;
   return vdGom(chu, viDuGoc).length >= VD_CAN;
 }
 function vdHoiThoai(chu){ const o = vdLay(chu); return o ? o.hoiThoai : []; }
-function vdTinhHuong(chu){ const o = vdLay(chu); return o ? o.tinhHuong : []; }
-function vdPhienAm(chu){ const o = vdLay(chu); return o ? (o.phienAm || '') : ''; }
-function vdDangTu(chu){ const o = vdLay(chu); return o ? o.dangTu : {}; }
+function vdTinhHuong(chu){
+  const o = vdLay(chu);
+  if(o && o.tinhHuong && o.tinhHuong.length) return o.tinhHuong;
+  const t = vdTay(chu);
+  if(t && Array.isArray(t.tinhHuong) && t.tinhHuong.length) return t.tinhHuong;
+  return o ? o.tinhHuong : [];
+}
+function vdPhienAm(chu){
+  const o = vdLay(chu);
+  if(o && o.phienAm) return o.phienAm;
+  const t = vdTay(chu);
+  return (t && t.phienAm) ? t.phienAm : '';
+}
+function vdDangTu(chu){
+  const o = vdLay(chu);
+  if(o && o.dangTu && Object.keys(o.dangTu).length) return o.dangTu;
+  const t = vdTay(chu);
+  if(t && t.dangTu && typeof t.dangTu === 'object') return t.dangTu;
+  return o ? o.dangTu : {};
+}
 // Một lượt hỏi AI cho đúng một mục. Trả về đối tượng đã chuẩn hoá và đã ghi vào kho.
 async function vdLayAI(chu, nghia){
   const k = vdKhoa(chu); if(!k) throw new Error('Thiếu từ');
@@ -10525,6 +10576,7 @@ function wbHangThe(){
   return ra.map(m=>({t:m.t, n:m.n}));
 }
 function wbBatDauThe(){
+  fetchViDuData();
   if(!VOCAB_DATA || !COMMON_SENT_DATA){
     if(!VOCAB_DATA) fetchVocabData();
     if(!COMMON_SENT_DATA) fetchCommonSentData();
@@ -10548,6 +10600,7 @@ function wbBatDauThe(){
   renderContent(); window.scrollTo(0,0);
 }
 function wbBatDau(){
+  fetchViDuData();
   if(!VOCAB_DATA || !COMMON_SENT_DATA){
     if(!VOCAB_DATA) fetchVocabData();
     if(!COMMON_SENT_DATA) fetchCommonSentData();

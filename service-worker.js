@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ren-luyen-cache-v229';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json',
+const CACHE_NAME = 'ren-luyen-cache-v230';
+const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json',
   './dialogue-context-data.json', './dictation-data.json'];
 // Giới hạn thời gian chờ mạng khi mở app (navigate). Nếu mạng chậm/treo lâu hơn mức này,
 // lập tức trả bản đã lưu trong cache để app luôn mở ra ngay — tránh kẹt ở màn hình splash
