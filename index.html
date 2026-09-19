@@ -2041,7 +2041,7 @@
 .hv-td.cho .hv-td-nghia{color:var(--dim); font-weight:700; font-size:12.5px; font-style:italic;}
 .hv-td-nhac{margin-top:7px; font-size:11px; line-height:1.55; color:var(--dim2);}
 /* v225 mục 2 — bảng chỉnh tấm che, nổi ngay dưới nút ▤ trong khung video. */
-.hv-che-bang{position:absolute; bottom:44px; right:8px; z-index:8; width:206px;
+.hv-che-bang{position:absolute; bottom:50px; right:8px; z-index:8; width:206px;
   display:none; padding:9px 10px 10px; border-radius:12px;
   background:rgba(12,14,22,.94); border:1px solid var(--border);
   box-shadow:0 10px 26px rgba(0,0,0,.5);}
@@ -2055,7 +2055,6 @@
 .hv-che-bang input[type=range]{flex:1; accent-color:#FFC94A; min-width:0;}
 .hv-che-bang label b{font-size:10.5px; color:#FFC94A; min-width:32px; text-align:right;
   font-family:var(--mono);}
-.hv-doc.cc{font-size:11px; font-weight:900; letter-spacing:.3px;}
 .hv-chon-vid{width:100%; margin-top:8px; padding:9px 10px; border-radius:11px; font-size:12.5px; font-weight:800;
   border:1px solid rgba(44,219,168,.5); background:rgba(44,219,168,.13); color:var(--teal); cursor:pointer;
   transition:background .16s,color .16s;}
@@ -2854,15 +2853,26 @@
 body.hv-khoa-cuon{overflow:hidden;}
 /* v215 — hai nút này nằm ở góc DƯỚI, không đụng vào ⇅ (trên-phải) và ▶ (trên-trái). Bản v214
    đặt ⛶ ngay dưới nút ⇅ nên nó bị đè mất hoàn toàn — có nút mà không ai bấm được. */
-.hv-toanman,.hv-capnut{position:absolute;bottom:7px;z-index:6;height:30px;border-radius:9px;
-  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.62);color:#fff;font-size:14px;
-  line-height:1;cursor:pointer;padding:0 9px;display:flex;align-items:center;justify-content:center;}
-.hv-toanman{right:7px;width:32px;padding:0;}
-.hv-capnut{right:45px;font-size:11px;font-weight:800;letter-spacing:.4px;}
-.hv-capnut.on{background:#FFD84D;color:#171208;border-color:transparent;}
-.hv-toanman:active,.hv-capnut:active{background:rgba(0,0,0,.85);}
-.hv-vidwrap.full .hv-toanman{bottom:14px;right:14px;width:40px;height:40px;font-size:18px;}
-.hv-vidwrap.full .hv-capnut{bottom:14px;right:62px;height:40px;font-size:13px;}
+/* v234 — MỘT hàng nút, xếp bằng flex. Không còn toạ độ riêng cho từng nút, nên thêm hay bớt
+   một nút cũng không làm lệch hàng. Mọi nút cùng chiều cao và cùng bề ngang tối thiểu. */
+.hv-nutbar{position:absolute; right:8px; bottom:8px; z-index:7;
+  display:flex; align-items:center; gap:6px;}
+.hv-nb{min-width:34px; height:34px; padding:0 8px; border-radius:10px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:14px; line-height:1; font-weight:800;
+  color:#e8eef5; background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.18);
+  transition:background .15s, color .15s, border-color .15s;}
+.hv-nb:active{transform:scale(.94);}
+.hv-nb.cc{font-size:11.5px; letter-spacing:.4px;}
+.hv-nb.cc.on{background:#FFD84D; color:#171208; border-color:transparent;}
+.hv-nb.vn.on{background:#2CDBA8; color:#04211a; border-color:transparent;}
+.hv-nb.mo.on{background:#4FA8FF; color:#04121f; border-color:transparent;}
+.hv-vidwrap.full .hv-nutbar{right:14px; bottom:14px; gap:8px;}
+.hv-vidwrap.full .hv-nb{min-width:42px; height:42px; font-size:17px;}
+.hv-vidwrap.full .hv-nb.cc{font-size:13px;}
+/* Trên điện thoại video luôn kín bề ngang nên ba nấc cỡ khung không khác gì nhau. */
+@media(max-width:719px){ .hv-nb.co{display:none;} }
+.hv-vidwrap.full .hv-nb.co{display:none;}
 /* Toàn màn hình phải nổi lên trên khối ghim (z-index:8), nếu không nó bị kẹt dưới. */
 body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 /* v216 — BỐ CỤC "VIDEO NẰM BÊN": video co lại một cột hẹp bên trái, khung Phụ đề / Chép chính
@@ -2875,24 +2885,6 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-2cot.ben .hv-cot-p{flex:1;min-width:0;}
 .hv-2cot.ben .hv-loi,.hv-2cot.ben .sd-tran{max-height:calc(100vh - 96px);min-height:260px;}
 .hv-2cot.ben .hv-tabs{margin-bottom:4px;}
-.hv-doc{position:absolute;bottom:7px;right:83px;z-index:7;height:30px;padding:0 9px;border-radius:9px;
-  border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.62);color:#fff;font-size:13px;
-  line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.hv-doc.on{background:#4FA8FF;color:#04121f;border-color:transparent;}
-.hv-doc:active{background:rgba(0,0,0,.85);}
-/* v226 mục 2 — MỖI NÚT MỘT CHỖ. Trước đây cả hai cùng right:83px nên đè khít lên nhau. */
-.hv-doc.cc{right:83px;}
-.hv-doc.mo{right:126px;}
-.hv-doc.co{right:169px;font-size:11px;font-weight:900;letter-spacing:.3px;}
-/* Trên điện thoại video luôn chiếm trọn bề ngang, ba cỡ không còn khác nhau — giấu nút đi cho
-   hàng nút đỡ chật. */
-@media(max-width:719px){ .hv-doc.co{display:none;} }
-/* …và toàn màn hình thì cả hàng cùng dời xuống 14px, thẳng hàng với ⛶ và CC-app. */
-.hv-vidwrap.full .hv-doc{bottom:14px;height:40px;font-size:15px;padding:0 12px;}
-.hv-vidwrap.full .hv-doc.cc{right:106px;}
-.hv-vidwrap.full .hv-doc.mo{right:156px;}
-/* Toàn màn hình thì khung đã kín rồi, cỡ khung không còn nghĩa gì. */
-.hv-vidwrap.full .hv-doc.co{display:none;}
 .hv-vidwrap.full .hv-che-bang{top:auto;bottom:62px;right:14px;width:230px;}
 /* v215 — Phụ đề hiện khi: bật công tắc CC, HOẶC đang toàn màn hình, HOẶC màn hình nằm ngang.
    Bản v214 chỉ hiện ở đúng một trường hợp (lớp .full do nút của tôi bật), nên phóng to bằng
@@ -2920,18 +2912,25 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 /* v227 mục 6 — chữ trong khung hình chạm được: cho nó vùng chạm rộng hơn và một vệt chọn rõ. */
 .hv-capw{cursor:pointer; border-radius:4px; padding:0 1px;}
 .hv-capw.chon{background:#FFC94A; color:#171208; box-shadow:0 0 0 2px rgba(255,201,74,.45);}
-/* v233 — Một hàng nút gọn cho thẻ Phụ đề. */
-.hv-tb{display:flex; flex-wrap:wrap; gap:7px; margin:0 0 9px;}
-.hv-tb-n{padding:8px 13px; border-radius:999px; cursor:pointer; font-size:12px; font-weight:700;
+/* v233 — Một hàng nút gọn cho thẻ Phụ đề.
+   v234 — Căn GIỮA cho thẳng trục với khung video, và mọi nút cùng chiều cao, cùng bề ngang tối
+   thiểu. Trước đây hàng nút dạt sang trái trong khi video nằm giữa, nhìn lệch hẳn. */
+.hv-tb{display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+  gap:8px; margin:0 0 10px;}
+.hv-tb-n{height:36px; min-width:104px; padding:0 15px; border-radius:999px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  font-size:12.5px; font-weight:700; white-space:nowrap;
   color:var(--dim); background:rgba(255,255,255,.05); border:1px solid var(--border);
   transition:background .15s, color .15s, border-color .15s;}
+.hv-tb-n i{font-style:normal; font-size:13.5px; line-height:1;}
 .hv-tb-n:active{transform:scale(.96);}
 .hv-tb-n.on{color:#04211a; background:linear-gradient(135deg,#2CDBA8,#1f9e7a); border-color:transparent;}
 .hv-tb-n[disabled]{opacity:.38; cursor:default;}
+@media(max-width:560px){ .hv-tb-n{min-width:0; padding:0 12px; font-size:12px;} }
 .hv-tb-n.tu{color:#FFA35A; background:rgba(255,163,90,.12); border-color:rgba(255,163,90,.38);}
 .hv-tb-n.cum{color:#7BE3C0; background:rgba(123,227,192,.12); border-color:rgba(123,227,192,.38);}
 /* Một dòng trạng thái duy nhất. */
-.hv-tt{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:9px;
+.hv-tt{display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; margin-bottom:10px;
   padding:8px 12px; border-radius:10px; font-size:11.5px; line-height:1.55;
   color:var(--dim); background:rgba(255,255,255,.03); border:1px solid var(--border);}
 .hv-tt b{color:var(--text);}
@@ -3739,7 +3738,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v233';
+const APP_VERSION = 'v234';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15762,7 +15761,7 @@ function hvChuanMoc(rec){
   // lại đúng một lần — đó là cách những dòng dài đã lỡ lưu được cắt nhỏ mà không cần chép lại.
   // v231: đổi cờ sang mocChuan3 để những video ĐÃ LƯU được tính lại mốc kết thúc đúng một lần.
   // Giữ cờ cũ thì bản vá chỉ áp cho video mới — video bạn đang xem vẫn lệch y như trước.
-  if(rec.mocChuan3) return false;
+  if(rec.mocChuan4) return false;
   let doi = false;
   // Nối lại những câu bị cắt đôi từ lần lấy lời thoại trước. Số dòng đổi thì tiến độ chép chính
   // tả theo chỉ số cũ không còn đúng nữa — phải xoá, thà làm lại còn hơn đánh dấu nhầm câu.
@@ -15776,7 +15775,7 @@ function hvChuanMoc(rec){
     const dung = d.t + hvDaiCau(d, hvMocKe(rec.lines, i));
     if(d.e == null || d.e > dung + 0.05){ d.e = Math.round(dung*10)/10; doi = true; }
   });
-  rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true;
+  rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true; rec.mocChuan4 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -16161,6 +16160,9 @@ function hvDatTocNoi(rec){
   hvTocNoiHienTai = (typeof t === 'number' && t >= 1.5 && t <= 5.5) ? t : HV_CHU_MOI_GIAY;
 }
 const HV_NIU_CHU_CUOI = 0.8;   // níu vệt sáng ở chữ cuối chừng này giây rồi mới thôi
+// Khoảng tới dòng kế được coi là ĐỘ DÀI THẬT của câu khi nó không vượt quá chừng này lần ước
+// lượng. Quá mức đó thì phần dôi ra là im lặng chứ không phải lời nói.
+const HV_GIAN_TOI_DA = 2.2;
 // Mốc bắt đầu của dòng kế tiếp. Trước v231 chỗ thì truyền chỗ thì không, nên cùng một dòng lại
 // được hai nơi tính ra hai độ dài khác nhau. Một hàm dùng chung thì không quên được nữa.
 function hvMocKe(lines, i){
@@ -16189,8 +16191,21 @@ function hvDaiCau(dong, mocKe){
   if(mocKe != null && dong.t != null){
     const cach = +mocKe - +dong.t;
     if(cach > 0.3){
-      if(uoc > cach) uoc = cach;
+      // v234 — DÙNG THẲNG khoảng tới dòng kế làm độ dài câu.
+      // Lời thoại của YouTube chạy liền mạch: dòng này dứt đúng lúc dòng sau bắt đầu. Nên
+      // "khoảng tới dòng kế" KHÔNG phải là trần để kẹp — nó CHÍNH LÀ độ dài thật của câu.
+      // Bản cũ chỉ dám dùng nó để rút ngắn, nên hễ người ta nói chậm hơn 2,6 chữ/giây là ước
+      // lượng hụt và chữ chạy hết câu sớm hơn tiếng cả giây rưỡi.
+      // Ngoại lệ duy nhất: khoảng cách dài bất thường so với số chữ — đó là khoảng LẶNG thật
+      // (nhạc nền, người ta nghỉ mấy giây), không phải câu nói dài. Trải chữ ra kín khoảng
+      // lặng thì chữ lại lê chậm hơn tiếng, đúng lỗi ngược lại.
+      // Mốc kết thúc không bao giờ được lấn sang câu sau.
       if(theoMoc > cach) theoMoc = cach;
+      // Chỉ khi KHÔNG có mốc kết thúc đáng tin thì khoảng tới dòng kế mới đóng vai độ dài câu.
+      // Dòng nào tự mang mốc kết thúc (lời thoại do AI ghi, tệp SRT) thì tin mốc đó — kéo dài
+      // nó ra tới dòng kế là chữ lại lê chậm hơn tiếng, đúng lỗi ngược lại.
+      if(!theoMoc && cach <= uoc * HV_GIAN_TOI_DA) return Math.max(0.4, cach);
+      if(uoc > cach) uoc = cach;
     }
   }
   // Mốc AI HỢP LÝ (không quá 1,6 lần ước lượng, đủ chỗ cho người nói chậm) thì tin mốc — mốc thật
@@ -17092,13 +17107,15 @@ function hvThanhCongCuHtml(rec){
   let d = {tu:0, cum:0};
   try{ if(hvDanhDau()) d = hvDemThieu(rec); }catch(_){ }
   const nghia = hvHienNghia();
+  // v234 — Hai nút lưu chỉ hiện khi CÓ thứ để lưu. Bày ra "📗 0 từ" mờ tịt chẳng để làm gì,
+  // mà lại làm hàng nút dài ngắn thất thường mỗi lần con số đổi.
   return `<div class="hv-tb">
-    <button class="hv-tb-n ${nghia?'on':''}" data-action="hv-nghia" title="Hiện nghĩa tiếng Việt">🇻🇳 Dịch</button>
-    <button class="hv-tb-n ${hvDanhDau()?'on':''}" data-action="hv-danh-dau" title="Tô những từ và cụm chưa có trong thư viện của bạn">🖍️ Chưa có</button>
-    ${hvDanhDau() ? `<button class="hv-tb-n tu" data-action="hv-luu-gop" data-loai="tu" ${d.tu?'':'disabled'} title="Lưu hết những từ chưa có vào thư viện">📗 ${d.tu} từ</button>
-    <button class="hv-tb-n cum" data-action="hv-luu-gop" data-loai="cau" ${d.cum?'':'disabled'} title="Lưu hết những cụm chưa có vào thư viện">🔗 ${d.cum} cụm</button>` : ''}
-    <button class="hv-tb-n" data-action="sd-loi-mo" title="Tự sửa, thêm dấu chấm câu, hoặc dán lại lời thoại">✏️ Sửa lời</button>
-    <button class="hv-tb-n ${hvDanhSach()?'on':''}" data-action="hv-danh-sach" title="Hiện/ẩn danh sách toàn bộ lời thoại bên dưới">☰ Danh sách</button>
+    <button class="hv-tb-n ${nghia?'on':''}" data-action="hv-nghia" title="Hiện nghĩa tiếng Việt dưới lời thoại"><i>🇻🇳</i>Dịch</button>
+    <button class="hv-tb-n ${hvDanhDau()?'on':''}" data-action="hv-danh-dau" title="Tô những từ và cụm chưa có trong thư viện của bạn"><i>🖍️</i>Chưa có</button>
+    ${(hvDanhDau() && d.tu) ? `<button class="hv-tb-n tu" data-action="hv-luu-gop" data-loai="tu" title="Lưu hết những từ chưa có vào thư viện"><i>📗</i>Lưu ${d.tu} từ</button>` : ''}
+    ${(hvDanhDau() && d.cum) ? `<button class="hv-tb-n cum" data-action="hv-luu-gop" data-loai="cau" title="Lưu hết những cụm chưa có vào thư viện"><i>🔗</i>Lưu ${d.cum} cụm</button>` : ''}
+    <button class="hv-tb-n" data-action="sd-loi-mo" title="Tự sửa, thêm dấu chấm câu, hoặc dán lại lời thoại"><i>✏️</i>Sửa lời</button>
+    <button class="hv-tb-n ${hvDanhSach()?'on':''}" data-action="hv-danh-sach" title="Hiện/ẩn danh sách toàn bộ lời thoại bên dưới"><i>☰</i>Danh sách</button>
   </div>`;
 }
 // MỘT dòng trạng thái, theo thứ tự ưu tiên: việc đang chạy → việc cần bạn bấm → tình trạng mốc.
@@ -17309,8 +17326,8 @@ function hvCapBat(){
 // trống hẳn, mà khung video vẫn bị chốt ở 520px như hồi còn phải chia đôi màn hình. Ba nấc:
 // Vừa (560px, ngồi gần) → Lớn (880px) → Kín bề ngang. Nhớ lại lựa chọn cho lần sau.
 const HV_CO_KHUNG = [
-  {k:1, lop:'k1', ten:'VỪA',  ta:'Khung vừa phải — 560px'},
-  {k:2, lop:'k2', ten:'LỚN',  ta:'Khung lớn — 880px'},
+  {k:1, lop:'k1', ten:'VỪA',  ta:'Khung vừa phải — 720px'},
+  {k:2, lop:'k2', ten:'LỚN',  ta:'Khung lớn — 1040px'},
   {k:3, lop:'k3', ten:'KÍN',  ta:'Kín bề ngang màn hình'}
 ];
 function hvCoKhung(){
@@ -17320,6 +17337,13 @@ function hvCoKhung(){
 function hvMucCoKhung(){ return HV_CO_KHUNG[hvCoKhung() - 1] || HV_CO_KHUNG[0]; }
 function hvLopCoKhung(){ return hvMucCoKhung().lop; }
 function hvTenCoKhung(){ return hvMucCoKhung().ten; }
+// Chú thích cho nút cỡ khung. Chữ "VỪA/LỚN/KÍN" nằm ở ĐÂY chứ không nằm trên mặt nút — một
+// hàng nút chỉ nên có biểu tượng, chữ xen vào là hàng mất cân ngay.
+function hvTaCoKhung(){
+  const m = hvMucCoKhung();
+  const ke = HV_CO_KHUNG[hvCoKhung() % 3];
+  return 'Cỡ khung: ' + m.ten + ' (' + m.ta + ') — chạm để sang ' + ke.ten;
+}
 function hvDoiCoKhung(){
   SETTINGS.hvCoKhung = hvCoKhung() % 3 + 1;     // 1→2→3→1
   saveSettings();
@@ -17329,7 +17353,7 @@ function hvDoiCoKhung(){
     w.classList.add(hvLopCoKhung());
   }
   const b = document.getElementById('hvCoBtn');
-  if(b) b.textContent = hvTenCoKhung();
+  if(b && b.setAttribute) b.setAttribute('title', hvTaCoKhung());
   // Khung đổi bề ngang → khung lời thoại bên dưới phải đo lại, không thì nó ngắn/dài hụt.
   try{ setTimeout(hvVuaKhungHinh, 220); }catch(_){ }
   showToast('🖥️', 'Cỡ khung: ' + hvTenCoKhung(), hvMucCoKhung().ta + '. Chạm tiếp để đổi nấc.');
@@ -18311,9 +18335,13 @@ function renderHocVideoPhien(item){
       <div class="hv-vidwrap${hvKhungDoc(rec) ? ' doc' : ''} ${hvLopCoKhung()}" id="hvVidWrap">
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-cap" id="hvCap" data-action="hv-cap-co" title="Chạm để đổi cỡ chữ phụ đề"></div>
-        <button class="hv-doc cc${SETTINGS.sdHienNghia ? ' on' : ''}" id="hvDichBtn" data-action="hv-cap-dich" title="Hiện/ẩn nghĩa tiếng Việt dưới lời thoại">🇻🇳</button>
-        <button class="hv-doc mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
-        <button class="hv-doc co" id="hvCoBtn" data-action="hv-co-khung" title="Đổi cỡ khung video: Vừa → Lớn → Kín bề ngang">${hvTenCoKhung()}</button>
+        <div class="hv-nutbar">
+          <button class="hv-nb co" id="hvCoBtn" data-action="hv-co-khung" title="${escapeHtml(hvTaCoKhung())}">⤢</button>
+          <button class="hv-nb mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
+          <button class="hv-nb vn${SETTINGS.sdHienNghia ? ' on' : ''}" id="hvDichBtn" data-action="hv-cap-dich" title="Hiện/ẩn nghĩa tiếng Việt dưới lời thoại">🇻🇳</button>
+          <button class="hv-nb cc${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
+          <button class="hv-nb" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
+        </div>
         <div class="hv-che-bang${(SETTINGS.hvMoPhu && STATE.hvCheMo) ? ' hien' : ''}" id="hvCheThanh">
           <div class="hv-che-h">▤ Tấm che phụ đề<button class="hv-che-x" data-action="hv-mo-phu" title="Tắt tấm che">✕</button></div>
           <label><span>Chiều cao</span>
@@ -18323,8 +18351,6 @@ function renderHocVideoPhien(item){
             <input type="range" min="40" max="100" step="2" value="${hvCheDam()}" data-truot="hv-che-dam">
             <b id="hvDamNhan">${hvCheDam()}%</b></label>
         </div>
-        <button class="hv-capnut${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
-        <button class="hv-toanman" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
       </div>
       <div class="hv-tabs" id="hvTabs">${hvTabsHtml(s)}</div>
