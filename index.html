@@ -2041,21 +2041,6 @@
 .hv-td.cho .hv-td-nghia{color:var(--dim); font-weight:700; font-size:12.5px; font-style:italic;}
 .hv-td-nhac{margin-top:7px; font-size:11px; line-height:1.55; color:var(--dim2);}
 /* v225 mục 2 — bảng chỉnh tấm che, nổi ngay dưới nút ▤ trong khung video. */
-.hv-canh-bang{display:none; position:absolute; bottom:50px; right:8px; z-index:8; width:232px;
-  border-radius:13px; background:rgba(10,13,18,.97); border:1px solid rgba(255,255,255,.16);
-  box-shadow:0 12px 34px rgba(0,0,0,.55); padding:10px 12px; text-align:left;}
-.hv-canh-bang.hien{display:block;}
-.hv-canh-p{margin-top:5px; font-size:10.5px; line-height:1.55; color:var(--dim);}
-.hv-canh-p b{color:var(--text);}
-.hv-canh-nut{width:100%; margin-top:9px; height:34px; border-radius:9px; border:none; cursor:pointer;
-  font-size:12px; font-weight:800; color:#04211a; background:linear-gradient(135deg,#2CDBA8,#1f9e7a);}
-.hv-canh-nut:active{transform:scale(.97);}
-.hv-canh-hang{display:flex; align-items:center; gap:8px; margin-top:9px;}
-.hv-canh-nhich{flex:1; height:30px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:800;
-  color:var(--dim); background:rgba(255,255,255,.06); border:1px solid var(--border);}
-.hv-canh-hang b{min-width:56px; text-align:center; font-size:12px; color:#FFC94A;
-  font-family:var(--mono, monospace);}
-.hv-canh-nhac{margin-top:7px; font-size:10px; line-height:1.5; color:var(--dim2);}
 .hv-che-bang{position:absolute; bottom:50px; right:8px; z-index:8; width:206px;
   display:none; padding:9px 10px 10px; border-radius:12px;
   background:rgba(12,14,22,.94); border:1px solid var(--border);
@@ -2877,12 +2862,28 @@ body.hv-khoa-cuon{overflow:hidden;}
    một nút cũng không làm lệch hàng. Mọi nút cùng chiều cao và cùng bề ngang tối thiểu. */
 /* v235 — Ô NGHĨA NỔI NGAY TRONG KHUNG HÌNH. Bảng nghĩa vốn nằm dưới tấm nội dung; từ khi video
    chiếm gần hết màn thì nó rơi khỏi tầm nhìn, chạm chữ xong không thấy gì nên tưởng nút hỏng. */
+/* Khung nổi có HAI kiểu. Mặc định (chạm chữ ở danh sách): bảng đầy đủ, canh giữa như cũ. */
 .hv-tudien{display:none; position:absolute; left:50%; top:10px; transform:translateX(-50%);
   z-index:9; width:min(92%, 460px); max-height:74%; overflow-y:auto; overscroll-behavior:contain;
   border-radius:14px; background:rgba(10,13,18,.96); border:1px solid rgba(255,255,255,.16);
   box-shadow:0 14px 40px rgba(0,0,0,.6); padding:10px 12px; text-align:left;}
-.hv-tudien.hien{display:block;}
 .hv-tudien .hv-chon-bang{margin:0; border:none; background:transparent; padding:0;}
+/* v237 — kiểu GỌN, chỉ dùng cho chữ chạm/rê trong khung hình: đậu ngay trên chữ đang tra,
+   chỉ nghĩa + phiên âm. pointer-events:none để nó không cướp cú bấm của thanh tua YouTube. */
+.hv-tudien.gon{left:0; top:0; transform:none; width:auto; max-width:min(86%, 340px);
+  max-height:none; overflow:visible; border-radius:11px; background:rgba(10,13,18,.97);
+  border-color:rgba(255,255,255,.18); box-shadow:0 10px 30px rgba(0,0,0,.62);
+  padding:7px 11px 8px; pointer-events:none;}
+.hv-tudien.hien{display:block;}
+/* Mũi nhọn chỉ xuống chữ. --mui do JS đặt = khoảng cách từ mép trái khung tới giữa chữ. */
+.hv-tudien.gon::after{content:''; position:absolute; left:var(--mui, 50%); top:100%; margin-left:-6px;
+  border:6px solid transparent; border-top-color:rgba(10,13,18,.97);}
+.hv-tudien.gon.duoi::after{top:auto; bottom:100%;
+  border-top-color:transparent; border-bottom-color:rgba(10,13,18,.97);}
+.hv-tdn-chu{font-size:14.5px; font-weight:800; color:var(--text); line-height:1.3;
+  display:flex; align-items:baseline; gap:7px; flex-wrap:wrap;}
+.hv-tdn-nghia{margin-top:3px; font-size:13px; line-height:1.45; color:#9BE7C4; font-weight:700;}
+.hv-tdn-nghia.cho{color:var(--dim2); font-weight:600; font-style:italic;}
 .hv-nutbar{position:absolute; right:8px; bottom:8px; z-index:7;
   display:flex; align-items:center; gap:6px;}
 .hv-nb{min-width:34px; height:34px; padding:0 8px; border-radius:10px; cursor:pointer;
@@ -3792,7 +3793,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v236';
+const APP_VERSION = 'v237';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15787,11 +15788,23 @@ const HV_TU_CAT_DONG = 20;   // dài hơn chừng này chữ là quá một hơi
 function hvCatDongDai(lines){
   if(!Array.isArray(lines) || !lines.length) return lines;
   const ra = [];
-  lines.forEach(d=>{
+  lines.forEach((d, idx)=>{
     const tu = String((d&&d.en)||'').trim().split(/\s+/).filter(Boolean);
     if(tu.length <= HV_TU_CAT_DONG){ ra.push(d); return; }
     const bd = d.t || 0;
-    const kt = (d.e != null && d.e > bd) ? d.e : bd + hvDaiCau(d);
+    // ── v237 · MỐC DÒNG KẾ MỚI LÀ SỰ THẬT, KHÔNG PHẢI CÔNG THỨC ───────────────────────────
+    // Bản cũ lấy bd + hvDaiCau(d) — một ƯỚC LƯỢNG, mà lại gọi thiếu tham số mốc dòng kế nên
+    // ước lượng đó chẳng có gì để kẹp. Hậu quả đo được trên lời thoại thật: dòng 26 chữ bị ước
+    // hụt, các mảnh sau dồn lên và chạy trước tiếng 1,05 → 1,60 giây — càng về cuối dòng càng
+    // lệch nặng, đúng cảm giác "nghe càng lâu càng sai". Lời thoại YouTube chạy liền mạch:
+    // dòng này dứt đúng lúc dòng sau bắt đầu, con số ấy nằm sẵn ngay đây, không việc gì phải đoán.
+    const ke = hvMocKe(lines, idx);
+    let kt = (d.e != null && d.e > bd) ? d.e : 0;
+    // Ngoại lệ duy nhất: khoảng tới dòng kế dài bất thường so với số chữ — đó là khoảng LẶNG
+    // thật (nhạc nền, người ta nghỉ), trải chữ kín nó thì chữ lại lê chậm hơn tiếng.
+    if(!kt && ke != null && (+ke - bd) > 0.3 && (+ke - bd) <= hvDaiHopLy(tu.length)) kt = +ke;
+    if(kt && ke != null && kt > +ke) kt = +ke;            // không bao giờ lấn sang dòng sau
+    if(!kt || kt <= bd) kt = bd + hvDaiCau(d, ke);
     const soManh = Math.ceil(tu.length / HV_TU_MOT_DONG);
     const moiManh = Math.ceil(tu.length / soManh);
     for(let i=0;i<tu.length;i+=moiManh){
@@ -15815,8 +15828,19 @@ function hvChuanMoc(rec){
   // lại đúng một lần — đó là cách những dòng dài đã lỡ lưu được cắt nhỏ mà không cần chép lại.
   // v231: đổi cờ sang mocChuan3 để những video ĐÃ LƯU được tính lại mốc kết thúc đúng một lần.
   // Giữ cờ cũ thì bản vá chỉ áp cho video mới — video bạn đang xem vẫn lệch y như trước.
-  if(rec.mocChuan4) return false;
+  if(rec.mocChuan5) return false;
   let doi = false;
+  // ── v237 · ĐO ĐƯỢC: ĐÂY LÀ GỐC CỦA "CHỮ CHẠY TRƯỚC TIẾNG" ───────────────────────────────
+  // Bản v235 bù nửa giây cho nguồn ghi mốc theo giây tròn — đúng, nhưng đặt SAU bước cắt dòng.
+  // Mà cắt dòng lại sinh ra mốc số lẻ (138 → 138 / 141.6 / 145.2), nên tới lượt kiểm tra thì
+  // tín hiệu "giây tròn" đã bị chính app xoá mất, và khoản bù KHÔNG BAO GIỜ chạy. Đo trên lời
+  // thoại tự động của YouTube: mọi dòng chạy trước tiếng đúng 0,50 giây vì lý do này.
+  // Nay nhận dạng và bù NGAY TRÊN DỮ LIỆU GỐC, trước khi động vào dòng nào.
+  if(!rec.buTron && hvMocGiayTron(rec.lines)){
+    rec.lines.forEach(d=>{ d.t = Math.round((d.t + HV_BU_GIAY_TRON) * 100) / 100;
+                           if(d.e != null) d.e = Math.round((d.e + HV_BU_GIAY_TRON) * 100) / 100; });
+    rec.buTron = HV_BU_GIAY_TRON; doi = true;
+  }
   // Nối lại những câu bị cắt đôi từ lần lấy lời thoại trước. Số dòng đổi thì tiến độ chép chính
   // tả theo chỉ số cũ không còn đúng nữa — phải xoá, thà làm lại còn hơn đánh dấu nhầm câu.
   const truocGop = rec.lines.length;
@@ -15825,18 +15849,12 @@ function hvChuanMoc(rec){
   if(rec.lines.length !== truocGop){
     rec.xong = {}; rec.soCauCu = rec.lines.length; doi = true;
   }
-  // v235 — Nguồn chỉ ghi tới giây tròn thì dịch cả bài xuống nửa giây TRƯỚC khi tính mốc kết
-  // thúc. Làm một lần rồi đánh dấu, không thì mỗi lần mở lại video là dịch thêm nửa giây nữa.
-  if(!rec.buTron && hvMocGiayTron(rec.lines)){
-    rec.lines.forEach(d=>{ d.t = Math.round((d.t + HV_BU_GIAY_TRON) * 100) / 100;
-                           if(d.e != null) d.e = Math.round((d.e + HV_BU_GIAY_TRON) * 100) / 100; });
-    rec.buTron = HV_BU_GIAY_TRON; doi = true;
-  }
   rec.lines.forEach((d,i)=>{
     const dung = d.t + hvDaiCau(d, hvMocKe(rec.lines, i));
     if(d.e == null || d.e > dung + 0.05){ d.e = Math.round(dung*10)/10; doi = true; }
   });
   rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true; rec.mocChuan4 = true;
+  rec.mocChuan5 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -16235,67 +16253,22 @@ function hvDaiHopLy(soTu){ return (soTu || 1) / HV_TOC_CHAM_NHAT + HV_NGHI_CHO_P
 // [t, t+1). Lấy thẳng t là sớm trung bình nửa giây — và lệch cùng chiều ở MỌI dòng nên nghe ra
 // ngay. Dịch cả bài xuống nửa giây là về đúng giữa khoảng.
 const HV_BU_GIAY_TRON = 0.5;
-// ── CANH THEO TAI (v236) ───────────────────────────────────────────────────
-// buTay: chữ phải CHẬM LẠI bao nhiêu giây so với mốc trong dữ liệu. Dương = lời thoại đang
-// chạy TRƯỚC tiếng, cần ghìm lại. Âm = đang chạy sau, cần đẩy lên. Nhớ riêng cho từng video.
-const HV_BU_TAY_TRAN = 5;        // quá 5 giây thì không còn là lệch nữa, là sai dữ liệu
-function hvBuTay(rec){
-  const v = Number(rec && rec.buTay);
-  return (isFinite(v) && v >= -HV_BU_TAY_TRAN && v <= HV_BU_TAY_TRAN) ? v : 0;
-}
-function hvDatBuTay(rec, v){
-  if(!rec) return 0;
-  const n = Math.max(-HV_BU_TAY_TRAN, Math.min(HV_BU_TAY_TRAN,
-    Math.round((Number(v) || 0) * 100) / 100));
-  rec.buTay = n;
-  try{ saveSettings(); }catch(_){ }
-  return n;
-}
-// Giây "để tô chữ": giây thật của video trừ đi khoản ghìm. Mọi vòng chạy chữ phải đi qua đây,
-// nếu không lại thành nơi ghìm nơi không như những bản trước.
-function hvGiayTo(gy, rec){
-  return gy - hvBuTay(rec);
-}
-// Bạn bấm đúng lúc người ta BẮT ĐẦU nói câu đang sáng. Lúc đó: giây thật = lúc câu thật sự bắt
-// đầu; mốc trong dữ liệu = t. Chênh lệch chính là khoản phải ghìm.
-function hvCanhTheoTai(){
-  const s = STATE.hvPhien; if(!s) return null;
-  const rec = hvTim(s.vidId); if(!rec || !Array.isArray(rec.lines) || !rec.lines.length) return null;
-  const p = hvPlayerSanSang(); if(!p) return null;
-  let gy = 0;
-  try{ gy = p.getCurrentTime() + hvBuTre(); }catch(_){ return null; }
-  // Câu đang sáng là câu tính theo giây ĐÃ ghìm — đúng câu bạn đang nhìn thấy.
-  const i = hvDongTaiGiay(rec.lines, hvGiayTo(gy, rec));
-  if(i < 0 || !rec.lines[i]) return null;
-  const moi = hvDatBuTay(rec, gy - rec.lines[i].t);
-  try{ hvVeCanh(); }catch(_){ }
-  showToast('🎯', 'Đã canh theo tai bạn',
-    'Ghìm lời thoại lại ' + moi.toFixed(2) + ' giây cho video này. Nhớ luôn, lần sau mở ra là đúng sẵn.');
-  return moi;
-}
-function hvNhichBu(d){
-  const s = STATE.hvPhien; if(!s) return;
-  const rec = hvTim(s.vidId); if(!rec) return;
-  hvDatBuTay(rec, hvBuTay(rec) + d);
-  try{ hvVeCanh(); }catch(_){ }
-}
-function hvMoCanh(){
-  STATE.hvCanhMo = !STATE.hvCanhMo;
-  try{ hvVeCanh(); }catch(_){ }
-}
-function hvVeCanh(){
-  const b = document.getElementById('hvCanhBang');
-  if(b && b.classList) b.classList.toggle('hien', !!STATE.hvCanhMo);
-  const n = document.getElementById('hvBuNhan');
-  const s = STATE.hvPhien;
-  const rec = s ? hvTim(s.vidId) : null;
-  if(n) n.textContent = (hvBuTay(rec) > 0 ? '+' : '') + hvBuTay(rec).toFixed(2) + 's';
-}
+// v237 — ĐÃ BỎ chức năng "Canh lời thoại" (⏱). Bắt người học tự bấm theo tai là đẩy việc của
+// app sang cho người dùng, mà bấm tay thì bản thân nó cũng sai vài phần mười giây. Thay vì có
+// một cái van để chữa triệu chứng, v237 sửa thẳng chỗ hỏng: mốc giây tròn nay được bù TRƯỚC
+// khi cắt dòng, và mảnh dòng cắt ra lấy mốc dòng kế thật thay vì đoán.
 function hvMocGiayTron(lines){
   const ds = (lines || []).filter(d => d && typeof d.t === 'number');
   if(ds.length < 3) return false;
-  // Đủ 3 dòng và KHÔNG dòng nào có phần lẻ → nguồn chỉ ghi tới giây.
-  return ds.every(d => Math.abs(d.t - Math.round(d.t)) < 0.001);
+  const tron = ds.filter(d => Math.abs(d.t - Math.round(d.t)) < 0.001);
+  if(tron.length < 3) return false;
+  // Nguồn chỉ ghi tới giây → mọi dòng đều tròn chằn chặn.
+  // v237 — VÀ cả trường hợp bản cũ đã LỠ cắt nhỏ trước khi kiểm tra. Khi cắt, mảnh đầu của mỗi
+  // dòng gốc vẫn giữ nguyên mốc tròn, chỉ các mảnh sau là số lẻ do app tự chia ra. Một phần tư
+  // số dòng rơi đúng giây tròn thì không thể là ngẫu nhiên — tệp SRT hay lời thoại do AI ghi
+  // gần như không bao giờ trùng giây tròn nhiều đến thế. Nhận ra được thì video bạn đã lưu từ
+  // bản cũ cũng được bù nửa giây, khỏi phải dán lại lời thoại.
+  return tron.length >= ds.length * 0.25;
 }
 // Mốc bắt đầu của dòng kế tiếp. Trước v231 chỗ thì truyền chỗ thì không, nên cùng một dòng lại
 // được hai nơi tính ra hai độ dài khác nhau. Một hàm dùng chung thì không quên được nữa.
@@ -16502,7 +16475,7 @@ function hvBatNhip(){
     try{ if(hvPlayer.getPlayerState) chay = (hvPlayer.getPlayerState() === 1); }catch(_){ }
     const gyM = hvGioMuot(hvPlayer, (typeof hvTocTheoTab === 'function' ? hvTocTheoTab() : 1), chay, 'phude');
     if(gyM == null){ hvNhipKhung = hvKhungKeTiep(buoc); return; }
-    const gy = hvGiayTo(gyM, rec);
+    const gy = gyM;
     const i = hvDongTaiGiay(rec.lines, gy);
     if(i !== hvDongCu){
       // trả dòng cũ về chữ thường
@@ -16601,7 +16574,7 @@ function hvTuaDong(i){
     // giữa khoảng làm tròn là xén mất chữ đầu câu.
     // Ghìm chữ lại bao nhiêu thì lúc tua phải cộng lại bấy nhiêu, không thì bấm dòng nào rơi
     // vào chỗ khác dòng ấy.
-    p.seekTo(Math.max(0, rec.lines[i].t - (rec.buTron || 0) + hvBuTay(rec)), true);
+    p.seekTo(Math.max(0, rec.lines[i].t - (rec.buTron || 0)), true);
     p.playVideo();
   }catch(e){
     STATE.hvLoi = 'Không điều khiển được video: ' + ((e && e.message) || 'lỗi không rõ');
@@ -16789,12 +16762,77 @@ function hvVeTam(tuyChon){
 function hvVeTamTaiCho(){ hvVeTam({giuCuon:true, khongLat:true}); hvVeTuDienNoi(); }
 // Vẽ lại ô nghĩa NỔI TRONG KHUNG HÌNH. Phải vẽ riêng: nó nằm trong khối ghim (cùng chỗ với video)
 // chứ không nằm trong tấm nội dung, nên hvVeTam() không đụng tới nó.
+// ══ v237 · KHUNG NGHĨA GỌN, NỔI NGAY TRÊN CHỮ ĐANG TRA ════════════════════════════════════
+// Đang xem video thì chỉ cần hai thứ: NGHĨA và PHIÊN ÂM. Bảng cũ còn nút nghe, nút lưu từ, nút
+// lưu cụm, nút phát lại trong video và cả danh sách ví dụ — che mất nửa khung hình, mà mắt lại
+// phải rời chỗ đang nhìn để đi tìm nó. Khung mới cao đúng hai dòng, đậu ngay phía trên chữ.
+//
+// KHÔNG một lượt AI nào: nghĩa tra trong kho 3000 từ vựng + kho mẫu câu đã có sẵn trong app,
+// thiếu thì hỏi đường dịch miễn phí (cùng đường mà nút 🇻🇳 vẫn dùng); phiên âm lấy từ kho IPA
+// của app rồi mới tới từ điển mở. Hạn mức Gemini của bạn không bị đụng tới.
+function hvNghiaTraNhanh(chu){
+  const t = String(chu||'').trim(); if(!t) return '';
+  STATE.hvNghia = STATE.hvNghia || {};
+  if(STATE.hvNghia[t] !== undefined) return STATE.hvNghia[t] || '';
+  const m = hvTraTuDien(t);
+  if(m && m.nghia){ STATE.hvNghia[t] = m.nghia; return m.nghia; }
+  STATE.hvNghia[t] = null;                  // đánh dấu ĐANG tra, khỏi gọi chồng lên nhau
+  try{
+    hvDichMienPhi(t).then(v=>{ STATE.hvNghia[t] = String(v||'').trim(); hvVeTuDienNoi(); })
+                    .catch(()=>{ STATE.hvNghia[t] = ''; hvVeTuDienNoi(); });
+  }catch(_){ STATE.hvNghia[t] = ''; }
+  return '';
+}
+function hvNghiaDangCo(){
+  const c = hvCumDangChon(); if(!c || !c.chu) return '';
+  return (STATE.hvNghia || {})[c.chu.trim()] || '';
+}
+function hvNghiaNoiHtml(){
+  const c = hvCumDangChon(); if(!c || !c.chu) return '';
+  const ipa = hvPhienAmDangCo();
+  const ng  = hvNghiaDangCo();
+  return '<div class="hv-tdn-chu">' + escapeHtml(c.chu)
+       + '<span class="hv-ipa" id="hvIpa">' + escapeHtml(ipa) + '</span></div>'
+       + '<div class="hv-tdn-nghia' + (ng ? '' : ' cho') + '">'
+       + (ng ? escapeHtml(ng) : 'Đang tra…') + '</div>';
+}
+// Đậu khung ngay TRÊN chữ. Chạm mép trên khung hình thì lật xuống dưới chữ; chạm mép trái/phải
+// thì kéo vào trong — mũi nhọn vẫn trượt theo để luôn chỉ đúng chữ bạn đang tra.
+function hvDatViTriNghia(el){
+  const cha = el.offsetParent || el.parentNode;
+  let tu = null;
+  try{ tu = document.querySelector('.hv-capw.chon'); }catch(_){ }
+  if(!tu || !tu.getBoundingClientRect || !cha || !cha.getBoundingClientRect){
+    try{ el.style.left = ''; el.style.top = ''; }catch(_){ } return;
+  }
+  const kv = cha.getBoundingClientRect(), kt = tu.getBoundingClientRect();
+  if(!kv.width || !kt.width){ try{ el.style.left = ''; el.style.top = ''; }catch(_){ } return; }
+  const rong = el.offsetWidth || 240, cao = el.offsetHeight || 64;
+  const giua = (kt.left - kv.left) + kt.width / 2;
+  const x = Math.max(6, Math.min(Math.max(6, kv.width - rong - 6), giua - rong / 2));
+  let y = (kt.top - kv.top) - cao - 9;
+  const duoi = (y < 6);
+  if(duoi) y = (kt.bottom - kv.top) + 9;
+  try{
+    el.style.left = Math.round(x) + 'px';
+    el.style.top  = Math.round(y) + 'px';
+    el.style.setProperty('--mui', Math.round(Math.max(12, Math.min(rong - 12, giua - x))) + 'px');
+  }catch(_){ }
+  if(el.classList) el.classList.toggle('duoi', duoi);
+  return {x: Math.round(x), y: Math.round(y), duoi};
+}
 function hvVeTuDienNoi(){
   const el = document.getElementById('hvTuDienNoi');
   if(!el) return;
   const co = !!STATE.hvChonDau;
-  el.innerHTML = co ? hvBangChonHtml() : '';
-  if(el.classList) el.classList.toggle('hien', co);
+  // Khung GỌN chỉ dành cho chữ chạm/rê TRONG KHUNG HÌNH — chỗ bạn muốn liếc một cái rồi xem
+  // tiếp. Chạm chữ ở DANH SÁCH lời thoại bên dưới thì vẫn là bảng đầy đủ như cũ: ở đó bạn đang
+  // ngồi soạn bài, cần cả nút nghe lẫn hai nút lưu từ/lưu cụm.
+  const gon = !!STATE.hvChonTrongKhung;
+  el.innerHTML = co ? (gon ? hvNghiaNoiHtml() : hvBangChonHtml()) : '';
+  if(el.classList){ el.classList.toggle('hien', co); el.classList.toggle('gon', gon); }
+  if(co && gon) hvDatViTriNghia(el);
+  else if(el.style){ try{ el.style.left = ''; el.style.top = ''; }catch(_){ } }
 }
 function hvVeVung(id){
   const el = document.getElementById(id);
@@ -17435,7 +17473,7 @@ function hvCapBat(){
     try{ if(p.getPlayerState) chay = (p.getPlayerState() === 1); }catch(_){ }
     const gyC = hvGioMuot(p, (typeof hvTocTheoTab === 'function' ? hvTocTheoTab() : 1), chay, 'cap');
     if(gyC == null){ hvCapKhung = hvKhungKeTiep(buoc); return; }
-    const gy = hvGiayTo(gyC, rec);
+    const gy = gyC;
     const k = sdChiSoDong(gy, ds);
     if(k < 0 || !ds[k]){
       if(el.__k !== -1){ el.__k = -1; el.innerHTML = ''; hvCapWs = null; hvCapChuCu = -2; }
@@ -18050,7 +18088,54 @@ function hvBatChonTu(){
   if(STATE.hvPhien) hvVeTam();
 }
 // Chọn một từ, hoặc một CỤM: chạm từ đầu rồi chạm từ cuối trong cùng một dòng.
-function hvChonTu(i, j){
+// ══ v237 · ĐIỆN THOẠI CHẠM, LAPTOP RÊ CHUỘT ══════════════════════════════════════════════
+// Trên điện thoại không có con trỏ nên phải chạm — giữ nguyên. Trên laptop thì rê chuột tới chữ
+// là video dừng và nghĩa hiện ra, rời chuột ra là video chạy tiếp, không phải bấm lần nào.
+// Chỉ TỰ phát lại nếu chính cú rê chuột đã dừng video: bạn đang chủ động tạm dừng mà rê chuột
+// xong video tự chạy thì thành ra app giành quyền điều khiển.
+let hvTuDangRe = null;       // {i,j} của chữ con trỏ đang đậu lên
+let hvReDaDung = false;      // chính cú rê chuột này đã bấm tạm dừng
+function hvCoChuot(){
+  try{ return !!(window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches); }
+  catch(_){ return false; }
+}
+function hvOChuNao(t){
+  return (t && t.closest) ? t.closest('[data-action="hv-chon-tu"]') : null;
+}
+function hvReVaoChu(e){
+  if(!hvCoChuot()) return false;
+  const el = hvOChuNao(e && e.target); if(!el) return false;
+  const i = +el.getAttribute('data-i'), j = +el.getAttribute('data-j');
+  if(hvTuDangRe && hvTuDangRe.i === i && hvTuDangRe.j === j) return false;
+  hvTuDangRe = {i, j};
+  STATE.hvChonTrongKhung = true;           // rê chuột chỉ có ở phụ đề trong khung hình
+  try{
+    const p = hvPlayerSanSang();
+    if(p && p.getPlayerState && p.getPlayerState() === 1 && p.pauseVideo){ p.pauseVideo(); hvReDaDung = true; }
+  }catch(_){ }
+  STATE.hvChonDau = {i, j}; STATE.hvChonCuoi = null;
+  hvVeTamTaiCho();
+  try{ const c = hvCumDangChon(); if(c && c.chu){ hvTraPhienAm(c.chu); hvNghiaTraNhanh(c.chu); } }catch(_){ }
+  return true;
+}
+function hvReRoiChu(e){
+  if(!hvCoChuot() || !hvTuDangRe) return false;
+  if(!hvOChuNao(e && e.target)) return false;
+  // Sang chữ bên cạnh hoặc vào chính khung nghĩa thì chưa phải là rời — giữ nguyên, khỏi nhấp nháy.
+  const den = e && e.relatedTarget;
+  if(den && den.closest && (den.closest('[data-action="hv-chon-tu"]') || den.closest('#hvTuDienNoi'))) return false;
+  hvTuDangRe = null;
+  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  hvVeTamTaiCho();
+  if(hvReDaDung){
+    hvReDaDung = false;
+    try{ const p = hvPlayerSanSang(); if(p && p.playVideo) p.playVideo(); }catch(_){ }
+  }
+  return true;
+}
+function hvChonTu(i, j, trongKhung){
+  hvTuDangRe = null; hvReDaDung = false;   // chạm tay là bạn chủ động — đừng tự phát lại sau đó
+  STATE.hvChonTrongKhung = !!trongKhung;
   // Dừng video NGAY. Bạn vừa nghe thấy một từ lạ và muốn giữ lại — để video chạy tiếp là mất mạch.
   try{ if(hvPlayer && hvPlayer.pauseVideo) hvPlayer.pauseVideo(); }catch(e){}
   const d = STATE.hvChonDau;
@@ -18059,7 +18144,7 @@ function hvChonTu(i, j){
   else if(d.j === j){ STATE.hvChonDau = null; STATE.hvChonCuoi = null; }   // chạm lại chính nó = bỏ chọn
   else STATE.hvChonCuoi = {i, j};
   hvVeTamTaiCho();
-  try{ const c = hvCumDangChon(); if(c && c.chu) hvTraPhienAm(c.chu); }catch(e){}
+  try{ const c = hvCumDangChon(); if(c && c.chu){ hvTraPhienAm(c.chu); hvNghiaTraNhanh(c.chu); } }catch(e){}
 }
 // Đóng bảng chọn và cho video chạy tiếp.
 function hvThoiChon(){
@@ -18517,28 +18602,16 @@ function renderHocVideoPhien(item){
       <div class="hv-vidwrap${hvKhungDoc(rec) ? ' doc' : ''} ${hvLopCoKhung()}" id="hvVidWrap">
         <div class="video-embed-wrap" id="${HV_BOX}"><div id="${HV_HOLDER}"></div></div>
         <div class="hv-cap" id="hvCap"></div>
-        <div class="hv-tudien${STATE.hvChonDau ? ' hien' : ''}" id="hvTuDienNoi">${
-          STATE.hvChonDau ? hvBangChonHtml() : ''}</div>
+        <div class="hv-tudien${STATE.hvChonDau ? ' hien' : ''}${
+            STATE.hvChonTrongKhung ? ' gon' : ''}" id="hvTuDienNoi">${
+          STATE.hvChonDau ? (STATE.hvChonTrongKhung ? hvNghiaNoiHtml() : hvBangChonHtml()) : ''}</div>
         <div class="hv-nutbar">
           <button class="hv-nb co" id="hvCoBtn" data-action="hv-co-khung" title="${escapeHtml(hvTaCoKhung())}">⤢</button>
           <button class="hv-nb cochu" id="hvCoChuBtn" data-action="hv-cap-co" title="${escapeHtml(hvTaCoChu())}">A<sup>+</sup></button>
-          <button class="hv-nb canh" id="hvCanhBtn" data-action="hv-canh" title="Canh lời thoại cho khớp tiếng nói">⏱</button>
           <button class="hv-nb mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
           <button class="hv-nb vn${SETTINGS.sdHienNghia ? ' on' : ''}" id="hvDichBtn" data-action="hv-cap-dich" title="Hiện/ẩn nghĩa tiếng Việt dưới lời thoại">🇻🇳</button>
           <button class="hv-nb cc${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
           <button class="hv-nb" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
-        </div>
-        <div class="hv-canh-bang${STATE.hvCanhMo ? ' hien' : ''}" id="hvCanhBang">
-          <div class="hv-che-h">⏱ Canh lời thoại<button class="hv-che-x" data-action="hv-canh" title="Đóng">✕</button></div>
-          <div class="hv-canh-p">Bấm nút dưới đây <b>đúng lúc người ta bắt đầu nói câu đang sáng</b>.
-            App lấy chính tai bạn làm mốc và nhớ cho riêng video này.</div>
-          <button class="hv-canh-nut" data-action="hv-canh-tai">🎯 Canh theo tai tôi</button>
-          <div class="hv-canh-hang">
-            <button class="hv-canh-nhich" data-action="hv-bu-tru" title="Chữ chạy chậm lại 0,25 giây">−0,25s</button>
-            <b id="hvBuNhan">0.00s</b>
-            <button class="hv-canh-nhich" data-action="hv-bu-cong" title="Chữ chạy nhanh lên 0,25 giây">+0,25s</button>
-          </div>
-          <div class="hv-canh-nhac">Số dương = đang ghìm lời thoại lại vì nó chạy trước tiếng.</div>
         </div>
         <div class="hv-che-bang${(SETTINGS.hvMoPhu && STATE.hvCheMo) ? ' hien' : ''}" id="hvCheThanh">
           <div class="hv-che-h">▤ Tấm che phụ đề<button class="hv-che-x" data-action="hv-mo-phu" title="Tắt tấm che">✕</button></div>
@@ -27762,6 +27835,10 @@ function renderContentInner(){
 }
 
 // ================= EVENTS =================
+// v237 — mouseenter KHÔNG nổi bọt nên không uỷ quyền được; mouseover/mouseout thì có, và
+// relatedTarget cho biết con trỏ đi đâu để phân biệt "sang chữ bên cạnh" với "rời hẳn ra".
+document.getElementById('content').addEventListener('mouseover',(e)=>{ try{ hvReVaoChu(e); }catch(_){ } });
+document.getElementById('content').addEventListener('mouseout', (e)=>{ try{ hvReRoiChu(e); }catch(_){ } });
 document.getElementById('content').addEventListener('click',(e)=>{
   const acctToggleEl = e.target.closest('[data-action="toggle-acct-menu"]');
   if(acctToggleEl){ STATE.acctMenuOpen = !STATE.acctMenuOpen; renderContent(); return; }
@@ -28362,14 +28439,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvCapBatEl){ e.stopPropagation(); hvCapCongTac(); return; }
   const hvCoKhungEl = e.target.closest('[data-action="hv-co-khung"]');
   if(hvCoKhungEl){ e.stopPropagation(); hvDoiCoKhung(); return; }
-  const hvCanhEl = e.target.closest('[data-action="hv-canh"]');
-  if(hvCanhEl){ e.stopPropagation(); hvMoCanh(); return; }
-  const hvCanhTaiEl = e.target.closest('[data-action="hv-canh-tai"]');
-  if(hvCanhTaiEl){ e.stopPropagation(); hvCanhTheoTai(); return; }
-  const hvBuTruEl = e.target.closest('[data-action="hv-bu-tru"]');
-  if(hvBuTruEl){ e.stopPropagation(); hvNhichBu(0.25); return; }
-  const hvBuCongEl = e.target.closest('[data-action="hv-bu-cong"]');
-  if(hvBuCongEl){ e.stopPropagation(); hvNhichBu(-0.25); return; }
   const hvDsEl = e.target.closest('[data-action="hv-danh-sach"]');
   if(hvDsEl){ e.stopPropagation(); hvBatDanhSach(); return; }
   const hvWkEl = e.target.closest('[data-action="hv-dat-worker"]');
@@ -28423,7 +28492,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // xảy ra và cũng chẳng có lỗi nào để lần. Một chốt cho cả hai, không sửa tên ở hai nơi nữa.
   const hvChonEl = e.target.closest('[data-action="hv-chon"], [data-action="hv-chon-tu"]');
   if(hvChonEl){ e.stopPropagation();
-    hvChonTu(+hvChonEl.getAttribute('data-i'), +hvChonEl.getAttribute('data-j')); return; }
+    hvChonTu(+hvChonEl.getAttribute('data-i'), +hvChonEl.getAttribute('data-j'),
+             hvChonEl.getAttribute('data-action') === 'hv-chon-tu'); return; }
   const hvLuuTuEl = e.target.closest('[data-action="hv-luu-tu"]');
   if(hvLuuTuEl){ hvLuuChon('tu'); return; }
   const hvLuuCauEl = e.target.closest('[data-action="hv-luu-cau"]');
