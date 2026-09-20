@@ -2291,9 +2291,9 @@
        lớp có đổi mà bề ngang đứng im — đúng cái "chọn kích cỡ không khả dụng" bạn gặp. Nay
        nấc cỡ khung được viết lại ở đây với cùng độ ưu tiên, nên nó ăn. */
     /* v242 — cùng một trần chung như luật gốc, để ba nấc luôn tăng dần. */
-    .hv-2cot .hv-vidwrap:not(.doc){max-width:min(880px,  var(--hv-tran-cao));}
-    .hv-2cot .hv-vidwrap:not(.doc).k2{max-width:min(1120px, var(--hv-tran-cao));}
-    .hv-2cot .hv-vidwrap:not(.doc).k3{max-width:min(100%, var(--hv-tran-cao));}
+    .hv-2cot .hv-vidwrap:not(.doc){max-width:calc(var(--hv-tran-cao) * 0.62);}
+    .hv-2cot .hv-vidwrap:not(.doc).k2{max-width:calc(var(--hv-tran-cao) * 0.82);}
+    .hv-2cot .hv-vidwrap:not(.doc).k3{max-width:var(--hv-tran-cao);}
     /* Một cột: video nằm giữa, phần công cụ xếp xuống dưới. */
     .hv-2cot.motcot{display:block;}
     .hv-2cot.motcot > .hv-ghim{position:static; max-width:none;}
@@ -2857,14 +2857,19 @@
    vượt mặt nhau.
    Nay CẢ BA nấc cùng bị chặn bởi một trần chung là chiều cao còn trống, nên thứ tự
    Vừa ≤ Lớn ≤ Kín đúng ở mọi cỡ cửa sổ. */
-.hv-vidwrap{--hv-tran-cao:calc((100vh - 104px) * 16 / 9);}
-.hv-vidwrap.k1{max-width:min(880px,  var(--hv-tran-cao));}
-.hv-vidwrap.k2{max-width:min(1120px, var(--hv-tran-cao));}
+/* v244 — BA NẤC TÍNH THEO TỈ LỆ, KHÔNG PHẢI SỐ CỨNG.
+   Bạn báo "Lớn" và "Kín" bằng nhau: đúng, vì trên màn của bạn cả 1120px lẫn 100% đều bị trần
+   chiều cao kẹp về CÙNG một con số. Hai nấc tính theo hai thước khác nhau thì kiểu gì cũng có
+   lúc trùng. Nay cả ba đều là PHẦN TRĂM của chỗ trống thật, nên luôn khác nhau rõ rệt trên
+   mọi cỡ màn hình — điện thoại, máy tính bảng hay màn rộng. */
+.hv-vidwrap{--hv-tran-cao:min(100%, calc((100vh - 104px) * 16 / 9));}
+.hv-vidwrap.k1{max-width:calc(var(--hv-tran-cao) * 0.62);}
+.hv-vidwrap.k2{max-width:calc(var(--hv-tran-cao) * 0.82);}
 /* v240 — 100% thì video CAO hơn cửa sổ: bạn gửi ảnh, thanh tua và cả hàng thẻ bên dưới đều bị
    đẩy ra khỏi màn. Video 16:9 rộng 1690px thì cao 950px, trong khi chỗ trống chỉ 760px.
    Nên nấc KÍN quay lại kẹp theo chiều cao — nhưng chỉ chừa 104px (v235 chừa 150px, v236 cũng
    150px, đều hụt). Rộng nhất có thể mà vẫn nhìn thấy trọn khung. */
-.hv-vidwrap.k3{max-width:min(100%, var(--hv-tran-cao));}
+.hv-vidwrap.k3{max-width:var(--hv-tran-cao);}
 /* v239 — ô đếm số video ở dải giới thiệu. */
 .hv-hero{position:relative; overflow:hidden;}
 .hv-hero::after{content:''; position:absolute; inset:0; pointer-events:none;
@@ -2983,6 +2988,10 @@ body.hv-khoa-cuon{overflow:hidden;}
 .hv-nutbar{position:absolute; right:8px; bottom:8px; z-index:7;
   opacity:.62; transition:opacity .2s;
   display:flex; align-items:center; gap:6px;}
+/* v244 — nút ¶ "sáng cả câu" phải nhìn ra ngay là đang bật hay tắt. */
+.hv-nb.cacau{font-size:17px; line-height:1;}
+.hv-nb.cacau.on{background:rgba(255,236,190,.92); color:#1a1205; border-color:rgba(255,236,190,.95);
+  box-shadow:0 0 0 2px rgba(255,201,74,.35), 0 3px 12px rgba(255,201,74,.35);}
 .hv-nb{min-width:34px; height:34px; padding:0 8px; border-radius:10px; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:center;
   font-size:14px; line-height:1; font-weight:800;
@@ -3060,9 +3069,13 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 /* v240 — chữ ĐANG TRA nay dùng TÍM. Vệt chạy theo tiếng nói là vàng, xanh lá thì app đã dùng
    cho nút chính và dải trạng thái nên vẫn dễ lẫn ở đuôi mắt. Tím không đụng màu nào khác trong
    cả màn hình, lại nổi hẳn trên nền video tối. Chữ trắng cho tương phản cao nhất. */
-/* v242 — SÁNG CẢ CÂU: cả dòng cùng một vệt, mềm hơn vệt một chữ để không chói mắt. */
-.hv-cap.cacau .hv-capw.now{background:rgba(255,201,74,.30); color:#FFE9AE; font-weight:700;
-  box-shadow:none;}
+/* v244 — SÁNG CẢ CÂU: nền SÁNG hơn và chữ RÕ NÉT hơn hẳn, theo yêu cầu. Bản v242 dùng nền
+   vàng mờ 30% với chữ vàng nhạt — hai thứ cùng tông nên chữ chìm vào nền, đọc mỏi mắt.
+   Nay nền trắng ngà đậm, chữ TRẮNG, thêm viền chữ mỏng để tách hẳn khỏi hình phía sau. */
+.hv-cap.cacau .hv-capw.now{background:rgba(255,236,190,.92); color:#1a1205; font-weight:800;
+  box-shadow:none; text-shadow:none;}
+/* Cả dải nền của dòng cũng sáng lên, không còn tối đen như lúc tô từng chữ. */
+.hv-cap.cacau .hv-cap-in{background:rgba(20,16,8,.55);}
 .hv-capw.chon{background:#8B5CF6; color:#fff; font-weight:800;
   box-shadow:0 0 0 2px rgba(139,92,246,.45), 0 2px 12px rgba(139,92,246,.55);}
 /* Vệt chạy rơi đúng vào chữ đang tra: giữ nền tím (đó là thứ bạn đang chú ý), thêm viền vàng
@@ -3909,7 +3922,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v243';
+const APP_VERSION = 'v244';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15958,7 +15971,7 @@ function hvChuanMoc(rec){
   // người ta mới nói tới "book" — sớm 2 chữ; tới giây 16 thì sớm 6 chữ. Càng về cuối dòng càng
   // nặng, đúng y cái bạn nhìn thấy.
   // mocChuan8 buộc tính lại một lần và đánh dấu eSuy cho MỌI mốc do app ghi.
-  if(rec.mocChuan8) return false;
+  if(rec.mocChuan9) return false;
   let doi = false;
   // ── v237 · ĐO ĐƯỢC: ĐÂY LÀ GỐC CỦA "CHỮ CHẠY TRƯỚC TIẾNG" ───────────────────────────────
   // Bản v235 bù nửa giây cho nguồn ghi mốc theo giây tròn — đúng, nhưng đặt SAU bước cắt dòng.
@@ -15976,6 +15989,9 @@ function hvChuanMoc(rec){
   const truocGop = rec.lines.length;
   rec.lines = hvGopCauVo(rec.lines);
   if(!hvCoDauCau(rec.lines)) rec.lines = hvCatDongDai(rec.lines);
+  // v244 — rồi tách riêng TỪNG CÂU. Phải sau hai bước trên: gộp nối lại câu bị cắt đôi, cắt
+  // xử dòng dài không dấu câu, còn bước này lo việc "một khối nhiều câu" thành từng câu một.
+  rec.lines = hvTachTungCau(rec.lines);
   if(rec.lines.length !== truocGop){
     rec.xong = {}; rec.soCauCu = rec.lines.length; doi = true;
   }
@@ -15995,7 +16011,7 @@ function hvChuanMoc(rec){
     }
   });
   rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true; rec.mocChuan4 = true;
-  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true; rec.mocChuan8 = true;
+  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true; rec.mocChuan8 = true; rec.mocChuan9 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -17729,10 +17745,7 @@ function hvThanhCongCuHtml(rec){
     <button class="hv-tb-n ${hvDanhDau()?'on':''}" data-action="hv-danh-dau" title="Tô những từ và cụm chưa có trong thư viện của bạn"><i>🖍️</i>Chưa có</button>
     ${(hvDanhDau() && d.tu) ? `<button class="hv-tb-n tu" data-action="hv-luu-gop" data-loai="tu" title="Lưu hết những từ chưa có vào thư viện"><i>📗</i>Lưu ${d.tu} từ</button>` : ''}
     ${(hvDanhDau() && d.cum) ? `<button class="hv-tb-n cum" data-action="hv-luu-gop" data-loai="cau" title="Lưu hết những cụm chưa có vào thư viện"><i>🔗</i>Lưu ${d.cum} cụm</button>` : ''}
-    ${(STATE.hvChonDau && hvMocCumDangChon()) ? `<button class="hv-tb-n vid ${STATE.hvDocPha||''}" data-action="hv-nghe-video" title="Im lặng 3 giây → đúng chữ này trong video → im lặng 3 giây"><i>🎬</i>${
-        STATE.hvDocPha === 'cho' ? 'Chuẩn bị…' : STATE.hvDocPha === 'doc' ? 'Đang phát…' : 'Giọng trong video'}</button>` : ''}
-    ${STATE.hvChonDau ? `<button class="hv-tb-n doc" data-action="hv-doc-tu" title="Nghe cách đọc từ đang chọn"><i>🔊</i>Nghe</button>
-    <button class="hv-tb-n tu" data-action="hv-luu-tu" title="Lưu từ đang chọn vào thư viện"><i>📗</i>Lưu từ</button>
+    ${STATE.hvChonDau ? `<button class="hv-tb-n tu" data-action="hv-luu-tu" title="Lưu từ đang chọn vào thư viện"><i>📗</i>Lưu từ</button>
     <button class="hv-tb-n cum" data-action="hv-luu-cau" title="Lưu cụm đang chọn vào thư viện"><i>💬</i>Lưu cụm</button>` : ''}
     <button class="hv-tb-n" data-action="sd-loi-mo" title="Tự sửa, thêm dấu chấm câu, hoặc dán lại lời thoại"><i>✏️</i>Sửa lời</button>
     <button class="hv-tb-n ${hvDanhSach()?'on':''}" data-action="hv-danh-sach" title="Hiện/ẩn danh sách toàn bộ lời thoại bên dưới"><i>☰</i>Danh sách</button>
@@ -17914,10 +17927,14 @@ function hvCapBat(){
       hvCapKhung = hvKhungKeTiep(buoc); return;
     }
     const hienNghia = !!SETTINGS.sdHienNghia;
-    // Chữ đang được chọn cũng phải vẽ lại, nếu không thì chạm một chữ khác trong cùng dòng sẽ
-    // không thấy vệt chọn nhảy theo.
+    // v244 — ĐÂY LÀ CHỖ GÂY GIẬT KHI RÊ CHUỘT.
+    // Bản cũ đưa "chữ đang chọn" vào điều kiện dựng lại, nên mỗi lần con trỏ nhích sang chữ
+    // bên cạnh là cả ô phụ đề bị dựng lại từ đầu: bỏ hết thẻ cũ, tạo lại hàng chục thẻ mới,
+    // trình duyệt tính lại bố cục. Rê nhanh vài chữ là thấy khựng ngay.
+    // Mà việc cần làm chỉ là đổi MỘT lớp CSS — hvGanLopChon() đã lo rồi. Nên bỏ chonJ ra khỏi
+    // điều kiện; ô phụ đề chỉ dựng lại khi ĐỔI DÒNG hoặc bật/tắt nghĩa.
     const chonJ = (STATE.hvChonDau && STATE.hvChonDau.i === k) ? STATE.hvChonDau.j : -1;
-    if(el.__k !== k || el.__ng !== hienNghia || el.__chon !== chonJ){
+    if(el.__k !== k || el.__ng !== hienNghia){
       el.__k = k; el.__ng = hienNghia; el.__chon = chonJ;
       const tu = String(ds[k].en || '').trim().split(/\s+/).filter(Boolean);
       // v236 mục 4 — chữ nằm trong một thẻ INLINE để nền cắt theo TỪNG DÒNG gãy, chứ không bọc
@@ -17955,8 +17972,8 @@ function hvCapBat(){
 // trống hẳn, mà khung video vẫn bị chốt ở 520px như hồi còn phải chia đôi màn hình. Ba nấc:
 // Vừa (560px, ngồi gần) → Lớn (880px) → Kín bề ngang. Nhớ lại lựa chọn cho lần sau.
 const HV_CO_KHUNG = [
-  {k:1, lop:'k1', ten:'VỪA',  ta:'Khung vừa phải — 880px'},
-  {k:2, lop:'k2', ten:'LỚN',  ta:'Khung lớn — 1120px'},
+  {k:1, lop:'k1', ten:'VỪA',  ta:'Khung vừa — 62% chỗ trống'},
+  {k:2, lop:'k2', ten:'LỚN',  ta:'Khung lớn — 82% chỗ trống'},
   {k:3, lop:'k3', ten:'KÍN',  ta:'To nhất mà vẫn nhìn trọn khung'}
 ];
 function hvCoKhung(){
@@ -21693,6 +21710,110 @@ const HV_TU_MOT_DONG = 12;    // đích: mỗi dòng khoảng chừng này chữ
 const HV_TU_TRAN_GOM = 16;    // đích: mỗi dòng khoảng chừng này chữ — vừa một hơi đọc
 const HV_TU_TOI_DA   = 26;    // trần cứng cho bản CÓ dấu câu, cắt ở dấu phẩy gần nhất
 // Bản CÓ dấu câu: cắt theo câu. Câu nào dài quá thì cắt ở dấu phẩy gần trần nhất.
+// ══ v244 · TÁCH RIÊNG TỪNG CÂU, GIỮ NGUYÊN MỐC TỪNG CHỮ ══════════════════════════════════
+// Lời thoại tự động của YouTube gom nhiều câu vào một khối dài — hiện lên che mất nửa khung
+// hình, mắt không biết bám vào đâu. Nay cắt ra từng câu một.
+// Điều quan trọng: khi dòng đã có mốc TỪNG CHỮ (w) thì cắt xong mỗi mảnh phải mang theo đúng
+// phần mốc của nó, và mốc bắt đầu của mảnh chính là mốc của chữ đầu mảnh — chính xác tuyệt
+// đối, không nội suy lại. Cắt mà làm mất mốc là vứt đi thứ vừa lấy được từ json3.
+const HV_TU_MOT_MAN = 14;      // quá chừng này chữ trên một màn là bắt đầu khó đọc
+const HV_TU_TOI_THIEU = 6;     // ngắn hơn chừng này thì dính vào câu bên, khỏi thành dòng cụt
+// Những chữ luôn mang dấu chấm mà KHÔNG phải hết câu. Luật cũ chỉ xét "chữ kế viết hoa hay
+// không" — nhưng "Mr. Smith" thì chữ kế viết hoa, nên nó cắt đôi ngay giữa tên người. Bài kiểm
+// tra của chính bản này bắt được, nên phải có danh sách thật.
+const HV_VIET_TAT = ['mr','mrs','ms','dr','prof','st','jr','sr','vs','etc','inc','ltd','co',
+  'no','fig','approx','dept','est','min','max','vol','ch','pp','ed','eg','ie','am','pm','us','uk'];
+function hvHetCau(w, ke){
+  const t = String(w||'');
+  if(!/[.!?…]["'\)\]]?$/.test(t)) return false;
+  // Chữ kế viết thường → chắc chắn chưa hết câu.
+  if(ke && !/^["'(\[]?[A-Z0-9]/.test(ke)) return false;
+  const goc = t.replace(/[^A-Za-z.]/g, '').replace(/\.+$/, '').toLowerCase();
+  if(HV_VIET_TAT.indexOf(goc.replace(/\./g, '')) >= 0) return false;   // Mr. / U.S. / i.e.
+  if(/^[a-z]$/.test(goc)) return false;                                // chữ cái đầu tên: J. K. Rowling
+  return true;
+}
+function hvTachTungCau(lines){
+  if(!Array.isArray(lines) || !lines.length) return lines;
+  const ra = [];
+  lines.forEach((d, idx)=>{
+    const tu = String((d&&d.en)||'').trim().split(/\s+/).filter(Boolean);
+    if(tu.length < 2){ ra.push(d); return; }
+    const w = (Array.isArray(d.w) && d.w.length === tu.length) ? d.w : null;
+    // Lúc tách, hvChuanMoc CHƯA gán d.e (việc đó nằm sau trong cùng hàm). Trước đây hàm này
+    // chỉ nhìn d.e: không có thì khoảng nội suy bằng 0, nên mọi mảnh nhận đúng mốc của mảnh
+    // đầu — đo được hai dòng liền nhau cùng t=39.76, vệt sáng nhảy thẳng tới chữ cuối câu,
+    // lệch tới 15 chữ. Nay tự dựng khoảng: ưu tiên e thật, không có thì lấy mốc dòng KẾ,
+    // và chặn lại bằng thời gian nói ước tính để không kéo vệt sáng qua cả khoảng lặng.
+    const keT = (lines[idx+1] && lines[idx+1].t != null) ? +lines[idx+1].t : null;
+    let het = (d.e != null && d.e > d.t) ? +d.e : null;
+    if(het == null){
+      const uoc = hvUocNoi(d.en);
+      const cach = (keT != null && keT > d.t) ? keT - d.t : null;
+      const dai = cach != null ? Math.min(cach, Math.max(uoc, cach * 0.5)) : uoc;
+      if(dai > 0) het = d.t + dai;
+    }
+    // Không có mốc thật thì mốc chỗ cắt phải tính bằng ĐÚNG thước mà phần tô chữ dùng
+    // (hvMocChu — có trọng số âm tiết và dấu câu). Cắt bằng tỉ lệ số chữ trơn là dùng hai
+    // thước khác nhau cho cùng một việc, và chỗ cắt tự nó sinh sai số: đo được độ lệch của
+    // vệt sáng tăng từ 1,6 lên 4,2 chữ chỉ vì chuyện này.
+    const mocTi = w ? null : hvMocChu(d.en);
+
+    // Chọn chỗ cắt: hết câu là cắt; câu dài quá một màn thì lùi về dấu phẩy gần nhất.
+    const cat = [], that = [];                           // that[k]: chỗ cắt này là DẤU CHẤM thật
+    let dem = 0;
+    for(let i=0;i<tu.length;i++){
+      dem++;
+      if(hvHetCau(tu[i], tu[i+1])){ cat.push(i); that.push(true); dem = 0; continue; }
+      if(dem >= HV_TU_MOT_MAN){
+        let k = -1;
+        for(let j=i; j > i - dem + 2; j--) if(/[,;:]$/.test(tu[j])){ k = j; break; }
+        cat.push(k > 0 ? k : i); that.push(false); dem = 0;
+      }
+    }
+    if(!cat.length || cat[cat.length-1] !== tu.length-1){ cat.push(tu.length-1); that.push(true); }
+
+    // v244 — GỘP MẢNH CỤT. Bộ kiểm tra v205 bắt được: cắt thô ở mọi dấu chấm sinh ra những
+    // dòng một, hai chữ ("Me. You." hay "Him.") — đọc còn khó theo dõi hơn khối dài, vì mắt
+    // vừa bắt được dòng thì nó đã biến mất. Mảnh nào ngắn hơn HV_TU_TOI_THIEU thì dính vào
+    // mảnh liền sau (hoặc liền trước, nếu nó là mảnh cuối).
+    // …NHƯNG chỉ gộp chỗ cắt do DÒNG QUÁ DÀI. Dấu chấm thật thì luôn được cắt: "Can you
+    // understand this clip?" chỉ có 5 chữ mà vẫn là một câu trọn vẹn, gộp nó vào câu sau là
+    // dựng lại đúng cái khối dài mà bạn bảo che mất khung hình.
+    for(let k = 0; k < cat.length - 1; ){
+      const dau = k === 0 ? 0 : cat[k-1] + 1;
+      if(!that[k] && cat[k] - dau + 1 < HV_TU_TOI_THIEU){ cat.splice(k, 1); that.splice(k, 1); }
+      else k++;
+    }
+    while(cat.length >= 2 && !that[cat.length - 2] &&
+          (cat[cat.length-1] - cat[cat.length-2]) < HV_TU_TOI_THIEU){
+      cat.splice(cat.length - 2, 1); that.splice(cat.length - 2, 1);
+    }
+    if(cat.length === 1){ ra.push(d); return; }          // vốn đã là một câu — để yên
+
+    let dau = 0;
+    cat.forEach((cuoi, k)=>{
+      const phan = tu.slice(dau, cuoi+1);
+      const m = {
+        t: w ? w[dau].t
+              : Math.round((d.t + (((het != null ? het : d.t) - d.t) * (mocTi[dau] || 0))) * 100) / 100,
+        en: phan.join(' '),
+        vi: (k === 0 ? (d.vi || '') : ''),
+        cum: (k === 0 ? (d.cum || []) : [])
+      };
+      if(w) m.w = w.slice(dau, cuoi+1);
+      // Mốc kết thúc: mốc chữ đầu của mảnh SAU, hoặc mốc kết thúc của cả dòng nếu là mảnh cuối.
+      const keDau = cat[k+1] != null ? (w ? w[cuoi+1] : null) : null;
+      if(w && keDau) m.e = keDau.t;
+      else if(cat[k+1] == null && het != null) m.e = het;
+      else m.eSuy = true;
+      if(!w) m.eSuy = true;                               // không có mốc thật thì e là suy ra
+      ra.push(m);
+      dau = cuoi + 1;
+    });
+  });
+  return ra;
+}
 function hvCatTheoDauCau(cot){
   const tu = [];
   cot.forEach(c=>{ c.en.split(/\s+/).filter(Boolean).forEach(w=>tu.push({w, t:c.t})); });
