@@ -1,0 +1,66 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nút lấy mốc từng chữ của YouTube</title>
+<style>
+ body{margin:0;background:#0b0f14;color:#e8eef5;font:15px/1.65 system-ui,Segoe UI,Roboto,sans-serif;
+      padding:28px 20px 60px;}
+ .b{max-width:720px;margin:0 auto;}
+ h1{font-size:23px;margin:0 0 6px;letter-spacing:-.02em;}
+ .p{color:#8fa3b8;margin:0 0 26px;}
+ .nut{display:inline-block;padding:13px 26px;border-radius:12px;font-weight:800;font-size:16px;
+      color:#04211a;background:linear-gradient(135deg,#2CDBA8,#1f9e7a);text-decoration:none;
+      cursor:grab;box-shadow:0 8px 24px rgba(44,219,168,.3);}
+ .khung{background:#121821;border:1px solid #223041;border-radius:14px;padding:18px 20px;margin:16px 0;}
+ ol{margin:0;padding-left:22px;} li{margin:9px 0;}
+ code{background:#1b2531;padding:2px 7px;border-radius:5px;font-size:13.5px;color:#9BE7C4;}
+ .nho{font-size:13.5px;color:#8fa3b8;}
+ h2{font-size:15px;margin:26px 0 10px;color:#C4B5FD;letter-spacing:.04em;}
+ textarea{width:100%;height:84px;background:#0e141c;color:#7f8fa3;border:1px solid #223041;
+          border-radius:10px;padding:10px;font:11px monospace;box-sizing:border-box;}
+</style></head><body><div class="b">
+
+<h1>Nút lấy mốc từng chữ của YouTube</h1>
+<p class="p">Một cú bấm thay cho cả chuỗi thao tác trong DevTools.</p>
+
+<div class="khung">
+  <b>Cài một lần:</b>
+  <ol>
+    <li>Nhấn <code>Ctrl + Shift + B</code> để hiện thanh dấu trang của Chrome (nếu chưa hiện).</li>
+    <li><b>Kéo</b> nút xanh dưới đây <b>thả</b> vào thanh dấu trang đó.</li>
+  </ol>
+  <p style="margin:18px 0 6px"><a class="nut" href="javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();">🎯 Lấy mốc phụ đề</a></p>
+  <p class="nho" style="margin:0">Bấm thẳng vào nút ở đây sẽ không chạy — nó chỉ chạy khi nằm trên thanh dấu trang
+     và bạn đang ở trang YouTube.</p>
+</div>
+
+<h2>DÙNG MỖI LẦN — 3 GIÂY</h2>
+<div class="khung">
+  <ol>
+    <li>Mở video trên <code>youtube.com</code>.</li>
+    <li>Bấm nút <b>🎯 Lấy mốc phụ đề</b> trên thanh dấu trang.</li>
+    <li>Hiện bảng <b>“✅ ĐÃ CHÉP”</b> → sang app → mở video → <b>✏️ Sửa lời</b> →
+        xoá hết → <code>Ctrl + V</code> → <b>💾 Lưu lời thoại</b>.</li>
+  </ol>
+  <p class="nho" style="margin:10px 0 0">App sẽ báo: <b>🎯 Đã nhận mốc TỪNG CHỮ thật</b> kèm số dòng.
+     Từ lúc đó chữ chạy khớp chính xác, không còn nội suy.</p>
+</div>
+
+<h2>NẾU GẶP TRỤC TRẶC</h2>
+<div class="khung">
+  <ul style="margin:0;padding-left:20px">
+    <li><b>“Video này không có phụ đề”</b> → video đó YouTube chưa tạo phụ đề. Vẫn dán bản chép lời như cũ.</li>
+    <li><b>“Không đọc được dữ liệu trình phát”</b> → nhấn <code>F5</code> tải lại trang YouTube rồi bấm lại.</li>
+    <li><b>Hiện ô chữ to thay vì bảng “ĐÃ CHÉP”</b> → trình duyệt không cho chép tự động.
+        Nhấn <code>Ctrl + C</code> rồi <code>Esc</code>.</li>
+    <li><b>Bản “do người đăng tải lên”</b> → bản đó thường chỉ có mốc đầu dòng, không có mốc từng chữ.
+        Nút luôn ưu tiên bản <b>TỰ ĐỘNG</b> nếu có.</li>
+  </ul>
+</div>
+
+<h2>MÃ NGUỒN (nếu bạn muốn xem nó làm gì)</h2>
+<p class="nho" style="margin:0 0 8px">Nó đọc danh sách phụ đề của trang, chọn bản tự động tiếng Anh,
+   tải tệp <code>json3</code> ngay trên tên miền YouTube (nên không bị chặn), rồi chép vào bộ nhớ tạm.
+   Không gửi gì đi đâu cả.</p>
+<textarea readonly onclick="this.select()">javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();</textarea>
+
+</div></body></html>

@@ -2032,6 +2032,10 @@
   background:rgba(0,0,0,.18); border-radius:7px; padding:3px 7px; align-self:flex-start;}
 @media(min-width:760px){ .eng4-luoi{grid-template-columns:repeat(4,1fr);} .eng4{min-height:150px;} }
 /* v226 mục 3 — một dòng nhắc thay cho cả trang hướng dẫn cũ. */
+.hv-hd-link{display:inline-block; margin-top:7px; padding:5px 12px; border-radius:9px;
+  font-size:12.5px; font-weight:800; text-decoration:none; color:#04211a;
+  background:linear-gradient(135deg,#2CDBA8,#1f9e7a);}
+.hv-hd-link:hover{filter:brightness(1.08);}
 .hv-hd-gon{font-size:11.5px; line-height:1.65; color:var(--dim); margin-bottom:9px;}
 .hv-hd-gon b{color:var(--text);}
 .hv-sl-hang{display:flex; gap:8px; margin-top:10px;}
@@ -3905,7 +3909,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v242';
+const APP_VERSION = 'v243';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -19055,8 +19059,9 @@ function renderHocVideoPhien(item){
       <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-loi-huy">${svgIcon('back')}</div><div class="title">📋 Dán lời thoại</div></div>
       <div class="card" style="padding:16px;">
         <div class="hv-hd-gon">📋 Dán bản chép lời của YouTube vào đây — <b>giữ nguyên các mốc giờ</b>.
-          <br><b>Hoặc dán tệp <code>json3</code></b> (DevTools → Network → lọc <code>timedtext</code> → mở link có <code>&amp;fmt=json3</code> → chép hết):
-          app sẽ dùng <b>mốc từng chữ THẬT</b> của YouTube, chữ chạy khớp tuyệt đối, không còn nội suy.
+          <br><b>Hoặc dán tệp <code>json3</code></b> để app dùng <b>mốc từng chữ THẬT</b> của YouTube —
+          chữ chạy khớp tuyệt đối, không còn nội suy.
+          <a href="lay-moc-youtube.html" target="_blank" rel="noopener" class="hv-hd-link">🎯 Lấy bằng một cú bấm</a>
           Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:240px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
         <div class="hv-sl-hang">
@@ -21917,8 +21922,11 @@ function hvTachCauTheoMoc(cot){
 // suy của tôi đang cố đoán — events[].segs[].tOffsetMs là mốc bắt đầu của TỪNG CHỮ.
 // App đã sẵn sàng dùng nó từ v232 (hvCoMocChu / hvChuTheoMocThat); thứ duy nhất còn thiếu là
 // đường lấy tệp về. Cloudflare Worker bị chặn theo IP (đo ở v233–v234: HTTP 200, dài 0 byte),
-// trình duyệt gọi thẳng thì vướng CORS. Nhưng CHÍNH BẠN mở được: DevTools → Network → lọc
-// "timedtext" → mở link có &fmt=json3 → chép hết. Dán vào ô lời thoại là app tự nhận ra.
+// và app gọi thẳng thì vướng CORS vì khác tên miền.
+//
+// v243 — chỗ tôi nghĩ ra muộn: mã chạy TRÊN CHÍNH trang youtube.com thì cùng tên miền, không
+// vướng CORS gì cả. Nên nay có tệp lay-moc-youtube.html: kéo một nút vào thanh dấu trang, đứng
+// ở trang YouTube bấm một cái là tệp json3 nằm sẵn trong bộ nhớ tạm, dán thẳng vào đây.
 function hvDocJson3(txt){
   const t = String(txt||'').trim();
   if(!t || t[0] !== '{') return null;
@@ -21927,6 +21935,9 @@ function hvDocJson3(txt){
   const lines = [];
   j.events.forEach(ev=>{
     if(!ev || !Array.isArray(ev.segs)) return;
+    // Phụ đề TỰ ĐỘNG của YouTube phát kèm những "sự kiện nối thêm" (aAppend) — chúng chỉ là
+    // bản vẽ lại của dòng đang hiện, không phải dòng mới. Nhận cả chúng là lời thoại nhân đôi.
+    if(ev.aAppend) return;
     const bd = (Number(ev.tStartMs) || 0) / 1000;
     const w = [];
     let cau = '';
@@ -23448,8 +23459,9 @@ function renderShadowPhien(item){
       <div class="kh-backrow"><div class="kh-backbtn" data-action="sd-loi-huy">${svgIcon('back')}</div><div class="title">Lời thoại</div></div>
       <div class="card" style="padding:16px;">
         <div class="hv-hd-gon">📋 Dán bản chép lời của YouTube vào đây — <b>giữ nguyên các mốc giờ</b>.
-          <br><b>Hoặc dán tệp <code>json3</code></b> (DevTools → Network → lọc <code>timedtext</code> → mở link có <code>&amp;fmt=json3</code> → chép hết):
-          app sẽ dùng <b>mốc từng chữ THẬT</b> của YouTube, chữ chạy khớp tuyệt đối, không còn nội suy.
+          <br><b>Hoặc dán tệp <code>json3</code></b> để app dùng <b>mốc từng chữ THẬT</b> của YouTube —
+          chữ chạy khớp tuyệt đối, không còn nội suy.
+          <a href="lay-moc-youtube.html" target="_blank" rel="noopener" class="hv-hd-link">🎯 Lấy bằng một cú bấm</a>
           Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:220px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
         <div class="hv-sl-hang">
