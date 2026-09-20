@@ -2941,7 +2941,11 @@
    Cố ý KHÔNG viết thành một luật .hv-nutbar thứ hai — hai luật cùng tên cho cùng một thứ là
    chỗ để quên, mà bài kiểm tra đọc luật ĐẦU TIÊN tìm thấy cũng sẽ đọc nhầm. Thuộc tính mờ/rõ
    nằm ngay trong luật gốc ở dưới. */
-.hv-vidwrap:hover .hv-nutbar, .hv-nutbar:hover, .hv-nutbar:focus-within{opacity:1;}
+/* v246 — dãy nút nay ẩn/hiện CÙNG NHỊP với thanh điều khiển của YouTube: xem thì biến mất
+   cho trống khung hình, đưa chuột tới hoặc dừng video thì hiện lại. Thuộc tính mờ/rõ vẫn nằm
+   TRONG luật gốc ở dưới, đúng lời dặn ngay trên: không đẻ ra luật .hv-nutbar thứ hai. */
+.hv-nutbar.hien{opacity:.62;}
+.hv-vidwrap:hover .hv-nutbar.hien, .hv-nutbar:hover, .hv-nutbar:focus-within{opacity:1;}
 .hv-nb{transition:background .16s, transform .12s, box-shadow .16s;}
 .hv-nb:hover{transform:translateY(-1px);}
 .hv-nb:active{transform:scale(.93);}
@@ -2986,7 +2990,9 @@ body.hv-khoa-cuon{overflow:hidden;}
 .hv-tdn-nghia{margin-top:3px; font-size:13px; line-height:1.45; color:#9BE7C4; font-weight:700;}
 .hv-tdn-nghia.cho{color:var(--dim2); font-weight:600; font-style:italic;}
 .hv-nutbar{position:absolute; right:8px; bottom:8px; z-index:7;
-  opacity:.62; transition:opacity .2s;
+  /* v246 — ẩn hẳn theo mặc định, nhưng VẪN bắt chuột: rê tới đúng góc ấy là nó hiện ra,
+     y như cách bạn rê xuống đáy khung để gọi thanh điều khiển YouTube. */
+  opacity:0; pointer-events:auto; transition:opacity .22s;
   display:flex; align-items:center; gap:6px;}
 /* v244 — nút ¶ "sáng cả câu" phải nhìn ra ngay là đang bật hay tắt. */
 .hv-nb.cacau{font-size:17px; line-height:1;}
@@ -3937,7 +3943,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v245';
+const APP_VERSION = 'v246';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15986,7 +15992,13 @@ function hvChuanMoc(rec){
   // người ta mới nói tới "book" — sớm 2 chữ; tới giây 16 thì sớm 6 chữ. Càng về cuối dòng càng
   // nặng, đúng y cái bạn nhìn thấy.
   // mocChuan8 buộc tính lại một lần và đánh dấu eSuy cho MỌI mốc do app ghi.
-  if(rec.mocChuan9) return false;
+  // ══ v246 · LỜI THOẠI ĐÃ LƯU VẪN MANG VẾT CẮT CỦA v244 ══════════════════════════════════
+  // Bạn gửi ảnh: "So today I'll show you 20 super common idioms native speakers use in real"
+  // rồi mới tới "life." — một câu 16 chữ bị xẻ đôi. v245 đã nới ngưỡng cắt giữa câu lên 30,
+  // nhưng câu ấy bị cắt từ hồi v244 (ngưỡng 14) và ĐÃ LƯU vào máy, trong khi cờ mocChuan9
+  // chặn không cho tính lại. Đúng bài học v241: thuật toán đã đúng, dữ liệu cũ thì chưa.
+  // mocChuan10 buộc dựng lại một lần — hvGopCauVo sẽ nối hai mảnh ấy về lại thành một câu.
+  if(rec.mocChuan10) return false;
   let doi = false;
   // ── v237 · ĐO ĐƯỢC: ĐÂY LÀ GỐC CỦA "CHỮ CHẠY TRƯỚC TIẾNG" ───────────────────────────────
   // Bản v235 bù nửa giây cho nguồn ghi mốc theo giây tròn — đúng, nhưng đặt SAU bước cắt dòng.
@@ -16026,7 +16038,7 @@ function hvChuanMoc(rec){
     }
   });
   rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true; rec.mocChuan4 = true;
-  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true; rec.mocChuan8 = true; rec.mocChuan9 = true;
+  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true; rec.mocChuan8 = true; rec.mocChuan9 = true; rec.mocChuan10 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -16162,6 +16174,12 @@ function hvGopCauVo(lines){
     // và không để câu nối lại dài quá 40 chữ — một dòng dài thượt cũng khó đọc theo.
     const soTu = String(truoc.en + ' ' + nay.en).trim().split(/\s+/).filter(Boolean).length;
     if(gan && soTu <= 40 && hvNoiTiep(truoc.en, nay.en)){
+      // v246 — mốc TỪNG CHỮ của json3 phải đi theo. Trước đây gộp xong là w của dòng sau bị
+      // bỏ, dòng gộp có w ngắn hơn số chữ nên cả hàm tô chữ lẫn hàm tách câu đều quay về nội
+      // suy — vứt đi đúng thứ quý nhất vừa lấy được từ YouTube.
+      const wA = Array.isArray(truoc.w) ? truoc.w : null;
+      const wB = Array.isArray(nay.w) ? nay.w : null;
+      if(wA && wB) truoc.w = wA.concat(wB); else delete truoc.w;
       truoc.en = truoc.en.trim() + ' ' + nay.en.trim();
       truoc.vi = [truoc.vi, nay.vi].map(x=>String(x||'').trim()).filter(Boolean).join(' ');
       truoc.e  = nay.e;
@@ -17887,8 +17905,44 @@ function hvCheDeXuat(){
     box.appendChild(el);
   }
 }
+// ══ v246 · DÃY NÚT ẨN/HIỆN THEO NHỊP THANH ĐIỀU KHIỂN YOUTUBE ══════════════════════════
+// Không đọc được trạng thái thanh của YouTube (nó nằm trong iframe khác miền), nên bắt chước
+// đúng luật của nó: đang CHẠY thì giấu sau vài giây không đụng tới; DỪNG thì luôn hiện; đưa
+// chuột tới thì hiện ngay. Dãy nút giữ nguyên pointer-events dù trong suốt, nên rê chuột vào
+// đúng góc ấy là chạm được nó — giống hệt cách bạn rê xuống đáy để gọi thanh YouTube ra.
+const HV_AN_NUT = 2600;
+let hvNutHen = null, hvNutDaGan = false;
+function hvNutEl(){ try{ return document.querySelector('.hv-nutbar'); }catch(_){ return null; } }
+function hvHienNut(){
+  const el = hvNutEl(); if(!el) return;
+  if(el.classList) el.classList.add('hien');
+  if(hvNutHen){ try{ clearTimeout(hvNutHen); }catch(_){ } hvNutHen = null; }
+  hvNutHen = setTimeout(()=>{
+    hvNutHen = null;
+    const n = hvNutEl(); if(!n || !n.classList) return;
+    // Video dừng thì YouTube vẫn để thanh của nó hiện — ta cũng vậy. Chuột còn đậu trên dãy
+    // nút thì càng không được giấu.
+    let chay = false, dangRe = false;
+    try{ chay = hvDangChay(); }catch(_){ }
+    try{ dangRe = !!(n.matches && n.matches(':hover')); }catch(_){ }
+    if(chay && !dangRe) n.classList.remove('hien');
+  }, HV_AN_NUT);
+}
+function hvGanAnNut(){
+  if(hvNutDaGan) return;
+  hvNutDaGan = true;
+  try{
+    const trong = (t)=> !!(t && t.closest && t.closest('#hvVidWrap'));
+    const cham = (e)=>{ if(trong(e && e.target)) hvHienNut(); };
+    document.addEventListener('pointermove', cham, true);
+    document.addEventListener('pointerdown', cham, true);
+    document.addEventListener('focusin', cham, true);
+  }catch(_){ }
+}
 function hvVeNutPlay(){
   try{ hvXoaLoiSanSang(); }catch(_){}
+  // Mỗi lần đổi giữa chạy và dừng đều tính lại: dừng thì hiện luôn, chạy thì hẹn giờ giấu.
+  try{ hvGanAnNut(); hvHienNut(); }catch(_){ }
   const b = document.getElementById('hvPlayBtn'); if(!b) return;
   const chay = hvDangChay();
   b.textContent = chay ? '⏸' : '▶';
@@ -22673,7 +22727,11 @@ function sdXoaVetSang(){
     const o = document.getElementById('sd-x-'+k);
     if(o && o.querySelectorAll){
       const chu = o.querySelectorAll('.sd-w');
-      for(let j=0; j<chu.length; j++){ try{ chu[j].classList.remove('now'); }catch(_){} }
+      // v246 — xoá cả vệt "đã đọc qua". Trước chỉ xoá 'now' nên nghe lại cả bài thì mọi dòng
+      // đã đi qua vẫn mờ sẵn, nhìn không ra dòng nào đang chạy.
+      for(let j=0; j<chu.length; j++){
+        try{ chu[j].classList.remove('now'); chu[j].classList.remove('qua'); }catch(_){}
+      }
     }
   }
 }
@@ -22863,10 +22921,6 @@ function sdBarHtml(s){
         `<div class="sd-vol"><span>🔈</span>
            <input class="sd-vol-tt" type="range" min="0" max="100" step="5" value="${vv}" data-truot="sd-vid-vol">
            <span>🔊</span><b id="sdVolNhan">${vv}%</b></div>`)}
-      ${hang('⏱️','Bù trễ chữ','kéo phải nếu chữ còn chạy sau tiếng',
-        `<div class="sd-vol"><span>🐢</span>
-           <input class="sd-vol-tt" type="range" min="-0.6" max="0.6" step="0.05" value="${hvBuTre()}" data-truot="hv-bu-tre">
-           <span>🐇</span><b id="hvBuTreNhan">${(hvBuTre()>0?'+':'') + hvBuTre().toFixed(2)}s</b></div>`)}
       ${hang('🔇','Khi đang thu','cách duy nhất chắc ăn trên điện thoại',
         `<button class="sd-toc ${sdCamKhiThu()?'on':''}" data-action="sd-cam-thu">${
            sdCamKhiThu() ? '🔇 Tắt hẳn tiếng video' : '🔊 Vẫn để tiếng video'}</button>`)}
@@ -22931,6 +22985,61 @@ function sdBatNhipGhi(i, khongCho){
   sdNhipGhi = setInterval(()=>{
     const cur = STATE.sdPhien;
     if(!cur || !cur.dangGhi){ sdNgungNhipGhi(); return; }
+    // ══ v246 · KHÔNG LẶP CÂU THÌ BÁM ĐỒNG HỒ CỦA VIDEO ══════════════════════════════════
+    // Trước đây vệt chữ chạy theo đồng hồ MÁY và chuyển dòng khi hết "độ dài ƯỚC TÍNH của
+    // câu + 1,2 giây". Ước tính dài hơn thực tế bao nhiêu thì mỗi lần xuống dòng phải đợi
+    // chừng ấy — sai số cộng dồn qua từng câu, đúng cái "đợi mất mấy giây" bạn gặp. Video
+    // vẫn đang chạy và nó biết chính xác đang ở giây nào, nên cứ hỏi thẳng nó.
+    const dangLapCau = (cur.lapIdx != null);
+    let gy = null;
+    if(!dangLapCau){
+      try{
+        const pl = hvPlayerSanSang();
+        if(pl && pl.getCurrentTime){
+          const v = pl.getCurrentTime();
+          if(typeof v === 'number' && isFinite(v) && v > 0) gy = v;
+        }
+      }catch(_){ }
+    }
+    if(gy != null){
+      const keV = i + 1;
+      // Người ta đã nói sang câu sau thì chuyển ngay, không chờ ước tính nào cả.
+      if(ds[keV] && ds[keV].en && ds[keV].t != null && gy >= ds[keV].t){
+        sdNgungNhipGhi();
+        try{
+          const bl = cur.batLuc || 0;
+          if(bl){ if(!Array.isArray(cur.ghiDong)) cur.ghiDong = [{i, giay:0}];
+                  cur.ghiDong.push({i: keV, giay: Math.max(0, (Date.now() - bl) / 1000)}); }
+        }catch(_){ }
+        setTimeout(()=>{ try{ if((STATE.sdPhien||{}).dangGhi) sdBatNhipGhi(keV, true); }catch(_){} }, 30);
+        return;
+      }
+      // Hết bài: không còn câu nào phía sau thì dừng ghi như cũ.
+      if(!ds[keV] || !ds[keV].en){
+        if(gy >= (d.e != null ? d.e : d.t + dai) + SD_DU_GHI){
+          sdNgungNhipGhi(); try{ sdDungGhi(); }catch(_){} return;
+        }
+      }
+      const dn2 = document.getElementById('sdDemNguoc');
+      const conCho2 = batDau - Date.now();
+      const o2 = document.getElementById('sd-x-' + i);
+      const ws2 = (o2 && o2.querySelectorAll) ? o2.querySelectorAll('.sd-w') : [];
+      if(!ws2.length) return;
+      if(conCho2 > 0){
+        if(dn2) dn2.textContent = '⏳ Chuẩn bị… ' + Math.ceil(conCho2 / 1000);
+        for(let k=0;k<ws2.length;k++) ws2[k].classList.remove('now');
+        return;
+      }
+      if(dn2 && dn2.textContent) dn2.textContent = '';
+      // Dùng ĐÚNG hàm tô chữ của thẻ Phụ đề — có mốc thật của YouTube thì nó dùng mốc thật.
+      let jV = -1;
+      try{ jV = hvChuTaiGiay(d, gy, hvMocKe(ds, i)); }catch(_){ jV = -1; }
+      for(let k=0;k<ws2.length;k++){
+        ws2[k].classList.toggle('now', k === jV);
+        ws2[k].classList.toggle('qua', jV >= 0 && k < jV);
+      }
+      return;
+    }
     // Hết câu.
     if(Date.now() - batDau >= (dai + SD_DU_GHI) * 1000){
       // v222 mục 6 — CHỈ tự dừng khi bạn đang đặt lặp một dòng: lúc đó chủ đích là luyện đúng
@@ -23064,7 +23173,17 @@ function sdBanChay(el, iTruyen, giayD, tre, mocDong){
     const ti = con > 0 ? Math.max(0, Math.min(1, (giayHt - dauCau) / rong)) : 0;
     let moc = [];
     try{ moc = hvMocChu(cau.trim()) || []; }catch(_){ moc = []; }
-    const j0 = sdChuTheoTiLe(moc, ti, ws.length);
+    // v246 — dùng ĐÚNG hàm tô chữ của thẻ Phụ đề: có mốc từng chữ thật của YouTube thì nó
+    // lấy mốc thật, không có mới nội suy. Trước đây chỗ này chia tỉ lệ riêng nên nghe lại bản
+    // ghi thì chữ chạy một kiểu, xem video thì chạy một kiểu khác.
+    let j0 = -1;
+    try{
+      const dg = ds[i];
+      const keM = hvMocKe(ds, i);
+      const daiC = Math.max(0.3, ((keM != null ? keM : (dg.t + hvDaiCau(dg))) - dg.t));
+      j0 = hvChuTaiGiay(dg, dg.t + ti * daiC, keM);
+    }catch(_){ j0 = -1; }
+    if(j0 < 0) j0 = sdChuTheoTiLe(moc, ti, ws.length);
     for(let k = 0; k < ws.length; k++){
       ws[k].classList.toggle('now', k === j0);
       ws[k].classList.toggle('qua', j0 >= 0 && k < j0);
