@@ -3893,7 +3893,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v240';
+const APP_VERSION = 'v241';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15932,7 +15932,17 @@ function hvChuanMoc(rec){
   // lại đúng một lần — đó là cách những dòng dài đã lỡ lưu được cắt nhỏ mà không cần chép lại.
   // v231: đổi cờ sang mocChuan3 để những video ĐÃ LƯU được tính lại mốc kết thúc đúng một lần.
   // Giữ cờ cũ thì bản vá chỉ áp cho video mới — video bạn đang xem vẫn lệch y như trước.
-  if(rec.mocChuan7) return false;
+  // ══ v241 · MỐC "e" CŨ TRONG MÁY BẠN LÀ THỦ PHẠM ════════════════════════════════════════
+  // Tìm ra bằng cách dựng lại đúng bản ghi trong máy bạn. Các bản trước v238 tự ghi mốc kết
+  // thúc cho từng dòng bằng công thức đếm CHỮ (số chữ ÷ 2,6 + 0,5) — dòng 18 chữ ra 7,4 giây
+  // trong khi người ta nói suốt 10 giây. Cờ eSuy đánh dấu "mốc này do app suy ra" mãi tới v238
+  // mới có, nên những mốc cũ ấy KHÔNG mang cờ. Tới v239 tôi dạy hvDaiNoi "mốc không có cờ eSuy
+  // là mốc thật của nguồn, tin tuyệt đối" — và thế là nó tin đúng con số sai.
+  // Đo lại trên chính lời thoại video bạn gửi: ở giây 14, app tô chữ "Technology" trong khi
+  // người ta mới nói tới "book" — sớm 2 chữ; tới giây 16 thì sớm 6 chữ. Càng về cuối dòng càng
+  // nặng, đúng y cái bạn nhìn thấy.
+  // mocChuan8 buộc tính lại một lần và đánh dấu eSuy cho MỌI mốc do app ghi.
+  if(rec.mocChuan8) return false;
   let doi = false;
   // ── v237 · ĐO ĐƯỢC: ĐÂY LÀ GỐC CỦA "CHỮ CHẠY TRƯỚC TIẾNG" ───────────────────────────────
   // Bản v235 bù nửa giây cho nguồn ghi mốc theo giây tròn — đúng, nhưng đặt SAU bước cắt dòng.
@@ -15956,6 +15966,11 @@ function hvChuanMoc(rec){
   rec.lines.forEach((d,i)=>{
     // v238 — video lưu từ bản trước có mốc e do app suy ra nhưng CHƯA mang cờ eSuy. Cờ
     // mocChuan6 buộc tính lại một lần; tính lại thì dòng nào bị ghi đè mốc cũng được đánh dấu.
+    // v241 — DỌN MỐC CŨ. Chỉ lời thoại do NGUỒN ghi kèm mốc kết thúc (tệp SRT, bản AI nghe và
+    // chấm câu) mới được coi là mốc thật; app đánh dấu rec.eGoc lúc nhận. Mọi mốc còn lại là do
+    // app suy ra — dù đời nào ghi — nên phải mang cờ eSuy. Không dọn thì bản ghi cũ trong máy
+    // vẫn mang những con số sai và mọi phép tính sau đó đều dựa lên nó.
+    if(!rec.eGoc && d.e != null) d.eSuy = true;
     const dung = d.t + hvDaiCau(d, hvMocKe(rec.lines, i));
     if(d.e == null || d.e > dung + 0.05){
       // v238 — mốc này do app SUY RA từ khoảng tới dòng kế, nên nó ôm cả nhịp thở giữa hai
@@ -15964,7 +15979,7 @@ function hvChuanMoc(rec){
     }
   });
   rec.mocChuan = true; rec.mocChuan2 = true; rec.mocChuan3 = true; rec.mocChuan4 = true;
-  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true;
+  rec.mocChuan5 = true; rec.mocChuan6 = true; rec.mocChuan7 = true; rec.mocChuan8 = true;
   if(doi){ saveSettings(); }
   return doi;
 }
@@ -16405,7 +16420,11 @@ function hvDaiCau(dong, mocKe){
   const soTu = String(dong.en||'').trim().split(/\s+/).filter(Boolean).length || 1;
   // v238 — cùng một mô hình nhịp nói với phần tô chữ. Cộng 0,5s cho nhịp thở trước dòng sau.
   let uoc = hvUocNoi(dong.en) + 0.5;
-  let theoMoc = (dong.e != null && dong.e > dong.t) ? (dong.e - dong.t) : 0;
+  // v241 — mốc do CHÍNH APP suy ra thì không mang thông tin gì mà công thức này không tự tính
+  // lại được; tin nó là tin vào bản thân mình ở phiên bản cũ. Tệ hơn: mốc cũ tính bằng phép
+  // đếm CHỮ ngắn hơn thực tế tới 2,6 giây trên một dòng 18 chữ, và nó khoá luôn mọi phép tính
+  // phía sau. Chỉ mốc do NGUỒN ghi mới được tính là bằng chứng.
+  let theoMoc = (dong.e != null && dong.e > dong.t && !dong.eSuy) ? (dong.e - dong.t) : 0;
   // v232: dòng có mốc thật thì lấy luôn, khỏi ước lượng vòng vo.
   if(hvCoMocChu(dong)){
     const w = dong.w, cuoi = w[w.length-1].t;
@@ -16498,9 +16517,12 @@ function hvTocAmNoi(cot){
   r.sort((a,b)=>a-b);
   return Math.max(2.5, Math.min(8, r[Math.min(r.length-1, Math.floor(r.length*0.98))]));
 }
-// Nhịp nghỉ lấy hơi giữa hai dòng — nhiều nhất chừng này giây được coi là im lặng, phần còn lại
-// của khoảng dòng là người ta đang nói thật.
-const HV_NGHI_TOI_DA = 1.2;
+// Nhịp nghỉ lấy hơi giữa hai dòng. v241 hạ từ 1,2 xuống 0,25 giây sau khi đo trên CHÍNH lời
+// thoại video bạn gửi: mốc cắt dòng của YouTube bám theo lời nói, nên hai dòng liền nhau gần
+// như KHÔNG có khoảng lặng — chừa 1,2 giây là tự rút ngắn câu đi 1,2 giây và vệt sáng về đích
+// sớm chừng ấy. Khoảng lặng THẬT (dòng "Me. You." hai chữ mà chiếm 4 giây) đã có trần
+// uoc × HV_NOI_TRAN lo, không cần khoản chừa này gánh thêm.
+const HV_NGHI_TOI_DA = 0.25;
 const HV_NOI_TRAN = 2.0;      // nhưng không bao giờ giãn quá gấp đôi ước lượng
 // Người ta không nói đúng y hệt công thức. Cho phép nhịp nói giãn tới chừng này lần ước lượng
 // NẾU khoảng dòng còn chỗ — đoạn nói liền mạch thì người ta dùng gần hết khoảng. Đo trên 90
