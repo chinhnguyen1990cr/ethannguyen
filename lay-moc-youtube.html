@@ -2,65 +2,116 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nút lấy mốc từng chữ của YouTube</title>
 <style>
- body{margin:0;background:#0b0f14;color:#e8eef5;font:15px/1.65 system-ui,Segoe UI,Roboto,sans-serif;
-      padding:28px 20px 60px;}
- .b{max-width:720px;margin:0 auto;}
- h1{font-size:23px;margin:0 0 6px;letter-spacing:-.02em;}
- .p{color:#8fa3b8;margin:0 0 26px;}
- .nut{display:inline-block;padding:13px 26px;border-radius:12px;font-weight:800;font-size:16px;
-      color:#04211a;background:linear-gradient(135deg,#2CDBA8,#1f9e7a);text-decoration:none;
-      cursor:grab;box-shadow:0 8px 24px rgba(44,219,168,.3);}
- .khung{background:#121821;border:1px solid #223041;border-radius:14px;padding:18px 20px;margin:16px 0;}
- ol{margin:0;padding-left:22px;} li{margin:9px 0;}
- code{background:#1b2531;padding:2px 7px;border-radius:5px;font-size:13.5px;color:#9BE7C4;}
- .nho{font-size:13.5px;color:#8fa3b8;}
- h2{font-size:15px;margin:26px 0 10px;color:#C4B5FD;letter-spacing:.04em;}
- textarea{width:100%;height:84px;background:#0e141c;color:#7f8fa3;border:1px solid #223041;
-          border-radius:10px;padding:10px;font:11px monospace;box-sizing:border-box;}
+ :root{--x:#2CDBA8;--t:#e8eef5;--m:#8fa3b8;--n:#121821;--v:#223041;}
+ *{box-sizing:border-box}
+ body{margin:0;background:#0b0f14;color:var(--t);font:15px/1.65 system-ui,Segoe UI,Roboto,sans-serif;padding:26px 18px 70px}
+ .b{max-width:760px;margin:0 auto}
+ h1{font-size:23px;margin:0 0 4px;letter-spacing:-.02em}
+ .p{color:var(--m);margin:0 0 22px}
+ .k{background:var(--n);border:1px solid var(--v);border-radius:14px;padding:18px 20px;margin:14px 0}
+ .k.uu{border-color:rgba(44,219,168,.45);box-shadow:0 0 0 1px rgba(44,219,168,.12)}
+ h2{font-size:14px;margin:0 0 12px;color:#C4B5FD;letter-spacing:.06em}
+ h2 .s{display:inline-block;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);
+   color:#C4B5FD;border-radius:6px;padding:1px 8px;margin-right:8px;font-size:12px}
+ ol{margin:0;padding-left:20px} li{margin:10px 0}
+ code{background:#1b2531;padding:2px 7px;border-radius:5px;font-size:13.5px;color:#9BE7C4;
+   word-break:break-all}
+ .nut{display:inline-block;padding:13px 24px;border:none;border-radius:12px;font:800 16px system-ui;
+   color:#04211a;background:linear-gradient(135deg,var(--x),#1f9e7a);text-decoration:none;cursor:pointer;
+   box-shadow:0 8px 22px rgba(44,219,168,.28)}
+ .nut:active{transform:scale(.98)}
+ .nut.keo{cursor:grab}
+ .nho{font-size:13.3px;color:var(--m)}
+ textarea{width:100%;height:110px;background:#0e141c;color:#7f8fa3;border:1px solid var(--v);
+   border-radius:10px;padding:10px;font:11px/1.5 monospace}
+ .ok{display:none;margin-left:12px;color:var(--x);font-weight:800}
 </style></head><body><div class="b">
 
 <h1>Nút lấy mốc từng chữ của YouTube</h1>
-<p class="p">Một cú bấm thay cho cả chuỗi thao tác trong DevTools.</p>
+<p class="p">Cài một lần. Sau đó mỗi video chỉ mất một cú bấm.</p>
 
-<div class="khung">
-  <b>Cài một lần:</b>
-  <ol>
-    <li>Nhấn <code>Ctrl + Shift + B</code> để hiện thanh dấu trang của Chrome (nếu chưa hiện).</li>
-    <li><b>Kéo</b> nút xanh dưới đây <b>thả</b> vào thanh dấu trang đó.</li>
-  </ol>
-  <p style="margin:18px 0 6px"><a class="nut" href="javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();">🎯 Lấy mốc phụ đề</a></p>
-  <p class="nho" style="margin:0">Bấm thẳng vào nút ở đây sẽ không chạy — nó chỉ chạy khi nằm trên thanh dấu trang
-     và bạn đang ở trang YouTube.</p>
+<p><button class="nut" id="chep">📋 Chép mã nút</button><span class="ok" id="ok">✅ Đã chép</span></p>
+<p class="nho" style="margin-top:6px">Bấm nút trên để chép mã, rồi làm theo <b>Cách 1</b> bên dưới.</p>
+
+<div class="k uu">
+ <h2><span class="s">CÁCH 1</span>DÙNG TRÌNH QUẢN LÝ DẤU TRANG — dễ nhất, không phải kéo gì</h2>
+ <ol>
+  <li>Bấm <b>📋 Chép mã nút</b> ở trên.</li>
+  <li>Nhấn <code>Ctrl + Shift + O</code> — cửa sổ <b>Dấu trang</b> mở ra.</li>
+  <li>Bấm dấu <b>⋮</b> ở góc trên bên phải → chọn <b>Thêm dấu trang mới</b>
+      (<i>Add new bookmark</i>).</li>
+  <li><b>Tên:</b> gõ <code>Lấy mốc phụ đề</code><br>
+      <b>URL:</b> nhấn <code>Ctrl + V</code> để dán mã vừa chép.</li>
+  <li>Bấm <b>Lưu</b>. Xong — nút đã nằm trên thanh dấu trang.</li>
+ </ol>
+ <p class="nho" style="margin:12px 0 0">Nếu thanh dấu trang chưa hiện: nhấn <code>Ctrl + Shift + B</code>.</p>
 </div>
 
-<h2>DÙNG MỖI LẦN — 3 GIÂY</h2>
-<div class="khung">
-  <ol>
-    <li>Mở video trên <code>youtube.com</code>.</li>
-    <li>Bấm nút <b>🎯 Lấy mốc phụ đề</b> trên thanh dấu trang.</li>
-    <li>Hiện bảng <b>“✅ ĐÃ CHÉP”</b> → sang app → mở video → <b>✏️ Sửa lời</b> →
-        xoá hết → <code>Ctrl + V</code> → <b>💾 Lưu lời thoại</b>.</li>
-  </ol>
-  <p class="nho" style="margin:10px 0 0">App sẽ báo: <b>🎯 Đã nhận mốc TỪNG CHỮ thật</b> kèm số dòng.
-     Từ lúc đó chữ chạy khớp chính xác, không còn nội suy.</p>
+<div class="k">
+ <h2><span class="s">CÁCH 2</span>DÁN THẲNG VÀO CONSOLE — không cần cài gì</h2>
+ <ol>
+  <li>Bấm <b>📋 Chép mã nút</b> ở trên.</li>
+  <li>Mở video trên YouTube → nhấn <code>F12</code> → chọn thẻ <b>Console</b>.</li>
+  <li>Nhấn <code>Ctrl + V</code> rồi <code>Enter</code>.</li>
+ </ol>
+ <p class="nho" style="margin:12px 0 0">Lần đầu Chrome sẽ bắt gõ <code>allow pasting</code> rồi Enter —
+   đó là cảnh báo an toàn của Chrome, chỉ phải làm một lần cho mỗi trang.
+   Cách này phải dán lại mỗi lần, nên Cách 1 tiện hơn về lâu dài.</p>
 </div>
 
-<h2>NẾU GẶP TRỤC TRẶC</h2>
-<div class="khung">
-  <ul style="margin:0;padding-left:20px">
-    <li><b>“Video này không có phụ đề”</b> → video đó YouTube chưa tạo phụ đề. Vẫn dán bản chép lời như cũ.</li>
-    <li><b>“Không đọc được dữ liệu trình phát”</b> → nhấn <code>F5</code> tải lại trang YouTube rồi bấm lại.</li>
-    <li><b>Hiện ô chữ to thay vì bảng “ĐÃ CHÉP”</b> → trình duyệt không cho chép tự động.
-        Nhấn <code>Ctrl + C</code> rồi <code>Esc</code>.</li>
-    <li><b>Bản “do người đăng tải lên”</b> → bản đó thường chỉ có mốc đầu dòng, không có mốc từng chữ.
-        Nút luôn ưu tiên bản <b>TỰ ĐỘNG</b> nếu có.</li>
-  </ul>
+<div class="k">
+ <h2><span class="s">CÁCH 3</span>KÉO THẢ — nếu máy bạn chịu</h2>
+ <p style="margin:0 0 10px"><a class="nut keo" href="javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();">🎯 Lấy mốc phụ đề</a></p>
+ <p class="nho" style="margin:0">Kéo nút này thả vào thanh dấu trang. Bấm thẳng vào đây không chạy —
+   nó chỉ chạy khi nằm trên thanh dấu trang và bạn đang ở trang YouTube.</p>
 </div>
 
-<h2>MÃ NGUỒN (nếu bạn muốn xem nó làm gì)</h2>
-<p class="nho" style="margin:0 0 8px">Nó đọc danh sách phụ đề của trang, chọn bản tự động tiếng Anh,
-   tải tệp <code>json3</code> ngay trên tên miền YouTube (nên không bị chặn), rồi chép vào bộ nhớ tạm.
-   Không gửi gì đi đâu cả.</p>
-<textarea readonly onclick="this.select()">javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();</textarea>
+<div class="k">
+ <h2>DÙNG MỖI LẦN — 3 GIÂY</h2>
+ <ol>
+  <li>Mở video trên <code>youtube.com</code>.</li>
+  <li>Bấm <b>Lấy mốc phụ đề</b> trên thanh dấu trang.</li>
+  <li>Hiện bảng <b>✅ ĐÃ CHÉP</b> → sang app → mở video → <b>✏️ Sửa lời</b> →
+      xoá hết → <code>Ctrl + V</code> → <b>💾 Lưu lời thoại</b>.</li>
+ </ol>
+ <p class="nho" style="margin:12px 0 0">App báo <b>🎯 Đã nhận mốc TỪNG CHỮ thật</b> kèm số dòng.
+   Từ lúc đó chữ chạy khớp chính xác, không còn nội suy.</p>
+</div>
 
-</div></body></html>
+<div class="k">
+ <h2>NẾU GẶP TRỤC TRẶC</h2>
+ <ul style="margin:0;padding-left:20px">
+  <li><b>“Video này không có phụ đề”</b> → YouTube chưa tạo phụ đề cho video đó. Vẫn dán bản chép lời như cũ.</li>
+  <li><b>“Không đọc được dữ liệu trình phát”</b> → nhấn <code>F5</code> tải lại trang YouTube rồi bấm lại.</li>
+  <li><b>Hiện ô chữ to thay vì bảng “ĐÃ CHÉP”</b> → trình duyệt không cho chép tự động.
+      Nhấn <code>Ctrl + C</code> rồi <code>Esc</code>.</li>
+  <li><b>Dán vào URL của dấu trang mà Chrome xoá mất chữ <code>javascript:</code></b> → gõ tay hai chữ đó
+      vào đầu ô URL rồi lưu lại.</li>
+ </ul>
+</div>
+
+<div class="k">
+ <h2>MÃ NGUỒN</h2>
+ <p class="nho" style="margin:0 0 8px">Nó đọc danh sách phụ đề của trang, chọn bản tự động tiếng Anh,
+  tải tệp <code>json3</code> ngay trên tên miền YouTube (nên không bị chặn), rồi chép vào bộ nhớ tạm.
+  Không gửi gì đi đâu khác.</p>
+ <textarea id="ma" readonly onclick="this.select()">javascript:(async%20()%20=%3E%20{%20const%20bao%20=%20(t)%20=%3E%20{%20try%20{%20alert(t);%20}%20catch%20(_)%20{%20console.log(t);%20}%20};%20try%20{%20let%20R%20=%20window.ytInitialPlayerResponse;%20const%20id%20=%20new%20URLSearchParams(location.search).get(&#x27;v&#x27;);%20if%20(!R%20||%20!R.captions%20||%20(R.videoDetails%20&amp;&amp;%20R.videoDetails.videoId%20!==%20id))%20{%20const%20html%20=%20await%20(await%20fetch(location.href,%20{%20credentials:%20&#x27;include&#x27;%20})).text();%20const%20m%20=%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C})%5Cs*;%5Cs*(?:var|%3C%5C/script%3E)/s)%20||%20html.match(/ytInitialPlayerResponse%5Cs*=%5Cs*(%5C{.+?%5C});/s);%20if%20(!m)%20throw%20new%20Error(&#x27;Kh%C3%B4ng%20%C4%91%E1%BB%8Dc%20%C4%91%C6%B0%E1%BB%A3c%20d%E1%BB%AF%20li%E1%BB%87u%20tr%C3%ACnh%20ph%C3%A1t.%20H%C3%A3y%20t%E1%BA%A3i%20l%E1%BA%A1i%20trang%20r%E1%BB%93i%20b%E1%BA%A5m%20l%E1%BA%A1i.&#x27;);%20R%20=%20JSON.parse(m[1]);%20}%20const%20ds%20=%20R%20&amp;&amp;%20R.captions%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer%20&amp;&amp;%20R.captions.playerCaptionsTracklistRenderer.captionTracks;%20if%20(!ds%20||%20!ds.length)%20throw%20new%20Error(&#x27;Video%20n%C3%A0y%20kh%C3%B4ng%20c%C3%B3%20ph%E1%BB%A5%20%C4%91%E1%BB%81.&#x27;);%20const%20en%20=%20ds.filter(x%20=%3E%20/^en/i.test(x.languageCode%20||%20&#x27;&#x27;));%20const%20uu%20=%20en.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;);%20const%20tr%20=%20uu[0]%20||%20en[0]%20||%20ds.filter(x%20=%3E%20x.kind%20===%20&#x27;asr&#x27;)[0]%20||%20ds[0];%20const%20res%20=%20await%20fetch(tr.baseUrl%20+%20&#x27;&amp;fmt=json3&#x27;,%20{%20credentials:%20&#x27;include&#x27;%20});%20const%20txt%20=%20await%20res.text();%20if%20(!txt%20||%20txt[0]%20!==%20&#x27;{&#x27;)%20throw%20new%20Error(&#x27;YouTube%20tr%E1%BA%A3%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20d%E1%BA%A1ng%20l%E1%BA%A1%20(d%C3%A0i%20&#x27;%20+%20txt.length%20+%20&#x27;).&#x27;);%20let%20soDong%20=%200,%20soMoc%20=%200;%20try%20{%20const%20j%20=%20JSON.parse(txt);%20(j.events%20||%20[]).forEach(ev%20=%3E%20{%20if%20(!ev.segs%20||%20ev.aAppend)%20return;%20const%20w%20=%20ev.segs.filter(s%20=%3E%20String(s.utf8%20||%20&#x27;&#x27;).trim()).length;%20if%20(w)%20{%20soDong++;%20if%20(w%20%3E%201)%20soMoc++;%20}%20});%20}%20catch%20(_)%20{}%20const%20nhan%20=%20(tr.kind%20===%20&#x27;asr&#x27;%20?%20&#x27;T%E1%BB%B0%20%C4%90%E1%BB%98NG%20(c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF)&#x27;%20:%20&#x27;do%20ng%C6%B0%E1%BB%9Di%20%C4%91%C4%83ng%20t%E1%BA%A3i%20l%C3%AAn&#x27;)%20+%20&#x27;%20%C2%B7%20&#x27;%20+%20(tr.languageCode%20||%20&#x27;?&#x27;);%20let%20xong%20=%20false;%20try%20{%20await%20navigator.clipboard.writeText(txt);%20xong%20=%20true;%20}%20catch%20(_)%20{}%20if%20(xong)%20{%20bao(&#x27;%E2%9C%85%20%C4%90%C3%83%20CH%C3%89P%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5Cn&#x27;%20+%20soDong%20+%20&#x27;%20d%C3%B2ng,%20&#x27;%20+%20soMoc%20+%20&#x27;%20d%C3%B2ng%20c%C3%B3%20m%E1%BB%91c%20t%E1%BB%ABng%20ch%E1%BB%AF&#x27;%20+%20&#x27;%5Cn%5CnSang%20app%20%E2%86%92%20m%E1%BB%9F%20video%20%E2%86%92%20%E2%9C%8F%EF%B8%8F%20S%E1%BB%ADa%20l%E1%BB%9Di%20%E2%86%92%20xo%C3%A1%20h%E1%BA%BFt%20%E2%86%92%20Ctrl+V%20%E2%86%92%20%F0%9F%92%BE%20L%C6%B0u.&#x27;);%20return;%20}%20const%20o%20=%20document.createElement(&#x27;textarea&#x27;);%20o.value%20=%20txt;%20o.style.cssText%20=%20&#x27;position:fixed;inset:5%;z-index:2147483647;width:90%;height:90%;&#x27;%20+%20&#x27;font:12px%20monospace;padding:10px;border:3px%20solid%20#2CDBA8;border-radius:10px&#x27;;%20document.body.appendChild(o);%20o.focus();%20o.select();%20bao(&#x27;Tr%C3%ACnh%20duy%E1%BB%87t%20kh%C3%B4ng%20cho%20ch%C3%A9p%20t%E1%BB%B1%20%C4%91%E1%BB%99ng.%5Cn%5CnB%E1%BA%A3n%20ph%E1%BB%A5%20%C4%91%E1%BB%81:%20&#x27;%20+%20nhan%20+%20&#x27;%5CnB%E1%BA%A5m%20OK%20r%E1%BB%93i%20nh%E1%BA%A5n%20Ctrl+C%20%C4%91%E1%BB%83%20ch%C3%A9p,%20sau%20%C4%91%C3%B3%20b%E1%BA%A5m%20Esc%20%C4%91%E1%BB%83%20%C4%91%C3%B3ng.&#x27;);%20o.addEventListener(&#x27;keydown&#x27;,%20e%20=%3E%20{%20if%20(e.key%20===%20&#x27;Escape&#x27;)%20o.remove();%20});%20}%20catch%20(e)%20{%20bao(&#x27;%E2%9D%8C%20&#x27;%20+%20(e%20&amp;&amp;%20e.message%20?%20e.message%20:%20e));%20}%20})();</textarea>
+</div>
+
+</div>
+<script>
+document.getElementById('chep').addEventListener('click', async function(){
+  var ma = document.getElementById('ma').value;
+  var xong = false;
+  try{ await navigator.clipboard.writeText(ma); xong = true; }catch(e){}
+  if(!xong){
+    var o = document.getElementById('ma');
+    o.focus(); o.select();
+    try{ xong = document.execCommand('copy'); }catch(e){}
+  }
+  var v = document.getElementById('ok');
+  v.textContent = xong ? '✅ Đã chép' : '⚠️ Hãy bấm vào ô mã ở dưới rồi Ctrl+C';
+  v.style.display = 'inline';
+  v.style.color = xong ? '#2CDBA8' : '#FFC94A';
+});
+</script></body></html>
