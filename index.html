@@ -3943,7 +3943,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v246';
+const APP_VERSION = 'v247';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11842,10 +11842,15 @@ function renderVocabSession(){
       <button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:8px;" data-action="vocab-next">${qzNhanTiep(s)}</button>`}
     </div>`;
   }
-  const questionText = s.exType==='mc_en_vi' ? `${word[1]} (${word[2]}) nghĩa là gì?`
+  // ══ v247 · CÂU HỎI HIỆN RA NGUYÊN MÃ HTML ══════════════════════════════════════════════
+  // Đúng ảnh bạn gửi: trên màn hiện cả <b>…</b> và <div class="qz-cau">…</div>. Chuỗi câu hỏi
+  // VỐN có thẻ HTML (đậm phần nghĩa, xuống dòng cho câu ví dụ) và các mẩu chữ bên trong ĐÃ
+  // được thoát an toàn từ lúc dựng; nhưng chỗ chèn ra màn hình lại thoát THÊM một lần nữa,
+  // nên mọi dấu < > thành chữ thường. Nay: thoát đúng MỘT lần, ngay tại chỗ dựng.
+  const questionText = s.exType==='mc_en_vi' ? `${escapeHtml(word[1])} (${escapeHtml(word[2])}) nghĩa là gì?`
     : s.exType==='fill_blank' ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:<div class="qz-cau">${escapeHtml(vocabBlankSentence(word))}</div>`
     : s.exType==='listen_en_vi' ? `🔊 Nghe từ vừa phát, chọn đúng nghĩa tiếng Việt`
-    : `Từ tiếng Anh nào có nghĩa: "${word[4]}"?`;
+    : `Từ tiếng Anh nào có nghĩa: "${escapeHtml(word[4])}"?`;
   // Item 6: dạng "listen_en_vi" KHÔNG hiện chữ tiếng Anh — chỉ có nút phát âm, buộc luyện nghe thật sự
   // thay vì đọc chữ rồi đoán nghĩa (tự động phát 1 lần khi vào câu, có nút nghe lại).
   const listenBtnHtml = s.exType==='listen_en_vi' ? `<div class="eng-quiz-actions" style="justify-content:center; margin-bottom:12px;"><button class="form-btn btn-listen" data-action="vocab-speak-current">🔊 Nghe từ (bấm trước khi chọn)</button></div>` : '';
@@ -11866,7 +11871,7 @@ function renderVocabSession(){
   const translateHtml = s.showTranslate ? `<div class="eng-quiz-translate">🇻🇳 ${escapeHtml(word[6])}</div>` : '';
   return `${progressWrap}
   <div class="card eng-quiz-card">
-    <div class="eng-quiz-q">${escapeHtml(questionText)}</div>
+    <div class="eng-quiz-q">${questionText}</div>
     ${listenBtnHtml}
     ${opts}
     ${s.answered!==null ? `
@@ -15107,7 +15112,9 @@ function renderSentSession(tenMan){
     const isMcEx = s.exType==='mc_ex';
     const questionText = isListenChoice ? '🎧 Nghe rồi chọn nghĩa đúng'
       : isMcEx ? `✍️ Điền vào chỗ trống<div class="qz-cau">${escapeHtml(s.blankSentence||'')}</div><div class="qz-cau-vi">🇻🇳 ${escapeHtml(sentence[4]||'')}</div>`
-      : (s.exType==='mc_en_vi' ? `"${sentence[1]}" nghĩa là gì?` : `Câu nào có nghĩa: "${sentence[4]}"?`);
+      // v247 — cùng một lỗi thoát chuỗi hai lần như bên Từ vựng: thoát ngay tại chỗ dựng.
+      : (s.exType==='mc_en_vi' ? `"${escapeHtml(sentence[1])}" nghĩa là gì?`
+                               : `Câu nào có nghĩa: "${escapeHtml(sentence[4])}"?`);
     const optLetters = ['A','B','C','D'];
     const optColors = ['var(--blue)','var(--teal)','var(--gold)','#B78CFF'];
     const opts = s.options.map((opt,i)=>{
@@ -15124,7 +15131,7 @@ function renderSentSession(tenMan){
     }).join('');
     const listenFirstBtn = isListenChoice ? `<div class="eng-quiz-actions" style="justify-content:center; margin-bottom:12px;"><button class="form-btn btn-listen" data-action="sent-speak-current">🔊 Nghe câu (bấm trước khi chọn)</button></div>` : '';
     body = `<div class="card eng-quiz-card">
-      <div class="eng-quiz-q">${escapeHtml(questionText)}</div>
+      <div class="eng-quiz-q">${questionText}</div>
       ${listenFirstBtn}
       ${opts}
       ${s.answered!==null ? `
@@ -17911,22 +17918,27 @@ function hvCheDeXuat(){
 // chuột tới thì hiện ngay. Dãy nút giữ nguyên pointer-events dù trong suốt, nên rê chuột vào
 // đúng góc ấy là chạm được nó — giống hệt cách bạn rê xuống đáy để gọi thanh YouTube ra.
 const HV_AN_NUT = 2600;
-let hvNutHen = null, hvNutDaGan = false;
+const HV_NHIP_NUT = 400;                 // bao lâu soi lại một lần
+let hvNutChamCuoi = 0, hvNutDaGan = false, hvNutNhip = null;
 function hvNutEl(){ try{ return document.querySelector('.hv-nutbar'); }catch(_){ return null; } }
-function hvHienNut(){
-  const el = hvNutEl(); if(!el) return;
-  if(el.classList) el.classList.add('hien');
-  if(hvNutHen){ try{ clearTimeout(hvNutHen); }catch(_){ } hvNutHen = null; }
-  hvNutHen = setTimeout(()=>{
-    hvNutHen = null;
-    const n = hvNutEl(); if(!n || !n.classList) return;
-    // Video dừng thì YouTube vẫn để thanh của nó hiện — ta cũng vậy. Chuột còn đậu trên dãy
-    // nút thì càng không được giấu.
-    let chay = false, dangRe = false;
-    try{ chay = hvDangChay(); }catch(_){ }
-    try{ dangRe = !!(n.matches && n.matches(':hover')); }catch(_){ }
-    if(chay && !dangRe) n.classList.remove('hien');
-  }, HV_AN_NUT);
+// "Vừa có người đụng tới" — đếm lại từ đầu. Không đụng thẳng vào phần tử nào cả, vì phần tử
+// ấy có thể bị dựng lại bất cứ lúc nào (xem hvSoatNut).
+function hvHienNut(){ hvNutChamCuoi = Date.now(); try{ hvSoatNut(); }catch(_){ } }
+// ══ v247 · PHẢI SOÁT LẠI TỪNG NHỊP, KHÔNG ĐƯỢC HẸN GIỜ MỘT LẦN ══════════════════════════
+// Bản v246 hẹn một lần rồi tới giờ thì gỡ lớp .hien. Hỏng ở chỗ: hvVeTam dựng lại CẢ tấm
+// (tam.innerHTML = hvPanelHtml(...)), nên dãy nút lúc hẹn và dãy nút lúc tới giờ là hai phần
+// tử khác nhau — gỡ lớp trên phần tử đã biến mất thì chẳng có gì đổi trên màn hình. Mà tấm
+// này được dựng lại mỗi lần đổi thẻ, bật/tắt CC, đổi cỡ khung… nên gần như lần nào cũng trượt.
+// Nay dùng MỘT nhịp chung: mỗi lần soi thì tự đi tìm dãy nút đang thật sự hiển thị.
+function hvSoatNut(){
+  const el = hvNutEl(); if(!el || !el.classList) return;
+  let chay = false, dangRe = false;
+  try{ chay = hvDangChay(); }catch(_){ }
+  try{ dangRe = !!(el.matches && el.matches(':hover')); }catch(_){ }
+  // Video DỪNG thì YouTube vẫn để thanh của nó hiện — ta cũng vậy. Chuột còn đậu trên dãy nút
+  // thì càng không được giấu.
+  const nen = (!chay || dangRe || (Date.now() - hvNutChamCuoi) < HV_AN_NUT);
+  el.classList.toggle('hien', !!nen);
 }
 function hvGanAnNut(){
   if(hvNutDaGan) return;
@@ -17938,6 +17950,8 @@ function hvGanAnNut(){
     document.addEventListener('pointerdown', cham, true);
     document.addEventListener('focusin', cham, true);
   }catch(_){ }
+  try{ if(hvNutNhip) clearInterval(hvNutNhip); }catch(_){ }
+  hvNutNhip = setInterval(()=>{ try{ hvSoatNut(); }catch(_){ } }, HV_NHIP_NUT);
 }
 function hvVeNutPlay(){
   try{ hvXoaLoiSanSang(); }catch(_){}
@@ -19576,8 +19590,12 @@ Chỉ trả về JSON.`;
 
 // ── Trình phát riêng cho chép chính tả ───────────────────────────────────
 const DV_HOLDER = 'dv-yt-holder';
-const DV_IM_TRUOC = 1500;   // im lặng để kịp chuẩn bị trước khi câu bắt đầu
+// v247 — bạn xin 2–3 giây im lặng để kịp đặt tay lên phím trước khi câu bắt đầu.
+const DV_IM_TRUOC = 2500;   // im lặng để kịp chuẩn bị trước khi câu bắt đầu
 const DV_IM_SAU   = 1500;   // im lặng sau khi câu vừa dứt, không cắt cụt ngang tai
+// Chừa trước mốc câu KẾ chừng này giây. Vòng soi chạy mỗi 30ms và YouTube còn mất thêm một
+// nhịp nữa mới dừng hẳn, nên cắt đúng ngay mốc là vẫn lọt được chữ đầu của câu sau vào tai.
+const DV_HO_CUOI = 0.14;
 let dvPlayer = null, dvCatTimer = null, dvChoTimer = null, dvDuoiTimer = null;
 function dvXoaHenGio(){
   if(dvCatTimer){ clearInterval(dvCatTimer); dvCatTimer = null; }
@@ -19676,7 +19694,13 @@ function dvPhatCau(i){
   // Trước đây tua tới d.t - 0.3 để "khỏi hụt chữ đầu" — chính 0.3 giây đó là mấy chữ cuối của câu
   // trước mà người dùng nghe thấy. Nay tua đúng vào mốc bắt đầu, và dừng đúng mốc kết thúc của
   // chính câu này (mốc "e" do AI trả về, đã được chuẩn hoá cho khỏi chồng chéo).
-  const ketThuc = (+d.e > d.t) ? +d.e : (rec.lines[i+1] ? rec.lines[i+1].t : (d.t + 25));
+  // ══ v247 · NGHE TRỌN MỘT CÂU, KHÔNG LẤN SANG CÂU KHÁC ══════════════════════════════════
+  // Mốc kết thúc "e" của phần lớn dòng là do app suy ra, mà suy ra thì chạm sát mốc câu kế.
+  // Cộng thêm độ trễ của lệnh dừng, tai vẫn nghe được một hai chữ đầu của câu sau. Nay chặn
+  // cứng: dừng TRƯỚC mốc câu kế một khoảng, và tắt tiếng ngay tại chỗ cắt.
+  const keT = rec.lines[i+1] && rec.lines[i+1].t != null ? +rec.lines[i+1].t : null;
+  let ketThuc = (+d.e > d.t) ? +d.e : (keT != null ? keT : (d.t + 25));
+  if(keT != null && ketThuc > keT - DV_HO_CUOI) ketThuc = Math.max(d.t + 0.4, keT - DV_HO_CUOI);
   dvXoaHenGio();
   // Đang ở trong màn "Học theo video" thì bảo đảm còn nắm trình phát (cử chỉ vuốt-lùi có thể đã
   // nhả nó ra). Không có dòng này thì bấm "Nghe câu" chẳng có gì xảy ra và cũng chẳng báo gì.
@@ -19715,6 +19739,9 @@ function dvPhatCau(i){
       let gy = 0;
       try{ gy = dvPlayer.getCurrentTime() || 0; }catch(_){ return; }
       if(gy >= ketThuc){
+        // Tắt tiếng TRƯỚC rồi mới dừng: lệnh dừng của YouTube mất một nhịp mới ăn, trong nhịp
+        // ấy tiếng vẫn ra. Tắt trước là không chữ nào của câu sau lọt vào tai.
+        try{ dvPlayer.mute(); }catch(_){}
         try{ dvPlayer.pauseVideo(); }catch(_){}
         clearInterval(dvCatTimer); dvCatTimer = null;
         // NHỊP 3 — im lặng sau khi câu vừa dứt
@@ -19722,11 +19749,12 @@ function dvPhatCau(i){
         s3.phat = 'nghi'; dvVeNutNghe();
         dvDuoiTimer = setTimeout(()=>{
           dvDuoiTimer = null;
+          try{ if(dvPlayer && dvPlayer.unMute) dvPlayer.unMute(); }catch(_){}  // trả lại tiếng
           const s4 = STATE.dvPhien; if(!s4) return;
           s4.phat = null; dvVeNutNghe();
         }, DV_IM_SAU);
       }
-    }, 60);   // 200ms là đủ để chạy lố sang chữ đầu của câu sau — siết xuống 60ms
+    }, 30);   // 60ms vẫn đủ lố sang chữ đầu câu sau — siết xuống 30ms
   }, DV_IM_TRUOC);
 }
 // ── Chấm & đánh dấu ✓ ────────────────────────────────────────────────────
