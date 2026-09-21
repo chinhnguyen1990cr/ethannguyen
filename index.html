@@ -2724,8 +2724,33 @@
 }
 .wb-vd-h{font-size:10.5px; font-weight:800; color:var(--dim2); letter-spacing:.4px; margin:10px 0 7px;}
 .wb-vd-h:first-child{margin-top:0;}
-.wb-vd-ds{display:flex; flex-direction:column; gap:7px;}
-.wb-vd{display:flex; align-items:flex-start; gap:8px;}
+/* ══ v249 · KHỐI CÂU VÍ DỤ — SINH ĐỘNG HƠN ════════════════════════════════════════════════
+   Bản cũ là một cột chữ xám đều tăm tắp, đọc tới câu thứ ba là mắt trôi. Nay mỗi câu là một
+   thẻ riêng có số thứ tự, vạch màu bên trái, và QUAN TRỌNG NHẤT: chính từ đang học được tô
+   nổi ngay trong câu — nhìn một cái là thấy nó đứng ở đâu, đi với giới từ nào. */
+.wb-vd-ds{display:flex; flex-direction:column; gap:9px;}
+.wb-vd{position:relative; display:flex; align-items:flex-start; gap:9px; padding:9px 10px 9px 12px;
+  border-radius:12px; background:rgba(255,255,255,.045); border:1px solid var(--border);
+  transition:border-color .16s, background .16s, transform .12s;}
+.wb-vd::before{content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:3px;
+  background:linear-gradient(180deg,#2CDBA8,#4FA8FF);}
+.wb-vd:hover{background:rgba(255,255,255,.075); border-color:rgba(44,219,168,.35); transform:translateX(2px);}
+.wb-vd-so{flex:0 0 auto; width:19px; height:19px; border-radius:7px; margin-top:1px;
+  background:rgba(44,219,168,.16); color:#2CDBA8; font-size:9.5px; font-weight:900;
+  font-family:var(--mono); display:flex; align-items:center; justify-content:center;}
+.wb-vd-nut{flex:0 0 auto; display:flex; gap:5px;}
+.vd-dam{font-style:normal; font-weight:900; color:#FFD166;
+  background:rgba(255,209,102,.13); border-radius:5px; padding:0 3px;
+  box-shadow:inset 0 -2px 0 rgba(255,209,102,.5);}
+.wb-vd-loa.yg{display:flex; align-items:center; justify-content:center; text-decoration:none;
+  color:#B78CFF; border-color:rgba(183,140,255,.4); background:rgba(183,140,255,.12); font-size:11px;}
+.wb-vd-loa.yg:hover{background:rgba(183,140,255,.24);}
+/* Hình tượng trưng vẽ sẵn, nằm ngay trên mặt thẻ. */
+.wb-the-hinh{display:flex; justify-content:center; margin-bottom:9px;}
+.vd-hinh{width:54px; height:54px; color:var(--vien, #2CDBA8); opacity:.92;
+  filter:drop-shadow(0 3px 10px rgba(0,0,0,.35));}
+.wb-yg{display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
+  color:#B78CFF; border-color:rgba(183,140,255,.45);}
 .wb-vd-loa{flex:0 0 auto; width:26px; height:26px; border-radius:8px; cursor:pointer;
   background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--text);
   font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;}
@@ -4006,7 +4031,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v248';
+const APP_VERSION = 'v249';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10474,19 +10499,75 @@ function vocabMpTongKetHtml(s){
   return `<div class="qz-mp-kq-h">📚 Cả ${pairs.length} từ vừa nối — bấm loa để nghe, bấm mũi tên để xem ví dụ</div>
     <div class="qz-mp-kq-ds">${hang}</div>`;
 }
+// ══ v249 · MỒI NHỬ PHẢI ĐÁNG CÂN NHẮC, KHÔNG PHẢI BỐC BỪA ═════════════════════════════════
+// Bản cũ bốc ngẫu nhiên trong cùng chủ đề. Hai chỗ hỏng thấy rõ:
+//  • Hỏi "bag (n) nghĩa là gì?" mà ba đáp án kia là động từ thì nhìn từ loại là loại được hết
+//    — bạn trả lời đúng mà chẳng nhớ thêm được gì.
+//  • Tệ hơn: mồi nhử có thể TRÙNG NGHĨA với đáp án (kho từ có nhiều từ cùng dịch là "nói").
+//    Lúc ấy câu hỏi có hai đáp án đúng, chấm kiểu gì cũng sai.
+// Nay chấm điểm rồi mới chọn: cùng từ loại quý nhất, rồi tới cùng chủ đề, rồi tới độ dài gần
+// nhau (để bề dài chữ đừng tố cáo đáp án).
+function vocabNghiaGon(v){
+  return String(v||'').toLowerCase().replace(/[(),;.]/g,' ').replace(/\s+/g,' ').trim();
+}
 function vocabPickDistractorWords(word, count){
-  const topicWords = vocabWordsByTopic(word[3]).filter(w=>w[0]!==word[0]);
-  let pool = topicWords.length>=count ? topicWords : VOCAB_DATA.words.filter(w=>w[0]!==word[0]);
-  pool = shuffleArr(pool);
-  return pool.slice(0, count);
+  const tatCa = (VOCAB_DATA && Array.isArray(VOCAB_DATA.words)) ? VOCAB_DATA.words : [];
+  const nghiaDung = vocabNghiaGon(word[4]);
+  // Bỏ ngay những từ trùng nghĩa với đáp án — giữ lại là câu hỏi có hai đáp án đúng.
+  const sach = tatCa.filter(w => w[0] !== word[0] && vocabNghiaGon(w[4]) !== nghiaDung);
+  if(!sach.length) return [];
+  const daiDung = String(word[1]||'').length;
+  const cham = (w)=>{
+    let d = 0;
+    if(String(w[2]||'') === String(word[2]||'')) d += 4;      // cùng từ loại
+    if(String(w[3]||'') === String(word[3]||'')) d += 3;      // cùng chủ đề
+    const lech = Math.abs(String(w[1]||'').length - daiDung);
+    if(lech <= 2) d += 2; else if(lech <= 4) d += 1;
+    return d;
+  };
+  // CÙNG TỪ LOẠI là điều kiện cứng, không phải điểm cộng: chỉ cần một mồi nhử khác từ loại
+  // là loại trừ được nó mà chẳng cần biết nghĩa. Nên chia đôi rổ trước — đủ từ cùng loại thì
+  // dùng hẳn nhóm ấy, thiếu mới đi mượn nhóm còn lại.
+  const loai = String(word[2]||'');
+  const cungLoai = sach.filter(w => String(w[2]||'') === loai);
+  const nen = (cungLoai.length >= count) ? cungLoai : sach;
+  // Xếp theo điểm rồi lấy một RỔ RỘNG gấp đôi, sau đó mới bốc ngẫu nhiên trong rổ ấy. Lấy
+  // thẳng ba từ điểm cao nhất thì chất lượng tốt nhưng lượt nào cũng đúng ba từ đó — gặp lần
+  // thứ ba là bạn nhớ mặt bộ đáp án chứ không nhớ nghĩa. Rổ rộng giữ được cả hai.
+  const xep = shuffleArr(nen.slice()).map(w=>({w, d:cham(w)}));
+  xep.sort((a,b)=>b.d - a.d);
+  const ro = xep.slice(0, Math.max(count, Math.min(xep.length, count * 2 + 2)));
+  return shuffleArr(ro).slice(0, count).map(x=>x.w);
 }
 function vocabExampleHasWord(word){
   const re = new RegExp('\\b'+word[1].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b', 'i');
-  return re.test(word[5]);
+  if(re.test(word[5])) return true;
+  return vocabCauChuaTu(word).length > 0;
 }
-function vocabBlankSentence(word){
-  const re = new RegExp('\\b'+word[1].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b', 'i');
-  return word[5].replace(re, '____');
+// ══ v249 · ĐIỀN CHỖ TRỐNG PHẢI ĐỔI NGỮ CẢNH ═══════════════════════════════════════════════
+// Bản cũ luôn khoét đúng MỘT câu (word[5]). Gặp lại lần thứ ba là bạn thuộc lòng câu ấy chứ
+// không thuộc từ — điền đúng mà chưa chắc dùng được. Kho ví dụ đã có sẵn 5–10 câu cho mỗi
+// mục; nay rút từ cả kho, mỗi lượt một câu khác.
+function vocabCauChuaTu(word){
+  const tu = String((word && word[1]) || '').trim();
+  if(!tu) return [];
+  let re;
+  try{ re = new RegExp('\\b' + tu.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i'); }
+  catch(_){ return []; }
+  const ra = [];
+  const them = (c)=>{ const x = String(c||'').trim();
+    if(x && re.test(x) && ra.indexOf(x) < 0) ra.push(x); };
+  them(word[5]);
+  try{ (vdGom(tu, []) || []).forEach(v=>them(v[0])); }catch(_){ }
+  return ra;
+}
+function vocabBlankSentence(word, lan){
+  const ds = vocabCauChuaTu(word);
+  const cau = ds.length ? ds[((+lan || 0) % ds.length + ds.length) % ds.length] : String(word[5]||'');
+  let re;
+  try{ re = new RegExp('\\b' + String(word[1]).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i'); }
+  catch(_){ return cau; }
+  return cau.replace(re, '____');
 }
 // Xáo trộn các chữ cái của 1 từ để làm bài "Xếp chữ" — đảm bảo thứ tự xáo khác thứ tự gốc khi có thể.
 function vocabScrambleLetters(w){
@@ -11032,22 +11113,57 @@ const WB_EF_MIN = 1.3, WB_EF_MAX = 2.8, WB_EF_DAU = 2.3;
 // xuống cuối cho gặp lại ngay khi trí nhớ còn nóng.
 const WB_MUC = [
   {k:0, ten:'Quên rồi',  ic:'😵', mau:'#e0705f', sai:true,  mo:'gặp lại ngay hôm nay'},
-  {k:1, ten:'Khó',       ic:'😕', mau:'#FFA35A', sai:true,  mo:'mai gặp lại'},
+  {k:1, ten:'Khó',       ic:'😕', mau:'#FFA35A', sai:true,  mo:'rút ngắn một nửa'},
   {k:2, ten:'Nhớ được',  ic:'🙂', mau:'#4FA8FF', sai:false, mo:'giãn ra một nhịp'},
   {k:3, ten:'Dễ ợt',     ic:'😎', mau:'#2CDBA8', sai:false, mo:'giãn ra thật xa'}
 ];
+// v249 — một lần bấm không được phép nhân khoảng ôn lên quá chừng này lần. Không có trần thì
+// thẻ 60 ngày bấm "Dễ ợt" một cái nhảy thẳng lên trần 180 — nửa năm không gặp lại chỉ vì một
+// lần thấy dễ, mà "thấy dễ" hôm nay chưa chắc là thuộc.
+const WB_TANG_TRAN = 3.0;
+// Quên một lần rồi nhớ lại thì phục hồi về một PHẦN khoảng cũ, chứ không bò lại từ 1 ngày.
+const WB_HOI_NHO = 0.40, WB_HOI_DE = 0.70;
 // Tính khoảng ôn mới (đơn vị NGÀY) từ hồ sơ cũ và mức bạn vừa tự chấm.
+// ══ v249 · BA CHỖ ĐO ĐƯỢC LÀ SAI, ĐÃ SỬA ══════════════════════════════════════════════════
+// (1) "Khó" làm khoảng ôn DÀI RA. Đo trên thẻ đã thuộc 60 ngày: bấm "Khó" ra 72 ngày, trong
+//     khi nhãn ngay dưới nút hứa "mai gặp lại". Bạn tự nhận là chật vật mà app lại cho nghỉ
+//     lâu hơn — đúng chiều ngược với việc cần làm. Nay "Khó" RÚT NGẮN còn một nửa.
+// (2) Quên một lần là mất sạch tiến độ. Thẻ từng thuộc 60 ngày, quên rồi nhớ lại thì tụt về
+//     1 ngày, phải bò 1→2→5→12… mất hàng tháng mới về chỗ cũ. Nay nhớ lại khoảng cũ (ivlCu)
+//     và phục hồi về một phần của nó — đúng cách các bộ lặp ngắt quãng nghiêm túc vẫn làm.
+// (3) Một lần bấm nhân khoảng lên tuỳ ý. Thẻ 60 ngày bấm "Dễ ợt" nhảy thẳng lên trần 180.
+//     Nay chặn: mỗi lần bấm không nhân quá WB_TANG_TRAN lần.
 function wbKhoangMoi(p, muc){
   let ef  = (typeof p.ef === 'number' && isFinite(p.ef)) ? p.ef : WB_EF_DAU;
-  let ivl = (typeof p.ivl === 'number' && isFinite(p.ivl) && p.ivl > 0) ? p.ivl : 0;
-  if(muc === 0){ ef -= 0.20; ivl = 0; }                       // 0 ngày = gặp lại ngay trong phiên
-  else if(muc === 1){ ef -= 0.15; ivl = Math.max(1, Math.round(ivl * 1.2) || 1); }
-  else if(muc === 2){ ivl = ivl ? Math.round(ivl * ef) : 1; }
-  else { ef += 0.15; ivl = ivl ? Math.round(ivl * ef * 1.3) : 4; }
+  const cu = (typeof p.ivl === 'number' && isFinite(p.ivl) && p.ivl > 0) ? p.ivl : 0;
+  // Khoảng ôn ĐÃ ĐẠT trước khi quên. Giữ lại để lúc nhớ lại còn biết đường phục hồi.
+  const luu = (typeof p.ivlCu === 'number' && isFinite(p.ivlCu) && p.ivlCu > 0) ? p.ivlCu : 0;
+  let ivl, ivlCu = luu;
+  if(muc === 0){
+    ef -= 0.20;
+    if(cu > 0) ivlCu = Math.max(luu, cu);       // ghi lại chỗ đã lên được rồi mới hạ về 0
+    ivl = 0;                                     // 0 ngày = gặp lại ngay trong phiên
+  } else if(muc === 1){
+    ef -= 0.15;
+    if(cu > 0){ ivl = Math.max(1, Math.round(cu * 0.5)); ivlCu = Math.max(luu, cu); }
+    else ivl = 1;
+  } else if(muc === 2){
+    ivl = cu ? Math.round(cu * ef) : (luu ? Math.max(1, Math.round(luu * WB_HOI_NHO)) : 1);
+    if(!cu) ivlCu = 0;                           // đã dùng để phục hồi thì thôi, xoá đi
+  } else {
+    ef += 0.15;
+    ivl = cu ? Math.round(cu * ef * 1.3) : (luu ? Math.max(2, Math.round(luu * WB_HOI_DE)) : 4);
+    if(!cu) ivlCu = 0;
+  }
   ef = Math.max(WB_EF_MIN, Math.min(WB_EF_MAX, Math.round(ef * 100) / 100));
+  // Không cho một lần bấm nhân khoảng lên quá WB_TANG_TRAN lần.
+  if(cu > 0 && ivl > cu * WB_TANG_TRAN) ivl = Math.round(cu * WB_TANG_TRAN);
   // Trần 180 ngày: quá nửa năm thì coi như thuộc hẳn, hẹn xa hơn cũng không thêm ích gì.
   ivl = Math.max(0, Math.min(180, ivl));
-  return {ef, ivl};
+  const ra = {ef, ivl};
+  if(ivlCu > 0 && ivl === 0) ra.ivlCu = Math.min(180, ivlCu);
+  else if(ivlCu > 0 && muc === 1) ra.ivlCu = Math.min(180, ivlCu);
+  return ra;
 }
 // Quy khoảng ôn về hộp 0-5 để bảng "Mức độ thuộc" và mọi thống kê cũ vẫn đọc hiểu được.
 function wbHopTuKhoang(ivl){
@@ -11144,12 +11260,136 @@ function wbChamHang(p){
   return `<span class="wb-pip">${ra}</span>`;
 }
 // Một dòng ví dụ, có nút loa riêng để nghe đúng câu đó.
-function wbViDuHtml(ds){
+// ══ v249 · BIỂU TƯỢNG TỰ VẼ CHO TỪNG TỪ ═══════════════════════════════════════════════════
+// Bạn xin "hình ảnh tượng trưng cho từng từ". App chạy trọn trong MỘT tệp và phải dùng được
+// khi mất mạng, nên không tải ảnh từ đâu cả: vẽ thẳng bằng SVG. Chọn hình theo NGHĨA TIẾNG
+// VIỆT trước (đó mới là trường ngữ nghĩa đáng tin), không khớp thì xét tới từ tiếng Anh, rồi
+// mới tới chủ đề. Không ra hình nào thì trả về chuỗi rỗng — thà không có hình còn hơn hình
+// sai, vì hình sai neo vào trí nhớ một liên tưởng lệch, gỡ ra còn khó hơn học lại từ đầu.
+const VD_HINH = [
+  {k:'tui',    tu:['túi','ba lô','cặp sách','va li','chiếc hộp','cái hộp','thùng','giỏ'],
+   d:'<path d="M14 22h20v20a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4z"/><path d="M19 22v-5a5 5 0 0 1 10 0v5"/>'},
+  {k:'nguoi',  tu:['người','nhân viên','khách hàng','hàng xóm','bạn bè','đồng nghiệp'],
+   d:'<circle cx="24" cy="19" r="6"/><path d="M12 44c0-7 5.5-12 12-12s12 5 12 12"/>'},
+  {k:'nha',    tu:['ngôi nhà','căn nhà','căn phòng','căn hộ','toà nhà','cửa hàng','quán','trường học','nơi ở'],
+   d:'<path d="M9 24 24 11l15 13"/><path d="M13 24v18h22V24"/><path d="M21 42V31h6v11"/>'},
+  {k:'anuong', tu:['ăn','món ăn','thức ăn','bữa ','cơm','bánh','thịt','rau','trái cây','đói','nấu'],
+   d:'<path d="M14 10v14a4 4 0 0 0 8 0V10"/><path d="M18 24v16"/><path d="M34 10c-4 0-6 4-6 9s2 7 4 7v14"/>'},
+  {k:'uong',   tu:['uống','nước','cà phê','trà','sữa','bia','rượu','khát','ly ','cốc','chai'],
+   d:'<path d="M15 14h18l-2 24a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4z"/><path d="M16 24h16"/>'},
+  {k:'gio',    tu:['thời gian','giờ','phút','buổi','sớm','muộn','trễ','chờ đợi','đúng giờ','lịch'],
+   d:'<circle cx="24" cy="26" r="15"/><path d="M24 17v9l6 4"/><path d="M19 8h10"/>'},
+  {k:'tien',   tu:['tiền','giá','trả tiền','mua','bán','rẻ','đắt','chi phí','lương','thuê','hoá đơn'],
+   d:'<circle cx="24" cy="26" r="14"/><path d="M24 17v18"/><path d="M29 21c-1.5-2-8-3-8 1s8 3 8 7-6.5 3-8 1"/>'},
+  {k:'xe',     tu:['xe','lái','giao thông','tàu','máy bay','chuyến bay','con đường','đường phố'],
+   d:'<path d="M9 32h30v6H9z"/><path d="M13 32l4-9h14l4 9"/><circle cx="16" cy="40" r="3"/><circle cx="32" cy="40" r="3"/>'},
+  {k:'caycoi', tu:['cây','hoa','chiếc lá','rừng','khu vườn','thiên nhiên','cỏ','trồng'],
+   d:'<path d="M24 42V24"/><path d="M24 24c-8 0-11-5-11-9 5-2 11 1 11 9z"/><path d="M24 26c8-1 11-6 11-10-5-2-11 1-11 10z"/>'},
+  {k:'thoitiet',tu:['thời tiết','mưa','nắng','gió','lạnh','nóng','mây','tuyết','bão','trời'],
+   d:'<path d="M16 30a7 7 0 0 1 1-13 9 9 0 0 1 17 2 6 6 0 0 1-1 11z"/><path d="M18 36l-2 5M25 36l-2 5M32 36l-2 5"/>'},
+  {k:'cothe',  tu:['bàn tay','cánh tay','bàn chân','cái đầu','đôi mắt','cái tai','cái mũi','cơ thể','mái tóc','răng'],
+   d:'<path d="M17 42V27l-4 4-2-3 8-8h10l8 8-2 3-4-4v15z"/><circle cx="24" cy="12" r="5"/>'},
+  {k:'vui',    tu:['vui','thích','hạnh phúc','yêu','cười','tuyệt','tốt đẹp','giỏi','may mắn','tự hào'],
+   d:'<circle cx="24" cy="24" r="15"/><path d="M18 21h.1M30 21h.1"/><path d="M16 29c2 4 5.5 6 8 6s6-2 8-6"/>'},
+  {k:'buon',   tu:['buồn','giận','sợ','lo lắng','mệt','chán','tệ','xấu','khó khăn','đau','ghét','thất vọng'],
+   d:'<circle cx="24" cy="24" r="15"/><path d="M18 21h.1M30 21h.1"/><path d="M16 34c2-4 5.5-6 8-6s6 2 8 6"/>'},
+  {k:'noi',    tu:['nói','hỏi','trả lời','kể','gọi điện','nhắn','thảo luận','ý kiến','giải thích','tranh luận'],
+   d:'<path d="M10 14h20a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H19l-7 6v-6h-2a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4z"/>'},
+  {k:'hoc',    tu:['học','cuốn sách','quyển sách','đọc','viết','bài tập','lớp học','kỳ thi','kiến thức','nghiên cứu'],
+   d:'<path d="M8 12h13a5 5 0 0 1 5 5v22a5 5 0 0 0-5-4H8z"/><path d="M40 12H27a5 5 0 0 0-5 5v22a5 5 0 0 1 5-4h13z"/>'},
+  {k:'viec',   tu:['làm việc','công việc','nghề','công ty','cuộc họp','dự án','kế hoạch','sếp','văn phòng','nhiệm vụ'],
+   d:'<path d="M9 18h30v22H9z"/><path d="M18 18v-4a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4"/><path d="M9 28h30"/>'},
+  {k:'thethao',tu:['thể thao','chạy','quả bóng','chơi','tập luyện','bơi','thi đấu','đội bóng','trận đấu'],
+   d:'<circle cx="24" cy="24" r="15"/><path d="M24 9v30M9 24h30"/><path d="M14 14c6 3 14 3 20 0M14 34c6-3 14-3 20 0"/>'},
+  {k:'nhac',   tu:['âm nhạc','bài hát','hát','nghe nhạc','âm thanh','cây đàn','giai điệu'],
+   d:'<path d="M20 36V14l16-3v22"/><circle cx="16" cy="36" r="4"/><circle cx="32" cy="33" r="4"/>'},
+  {k:'maytinh',tu:['máy tính','điện thoại','mạng','ứng dụng','phần mềm','dữ liệu','công nghệ','trực tuyến','thư điện tử'],
+   d:'<path d="M10 13h28v20H10z"/><path d="M6 39h36"/><path d="M20 33h8"/>'},
+  {k:'suckhoe',tu:['sức khoẻ','sức khỏe','bệnh','thuốc','bác sĩ','khám','ốm','bệnh viện','chữa'],
+   d:'<path d="M24 41S9 32 9 21a8 8 0 0 1 15-4 8 8 0 0 1 15 4c0 11-15 20-15 20z"/><path d="M24 20v10M19 25h10"/>'},
+  {k:'muasam', tu:['mua sắm','chợ','siêu thị','hàng hoá','đơn hàng','sản phẩm','giỏ hàng'],
+   d:'<path d="M8 12h5l5 20h18"/><path d="M14 18h26l-3 11H17"/><circle cx="20" cy="39" r="3"/><circle cx="33" cy="39" r="3"/>'},
+  {k:'dulich', tu:['du lịch','chuyến đi','nghỉ mát','bãi biển','khách sạn','vé ','sân bay','bản đồ'],
+   d:'<path d="M24 6l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z"/>'},
+  {k:'giadinh',tu:['gia đình','đứa con','bố ','mẹ ','vợ','chồng','cha','anh em','cháu','ông bà'],
+   d:'<circle cx="17" cy="17" r="5"/><circle cx="31" cy="17" r="5"/><path d="M8 40c0-6 4-10 9-10s9 4 9 10"/><path d="M22 40c0-6 4-10 9-10s9 4 9 10"/>'},
+  {k:'convat', tu:['con vật','con chó','con mèo','con chim','con cá','động vật','thú cưng'],
+   d:'<path d="M12 22c0-6 5-10 12-10s12 4 12 10c0 8-5 16-12 16S12 30 12 22z"/><path d="M12 18l-4-7 8 3M36 18l4-7-8 3"/><path d="M20 24h.1M28 24h.1"/>'},
+  {k:'quanao', tu:['quần','chiếc áo','cái áo','mặc','giày','chiếc mũ','thời trang','váy'],
+   d:'<path d="M18 10l6 4 6-4 9 5-3 8-4-2v23H16V21l-4 2-3-8z"/>'},
+  {k:'chuyendong',tu:['đi tới','đi đến','quay về','mang','đưa','chuyển','bắt đầu','dừng lại','tiếp tục','rời khỏi'],
+   d:'<path d="M8 24h28"/><path d="M27 15l9 9-9 9"/>'},
+  {k:'ytuong', tu:['ý tưởng','suy nghĩ','nghĩ rằng','nhớ','biết','hiểu','quyết định','tin rằng','đoán','cho rằng','giả định'],
+   d:'<path d="M24 8a11 11 0 0 1 7 19v4H17v-4a11 11 0 0 1 7-19z"/><path d="M19 37h10M21 42h6"/>'}
+];
+// Tra theo chuỗi con, không cần khớp cả từ: nghĩa tiếng Việt hay viết kèm ngữ cảnh
+// ("cái túi", "đóng gói vào túi"), khớp cả từ thì trượt gần hết.
+function vdHinhKhoa(en, vi, chuDe){
+  const v = String(vi||'').toLowerCase();
+  for(let i=0;i<VD_HINH.length;i++){
+    const o = VD_HINH[i];
+    for(let j=0;j<o.tu.length;j++) if(v.indexOf(o.tu[j]) >= 0) return o.k;
+  }
+  const e = ' ' + String(en||'').toLowerCase() + ' ';
+  const theoEn = {tien:[' money ',' price ',' pay ',' buy ',' sell ',' cost '],
+                  gio:[' time ',' hour ',' day ',' late ',' early ',' wait '],
+                  noi:[' say ',' tell ',' talk ',' speak ',' ask ',' answer '],
+                  hoc:[' learn ',' study ',' book ',' read ',' write ',' school '],
+                  chuyendong:[' go ',' come ',' move ',' start ',' stop ',' bring ']};
+  const kh = Object.keys(theoEn);
+  for(let i=0;i<kh.length;i++) for(let j=0;j<theoEn[kh[i]].length;j++)
+    if(e.indexOf(theoEn[kh[i]][j]) >= 0) return kh[i];
+  const cd = String(chuDe||'').toLowerCase();
+  const theoCd = {anuong:['food','ăn uống','eat'], viec:['work','job','công việc'],
+                  hoc:['school','học tập','education'], dulich:['travel','du lịch'],
+                  suckhoe:['health','sức kh'], giadinh:['family','gia đình'],
+                  maytinh:['tech','công nghệ'], thethao:['sport','thể thao'], muasam:['shop','mua sắm']};
+  const kc = Object.keys(theoCd);
+  for(let i=0;i<kc.length;i++) for(let j=0;j<theoCd[kc[i]].length;j++)
+    if(cd.indexOf(theoCd[kc[i]][j]) >= 0) return kc[i];
+  return null;
+}
+function vdHinhSvg(en, vi, chuDe){
+  const k = vdHinhKhoa(en, vi, chuDe);
+  if(!k) return '';
+  const o = VD_HINH.filter(x=>x.k===k)[0];
+  if(!o) return '';
+  return '<svg class="vd-hinh" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor"'
+    + ' stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + o.d + '</svg>';
+}
+// Nghe NGƯỜI THẬT nói từ này: YouGlish gom sẵn các đoạn video có chứa đúng từ/cụm đó.
+function vdYouglish(tu){
+  return 'https://youglish.com/pronounce/' + encodeURIComponent(String(tu||'').trim()) + '/english/us';
+}
+// v249 — tô đậm CHÍNH từ đang học trong câu ví dụ. Nhìn một cái là thấy nó nằm ở đâu trong
+// câu, đi với giới từ nào — đó mới là thứ đáng nhớ, chứ không phải đọc trôi cả câu.
+function vdDamTu(cau, tu){
+  const c = String(cau||'');
+  const t = String(tu||'').trim();
+  if(!t) return escapeHtml(c);
+  const goc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let re;
+  try{ re = new RegExp('\\b(' + goc + '(?:s|es|ed|ing|d)?)\\b', 'gi'); }
+  catch(_){ return escapeHtml(c); }
+  let ra = '', cuoi = 0, m;
+  while((m = re.exec(c)) !== null){
+    ra += escapeHtml(c.slice(cuoi, m.index)) + '<em class="vd-dam">' + escapeHtml(m[0]) + '</em>';
+    cuoi = m.index + m[0].length;
+    if(re.lastIndex === m.index) re.lastIndex++;
+  }
+  return ra ? (ra + escapeHtml(c.slice(cuoi))) : escapeHtml(c);
+}
+function wbViDuHtml(ds, tu){
   if(!ds || !ds.length) return '';
   return `<div class="wb-vd-ds">${ds.map((v,i)=>`
     <div class="wb-vd">
-      <button class="wb-vd-loa" data-action="wb-doc-cau" data-cau="${escapeHtml(v[0])}" title="Nghe câu này">🔊</button>
-      <div class="wb-vd-tx"><b>${escapeHtml(v[0])}</b>${v[1] ? `<span>${escapeHtml(v[1])}</span>` : ''}</div>
+      <span class="wb-vd-so">${i+1}</span>
+      <div class="wb-vd-tx"><b>${vdDamTu(v[0], tu)}</b>${v[1] ? `<span>${escapeHtml(v[1])}</span>` : ''}</div>
+      <div class="wb-vd-nut">
+        <button class="wb-vd-loa" data-action="wb-doc-cau" data-cau="${escapeHtml(v[0])}" title="Nghe câu này">🔊</button>
+        <a class="wb-vd-loa yg" href="${escapeHtml(vdYouglish(v[0]))}" target="_blank" rel="noopener"
+           title="Nghe người thật nói câu này trên YouGlish">▶</a>
+      </div>
     </div>`).join('')}</div>`;
 }
 function wbHoiThoaiHtml(ds, chu){
@@ -11203,6 +11443,8 @@ function wbTheHtml(){
        <span class="wb-cham-mo">${x.mo}</span></button>`).join('');
   const am = m.phienAm || vdPhienAm(m.en);
   const th = vdTinhHuong(m.en);
+  // v249 — hình tượng trưng vẽ sẵn trong app. Chọn theo nghĩa tiếng Việt nên không cần mạng.
+  const hinh = vdHinhSvg(m.en, m.vi, m.chuDe || '');
   return `<div class="wb-the-dau">
       <span class="wb-the-luot">Lượt ${w.theLuot || 1} · thẻ ${so}/${tong}</span>
       <span class="wb-the-hang" style="color:${hang.vien};">${hang.ten}</span>
@@ -11216,6 +11458,7 @@ function wbTheHtml(){
           ${wbChamHang(m.p)}
         </div>
         <div class="wb-bai-giua">
+          ${hinh ? `<div class="wb-the-hinh">${hinh}</div>` : ''}
           <div class="wb-the-en">${escapeHtml(m.en)}</div>
           ${am ? `<div class="wb-the-am">${escapeHtml(am)}</div>` : ''}
           ${lat ? `<div class="wb-the-vi">${escapeHtml(m.vi)}</div>` : ''}
@@ -11227,7 +11470,7 @@ function wbTheHtml(){
           ${dangHtml ? `<div class="wb-vd-h">🔤 Các dạng của từ này</div>${dangHtml}` : ''}
           ${th.length ? `<div class="wb-vd-h">🎭 ${th.length} tình huống dùng cụm này</div>${wbTinhHuongHtml(th, m.en)}`
                       : (ht.length ? `<div class="wb-vd-h">💬 Dùng trong hội thoại</div>${wbHoiThoaiHtml(ht, m.en)}` : '')}
-          ${vd.length ? `<div class="wb-vd-h">📝 ${vd.length} câu thường nói</div>${wbViDuHtml(vd)}` : ''}
+          ${vd.length ? `<div class="wb-vd-h">📝 ${vd.length} câu thường nói</div>${wbViDuHtml(vd, m.en)}` : ''}
           ${thieu ? `<div class="wb-vd-cho">${SETTINGS.geminiApiKey
               ? 'Đang soạn thêm ví dụ cho mục này… lát nữa quay lại là có đủ ' + VD_CAN + ' câu.'
               : 'Muốn có đủ ' + VD_CAN + ' ví dụ cho mỗi mục thì dán khoá Gemini trong Cài đặt — app sẽ tự soạn và nhớ luôn.'}</div>` : ''}
@@ -11235,6 +11478,8 @@ function wbTheHtml(){
     </div>
     <div class="wb-the-nut">
       <button class="form-btn" data-action="wb-doc-the">🔊 Nghe</button>
+      <a class="form-btn wb-yg" href="${escapeHtml(vdYouglish(m.en))}" target="_blank" rel="noopener"
+         title="Nghe người thật nói từ này trong video">▶ YouGlish</a>
       <button class="form-btn" data-action="wb-lat">${lat ? '↩︎ Úp lại' : '🔄 Lật thẻ'}</button>
     </div>
     ${lat ? `<div class="wb-cham-hang">${nutCham}</div>
@@ -11911,7 +12156,7 @@ function renderVocabSession(){
   // được thoát an toàn từ lúc dựng; nhưng chỗ chèn ra màn hình lại thoát THÊM một lần nữa,
   // nên mọi dấu < > thành chữ thường. Nay: thoát đúng MỘT lần, ngay tại chỗ dựng.
   const questionText = s.exType==='mc_en_vi' ? `${escapeHtml(word[1])} (${escapeHtml(word[2])}) nghĩa là gì?`
-    : s.exType==='fill_blank' ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:<div class="qz-cau">${escapeHtml(vocabBlankSentence(word))}</div>`
+    : s.exType==='fill_blank' ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:<div class="qz-cau">${escapeHtml(vocabBlankSentence(word, (vocabProgressFor(n)||{}).seen || 0))}</div>`
     : s.exType==='listen_en_vi' ? `🔊 Nghe từ vừa phát, chọn đúng nghĩa tiếng Việt`
     : `Từ tiếng Anh nào có nghĩa: "${escapeHtml(word[4])}"?`;
   // Item 6: dạng "listen_en_vi" KHÔNG hiện chữ tiếng Anh — chỉ có nút phát âm, buộc luyện nghe thật sự
