@@ -2429,14 +2429,16 @@
 .sd-dieu-ch{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
 .sd-dieu-ch .sd-toc{min-width:42px;text-align:center;padding:4px 7px;font-size:10.5px;border-radius:7px;}
 /* v208 — thanh chọn số câu của Chép chính tả */
-.dv-chon{border:1px solid rgba(255,209,102,.34);background:rgba(255,209,102,.07);border-radius:13px;
-  padding:11px 13px;margin-bottom:10px;}
+.dv-chon{border:1px solid rgba(255,209,102,.30);border-radius:14px;padding:12px 14px;margin-bottom:11px;
+  background:linear-gradient(135deg,rgba(255,209,102,.10),rgba(255,143,107,.05));}
 .dv-chon-h{font-size:12.5px;font-weight:800;color:#FFD166;margin-bottom:4px;}
 .dv-chon-p{font-size:11px;color:var(--dim);line-height:1.65;margin-bottom:9px;}
 .dv-chon-p b{color:#FFD166;}
 .dv-chon-r{display:flex;gap:6px;flex-wrap:wrap;}
 .dv-so{flex:1;min-width:62px;background:var(--card);border:1px solid var(--border);color:var(--dim);
-  border-radius:9px;padding:8px 6px;font-size:11.5px;font-weight:700;cursor:pointer;}
+  border-radius:999px;padding:8px 6px;font-size:11.5px;font-weight:700;cursor:pointer;
+  transition:border-color .16s,color .16s;}
+.dv-so:hover{border-color:rgba(255,209,102,.5);color:var(--text);}
 .dv-so.on{background:linear-gradient(135deg,#FFD166,#e0a83a);color:#241a05;border-color:transparent;}
 /* v211 — nút xin AI bổ sung chi tiết cho một từ đã lưu */
 .voc-ct-nut{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:2px;align-items:center;
@@ -2460,10 +2462,22 @@
 .sd-tiep:active{transform:scale(.97);}
 .sd-pl.on{background:rgba(255,201,74,.16);border-color:rgba(255,201,74,.5);color:#FFD166;}
 /* v210: nút ghi âm thu nhỏ, nhường chỗ cho lời thoại. */
-.sd-mic{display:block;margin:6px auto 3px;min-width:118px;border:none;border-radius:9px;
-  padding:6px 15px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;
-  background:linear-gradient(135deg,#2CDBA8,#1fa87f);color:#07130e;}
-.sd-mic.dang{background:linear-gradient(135deg,#ff5c5c,#c62f2f);color:#fff;}
+/* ══ v248 · SHADOWING — NÚT THU ÂM LÊN ĐẦU VÀ TO RÕ ════════════════════════════════════
+   Đây là nút bạn bấm nhiều nhất trong cả màn, mà trước nó chỉ bằng một nút phụ và nằm tận
+   dưới danh sách. Nay: to gấp đôi, nằm ngay dưới khung video, có quầng sáng cho dễ trúng. */
+.sd-mic-tren{margin:9px 0 4px;}
+.sd-mic{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto;
+  min-width:190px;border:none;border-radius:999px;padding:12px 26px;font-size:14px;font-weight:900;
+  cursor:pointer;font-family:inherit;letter-spacing:.2px;
+  background:linear-gradient(135deg,#2CDBA8,#1fa87f);color:#07130e;
+  box-shadow:0 6px 20px -6px rgba(44,219,168,.75);transition:transform .14s, box-shadow .18s;}
+.sd-mic:hover{transform:translateY(-1px);box-shadow:0 10px 26px -6px rgba(44,219,168,.85);}
+.sd-mic:active{transform:scale(.97);}
+.sd-mic.dang{background:linear-gradient(135deg,#ff5c5c,#c62f2f);color:#fff;
+  box-shadow:0 6px 22px -6px rgba(255,92,92,.8);}
+/* Danh sách lời thoại vẫn nằm trong trang (nhịp ghi âm cần các ô của nó) nhưng không chiếm chỗ. */
+.sd-an{display:none;}
+.sd-tb{margin:8px 0 2px;}
 .sd-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;margin-right:5px;animation:livePulse 1.1s ease-in-out infinite;}
 /* v210: khối bản ghi gọn lại; thêm dòng chữ chạy theo giọng của chính mình. */
 .sd-ban{margin-top:9px;background:var(--panel2,rgba(255,255,255,.03));border:1px solid rgba(44,219,168,.3);border-radius:11px;padding:8px 10px;}
@@ -2541,13 +2555,22 @@
 /* Video nhỏ lại — đây là bài NGHE. Muốn to thì bấm phóng to của YouTube. */
 .dv-vidwrap{max-width:460px;margin:0 auto;}
 .dv-dinh{padding-bottom:8px;}
-.dv-sum{display:flex;align-items:center;gap:9px;margin:8px 0 3px;}
+/* ══ v248 · CHÉP CHÍNH TẢ — LÀM LẠI GIAO DIỆN ══════════════════════════════════════════
+   Thẻ tiến độ: trước đây là một hàng chữ nhỏ lọt thỏm giữa hai khối khác, nhìn qua không
+   biết mình đang ở đâu. Nay thành một tấm có nền riêng, số phần trăm to rõ, thanh tiến độ
+   dày và có ánh sáng chạy theo. */
+.dv-sum{display:flex;align-items:center;gap:12px;margin:10px 0 4px;padding:11px 14px;
+  border-radius:14px;border:1px solid rgba(44,219,168,.26);
+  background:linear-gradient(135deg,rgba(44,219,168,.13),rgba(126,200,255,.09));}
 .dv-sum-l{font-size:10.5px;color:var(--dim);line-height:1.3;white-space:nowrap;}
-.dv-sum-l b{font-size:14.5px;color:#2CDBA8;font-family:var(--mono);}
-.dv-sum-l span{display:block;font-size:10px;color:var(--dim2);}
-.dv-sum-bar{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
-.dv-sum-f{height:100%;background:linear-gradient(90deg,#2CDBA8,#7ec8ff);border-radius:4px;transition:width .3s;}
-.dv-sum-p{font-size:13px;font-weight:800;font-family:var(--mono);color:#7ec8ff;}
+.dv-sum-l b{font-size:19px;font-weight:900;color:#2CDBA8;font-family:var(--mono);}
+.dv-sum-l span{display:block;font-size:9.5px;color:var(--dim2);margin-top:1px;}
+.dv-sum-bar{flex:1;height:9px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.45);}
+.dv-sum-f{height:100%;border-radius:6px;transition:width .35s cubic-bezier(.2,.7,.3,1);
+  background:linear-gradient(90deg,#2CDBA8,#7ec8ff,#B78CFF);
+  box-shadow:0 0 10px rgba(44,219,168,.5);}
+.dv-sum-p{font-size:17px;font-weight:900;font-family:var(--mono);color:#7ec8ff;min-width:44px;text-align:right;}
 .dv-lien{width:100%;margin:8px 0 2px;padding:9px 10px;border-radius:10px;cursor:pointer;
   border:1px solid rgba(44,219,168,.45);background:rgba(44,219,168,.10);color:#2CDBA8;
   font-size:12px;font-weight:800;}
@@ -2556,28 +2579,39 @@
 .dv-lien-mo{font-size:9.5px;color:var(--dim2);line-height:1.5;margin-top:5px;}
 /* Thanh tốc độ gọn lại thành một hàng nhỏ: cả thanh cao bằng một dòng chữ, không còn chiếm ba
    dòng (nhãn + hàng nút + dòng mô tả) như trước. Mô tả chuyển vào title để bấm giữ vẫn xem được. */
-.dv-tocbar{display:flex;align-items:center;gap:4px;margin:8px 0 2px;}
+.dv-tocbar{display:flex;align-items:center;gap:5px;margin:9px 0 2px;padding:5px 7px;
+  border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);}
 .dv-tocbar-lb{font-size:12px;flex:0 0 auto;opacity:.75;}
 .dv-toc-lb{font-size:8.5px;font-weight:800;color:var(--dim2);letter-spacing:.04em;margin:7px 0 4px;}
 .dv-toc-row{display:flex;gap:5px;}
 /* v172: khung tốc độ gọn lại — vẫn sáng và dễ bấm, nhưng không chiếm chỗ của danh sách câu */
-.dv-tocbar .dv-toc{padding:5px 2px;font-size:10.5px;border-radius:7px;}
+.dv-tocbar .dv-toc{padding:6px 2px;font-size:10.5px;border-radius:999px;}
 .dv-toc{flex:1;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 2px;
   font-size:11px;font-weight:800;font-family:var(--mono);cursor:pointer;line-height:1.2;}
 .dv-toc.on{background:linear-gradient(135deg,#7ec8ff,#4a8fd4);color:#06121f;border-color:transparent;
-  box-shadow:0 2px 9px -3px rgba(126,200,255,.6);}
+  box-shadow:0 3px 12px -3px rgba(126,200,255,.75);}
+.dv-toc:hover{border-color:rgba(126,200,255,.45);}
 .dv-toc-mo{font-size:9.5px;color:var(--dim2);line-height:1.45;margin-top:4px;}
-.dv-ds-h{font-size:11.5px;font-weight:700;color:var(--dim);margin:13px 0 8px;}
+.dv-ds-h{font-size:11.5px;font-weight:800;color:var(--dim);margin:14px 0 9px;
+  display:flex;align-items:center;gap:7px;}
 .dv-ds-h b{color:var(--text);}
-.dv-rows{display:flex;flex-direction:column;gap:5px;}
-.dv-row{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.dv-row.mo{border-color:rgba(126,200,255,.55);}
+.dv-ds-h::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.dv-rows{display:flex;flex-direction:column;gap:7px;}
+/* Vạch màu bên trái cho biết câu đang mở / đã xong — nhìn lướt cả cột là thấy ngay. */
+.dv-row{position:relative;background:var(--card);border:1px solid var(--border);border-radius:13px;
+  overflow:hidden;transition:border-color .18s, transform .12s, box-shadow .18s;}
+.dv-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;
+  transition:background .18s;}
+.dv-row:hover{transform:translateX(2px);}
+.dv-row.mo{border-color:rgba(126,200,255,.55);box-shadow:0 6px 20px -8px rgba(126,200,255,.55);}
+.dv-row.mo::before{background:linear-gradient(180deg,#7ec8ff,#4a8fd4);}
 .dv-row.xong{border-color:rgba(44,219,168,.35);}
-.dv-row-h{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;}
-.dv-row-n{flex:0 0 24px;height:24px;border-radius:7px;background:var(--panel2,rgba(255,255,255,.05));
+.dv-row.xong::before{background:linear-gradient(180deg,#2CDBA8,#1f9e7a);}
+.dv-row-h{display:flex;align-items:center;gap:9px;padding:10px 12px;cursor:pointer;}
+.dv-row-n{flex:0 0 26px;height:26px;border-radius:9px;background:var(--panel2,rgba(255,255,255,.05));
   border:1px solid var(--border);color:var(--dim2);font-size:11px;font-weight:800;font-family:var(--mono);
-  display:flex;align-items:center;justify-content:center;}
+  display:flex;align-items:center;justify-content:center;transition:background .18s,color .18s;}
 .dv-row.xong .dv-row-n{background:rgba(44,219,168,.18);border-color:transparent;color:#2CDBA8;font-size:13px;}
 .dv-row.mo .dv-row-n{background:rgba(126,200,255,.18);border-color:transparent;color:#7ec8ff;}
 .dv-row-tx{flex:1;min-width:0;font-size:13px;line-height:1.5;color:var(--text);
@@ -2587,7 +2621,9 @@
 .dv-row.xong .dv-row-tx{color:#8fd8bd;}
 .dv-row-t{flex:0 0 auto;font-size:10px;color:var(--dim2);font-family:var(--mono);}
 .dv-row-btn{flex:0 0 auto;font-size:10.5px;font-weight:800;color:#7ec8ff;
-  border:1px solid rgba(126,200,255,.4);border-radius:7px;padding:4px 9px;}
+  border:1px solid rgba(126,200,255,.4);border-radius:999px;padding:5px 11px;
+  background:rgba(126,200,255,.10);transition:background .16s,color .16s;}
+.dv-row-btn:hover{background:rgba(126,200,255,.22);}
 .dv-row.mo .dv-row-btn{color:var(--dim2);border-color:var(--border);}
 .dv-row-body{padding:0 12px 13px;border-top:1px solid var(--border);padding-top:12px;}
 /* ── Học theo video (v178): video trên, ba thẻ, lời thoại tự cuộn ── */
@@ -2945,7 +2981,13 @@
    cho trống khung hình, đưa chuột tới hoặc dừng video thì hiện lại. Thuộc tính mờ/rõ vẫn nằm
    TRONG luật gốc ở dưới, đúng lời dặn ngay trên: không đẻ ra luật .hv-nutbar thứ hai. */
 .hv-nutbar.hien{opacity:.62;}
-.hv-vidwrap:hover .hv-nutbar.hien, .hv-nutbar:hover, .hv-nutbar:focus-within{opacity:1;}
+/* ══ v248 · VÌ SAO HAI LẦN SỬA TRƯỚC VẪN KHÔNG ẨN ══════════════════════════════════════
+   Luật cũ có :focus-within KHÔNG kèm .hien. Bạn vừa bấm một nút bất kỳ trong dãy (CC, ¶,
+   VN…) là nút ấy GIỮ tiêu điểm bàn phím — và :focus-within cứ thế đúng mãi, độ mờ bị ghim
+   ở 1 bất kể phần JS có gỡ lớp .hien hay không. Nghĩa là hai bản v246/v247 tôi sửa đúng
+   phần JS, nhưng CSS vẫn đè lên. Nay cả ba lối làm sáng đều phải đi kèm .hien; còn việc
+   "rê tới góc ấy thì hiện ra" do phần JS lo (nó bắt pointermove và focusin trong khung). */
+.hv-vidwrap:hover .hv-nutbar.hien, .hv-nutbar.hien:hover, .hv-nutbar.hien:focus-within{opacity:1;}
 .hv-nb{transition:background .16s, transform .12s, box-shadow .16s;}
 .hv-nb:hover{transform:translateY(-1px);}
 .hv-nb:active{transform:scale(.93);}
@@ -3464,12 +3506,14 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hm-thanh{display:block; height:3px; border-radius:2px; background:rgba(255,255,255,.09); margin-top:5px; overflow:hidden;}
 .hm-thanh b{display:block; height:100%; background:#2CDBA8;}
 .hv-hanmuc.canh .hm-thanh b{background:#FF9A76;}
-.hv-them{padding:11px; font-size:12.5px; border-radius:12px; box-shadow:none; margin-bottom:11px;}
+.hv-them{padding:9px 13px; font-size:12px; border-radius:11px; box-shadow:none;}
 .hv-ds{gap:9px;}
-.hv-the{padding:8px; border-radius:12px; gap:10px;}
-.hv-the-anh{width:96px; border-radius:9px;}
-.hv-the-tt{font-size:12px;}
-.hv-the-play{width:24px; height:24px; font-size:10px;}
+/* v248 — điện thoại vẫn xếp lưới, chỉ hạ mức tối thiểu xuống để vừa hai cột trên máy ngang. */
+.hv-ds{grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px;}
+.hv-the{border-radius:13px;}
+.hv-the-than{padding:9px 10px 10px;}
+.hv-the-tt{font-size:11.5px; min-height:2.9em;}
+.hv-the-play{width:34px; height:34px; font-size:13px;}
 .hv-the-chip{margin-top:5px;}
 /* hướng dẫn chép phụ đề — chia hai nhóm, có ví dụ mẫu */
 .hv-hd-nhom{margin-top:11px;}
@@ -3497,26 +3541,40 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-ba-o span{font-size:17px; display:block;}
 .hv-ba-o b{display:block; margin-top:3px; font-size:11px; color:var(--text);}
 .hv-ba-o small{display:block; margin-top:2px; font-size:9px; line-height:1.4; color:var(--dim2);}
-.hv-them{width:100%; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:13px;
-  padding:13px; border:none; border-radius:14px; font-family:inherit; font-size:13.5px; font-weight:800;
+/* ══ v248 · DANH SÁCH VIDEO KIỂU LƯỚI ═══════════════════════════════════════════════════
+   Trước đây mỗi video là một hàng ngang chạy hết bề ngang màn hình, ảnh bé 124px nằm nép
+   bên trái — trên máy tính thì thừa mênh mông chỗ trống mà ảnh vẫn tí xíu. Nay xếp lưới, ảnh
+   chiếm trọn bề ngang thẻ, tự co giãn theo màn. Nút "Thêm video" cũng không còn chạy dài
+   hết hàng nữa mà gọn lại đúng bề rộng chữ, đứng chung hàng với nhãn số lượng. */
+.hv-hang-cc{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:13px;}
+.hv-hang-cc .hv-dem{font-size:11px; font-weight:700; color:var(--dim2); margin-left:auto;}
+.hv-them{display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:9px 16px; border:none; border-radius:11px; font-family:inherit; font-size:12.5px; font-weight:800;
   color:#08130f; cursor:pointer; background:linear-gradient(120deg,#2CDBA8,#4FA8FF);
-  box-shadow:0 6px 20px rgba(44,219,168,.28);}
-.hv-them span{font-size:15px;}
-.hv-ds{display:flex; flex-direction:column; gap:11px;}
-.hv-the{position:relative; display:flex; gap:12px; background:var(--card); border:1px solid var(--border);
-  border-radius:15px; padding:10px; cursor:pointer; transition:border-color .18s, transform .12s;}
-.hv-the:active{transform:scale(.995); border-color:rgba(44,219,168,.5);}
-.hv-the-anh{position:relative; width:124px; flex:0 0 auto; border-radius:11px; overflow:hidden; background:#000;}
-.hv-the-anh img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:16/9;}
-.hv-the-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:30px; height:30px;
-  border-radius:50%; background:rgba(0,0,0,.62); color:#fff; font-size:12px; display:flex;
-  align-items:center; justify-content:center; padding-left:2px;}
-.hv-the-badge{position:absolute; left:5px; bottom:5px; font-size:8.5px; font-weight:800; padding:2px 6px;
-  border-radius:6px; backdrop-filter:blur(4px);}
-.hv-the-badge.co{background:rgba(44,219,168,.85); color:#08130f;}
-.hv-the-badge.chua{background:rgba(255,201,74,.85); color:#171208;}
-.hv-the-than{flex:1; min-width:0; padding-right:20px; display:flex; flex-direction:column; justify-content:center;}
-.hv-the-tt{font-size:13px; font-weight:700; color:var(--text); line-height:1.45;
+  box-shadow:0 4px 14px rgba(44,219,168,.24);}
+.hv-them span{font-size:14px;}
+.hv-ds{display:grid; grid-template-columns:repeat(auto-fill, minmax(232px, 1fr)); gap:14px;}
+.hv-the{position:relative; display:flex; flex-direction:column; background:var(--card);
+  border:1px solid var(--border); border-radius:16px; padding:0; overflow:hidden; cursor:pointer;
+  transition:border-color .18s, transform .14s, box-shadow .18s;}
+.hv-the:hover{transform:translateY(-2px); border-color:rgba(44,219,168,.45);
+  box-shadow:0 12px 28px rgba(0,0,0,.34);}
+.hv-the:active{transform:scale(.99); border-color:rgba(44,219,168,.5);}
+.hv-the-anh{position:relative; width:100%; flex:0 0 auto; background:#000; aspect-ratio:16/9;}
+.hv-the-anh img{width:100%; height:100%; object-fit:cover; display:block;}
+.hv-the-anh::after{content:''; position:absolute; inset:auto 0 0 0; height:52%; pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0));}
+.hv-the-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:46px; height:46px;
+  border-radius:50%; background:rgba(0,0,0,.55); color:#fff; font-size:17px; display:flex;
+  align-items:center; justify-content:center; padding-left:3px; z-index:2;
+  border:1.5px solid rgba(255,255,255,.55); transition:transform .16s, background .16s;}
+.hv-the:hover .hv-the-play{transform:translate(-50%,-50%) scale(1.09); background:rgba(44,219,168,.88); color:#08130f;}
+.hv-the-badge{position:absolute; left:8px; bottom:8px; z-index:2; font-size:9.5px; font-weight:800;
+  padding:3px 8px; border-radius:7px; backdrop-filter:blur(4px);}
+.hv-the-badge.co{background:rgba(44,219,168,.9); color:#08130f;}
+.hv-the-badge.chua{background:rgba(255,201,74,.9); color:#171208;}
+.hv-the-than{flex:1; min-width:0; padding:11px 12px 12px; display:flex; flex-direction:column;}
+.hv-the-tt{font-size:13px; font-weight:700; color:var(--text); line-height:1.45; min-height:2.9em;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
 .hv-the-chip{display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;}
 .hv-chip{font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:999px; border:1px solid var(--border);
@@ -3524,10 +3582,15 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-chip.xanh{border-color:rgba(44,219,168,.45); color:#2CDBA8;}
 .hv-chip.tim{border-color:rgba(183,140,255,.45); color:#B78CFF;}
 .hv-chip.vang{border-color:rgba(255,201,74,.45); color:#FFC94A;}
-.hv-the-thanh{height:3px; border-radius:2px; background:rgba(255,255,255,.08); margin-top:8px; overflow:hidden;}
+.hv-the-thanh{height:3px; border-radius:2px; background:rgba(255,255,255,.08); margin-top:auto; overflow:hidden;}
 .hv-the-thanh i{display:block; height:100%; background:linear-gradient(90deg,#2CDBA8,#4FA8FF);}
-.hv-the-xoa{position:absolute; right:7px; top:7px; background:transparent; border:none; color:var(--dim2);
-  font-size:13px; padding:3px 5px; cursor:pointer; opacity:.55;}
+/* Nút xoá nổi trên ảnh, chỉ rõ lên khi rê vào thẻ — không chiếm chỗ của tiêu đề nữa. */
+.hv-the-xoa{position:absolute; right:7px; top:7px; z-index:3; background:rgba(0,0,0,.55); border:none;
+  color:#fff; font-size:13px; width:28px; height:28px; border-radius:9px; cursor:pointer; opacity:0;
+  transition:opacity .16s, background .16s;}
+.hv-the:hover .hv-the-xoa{opacity:.85;}
+.hv-the-xoa:hover{background:rgba(255,107,107,.9); opacity:1;}
+@media(hover:none){ .hv-the-xoa{opacity:.8;} }
 .hv-trong2{text-align:center; padding:26px 18px; border:1px dashed var(--border); border-radius:15px;
   color:var(--dim2); font-size:11.5px; line-height:1.7;}
 .hv-trong2 b{display:block; color:var(--text); font-size:13.5px; margin-bottom:5px;}
@@ -3943,7 +4006,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v247';
+const APP_VERSION = 'v248';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -17339,6 +17402,9 @@ function hvVuaKhungHinh(){
   });
 }
 function hvSauVeTam(rec, s){
+  // v248 — dựng nhịp ẩn/hiện dãy nút ngay sau MỖI lần vẽ tấm. Trước đây chỉ có hvVeNutPlay
+  // gọi, mà hàm ấy treo vào onStateChange của trình phát: chưa phát lần nào thì nhịp chưa chạy.
+  try{ hvGanAnNut(); }catch(_){ }
   if(s.tab === 'phude'){
     const khung = document.getElementById('hvLoiWrap');
     if(khung && khung.addEventListener){
@@ -17392,13 +17458,22 @@ function hvPanelHtml(rec, s){
     if(!ss) return '<div class="sd-tran empty">Chưa mở được bài shadowing.</div>';
     // v210: LỜI THOẠI lên ngay dưới thanh điều khiển. Trước đây nút ghi âm và mấy bản ghi chiếm
     // hết chỗ trên, đẩy lời thoại xuống dưới màn hình — đang ghi âm mà phải vừa đọc vừa cuộn.
+    // v248 — NÚT THU ÂM LÊN ĐẦU. Trước đây nó nằm dưới cả danh sách lời thoại, nên tắt danh
+    // sách đi là nút trôi lên lưng chừng, còn bật lên thì phải cuộn qua mấy chục câu mới tới.
+    // Nay nút luôn đứng ngay dưới khung video, chỗ tay với tới dễ nhất.
+    // Danh sách lời thoại VẪN được dựng dù đang ẩn — nhịp ghi âm ghi vệt sáng vào đúng các ô
+    // sd-line-*/sd-x-* trong đó; gỡ hẳn ra khỏi trang là mất chỗ ghi, mà ẩn thì không sao.
+    const dsMo = hvDanhSach();
     return `<div id="sdErrWrap">${sdErrHtml(ss)}</div>
-      <div class="sd-bar" id="sdBarWrap">${sdBarHtml(ss)}</div>
-      <div id="sdTranWrap">${sdLoiThoaiHtml(rec, ss)}</div>
-      <div id="sdMicWrap">${sdNutGhiHtml(ss)}</div>
+      <div id="sdMicWrap" class="sd-mic-tren">${sdNutGhiHtml(ss)}</div>
       ${!sdHoTroGhiAm() ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : ''}
+      ${sdCongCuHtml(ss)}
+      <div class="sd-bar" id="sdBarWrap">${sdBarHtml(ss)}</div>
+      <div id="sdTranWrap"${dsMo ? '' : ' class="sd-an"'}>${sdLoiThoaiHtml(rec, ss)}</div>
       <div id="sdBanWrap">${sdBanHtml(ss)}</div>
-      <div class="sd-foot">Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất. Giữ tối đa 3 bản gần nhất.</div>`;
+      <div class="sd-foot">${dsMo
+        ? 'Bấm một câu để nhảy tới đúng chỗ đó. Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất.'
+        : 'Lời thoại đang chạy ngay trong khung hình. Cần nhìn cả bài thì bấm ☰ Danh sách. Bản ghi âm chỉ giữ trong phiên này.'}</div>`;
   }
   return `${hvLoiThoaiHtml(rec)}
     <div class="sd-foot">${hvDanhSach()
@@ -17470,7 +17545,10 @@ function renderHocVideo(item){
       </div>
       <div class="hv-hero-so"><b>${list.length}</b><small>video</small></div>
     </div>
-    <button class="hv-them" data-action="hv-them-mo"><span>➕</span> Thêm video YouTube</button>
+    <div class="hv-hang-cc">
+      <button class="hv-them" data-action="hv-them-mo"><span>➕</span> Thêm video YouTube</button>
+      ${list.length ? `<span class="hv-dem">${list.length} video trong danh sách</span>` : ''}
+    </div>
     ${list.length ? `<div class="hv-ds">${the}</div>`
                   : `<div class="hv-trong2">
                        <div style="font-size:30px; margin-bottom:8px;">📺</div>
@@ -19269,8 +19347,10 @@ function renderHocVideoPhien(item){
 // chỉ tổ nhấp nháy. Bật CC thì danh sách vốn đã trống nên cũng không cần hoãn.
 // Thẻ Phụ đề mà không mở danh sách thì chẳng còn gì để xếp sang cột bên — chia đôi màn hình chỉ
 // tổ bó khung video lại còn hơn nửa bề ngang. Lúc đó xếp một cột, video nằm giữa.
+// v248 — Shadowing nay cũng dùng được chế độ MỘT CỘT như Phụ đề: tắt danh sách thì video
+// vào giữa và lời thoại chạy ngay trong khung hình, chỗ trống bên dưới dành cho nút thu âm.
 function hvMotCot(s){
-  return !!s && s.tab === 'phude' && !hvDanhSach();
+  return !!s && (s.tab === 'phude' || s.tab === 'shadowing') && !hvDanhSach();
 }
 // Đổi bố cục ngay tại chỗ, không vẽ lại cả màn — vẽ lại là huỷ iframe, video khởi động lại từ đầu.
 function hvApBoCuc(){
@@ -22918,6 +22998,15 @@ function sdDatTocDo(v){
 //
 // Cách sửa: mỗi vùng thay đổi được bọc trong một thẻ có id riêng, và chỉ ghi đè innerHTML của
 // ĐÚNG vùng đó. Khung video nằm ngoài mọi vùng này nên không bao giờ bị đụng tới.
+// v248 — hàng công cụ gọn cho thẻ Shadowing. Công tắc ☰ Danh sách vốn chỉ có ở thẻ Phụ đề,
+// nên bên này không có cách nào bật/tắt chế độ playlist cả.
+function sdCongCuHtml(s){
+  return `<div class="hv-tb sd-tb">
+    <button class="hv-tb-n ${hvDanhSach()?'on':''}" data-action="hv-danh-sach" title="Hiện/ẩn danh sách toàn bộ lời thoại bên dưới"><i>☰</i>Danh sách</button>
+    <button class="hv-tb-n ${SETTINGS.hvCap?'on':''}" data-action="hv-cap-bat" title="Lời thoại chạy ngay trong khung video"><i>💬</i>Phụ đề</button>
+    <button class="hv-tb-n ${hvHienNghia()?'on':''}" data-action="hv-nghia" title="Hiện nghĩa tiếng Việt dưới lời thoại"><i>🇻🇳</i>Dịch</button>
+  </div>`;
+}
 function sdNutGhiHtml(s){
   const ghi = s.dangGhi
     ? `<button class="sd-mic dang" data-action="sd-ghi-dung"><span class="sd-dot"></span> Dừng · <span id="sdDongHo">${sdFmt(s.giay)}</span></button>`
