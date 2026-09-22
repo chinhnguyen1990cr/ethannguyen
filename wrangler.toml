@@ -1,0 +1,42 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  Daily Reading Practice — cấu hình Cloudflare Worker
+#  Chỉ cần tệp này nếu bạn triển khai bằng dòng lệnh (wrangler). Dán tay trong
+#  dashboard thì bỏ qua tệp này, chỉ cần khai biến ở Settings → Variables.
+# ════════════════════════════════════════════════════════════════════════════
+
+name = "daily-reading"
+main = "daily-reading-worker.js"
+compatibility_date = "2026-09-01"
+
+# ── BIẾN THƯỜNG (không bí mật) ──────────────────────────────────────────────
+# Ghi thẳng vào tệp này được, vì nó không phải bí mật.
+[vars]
+# Địa chỉ app của bạn. Để trống thì worker mở cho mọi nguồn — tiện lúc thử, nhưng
+# lúc ấy trang nào cũng gọi được worker này và tiêu hạn mức Gemini của bạn.
+ALLOW_ORIGIN = "https://ethannguyen.chinhnguyen1990cr.workers.dev"
+
+# Module 3 (chấm phát âm) sẽ cần thêm — chưa dùng ở Module 1:
+# AZURE_REGION = "southeastasia"
+
+# ── BIẾN BÍ MẬT — TUYỆT ĐỐI KHÔNG ĐẶT Ở [vars] VÀ KHÔNG VIẾT VÀO TỆP NÀY ────
+# Tệp wrangler.toml thường được đưa lên Git. Khoá viết ở đây là khoá đã lộ.
+# Khai bằng dòng lệnh (mỗi lệnh sẽ hỏi giá trị, không hiện lên màn hình):
+#
+#   npx wrangler secret put GEMINI_API_KEY
+#   npx wrangler secret put AZURE_SPEECH_KEY     # chỉ cần khi làm tới Module 3
+#
+# Hoặc trong dashboard: Worker → Settings → Variables and Secrets → Add →
+# chọn kiểu "Secret" (không phải "Text").
+#
+# Danh sách đầy đủ biến mà tính năng này dùng:
+#   GEMINI_API_KEY    Secret   Module 1 (sinh văn bản) + Module 3 Option 2 (chấm bằng Gemini)
+#   AZURE_SPEECH_KEY  Secret   Module 3 Option 1 (Azure Pronunciation Assessment)
+#   AZURE_REGION      Text     Module 3 Option 1 — ví dụ "southeastasia", "eastus"
+#   ALLOW_ORIGIN      Text     Chặn nguồn gọi, nên đặt đúng địa chỉ app
+
+# ── Triển khai ──────────────────────────────────────────────────────────────
+#   npx wrangler deploy
+#
+# Kiểm tra nhanh sau khi triển khai (không lộ khoá):
+#   curl https://daily-reading.<tài-khoản>.workers.dev/health
+#   → {"ok":true,"module1":true,"hasGeminiKey":true,"model":"gemini-2.0-flash"}
