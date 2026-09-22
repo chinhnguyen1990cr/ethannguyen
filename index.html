@@ -4183,7 +4183,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v252';
+const APP_VERSION = 'v253';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10088,8 +10088,18 @@ function drpTuVung(n){
 }
 
 // ── Gọi worker ────────────────────────────────────────────────────────────────────────
+// Đọc thẳng giá trị ĐANG NẰM TRONG Ô rồi mới lưu. Bộ nghe uỷ quyền ở trên đã đủ, nhưng
+// đây là chỗ đúng để buộc thêm một nút: người dùng bấm nút mà ô có chữ thì phải dùng chữ ấy,
+// không phụ thuộc vào việc sự kiện nhập có kịp chạy hay không.
+function drpDocOWorker(){
+  try{
+    const el = document.getElementById('drpWorker');
+    if(el && typeof el.value === 'string' && el.value.trim()) drpDatWorker(el.value);
+  }catch(_){ }
+  return drpWorker();
+}
 async function drpKiemTraWorker(){
-  const w = drpWorker();
+  const w = drpDocOWorker();
   const s = STATE.drpPhien || (STATE.drpPhien = {});
   if(!w){ s.loi = 'Chưa dán địa chỉ Worker.'; try{ renderContent(); }catch(_){ } return false; }
   s.dangThu = true; s.loi = null; s.suckhoe = null;
@@ -10109,7 +10119,7 @@ async function drpKiemTraWorker(){
 }
 async function drpSinhVanBan(){
   const s = STATE.drpPhien || (STATE.drpPhien = {});
-  const w = drpWorker();
+  const w = drpDocOWorker();
   if(!w){
     s.loi = 'Chưa có địa chỉ Worker. Dán vào ô bên trên rồi bấm Kiểm tra.';
     try{ renderContent(); }catch(_){ } return;
@@ -10175,7 +10185,7 @@ function drpWorkerHtml(){
     <input id="drpWorker" class="form-input" type="url" inputmode="url" autocomplete="off"
       placeholder="https://daily-reading.tai-khoan.workers.dev"
       value="${escapeHtml(drpWorker())}"
-      oninput="try{drpDatWorker(this.value)}catch(e){}">
+      data-nhap="drp-worker">
     <div class="drp-wk-hang">
       <button class="form-btn" data-action="drp-thu-worker" ${s.dangThu ? 'disabled' : ''}>${
         s.dangThu ? '⏳ Đang kiểm tra…' : '🔌 Kiểm tra kết nối'}</button>
@@ -12509,8 +12519,8 @@ function renderVocabSession(){
       <input id="vocabTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
         placeholder="Gõ từ vừa nghe…" value="${escapeHtml(s.typedValue||'')}"
         ${s.answered!==null?'disabled':''}
-        oninput="vocabTypedInput(this.value)" onchange="vocabTypedInput(this.value)" onblur="vocabTypedInput(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault(); vocabTypedSubmit();}">
+        data-nhap="vocab-typed"
+        data-enter="vocab-typed">
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(target)}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(target)} = ${escapeHtml(word[4])}</div>
@@ -12528,8 +12538,8 @@ function renderVocabSession(){
       <input id="vocabTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
         placeholder="Gõ từ tiếng Anh…" value="${escapeHtml(s.typedValue||'')}"
         ${s.answered!==null?'disabled':''}
-        oninput="vocabTypedInput(this.value)" onchange="vocabTypedInput(this.value)" onblur="vocabTypedInput(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault(); vocabTypedSubmit();}">
+        data-nhap="vocab-typed"
+        data-enter="vocab-typed">
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="vocab-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(target)}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(word[5])}</div>
@@ -15679,8 +15689,8 @@ function renderSentSession(tenMan){
       <input id="sentTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
         placeholder="Gõ từ còn thiếu…" value="${escapeHtml(s.typedValue||'')}"
         ${s.answered!==null?'disabled':''}
-        oninput="sentTypedInput(this.value)" onchange="sentTypedInput(this.value)" onblur="sentTypedInput(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault(); sentTypedSubmit();}">
+        data-nhap="sent-typed"
+        data-enter="sent-typed">
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(s.blankWord)}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[1])}</div>
@@ -15716,8 +15726,8 @@ function renderSentSession(tenMan){
       <input id="sentTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
         placeholder="Gõ cả câu vừa nghe…" value="${escapeHtml(s.typedValue||'')}"
         ${s.answered!==null?'disabled':''}
-        oninput="sentTypedInput(this.value)" onchange="sentTypedInput(this.value)" onblur="sentTypedInput(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault(); sentTypedSubmit();}">
+        data-nhap="sent-typed"
+        data-enter="sent-typed">
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(sentence[1])}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[4])}</div>
@@ -15732,8 +15742,8 @@ function renderSentSession(tenMan){
       <input id="sentTypedInputEl" type="text" class="vocab-type-input ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
         placeholder="Gõ cả câu tiếng Anh…" value="${escapeHtml(s.typedValue||'')}"
         ${s.answered!==null?'disabled':''}
-        oninput="sentTypedInput(this.value)" onchange="sentTypedInput(this.value)" onblur="sentTypedInput(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault(); sentTypedSubmit();}">
+        data-nhap="sent-typed"
+        data-enter="sent-typed">
       ${s.answered===null ? `<button class="form-btn eng-quiz-nextbtn" style="width:100%; margin-top:12px;" data-action="sent-typed-submit">✓ Kiểm tra</button>` : `
       <div class="vocab-scramble-result ${s.isCorrectAnswer?'ok':'no'}" style="margin-top:10px;">${s.isCorrectAnswer?'✓ Chính xác!':`✗ Chưa đúng — đáp án: ${escapeHtml(sentence[1])}`}</div>
       <div class="eng-quiz-explain">💡 ${escapeHtml(sentence[2])}</div>
@@ -20968,7 +20978,7 @@ function dvThanHtml(rec, s){
   return `<div class="dvq">
     <textarea id="dvInput" class="dvq-ta" autocomplete="off" autocapitalize="off" spellcheck="false"
       data-i="${s.idx}"
-      placeholder="Gõ lại câu bạn nghe được…" oninput="dvGoInput(this.value, ${s.idx})" onchange="dvGoInput(this.value, ${s.idx})" onblur="dvGoInput(this.value, ${s.idx})">${escapeHtml(dangGo)}</textarea>
+      placeholder="Gõ lại câu bạn nghe được…" data-nhap="dv-go">${escapeHtml(dangGo)}</textarea>
     <div class="dvq-meta">
       <span>Không cần đúng hoa/thường hay dấu câu</span>
       <span><b id="dvSoTu">${soTu}</b> từ</span>
@@ -21203,7 +21213,7 @@ function renderDictSession(){
     ${dictThanhPhatHtml(s)}
     <textarea id="dictTypedInputEl" class="vocab-type-input dict-ta ${inputCls}" autocomplete="off" autocapitalize="off" spellcheck="false"
       placeholder="Gõ lại câu bạn nghe được…" ${s.answered!==null?'disabled':''}
-      oninput="dictTypedInput(this.value)" onchange="dictTypedInput(this.value)" onblur="dictTypedInput(this.value)">${escapeHtml(s.typedValue||'')}</textarea>
+      data-nhap="dict-typed">${escapeHtml(s.typedValue||'')}</textarea>
     ${s.answered===null ? `
       ${s.thuHien ? dictThuHtml(sentence[2], s.typedValue||'', s.thuLan||1) : ''}
       <div style="display:flex; gap:9px; margin-top:12px;">
@@ -21800,7 +21810,7 @@ function renderAiChatSessionHtml(){
     ${errorHtml}
     <div class="ai-chat-inputbar">
       <button class="ai-chat-mic-btn ${s.recording?'recording':''}" data-action="aichat-toggle-record" ${s.sending?'disabled':''}>${svgIcon('mic')}</button>
-      <input id="aiChatInput" class="ai-chat-input" type="text" placeholder="${s.recording?'Đang nghe…':'Gõ tin nhắn hoặc bấm mic để nói…'}" ${s.sending||s.recording?'disabled':''} onkeydown="if(event.key==='Enter'){event.preventDefault(); aiChatSendText();}">
+      <input id="aiChatInput" class="ai-chat-input" type="text" placeholder="${s.recording?'Đang nghe…':'Gõ tin nhắn hoặc bấm mic để nói…'}" ${s.sending||s.recording?'disabled':''} data-enter="aichat">
       <button class="ai-chat-send-btn" data-action="aichat-send-text" ${s.sending?'disabled':''}>➤</button>
     </div>`;
 }
@@ -29788,6 +29798,56 @@ function renderContentInner(){
 // relatedTarget cho biết con trỏ đi đâu để phân biệt "sang chữ bên cạnh" với "rời hẳn ra".
 document.getElementById('content').addEventListener('mouseover',(e)=>{ try{ hvReVaoChu(e); }catch(_){ } });
 document.getElementById('content').addEventListener('mouseout', (e)=>{ try{ hvReRoiChu(e); }catch(_){ } });
+// ── BỘ ĐIỀU PHỐI CHO Ô NHẬP ────────────────────────────────────────────────────────────
+// Toàn bộ mã app nằm gọn trong một IIFE, nên KHÔNG hàm nào là hàm toàn cục. Thuộc tính
+// oninput="tenHam(this.value)" viết thẳng trong HTML lại được trình duyệt tra tên ở phạm vi
+// TOÀN CỤC — không thấy, ném ReferenceError, rồi im lặng. Đã đo tận nơi trên bản đang chạy:
+// một phần tử mang onclick="drpDatWorker(...)" ném đúng "drpDatWorker is not defined".
+// Triệu chứng thì vô hình: gõ vào ô vẫn thấy chữ hiện lên, chỉ là chẳng ai ghi lại.
+// Chữa tận gốc bằng một bộ nghe uỷ quyền — đúng lối mà data-action đã dùng cho cú bấm.
+const O_NHAP = {};
+function ganONhap(ten, fn){ O_NHAP[ten] = fn; }
+function chayONhap(e){
+  const el = e.target;
+  if(!el || !el.getAttribute) return;
+  const ten = el.getAttribute('data-nhap');
+  if(!ten) return;
+  const fn = O_NHAP[ten];
+  if(typeof fn !== 'function') return;
+  try{ fn(el.value, el); }catch(err){ console.warn('o nhap ' + ten, err); }
+}
+// Bấm Enter để gửi cũng viết bằng onkeydown="..." — chết y hệt, và triệu chứng còn kín hơn:
+// gõ xong nhấn Enter, không có gì xảy ra, chẳng ai nghĩ đó là lỗi mà chỉ tưởng app không có
+// phím tắt. Sáu chỗ như vậy: gõ từ vựng (2), gõ câu (3), và ô chat của Hội thoại AI.
+const O_ENTER = {};
+function ganOEnter(ten, fn){ O_ENTER[ten] = fn; }
+function chayOEnter(e){
+  if(e.key !== 'Enter' || e.shiftKey) return;
+  const el = e.target;
+  if(!el || !el.getAttribute) return;
+  const ten = el.getAttribute('data-enter');
+  if(!ten) return;
+  const fn = O_ENTER[ten];
+  if(typeof fn !== 'function') return;
+  e.preventDefault();
+  try{ fn(el.value, el); }catch(err){ console.warn('enter ' + ten, err); }
+}
+document.addEventListener('keydown', chayOEnter, true);
+['input', 'change', 'blur'].forEach(loai=>{
+  // blur không nổi bọt, nên phải bắt ở pha bắt (capture) mới với tới được.
+  document.addEventListener(loai, chayONhap, true);
+});
+ganONhap('drp-worker',  (v)=>{ drpDatWorker(v); });
+ganONhap('vocab-typed', (v)=>{ vocabTypedInput(v); });
+ganONhap('sent-typed',  (v)=>{ sentTypedInput(v); });
+ganONhap('dict-typed',  (v)=>{ dictTypedInput(v); });
+// Ô của "Chép chính tả qua video" mang theo chỉ số câu của chính nó — đọc từ data-i,
+// đúng như tham số thứ hai mà bản cũ truyền vào.
+ganONhap('dv-go', (v, el)=>{ dvGoInput(v, el.getAttribute('data-i')); });
+ganOEnter('vocab-typed', ()=>{ vocabTypedSubmit(); });
+ganOEnter('sent-typed',  ()=>{ sentTypedSubmit(); });
+ganOEnter('aichat',      ()=>{ aiChatSendText(); });
+
 document.getElementById('content').addEventListener('click',(e)=>{
   const acctToggleEl = e.target.closest('[data-action="toggle-acct-menu"]');
   if(acctToggleEl){ STATE.acctMenuOpen = !STATE.acctMenuOpen; renderContent(); return; }
