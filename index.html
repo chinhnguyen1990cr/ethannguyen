@@ -3674,7 +3674,30 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .drp-sau{margin-top:12px; padding:11px 13px; border-radius:12px; font-size:11px; line-height:1.75;
   color:var(--dim2); border:1px dashed var(--border); background:rgba(255,255,255,.03);}
 .drp-sau b{color:var(--text);}
-@media(max-width:719px){ .drp-cau p{font-size:14.5px;} .drp-mic{min-width:100%;} }
+/* v254 — Module 2: thu âm từng câu. */
+.drp-cau-than{flex:1; min-width:0;}
+.drp-cau-nut{display:flex; gap:6px; flex-wrap:wrap; margin-top:7px;}
+.drp-m{border:1px solid rgba(44,219,168,.34); border-radius:999px; padding:6px 13px;
+  font-size:11px; font-weight:800; cursor:pointer; font-family:inherit;
+  background:rgba(44,219,168,.13); color:#9FE8CE; white-space:nowrap;}
+.drp-m.phu{border-color:var(--border); background:rgba(255,255,255,.04); color:var(--dim2);}
+.drp-m.dang{border-color:rgba(242,109,91,.5); background:rgba(242,109,91,.16); color:#FFB9AE;
+  animation:drpNhip 1.1s ease-in-out infinite;}
+.drp-m #drpDongHo{font-family:var(--mono);}
+@keyframes drpNhip{0%,100%{opacity:1;} 50%{opacity:.55;}}
+.drp-cau.thu{background:rgba(242,109,91,.06); border-radius:10px;}
+.drp-cau.xong .drp-cau-so{background:rgba(44,219,168,.18); color:#2CDBA8;}
+.drp-tiendo{margin-top:13px; height:5px; border-radius:999px; overflow:hidden;
+  background:rgba(255,255,255,.07);}
+.drp-tiendo span{display:block; height:100%; border-radius:999px;
+  background:linear-gradient(90deg,#2CDBA8,#1fa87f); transition:width .3s;}
+.drp-tiendo-chu{margin-top:6px; font-size:10.5px; color:var(--dim2);}
+.drp-tiendo-chu b{color:#2CDBA8; font-family:var(--mono);}
+.drp-loi-thu{margin-top:10px; padding:9px 12px; border-radius:11px; font-size:11.5px;
+  line-height:1.65; border:1px solid rgba(242,109,91,.35); background:rgba(242,109,91,.09);
+  color:#FFC4BA;}
+@media(max-width:719px){ .drp-cau p{font-size:14.5px;} .drp-mic{min-width:100%;}
+  .drp-m{font-size:10.5px; padding:6px 11px;} }
 /* v251 — bảng kết quả của nút "Kiểm tra & nối câu vỡ". */
 .hv-kt{margin-top:11px; padding:11px 13px; border-radius:13px; font-size:11.5px; line-height:1.7;}
 .hv-kt.ok{border:1px solid rgba(44,219,168,.35); background:rgba(44,219,168,.09); color:#9FE8CE;}
@@ -4183,7 +4206,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v253';
+const APP_VERSION = 'v254';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10152,6 +10175,9 @@ async function drpSinhVanBan(){
   try{ renderContent(); }catch(_){ }
 }
 function drpBaiKhac(){
+  // Bản ghi thuộc về BÀI, không thuộc về màn hình. Giữ lại là câu 3 của bài mới nằm cạnh
+  // giọng đọc câu 3 của bài cũ — nghe lại thì tưởng mình đọc sai hẳn một câu khác.
+  try{ drpDongThu(); }catch(_){ }
   const s = STATE.drpPhien; if(!s) return;
   s.bai = null; s.loi = null;
   try{ renderContent(); }catch(_){ }
@@ -10197,11 +10223,226 @@ function drpWorkerHtml(){
       <code>daily-reading-worker.js</code> kèm theo.</div>
   </div>`;
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  MODULE 2 — THU ÂM TỪNG CÂU
+//  Thu theo CÂU chứ không thu cả bài: đọc sai một câu thì đọc lại đúng câu ấy, không phải
+//  đọc lại cả năm câu. Gói âm cũng nhỏ đi khoảng bảy lần, nên Module 3 chấm nhanh và tốn
+//  ít hạn mức hơn hẳn.
+// ══════════════════════════════════════════════════════════════════════════════════════
+const DRP_THU_TOI_DA = 30;     // giây; quá ngưỡng này thì tự dừng, tránh thu nhầm để đó cả buổi
+const DRP_WAV_HZ     = 16000;  // Azure Pronunciation Assessment chỉ nhận WAV 16kHz mono PCM
+
+function drpHoTroThu(){
+  try{
+    return !!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+              && typeof window.MediaRecorder === 'function');
+  }catch(_){ return false; }
+}
+function drpGhi(){
+  const s = STATE.drpPhien || (STATE.drpPhien = {});
+  if(!s.ghi) s.ghi = { dang: -1, giay: 0, mau: {}, loi: null };
+  return s.ghi;
+}
+
+async function drpBatThu(i){
+  const g = drpGhi();
+  if(g.dang >= 0){ drpDungThu(); return; }
+  if(!drpHoTroThu()){
+    g.loi = 'Trình duyệt này không cho thu âm. Thử Chrome hoặc Safari bản mới.';
+    try{ renderContent(); }catch(_){ } return;
+  }
+  g.loi = null;
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{
+      channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+  }catch(e){
+    // Người dùng bấm "Chặn", hoặc máy không có mic. Hai chuyện khác nhau, nói khác nhau.
+    const ten = (e && e.name) || '';
+    g.loi = (ten === 'NotAllowedError' || ten === 'SecurityError')
+      ? 'Bạn đã chặn quyền dùng micro. Bấm vào biểu tượng ổ khoá trên thanh địa chỉ để mở lại.'
+      : (ten === 'NotFoundError' ? 'Máy không tìm thấy micro nào.'
+                                 : 'Không mở được micro: ' + (e && e.message || ten));
+    try{ renderContent(); }catch(_){ }
+    return;
+  }
+  let mr;
+  try{ mr = new MediaRecorder(stream); }
+  catch(_){ try{ mr = new MediaRecorder(stream, {mimeType:'audio/webm'}); }catch(e2){
+    g.loi = 'Máy không thu âm được: ' + (e2 && e2.message || e2);
+    drpTatMic(stream); try{ renderContent(); }catch(_){ } return; } }
+
+  const manh = [];
+  mr.ondataavailable = (ev)=>{ if(ev.data && ev.data.size) manh.push(ev.data); };
+  mr.onstop = async ()=>{
+    drpTatMic(stream);
+    const gg = drpGhi();
+    gg.dang = -1; gg.mr = null; gg.stream = null;
+    drpDungDemGiay();
+    const blob = new Blob(manh, {type: (mr.mimeType || 'audio/webm')});
+    if(!blob.size){ gg.loi = 'Không thu được tiếng nào. Thử lại và nói to hơn.'; }
+    else{
+      // Bản ghi cũ của chính câu này phải được thu hồi, không thì mỗi lần thu lại là rò
+      // thêm một URL nữa — thu mười lần là mười bản ghi nằm lại trong bộ nhớ.
+      drpXoaMau(i);
+      const mau = { url: URL.createObjectURL(blob), blob: blob, giay: gg.giayXong || 0 };
+      gg.mau[i] = mau;
+      try{ mau.wav = await drpSangWav(blob); }
+      catch(e){ mau.wavLoi = String(e && e.message || e); }
+    }
+    try{ renderContent(); }catch(_){ }
+  };
+  g.dang = i; g.giay = 0; g.mr = mr; g.stream = stream;
+  try{ mr.start(); }catch(e){ g.loi = 'Không bắt đầu thu được.'; drpTatMic(stream); g.dang = -1; }
+  drpDemGiay();
+  try{ renderContent(); }catch(_){ }
+}
+function drpDungThu(){
+  const g = drpGhi();
+  g.giayXong = g.giay;
+  try{ if(g.mr && g.mr.state !== 'inactive') g.mr.stop(); }catch(_){ }
+}
+function drpTatMic(stream){
+  // Không tắt từng track thì đèn micro trên máy sáng mãi sau khi thu xong — người dùng
+  // tưởng app vẫn đang nghe lén.
+  try{ (stream.getTracks() || []).forEach(t=>{ try{ t.stop(); }catch(_){ } }); }catch(_){ }
+}
+let drpNhipGiay = null;
+function drpDemGiay(){
+  drpDungDemGiay();
+  drpNhipGiay = setInterval(()=>{
+    const g = drpGhi();
+    if(g.dang < 0){ drpDungDemGiay(); return; }
+    g.giay++;
+    if(g.giay >= DRP_THU_TOI_DA){ drpDungThu(); return; }
+    // Cập nhật thẳng con số, KHÔNG vẽ lại cả màn: vẽ lại mỗi giây là nhấp nháy cả trang.
+    try{ const el = document.getElementById('drpDongHo');
+      if(el) el.textContent = drpPhutGiay(g.giay); }catch(_){ }
+  }, 1000);
+}
+function drpDungDemGiay(){ if(drpNhipGiay){ clearInterval(drpNhipGiay); drpNhipGiay = null; } }
+function drpPhutGiay(n){
+  const p = Math.floor(n / 60), gy = n % 60;
+  return p + ':' + (gy < 10 ? '0' : '') + gy;
+}
+function drpXoaMau(i){
+  const g = drpGhi(); const m = g.mau[i];
+  if(!m) return;
+  try{ if(m.url) URL.revokeObjectURL(m.url); }catch(_){ }
+  delete g.mau[i];
+}
+function drpThuLai(i){ drpXoaMau(i); drpBatThu(i); }
+
+// Nghe lại chính giọng mình. Dùng một thẻ audio dùng chung, không đẻ thẻ mới mỗi lần bấm.
+let drpAudio = null;
+function drpNgheLai(i){
+  const m = drpGhi().mau[i];
+  if(!m || !m.url) return;
+  try{ if(!drpAudio) drpAudio = new Audio(); 
+       drpAudio.pause(); drpAudio.src = m.url; drpAudio.currentTime = 0; drpAudio.play(); }catch(_){ }
+}
+function drpNgheMau(i){
+  const s = STATE.drpPhien;
+  const cau = s && s.bai && s.bai.sentences ? s.bai.sentences[i] : '';
+  if(!cau) return;
+  try{ stopAllSpeech(); }catch(_){ }
+  try{ speakEnglishRobust(cau, {rate: 0.92}); }catch(_){ }
+}
+function drpDongThu(){
+  // Rời màn hình thì phải tắt mic, dừng đồng hồ, và thu hồi mọi URL đang giữ.
+  const s = STATE.drpPhien; if(!s || !s.ghi) return;
+  const g = s.ghi;
+  try{ if(g.mr && g.mr.state !== 'inactive') g.mr.stop(); }catch(_){ }
+  if(g.stream) drpTatMic(g.stream);
+  drpDungDemGiay();
+  Object.keys(g.mau || {}).forEach(k=>drpXoaMau(k));
+  g.dang = -1;
+  try{ if(drpAudio){ drpAudio.pause(); drpAudio.src = ''; } }catch(_){ }
+}
+
+// ── Chuyển WebM/Opus sang WAV 16kHz mono PCM ─────────────────────────────────────────
+// MediaRecorder trên Chrome chỉ cho ra WebM/Opus. Azure Pronunciation Assessment lại CHỈ
+// nhận WAV 16kHz mono PCM. Chuyển ngay ở trình duyệt, không đẩy việc này sang worker:
+//   · một định dạng duy nhất dùng được cho CẢ Azure lẫn Gemini, worker khỏi phải biết
+//   · worker chạy ở us-central1, chuyển mã trên đó là tính phí CPU và chậm thêm một vòng
+//   · 16kHz mono còn nhỏ hơn bản gốc, nên tải lên nhanh hơn
+async function drpSangWav(blob){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) throw new Error('Trình duyệt không giải mã được âm thanh');
+  const ctx = new AC();
+  try{
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    // Trộn mọi kênh về MỘT. Thu bằng mic điện thoại thường đã là mono, nhưng tai nghe
+    // Bluetooth có khi ra hai kênh — lấy đại kênh 0 là mất nửa tiếng nếu máy dồn hết sang
+    // kênh còn lại.
+    const n = buf.length, soKenh = buf.numberOfChannels;
+    const mot = new Float32Array(n);
+    for(let k = 0; k < soKenh; k++){
+      const d = buf.getChannelData(k);
+      for(let j = 0; j < n; j++) mot[j] += d[j] / soKenh;
+    }
+    const pcm = drpDoiNhip(mot, buf.sampleRate, DRP_WAV_HZ);
+    return drpDongWav(pcm, DRP_WAV_HZ);
+  } finally { try{ ctx.close(); }catch(_){ } }
+}
+// Đổi nhịp lấy mẫu bằng nội suy tuyến tính. Lấy mẫu nhảy cóc (mot[Math.round(j*ti)]) thì
+// nhanh hơn nhưng sinh răng cưa nghe rõ, và răng cưa ấy đi thẳng vào điểm phát âm.
+function drpDoiNhip(mot, tu, den){
+  if(tu === den) return mot;
+  const ti = tu / den;
+  const nRa = Math.max(1, Math.round(mot.length / ti));
+  const ra = new Float32Array(nRa);
+  for(let j = 0; j < nRa; j++){
+    const v = j * ti, i0 = Math.floor(v), i1 = Math.min(i0 + 1, mot.length - 1), le = v - i0;
+    ra[j] = mot[i0] * (1 - le) + mot[i1] * le;
+  }
+  return ra;
+}
+function drpDongWav(pcm, hz){
+  const n = pcm.length, dem = new ArrayBuffer(44 + n * 2), v = new DataView(dem);
+  const chu = (o, t)=>{ for(let j = 0; j < t.length; j++) v.setUint8(o + j, t.charCodeAt(j)); };
+  chu(0, 'RIFF');            v.setUint32(4, 36 + n * 2, true);
+  chu(8, 'WAVE');            chu(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true);      // 1 = PCM không nén
+  v.setUint16(22, 1, true);  v.setUint32(24, hz, true);     // 1 kênh
+  v.setUint32(28, hz * 2, true); v.setUint16(32, 2, true);  // byte/giây, byte/khối
+  v.setUint16(34, 16, true); chu(36, 'data'); v.setUint32(40, n * 2, true);
+  for(let j = 0; j < n; j++){
+    // Kẹp vào [-1,1] TRƯỚC khi nhân: tiếng nói to hơn một chút là mẫu vượt biên, và số
+    // vượt biên khi ép về 16 bit sẽ lật dấu — nghe thành tiếng rẹt rất chói.
+    const x = Math.max(-1, Math.min(1, pcm[j]));
+    v.setInt16(44 + j * 2, x < 0 ? x * 0x8000 : x * 0x7FFF, true);
+  }
+  return new Blob([dem], {type:'audio/wav'});
+}
+
 function drpBaiHtml(b){
-  const cau = b.sentences.map((x, i)=>`<div class="drp-cau">
+  const g = drpGhi();
+  const cau = b.sentences.map((x, i)=>{
+    const dangThu = (g.dang === i);
+    const mau = g.mau[i];
+    return `<div class="drp-cau${dangThu ? ' thu' : (mau ? ' xong' : '')}">
       <span class="drp-cau-so">${i + 1}</span>
-      <p>${escapeHtml(x)}</p>
-    </div>`).join('');
+      <div class="drp-cau-than">
+        <p>${escapeHtml(x)}</p>
+        <div class="drp-cau-nut">
+          <button class="drp-m${dangThu ? ' dang' : ''}" data-action="drp-thu" data-i="${i}"
+            title="${dangThu ? 'Dừng thu' : 'Thu âm câu này'}">${
+            dangThu ? `⏹ Dừng · <span id="drpDongHo">${drpPhutGiay(g.giay)}</span>` : '🎙️ Đọc câu này'}</button>
+          <button class="drp-m phu" data-action="drp-nghe-mau" data-i="${i}"
+            title="Nghe máy đọc mẫu câu này">🔊 Mẫu</button>
+          ${mau ? `<button class="drp-m phu" data-action="drp-nghe-lai" data-i="${i}"
+            title="Nghe lại giọng bạn vừa đọc">▶ Giọng bạn · ${drpPhutGiay(mau.giay)}</button>
+          <button class="drp-m phu" data-action="drp-thu-lai" data-i="${i}">🔄 Thu lại</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const xong = Object.keys(g.mau || {}).length;
+  const tienDo = `<div class="drp-tiendo"><span style="width:${
+    Math.round(100 * xong / Math.max(1, b.sentences.length))}%"></span></div>
+    <div class="drp-tiendo-chu">Đã thu <b>${xong}</b>/${b.sentences.length} câu</div>`;
+  const loiThu = g.loi ? `<div class="drp-loi-thu">⚠️ ${escapeHtml(g.loi)}</div>` : '';
   const tu = b.wordsUsed && b.wordsUsed.length
     ? `<div class="drp-tu">Dệt được <b>${b.wordsUsed.length}</b>/${b.wordsAsked} từ trong thư viện của bạn:
          ${b.wordsUsed.slice(0, 12).map(w=>`<span>${escapeHtml(w)}</span>`).join('')}</div>` : '';
@@ -10214,12 +10455,14 @@ function drpBaiHtml(b){
       ${cau}
       ${tu}
     </div>
+    ${tienDo}
+    ${loiThu}
     <div class="drp-hang">
-      <button class="drp-mic" disabled title="Module 2 — làm ở bước sau">🎙️ Đọc to lên</button>
       <button class="form-btn" data-action="drp-bai-khac">🔄 Bài khác</button>
     </div>
-    <div class="drp-sau">⏭️ <b>Bước sau:</b> Module 2 dựng phần thu âm (MediaRecorder), rồi Module 3
-      chấm phát âm — Azure Speech hoặc Gemini tuỳ công tắc ở trên.</div>`;
+    <div class="drp-sau">⏭️ <b>Bước sau:</b> Module 3 chấm phát âm — Azure Speech hoặc Gemini
+      tuỳ công tắc ở màn cài đặt. Bản ghi của bạn đã được chuyển sẵn sang WAV 16kHz mono,
+      đúng định dạng Azure đòi, nên bước ấy chỉ còn việc gửi đi.</div>`;
 }
 function drpRender(item){
   const s = STATE.drpPhien || (STATE.drpPhien = {});
@@ -30152,6 +30395,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
     if(a === 'drp-cham'){ drpDatCai('cham', v); return; }
     if(a === 'drp-sinh'){ drpSinhVanBan(); return; }
     if(a === 'drp-bai-khac'){ drpBaiKhac(); return; }
+    if(a === 'drp-thu'){ drpBatThu(+el.getAttribute('data-i')); return; }
+    if(a === 'drp-thu-lai'){ drpThuLai(+el.getAttribute('data-i')); return; }
+    if(a === 'drp-nghe-lai'){ drpNgheLai(+el.getAttribute('data-i')); return; }
+    if(a === 'drp-nghe-mau'){ drpNgheMau(+el.getAttribute('data-i')); return; }
     if(a === 'drp-thu-worker'){ drpKiemTraWorker(); return; }
     return;
   }
