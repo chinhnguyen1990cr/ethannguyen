@@ -2497,6 +2497,12 @@
   box-shadow:0 6px 22px -6px rgba(255,92,92,.8);}
 /* Danh sách lời thoại vẫn nằm trong trang (nhịp ghi âm cần các ô của nó) nhưng không chiếm chỗ. */
 .sd-an{display:none;}
+/* v251 — chế độ danh sách: nút ghi âm và khối bản ghi đứng THẲNG HÀNG với nhau. */
+.sd-mic-hang{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:11px 0 4px;}
+.sd-mic-hang .sd-mic-o{flex:0 0 auto;}
+.sd-mic-hang .sd-ban-o{flex:1; min-width:220px;}
+.sd-mic-hang .sd-ghi-ct{display:none;}      /* hàng ngang thì dòng dặn dài làm vỡ hàng */
+.sd-bar-duoi{margin-top:12px; padding-top:11px; border-top:1px solid var(--border);}
 .sd-tb{margin:8px 0 2px;}
 .sd-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;margin-right:5px;animation:livePulse 1.1s ease-in-out infinite;}
 /* v210: khối bản ghi gọn lại; thêm dòng chữ chạy theo giọng của chính mình. */
@@ -3074,7 +3080,7 @@ body.hv-khoa-cuon{overflow:hidden;}
 /* Nút đóng chỉ có ở khung ngoài (khung trong video đóng bằng cách chạm lại chính chữ đó). */
 .hv-tdn-chu .hv-chon-x{margin-left:auto;}
 .hv-chon-btn.doc{background:rgba(255,255,255,.07); color:var(--text);}
-.hv-tdn-nghia{margin-top:3px; font-size:13px; line-height:1.45; color:#9BE7C4; font-weight:700;}
+.hv-tdn-nghia{margin-top:3px; font-size:13px; line-height:1.45; color:#FFE2A8; font-weight:700;}
 .hv-tdn-nghia.cho{color:var(--dim2); font-weight:600; font-style:italic;}
 .hv-nutbar{position:absolute; right:8px; bottom:8px; z-index:7;
   /* v246 — ẩn hẳn theo mặc định, nhưng VẪN bắt chuột: rê tới đúng góc ấy là nó hiện ra,
@@ -3148,8 +3154,11 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-cap-in{display:inline; background:rgba(8,10,14,.82); border-radius:10px;
   padding:5px 13px; box-decoration-break:clone; -webkit-box-decoration-break:clone;
   box-shadow:0 2px 12px rgba(0,0,0,.35);}
-.hv-cap-in.vi{background:rgba(10,26,44,.80); border-radius:9px; padding:3px 11px;
-  color:#8FC7F5; font-style:italic; font-weight:600;}
+/* v251 — nghĩa tiếng Việt đổi từ XANH LAM sang tông ẤM. Nền app vốn đã là xanh đen, chữ xanh
+   lam nhạt đặt lên đó gần như cùng tông: nhìn lâu mỏi mắt mà vẫn khó đọc. Vàng ngà đứng trên
+   nền xanh đen là cặp tương phản mạnh nhất, lại không đụng màu vàng của vệt chạy (đậm hơn). */
+.hv-cap-in.vi{background:rgba(24,18,6,.86); border-radius:9px; padding:3px 11px;
+  color:#FFE2A8; font-style:italic; font-weight:600;}
 /* v235 mục 8 — bốn nấc cỡ chữ áp cho CẢ câu tiếng Anh lẫn dòng nghĩa, không riêng câu tiếng Anh. */
 .hv-cap.co2 .hv-cap-vi{font-size:clamp(13px,4.0cqw,23px);}
 .hv-cap.co3 .hv-cap-vi{font-size:clamp(14px,4.8cqw,28px);}
@@ -3303,8 +3312,9 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 /* Nghĩa tiếng Việt của câu, nằm ngay dưới, chữ nhỏ hơn cho khỏi át bản gốc. */
 /* v239 — dòng dịch tiếng Việt phải nhìn ra NGAY là dòng dịch, không lẫn với câu tiếng Anh.
    Tiếng Anh: chữ sáng, đứng. Tiếng Việt: xanh lam nhạt, nghiêng, có vạch dọc dẫn ở đầu dòng. */
-.hv-vi{display:block;font-size:12.5px;line-height:1.55;color:#8FC7F5;margin-top:4px;
-  font-style:italic; padding-left:9px; border-left:2px solid rgba(143,199,245,.35);}
+/* v251 — cùng một màu nghĩa cho CẢ BA thẻ: danh sách ngoài, trong khung hình, Shadowing. */
+.hv-vi{display:block;font-size:12.5px;line-height:1.55;color:#FFE2A8;margin-top:4px;
+  font-style:italic; padding-left:9px; border-left:2px solid rgba(255,226,168,.40);}
 /* Hai nút bật/tắt trên đầu danh sách lời thoại. */
 .hv-thanh2{display:flex;gap:7px;margin:0 0 8px;}
 .hv-nut2{flex:1;padding:8px 6px;border-radius:10px;font-size:11.5px;font-weight:800;cursor:pointer;
@@ -3692,19 +3702,61 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
   .ld-cau p{font-size:14.5px;}
   .ld-mic{min-width:100%;}
 }
-/* v250 — dòng tiêu đề phân tách các kênh YouTube khác nhau. Cùng một kênh thì cách nói, tốc
-   độ và vốn từ gần như nhau, học liền mạch trong một kênh dễ vào hơn nhảy qua nhảy lại. */
-.hv-kenh{display:flex; align-items:center; gap:9px; margin:18px 0 10px;}
+/* v251 — bảng kết quả của nút "Kiểm tra & nối câu vỡ". */
+.hv-kt{margin-top:11px; padding:11px 13px; border-radius:13px; font-size:11.5px; line-height:1.7;}
+.hv-kt.ok{border:1px solid rgba(44,219,168,.35); background:rgba(44,219,168,.09); color:#9FE8CE;}
+.hv-kt.con{border:1px solid rgba(255,201,74,.35); background:rgba(255,201,74,.08); color:#FFDF9E;}
+.hv-kt.loi{border:1px solid rgba(255,107,107,.4); background:rgba(255,107,107,.09); color:#FFB3B3;}
+.hv-kt-dau{font-size:12.5px; font-weight:700;}
+.hv-kt b{color:var(--text);}
+.hv-kt-vd{margin-top:8px; display:flex; flex-direction:column; gap:5px;}
+.hv-kt-vd-x{font-size:10.5px; color:var(--dim); background:rgba(0,0,0,.28); border-radius:8px;
+  padding:6px 9px; font-family:var(--mono); white-space:pre-wrap;}
+.hv-kt-ct{margin-top:8px; font-size:10.5px; color:var(--dim2); line-height:1.65;}
+.hv-kt-nut{width:100%;}
+/* ══ v251 · KHUNG TỔNG QUAN + BA NHÓM ═════════════════════════════════════════════════════
+   Khung "Học theo video" cũ chỉ nhắc lại tên mục — bạn vừa bấm vào đó xong thì đâu cần ai
+   nhắc. Nay chỗ ấy làm việc thật: số video trong kho, nút thêm, và ba lối học để chọn. */
+.hv-tq{border:1px solid var(--border); border-radius:18px; padding:14px 15px 13px; margin-bottom:14px;
+  background:linear-gradient(145deg,rgba(255,122,69,.12),rgba(224,69,107,.07));}
+.hv-tq-dau{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:13px;}
+.hv-tq-so{flex:1; min-width:0; display:flex; align-items:baseline; gap:8px;}
+.hv-tq-so b{font-size:28px; font-weight:900; color:#FF7A45; font-family:var(--mono); line-height:1;}
+.hv-tq-so small{font-size:10.5px; color:var(--dim2); font-weight:700;}
+.hv-tq-nhom{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:8px;}
+.hv-nhom-chon{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:8px;}
+.hv-nhom-n{display:flex; align-items:center; gap:9px; text-align:left; cursor:pointer;
+  font-family:inherit; padding:10px 11px; border-radius:13px;
+  border:1px solid var(--border); background:rgba(0,0,0,.22);
+  transition:border-color .16s, background .16s, transform .12s;}
+.hv-nhom-n:hover{transform:translateY(-1px); border-color:rgba(255,122,69,.5);}
+.hv-nhom-n.on{border-color:transparent; background:linear-gradient(135deg,#FF7A45,#E0456B);
+  box-shadow:0 5px 16px -6px rgba(255,122,69,.85);}
+.hv-nhom-ic{flex:0 0 auto; font-size:17px;}
+.hv-nhom-tx{flex:1; min-width:0;}
+.hv-nhom-tx b{display:block; font-size:11.5px; font-weight:800; color:var(--text); line-height:1.35;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hv-nhom-tx i{display:block; font-style:normal; font-size:9.5px; color:var(--dim2); margin-top:2px;}
+.hv-nhom-n.on .hv-nhom-tx b{color:#1b0a04;}
+.hv-nhom-n.on .hv-nhom-tx i{color:rgba(27,10,4,.72);}
+/* ══ v251 · KHUNG TÊN KÊNH ════════════════════════════════════════════════════════════════
+   Bản v250 chỉ là một dòng chữ trần kèm gạch mờ — nhìn như chú thích lọt giữa hai hàng thẻ
+   chứ không ra một mốc phân chia. Nay thành một tấm nhỏ có nền, viền và ảnh chữ cái đầu. */
+.hv-kenh{display:flex; align-items:center; gap:10px; margin:20px 0 11px; padding:8px 12px 8px 9px;
+  border-radius:13px; border:1px solid rgba(255,122,69,.22);
+  background:linear-gradient(100deg,rgba(255,122,69,.13),rgba(224,69,107,.05) 55%,transparent);}
 .hv-kenh:first-of-type{margin-top:4px;}
-.hv-kenh-ic{flex:0 0 auto; width:26px; height:26px; border-radius:9px; font-size:13px;
+.hv-kenh-ic{flex:0 0 auto; width:28px; height:28px; border-radius:9px; font-size:14px;
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(135deg,rgba(255,92,92,.22),rgba(255,143,107,.14));
-  border:1px solid rgba(255,92,92,.30);}
-.hv-kenh-ten{font-size:12.5px; font-weight:800; color:var(--text); white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis;}
-.hv-kenh::after{content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent);}
-.hv-kenh-so{flex:0 0 auto; font-size:9.5px; font-weight:700; color:var(--dim2);
-  padding:2px 8px; border-radius:999px; border:1px solid var(--border);}
+  background:linear-gradient(135deg,#FF7A45,#E0456B); color:#fff;
+  box-shadow:0 3px 10px -3px rgba(255,122,69,.9);}
+.hv-kenh-ten{font-size:13px; font-weight:800; color:var(--text); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; letter-spacing:.1px;}
+.hv-kenh::after{content:''; flex:1; height:1px;
+  background:linear-gradient(90deg,rgba(255,122,69,.35),transparent);}
+.hv-kenh-so{flex:0 0 auto; font-size:9.5px; font-weight:800; color:#FF9A6B;
+  padding:3px 9px; border-radius:999px; border:1px solid rgba(255,122,69,.32);
+  background:rgba(255,122,69,.10);}
 .hv-ds{display:grid; grid-template-columns:repeat(auto-fill, minmax(232px, 1fr)); gap:14px;}
 .hv-the{position:relative; display:flex; flex-direction:column; background:var(--card);
   border:1px solid var(--border); border-radius:16px; padding:0; overflow:hidden; cursor:pointer;
@@ -4158,7 +4210,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v250';
+const APP_VERSION = 'v251';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -16563,7 +16615,7 @@ function hvGomKhoCu(){
 }
 function hvThemVideo(){
   const url = (document.getElementById('hvUrl')||{}).value || '';
-  const ten = (document.getElementById('hvTen')||{}).value || '';
+  const ten = '';                       // v251 — bỏ ô "Tên bài", luôn lấy tên thật từ YouTube
   const p = parseYouTubeUrl(url);
   if(!p || p.type!=='video'){
     STATE.hvLoi = /facebook|tiktok|instagram|fb\.watch/i.test(url)
@@ -16578,7 +16630,9 @@ function hvThemVideo(){
   const id = 'hv_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
   const tuDat = ten.trim();
   kho.push({id, videoId, title: tuDat || 'Đang lấy tiêu đề…', tuDatTen: !!tuDat,
+            nhom: hvNhomThem(),          // v251 — vào thẳng nhóm bạn vừa chọn
             lines:null, xong:{}, addedAt: todayKey()});
+  SETTINGS.hvNhomDang = hvNhomThem();    // và mở luôn đúng nhóm ấy để thấy video vừa thêm
   SETTINGS.hvVideos = kho; saveSettings(); pushToDrive();
   STATE.hvLoi = null; STATE.hvThem = false;
   showToast('✅','Đã thêm video','Mở ra rồi bấm "🤖 Lấy lời thoại" để AI nghe và ghi lại.');
@@ -16604,6 +16658,162 @@ async function hvLayTen(recId){
 // Cùng một kênh thì cách nói, tốc độ và vốn từ gần như nhau — học liền mạch trong một kênh
 // dễ vào hơn nhiều so với nhảy qua nhảy lại. Mà YouTube cho sẵn tên kênh trong chính lời đáp
 // oembed (author_name), trước đây app lấy tên video xong thì bỏ đi.
+// ══ v251 · BA NHÓM VIDEO ══════════════════════════════════════════════════════════════════
+// Ba lối học này đòi ba kiểu video khác hẳn nhau: Comprehensible Input cần người nói chậm và
+// có hình minh hoạ, Listening & Shadowing cần câu ngắn rõ nhịp, Podcast thì dài và nói thật
+// nhanh. Trộn chung một danh sách thì mỗi lần mở ra phải tự nhớ video nào thuộc lối nào.
+const HV_NHOM = [
+  {ma:'ci',  ic:'🌱', ten:'Comprehensible Input',  mo:'Nghe hiểu tự nhiên, có hình'},
+  {ma:'ls',  ic:'🎧', ten:'Listening & Shadowing', mo:'Nghe kỹ rồi nhại theo'},
+  {ma:'pod', ic:'🎙️', ten:'Podcast',               mo:'Nghe dài, giọng thật'}
+];
+function hvNhomCua(v){
+  const m = v && v.nhom;
+  return HV_NHOM.some(x=>x.ma === m) ? m : 'ci';     // video cũ chưa gắn nhóm thì về nhóm đầu
+}
+function hvNhomDang(){
+  const m = SETTINGS.hvNhomDang;
+  return HV_NHOM.some(x=>x.ma === m) ? m : 'ci';
+}
+function hvChonNhom(ma){
+  if(!HV_NHOM.some(x=>x.ma === ma)) return;
+  SETTINGS.hvNhomDang = ma;
+  saveSettings();
+  try{ renderContent(); }catch(_){ }
+}
+function hvDemNhom(ma){ return hvVideos().filter(v=>hvNhomCua(v) === ma).length; }
+// Nhóm chọn lúc THÊM video. Nhớ lại lựa chọn lần trước: người ta hay thêm một loạt video cùng
+// một lối học chứ ít khi mỗi lần một kiểu.
+function hvNhomThem(){
+  const m = SETTINGS.hvNhomThem;
+  return HV_NHOM.some(x=>x.ma === m) ? m : hvNhomDang();
+}
+function hvDatNhomThem(ma){
+  if(!HV_NHOM.some(x=>x.ma === ma)) return;
+  SETTINGS.hvNhomThem = ma;
+  saveSettings();
+  try{ renderContent(); }catch(_){ }
+}
+// ══════════════════════════════════════════════════════════════════════════════════════════
+//  v251 · KIỂM TRA LỜI THOẠI VỪA DÁN
+//  Bản chép của YouTube cắt dòng theo BỀ NGANG KHUNG HÌNH chứ không theo câu, nên một câu
+//  thường nằm rải ra ba bốn dòng ("That link" / "is down below."). App có hvGopCauVo để nối
+//  lại, nhưng nó chạy ngầm lúc mở video — bạn dán xong thì chẳng biết nó có nối được không,
+//  và nối trượt chỗ nào. Nút này làm đúng việc ấy NGAY TẠI CHỖ DÁN và nói rõ kết quả.
+//
+//  Tôi cố ý KHÔNG gọi AI ở đây: việc này là ghép dòng theo dấu câu và mốc giờ, máy tự làm
+//  được, chính xác và không tốn một lượt hạn mức nào.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+const HV_KT_CAU_NGAN = 4;        // dòng ít hơn chừng này chữ mà chưa hết câu thì gần như chắc là mảnh vỡ
+
+// Đọc khối chữ đã dán thành danh sách dòng có mốc giờ. Dùng lại đúng bộ đọc mà app vẫn dùng
+// lúc lưu, để những gì đo ở đây khớp với những gì thật sự được lưu.
+// ══ v251 · GỐC THẬT CỦA "MỘT CÂU VẪN BỊ CHIA NHIỀU ĐOẠN" ══════════════════════════════════
+// Đường dán json3 xoá cờ chuẩn hoá bằng một DANH SÁCH VIẾT TAY dừng ở mocChuan8. v244 thêm
+// mocChuan9, v246 thêm mocChuan10 — không ai nhớ quay lại nối thêm vào danh sách ấy. Hậu quả:
+// dán json3 xong, hvChuanMoc gặp mocChuan10 là thoát ngay ở dòng đầu, nên bước NỐI CÂU VỠ
+// không bao giờ chạy. Đúng cái bạn chụp: "That link" / "is down below." nằm hai dòng.
+// Nay quét theo TÊN CỜ chứ không theo danh sách chép tay — thêm cờ mới bao nhiêu cũng đúng.
+function hvXoaCoChuan(rec){
+  if(!rec) return;
+  try{
+    Object.keys(rec).forEach(k=>{ if(/^mocChuan\d*$/.test(k)) rec[k] = false; });
+  }catch(_){ }
+  rec.toc = undefined; rec.tocAm = undefined;
+}
+function hvKtDocLoi(txt){
+  const t = String(txt || '');
+  // json3 phải đọc bằng đúng bộ đọc của nó — đó mới là bản mang mốc TỪNG CHỮ, và cũng chính
+  // là bản hay bị vỡ câu nhất vì YouTube cắt dòng theo bề ngang khung hình.
+  try{ const j = hvDocJson3(t); if(j && Array.isArray(j.lines) && j.lines.length) return j.lines; }catch(_){ }
+  try{
+    const o = hvDocLoiDan(t);                      // ĐÚNG bộ đọc mà nút Lưu đang dùng
+    return (o && Array.isArray(o.lines)) ? o.lines : [];
+  }catch(_){ return []; }
+}
+function hvKtLaJson3(txt){
+  try{ const j = hvDocJson3(String(txt || '')); return !!(j && j.lines && j.lines.length); }catch(_){ return false; }
+}
+// Đo xem trong danh sách có bao nhiêu câu bị vỡ thành nhiều mảnh.
+function hvKtDoVo(ds){
+  const list = Array.isArray(ds) ? ds : [];
+  let vo = 0, ngan = 0;
+  const viDu = [];
+  for(let i = 0; i < list.length - 1; i++){
+    const a = String((list[i] && list[i].en) || '').trim();
+    const b = String((list[i+1] && list[i+1].en) || '').trim();
+    if(!a || !b) continue;
+    let noi = false;
+    try{ noi = hvNoiTiep(a, b); }catch(_){ noi = false; }
+    if(noi){
+      vo++;
+      if(viDu.length < 3) viDu.push(a + ' ⏎ ' + b);
+    }
+    if(a.split(/\s+/).length <= HV_KT_CAU_NGAN && !/[.!?…]["'\)\]]?$/.test(a)) ngan++;
+  }
+  return {tong:list.length, vo, ngan, viDu};
+}
+// Nối lại rồi dựng LẠI khối chữ có mốc giờ, để bạn thấy ngay kết quả trong chính ô đang dán.
+function hvKtGhepLai(ds){
+  let ra = ds;
+  try{ ra = hvGopCauVo(ds); }catch(_){ ra = ds; }
+  return Array.isArray(ra) ? ra : ds;
+}
+function hvKtGio(t){
+  const g = Math.max(0, Math.round(+t || 0));
+  const p = Math.floor(g / 60), y = g % 60;
+  return p + ':' + (y < 10 ? '0' : '') + y;
+}
+function hvKtDungChuoi(ds){
+  return (Array.isArray(ds) ? ds : []).map(d=>hvKtGio(d.t) + '\n' + String(d.en || '').trim()).join('\n');
+}
+// ── Nút "Kiểm tra" ──────────────────────────────────────────────────────────────────────
+function hvKtLoi(){
+  const o = document.getElementById('sdLoiSua');
+  if(!o){ return; }
+  const txt = String(o.value || '');
+  if(!txt.trim()){
+    STATE.hvKt = {loi:'Chưa dán gì vào ô bên trên.'};
+    try{ hvVeVung('sdKtWrap'); }catch(_){ try{ renderContent(); }catch(_2){ } }
+    return;
+  }
+  const ds = hvKtDocLoi(txt);
+  if(!ds.length){
+    STATE.hvKt = {loi:'Không đọc được mốc giờ nào. Bản chép phải có dạng "0:04" rồi xuống dòng là câu.'};
+    try{ hvVeVung('sdKtWrap'); }catch(_){ try{ renderContent(); }catch(_2){ } }
+    return;
+  }
+  const truoc = hvKtDoVo(ds);
+  const sau = hvKtGhepLai(ds);
+  const sauDo = hvKtDoVo(sau);
+  const daNoi = Math.max(0, ds.length - sau.length);
+  // Ghi thẳng bản đã nối vào ô: bạn nhìn thấy đúng thứ sắp được lưu, không phải tin lời hứa.
+  // NHƯNG json3 thì tuyệt đối không ghi đè — dạng "giờ + câu" không chở nổi mốc TỪNG CHỮ,
+  // ghi đè là vứt đi đúng thứ quý nhất bạn vừa lấy về. Với json3 chỉ BÁO, việc nối để lúc lưu.
+  const laJson3 = hvKtLaJson3(txt);
+  if(daNoi > 0 && !laJson3){ try{ o.value = hvKtDungChuoi(sau); }catch(_){ } }
+  STATE.hvKt = {truoc: truoc.tong, sau: sau.length, daNoi, json3: laJson3,
+                voTruoc: truoc.vo, voSau: sauDo.vo, viDu: truoc.viDu, loi:null};
+  try{ hvVeVung('sdKtWrap'); }catch(_){ try{ renderContent(); }catch(_2){ } }
+}
+function hvKtHtml(k){
+  if(!k) return '';
+  if(k.loi) return `<div class="hv-kt loi">⚠️ ${escapeHtml(k.loi)}</div>`;
+  const sach = k.voSau === 0;
+  return `<div class="hv-kt ${sach ? 'ok' : 'con'}">
+    <div class="hv-kt-dau">${sach ? '✅' : '⚠️'} ${k.daNoi
+      ? ('Đã nối lại <b>' + k.daNoi + '</b> mảnh vỡ — ' + k.truoc + ' dòng còn <b>' + k.sau + ' câu</b>.')
+      : ('Không có mảnh nào cần nối — ' + k.truoc + ' dòng đã là ' + k.sau + ' câu trọn vẹn.')}</div>
+    ${k.viDu && k.viDu.length ? `<div class="hv-kt-vd">${k.viDu.map(x=>
+      `<div class="hv-kt-vd-x">${escapeHtml(x)}</div>`).join('')}</div>` : ''}
+    ${k.json3 ? `<div class="hv-kt-ct">⚡ Đây là tệp <b>json3</b> — có mốc TỪNG CHỮ thật của YouTube.
+      App giữ nguyên ô bên trên để không làm mất mốc ấy; việc nối câu sẽ làm đúng một lần lúc bấm Lưu.</div>` : ''}
+    <div class="hv-kt-ct">${sach
+      ? 'Không còn dòng nào nối tiếp dòng trước mà chưa hết câu. Bấm <b>Lưu lời thoại</b> là xong.'
+      : 'Còn <b>' + k.voSau + '</b> chỗ trông như câu vỡ nhưng cách nhau quá xa về thời gian — app cố ý KHÔNG nối, vì nối hai câu cách nhau vài giây là dán nhầm. Lưu vẫn dùng được.'}</div>
+  </div>`;
+}
+
 const HV_KENH_CHUA = 'Chưa rõ kênh';
 function hvKenhCua(v){ return String((v && v.kenh) || '').trim() || HV_KENH_CHUA; }
 // Video lưu từ bản cũ không có tên kênh. Lấy bù dần, mỗi lượt vài cái, để không dội một loạt
@@ -17866,15 +18076,20 @@ function hvBatNhip(){
         hvWsDong = hvDongCu;
       }
       const ws = hvWsCu || [];
-      const k = hvChuTaiGiay(rec.lines[hvDongCu], gy, hvMocKe(rec.lines, hvDongCu));
+      // v251 — nút ¶ là công tắc CHUNG. Trước đây chỉ ô phụ đề trong khung hình nghe theo nó,
+      // còn danh sách bên ngoài vẫn tô từng chữ — bật playlist lên là hai nơi chạy hai kiểu,
+      // mắt phải đổi cách đọc giữa hai chỗ đang nói cùng một câu.
+      const caCau = (typeof hvCaCau === 'function') ? hvCaCau() : false;
+      const k = caCau ? (ws.length - 1) : hvChuTaiGiay(rec.lines[hvDongCu], gy, hvMocKe(rec.lines, hvDongCu));
+      const dau = caCau ? -9 : k;          // dấu riêng cho chế độ cả câu, khỏi lẫn với chỉ số chữ
       // v231: chỉ sờ vào DOM khi chữ đang sáng THẬT SỰ đổi. Chạy 60 khung/giây mà khung nào cũng
       // ghi lại từng chữ thì phần lớn là ghi đè đúng cái đang có — tốn công vẽ mà nhìn y như cũ.
-      if(k !== hvChuCu){
-        hvChuCu = k;
+      if(dau !== hvChuCu){
+        hvChuCu = dau;
         // v217: đánh dấu cả những chữ ĐÃ ĐỌC QUA để vệt sóng còn thấy được là đang tới đâu.
         for(let j=0; j<ws.length; j++){
-          ws[j].classList.toggle('now', j === k);
-          ws[j].classList.toggle('qua', k >= 0 && j < k);
+          ws[j].classList.toggle('now', caCau ? true : (j === k));
+          ws[j].classList.toggle('qua', caCau ? false : (k >= 0 && j < k));
         }
       }
     }
@@ -17986,6 +18201,18 @@ function hvApTocTab(){
 function hvDoiTab(tab){
   // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  // v251 — xoá cờ thôi là CHƯA ĐỦ. Khung tra nghĩa nằm trong khối video, mà khối ấy cố ý KHÔNG
+  // được dựng lại khi đổi thẻ (dựng lại là video chạy lại từ đầu) — nên nó cứ đứng đó, đè lên
+  // màn Chép chính tả và Shadowing, đúng như ảnh bạn gửi. Phải gỡ thẳng trên phần tử đang sống.
+  try{
+    STATE.hvNghia = null; STATE.hvPhienAm = null;
+    if(typeof hvTuDangRe !== 'undefined') hvTuDangRe = null;
+    if(typeof hvNeoTu !== 'undefined') hvNeoTu = null;
+    const kn = document.getElementById('hvTuDienNoi');
+    if(kn){ if(kn.classList) kn.classList.remove('hien'); kn.innerHTML = ''; }
+    const bo = document.querySelectorAll('.hv-capw.chon, .hv-w.chon');
+    for(let i = 0; i < bo.length; i++){ try{ bo[i].classList.remove('chon'); }catch(_){ } }
+  }catch(_){ }
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
   if((tab === 'chinhta' || tab === 'shadowing') && !rec.lines){
@@ -18026,9 +18253,17 @@ function hvNapLaiVideo(){
   const rec = hvTim(s.vidId); if(!rec || !rec.videoId) return;
   dvXoaHenGio(); sdNgungBam(); hvDungNhip();
   if(hvPlayer && typeof hvPlayer.seekTo === 'function'){
+    // ══ v251 · VÌ SAO ĐỔI THẺ XONG LÀ MÀN ĐEN ═════════════════════════════════════════════
+    // Trình phát YouTube CHƯA từng chạy lần nào thì nó đang hiện ảnh bìa. Gọi seekTo(0) rồi
+    // pause vào đúng lúc ấy là bắt nó nhảy tới một khung hình chưa tải — ảnh bìa biến mất,
+    // còn lại một mảng ĐEN, đúng cái bạn chụp lại ở thẻ Chép chính tả và Shadowing. Nay chỉ
+    // tua-và-dừng khi video THẬT SỰ đã chạy; chưa chạy thì để yên, ảnh bìa còn nguyên.
+    let tt = -1;
+    try{ tt = hvPlayer.getPlayerState ? hvPlayer.getPlayerState() : -1; }catch(_){ }
+    const chuaChay = (tt === -1 || tt === 5);       // -1 chưa bắt đầu · 5 đã xếp hàng, chưa phát
     // Về đầu rồi ĐỨNG YÊN. Bạn bấm ▶ khi đã sẵn sàng — đổi thẻ xong mà tiếng chạy ngay thì
     // vừa giật mình vừa mất câu đầu.
-    try{ hvPlayer.seekTo(0, true); hvPlayer.pauseVideo(); }catch(e){}
+    if(!chuaChay){ try{ hvPlayer.seekTo(0, true); hvPlayer.pauseVideo(); }catch(e){} }
     hvChiaSePlayer(); hvNhipTheoTab();
     try{ setTimeout(hvVeNutPlay, 150); }catch(e){}
     return;
@@ -18379,13 +18614,29 @@ function hvPanelHtml(rec, s){
     // Danh sách lời thoại VẪN được dựng dù đang ẩn — nhịp ghi âm ghi vệt sáng vào đúng các ô
     // sd-line-*/sd-x-* trong đó; gỡ hẳn ra khỏi trang là mất chỗ ghi, mà ẩn thì không sao.
     const dsMo = hvDanhSach();
+    // ══ v251 · HAI BỐ CỤC KHÁC HẲN NHAU CHO HAI CHẾ ĐỘ ══════════════════════════════════
+    // BẬT danh sách: chỗ quý nhất là bề ngang cho danh sách câu, nên bảng điều khiển (tốc độ,
+    //   giọng thu, tiếng video) tụt xuống DƯỚI — đúng chỗ bạn khoanh vàng. Nút ghi âm và khối
+    //   bản ghi nằm chung một hàng để không ăn thêm một tầng chiều cao nào.
+    // TẮT danh sách: lời thoại chạy sẵn trong khung hình, chỗ trống bên dưới rộng rãi, nên nút
+    //   ghi âm đứng riêng một hàng cho to rõ và khối bản ghi nằm ngay dưới nó.
+    const micVaBan = dsMo
+      ? `<div class="sd-mic-hang">
+           <div id="sdMicWrap" class="sd-mic-o">${sdNutGhiHtml(ss)}</div>
+           <div id="sdBanWrap" class="sd-ban-o">${sdBanHtml(ss)}</div>
+         </div>`
+      : `<div id="sdMicWrap" class="sd-mic-tren">${sdNutGhiHtml(ss)}</div>
+         <div id="sdBanWrap">${sdBanHtml(ss)}</div>`;
+    const canhBao = !sdHoTroGhiAm()
+      ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : '';
     return `<div id="sdErrWrap">${sdErrHtml(ss)}</div>
-      <div id="sdMicWrap" class="sd-mic-tren">${sdNutGhiHtml(ss)}</div>
-      ${!sdHoTroGhiAm() ? `<div class="sd-err" style="margin-top:10px;">⚠️ Trình duyệt này không có MediaRecorder nên chưa ghi âm được. Dùng Chrome trên Android hoặc máy tính.</div>` : ''}
+      ${dsMo ? '' : micVaBan}
+      ${canhBao}
       ${sdCongCuHtml(ss)}
-      <div class="sd-bar" id="sdBarWrap">${sdBarHtml(ss)}</div>
+      ${dsMo ? '' : `<div class="sd-bar" id="sdBarWrap">${sdBarHtml(ss)}</div>`}
       <div id="sdTranWrap"${dsMo ? '' : ' class="sd-an"'}>${sdLoiThoaiHtml(rec, ss)}</div>
-      <div id="sdBanWrap">${sdBanHtml(ss)}</div>
+      ${dsMo ? micVaBan : ''}
+      ${dsMo ? `<div class="sd-bar sd-bar-duoi" id="sdBarWrap">${sdBarHtml(ss)}</div>` : ''}
       <div class="sd-foot">${dsMo
         ? 'Bấm một câu để nhảy tới đúng chỗ đó. Bản ghi âm chỉ nằm trong bộ nhớ tạm của phiên này — thoát màn hình là mất.'
         : 'Lời thoại đang chạy ngay trong khung hình. Cần nhìn cả bài thì bấm ☰ Danh sách. Bản ghi âm chỉ giữ trong phiên này.'}</div>`;
@@ -18403,7 +18654,10 @@ function hvErrHtml(){ return STATE.hvLoi ? `<div class="sd-err">⚠️ ${escapeH
 function renderHocVideo(item){
   if(STATE.hvPhien) return renderHocVideoPhien(item);
   hvGomKhoCu();
-  const list = hvVideos();
+  // v251 — kho ĐẦY ĐỦ để đếm tổng, còn danh sách hiển thị chỉ là nhóm đang chọn.
+  const tatCa = hvVideos();
+  const nhomDang = hvNhomDang();
+  const list = tatCa.filter(v=>hvNhomCua(v) === nhomDang);
   if(STATE.hvThem){
     document.getElementById('content').innerHTML = `
       ${hvBackRow('hv-them-huy')}
@@ -18411,8 +18665,13 @@ function renderHocVideo(item){
         ${hvErrHtml()}
         <div class="sd-lb">LINK YOUTUBE <span style="color:#ff8080;">*</span></div>
         <input id="hvUrl" class="form-input" type="url" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
-        <div class="sd-lb" style="margin-top:12px;">TÊN BÀI (để trống thì app tự lấy tên video)</div>
-        <input id="hvTen" class="form-input" type="text" autocomplete="off" placeholder="Ví dụ: Talking about friends">
+        <div class="sd-lb" style="margin-top:14px;">CATEGORIES — video này thuộc lối học nào</div>
+        <div class="hv-nhom-chon">${HV_NHOM.map(n=>`
+          <button class="hv-nhom-n ${n.ma === hvNhomThem() ? 'on' : ''}" data-action="hv-nhom-them" data-v="${n.ma}">
+            <span class="hv-nhom-ic">${n.ic}</span>
+            <span class="hv-nhom-tx"><b>${escapeHtml(n.ten)}</b><i>${escapeHtml(n.mo)}</i></span>
+          </button>`).join('')}</div>
+        <div class="sd-hint" style="margin-top:9px;">Tên bài app tự lấy đúng tiêu đề thật trên YouTube — không phải gõ nữa.</div>
         <div class="sd-hint" style="margin-top:11px;">Chỉ nhận link <b>YouTube</b>. Facebook, TikTok, Instagram thì AI không xem được video, mà các trang đó cũng chặn nhúng nên không chạy đồng bộ lời thoại được.</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="hv-them-luu" style="width:100%; margin-top:14px;">➕ Thêm vào danh sách</button>
         <button class="form-btn cancel" data-action="hv-them-huy" style="width:100%; margin-top:9px;">Huỷ</button>
@@ -18465,23 +18724,28 @@ function renderHocVideo(item){
     ${hvBackRow('english-item-back')}
     ${hvErrHtml()}
     ${hoanTac}
-    <div class="hv-hero">
-      <span class="hv-hero-ic">🎬</span>
-      <div class="hv-hero-tx">
-        <b>Học theo video</b>
-        <small>Phụ đề chạy theo lời nói · Chạm chữ ra nghĩa · Chép chính tả · Shadowing</small>
+    <div class="hv-tq">
+      <div class="hv-tq-dau">
+        <div class="hv-tq-so"><b>${tatCa.length}</b><small>video trong kho</small></div>
+        <button class="hv-them" data-action="hv-them-mo"><span>➕</span> Thêm video YouTube</button>
       </div>
-      <div class="hv-hero-so"><b>${list.length}</b><small>video</small></div>
+      <div class="hv-tq-nhom">${HV_NHOM.map(n=>{
+        const d = hvDemNhom(n.ma);
+        return `<button class="hv-nhom-n lon ${n.ma === nhomDang ? 'on' : ''}" data-action="hv-chon-nhom" data-v="${n.ma}">
+          <span class="hv-nhom-ic">${n.ic}</span>
+          <span class="hv-nhom-tx"><b>${escapeHtml(n.ten)}</b><i>${d ? (d + ' video') : 'chưa có video'}</i></span>
+        </button>`;
+      }).join('')}</div>
     </div>
-    <div class="hv-hang-cc">
-      <button class="hv-them" data-action="hv-them-mo"><span>➕</span> Thêm video YouTube</button>
-      ${list.length ? `<span class="hv-dem">${list.length} video trong danh sách</span>` : ''}
-    </div>
+
     ${list.length ? the
                   : `<div class="hv-trong2">
                        <div style="font-size:30px; margin-bottom:8px;">📺</div>
-                       <b>Chưa có video nào</b>
-                       <div>Dán link YouTube ở nút phía trên để bắt đầu. Video nào có phụ đề trên YouTube thì lấy lời thoại không tốn hạn mức AI.</div>
+                       <b>${tatCa.length ? ('Nhóm "' + escapeHtml((HV_NHOM.filter(n=>n.ma===nhomDang)[0]||{}).ten||'') + '" chưa có video nào')
+                                          : 'Chưa có video nào'}</b>
+                       <div>${tatCa.length
+                         ? 'Bấm <b>➕ Thêm video YouTube</b> rồi chọn đúng nhóm này, hoặc xem hai nhóm còn lại ở trên.'
+                         : 'Dán link YouTube ở nút phía trên để bắt đầu. Video nào có phụ đề trên YouTube thì lấy lời thoại không tốn hạn mức AI.'}</div>
                      </div>`}`;
 }
 // ── Cụm từ thông dụng (chunks) ───────────────────────────────────────────────
@@ -19544,10 +19808,19 @@ async function hvDichMienPhi(cau){
   return doan.map(x=>(x && x[0]) ? x[0] : '').join('').trim();
 }
 async function hvHoiDich(cau, boiCanh){
+  // v251 — bối cảnh cũ chỉ 900 ký tự, và lời dặn dừng ở mức "dịch tự nhiên". Dịch một câu nói
+  // tắt mà không thấy đủ đoạn trước thì chỉ còn cách dịch mặt chữ — ra đúng thứ thô sơ khó
+  // hiểu bạn gặp. Nay cho gấp đôi bối cảnh và nói rõ những chỗ hay dịch hỏng nhất.
   const nhac = (boiCanh ? ('Đây là lời thoại liên tiếp của MỘT video. Bối cảnh xung quanh:\n"'
-                 + String(boiCanh).slice(0, 900) + '"\n\n') : '')
+                 + String(boiCanh).slice(0, 1800) + '"\n\n') : '')
     + 'Dịch từng câu tiếng Anh dưới đây sang tiếng Việt tự nhiên, đúng văn nói, BÁM ĐÚNG mạch của '
     + 'đoạn hội thoại trên (đại từ, chủ ngữ ẩn, câu nói tắt phải hiểu theo câu trước).\n'
+    + 'Người đọc bản dịch này là người Việt đang HỌC tiếng Anh, vừa nghe câu gốc vừa liếc nghĩa. Vậy nên:\n'
+    + '- Thành ngữ, cụm động từ, tiếng lóng: dịch ra Ý NGHĨA thật, tuyệt đối không dịch mặt chữ.\n'
+    + '- Giữ đúng giọng của người nói: thân mật thì dịch thân mật, trang trọng thì dịch trang trọng.\n'
+    + '- Câu là MẢNH VỠ của câu trước (bắt đầu bằng and/but/so/that/which…): dịch sao cho đọc nối vào câu trước vẫn xuôi.\n'
+    + '- Đừng chêm chữ giải thích không có trong câu gốc, và đừng bỏ chữ nào có nghĩa.\n'
+    + '- Câu hỏi giữ nguyên là câu hỏi, câu cảm thán giữ nguyên cảm thán.\n'
     + 'Trả về DUY NHẤT JSON dạng {"vi":["câu 1","câu 2", ...]} — đúng thứ tự, ĐÚNG '
     + cau.length + ' phần tử, không thêm không bớt. Không giải thích gì thêm.\n\n'
     + cau.map((x,i)=>(i+1) + '. ' + x).join('\n');
@@ -20192,13 +20465,12 @@ function renderHocVideoPhien(item){
           <br><b>Hoặc dán tệp <code>json3</code></b> để app dùng <b>mốc từng chữ THẬT</b> của YouTube —
           chữ chạy khớp tuyệt đối, không còn nội suy.
           <a href="lay-moc-youtube.html" target="_blank" rel="noopener" class="hv-hd-link">🎯 Lấy bằng một cú bấm</a>
-          Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
+          Dán xong bấm <b>🔍 Kiểm tra</b> — app nối lại những câu bị YouTube cắt rời rồi cho bạn xem ngay kết quả.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:240px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
         <div class="hv-sl-hang">
-          <button class="form-btn" data-action="sd-kt-dau">🔍 Dấu câu</button>
-          <button class="form-btn" data-action="hv-doi-chieu">${STATE.hvDangDoi ? '⏳ AI đang đối chiếu…' : '🤖 AI đối chiếu'}</button>
+          <button class="form-btn hv-kt-nut" data-action="hv-kt-loi">🔍 Kiểm tra &amp; nối câu vỡ</button>
         </div>
-        <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
+        <div id="sdKtWrap">${STATE.hvKt ? hvKtHtml(STATE.hvKt) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
     return;
@@ -23578,8 +23850,7 @@ function sdLuuLoi(){
     rec.lines = js3.lines;
     rec.eGoc = true;                       // mốc kết thúc trong json3 là mốc THẬT
     rec.loiTuAi = false; rec.xong = {};
-    ['mocChuan','mocChuan2','mocChuan3','mocChuan4','mocChuan5','mocChuan6','mocChuan7','mocChuan8']
-      .forEach(k=>{ rec[k] = false; });
+    hvXoaCoChuan(rec);
     rec.toc = undefined; rec.tocAm = undefined; rec.buTron = 0;
     saveSettings(); pushToDrive();
     STATE.sdSuaLoi = false; STATE.hvLoi = null; STATE.hvDangLay = false;
@@ -24855,13 +25126,12 @@ function renderShadowPhien(item){
           <br><b>Hoặc dán tệp <code>json3</code></b> để app dùng <b>mốc từng chữ THẬT</b> của YouTube —
           chữ chạy khớp tuyệt đối, không còn nội suy.
           <a href="lay-moc-youtube.html" target="_blank" rel="noopener" class="hv-hd-link">🎯 Lấy bằng một cú bấm</a>
-          Sai chính tả hay lệch mốc thì bấm <b>🤖 AI đối chiếu</b> bên dưới, AI sẽ nghe lại video và căn cho khớp.</div>
+          Dán xong bấm <b>🔍 Kiểm tra</b> — app nối lại những câu bị YouTube cắt rời rồi cho bạn xem ngay kết quả.</div>
         <textarea id="sdLoiSua" class="form-input sd-ta" style="min-height:220px;" placeholder="0:00\nHi everyone, welcome back.\n0:04\nToday we are going to talk about...">${escapeHtml(rec.transcript||'')}</textarea>
         <div class="hv-sl-hang">
-          <button class="form-btn" data-action="sd-kt-dau">🔍 Dấu câu</button>
-          <button class="form-btn" data-action="hv-doi-chieu">${STATE.hvDangDoi ? '⏳ AI đang đối chiếu…' : '🤖 AI đối chiếu'}</button>
+          <button class="form-btn hv-kt-nut" data-action="hv-kt-loi">🔍 Kiểm tra &amp; nối câu vỡ</button>
         </div>
-        <div id="sdKtWrap">${STATE.sdKtDau ? hvKtDauHtml(STATE.sdKtDau) : ''}</div>
+        <div id="sdKtWrap">${STATE.hvKt ? hvKtHtml(STATE.hvKt) : ''}</div>
         <button class="form-btn eng-quiz-nextbtn" data-action="sd-loi-luu" style="width:100%; margin-top:12px;">💾 Lưu lời thoại</button>
       </div>`;
     return;
@@ -30078,6 +30348,11 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(setGeminiKeyEl){ setGeminiApiKey(); return; }
   // v250 — nút nghe thử phải đứng TRƯỚC nút chọn: nó nằm bên trong thẻ chọn, bắt sau thì mỗi
   // lần bấm nghe thử là đổi luôn giọng đang dùng, không đúng ý.
+  // ── v251 · Nhóm video ──────────────────────────────────────────────────────────────────
+  const hvNhomEl = e.target.closest('[data-action="hv-chon-nhom"]');
+  if(hvNhomEl){ hvChonNhom(hvNhomEl.getAttribute('data-v')); return; }
+  const hvNhomThemEl = e.target.closest('[data-action="hv-nhom-them"]');
+  if(hvNhomThemEl){ hvDatNhomThem(hvNhomThemEl.getAttribute('data-v')); return; }
   // ── v250 · Luyện đọc mỗi ngày ──────────────────────────────────────────────────────────
   const ldEl = e.target.closest('[data-action^="ld-"]');
   if(ldEl){
@@ -30383,6 +30658,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdLoiHuyEl){ STATE.sdSuaLoi = false; STATE.sdKtDau = null; renderContent(); return; }
   const sdLoiLuuEl = e.target.closest('[data-action="sd-loi-luu"]');
   if(sdLoiLuuEl){ STATE.sdKtDau = null; sdLuuLoi(); return; }
+  const hvKtEl = e.target.closest('[data-action="hv-kt-loi"]');
+  if(hvKtEl){ hvKtLoi(); return; }
   const sdKtDauEl = e.target.closest('[data-action="sd-kt-dau"]');
   if(sdKtDauEl){ sdKtDau(); return; }
   const sdChamNghiEl = e.target.closest('[data-action="sd-cham-nghi"]');
@@ -30423,8 +30700,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvToanManEl){ e.stopPropagation(); hvToanMan(); return; }
   const hvDongEl = e.target.closest('[data-action="hv-dong"]');
   if(hvDongEl){ hvDongPhien(); return; }
-  const hvDoiEl = e.target.closest('[data-action="hv-doi-chieu"]');
-  if(hvDoiEl){ e.stopPropagation(); hvDoiChieuLoi(); return; }
+  // v251 — nút "AI đối chiếu" đã gỡ theo yêu cầu; gỡ luôn nhánh điều phối của nó, đừng để
+  // lại một nhánh chết mà lần sau đọc tới lại tưởng chức năng vẫn còn.
   const hvVaEl = e.target.closest('[data-action="hv-va-loi"]');
   if(hvVaEl){ e.stopPropagation(); const p0 = STATE.hvPhien; if(p0) hvLayNotPhanThieu(p0.vidId); return; }
   const vocCtEl = e.target.closest('[data-action="vocab-chitiet"]');
