@@ -4235,7 +4235,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v255';
+const APP_VERSION = 'v256';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10556,7 +10556,7 @@ function drpBaiHtml(b){
           ${mau ? `<button class="drp-m phu" data-action="drp-nghe-lai" data-i="${i}"
             title="Nghe lại giọng bạn vừa đọc">▶ Giọng bạn · ${drpPhutGiay(mau.giay)}</button>
           <button class="drp-m phu" data-action="drp-thu-lai" data-i="${i}">🔄 Thu lại</button>
-          <button class="drp-m cham" data-action="drp-cham" data-i="${i}" ${
+          <button class="drp-m cham" data-action="drp-cham-cau" data-i="${i}" ${
             mau.dangCham ? 'disabled' : ''}>${
             mau.dangCham ? '⏳ Đang chấm…' : (mau.cham ? '🔄 Chấm lại' : '✓ Chấm phát âm')}</button>` : ''}
         </div>
@@ -30524,11 +30524,17 @@ document.getElementById('content').addEventListener('click',(e)=>{
     if(a === 'drp-cham'){ drpDatCai('cham', v); return; }
     if(a === 'drp-sinh'){ drpSinhVanBan(); return; }
     if(a === 'drp-bai-khac'){ drpBaiKhac(); return; }
-    if(a === 'drp-thu'){ drpBatThu(+el.getAttribute('data-i')); return; }
-    if(a === 'drp-thu-lai'){ drpThuLai(+el.getAttribute('data-i')); return; }
-    if(a === 'drp-nghe-lai'){ drpNgheLai(+el.getAttribute('data-i')); return; }
-    if(a === 'drp-nghe-mau'){ drpNgheMau(+el.getAttribute('data-i')); return; }
-    if(a === 'drp-cham'){ drpChamCau(+el.getAttribute('data-i')); return; }
+    // Biến ở khối này tên là drpEl. Bản đầu tôi viết "el" — không có biến nào tên thế,
+    // nên cả năm nút ném ReferenceError và im lặng không làm gì. Bấm vào như bấm vào tường.
+    const i = +drpEl.getAttribute('data-i');
+    if(a === 'drp-thu'){ drpBatThu(i); return; }
+    if(a === 'drp-thu-lai'){ drpThuLai(i); return; }
+    if(a === 'drp-nghe-lai'){ drpNgheLai(i); return; }
+    if(a === 'drp-nghe-mau'){ drpNgheMau(i); return; }
+    // LỖI 2: nút chấm điểm từng câu trước đây cũng mang tên 'drp-cham' — TRÙNG với công tắc
+    // chọn Azure/Gemini ở trên. Nhánh công tắc đứng trước nên nó nuốt hết cú bấm: bấm "Chấm
+    // phát âm" hoá ra đi đổi cài đặt sang giá trị rỗng. Đổi tên cho không đụng nhau nữa.
+    if(a === 'drp-cham-cau'){ drpChamCau(i); return; }
     if(a === 'drp-thu-worker'){ drpKiemTraWorker(); return; }
     return;
   }
