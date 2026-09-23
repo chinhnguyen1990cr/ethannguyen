@@ -3696,8 +3696,37 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .drp-loi-thu{margin-top:10px; padding:9px 12px; border-radius:11px; font-size:11.5px;
   line-height:1.65; border:1px solid rgba(242,109,91,.35); background:rgba(242,109,91,.09);
   color:#FFC4BA;}
+/* v255 — Module 3: bảng chấm phát âm. */
+.drp-m.cham{border-color:rgba(255,179,71,.45); background:rgba(255,179,71,.14); color:#FFD79A;}
+.drp-m.cham:disabled{opacity:.55; cursor:progress;}
+.drp-cham-loi{margin-top:8px; padding:8px 11px; border-radius:10px; font-size:11px; line-height:1.6;
+  border:1px solid rgba(255,201,74,.35); background:rgba(255,201,74,.08); color:#FFDF9E;}
+.drp-cham-loi b{color:#FFE9C2;}
+.drp-kq{margin-top:9px; padding:11px 12px; border-radius:13px;
+  border:1px solid var(--border); background:rgba(255,255,255,.035);}
+.drp-diem{display:flex; gap:7px; flex-wrap:wrap;}
+.drp-diem-o{flex:1; min-width:66px; text-align:center; padding:7px 4px; border-radius:10px;
+  background:rgba(255,255,255,.05); border:1px solid var(--border);}
+.drp-diem-o b{display:block; font-size:19px; font-weight:900; color:#2CDBA8; font-family:var(--mono);}
+.drp-diem-o span{display:block; margin-top:2px; font-size:9.5px; color:var(--dim2);}
+.drp-tu-hang{margin-top:10px; line-height:2.5;}
+.drp-tu-c{display:inline-block; padding:3px 9px; border-radius:8px; font-size:14px; font-weight:600;
+  font-family:'Bookerly','Georgia',ui-serif,serif; border:1px solid transparent;}
+.drp-tu-c i{font-style:normal; margin-left:5px; font-size:9px; font-family:var(--mono); opacity:.75;}
+.drp-tu-c.tot{background:rgba(44,219,168,.14); color:#9FE8CE; border-color:rgba(44,219,168,.3);}
+.drp-tu-c.kha{background:rgba(255,201,74,.13); color:#FFDF9E; border-color:rgba(255,201,74,.3);}
+.drp-tu-c.te{background:rgba(242,109,91,.16); color:#FFB9AE; border-color:rgba(242,109,91,.4);}
+.drp-tu-c.thieu{background:rgba(242,109,91,.1); color:#E09A90; border-color:rgba(242,109,91,.35);
+  text-decoration:line-through; opacity:.8;}
+.drp-tu-c.thua{background:rgba(160,160,255,.12); color:#BDBDF5; border-color:rgba(160,160,255,.3);
+  font-style:italic;}
+.drp-nghe{margin-top:9px; font-size:11.5px; line-height:1.6; color:var(--dim2);
+  padding-top:8px; border-top:1px dashed var(--border);}
+.drp-nx{margin:8px 0 0; padding-left:17px; font-size:11.5px; line-height:1.8; color:#FFE2A8;}
+.drp-nguon{margin-top:8px; font-size:9.5px; color:var(--dim2); text-align:right;}
 @media(max-width:719px){ .drp-cau p{font-size:14.5px;} .drp-mic{min-width:100%;}
-  .drp-m{font-size:10.5px; padding:6px 11px;} }
+  .drp-m{font-size:10.5px; padding:6px 11px;}
+  .drp-diem-o b{font-size:16px;} .drp-tu-c{font-size:13px; padding:3px 7px;} }
 /* v251 — bảng kết quả của nút "Kiểm tra & nối câu vỡ". */
 .hv-kt{margin-top:11px; padding:11px 13px; border-radius:13px; font-size:11.5px; line-height:1.7;}
 .hv-kt.ok{border:1px solid rgba(44,219,168,.35); background:rgba(44,219,168,.09); color:#9FE8CE;}
@@ -4206,7 +4235,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v254';
+const APP_VERSION = 'v255';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10325,6 +10354,8 @@ function drpPhutGiay(n){
   const p = Math.floor(n / 60), gy = n % 60;
   return p + ':' + (gy < 10 ? '0' : '') + gy;
 }
+// Xoá bản ghi thì xoá luôn kết quả chấm của nó: giữ lại là bạn thu lại câu, thấy điểm cũ
+// nằm nguyên đó, và tưởng lần đọc mới cũng chừng ấy điểm.
 function drpXoaMau(i){
   const g = drpGhi(); const m = g.mau[i];
   if(!m) return;
@@ -10358,6 +10389,97 @@ function drpDongThu(){
   Object.keys(g.mau || {}).forEach(k=>drpXoaMau(k));
   g.dang = -1;
   try{ if(drpAudio){ drpAudio.pause(); drpAudio.src = ''; } }catch(_){ }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  MODULE 3 — CHẤM PHÁT ÂM (phía app)
+//  App KHÔNG biết hôm nay chấm bằng Azure hay Gemini. Worker đã chuẩn hoá hai nguồn về
+//  cùng một dạng, nên chỗ này chỉ có một đường vẽ duy nhất.
+// ══════════════════════════════════════════════════════════════════════════════════════
+async function drpChamCau(i){
+  const g = drpGhi();
+  const mau = g.mau[i];
+  const s = STATE.drpPhien;
+  const cau = s && s.bai && s.bai.sentences ? s.bai.sentences[i] : '';
+  if(!mau || !cau) return;
+  if(mau.dangCham) return;                      // bấm hai lần thì lần sau không tính
+  const w = drpDocOWorker();
+  if(!w){ g.loi = 'Chưa có địa chỉ Worker.'; try{ renderContent(); }catch(_){ } return; }
+  if(!mau.wav){
+    mau.chamLoi = mau.wavLoi
+      ? ('Không chuyển được bản ghi sang WAV: ' + mau.wavLoi)
+      : 'Bản ghi chưa chuyển xong, thử lại sau một nhịp.';
+    try{ renderContent(); }catch(_){ } return;
+  }
+  mau.dangCham = true; mau.chamLoi = null; mau.cham = null;
+  try{ renderContent(); }catch(_){ }
+  try{
+    const b64 = await drpWavB64(mau.wav);
+    const res = await fetch(w + '/score', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text: cau, audio: b64, cham: drpCaiDat().cham })
+    });
+    const j = await res.json().catch(()=>null);
+    if(j && j.ok){ mau.cham = j; }
+    else{
+      mau.chamLoi = (j && j.error) || ('Worker trả lỗi ' + res.status + '.');
+      // Thiếu khoá Azure là ca riêng: gợi ý đúng việc phải làm thay vì để người học đoán.
+      if(j && j.thieuKhoa === 'azure') mau.goiY = 'gemini';
+    }
+  }catch(e){
+    mau.chamLoi = 'Không gọi được worker: ' + (e && e.message || e);
+  }
+  mau.dangCham = false;
+  try{ renderContent(); }catch(_){ }
+}
+
+// Blob → base64. FileReader trả về dạng "data:audio/wav;base64,XXXX", chỉ lấy phần sau dấu
+// phẩy. Đọc bằng FileReader chứ không tự ghép chuỗi từ byte: bản ghi vài trăm nghìn byte mà
+// nối chuỗi từng ký tự thì treo hẳn trình duyệt vài giây.
+function drpWavB64(blob){
+  return new Promise((ok, hong)=>{
+    try{
+      const fr = new FileReader();
+      fr.onload = ()=>{ const t = String(fr.result || ''); ok(t.slice(t.indexOf(',') + 1)); };
+      fr.onerror = ()=>hong(new Error('không đọc được bản ghi'));
+      fr.readAsDataURL(blob);
+    }catch(e){ hong(e); }
+  });
+}
+
+// Màu của một từ theo điểm. Ba bậc thôi — bảy sắc cầu vồng thì nhìn vào không biết nên
+// sửa từ nào trước.
+function drpBacTu(t){
+  if(t.loi === 'thieu') return 'thieu';
+  if(t.loi === 'thua')  return 'thua';
+  if(t.loi === 'sai')   return 'te';
+  if(t.diem == null)    return '';
+  if(t.diem >= 80) return 'tot';
+  if(t.diem >= 60) return 'kha';
+  return 'te';
+}
+function drpChamHtml(kq){
+  const d = kq.diem || {};
+  const o = (nhan, v)=> v == null ? '' :
+    `<div class="drp-diem-o"><b>${v}</b><span>${nhan}</span></div>`;
+  const tu = (kq.tu || []).map(t=>{
+    const b = drpBacTu(t);
+    const chu = t.loi === 'thieu' ? 'sót' : (t.loi === 'thua' ? 'thừa' : '');
+    return `<span class="drp-tu-c ${b}" title="${t.diem == null ? 'chưa chấm' : t.diem + '/100'}${
+      chu ? ' · ' + chu : ''}">${escapeHtml(t.chu)}${
+      t.diem != null ? `<i>${t.diem}</i>` : ''}</span>`;
+  }).join(' ');
+  const nx = (kq.nhanXet || []).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+  return `<div class="drp-kq">
+      <div class="drp-diem">
+        ${o('Tổng', d.chung)}${o('Chuẩn xác', d.chuanXac)}${o('Trôi chảy', d.troiChay)}${o('Trọn vẹn', d.tronVen)}
+      </div>
+      ${tu ? `<div class="drp-tu-hang">${tu}</div>` : ''}
+      ${kq.ngheThay ? `<div class="drp-nghe">Máy nghe ra: “${escapeHtml(kq.ngheThay)}”</div>` : ''}
+      ${nx ? `<ul class="drp-nx">${nx}</ul>` : ''}
+      <div class="drp-nguon">Chấm bằng ${kq.nguon === 'azure' ? 'Azure Speech' : 'Gemini'}</div>
+    </div>`;
 }
 
 // ── Chuyển WebM/Opus sang WAV 16kHz mono PCM ─────────────────────────────────────────
@@ -10433,8 +10555,15 @@ function drpBaiHtml(b){
             title="Nghe máy đọc mẫu câu này">🔊 Mẫu</button>
           ${mau ? `<button class="drp-m phu" data-action="drp-nghe-lai" data-i="${i}"
             title="Nghe lại giọng bạn vừa đọc">▶ Giọng bạn · ${drpPhutGiay(mau.giay)}</button>
-          <button class="drp-m phu" data-action="drp-thu-lai" data-i="${i}">🔄 Thu lại</button>` : ''}
+          <button class="drp-m phu" data-action="drp-thu-lai" data-i="${i}">🔄 Thu lại</button>
+          <button class="drp-m cham" data-action="drp-cham" data-i="${i}" ${
+            mau.dangCham ? 'disabled' : ''}>${
+            mau.dangCham ? '⏳ Đang chấm…' : (mau.cham ? '🔄 Chấm lại' : '✓ Chấm phát âm')}</button>` : ''}
         </div>
+        ${mau && mau.chamLoi ? `<div class="drp-cham-loi">⚠️ ${escapeHtml(mau.chamLoi)}${
+          mau.goiY === 'gemini' ? ' <b>Chuyển công tắc "Chấm phát âm bằng" sang Gemini là dùng được ngay.</b>' : ''
+        }</div>` : ''}
+        ${mau && mau.cham ? drpChamHtml(mau.cham) : ''}
       </div>
     </div>`;
   }).join('');
@@ -30399,6 +30528,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     if(a === 'drp-thu-lai'){ drpThuLai(+el.getAttribute('data-i')); return; }
     if(a === 'drp-nghe-lai'){ drpNgheLai(+el.getAttribute('data-i')); return; }
     if(a === 'drp-nghe-mau'){ drpNgheMau(+el.getAttribute('data-i')); return; }
+    if(a === 'drp-cham'){ drpChamCau(+el.getAttribute('data-i')); return; }
     if(a === 'drp-thu-worker'){ drpKiemTraWorker(); return; }
     return;
   }
