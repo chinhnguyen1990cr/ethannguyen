@@ -4353,7 +4353,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v260';
+const APP_VERSION = 'v261';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5894,9 +5894,20 @@ async function pullFromDrive(){
     // Chỉ lưu XUỐNG MÁY, TUYỆT ĐỐI không đẩy ngược lên Drive: dữ liệu này VỪA tải về từ chính Drive nên
     // đẩy lên lại là gửi đi vài MB y hệt một cách vô ích — đây là một trong những lý do bước "Đang đồng
     // bộ" kéo dài lê thê rồi treo trên điện thoại.
+    // v261 — DỌN LẠI SAU KHI TẢI VỀ. Đây là một lỗi thật, đo được trên máy người dùng:
+    // bước dọn kho của v260 chạy lúc khởi động, dọn xong, lưu xuống máy — rồi Drive tải bản
+    // cũ về và THAY TOÀN BỘ SETTINGS ở ngay phía trên, nên cả việc dọn lẫn cờ "đã dọn" biến
+    // mất không dấu vết. Mở app lần nào cũng dọn lại rồi lại bị xoá, còn người dùng thì thấy
+    // kho vẫn nguyên như cũ và tưởng chức năng không chạy.
+    // Bất kỳ bước di trú dữ liệu nào về sau cũng phải gọi lại ở ĐÂY, không chỉ lúc khởi động.
+    try{ tvDonKhoNeuCan(); }catch(e){ console.warn('don kho sau khi tai ve', e); }
     _suppressDrivePush = true;
     try{ saveLog(); saveSettings(); saveKiemHang(); }
     finally{ _suppressDrivePush = false; }
+    // Dọn xong thì bản trên máy KHÁC bản trên Drive, nên phải đẩy lên — nếu không, lần mở
+    // sau lại tải bản chưa dọn về và mọi thứ quay lại vạch xuất phát.
+    if(SETTINGS.tvDaDon === 'v260' && !_daDaySauDon){ _daDaySauDon = true;
+      try{ pushToDrive(); }catch(_){ } }
     driveSyncOk = true;
     driveLastSyncAt = Date.now();
   } else if(parseFailed){
@@ -5913,6 +5924,8 @@ async function pullFromDrive(){
 let driveSaveTimer=null;
 // Cờ tạm chặn đẩy dữ liệu lên Drive (dùng khi vừa TẢI VỀ xong — xem pullFromDrive).
 let _suppressDrivePush = false;
+// Chỉ đẩy lên Drive MỘT lần sau khi dọn, không đẩy lại ở mỗi lần đồng bộ về sau.
+let _daDaySauDon = false;
 // Ghi chú: dùng lại hàm withTimeout(promise, ms) đã có sẵn ở phần STORAGE phía trên — nó ném lỗi
 // mang chữ "timeout". Các lời gọi Drive trước đây KHÔNG có giới hạn thời gian nào: mạng điện thoại chập
 // chờn giữa chừng khi đang tải/gửi vài MB là lời gọi treo vô thời hạn, app đứng im mãi ở màn "Đang đồng
