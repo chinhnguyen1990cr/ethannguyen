@@ -4280,7 +4280,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v257';
+const APP_VERSION = 'v258';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10543,7 +10543,11 @@ function drpPhutGiay(n){
 function drpXoaMau(i){
   const g = drpGhi(); const m = g.mau[i];
   if(!m) return;
-  if(g.phat === i) drpDungPhat();
+  // Phải NHẢ thẻ audio trước khi thu hồi địa chỉ, kể cả khi không phải câu đang phát:
+  // thẻ audio có thể vẫn đang giữ đúng địa chỉ ấy từ lần nghe trước. Thu hồi trước là
+  // thẻ mất nguồn giữa chừng và bắn sự kiện error.
+  const dangGiu = !!(drpAudio && m.url && String(drpAudio.src || '').indexOf(m.url) >= 0);
+  if(g.phat === i || dangGiu) drpDungPhat();
   try{ if(m.url) URL.revokeObjectURL(m.url); }catch(_){ }
   delete g.mau[i];
 }
@@ -10588,8 +10592,25 @@ function drpNgheLai(i){
 }
 function drpDungPhat(){
   const g = drpGhi();
-  try{ if(drpAudio){ drpAudio.pause(); drpAudio.onended = null; drpAudio.onerror = null; } }catch(_){ }
+  drpNhaAudio();
   if(g.phat != null){ g.phat = null; try{ renderContent(); }catch(_){ } }
+}
+// Gỡ thẻ audio khỏi bản ghi hiện tại một cách AN TOÀN.
+//
+// v258 — người dùng bấm nút quay lại và thấy hiện ra "Trình duyệt không mở được bản ghi
+// này". Gốc: drpDongThu() xoá g.loiPhat, RỒI thu hồi các blob URL, RỒI gán drpAudio.src=''.
+// Hai việc sau đều làm thẻ audio bắn sự kiện error — mà onerror vẫn còn gắn, nên nó ghi
+// lại thông báo lỗi SAU KHI đã xoá, và dòng đỏ ấy còn nguyên ở màn hình kế tiếp.
+// Gán src='' đặc biệt tệ: trình duyệt hiểu là địa chỉ rỗng và đi nạp chính địa chỉ trang.
+// Cách gỡ đúng là bỏ hẳn thuộc tính rồi load() lại.
+function drpNhaAudio(){
+  if(!drpAudio) return;
+  try{
+    drpAudio.onended = null; drpAudio.onerror = null; drpAudio.onloadedmetadata = null;
+    drpAudio.pause();
+    if(drpAudio.removeAttribute) drpAudio.removeAttribute('src');
+    if(drpAudio.load) drpAudio.load();
+  }catch(_){ }
 }
 function drpNgheMau(i){
   const cau = drpVanBan(i);
@@ -10605,10 +10626,13 @@ function drpDongThu(){
   try{ if(g.mr && g.mr.state !== 'inactive') g.mr.stop(); }catch(_){ }
   if(g.stream) drpTatMic(g.stream);
   drpDungDemGiay(); drpDongKim();
-  g.phat = null; g.loiPhat = null;
+  // THỨ TỰ Ở ĐÂY LÀ CẢ VẤN ĐỀ. Nhả thẻ audio TRƯỚC, rồi mới thu hồi địa chỉ, rồi mới xoá
+  // cờ lỗi. Làm ngược lại thì sự kiện error bắn ra sau khi đã xoá cờ, và dòng báo lỗi
+  // sống sót sang màn hình kế tiếp — đúng lỗi người dùng gặp khi bấm quay lại.
+  drpNhaAudio();
   Object.keys(g.mau || {}).forEach(k=>drpXoaMau(k));
   g.dang = -1;
-  try{ if(drpAudio){ drpAudio.pause(); drpAudio.src = ''; } }catch(_){ }
+  g.phat = null; g.loiPhat = null;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════════════
