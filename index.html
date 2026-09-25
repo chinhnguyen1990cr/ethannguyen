@@ -3678,6 +3678,25 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
   background:rgba(255,201,74,.05);}
 .wb-tk-goi b{display:block; color:var(--gold); font-size:11px; margin-bottom:3px;}
 .wb-tk-goi i{font-style:normal; color:var(--text); font-weight:700;}
+/* v264 — lưới ô nhỏ thay cho danh sách hàng cao. 30 chủ đề cũ chiếm hơn 1600px. */
+.wb-tk-luoi{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+.wb-tk-o2{display:flex; flex-direction:column; gap:3px; text-align:left; cursor:pointer;
+  padding:9px 10px; border-radius:11px; font-family:inherit; min-width:0;
+  border:1px solid var(--border); background:var(--panel); color:var(--text);}
+.wb-tk-o2:active{background:rgba(255,255,255,.05);}
+.wb-tk-o2-t{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.wb-tk-o2-t i{font-style:normal; font-size:12px; flex:0 0 auto;}
+.wb-tk-o2-s{font-size:9.5px; color:var(--dim2); font-family:var(--num);}
+.wb-tk-o2-v{display:block; height:3px; border-radius:99px; background:rgba(255,255,255,.07);
+  margin-top:3px; overflow:hidden;}
+.wb-tk-o2-v i{display:block; height:100%; border-radius:99px;
+  background:linear-gradient(90deg,#2CDBA8,#4FA8FF);}
+.wb-tk-xo{margin-top:7px;}
+.wb-tk-xo > summary{cursor:pointer; list-style:none; font-size:10.5px; color:var(--dim2);
+  padding:8px 11px; border-radius:10px; border:1px dashed var(--border);}
+.wb-tk-xo > summary::-webkit-details-marker{display:none;}
+.wb-tk-xo[open] > summary{margin-bottom:6px; color:var(--dim);}
 .wb-tk-bang{display:flex; flex-direction:column; gap:6px;}
 .wb-tk-hang{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:11px;
   border:1px solid var(--border); background:var(--panel);}
@@ -4484,7 +4503,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v263';
+const APP_VERSION = 'v264';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10321,6 +10340,78 @@ function renderEnglishPlanner(){
     </div>
   `;
 }
+// ══ v264 · MỘT THANG BÓC LỚP DUY NHẤT CHO NÚT BACK ═══════════════════════════════════
+// ĐO ĐƯỢC TRƯỚC KHI SỬA (bắn sự kiện thật qua bộ điều phối, 18 lớp màn hình):
+//   ✅ bóc đúng một lớp: wbKho, ggPractice, ipaChartGroup, drpPhien.bai   → 5 lớp
+//   ❌ VĂNG THẲNG RA DANH SÁCH NGOÀI: wbSession (Thẻ lật / Câu hỏi đang chạy!),
+//      vocabSession, sentSession, vocabBrowseTopic, dictSession, dictHome, quiz,
+//      hvPhien, sdPhien, dvPhien, longPassageBrowse, speakSession, listenQuiz → 13 lớp
+// Gốc của chuyện này: mỗi lần thêm một màn hình mới lại thêm một câu "if" vào giữa hàm,
+// ai quên thì màn ấy rơi xuống nhánh cuối — mà nhánh cuối là THOÁT HẲN. Sai sót kiểu đó
+// im lặng tuyệt đối: không lỗi, không cảnh báo, chỉ có người dùng bị văng ra.
+// Nay tất cả nằm trong MỘT bảng, xếp từ lớp trong cùng ra ngoài cùng. Thêm màn mới là
+// thêm một dòng vào bảng; quên thì bài đo ENG_LOP kêu ngay.
+const ENG_LOP = [
+  // [tên lớp, đang mở?, cách đóng]
+  ['aiCall',     ()=>STATE.aiCallSession,        ()=>{ aiCallEnd(); return 'tuLo'; }],
+  ['drpBai',     ()=>STATE.drpPhien && STATE.drpPhien.bai, ()=>{
+      try{ drpDongThu(); }catch(_){ }
+      STATE.drpPhien.bai = null; STATE.drpPhien.loi = null; }],
+  ['ggQuiz',     ()=>STATE.ggPractice && STATE.quiz, ()=>{ STATE.quiz = null; return 'khongLui'; }],
+  ['ggPractice', ()=>STATE.ggPractice,            ()=>{ STATE.ggPractice = false; }],
+  ['ipaDeep',    ()=>STATE.ipaDeepSession,        ()=>{ STATE.ipaDeepSession = null; return 'khongLui'; }],
+  ['ipaDetail',  ()=>STATE.ipaDetailSym,          ()=>{ STATE.ipaDetailSym = null; STATE.ipaVideoIdx = 0; return 'khongLui'; }],
+  ['ipaSub',     ()=>STATE.ipaChartSubgroup,      ()=>{ STATE.ipaChartSubgroup = null; return 'khongLui'; }],
+  ['ipaGroup',   ()=>STATE.ipaChartGroup,         ()=>{ STATE.ipaChartGroup = null; return 'khongLui'; }],
+  // Thẻ lật / Câu hỏi đang chạy: lùi về ĐÚNG màn "Từ vựng & Mẫu câu", giữ nguyên wbKho
+  // nếu đang mở từ trong một kho. Đây là lớp người dùng gặp nhiều nhất trong ngày.
+  ['wbSession',  ()=>STATE.wbSession,             ()=>{ STATE.wbSession = null; }],
+  ['vocabSession', ()=>STATE.vocabSession,        ()=>{ STATE.vocabSession = null; }],
+  ['sentSession',  ()=>STATE.sentSession,         ()=>{ STATE.sentSession = null; }],
+  ['vocabTopic', ()=>STATE.vocabBrowseTopic,      ()=>{ STATE.vocabBrowseTopic = null; }],
+  ['hvPhien',    ()=>STATE.hvPhien,               ()=>{ try{ hvDongPhien(); }catch(_){ STATE.hvPhien = null; } }],
+  ['sdPhien',    ()=>STATE.sdPhien,               ()=>{ try{ sdDongPhien(); }catch(_){ STATE.sdPhien = null; } }],
+  ['dvPhien',    ()=>STATE.dvPhien,               ()=>{ try{ dvDongPhien(); }catch(_){ STATE.dvPhien = null; } }],
+  ['dictSession',()=>STATE.dictSession,           ()=>{ STATE.dictSession = null; }],
+  ['dictHome',   ()=>STATE.dictHome,              ()=>{ STATE.dictHome = false; }],
+  ['quiz',       ()=>STATE.quiz,                  ()=>{ STATE.quiz = null; }],
+  ['longPassage',()=>STATE.longPassageBrowse,     ()=>{ STATE.longPassageBrowse = null; }],
+  ['speakSession',()=>STATE.speakSession,         ()=>{ STATE.speakSession = null; }],
+  ['listenQuiz', ()=>STATE.listenQuiz,            ()=>{ STATE.listenQuiz = null; }],
+  // Lớp NGOÀI CÙNG bên trong một mục: đang xem một kho thì lùi về màn gộp.
+  ['wbKho',      ()=>STATE.wbKho,                 ()=>{ STATE.wbKho = null; }]
+];
+// Trả về tên lớp vừa bóc, hoặc null nếu đã ở lớp ngoài cùng và phải thoát hẳn khỏi mục.
+function engLopDangMo(){
+  for(let i = 0; i < ENG_LOP.length; i++){
+    try{ if(ENG_LOP[i][1]()) return ENG_LOP[i]; }catch(_){ }
+  }
+  return null;
+}
+function engBack(){
+  const lop = engLopDangMo();
+  if(lop){
+    let co = null;
+    try{ co = lop[2](); }catch(e){ console.warn('dong lop ' + lop[0], e); }
+    if(co === 'tuLo') return;                 // lớp ấy tự lo cả việc vẽ lại lẫn lịch sử
+    try{ renderContent(); }catch(_){ }
+    // 'khongLui': lớp ấy không đẩy mốc lịch sử khi mở, nên đóng cũng không được lùi —
+    // lùi thêm một mốc là nuốt mất mốc của lớp ngoài, và lần bấm sau văng ra hai lớp.
+    if(co !== 'khongLui'){ try{ navBack(); }catch(_){ } }
+    try{ window.scrollTo(0, 0); }catch(_){ }
+    return lop[0];
+  }
+  // Đã ở lớp ngoài cùng: thoát hẳn về danh sách Học tiếng Anh, và dọn sạch mọi lớp còn
+  // sót để lần sau mở mục là vào từ đầu chứ không rơi vào giữa chừng.
+  ENG_LOP.forEach(l=>{ try{ if(l[1]()) l[2](); }catch(_){ } });
+  STATE.ipaVideoIdx = 0;
+  STATE.tab = 'english';
+  try{ renderContent(); }catch(_){ }
+  try{ window.scrollTo(0, 0); }catch(_){ }
+  try{ navBack(); }catch(_){ }
+  return null;
+}
+
 function openEnglishItem(id){
   navForward();
   STATE.activeEnglishItem = id;
@@ -11403,17 +11494,44 @@ function hoTuCua(chu){
   ['n','v','adj','adv'].forEach(t=>{ if(d[t]) ra[t] = d[t]; });
   return Object.keys(ra).length ? ra : null;
 }
-function vdDangTu(chu){
-  const o = vdLay(chu);
-  if(o && o.dangTu && Object.keys(o.dangTu).length) return o.dangTu;
-  const t = vdTay(chu);
-  if(t && t.dangTu && Object.keys(t.dangTu).length) return t.dangTu;
-  // v263 — bảng soạn tay là chỗ dựa cuối. Trước đây mục nào AI chưa kịp bổ sung là không
-  // có dạng từ nào cả: đo được 53/3070 từ có dạng từ, tức 98% số thẻ mở ra trống trơn.
-  const b = hoTuCua(chu);
-  if(b) return b;
-  return (o && o.dangTu) ? o.dangTu : {};
+// ══ v264 · MỘT NGUỒN HỌ TỪ DUY NHẤT CHO CẢ THẺ LẬT LẪN THƯ VIỆN ══════════════════════
+// LỖI ĐO ĐƯỢC: kho ví dụ do AI soạn có bản ghi dangTu dùng KHOÁ TIẾNG VIỆT
+// ({"danh từ":"decision"}). vdDangTu() trả bản ghi ấy TRƯỚC, mà thẻ lật lọc theo khoá
+// n/v/adj/adv nên ra mảng RỖNG — thẻ lật trống trơn phần họ từ trong khi Thư viện, vốn
+// gọi thẳng hoTuCua(), lại hiện đủ. Hai màn hình cùng một từ mà nói hai chuyện khác nhau.
+// Thêm nữa, bản ghi AI thường chỉ có MỘT dạng, mà "có một dạng" lại thắng cả bảng soạn
+// tay có đủ bốn — càng có AI càng ra ít.
+// Nay: quy khoá về một chuẩn, rồi GỘP — bảng soạn tay làm nền, AI bổ sung chỗ còn thiếu.
+const HO_TU_KHOA = {
+  n:'n', v:'v', adj:'adj', adv:'adv',
+  noun:'n', verb:'v', adjective:'adj', adverb:'adv',
+  'danh từ':'n', 'động từ':'v', 'tính từ':'adj', 'trạng từ':'adv',
+  'danh tu':'n', 'dong tu':'v', 'tinh tu':'adj', 'trang tu':'adv'
+};
+function hoTuChuanHoa(o){
+  const ra = {};
+  if(!o || typeof o !== 'object') return ra;
+  Object.keys(o).forEach(k=>{
+    const t = HO_TU_KHOA[String(k).trim().toLowerCase()];
+    const v = String(o[k] == null ? '' : o[k]).trim();
+    if(t && v && !ra[t]) ra[t] = v;
+  });
+  return ra;
 }
+// Họ từ ĐẦY ĐỦ của một từ: bảng soạn tay + phần AI bổ sung. Đây là hàm DUY NHẤT mà cả
+// thẻ lật lẫn Thư viện gọi — hai chỗ không thể lệch nhau nữa.
+function hoTuDayDu(chu){
+  const ra = Object.assign({}, hoTuCua(chu) || {});
+  let o = null, t = null;
+  try{ o = vdLay(chu); }catch(_){ }
+  try{ t = vdTay(chu); }catch(_){ }
+  [o && o.dangTu, t && t.dangTu].forEach(x=>{
+    const c = hoTuChuanHoa(x);
+    Object.keys(c).forEach(k=>{ if(!ra[k]) ra[k] = c[k]; });
+  });
+  return Object.keys(ra).length ? ra : null;
+}
+function vdDangTu(chu){ return hoTuDayDu(chu) || {}; }
 // Một lượt hỏi AI cho đúng một mục. Trả về đối tượng đã chuẩn hoá và đã ghi vào kho.
 async function vdLayAI(chu, nghia){
   const k = vdKhoa(chu); if(!k) throw new Error('Thiếu từ');
@@ -12063,7 +12181,7 @@ function tvLocDanhSach(){
     const nhieuChu = /\s/.test(String(x.chu||'')) || x.__kho === 'cau';
     if(t.loc === 'tu'    && nhieuChu) return false;
     if(t.loc === 'cum'   && !nhieuChu) return false;
-    if(t.loc === 'hoTu'  && !hoTuCua(x.chu)) return false;
+    if(t.loc === 'hoTu'  && !hoTuDayDu(x.chu)) return false;
     if(t.loc === 'chua'  && x.nghia) return false;
     if(t.loc === 'thuoc' && !tvDaThuoc(x)) return false;
     if(!tim) return true;
@@ -12147,7 +12265,7 @@ function tvTheHtml(x, k){
         // v263 — hai thứ khác hẳn nhau, trước đây bị gộp làm một:
         //  · HỌ TỪ theo từ loại (decide / decision / decisive) — thứ đáng học thêm.
         //  · các DẠNG CHỮ của cùng một từ (run / running / ran) — thứ app dùng để khỏi lưu trùng.
-        const ht = hoTuCua(x.chu);
+        const ht = hoTuDayDu(x.chu);
         const ten = {n:'danh từ', v:'động từ', adj:'tính từ', adv:'trạng từ'};
         const kh = ht ? ['n','v','adj','adv'].filter(k=>ht[k]) : [];
         return (kh.length ? `<div class="tv-hang"><span>Họ từ — ${kh.length} dạng</span>
@@ -12800,7 +12918,10 @@ function vocabPrepareCurrent(){
   //    nếu không sẽ ra một dạng bài không thể trả lời được (bài học rút từ lỗi mic của Luyện nói).
   types.push('match_pairs');
   if(box>=1 && word[1].replace(/\s+/g,'').length>=3) types.push('listen_type');
-  if(qzSayCoCloud() || window.SpeechRecognition || window.webkitSpeechRecognition) types.push('say_it');
+  // v264 — BỎ dạng "say_it" (Đọc to câu này). Nhận diện giọng nói của trình duyệt chấm
+  // rất thất thường: đọc đúng vẫn bị trả về sai, và người học không có cách nào biết đó là
+  // mình sai hay máy nghe nhầm. Việc luyện đọc to nay có chỗ riêng và chấm đàng hoàng —
+  // mục Daily Reading Practice. Để nó nằm lẫn trong bộ câu hỏi chỉ gây ức chế.
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây — cảm giác đa dạng thật sự thay vì luôn ra đúng 1 kiểu dự đoán được.
   if(!Array.isArray(s.dangGanDay)) s.dangGanDay = [];
@@ -13686,24 +13807,11 @@ function renderEnglishWordbank(item){
     ${wbMucDoHtml()}
     <div class="wb-lane">
       <div class="wb-lane-h">Mở kho</div>
-      <button class="wb-lane-nut" data-action="wb-kho" data-k="tu">
-        <span class="wb-lane-ic tu">📖</span>
-        <span class="wb-lane-tx"><b>Kho từ vựng</b>
-          <small>${vs.total} từ · đã học ${vs.learned} · 🏆 ${vs.mastered||0} thuộc lòng</small>
-          <span class="wb-lane-thanh"><i style="width:${wbPctKho(vs.learned, vs.total)}%"></i></span></span>
-        <span class="wb-lane-mui">›</span>
-      </button>
-      <button class="wb-lane-nut" data-action="wb-kho" data-k="cau">
-        <span class="wb-lane-ic cau">💬</span>
-        <span class="wb-lane-tx"><b>Kho mẫu câu</b>
-          <small>${cs.total} câu · đã học ${cs.learned} · 🏆 ${cs.mastered||0} thuộc lòng</small>
-          <span class="wb-lane-thanh"><i style="width:${wbPctKho(cs.learned, cs.total)}%"></i></span></span>
-        <span class="wb-lane-mui">›</span>
-      </button>
       <button class="wb-lane-nut" data-action="wb-kho" data-k="thu">
         <span class="wb-lane-ic thu">📚</span>
         <span class="wb-lane-tx"><b>Thư viện của bạn</b>
-          <small>${(vs.total||0) + (cs.total||0)} mục · tìm, lọc, xem họ từ, sửa nghĩa</small></span>
+          <small>${(vs.total||0) + (cs.total||0)} mục · tìm, lọc, xem họ từ, sửa nghĩa</small>
+          <small>Tiến độ hai kho nằm ngay trong đó</small></span>
         <span class="wb-lane-mui">›</span>
       </button>
     </div>`);
@@ -14348,17 +14456,21 @@ function wbNhomThongKeHtml(kind){
     return {t, tong:ds.length, daHoc, thuoc, pct: Math.round(daHoc / ds.length * 100)};
   }).filter(Boolean).sort((a, b) => a.pct - b.pct);      // yếu nhất lên trước, đó là chỗ cần nhìn
   if(!hang.length) return '';
+  // v264 — bản cũ mỗi chủ đề một hàng cao 56px: 30 chủ đề là hơn 1600px phải cuộn mãi mới
+  // hết, mà 90% số hàng đều đang 0%. Nay mỗi chủ đề một ô nhỏ hai cột, vạch tiến độ nằm
+  // luôn dưới chân ô. Bảy ô yếu nhất hiện sẵn — đó là phần đáng nhìn; phần còn lại nằm
+  // trong một khối xổ ra, không chiếm chỗ của ai.
+  const o = (h)=>`<button class="wb-tk-o2" data-action="wb-kho" data-k="${laTu ? 'tu' : 'cau'}">
+      <span class="wb-tk-o2-t"><i>${h.t.icon || '📁'}</i>${escapeHtml(h.t.label || h.t.code)}</span>
+      <span class="wb-tk-o2-s">${h.daHoc}/${h.tong}${h.thuoc ? ' · 🏆' + h.thuoc : ''}</span>
+      <span class="wb-tk-o2-v"><i style="width:${h.pct}%"></i></span>
+    </button>`;
+  const dau = hang.slice(0, 7), con = hang.slice(7);
   return `<div class="wb-tk-nhan">Chi tiết theo ${laTu ? 'chủ đề' : 'nhóm'} · yếu nhất xếp trước</div>
-    <div class="wb-tk-bang">${hang.map(h => `
-      <div class="wb-tk-hang">
-        <span class="wb-tk-ic">${h.t.icon || '📁'}</span>
-        <div class="wb-tk-tx">
-          <b>${escapeHtml(h.t.label || h.t.code)}</b>
-          <small>${h.daHoc}/${h.tong} đã gặp${h.thuoc ? ' · 🏆 ' + h.thuoc + ' thuộc lòng' : ''}</small>
-          <span class="wb-tk-thanh"><i style="width:${h.pct}%"></i></span>
-        </div>
-        <span class="wb-tk-pct">${h.pct}%</span>
-      </div>`).join('')}</div>`;
+    <div class="wb-tk-luoi">${dau.map(o).join('')}</div>
+    ${con.length ? `<details class="wb-tk-xo"><summary>Xem nốt ${con.length} ${
+      laTu ? 'chủ đề' : 'nhóm'} còn lại</summary>
+      <div class="wb-tk-luoi">${con.map(o).join('')}</div></details>` : ''}`;
 }
 function wbKhoThongKeHtml(kind){
   const d = wbSoLieuKho(kind);
@@ -17149,7 +17261,7 @@ function sentPrepareCurrent(){
   //  • say_it     (đọc to, chấm phát âm): mở từ box 2, chỉ khi máy có nhận diện giọng nói.
   //  • listen_type(nghe rồi gõ lại CẢ CÂU): mở từ box 4 với câu ngắn — nặng hơn listen_fill (1 từ).
   if(blank) types.push('mc_ex');
-  if(qzSayCoCloud() || window.SpeechRecognition || window.webkitSpeechRecognition) types.push('say_it');
+  // v264 — bỏ "say_it" ở đây nữa, cùng lý do với bên từ vựng.
   if(box>=3 && wordCount<=9) types.push('listen_type');
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây.
@@ -31862,45 +31974,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const wbKhoEl = e.target.closest('[data-action="wb-kho"]');
   if(wbKhoEl){ STATE.wbKho = wbKhoEl.getAttribute('data-k') || 'tu'; navForward(); renderContent(); window.scrollTo(0,0); return; }
   const engItemBackEl = e.target.closest('[data-action="english-item-back"]');
-  if(engItemBackEl){
-    // v218 — đang xem một kho bên trong mục gộp thì back phải đóng ĐÚNG một lớp (về màn gộp),
-    // không nhảy thẳng ra "Học tiếng Anh".
-    if(STATE.wbKho && !STATE.wbSession){ STATE.wbKho = null; navBack(); return; }
-    // Nếu đang mở "trang riêng" 1 chủ đề ngữ pháp (bên trong iframe), nút back ở đầu màn hình cũng
-    // phải đóng trang riêng đó TRƯỚC (đúng 1 lớp), không được nhảy thẳng ra "Học tiếng Anh" — khớp
-    // với hành vi vuốt-back. navBack() sẽ tiêu thụ đúng mốc lịch sử đó và tự render lại (iframe nạp
-    // lại từ đầu, quay về danh sách chủ đề) mà không cần đổi STATE.tab ở đây.
-    if(STATE.aiCallSession){ aiCallEnd(); return; }
-    // v257 — Daily Reading: đang mở bài đọc thì back lùi về màn chọn bài, KHÔNG ra khỏi mục.
-    // Đây cũng là chỗ duy nhất gọi drpDongThu() khi rời bài — thiếu nó thì mic vẫn bật và
-    // mọi bản ghi vẫn nằm lại trong bộ nhớ sau khi đã rời màn hình.
-    if(STATE.drpPhien && STATE.drpPhien.bai){
-      try{ drpDongThu(); }catch(_){ }
-      STATE.drpPhien.bai = null; STATE.drpPhien.loi = null;
-      renderContent(); navBack(); window.scrollTo(0,0); return;
-    }
-    // Khu "Ôn luyện & Thi thử" là 1 LỚP CON bên trong mục Ngữ pháp (sau khi gộp 2 mục), nên nút back
-    // phải lùi về lộ trình vượt ải trước, không nhảy thẳng ra danh sách Học tiếng Anh.
-    if(STATE.ggPractice){
-      if(STATE.quiz){ STATE.quiz = null; renderContent(); return; }  // đang làm bài → về màn chọn đề
-      STATE.ggPractice = false; renderContent(); navBack(); window.scrollTo(0,0); return;
-    }
-    // v219 — LUYỆN IPA: bóc ĐÚNG MỘT lớp mỗi lần bấm, theo thứ tự từ trong ra ngoài.
-    if(STATE.ipaDeepSession){ STATE.ipaDeepSession = null; renderContent(); window.scrollTo(0,0); return; }
-    if(STATE.ipaDetailSym){ STATE.ipaDetailSym = null; STATE.ipaVideoIdx = 0; renderContent(); window.scrollTo(0,0); return; }
-    if(STATE.ipaChartSubgroup){ STATE.ipaChartSubgroup = null; renderContent(); return; }
-    if(STATE.ipaChartGroup){ STATE.ipaChartGroup = null; renderContent(); return; }
-    // Dọn dẹp phòng hờ 2 lớp Nghe & chép chính tả (item 1) — nút back chung này nhảy thẳng ra "Học
-    // tiếng Anh" (đổi STATE.tab) nên phải tự xóa, không thể trông chờ riêng dict-home-close/dict-exit-
-    // session (những action đó chỉ chạy khi bấm ĐÚNG nút back lồng trong màn dictHome/dictSession).
-    STATE.dictSession = null; STATE.dictHome = false;
-    // …và dọn nốt mọi lớp IPA còn sót, để lần sau mở mục là vào từ đầu chứ không rơi vào giữa chừng.
-    STATE.ipaDeepSession = null; STATE.ipaDetailSym = null;
-    STATE.ipaChartSubgroup = null; STATE.ipaChartGroup = null; STATE.ipaVideoIdx = 0;
-    STATE.wbSession = null; STATE.wbKho = null;
-    STATE.tab = 'english'; renderContent(); window.scrollTo(0,0); navBack();
-    return;
-  }
+  if(engItemBackEl){ engBack(); return; }
   const renameEngItemEl = e.target.closest('[data-action="rename-english-item"]');
   if(renameEngItemEl){ renameEnglishItem(renameEngItemEl.getAttribute('data-itemid')); return; }
   const addEngItemEl = e.target.closest('[data-action="add-english-item"]');
