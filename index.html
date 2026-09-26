@@ -3013,7 +3013,12 @@
 .wb-lane-ic.tu{background:rgba(79,168,255,.12);}
 .wb-lane-ic.cau{background:rgba(44,219,168,.12);}
 .wb-lane-ic.thu{background:rgba(255,201,74,.12);}
-.wb-lane-ic.tu,.wb-lane-ic.cau,.wb-lane-ic.thu{width:38px;height:38px;border-radius:11px;
+/* v267 — "Học lại từ đầu" là việc XOÁ, nên phải nhìn ra là khác hẳn hai nút kia: viền và
+   chữ ngả đỏ nhạt, không dùng màu vàng của Thư viện. Vẫn hỏi lại trước khi làm. */
+.wb-lane-ic.lamlai{background:rgba(255,122,138,.13); color:#FF9AA6;}
+.wb-lane-lam-lai{border-color:rgba(255,122,138,.28);}
+.wb-lane-lam-lai b{color:#FF9AA6;}
+.wb-lane-ic.tu,.wb-lane-ic.cau,.wb-lane-ic.thu,.wb-lane-ic.lamlai{width:38px;height:38px;border-radius:11px;
   display:flex;align-items:center;justify-content:center;font-size:18px;}
 .wb-lane-tx{flex:1;}
 .wb-lane-thanh{display:block;height:4px;border-radius:99px;background:rgba(255,255,255,.07);
@@ -4052,6 +4057,9 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .drp-cham-loi{margin-top:8px; padding:8px 11px; border-radius:9px; font-size:11px; line-height:1.6;
   border:1px solid rgba(255,201,74,.3); background:rgba(255,201,74,.07); color:#EBD3A0;}
 .drp-cham-loi b{color:var(--gold);}
+.drp-soi{margin-top:7px; padding-top:7px; border-top:1px dashed rgba(255,201,74,.28);}
+.drp-soi-d{font-size:10.5px; line-height:1.65; color:#CDBB93;}
+.drp-soi-d u{color:#FF9AA6; text-decoration:none; font-weight:800;}
 
 /* Bảng chấm phát âm */
 .drp-kq{margin-top:9px; padding:11px 12px; border-radius:11px;
@@ -4627,7 +4635,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v266';
+const APP_VERSION = 'v267';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11112,11 +11120,15 @@ async function drpChamCau(i){
       body: JSON.stringify({ text: cau, audio: b64, cham: drpCaiDat().cham })
     });
     const j = await res.json().catch(()=>null);
-    if(j && j.ok){ mau.cham = j; }
+    if(j && j.ok){ mau.cham = j; mau.chamSoi = null; }
     else{
       mau.chamLoi = (j && j.error) || ('Worker trả lỗi ' + res.status + '.');
       // Thiếu khoá Azure là ca riêng: gợi ý đúng việc phải làm thay vì để người học đoán.
       if(j && j.thieuKhoa === 'azure') mau.goiY = 'gemini';
+      // v267 — Azure nghe được mà không chấm: giữ lại phần soi để hiện ra, thay vì để
+      // người học nhìn một dòng cụt rồi thu đi thu lại mãi.
+      mau.chamSoi = (j && j.soi) || null;
+      if(j && j.soi) mau.goiY = 'gemini';
     }
   }catch(e){
     mau.chamLoi = 'Không gọi được worker: ' + (e && e.message || e);
@@ -11141,6 +11153,25 @@ function drpWavB64(blob){
 
 // Màu của một từ theo điểm. Ba bậc thôi — bảy sắc cầu vồng thì nhìn vào không biết nên
 // sửa từ nào trước.
+// v267 — KHI AZURE NGHE ĐƯỢC MÀ KHÔNG CHẤM thì worker gửi kèm phần soi hai lượt thử.
+// Hiện nó ra bằng tiếng Việt: Azure nghe ra câu gì, phản hồi có những khối gì. Thiếu
+// 'PronunciationAssessment' trong danh sách khối tức là Azure đã lặng lẽ bỏ qua cấu hình
+// chấm — không phải giọng bạn có vấn đề, nên đừng đi thu lại.
+function drpSoiHtml(soi){
+  const mot = (nhan, s)=>{
+    if(!s) return '';
+    const coCham = (s.khoaNBest || []).indexOf('PronunciationAssessment') >= 0;
+    return `<div class="drp-soi-d"><b>${escapeHtml(nhan)}:</b> ${escapeHtml(s.trangThai || '—')}`
+      + (s.ngheThay ? ` · nghe ra “${escapeHtml(s.ngheThay)}”` : '')
+      + ` · ${coCham ? 'có' : '<u>không có</u>'} khối chấm điểm</div>`;
+  };
+  return `<div class="drp-soi">
+    ${mot('Lượt 1 (có đối chiếu từ thiếu/thừa)', soi.lan1)}
+    ${mot('Lượt 2 (đã bỏ đối chiếu)', soi.lan2)}
+    <div class="drp-soi-d">Cả hai lượt đều không có khối chấm nghĩa là Azure từ chối cấu
+      hình chấm điểm chứ không phải giọng bạn có vấn đề — thu lại cũng không khác.</div>
+  </div>`;
+}
 function drpBacTu(t){
   if(t.loi === 'thieu') return 'thieu';
   if(t.loi === 'thua')  return 'thua';
@@ -11302,7 +11333,8 @@ function drpNutHtml(i){
   ${dangThu ? `<div class="drp-kim-o" title="Vạch này nhảy theo giọng bạn. Nằm im nghĩa là micro không nghe thấy gì."><span id="drpKim"></span></div>` : ''}
   ${mau && mau.imLang ? `<div class="drp-canh">Bản ghi gần như <b>im lặng</b> — micro có thể đang thu nhầm thiết bị, hoặc bị tắt tiếng. Kiểm tra lại rồi bấm “Thu lại”.</div>` : ''}
   ${mau && mau.chamLoi ? `<div class="drp-cham-loi">${escapeHtml(mau.chamLoi)}${
-    mau.goiY === 'gemini' ? ' <b>Chuyển công tắc “Chấm phát âm bằng” sang Gemini là dùng được ngay.</b>' : ''}</div>` : ''}
+    mau.goiY === 'gemini' ? ' <b>Chuyển công tắc “Chấm phát âm bằng” sang Gemini là dùng được ngay.</b>' : ''}${
+    mau.chamSoi ? drpSoiHtml(mau.chamSoi) : ''}</div>` : ''}
   ${mau && mau.cham ? drpChamHtml(mau.cham) : ''}`;
 }
 function drpBaiHtml(b){
@@ -11778,18 +11810,102 @@ async function vdLayAI(chu, nghia){
 // Nạp nền cho phần học hôm nay. Chạy âm thầm, hỏng thì im lặng bỏ qua — đây là thứ làm cho bài học
 // đẹp hơn, không phải thứ mà thiếu nó là không học được.
 let vdDangNap = false;
+// ══ v267 · NẠP NỀN THEO LÔ, VÀ CÓ QUỸ RIÊNG ═══════════════════════════════════════════
+// ĐO ĐƯỢC trước khi sửa: bấm "Bắt đầu" ở Thẻ lật là app bắn tới VD_NGAY_TOI_DA = 12 lượt
+// gọi Gemini, mỗi từ một lượt, ngay trước khi bạn kịp nhìn thẻ đầu tiên. Hạn mức miễn phí
+// là 20 lượt/ngày/model, mà app chỉ khai MỘT model — tức hai lượt học là hết sạch ngày.
+// Ba việc sửa:
+//   1. GOM LÔ: một lượt gọi xin ví dụ cho NHIỀU mục cùng lúc → 12 lượt còn 1.
+//   2. GIỮ QUỸ: việc chạy nền không được tiêu quá phần dành cho nó; luôn chừa
+//      GEMINI_DU_TRU lượt cho những thứ BẠN chủ động bấm (học kỹ một từ, hỏi lại AI…).
+//   3. Việc bạn chủ động bấm thì không bị chặn.
+const VD_LO_TOI_DA = 8;        // mỗi lượt gọi xin ví dụ cho tối đa chừng này mục
+const GEMINI_DU_TRU = 6;       // luôn chừa chừng này lượt cho thao tác bạn tự bấm
+function geminiChoPhepNen(){
+  try{ return geminiConLai() > GEMINI_DU_TRU; }catch(_){ return true; }
+}
 async function vdNapNen(dsChu){
   if(vdDangNap || !SETTINGS.geminiApiKey) return 0;
+  if(!geminiChoPhepNen()) return 0;
   const can = (dsChu||[]).filter(x=>x && x.chu && !vdDu(x.chu, x.viDuGoc)).slice(0, VD_NGAY_TOI_DA);
   if(!can.length) return 0;
   vdDangNap = true;
-  let xong = 0, hong = 0;
-  for(const m of can){
-    try{ await vdLayAI(m.chu, m.nghia); xong++; }
-    catch(_){ hong++; if(hong >= 3) break; }   // hỏng ba lần liên tiếp thì thôi, đừng nướng hạn mức
-  }
-  vdDangNap = false;
+  let xong = 0;
+  try{
+    for(let i = 0; i < can.length; i += VD_LO_TOI_DA){
+      if(!geminiChoPhepNen()) break;
+      const lo = can.slice(i, i + VD_LO_TOI_DA);
+      try{ xong += await vdLayAILo(lo); }
+      catch(_){ break; }        // một lô hỏng thì dừng hẳn, đừng nướng thêm hạn mức
+    }
+  } finally { vdDangNap = false; }
   if(xong){ try{ pushToDrive(); }catch(_){ } }
+  return xong;
+}
+// Một lượt gọi cho cả lô. Chạy nền nên xin vừa đủ: 5 câu ví dụ mỗi mục (đúng bằng số thẻ
+// lật hiện ra), không xin hội thoại. Muốn đầy đủ hơn thì bấm "Học kỹ từ này" — lúc ấy là
+// bạn chủ động, và vdLayAI xin bản đầy đủ cho riêng từ đó.
+async function vdLayAILo(lo){
+  if(!SETTINGS.geminiApiKey) throw new Error('Chưa có khoá AI trong Cài đặt.');
+  const muc = lo.map((m, i)=>(i+1) + '. "' + m.chu + '"' + (m.nghia ? (' — ' + m.nghia) : ''));
+  const nhac = 'Các từ/cụm tiếng Anh cần ví dụ:\n' + muc.join('\n') + '\n\n'
+    + 'Trả về DUY NHẤT một JSON:\n'
+    + '{"muc":[{"chu":"<đúng từ/cụm đã cho>",'
+    + '"viDu":[["câu tiếng Anh","nghĩa tiếng Việt"], ... đúng 5 câu],'
+    + '"phienAm":"phiên âm IPA hoặc chuỗi rỗng nếu là cụm",'
+    + '"dangTu":{"n":"...","v":"...","adj":"...","adv":"..."}}, ... ĐỦ ' + lo.length + ' mục]}\n'
+    + 'Quy tắc:\n'
+    + '- "chu" phải chép lại NGUYÊN VĂN từ/cụm đã cho, không đổi dạng, không sửa chính tả.\n'
+    + '- Mỗi mục đúng 5 câu NGẮN, đời thường, dưới 14 chữ, mỗi câu dùng đúng từ/cụm ấy.\n'
+    + '- Năm câu phải khác hoàn cảnh nhau, đừng viết na ná.\n'
+    + '- "dangTu": chỉ ghi dạng CÓ THẬT cùng gốc từ; không có thì bỏ hẳn khoá đó, tuyệt đối '
+    + 'không bịa. Cụm từ thì để {}.';
+  const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac}]}],
+      generationConfig:{temperature:0.35, maxOutputTokens: Math.min(8192, 700 + lo.length * 420),
+                        responseMimeType:'application/json'} })
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const j = await res.json();
+  const cand = (j.candidates||[])[0]; if(!cand) throw new Error('AI không trả về gì.');
+  const o = dvDocJson(((cand.content||{parts:[]}).parts||[]).map(p=>p.text||'').join('').trim());
+  const ds = (o && Array.isArray(o.muc)) ? o.muc : [];
+  if(!ds.length) throw new Error('AI trả về rỗng.');
+  // Đối chiếu theo TÊN MỤC, không theo thứ tự: model đổi thứ tự hoặc bỏ sót một mục là
+  // chuyện thường, mà ghép theo thứ tự thì ví dụ của từ này rơi vào từ kia.
+  const tra = {};
+  lo.forEach(m=>{ const k = vdKhoa(m.chu); if(k) tra[String(m.chu).trim().toLowerCase()] = k; });
+  let xong = 0;
+  ds.forEach(x=>{
+    const ten = String((x && x.chu) || '').trim().toLowerCase();
+    const k = tra[ten];
+    if(!k) return;                                   // mục lạ, không nhận
+    const viDu = (Array.isArray(x.viDu) ? x.viDu : []).map(v=>{
+      if(Array.isArray(v)) return [String(v[0]||'').trim(), String(v[1]||'').trim()];
+      if(v && typeof v === 'object') return [String(v.en||'').trim(), String(v.vi||'').trim()];
+      return ['',''];
+    }).filter(v=>v[0]).slice(0, 8);
+    if(!viDu.length) return;
+    const dangTu = {};
+    if(x.dangTu && typeof x.dangTu === 'object'){
+      ['n','v','adj','adv'].forEach(t=>{
+        const v = String(x.dangTu[t]||'').trim();
+        if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dangTu[t] = v;
+      });
+    }
+    const cu = vdKho()[k] || {};
+    vdKho()[k] = {
+      viDu: viDu,
+      hoiThoai: cu.hoiThoai || [],
+      tinhHuong: cu.tinhHuong || [],
+      dangTu: dangTu,
+      phienAm: String(x.phienAm||'').trim().slice(0, 40) || (cu.phienAm || ''),
+      luc: Date.now()
+    };
+    xong++;
+  });
+  if(xong) saveSettings();
   return xong;
 }
 // ── v211: LẤY CHI TIẾT ĐẦY ĐỦ MỘT TỪ BẰNG AI ────────────────────────────────
@@ -12619,7 +12735,9 @@ function tvRender(item){
 const VOC_CHU_DE_VIDEO = 'video';
 function vocabGopTuVideo(){
   if(!VOCAB_DATA || !Array.isArray(VOCAB_DATA.words)) return 0;
-  const kho = hvKhoTu().filter(hvSanSang);
+  // v267 — thêm cổng tvDangHoc: mục rác nằm lại trong Thư viện nhưng KHÔNG được vào bộ
+  // bài học, nên thẻ lật và câu hỏi không còn lẫn cụm đứt hay mục chưa có nghĩa thật.
+  const kho = hvKhoTu().filter(hvSanSang).filter(tvDangHoc);
   // Bỏ phần đã nối lần trước rồi nối lại từ đầu — đơn giản và luôn đúng, kể cả khi bạn vừa lưu thêm.
   VOCAB_DATA.words = VOCAB_DATA.words.filter(w => w[3] !== VOC_CHU_DE_VIDEO);
   const goc = VOCAB_DATA.words.length;
@@ -14104,7 +14222,42 @@ function renderEnglishWordbank(item){
           <small>Tiến độ hai kho nằm ngay trong đó</small></span>
         <span class="wb-lane-mui">›</span>
       </button>
+      <button class="wb-lane-nut wb-lane-lam-lai" data-action="wb-lam-lai">
+        <span class="wb-lane-ic lamlai">↺</span>
+        <span class="wb-lane-tx"><b>Học lại từ đầu</b>
+          <small>Xoá sạch tiến độ hai kho, mọi mục về mức 0</small>
+          <small>Kho từ và nghĩa vẫn giữ nguyên — chỉ tiến độ bị đặt lại</small></span>
+        <span class="wb-lane-mui">›</span>
+      </button>
     </div>`);
+}
+// ══ v267 · HỌC LẠI TỪ ĐẦU ══════════════════════════════════════════════════════════════
+// Đặt lại TIẾN ĐỘ, không đụng tới kho. Phải xoá đủ bốn thứ, thiếu một thứ là tiến độ cũ
+// sống lại theo đường khác:
+//   vocabProgress / sentProgress — mức Leitner của từng mục
+//   vocabDailyCache / sentDailyCache — gói bài đã bốc cho HÔM NAY (không xoá thì bấm Bắt
+//     đầu vẫn ra đúng gói cũ, tưởng như reset không ăn)
+//   wbLuot / wbNgay — số lượt thẻ lật trong ngày
+//   englishActivity của hôm nay — để thống kê không cộng dồn nhầm
+function wbLamLai(){
+  const n = Object.keys(SETTINGS.vocabProgress || {}).length
+          + Object.keys(SETTINGS.sentProgress || {}).length;
+  if(!confirm('Đặt lại tiến độ học của Từ vựng & Mẫu câu?\n\n'
+      + n + ' mục đang có tiến độ sẽ về mức 0 và học lại từ đầu.\n'
+      + 'Kho từ, nghĩa, ví dụ và Thư viện của bạn KHÔNG bị xoá.')) return;
+  SETTINGS.vocabProgress = {};
+  SETTINGS.sentProgress = {};
+  SETTINGS.vocabDailyCache = null;
+  SETTINGS.sentDailyCache = null;
+  SETTINGS.wbLuot = 0;
+  SETTINGS.wbNgay = '';
+  STATE.wbSession = null;
+  STATE.vocabSession = null;
+  STATE.sentSession = null;
+  try{ saveSettings(); }catch(_){ }
+  try{ pushToDrive(); }catch(_){ }
+  showToast('↺','Đã đặt lại tiến độ', n + ' mục về mức 0. Bấm “Bắt đầu” là học lại từ đầu.');
+  try{ renderContent(); }catch(_){ }
 }
 function vocabStartDaily(){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
@@ -17450,7 +17603,13 @@ function sentByN(n){ if(!COMMON_SENT_DATA) return null; return COMMON_SENT_DATA.
 const SENT_NHOM_VIDEO = 'video';
 function sentGopTuVideo(){
   if(!COMMON_SENT_DATA || !Array.isArray(COMMON_SENT_DATA.sentences)) return 0;
-  const kho = hvKhoCau().filter(hvSanSang);
+  // v267 — mẫu câu không bị chặn theo độ dài (câu thì dài là đúng), nhưng vẫn phải có
+  // nghĩa thật: mục còn "Đang tra…" mà lọt vào thẻ lật thì chẳng dạy được gì.
+  const kho = hvKhoCau().filter(hvSanSang).filter(x=>{
+    const ng = String((x && x.nghia) || '').trim().replace(/[.…\s]+$/, '');
+    return ng.length >= 2 && !/^(đang tra|đang dịch|đang lấy|chưa có nghĩa|\?+)$/i.test(ng)
+      && ng.toLowerCase() !== String(x.chu||'').trim().toLowerCase();
+  });
   COMMON_SENT_DATA.sentences = COMMON_SENT_DATA.sentences.filter(c => c[3] !== SENT_NHOM_VIDEO);
   const goc = COMMON_SENT_DATA.sentences.length;
   if(!kho.length) return 0;
@@ -22212,6 +22371,28 @@ function hvCumDangChon(){
 function hvKhoTu(){ if(!Array.isArray(SETTINGS.hvTuDaLuu)) SETTINGS.hvTuDaLuu = []; return SETTINGS.hvTuDaLuu; }
 // Một mục chỉ được nhập vào ngân hàng khi đã có nghĩa riêng của chính nó (không phải nghĩa cả câu).
 function hvSanSang(x){ return !!(x && x.chu && x.nghia); }
+// ══ v267 · CỔNG CHẶN LÚC ĐƯA VÀO HỌC ══════════════════════════════════════════════════
+// tvCumDangGiu() chặn lúc LƯU. Nhưng những mục lưu từ TRƯỚC khi có bộ lọc ấy vẫn nằm
+// nguyên trong kho, và chúng đi thẳng vào thẻ lật lẫn câu hỏi — đúng thứ người dùng thấy.
+// Nay mọi mục đều phải qua cổng này MỘT LẦN NỮA ngay trước khi được đưa vào bộ bài học.
+// Chặn ở đây an toàn hơn xoá: mục vẫn còn trong Thư viện để bạn tự xem và sửa, chỉ là
+// không được đem ra dạy.
+function tvDangHoc(x){
+  if(!x || !x.chu || !x.nghia) return false;
+  const t = String(x.chu).trim().replace(/\s+/g, ' ');
+  if(!t) return false;
+  // Phải có chữ cái Latin; loại mấy mục chỉ còn dấu câu hoặc số.
+  if(!/[A-Za-z]/.test(t)) return false;
+  // Nghĩa phải là nghĩa thật, không phải chỗ giữ chỗ.
+  // Bỏ dấu ba chấm ở đuôi rồi mới so: chuỗi chờ thật sự trong app là "Đang tra…", có dấu
+  // … dính liền. Bản đầu tôi so khớp nguyên chuỗi nên nó lọt qua — phép đo bắt được ngay.
+  const ng = String(x.nghia).trim().replace(/[.…\s]+$/, '');
+  if(ng.length < 2) return false;
+  if(/^(đang tra|đang dịch|đang lấy|chưa có nghĩa|\?+)$/i.test(ng)) return false;
+  // Nghĩa mà chép y nguyên chính từ tiếng Anh thì chưa dịch được gì.
+  if(ng.toLowerCase() === t.toLowerCase()) return false;
+  try{ return !!(tvCumDangGiu(t) || {}).ok; }catch(_){ return true; }
+}
 // Nhờ AI dịch đúng cụm trong ngữ cảnh câu. Trả về {nghia, loai, viDu, viDuVi} hoặc null.
 // Hỏng thì trả null chứ KHÔNG bịa — mục đó nằm chờ, lần sau mở app sẽ thử lại.
 async function hvDichCum(chu, cauEn, cauVi){
@@ -23698,7 +23879,12 @@ const GEMINI_CHAT_MODEL = 'gemini-3.6-flash';
 // CHỈ MỘT model. Đã thử 2.5-flash và 2.0-flash: chúng không đọc được video YouTube qua fileData
 // nên phần lấy lời thoại luôn hỏng — để trong danh sách chỉ tổ thử một lượt vô ích rồi mới báo lỗi.
 // Bộ máy chuyển model vẫn còn nguyên phía dưới, thêm tên vào đây là dùng lại được ngay.
-const GEMINI_MODELS = ['gemini-3.6-flash'];
+// v267 — TRƯỚC ĐÂY CHỈ KHAI MỘT MODEL, nên cả ngày app chỉ có 20 lượt gọi. Mà hạn mức
+// miễn phí tính RIÊNG cho từng model: khai năm model là có năm lần hạn mức ấy, hết model
+// này thì tự sang model kế, không phải ngồi chờ sang ngày. Năm cái tên dưới đây đều đã đo
+// bằng /models?am=1 trên chính khoá này: cả năm trả 200 và đều nhận được ÂM THANH.
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite',
+                       'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'];
 const GEMINI_NGAY_MAC_DINH = 20;      // hạn mức ngày của gói miễn phí, sẽ ghi đè nếu máy chủ nói khác
 function geminiKho(){
   const hnay = todayKey();
@@ -25845,8 +26031,15 @@ function geminiHanMucHtml(){
     </div>`;
   }).join('');
   const con = geminiConLai();
-  const m0 = GEMINI_MODELS[0];
-  const dung = geminiDaDung(m0), tran = geminiTran(m0);
+  // v267 — trước đây dòng tóm tắt lấy số của MỘT model đầu danh sách ("3/20") trong khi
+  // phần "còn lại" cộng cả năm model ("còn 97 lượt"). Hai con số cùng một dòng mà tính
+  // theo hai gốc khác nhau thì đọc vào chỉ thấy mâu thuẫn. Nay cả hai đều tính trên TỔNG.
+  let dung = 0, tran = 0;
+  GEMINI_MODELS.forEach(m=>{
+    if(hong.indexOf(m) >= 0) return;
+    tran += geminiTran(m);
+    dung += Math.min(geminiTran(m), geminiDaDung(m));
+  });
   const pct = Math.min(100, Math.round(dung/Math.max(1,tran)*100));
   return `<div class="hv-hanmuc ${con?'':'canh'}">
     <span class="hm-ic">${con ? '🔋' : '🪫'}</span>
@@ -32455,6 +32648,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(wbDocTheEl){ e.stopPropagation(); wbDocThe(); return; }
   const wbAiEl = e.target.closest('[data-action="wb-ai"]');
   if(wbAiEl){ wbHoiLaiAI(); return; }
+  const wbLamLaiEl = e.target.closest('[data-action="wb-lam-lai"]');
+  if(wbLamLaiEl){ wbLamLai(); return; }
   const wbKhoEl = e.target.closest('[data-action="wb-kho"]');
   if(wbKhoEl){ STATE.wbKho = wbKhoEl.getAttribute('data-k') || 'tu'; navForward(); renderContent(); window.scrollTo(0,0); return; }
   const engItemBackEl = e.target.closest('[data-action="english-item-back"]');
