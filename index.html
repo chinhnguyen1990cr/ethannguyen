@@ -2870,6 +2870,14 @@
 .wb-cham-khay{position:sticky; bottom:0; z-index:6; margin-top:12px;
   padding:8px 0 6px; background:linear-gradient(to top, var(--bg) 62%, rgba(14,18,24,.88) 88%, rgba(14,18,24,0));
   backdrop-filter:blur(3px);}
+/* Khay dính thì mỗi pixel của nó là pixel lấy mất của phần đang đọc. ĐO ĐƯỢC: để cả dòng
+   dặn "Chấm thật lòng…" trong khay thì khay cao 208px — một phần tư màn hình điện thoại.
+   Dòng dặn ra ngoài khay (đọc một lần là nhớ, không cần luôn trước mắt), và ở khổ điện
+   thoại bỏ luôn dòng mô tả nhỏ trong nút: còn chữ và biểu tượng là đủ hiểu. */
+@media(max-width:700px){
+  .wb-cham-khay .wb-cham-mo{display:none;}
+  .wb-cham-khay .wb-cham{padding:8px 6px;}
+}
 .wb-cham-hang{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .wb-cham{display:flex; flex-direction:column; align-items:center; gap:1px; padding:10px 6px;
   border-radius:13px; cursor:pointer; font-family:inherit; color:var(--text);
@@ -13960,8 +13968,8 @@ function wbTheHtml(){
     </div>
     ${lat ? `<div class="wb-cham-khay">
           <div class="wb-cham-hang">${nutCham}</div>
-          <div class="wb-cham-ct">Chấm thật lòng. Bấm <b>Dễ ợt</b> cho một mục chưa chắc thì nó biến khỏi lịch ôn cả tháng, và bạn quên lúc nào không hay.</div>
-        </div>`
+        </div>
+        <div class="wb-cham-ct">Chấm thật lòng. Bấm <b>Dễ ợt</b> cho một mục chưa chắc thì nó biến khỏi lịch ôn cả tháng, và bạn quên lúc nào không hay.</div>`
       : `<div class="wb-cham-ct">Lật thẻ ra rồi mới chấm được.</div>`}`;
 }
 function wbDocThe(){
