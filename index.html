@@ -2502,6 +2502,14 @@
 .sd-mic-hang .sd-mic-o{flex:0 0 auto;}
 .sd-mic-hang .sd-ban-o{flex:1; min-width:220px;}
 .sd-mic-hang .sd-ghi-ct{display:none;}      /* hàng ngang thì dòng dặn dài làm vỡ hàng */
+/* v266 — trên điện thoại hàng này gãy làm hai dòng (khối bản ghi đòi tối thiểu 220px), mà
+   gãy kiểu cũ thì nút ghi âm dạt sang mép trái. Nút phải NẰM GIỮA, đúng chỗ ngón tay với
+   tới khi cầm máy một tay. */
+@media(max-width:560px){
+  .sd-mic-hang{flex-direction:column; align-items:stretch; gap:9px;}
+  .sd-mic-hang .sd-mic-o{align-self:center;}
+  .sd-mic-hang .sd-ban-o{min-width:0; width:100%;}
+}
 .sd-bar-duoi{margin-top:12px; padding-top:11px; border-top:1px solid var(--border);}
 .sd-tb{margin:8px 0 2px;}
 .sd-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;margin-right:5px;animation:livePulse 1.1s ease-in-out infinite;}
@@ -2779,6 +2787,12 @@
   color:var(--text); margin-bottom:6px;}
 .wb-th-ten span{width:19px; height:19px; border-radius:50%; display:flex; align-items:center;
   justify-content:center; font-size:10px; background:var(--anh, rgba(255,255,255,.14)); color:var(--vien, var(--text));}
+/* v266 — ĐO trên khung 1440: cột ví dụ giãn ra 994px, mỗi câu ví dụ chỉ dài chừng 40–60
+   chữ nên nằm một dòng lửng lơ giữa khoảng trắng, mắt phải quét ngang rất xa. Chặn cột ví
+   dụ ở 760px và dồn cả khối vào giữa — dòng ngắn lại, đọc nhanh hơn, và bớt trống trải. */
+@media(min-width:1180px){
+  .wb-doi.mo{grid-template-columns:minmax(260px,320px) minmax(0,760px); justify-content:center;}
+}
 @media(min-width:820px){
   /* v266 — mở ra thì hai cột: trái gọn lại một chút để ví dụ có chỗ đọc. */
 .wb-doi.mo{grid-template-columns:minmax(240px,300px) 1fr;}
@@ -2818,6 +2832,11 @@
   background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--text);
   font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;}
 .wb-vd-loa:active{background:rgba(255,255,255,.18);}
+/* v266 — trên màn cảm ứng nút loa 26px là quá nhỏ cho đầu ngón tay (Apple khuyên 44px,
+   Google 48dp). Nới lên 34px ở khổ điện thoại, trên máy tính giữ nhỏ cho gọn. */
+@media(max-width:700px){
+  .wb-vd-loa{width:34px; height:34px; border-radius:10px; font-size:14px;}
+}
 /* v266 — ví dụ nén lại: chữ nhỏ hơn một nấc, dòng sát hơn, để năm câu nằm gọn trong
    một màn thay vì phải cuộn. */
 .wb-vd-tx{flex:1; min-width:0; font-size:11px; line-height:1.5;}
@@ -2843,7 +2862,15 @@
   background:linear-gradient(135deg,#2CDBA8,#18A98C);
   box-shadow:0 4px 16px rgba(44,219,168,.22);}
 .wb-nut.chinh:active{filter:brightness(.94);}
-.wb-cham-hang{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
+/* ══ v266 · KHAY CHẤM DÍNH ĐÁY MÀN HÌNH ══════════════════════════════════════════════
+   ĐO ĐƯỢC trên khung 375×812: lật thẻ ra thì hai nút chấm nằm ở toạ độ y = 1101 và 1181,
+   tức phải cuộn hơn 1100px qua năm câu ví dụ mới chấm được — mỗi thẻ một lần, 30 thẻ một
+   lượt. Nay khay chấm dính ở đáy khung nhìn: ví dụ vẫn cuộn bên dưới nó, còn hai nút thì
+   luôn nằm sẵn dưới ngón tay. */
+.wb-cham-khay{position:sticky; bottom:0; z-index:6; margin-top:12px;
+  padding:8px 0 6px; background:linear-gradient(to top, var(--bg) 62%, rgba(14,18,24,.88) 88%, rgba(14,18,24,0));
+  backdrop-filter:blur(3px);}
+.wb-cham-hang{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .wb-cham{display:flex; flex-direction:column; align-items:center; gap:1px; padding:10px 6px;
   border-radius:13px; cursor:pointer; font-family:inherit; color:var(--text);
   background:color-mix(in srgb, var(--mc) 14%, transparent);
@@ -13931,8 +13958,10 @@ function wbTheHtml(){
       <button class="wb-nut phu" data-action="wb-doc-the"><span>🔊</span>Nghe</button>
       <button class="wb-nut chinh" data-action="wb-lat"><span>${lat ? '↩︎' : '🔄'}</span>${lat ? 'Úp lại' : 'Lật thẻ'}</button>
     </div>
-    ${lat ? `<div class="wb-cham-hang">${nutCham}</div>
-        <div class="wb-cham-ct">Chấm thật lòng. Bấm <b>Dễ ợt</b> cho một mục chưa chắc thì nó biến khỏi lịch ôn cả tháng, và bạn quên lúc nào không hay.</div>`
+    ${lat ? `<div class="wb-cham-khay">
+          <div class="wb-cham-hang">${nutCham}</div>
+          <div class="wb-cham-ct">Chấm thật lòng. Bấm <b>Dễ ợt</b> cho một mục chưa chắc thì nó biến khỏi lịch ôn cả tháng, và bạn quên lúc nào không hay.</div>
+        </div>`
       : `<div class="wb-cham-ct">Lật thẻ ra rồi mới chấm được.</div>`}`;
 }
 function wbDocThe(){
