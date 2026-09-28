@@ -4635,7 +4635,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v267';
+const APP_VERSION = 'v268';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11160,16 +11160,20 @@ function drpWavB64(blob){
 function drpSoiHtml(soi){
   const mot = (nhan, s)=>{
     if(!s) return '';
-    const coCham = (s.khoaNBest || []).indexOf('PronunciationAssessment') >= 0;
+    // v268 — hỏi "CÓ ĐIỂM không", chứ không hỏi "có khối PronunciationAssessment không".
+    // Đo được: Azure đặt điểm phẳng ngay trên NBest (PronScore/AccuracyScore), không bọc
+    // trong khối nào. Hỏi sai câu hỏi thì báo sai — đúng cái đã xảy ra suốt mấy bản.
+    const coCham = (s.khoaNBest || []).some(k => k === 'PronunciationAssessment'
+                   || k === 'PronScore' || k === 'AccuracyScore');
     return `<div class="drp-soi-d"><b>${escapeHtml(nhan)}:</b> ${escapeHtml(s.trangThai || '—')}`
       + (s.ngheThay ? ` · nghe ra “${escapeHtml(s.ngheThay)}”` : '')
-      + ` · ${coCham ? 'có' : '<u>không có</u>'} khối chấm điểm</div>`;
+      + ` · ${coCham ? 'có' : '<u>không có</u>'} điểm phát âm</div>`;
   };
   return `<div class="drp-soi">
     ${mot('Lượt 1 (có đối chiếu từ thiếu/thừa)', soi.lan1)}
     ${mot('Lượt 2 (đã bỏ đối chiếu)', soi.lan2)}
-    <div class="drp-soi-d">Cả hai lượt đều không có khối chấm nghĩa là Azure từ chối cấu
-      hình chấm điểm chứ không phải giọng bạn có vấn đề — thu lại cũng không khác.</div>
+    <div class="drp-soi-d">Cả hai lượt đều không có điểm nghĩa là Azure từ chối cấu hình
+      chấm điểm chứ không phải giọng bạn có vấn đề — thu lại cũng không khác.</div>
   </div>`;
 }
 function drpBacTu(t){
