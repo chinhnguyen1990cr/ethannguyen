@@ -2700,6 +2700,27 @@
   color:var(--text); font-size:11px;}
 .wb-md-tag i{font-style:normal; color:#e0705f; margin-left:5px; font-size:10px;}
 .wb-md-nhac{margin-top:10px; font-size:10.5px; line-height:1.65; color:var(--dim2);}
+/* v272 — mỗi bên (từ / mẫu câu) một khối riêng, có thanh, có số, có cột hộp H1→H5. */
+.wb-md-ben{margin-top:12px; padding-top:10px; border-top:1px solid var(--border);}
+.wb-md-bh{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; color:var(--text);}
+.wb-md-bh span{margin-left:auto; font-size:10px; font-weight:600; color:var(--dim2);}
+.wb-md-chu span.hn{color:#FFC94A;}
+.wb-md-hop{display:flex; gap:6px; margin-top:9px; align-items:flex-end;}
+.wb-md-hop span{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;}
+.wb-md-hop i{display:block; width:100%; border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,#7ee0c0,#4aa88c); opacity:.85;}
+.wb-md-hop u{text-decoration:none; font-size:10.5px; font-weight:800; color:var(--text);}
+.wb-md-hop em{font-style:normal; font-size:9px; color:var(--dim2);}
+.wb-md-tag.c{border-color:rgba(126,224,192,.45);}
+.wb-md-tag s{text-decoration:none; display:inline-block; margin-right:6px; padding:1px 5px;
+  border-radius:5px; font-size:9px; font-weight:800; color:var(--bg);
+  background:#9fb7ff; vertical-align:1px;}
+.wb-md-tag.c s{background:#7ee0c0;}
+.wb-md-nx{margin-top:11px; padding:9px 10px; border-radius:10px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border);}
+.wb-md-nx b{display:block; font-size:10.5px; color:var(--dim2); margin-bottom:5px;}
+.wb-md-nx p{margin:3px 0; font-size:11.5px; line-height:1.6; color:var(--dim);}
+.wb-md-nx p b{display:inline; color:var(--text); font-size:11.5px; margin:0;}
 /* v227 mục 4 — THẺ LẬT. */
 .wb-cd{display:flex; gap:8px; margin-top:12px;}
 .wb-cd-nut{flex:1; display:flex; flex-direction:column; gap:2px; padding:9px 8px; border-radius:12px;
@@ -2730,6 +2751,20 @@
   transform:perspective(900px) rotateY(0deg); transition:transform .15s ease;}
 .wb-bai.quay{transform:perspective(900px) rotateY(88deg);}
 .wb-bai.lat{background:linear-gradient(165deg, rgba(255,255,255,.085), rgba(24,194,156,.07) 55%, rgba(0,0,0,.16));}
+/* ══ v272 · MẶT SAU BÁM KHUNG, KHÔNG CÒN KHOẢNG TRỐNG ══════════════════════════════
+   ĐÃ ĐO trên trình duyệt thật (375px và 1440px): mặt sau cao 230px, trong đó riêng khối
+   giữa chiếm 177px trong khi chữ thật (từ 35px + phiên âm + nghĩa 24px) chỉ chừng 75px
+   — tức khoảng 100px trống rỗng đúng như bạn nói. Gốc là .wb-bai giữ min-height:230px
+   và .wb-bai-giua để flex:1, nên khi lật ra nội dung ít thì phần thừa bị kéo giãn.
+   Mặt TRƯỚC vẫn giữ nguyên tỉ lệ lá bài — chỗ trống ở đó là cố ý. */
+.wb-bai.lat{min-height:0;}
+.wb-bai.lat .wb-bai-giua{flex:0 0 auto; justify-content:flex-start; padding:12px 0 2px; gap:4px;}
+.wb-bai.lat .wb-the-en{font-size:26px; line-height:1.2;}
+/* Nghĩa tiếng Việt là thứ vừa lật ra để xem — cho nó một dải nền bám sát khung thẻ,
+   vừa nổi bật vừa lấp đúng chỗ trước đây bỏ trống. */
+.wb-bai.lat .wb-the-vi{margin-top:10px; width:100%; padding:9px 12px; border-radius:12px;
+  font-size:18px; background:rgba(44,219,168,.10); border:1px solid rgba(44,219,168,.24);}
+@media(max-width:420px){ .wb-bai.lat .wb-the-en{font-size:24px;} }
 /* Vệt sáng chéo ở góc trên — cho lá bài có chiều sâu thay vì một mảng phẳng. */
 .wb-bai-sang{position:absolute; top:-58%; left:-20%; width:180px; height:180px; border-radius:50%;
   background:radial-gradient(circle, var(--anh), rgba(255,255,255,0) 70%); pointer-events:none;}
@@ -4646,7 +4681,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v271';
+const APP_VERSION = 'v272';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13481,60 +13516,139 @@ function reviewStart(kind){
 }
 // ═══════════════════════════════════════════════════════════════════════
 // v225 mục 4c — quy hộp Leitner về ba mức dễ hiểu, và tìm ra những mục còn chông chênh.
+// v272 — ĐO LẠI CHO ĐÚNG. Bản cũ có ba chỗ sai mà bạn đã chỉ ra:
+//   1. Gộp TỪ với MẪU CÂU vào một thanh duy nhất → không biết bên nào đang đuối.
+//   2. "Cần để mắt" liệt kê mọi mục ở hộp 0–1, KỂ CẢ mục chưa sai lần nào. Mục mới học
+//      lần đầu tất nhiên ở hộp 0 — đưa vào danh sách yếu là vu oan, và vì hầu hết cùng
+//      0 lỗi nên thứ tự rốt cuộc là thứ tự bảng chữ cái: nhìn rất "chung chung".
+//   3. Câu nhận xét cuối là MỘT CÂU CHẾT, ai đọc cũng thấy y hệt nhau, không dính gì tới
+//      số liệu của chính người đang đọc.
+// Nay tính RIÊNG từng bên, chỉ gọi là yếu khi THỰC SỰ có lần trả lời sai, và câu nhận xét
+// được sinh ra từ đúng những con số vừa đếm.
+function wbMucDoBen(ds, layTien, ten, loai){
+  const hnay = todayKey();
+  const r = {loai:loai, tong:(ds||[]).length, thuoc:0, dangNho:0, chuaChac:0, chuaHoc:0,
+             daHoc:0, toiHan:0, dung:0, sai:0, hop:[0,0,0,0,0,0], yeu:[], tiLe:null};
+  (ds||[]).forEach(o=>{
+    let p = null;
+    try{ p = layTien(o); }catch(_){ p = null; }
+    if(!p || !p.introduced){ r.chuaHoc++; return; }
+    const b = Math.max(0, Math.min(5, p.box || 0));
+    r.hop[b]++;
+    if(b >= 4) r.thuoc++; else if(b >= 2) r.dangNho++; else r.chuaChac++;
+    if(p.next && p.next <= hnay) r.toiHan++;
+    r.dung += (p.correct || 0);
+    r.sai  += (p.wrong || 0);
+    // CHỈ mục đã từng trả lời sai mới là mục "cần để mắt" — mục mới gặp lần đầu không phải lỗi của bạn.
+    if((p.wrong || 0) > 0) r.yeu.push({chu: ten(o), sai: p.wrong || 0, hop: b, loai: loai});
+  });
+  r.daHoc = r.thuoc + r.dangNho + r.chuaChac;
+  const lan = r.dung + r.sai;
+  // Dưới 5 lượt trả lời thì KHÔNG nói phần trăm: sai đúng một câu mà ghi "đúng 0%" là nói oan.
+  r.tiLe = lan >= 5 ? Math.round(r.dung / lan * 100) : null;
+  r.luot = lan;
+  // Sai nhiều nhất lên trước; cùng số lỗi thì mục còn ở hộp thấp lên trước.
+  r.yeu.sort((a,b)=> (b.sai - a.sai) || (a.hop - b.hop));
+  r.yeu = r.yeu.slice(0, 8);
+  return r;
+}
 function wbMucDo(){
-  const ra = {thuoc:0, dangNho:0, chuaChac:0, chuaHoc:0, yeu:[]};
-  const gom = (ds, layTien, ten)=>{
-    (ds||[]).forEach(o=>{
-      let p = null;
-      try{ p = layTien(o); }catch(_){ p = null; }
-      if(!p || !p.introduced){ ra.chuaHoc++; return; }
-      const b = p.box || 0;
-      if(b >= 4) ra.thuoc++;
-      else if(b >= 2) ra.dangNho++;
-      else {
-        ra.chuaChac++;
-        if(ra.yeu.length < 12) ra.yeu.push({chu: ten(o), sai: p.wrong||0, loai: (layTien === wbTienTu ? 'từ' : 'câu')});
-      }
-    });
+  let tu  = wbMucDoBen([], wbTienTu,  w=>w[1], 'tu');
+  let cau = wbMucDoBen([], wbTienCau, c=>c[1], 'cau');
+  try{ tu  = wbMucDoBen(((VOCAB_DATA||{}).words)||[],            wbTienTu,  w=>w[1], 'tu');  }catch(_){ }
+  try{ cau = wbMucDoBen(((COMMON_SENT_DATA||{}).sentences)||[],  wbTienCau, c=>c[1], 'cau'); }catch(_){ }
+  const ra = {
+    tu: tu, cau: cau,
+    thuoc: tu.thuoc + cau.thuoc, dangNho: tu.dangNho + cau.dangNho,
+    chuaChac: tu.chuaChac + cau.chuaChac, chuaHoc: tu.chuaHoc + cau.chuaHoc,
+    toiHan: tu.toiHan + cau.toiHan,
+    dung: tu.dung + cau.dung, sai: tu.sai + cau.sai,
+    yeu: tu.yeu.concat(cau.yeu).sort((a,b)=> (b.sai - a.sai) || (a.hop - b.hop)).slice(0, 12)
   };
-  try{ gom(((VOCAB_DATA||{}).words)||[], wbTienTu, w=>w[1]); }catch(_){ }
-  try{ gom(((COMMON_SENT_DATA||{}).sentences)||[], wbTienCau, c=>c[1]); }catch(_){ }
   ra.daHoc = ra.thuoc + ra.dangNho + ra.chuaChac;
-  // Sắp mục sai nhiều lên trước — đó là chỗ đáng để mắt nhất.
-  ra.yeu.sort((a,b)=> (b.sai||0) - (a.sai||0));
+  const lan = ra.dung + ra.sai;
+  ra.luot = lan;
+  ra.tiLe = lan >= 5 ? Math.round(ra.dung / lan * 100) : null;
   return ra;
 }
-function wbTienTu(w){ try{ return (SETTINGS.vocabProgress||{})[w[0]] || null; }catch(_){ return null; } }
-function wbTienCau(c){ try{ return (SETTINGS.sentProgress||{})[c[0]] || null; }catch(_){ return null; } }
+// Câu nhận xét được TÍNH từ số liệu thật, không phải câu mẫu. Mỗi ý chỉ nói khi có căn cứ.
+function wbMucDoNhanXet(m){
+  const y = [];
+  if(m.toiHan > 0){
+    const chiTiet = [];
+    if(m.tu.toiHan)  chiTiet.push(m.tu.toiHan + ' từ');
+    if(m.cau.toiHan) chiTiet.push(m.cau.toiHan + ' mẫu câu');
+    y.push('Hôm nay có <b>' + m.toiHan + ' mục tới hạn ôn</b>' +
+           (chiTiet.length ? ' (' + chiTiet.join(' · ') + ')' : '') + ' — ôn đúng hạn thì mới lên hộp.');
+  }
+  // So hai bên, nhưng chỉ khi cả hai đều đã trả lời đủ nhiều để con số có nghĩa.
+  const duTu = (m.tu.dung + m.tu.sai) >= 10, duCau = (m.cau.dung + m.cau.sai) >= 10;
+  if(duTu && duCau && m.tu.tiLe !== null && m.cau.tiLe !== null && Math.abs(m.tu.tiLe - m.cau.tiLe) >= 8){
+    const yeuHon = m.tu.tiLe < m.cau.tiLe ? 'Từ vựng' : 'Mẫu câu';
+    y.push('<b>' + yeuHon + '</b> đang đuối hơn: đúng ' +
+           Math.min(m.tu.tiLe, m.cau.tiLe) + '% so với ' + Math.max(m.tu.tiLe, m.cau.tiLe) + '% bên kia.');
+  }
+  if(m.cau.daHoc === 0 && m.tu.daHoc > 0) y.push('Bạn chưa học mẫu câu nào — từ đứng lẻ khó dùng thành câu.');
+  if(m.tu.daHoc === 0 && m.cau.daHoc > 0) y.push('Bạn chưa học từ đơn lẻ nào, mới chỉ học mẫu câu.');
+  if(m.yeu.length === 0 && m.daHoc >= 10) y.push('Chưa mục nào bị sai lần nào — cứ giữ nhịp này.');
+  else if(m.yeu.length){
+    const nang = m.yeu.filter(x=>x.sai >= 3).length;
+    if(nang) y.push('Có <b>' + nang + ' mục sai từ 3 lần trở lên</b> — đáng xem lại nghĩa và ví dụ, chứ lật thẻ thêm cũng khó vào.');
+  }
+  if(m.chuaChac > m.thuoc * 2 && m.daHoc >= 20)
+    y.push('Số mục "chưa chắc" đang nhiều gấp đôi số đã thuộc — nên giảm lượng mục mới mỗi ngày, ôn cho chắc rồi hãy nạp thêm.');
+  if(!y.length) y.push('Mới bắt đầu nên chưa đủ số liệu để nhận xét. Học vài lượt nữa, phần này sẽ nói cụ thể theo đúng kết quả của bạn.');
+  return y.slice(0, 3);
+}
+function wbMucDoBenHtml(b, ten, icon){
+  if(!b.daHoc){
+    return '<div class="wb-md-ben"><div class="wb-md-bh">' + icon + ' ' + ten +
+      '<span>chưa học mục nào</span></div></div>';
+  }
+  const pct = (n)=> Math.round(n / b.daHoc * 100);
+  return '<div class="wb-md-ben">' +
+    '<div class="wb-md-bh">' + icon + ' ' + ten + '<span>' + b.daHoc + '/' + b.tong + ' mục' +
+      (b.tiLe !== null ? ' · đúng ' + b.tiLe + '%' : '') + '</span></div>' +
+    '<div class="wb-md-thanh">' +
+      '<i class="t" style="width:' + pct(b.thuoc) + '%;"></i>' +
+      '<i class="d" style="width:' + pct(b.dangNho) + '%;"></i>' +
+      '<i class="c" style="width:' + pct(b.chuaChac) + '%;"></i></div>' +
+    '<div class="wb-md-chu">' +
+      '<span><i class="t"></i>Đã thuộc <b>' + b.thuoc + '</b></span>' +
+      '<span><i class="d"></i>Đang nhớ <b>' + b.dangNho + '</b></span>' +
+      '<span><i class="c"></i>Chưa chắc <b>' + b.chuaChac + '</b></span>' +
+      (b.toiHan ? '<span class="hn">⏰ Tới hạn ôn <b>' + b.toiHan + '</b></span>' : '') +
+    '</div>' +
+    '<div class="wb-md-hop">' + [0,1,2,3,4,5].map(k=>
+      '<span title="' + (k ? 'Hộp ' + k : 'Mới học, chưa lên hộp nào') + '"><i style="height:' +
+        Math.max(3, Math.round((b.hop[k] || 0) / Math.max(1, b.daHoc) * 26)) + 'px;"></i>' +
+        '<u>' + (b.hop[k] || 0) + '</u><em>' + (k ? 'H' + k : 'Mới') + '</em></span>').join('') + '</div>' +
+  '</div>';
+}
 function wbMucDoHtml(){
-  let m = {thuoc:0, dangNho:0, chuaChac:0, daHoc:0, yeu:[]};
-  try{ m = wbMucDo(); }catch(_){ }
-  if(!m.daHoc){
+  let m = null;
+  try{ m = wbMucDo(); }catch(_){ m = null; }
+  if(!m || !m.daHoc){
     return `<div class="card wb-md"><div class="wb-md-h">📊 Mức độ thuộc</div>
       <div class="wb-md-trong">Chưa có mục nào được học. Bấm “Bắt đầu học” ở trên, vài lượt là bảng này có số.</div></div>`;
   }
-  const pct = (n)=> Math.round(n / m.daHoc * 100);
   const yeu = m.yeu.length
-    ? `<div class="wb-md-yeu"><b>Cần để mắt${m.chuaChac > m.yeu.length ? (' (' + m.yeu.length + '/' + m.chuaChac + ')') : ''}:</b>
-         ${m.yeu.map(x=>`<span class="wb-md-tag">${escapeHtml(String(x.chu).slice(0,28))}${x.sai?`<i>✗${x.sai}</i>`:''}</span>`).join('')}
+    ? `<div class="wb-md-yeu"><b>Cần để mắt — những mục BẠN ĐÃ TỪNG TRẢ LỜI SAI:</b>
+         ${m.yeu.map(x=>`<span class="wb-md-tag ${x.loai === 'cau' ? 'c' : 't'}"><s>${x.loai === 'cau' ? 'câu' : 'từ'}</s>${escapeHtml(String(x.chu).slice(0,34))}<i>✗${x.sai}</i></span>`).join('')}
        </div>`
-    : `<div class="wb-md-yeu ok">👍 Không còn mục nào ở mức chưa chắc.</div>`;
+    : `<div class="wb-md-yeu ok">👍 Chưa mục nào bị trả lời sai.</div>`;
   return `<div class="card wb-md">
-    <div class="wb-md-h">📊 Mức độ thuộc <span>${m.daHoc} mục đã học</span></div>
-    <div class="wb-md-thanh">
-      <i class="t" style="width:${pct(m.thuoc)}%;"></i>
-      <i class="d" style="width:${pct(m.dangNho)}%;"></i>
-      <i class="c" style="width:${pct(m.chuaChac)}%;"></i>
-    </div>
-    <div class="wb-md-chu">
-      <span><i class="t"></i>Đã thuộc <b>${m.thuoc}</b></span>
-      <span><i class="d"></i>Đang nhớ <b>${m.dangNho}</b></span>
-      <span><i class="c"></i>Chưa chắc <b>${m.chuaChac}</b></span>
-    </div>
+    <div class="wb-md-h">📊 Mức độ thuộc <span>${m.daHoc} mục đã học${m.tiLe !== null ? ' · đúng ' + m.tiLe + '%' : ''}</span></div>
+    ${wbMucDoBenHtml(m.tu,  'Từ vựng',  '📖')}
+    ${wbMucDoBenHtml(m.cau, 'Mẫu câu',  '💬')}
     ${yeu}
-    <div class="wb-md-nhac">Trả lời đúng thì mục đó được hẹn ôn xa dần (1 → 3 → 7 → 14 → 30 ngày); sai một lần là tụt bậc và mai gặp lại ngay. Cứ học đều, app tự lo lịch.</div>
+    <div class="wb-md-nx"><b>Nhận xét theo số liệu của bạn</b>
+      ${wbMucDoNhanXet(m).map(t=>`<p>· ${t}</p>`).join('')}</div>
+    <div class="wb-md-nhac">Hộp H1→H5 là bậc nhớ: trả lời đúng thì lên một bậc và được hẹn ôn xa dần (1 → 3 → 7 → 14 → 30 ngày); sai một lần là tụt bậc, mai gặp lại ngay.</div>
   </div>`;
 }
+function wbTienTu(w){ try{ return (SETTINGS.vocabProgress||{})[w[0]] || null; }catch(_){ return null; } }
+function wbTienCau(c){ try{ return (SETTINGS.sentProgress||{})[c[0]] || null; }catch(_){ return null; } }
 //  v218 — "TỪ VỰNG & MẪU CÂU": một hàng đợi trộn, hai bộ máy cũ vẫn dựng câu hỏi
 // ═══════════════════════════════════════════════════════════════════════
 const WB_TEN = 'Từ vựng & Mẫu câu';
