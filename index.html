@@ -2712,6 +2712,17 @@
 .wb-the-hang{margin-left:auto; font-size:11px; font-weight:800; letter-spacing:.3px;}
 .wb-cd-ct{margin-top:7px; font-size:10.5px; line-height:1.55; color:var(--dim2); text-align:center;}
 /* v228 — THẺ BÀI. Viền và ánh sáng đổi theo mức đã thuộc, lật có nhịp quay như lật một lá bài. */
+/* ══ v270 · MẶT TRƯỚC LÀ MỘT LÁ BÀI THẬT ═══════════════════════════════════════════════
+   Chưa lật: lá bài đứng GIỮA màn, tỉ lệ dọc như quân bài (chừng 2:3), khung viền rõ, và
+   không còn gì khác tranh chỗ — nhìn vào chỉ thấy đúng một từ để tự bật ra nghĩa.
+   Đã lật: lá bài trở lại dạng thẻ ngang gọn ở cột trái, nhường chỗ cho ví dụ. */
+.wb-doi:not(.mo) .wb-cot-trai{max-width:340px; margin:0 auto;}
+.wb-doi:not(.mo) .wb-bai{aspect-ratio:2/3; max-height:74vh; min-height:340px;}
+.wb-doi:not(.mo) .wb-the-en{font-size:34px;}
+@media(max-width:420px){
+  .wb-doi:not(.mo) .wb-bai{min-height:300px;}
+  .wb-doi:not(.mo) .wb-the-en{font-size:29px;}
+}
 .wb-bai{position:relative; overflow:hidden; min-height:230px; display:flex; flex-direction:column;
   padding:15px 16px 18px; border-radius:20px; cursor:pointer; text-align:center;
   background:linear-gradient(165deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 55%, rgba(0,0,0,.14));
@@ -4635,7 +4646,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v269';
+const APP_VERSION = 'v270';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9473,6 +9484,15 @@ function ensureEnglishItems(){
   // 1.000 từ hay dùng nhất (đã chiếm ~85% lời nói hằng ngày). Phần thời gian dôi ra dồn cho việc NÓI —
   // vì cái thiếu khi giao tiếp không phải là biết ít từ, mà là biết mà không bật ra kịp.
   if(SETTINGS.vocabDailyNew===20 && !SETTINGS.commTuned){ SETTINGS.vocabDailyNew = 12; SETTINGS.commTuned = 1; }
+  // ══ v270 · TĂNG CƯỜNG ĐỘ, VÀ CÂN LẠI TỪ / CÂU ════════════════════════════════════════
+  // ĐO ĐƯỢC trước khi đổi: gói mỗi ngày là 20 từ mới + 8 câu mới. Bạn báo "quá nhiều câu"
+  // và muốn học lượng lớn hơn. Hai con số dưới đây giữ ĐÚNG tỉ lệ 3 từ : 1 câu — vốn từ là
+  // thứ mở đường, mẫu câu là thứ ghép chúng lại, nên từ phải nhiều hơn hẳn.
+  //   28 từ + 9 câu = 37 mục mới/ngày, cộng phần tới hạn ôn.
+  // Đặt qua một cờ riêng (v270Nhip) để chỉ dời MỘT LẦN, không đè lên con số bạn tự chỉnh.
+  // ⚠️ Khối này PHẢI đứng SAU chỗ khởi tạo cả vocabDailyNew lẫn sentDailyNew. Bản đầu tôi
+  // đặt nó ở trên, lúc ấy sentDailyNew còn undefined nên vế câu không bao giờ chạy — sửa
+  // một nửa mà nhìn mã thì tưởng đã xong.
   if(!SETTINGS.vocabStreak || typeof SETTINGS.vocabStreak!=='object') SETTINGS.vocabStreak = {lastDate:null, streak:0};
   if(!SETTINGS.vocabDailyStats || typeof SETTINGS.vocabDailyStats!=='object') SETTINGS.vocabDailyStats = {};
   if(!Array.isArray(SETTINGS.speakPracticeLog)) SETTINGS.speakPracticeLog = [];
@@ -9481,6 +9501,12 @@ function ensureEnglishItems(){
   // 300 câu trong 90 ngày ≈ 4 câu/ngày. 15 câu/ngày nghe thì nhanh nhưng không kịp ôn,
   // học xong quên ngay — thà ít mà nhớ tới mức bật ra được.
   if(SETTINGS.sentDailyNew===15 && !SETTINGS.commTuned2){ SETTINGS.sentDailyNew = 4; SETTINGS.commTuned2 = 1; }
+  // v270 — dời nhịp học MỘT LẦN (xem chú thích dài ở trên, chỗ vocabDailyNew).
+  if(!SETTINGS.v270Nhip){
+    if(SETTINGS.vocabDailyNew <= 20) SETTINGS.vocabDailyNew = 28;
+    if(SETTINGS.sentDailyNew  <= 10) SETTINGS.sentDailyNew  = 9;
+    SETTINGS.v270Nhip = 1;
+  }
   if(!SETTINGS.sentStreak || typeof SETTINGS.sentStreak!=='object') SETTINGS.sentStreak = {lastDate:null, streak:0};
   if(!SETTINGS.sentDailyStats || typeof SETTINGS.sentDailyStats!=='object') SETTINGS.sentDailyStats = {};
   if(typeof SETTINGS.geminiApiKey !== 'string') SETTINGS.geminiApiKey = '';
@@ -13015,13 +13041,27 @@ function vocabBuildDailyQueue(){
   const order = (VOCAB_DATA && Array.isArray(VOCAB_DATA.learnOrder) && VOCAB_DATA.learnOrder.length)
     ? VOCAB_DATA.learnOrder
     : Array.from({length:(VOCAB_DATA && VOCAB_DATA.words.length)||3000}, (_,i)=>i+1);
-  for(let k=0; k<order.length && newWords.length<newCount; k++){
+  // ══ v270 · BỐC NGẪU NHIÊN TRONG MỘT CỬA SỔ, KHÔNG CHẠY TUẦN TỰ ═══════════════════════
+  // Bạn báo thẻ cứ ra theo đúng một thứ tự. Đúng vậy: bản cũ quét learnOrder từ đầu và lấy
+  // n mục đầu tiên chưa học — hôm nào cũng đúng dãy ấy, và mở lại giữa ngày là gặp lại y
+  // nguyên. Nhưng bốc ngẫu nhiên trong CẢ 4316 từ thì hỏng kiểu khác: learnOrder xếp theo
+  // TẦN SUẤT trong tiếng Anh nói, bốc bừa là học phải từ hiếm ngay ngày đầu.
+  // Cách dung hoà: lấy một CỬA SỔ gồm 4 lần số cần, tính từ đầu danh sách tần suất, rồi
+  // xáo bên trong cửa sổ ấy. Vẫn luôn là những từ hay gặp nhất, nhưng mỗi lượt một khác.
+  const chuaHoc = [];
+  for(let k=0; k<order.length && chuaHoc.length < newCount * 4; k++){
     const n = order[k];
     if(dueSet.has(n)) continue;
     const p = prog[n];
     if(p && p.introduced) continue;
-    newWords.push(n);
+    chuaHoc.push(n);
   }
+  // Nhưng TỪ BẠN TỰ NHẶT từ video thì vẫn phải đứng đầu, không đem xáo. Đó là từ chính
+  // bạn chọn lúc đang nghe, nên đáng gặp lại sớm nhất; xáo chung là nó trôi mất tăm.
+  // (Phép đo v186 bắt được đúng chỗ này ngay khi tôi xáo cả rổ.)
+  const cuaToiTu = chuaHoc.filter(n=>{ const w = vocabWordByN(n); return w && w[3] === VOC_CHU_DE_VIDEO; });
+  const conLaiTu = chuaHoc.filter(n=>cuaToiTu.indexOf(n) < 0);
+  cuaToiTu.concat(shuffleArr(conLaiTu)).slice(0, newCount).forEach(n=>newWords.push(n));
   // 'due' đã được sắp sẵn theo NGÀY ĐẾN HẠN (quá hạn lâu nhất trước). Trước đây bị shuffleArr() xáo
   // lại, phá đúng thứ tự ưu tiên mà thuật toán lặp lại ngắt quãng vừa tính ra. Nay giữ nguyên.
   const ids = due.concat(newWords);
@@ -14056,10 +14096,17 @@ function wbTheHtml(){
     `<button class="wb-cham" data-action="wb-cham" data-muc="${x.k}" style="--mc:${x.mau};">
        <span class="wb-cham-ic">${x.ic}</span><span class="wb-cham-ten">${x.ten}</span>
        <span class="wb-cham-mo">${x.mo}</span></button>`).join('');
-  const am = m.phienAm || vdPhienAm(m.en);
+  // ══ v270 · PHIÊN ÂM CHO THẺ LẬT ════════════════════════════════════════════════════
+  // Ba nguồn, xếp theo độ tin: phiên âm đã lưu của mục → kho ví dụ (AI từng trả về) →
+  // BẢNG IPA NỘI BỘ của app. Bảng nội bộ chỉ phủ 257/3070 từ (8%), nhưng trong 500 từ học
+  // đầu tiên thì phủ 162 từ (32%) — tức đúng quãng bạn đang học, nên thêm nó vào là thấy
+  // ngay. Không có thì để trống, tuyệt đối không tự chế phiên âm.
+  const amNoiBo = (()=>{ try{ const o = ipaOfWord(m.en); return o && o.ipa ? ('/' + o.ipa + '/') : ''; }catch(_){ return ''; } })();
+  const am = m.phienAm || vdPhienAm(m.en) || amNoiBo;
   const th = vdTinhHuong(m.en);
-  // v249 — hình tượng trưng vẽ sẵn trong app. Chọn theo nghĩa tiếng Việt nên không cần mạng.
-  const hinh = vdHinhSvg(m.en, m.vi, m.chuDe || '');
+  // v270 — BỎ hình tượng trưng. Hình vẽ sẵn chọn theo nghĩa tiếng Việt nên với phần lớn từ
+  // nó chỉ là một biểu tượng chung chung, không dạy được gì, mà lại chiếm đúng chỗ giữa lá
+  // bài — chỗ đáng ra dành cho chính từ đang học.
   return `<div class="wb-the-dau">
       <span class="wb-the-luot">Lượt ${w.theLuot || 1} · thẻ ${so}/${tong}</span>
       <span class="wb-the-hang" style="color:${hang.vien};">${hang.ten}</span>
@@ -14077,7 +14124,6 @@ function wbTheHtml(){
             ${wbChamHang(m.p)}
           </div>
           <div class="wb-bai-giua">
-            ${hinh ? `<div class="wb-the-hinh">${hinh}</div>` : ''}
             <div class="wb-the-en">${escapeHtml(m.en)}</div>
             ${am ? `<div class="wb-the-am">${escapeHtml(am)}</div>` : ''}
             ${lat ? `<div class="wb-the-vi">${escapeHtml(m.vi)}</div>` : ''}
@@ -14120,27 +14166,17 @@ function renderWbSession(){
     const tong = w.q.length;
     const pct = tong ? Math.round(w.correct / tong * 100) : 0;
     const sai = w.missed.length;
-    const vs = (typeof vocabStats === 'function') ? vocabStats() : {learned:0,total:0};
-    const cs = (typeof sentStats === 'function') ? sentStats() : {learned:0,total:0};
-    const loi = pct >= 90 ? '🌟 Rất chắc. Cứ nhịp này là vốn nói tăng đều mỗi ngày.'
-              : pct >= 70 ? ('👍 Khá. Còn ' + sai + ' mục chưa chắc — mai app sẽ tự đưa lại đúng mấy mục đó trước.')
-              : ('💡 Hôm nay hơi đuối. ' + sai + ' mục sai đã được hẹn ôn sớm; đừng vội thêm mục mới.');
+    // ══ v270 · MÀN XONG LƯỢT GỌN LẠI ═════════════════════════════════════════════════
+    // Bỏ nút "Học tiếp phần còn lại" và khối "Tổng kho". Hai thứ ấy trả lời câu hỏi mà
+    // không ai hỏi lúc vừa học xong, lại khiến màn kết thúc trông như một bảng báo cáo.
+    // Học xong thì bấm Hoàn tất; muốn học nữa thì vào lại và bấm Bắt đầu — một đường duy
+    // nhất, không phải nhớ hai lối làm cùng một việc.
     return wbVe(`${englishItemBackRow(WB_TEN)}
       <div class="card eng-quiz-result">
-        <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">Phần hôm nay</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:4px;">Xong lượt này</div>
         <div class="score">${w.correct}/${tong}</div>
-        <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác${sai ? (' · ' + sai + ' mục cần ôn lại') : ''}</div>
-        <div style="display:flex; gap:10px; margin-top:18px; justify-content:center;">
-          <button class="form-btn eng-quiz-nextbtn" data-action="wb-start">🔁 Học tiếp phần còn lại</button>
-          <button class="form-btn cancel" data-action="wb-exit">✓ Hoàn tất</button>
-        </div>
-      </div>
-      <div class="card" style="text-align:left; margin-top:14px; padding:14px 16px; border:1px solid #2CDBA855;">
-        <div style="font-size:12px; font-weight:800; color:var(--teal); margin-bottom:8px;">📊 Tổng kho</div>
-        <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
-          Từ vựng <b style="color:var(--text);">${vs.learned}</b>/${vs.total} · Mẫu câu <b style="color:var(--text);">${cs.learned}</b>/${cs.total}
-        </div>
-        <div style="font-size:12.5px; color:var(--text); line-height:1.6; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">${loi}</div>
+        <div style="font-size:13px; color:var(--dim); margin-top:4px;">${pct}% chính xác${sai ? (' · ' + sai + ' mục sẽ được ôn lại sớm') : ''}</div>
+        <button class="form-btn eng-quiz-nextbtn" data-action="wb-exit" style="margin-top:18px; width:100%;">✓ Hoàn tất</button>
       </div>`);
   }
   // Thân câu hỏi do đúng bộ máy cũ dựng ra, nhưng hai hàm NÀY chỉ TRẢ chuỗi chứ không ghi
@@ -14191,10 +14227,13 @@ function renderEnglishWordbank(item){
   const daNap = wbDaNap();
   const chuoi = (SETTINGS.vocabStreak && SETTINGS.vocabStreak.streak) || 0;
 
-  const choHtml = (cho.length || daNap) ? `
+  // ══ v270 · KHỐI "NHẶT TỪ HỌC THEO VIDEO" CHỈ HIỆN KHI CÒN VIỆC PHẢI LÀM ═════════════
+  // Trước đây khối này hiện cả khi mọi mục đã xong, chỉ để khoe con số "đã có nghĩa" —
+  // tức chiếm một thẻ to trên màn chính mà không đòi hỏi bạn làm gì. Nay: còn mục CHỜ
+  // nghĩa thì mới hiện (vì đó là việc cần bấm); xong hết thì biến mất hẳn.
+  const choHtml = cho.length ? `
     <div class="card wb-cho">
-      <div class="wb-cho-h">🎬 Nhặt từ "Học theo video"</div>
-      ${daNap ? `<div class="wb-cho-ok">✅ <b>${daNap}</b> mục đã có nghĩa và đã nằm trong kho — học chung với phần còn lại.</div>` : ''}
+      <div class="wb-cho-h">🎬 ${cho.length} mục nhặt từ video đang chờ nghĩa</div>
       ${cho.length ? `
         <div class="wb-cho-sub"><b>${cho.length}</b> mục đang chờ AI bổ sung nghĩa. Có nghĩa rồi là tự rời khỏi đây và vào kho.</div>
         <div class="wb-cho-ds">${cho.slice(0,12).map(o=>`<span class="wb-cho-chip ${o.t==='cau'?'cau':''}">${escapeHtml(String(o.x.chu||''))}</span>`).join('')}${
@@ -17728,13 +17767,17 @@ function sentBuildDailyQueue(){
     if(p && p.introduced) continue;
     newOnes.push(n);
   }
-  for(let n=1; n<=total && newOnes.length<newCount; n++){
+  // v270 — cũng bốc ngẫu nhiên trong một cửa sổ, như bên từ vựng. Ngân hàng câu đã xếp
+  // theo mức thông dụng, nên cửa sổ 4 lần số cần vẫn toàn câu đáng học trước.
+  const chuaHocCau = [];
+  for(let n=1; n<=total && chuaHocCau.length < newCount * 4; n++){
     if(dueSet.has(n)) continue;
     if(newOnes.indexOf(n) >= 0) continue;
     const p = prog[n];
     if(p && p.introduced) continue;
-    newOnes.push(n);
+    chuaHocCau.push(n);
   }
+  shuffleArr(chuaHocCau).slice(0, Math.max(0, newCount - newOnes.length)).forEach(n=>newOnes.push(n));
   const ids = due.concat(newOnes); // giữ đúng thứ tự ưu tiên theo hạn ôn (xem chú thích ở Luyện từ vựng)
   SETTINGS.sentDailyCache = {date: today, ids};
   saveSettings();
