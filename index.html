@@ -4635,7 +4635,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v268';
+const APP_VERSION = 'v269';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10718,6 +10718,21 @@ async function drpSinhVanBan(){
     if(!res.ok || !j || !j.ok){
       s.loi = (j && j.error) ? j.error : ('Worker trả lỗi ' + res.status + '.');
     } else {
+      // ══ v269 · THỨ TỰ NÀY LÀ GỐC CỦA LỖI NÚT BACK ════════════════════════════════════
+      // navForward() PHẢI gọi TRƯỚC khi đặt s.bai. Quy tắc ấy đã ghi hoa ngay trên đầu
+      // hàm navForward, kèm cảnh báo "đã từng gây bug thật" — và chính chỗ này phạm nó.
+      // ĐO ĐƯỢC (bật lịch sử thật trong bài đo): đặt s.bai trước rồi mới navForward thì
+      // mốc lịch sử chụp lại trạng thái ĐÃ CÓ BÀI. Bấm back một lần: ENG_LOP xoá s.bai,
+      // rồi navBack() nhả mốc ấy ra, restoreNav DỰNG LẠI ĐÚNG BÀI VỪA ĐÓNG — và tiện thể
+      // ghi đè STATE.tab bằng giá trị trong mốc. Hai cơ chế đánh nhau: một bên đóng lớp,
+      // một bên mở lại. Người dùng thấy bấm back mấy lần cũng không ra, rồi đột ngột văng
+      // hẳn ra ngoài. "Soạn bài khác" hỏng cùng một gốc: nó cũng xoá bài rồi navBack().
+      try{ navForward(); }catch(_){ }
+      // v269 — soạn xong thì DỌN ô ý tưởng. Giữ nguyên thì lần sau bấm "Soạn bài khác"
+      // lại ra đúng chủ đề cũ mà người dùng tưởng là bài mới, và muốn đổi thì phải tự xoá
+      // tay từng chữ. Ý tưởng đã dùng xong rồi thì trả ô về trống.
+      s.chuDe = '';
+      try{ const oCD = document.getElementById('drpChuDe'); if(oCD) oCD.value = ''; }catch(_){ }
       s.bai = {title: String(j.title || 'Reading practice'),
                titleVi: String(j.titleVi || ''),
                sentences: (j.sentences || []).map(x=>String(x)),
@@ -10726,9 +10741,6 @@ async function drpSinhVanBan(){
                wordsUsed: Array.isArray(j.wordsUsed) ? j.wordsUsed : [],
                luc: Date.now()};
       s.khung = 'cau';
-      // Mở bài đọc là bước vào một lớp mới — đẩy mốc lịch sử để nút back và cử chỉ vuốt
-      // đều lùi đúng một lớp về màn chọn bài.
-      try{ navForward(); }catch(_){ }
     }
   }catch(e){
     s.loi = 'Không gọi được worker: ' + ((e && e.message) || e);
