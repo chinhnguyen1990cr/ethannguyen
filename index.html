@@ -4646,7 +4646,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v270';
+const APP_VERSION = 'v271';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13156,6 +13156,31 @@ function vocabCauChuaTu(word){
   try{ (vdGom(tu, []) || []).forEach(v=>them(v[0])); }catch(_){ }
   return ra;
 }
+// ══ v271 · CÂU ĐIỀN CHỖ TRỐNG PHẢI KHỚP ĐÚNG NGHĨA ĐANG HỎI ═══════════════════════════
+// LỖI THẬT bạn bắt được (hình 4): đề ghi 'từ mang nghĩa "tài khoản"' nhưng câu lại là
+//   "Please ____ for the missing money."
+// "account for" là GIẢI TRÌNH, không phải tài khoản. Gốc: vocabCauChuaTu gom mọi câu có
+// chứa chữ ấy — câu của chính từ (đã khớp nghĩa) lẫn câu nhặt từ kho 6216 câu (chỉ khớp
+// MẶT CHỮ). Rồi vocabBlankSentence xoay vòng theo số lần đã gặp, nên tới lượt câu kho là
+// đề tự mâu thuẫn. Một từ tiếng Anh có nhiều nghĩa, khớp chữ không phải khớp nghĩa.
+// Nay: câu ví dụ CỦA CHÍNH TỪ luôn được ưu tiên tuyệt đối cho dạng điền chỗ trống, vì chỉ
+// nó mới chắc chắn đúng nghĩa ghi trong đề. Hàm trả thêm cờ khopNghia để chỗ dựng đề biết
+// có được phép nói "từ mang nghĩa X" hay không.
+function vocabCauDien(word, lan){
+  const rieng = String((word && word[5]) || '').trim();
+  const ds = vocabCauChuaTu(word).filter(c=>c !== rieng);
+  const k = ((+lan || 0) % 2 + 2) % 2;
+  // Luân phiên để không phải nhìn mãi một câu, nhưng KHÔNG đánh đổi tính đúng:
+  //   lượt chẵn → câu ví dụ của chính từ, chắc chắn đúng nghĩa ghi trong đề
+  //   lượt lẻ  → một câu khác từ kho, và lúc ấy đề KHÔNG nói nghĩa nữa (khopNghia=false),
+  //              chỉ hỏi "từ còn thiếu trong câu này" — vẫn học được, mà không nói sai.
+  if(k === 0 && rieng) return {cau: rieng, khopNghia: true};
+  if(ds.length){
+    const i = Math.floor((+lan || 0) / 2) % ds.length;
+    return {cau: ds[i], khopNghia: false};
+  }
+  return rieng ? {cau: rieng, khopNghia: true} : {cau: '', khopNghia: false};
+}
 function vocabBlankSentence(word, lan){
   const ds = vocabCauChuaTu(word);
   const cau = ds.length ? ds[((+lan || 0) % ds.length + ds.length) % ds.length] : String(word[5]||'');
@@ -13662,6 +13687,32 @@ function wbBatDauThe(){
   }catch(_){ }
   renderContent(); window.scrollTo(0,0);
 }
+// ══ v271 · CHẾ ĐỘ "CÂU HỎI" LẤY TỪ CẢ KHO ĐÃ HỌC ═════════════════════════════════════
+// Bạn nói đúng chỗ đau: ở chế độ Câu hỏi, gói bài vẫn là ĐÚNG những mục vừa lật thẻ hôm
+// nay. Vừa xem nghĩa xong rồi hỏi lại chính nó thì không cần nhớ gì — chọn theo quán tính,
+// đúng nghĩa "học vẹt". Câu hỏi chỉ có ích khi hỏi thứ đã NGUỘI.
+// Nay hàng đợi chế độ Câu hỏi bốc từ MỌI mục đã từng được giới thiệu, ưu tiên:
+//   1. mục tới hạn ôn (thuật toán lặp ngắt quãng đã tính sẵn)
+//   2. mục đã học NHƯNG chưa tới hạn, bốc ngẫu nhiên — đây là phần làm nó hết đoán được
+// Mục MỚI TINH của hôm nay bị loại hẳn khỏi đây: chúng thuộc về Thẻ lật, gặp lần đầu mà
+// bắt làm bài thì chỉ là đoán mò.
+function wbHangHoi(){
+  const soTu  = Math.max(6, studyNewQuota('vocab'));
+  const soCau = Math.max(3, studyNewQuota('sent'));
+  const lay = (prog, coMuc, tong)=>{
+    const hnay = todayKey();
+    const daHoc = [], toiHan = [];
+    Object.keys(prog || {}).forEach(k=>{
+      const n = parseInt(k, 10); if(!n || !coMuc(n)) return;
+      const p = prog[k]; if(!p || !p.introduced) return;
+      if(p.next && p.next <= hnay) toiHan.push(n); else daHoc.push(n);
+    });
+    return toiHan.concat(shuffleArr(daHoc)).slice(0, tong);
+  };
+  const tu  = lay(SETTINGS.vocabProgress, n=>!!vocabWordByN(n), soTu);
+  const cau = lay(SETTINGS.sentProgress,  n=>!!sentByN(n),      soCau);
+  return wbTron(tu, cau);
+}
 function wbBatDau(){
   fetchViDuData();
   if(!VOCAB_DATA || !COMMON_SENT_DATA){
@@ -13669,11 +13720,16 @@ function wbBatDau(){
     if(!COMMON_SENT_DATA) fetchCommonSentData();
     showToast('⏳','Đang tải dữ liệu','Thử lại sau một giây nữa nhé.'); return;
   }
-  const tu  = vocabBuildDailyQueue() || [];
-  const cau = sentBuildDailyQueue() || [];
-  const q = wbTron(tu, cau);
+  // v271 — chế độ Câu hỏi bốc từ CẢ KHO đã học (xem wbHangHoi), không phải gói mới hôm nay.
+  const hoi = (wbCheDo() !== 'the');
+  const q = hoi ? wbHangHoi() : wbTron(vocabBuildDailyQueue() || [], sentBuildDailyQueue() || []);
+  const tu  = q.filter(x=>x.t === 'tu');
+  const cau = q.filter(x=>x.t === 'cau');
   if(!q.length){
-    showToast('🎉','Xong hết phần hôm nay!','Cả từ lẫn mẫu câu đều đã học và ôn đủ. Mai quay lại, hoặc mở kho bên dưới để luyện thêm.');
+    showToast(hoi ? '📭' : '🎉',
+      hoi ? 'Chưa có gì để hỏi' : 'Xong hết phần hôm nay!',
+      hoi ? 'Câu hỏi chỉ hỏi những mục BẠN ĐÃ HỌC. Lật vài thẻ trước đã, rồi quay lại đây.'
+          : 'Cả từ lẫn mẫu câu đều đã học và ôn đủ. Mai quay lại, hoặc mở kho bên dưới để luyện thêm.');
     return;
   }
   navForward();
@@ -13824,7 +13880,10 @@ function wbHopTuKhoang(ivl){
   if(ivl <= 21) return 4;
   return 5;
 }
-function wbCheDo(){ return SETTINGS.wbCheDo === 'the' ? 'the' : 'hoi'; }
+// v271 — MẶC ĐỊNH nay là THẺ LẬT, không phải Câu hỏi. Từ bản này, Câu hỏi chỉ hỏi những
+// mục BẠN ĐÃ HỌC; người mới mở app chưa học gì nên vào thẳng Câu hỏi là gặp màn trống.
+// Thứ tự đúng của việc học cũng vậy: gặp mặt trước (thẻ lật), kiểm tra sau (câu hỏi).
+function wbCheDo(){ return SETTINGS.wbCheDo === 'hoi' ? 'hoi' : 'the'; }
 function wbDatCheDo(v){
   SETTINGS.wbCheDo = (v === 'the') ? 'the' : 'hoi';
   saveSettings();
@@ -14860,7 +14919,17 @@ function renderVocabSession(){
   // được thoát an toàn từ lúc dựng; nhưng chỗ chèn ra màn hình lại thoát THÊM một lần nữa,
   // nên mọi dấu < > thành chữ thường. Nay: thoát đúng MỘT lần, ngay tại chỗ dựng.
   const questionText = s.exType==='mc_en_vi' ? `${escapeHtml(word[1])} (${escapeHtml(word[2])}) nghĩa là gì?`
-    : s.exType==='fill_blank' ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:<div class="qz-cau">${escapeHtml(vocabBlankSentence(word, (vocabProgressFor(n)||{}).seen || 0))}</div>`
+    : s.exType==='fill_blank' ? (function(){
+        // v271 — chỉ nói "từ mang nghĩa X" khi câu điền ĐÚNG là ví dụ của từ ấy. Câu nhặt
+        // từ kho chỉ khớp mặt chữ, có thể đang dùng nghĩa khác — nói kèm nghĩa là đánh lừa.
+        const o = vocabCauDien(word, (vocabProgressFor(n)||{}).seen || 0);
+        let re; try{ re = new RegExp('\\b' + String(word[1]).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i'); }catch(_){ re = null; }
+        const cau = re ? String(o.cau).replace(re, '____') : String(o.cau);
+        return (o.khopNghia
+          ? `Điền vào chỗ trống — từ mang nghĩa <b>“${escapeHtml(word[4])}”</b>:`
+          : `Điền vào chỗ trống — từ còn thiếu trong câu này:`)
+          + `<div class="qz-cau">${escapeHtml(cau)}</div>`;
+      })()
     : s.exType==='listen_en_vi' ? `🔊 Nghe từ vừa phát, chọn đúng nghĩa tiếng Việt`
     // v266 — hai dạng mới. Đề nói rõ đang hỏi chiều nào: hỏi đồng nghĩa mà người học
     // tưởng là trái nghĩa thì sai vì đọc nhầm đề, không phải vì không biết từ.
@@ -17852,7 +17921,24 @@ function sentPrepareCurrent(){
   types.push('listen_choice');
   if(box>=1 && wordCount>=3 && wordCount<=9) types.push('unscramble_words');
   if(box>=2 && blank) types.push('listen_fill');
-  if(box>=3) types.push('dialogue');
+  // ══ v271 · BỎ DẠNG "B NÊN ĐÁP LẠI THẾ NÀO" ═══════════════════════════════════════════
+  // Bạn báo dạng này không cần thiết, và đúng là nó đo sai thứ: bốn lựa chọn là bốn câu
+  // KHÁC HẲN nhau về nghĩa, nên chỉ cần đọc lướt câu A là loại được ba cái — chọn đúng mà
+  // không phải nhớ gì về chính mẫu câu đang học. Thay bằng dạng ĐIỀN VÀO ĐOẠN: mẫu câu
+  // nằm trong một đoạn hội thoại ngắn, bạn phải hiểu mạch mới điền đúng.
+  // Hoá ra dạng "điền vào đoạn" ĐÃ CÓ SẴN (nhánh s.dlgDoan): cụm nằm trong một đoạn hội
+  // thoại thật và bị khoét đi, phải hiểu mạch mới điền đúng. Cái bạn gặp ở hình 5 là nhánh
+  // DỰ PHÒNG, chạy khi cụm chưa có hội thoại nào trong kho. Nên không cần dạng mới — chỉ
+  // cần: có hội thoại thì mới ra dạng này, không có thì thôi, đừng hỏi kiểu yếu hơn.
+  if(box>=3){
+    let coDoan = false;
+    try{
+      const ht = vdHoiThoai(sentence[1]);
+      const cum = String(sentence[1]||'').trim().toLowerCase();
+      coDoan = !!(ht && ht.length >= 2 && ht.some(l => String(l[1]||'').toLowerCase().indexOf(cum) >= 0));
+    }catch(_){ coDoan = false; }
+    if(coDoan) types.push('dialogue');
+  }
   if(box>=4 && wordCount<=8) types.push('type_en');
   // v220 — 3 dạng bài mới cho mẫu câu:
   //  • mc_ex      (chọn từ điền vào câu): khoét 1 từ khỏi câu, chọn 1 trong 4 từ. Khác hẳn listen_fill
