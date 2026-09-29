@@ -2737,6 +2737,20 @@
   transform:perspective(900px) rotateY(0deg); transition:transform .15s ease;}
 .wb-bai.quay{transform:perspective(900px) rotateY(88deg);}
 .wb-bai.lat{background:linear-gradient(165deg, rgba(255,255,255,.085), rgba(24,194,156,.07) 55%, rgba(0,0,0,.16));}
+/* ══ v272 · MẶT SAU BÁM KHUNG, KHÔNG CÒN KHOẢNG TRỐNG ══════════════════════════════
+   ĐÃ ĐO trên trình duyệt thật (375px và 1440px): mặt sau cao 230px, trong đó riêng khối
+   giữa chiếm 177px trong khi chữ thật (từ 35px + phiên âm + nghĩa 24px) chỉ chừng 75px
+   — tức khoảng 100px trống rỗng đúng như bạn nói. Gốc là .wb-bai giữ min-height:230px
+   và .wb-bai-giua để flex:1, nên khi lật ra nội dung ít thì phần thừa bị kéo giãn.
+   Mặt TRƯỚC vẫn giữ nguyên tỉ lệ lá bài — chỗ trống ở đó là cố ý. */
+.wb-bai.lat{min-height:0;}
+.wb-bai.lat .wb-bai-giua{flex:0 0 auto; justify-content:flex-start; padding:12px 0 2px; gap:4px;}
+.wb-bai.lat .wb-the-en{font-size:26px; line-height:1.2;}
+/* Nghĩa tiếng Việt là thứ vừa lật ra để xem — cho nó một dải nền bám sát khung thẻ,
+   vừa nổi bật vừa lấp đúng chỗ trước đây bỏ trống. */
+.wb-bai.lat .wb-the-vi{margin-top:10px; width:100%; padding:9px 12px; border-radius:12px;
+  font-size:18px; background:rgba(44,219,168,.10); border:1px solid rgba(44,219,168,.24);}
+@media(max-width:420px){ .wb-bai.lat .wb-the-en{font-size:24px;} }
 /* Vệt sáng chéo ở góc trên — cho lá bài có chiều sâu thay vì một mảng phẳng. */
 .wb-bai-sang{position:absolute; top:-58%; left:-20%; width:180px; height:180px; border-radius:50%;
   background:radial-gradient(circle, var(--anh), rgba(255,255,255,0) 70%); pointer-events:none;}
