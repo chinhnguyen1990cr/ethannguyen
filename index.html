@@ -2834,6 +2834,12 @@
   justify-content:center; gap:6px; padding:16px 0 10px;}
 .wb-the-en{font-size:27px; font-weight:800; line-height:1.28; color:var(--text); letter-spacing:-.3px;}
 .wb-the-am{font-size:12.5px; color:var(--dim); font-family:var(--mono);}
+/* v275 — từ loại có chỗ riêng, không chen vào chỗ phiên âm nữa. */
+.tf-muc{font-size:10px; color:var(--dim2); margin-top:1px;}
+.tf-muc b{color:var(--dim);}
+.wb-the-loai{margin-top:3px; font-size:9.5px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--dim2); border:1px solid var(--border);
+  border-radius:6px; padding:1px 7px;}
 .wb-the-vi{margin-top:8px; font-size:17px; font-weight:800; color:#2CDBA8; line-height:1.4;}
 /* v263 — họ từ là phần đáng giá nhất của mặt sau (học "decide" thì được luôn "decision",
    "decisive"), nên nó phải đọc được chứ không phải mấy con chip bé xíu chen nhau. */
@@ -4735,7 +4741,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v274';
+const APP_VERSION = 'v275';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9849,21 +9855,26 @@ function renderEnglish(){
 //   • Độ tươi mới (20%) — kiến thức phai theo thời gian (đường quên Ebbinghaus), nên càng lâu không đụng
 //     tới thì điểm càng tụt, buộc phải ôn lại.
 // Xu hướng (tăng/giảm) so sánh 7 ngày gần nhất với 7 ngày trước đó để biết bạn đang tiến hay lùi.
+// v275 — DỰNG LẠI cho khớp năm mục đang có. Đo được lỗi cũ: aiSkillsHienCo() lọc AI_SKILLS
+// theo `target` có nằm trong englishItems không — mà englishItems nay chỉ còn 5 id mới, nên
+// SÁU trong bảy kỹ năng bị loại, "AI phân tích trình độ" rốt cuộc chỉ chấm mỗi Ngữ pháp rồi
+// lấy đó làm điểm trình độ tổng. Nay mỗi mục đang có một kỹ năng, không thừa không thiếu.
 const AI_SKILLS = [
-  {key:'grammar',  name:'Ngữ pháp',       icon:'📝', target:'eng_grammar',   color:'#FF8A3D'},
-  {key:'listen',   name:'Luyện nghe',     icon:'🎧', target:'eng_listening', color:'#2CDBA8'},
-  {key:'speak',    name:'Luyện nói',      icon:'🗣️', target:'eng_speaking',  color:'#FF6EA8'},
-  {key:'ipa',      name:'Phát âm IPA',    icon:'🔤', target:'eng_ipa',       color:'#B78CFF'},
-  {key:'vocab',    name:'Từ vựng',        icon:'📖', target:'eng_vocab',     color:'#4FA8FF'},
-  {key:'sentence', name:'Câu thông dụng', icon:'💬', target:'eng_sentences', color:'#FFD166'},
-  {key:'dictation',name:'Chép chính tả',  icon:'✍️', target:'eng_listening', color:'#5CD6C0'},
+  {key:'grammar',  name:'Ngữ pháp',              icon:'📘', target:'eng_grammar',  color:'#4F8CFF'},
+  {key:'wordbank', name:'Từ vựng & Mẫu câu',     icon:'🗂️', target:'eng_wordbank', color:'#18C29C'},
+  {key:'hocvideo', name:'Luyện qua video thật',  icon:'🎬', target:'eng_hocvideo', color:'#FF7A45'},
+  {key:'aichat',   name:'Hội thoại AI',          icon:'💬', target:'eng_aichat',   color:'#B268FF'},
+  {key:'drp',      name:'Daily Reading',         icon:'📢', target:'eng_drp',      color:'#4FA8FF'},
 ];
-const AI_SKILL_ROWNAME = {grammar:'Ngữ pháp', listen:'Luyện nghe', speak:'Luyện nói', ipa:'Luyện IPA',
-  vocab:'Từ vựng', sentence:'Câu thông dụng', dictation:'Chép chính tả'};
+const AI_SKILL_ROWNAME = {grammar:'Ngữ pháp', wordbank:'Từ vựng & Mẫu câu',
+  hocvideo:'Luyện qua video thật', aichat:'Hội thoại AI', drp:'Daily Reading Practice'};
 // Khối lượng luyện được coi là "đủ" trong 30 ngày cho mỗi kỹ năng (đạt mức này thì phần điểm khối lượng
 // đạt tối đa). Đặt khác nhau vì bản chất mỗi kỹ năng khác nhau: từ vựng cần nhiều lượt nhỏ, luyện nói
 // mỗi lượt tốn nhiều thời gian hơn nên yêu cầu số lượt thấp hơn.
-const AI_VOLUME_TARGET = {grammar:120, listen:80, speak:30, ipa:40, vocab:400, sentence:150, dictation:80};
+// Khối lượng coi là "đủ" trong 30 ngày cho mỗi mục — đặt theo đúng nhịp mà app tự đề ra:
+// Từ vựng & Mẫu câu 28 từ + 9 câu mỗi ngày nên số lượt rất lớn; Daily Reading mỗi bài 5-20 câu;
+// Hội thoại AI tính theo lượt nói; video tính theo lượt thu/chấm.
+const AI_VOLUME_TARGET = {grammar:120, wordbank:500, hocvideo:60, aichat:200, drp:120};
 // Chỉ tính và chỉ vẽ những kỹ năng còn mục tương ứng trong danh sách. Mục đã cất mà vẫn hiện thẻ
 // thì bấm vào rơi vào hư không — và điểm của nó kéo tụt điểm trung bình một cách vô lý.
 function aiSkillsHienCo(){
@@ -9897,11 +9908,11 @@ function aiCollectSkillData(days){
 }
 // Ngưỡng số lượt tối thiểu để chấm điểm thành thạo cho từng kỹ năng. Đặt theo độ "nặng" của mỗi lượt:
 // một lượt Luyện nói dài vài phút nói lên nhiều hơn một câu trắc nghiệm từ vựng, nên ngưỡng thấp hơn.
-const AI_MIN_SAMPLE = {grammar:20, listen:15, speak:8, ipa:15, vocab:30, sent:20, dict:15, aichat:5};
+const AI_MIN_SAMPLE = {grammar:20, wordbank:30, hocvideo:8, aichat:10, drp:10};
 // Số ngày/21 ngày mà một kỹ năng NÊN được đụng tới, để coi là giữ nhịp tốt. Không phải kỹ năng nào
 // cũng cần luyện hằng ngày: từ vựng và câu thông dụng sống nhờ lặp lại ngắt quãng nên cần gần như mỗi
 // ngày; hội thoại AI mỗi tuần 2-3 buổi đã đủ tác dụng.
-const AI_NHIP_MUC_TIEU = {vocab:18, sent:16, listen:12, grammar:12, speak:12, ipa:10, dict:10, aichat:7};
+const AI_NHIP_MUC_TIEU = {wordbank:18, grammar:12, hocvideo:8, aichat:7, drp:10};
 function aiSkillReport(){
   const raw = aiCollectSkillData(30);
   const today = new Date();
@@ -10125,17 +10136,22 @@ function todayFlowSupportKind(){
 }
 // Mỗi việc tiếng Anh trong LỊCH LÀM VIỆC ứng với mục nào trong Học tiếng Anh, và dòng nào trong bảng
 // hoạt động (để biết hôm nay đã làm chưa).
+// v275 — DỌN LẠI CHO KHỚP NĂM MỤC ĐANG CÓ. Bảng cũ trỏ sang ipa / vocab / sentences /
+// listening / speaking — những mục đã gỡ khỏi englishItems — nên items.find() trả về undefined
+// và các chặng ấy bị LOẠI THẲNG khỏi "Học hôm nay": lịch bày ra 8 việc mà màn hình chỉ hiện 2.
+// Việc trong lịch 90 ngày vẫn giữ nguyên tên gọi cũ, nên ở đây chỉ việc trỏ chúng về đúng mục
+// còn sống, và về đúng tên dòng trong bảng hoạt động mới.
 const FLOW_MAP = {
-  ipa:             {k:'ipa',       row:'Luyện IPA',      why:'Sáng sớm miệng và tai còn tỉnh — lúc tập phát âm hiệu quả nhất trong ngày.'},
-  vocab:           {k:'vocab',     row:'Từ vựng',        why:'12 từ mới theo đúng thứ tự tần suất nói. Đây là khối quan trọng nhất trong ngày.'},
-  vocab_review:    {k:'vocab',     row:'Từ vựng',        why:'Gặp lại đúng những từ sáng nay — bỏ lần ôn này là mất phần lớn công buổi sáng.'},
-  sentences:       {k:'sentences', row:'Câu thông dụng', why:'Học nguyên cụm câu người bản xứ dùng thật, lúc cần là bật ra cả câu.'},
-  listening_lunch: {k:'listening', row:'Luyện nghe',     why:'Giữa ngày mệt, không gắng sức được — nghe là việc nạp vào, hợp lúc này nhất.'},
-  dialogue:        {k:'sentences', row:'Câu thông dụng', why:'Gặp lại từ và câu đã học trong một câu chuyện thật, rồi tập dùng lại ở tình huống mới.'},
-  dictation:       {k:'listening', row:'Chép chính tả',  why:'Bài tập lộ rõ nhất những âm bạn đang nghe sót.'},
-  speaking:        {k:'speaking',  row:'Luyện nói',      why:'Tự bật thành tiếng — bước biến "hiểu" thành "dùng được".'},
-  grammar_game:    {k:'grammar',   row:'Ngữ pháp',       why:'Học quy tắc để tự ráp câu mới, thay vì chỉ thuộc lòng câu có sẵn.'},
-  ai_chat:         {k:'aichat',    row:'Hội thoại AI',   why:'Nói qua lại thật: mục tiêu là trả lời trong 3 giây, không dịch thầm trong đầu.'}
+  ipa:             {k:'drp',      row:'Daily Reading Practice', why:'Sáng sớm miệng và tai còn tỉnh — lúc tập phát âm hiệu quả nhất trong ngày.'},
+  vocab:           {k:'wordbank', row:'Từ vựng & Mẫu câu', why:'Từ mới theo đúng thứ tự tần suất nói. Đây là khối quan trọng nhất trong ngày.'},
+  vocab_review:    {k:'wordbank', row:'Từ vựng & Mẫu câu', why:'Gặp lại đúng những mục sáng nay — bỏ lần ôn này là mất phần lớn công buổi sáng.'},
+  sentences:       {k:'wordbank', row:'Từ vựng & Mẫu câu', why:'Học nguyên cụm câu người bản xứ dùng thật, lúc cần là bật ra cả câu.'},
+  dialogue:        {k:'wordbank', row:'Từ vựng & Mẫu câu', why:'Gặp lại từ và câu đã học trong ngữ cảnh thật, rồi tập dùng lại ở tình huống mới.'},
+  listening_lunch: {k:'hocvideo', row:'Luyện qua video thật', why:'Giữa ngày mệt, không gắng sức được — nghe là việc nạp vào, hợp lúc này nhất.'},
+  dictation:       {k:'hocvideo', row:'Luyện qua video thật', why:'Chép lại lời trong video — bài tập lộ rõ nhất những âm bạn đang nghe sót.'},
+  speaking:        {k:'drp',      row:'Daily Reading Practice', why:'Tự bật thành tiếng rồi để máy chấm — bước biến "hiểu" thành "dùng được".'},
+  grammar_game:    {k:'grammar',  row:'Ngữ pháp', why:'Học quy tắc để tự ráp câu mới, thay vì chỉ thuộc lòng câu có sẵn.'},
+  ai_chat:         {k:'aichat',   row:'Hội thoại AI', why:'Nói qua lại thật: mục tiêu là trả lời trong 3 giây, không dịch thầm trong đầu.'}
 };
 // Nhiều việc trong lịch cùng trỏ về một dòng hoạt động (ví dụ Từ vựng xuất hiện 3 lần trong ngày:
 // học mới sáng, ôn trưa, ôn tối — cả ba đều đếm vào dòng "Từ vựng"). Nên không thể thấy count>0 là
@@ -10262,8 +10278,13 @@ function todayFlowState(){
     const item = items.find(i=>i.kind===m.k);
     if(!item) return null;
     const row = act.rows.find(r=>r.name===m.row);
+    // v275 — lịch 90 ngày vẫn dùng tên việc cũ ("Luyện IPA", "Chép chính tả"…), trong khi mục
+    // thật sự mở ra nay là một trong năm mục còn lại. Ghi kèm TÊN MỤC ĐÍCH để bấm vào không bị
+    // hụt hẫng vì mở ra một màn mang tên khác.
+    const mucMeta = (ENG_BON || []).filter(b=>b.kind === m.k)[0];
     return {
       kind: t.kind, name: t.label, why: m.why, time: t.time, dur: t.dur, item,
+      mucTen: mucMeta ? String(mucMeta.ten).replace(/&amp;/g, '&') : '',
       done: !!(row && row.count>0),
       count: row ? row.count : 0, unit: row ? row.unit : '', score: row ? row.score : null,
       meta: ENGLISH_ITEM_KIND[m.k] || ENGLISH_ITEM_KIND.notes
@@ -10282,6 +10303,7 @@ function renderTodayFlow(){
       <div class="tf-num" style="${st.done?'':`background:linear-gradient(135deg,${st.meta.c1},${st.meta.c2});`}">${st.done?'✓':(i+1)}</div>
       <div class="tf-body">
         <div class="tf-name">${escapeHtml(st.name)}${isNext?' <span class="tf-badge">TIẾP THEO</span>':''}</div>
+        ${st.mucTen ? `<div class="tf-muc">→ mở mục <b>${escapeHtml(st.mucTen)}</b></div>` : ''}
         <div class="tf-time">🕐 ${escapeHtml(st.time||'')} · ${st.dur||0} phút</div>
         <div class="tf-sub">${st.done ? `Đã xong · ${st.count} ${escapeHtml(st.unit)}${st.score!==null?' · '+st.score+'%':''}` : escapeHtml(st.why)}</div>
       </div>
@@ -10310,7 +10332,6 @@ function englishSubNav(){
   return `<div class="seg" id="english-seg">
     <button class="${t==='english'?'active':''}" data-action="hub-open" data-target="english">Học</button>
     <button class="${t==='english-vault'?'active':''}" data-action="hub-open" data-target="english-vault">Luyện</button>
-    <button class="${t==='english-review'?'active':''}" data-action="hub-open" data-target="english-review">Ôn</button>
     <button class="${(t==='english-stats')?'active':''}" data-action="hub-open" data-target="english-stats">Thống kê</button>
   </div>`;
 }
@@ -11377,7 +11398,12 @@ async function drpChamCau(i){
       body: JSON.stringify({ text: cau, audio: b64, cham: drpCaiDat().cham })
     });
     const j = await res.json().catch(()=>null);
-    if(j && j.ok){ mau.cham = j; mau.chamSoi = null; }
+    if(j && j.ok){
+      mau.cham = j; mau.chamSoi = null;
+      // v275 — chấm xong một câu là một lượt luyện của Daily Reading; ghi kèm điểm để bảng
+      // "Hôm nay đã học được gì" và AI chấm trình độ có số thật thay vì luôn trống.
+      try{ engGhiNgay('drpDailyStats', typeof j.chung === 'number' ? j.chung : null); }catch(_){ }
+    }
     else{
       mau.chamLoi = (j && j.error) || ('Worker trả lỗi ' + res.status + '.');
       // Thiếu khoá Azure là ca riêng: gợi ý đúng việc phải làm thay vì để người học đoán.
@@ -11699,10 +11725,113 @@ const DRP_AM_THEM = {
   through:"θruː",during:"ˈdjʊərɪŋ",until:"ənˈtɪl",without:"wɪˈðaʊt",inside:"ɪnˈsaɪd",outside:"aʊtˈsaɪd",
   near:"nɪə",far:"fɑː",above:"əˈbʌv",below:"bɪˈləʊ"
 };
+// v275 — BỔ SUNG ĐỢT HAI. Đo trên chính THỨ TỰ HỌC của kho: 600 từ đầu mới phủ 53%,
+// 1000 từ đầu chỉ 38% — mà đó đúng là những từ Thẻ bài đem ra dạy trước nhất. Bảng này
+// chép tay những từ còn thiếu trong đoạn đầu ấy, vẫn theo chuẩn Anh-Anh và lối ghi của kho.
+const DRP_AM_THEM2 = {
+  // Viết tắt và tên riêng: tra bằng chữ thường (drpAmGoc đã hạ chữ trước khi tra).
+  mr:"ˈmɪstə",mrs:"ˈmɪsɪz",tv:"ˌtiːˈviː",atm:"ˌeɪtiːˈem",wifi:"ˈwaɪfaɪ","sci-fi":"ˈsaɪfaɪ",café:"ˈkæfeɪ",fiancé:"fiˈɒnseɪ",act:"ækt",dim:"dɪm",arid:"ˈærɪd",axle:"ˈæksəl",coop:"kuːp",duet:"djuˈet",foul:"faʊl",gasp:"gɑːsp",gear:"gɪə",heir:"eə",jack:"dʒæk",july:"dʒuˈlaɪ",june:"dʒuːn",odds:"ɒdz",pane:"peɪn",plow:"plaʊ",prop:"prɒp",reef:"riːf",riff:"rɪf",trek:"trek",wary:"ˈweəri",april:"ˈeɪprəl",condo:"ˈkɒndəʊ",envoy:"ˈenvɔɪ",koala:"kəʊˈɑːlə",grout:"graʊt",
+  one:"wʌn",two:"tuː",well:"wel",why:"waɪ",small:"smɔːl",actually:"ˈæktʃuəli",
+  own:"əʊn",seek:"siːk",hungry:"ˈhʌŋgri",sometimes:"ˈsʌmtaɪmz",yet:"jet",almost:"ˈɔːlməʊst",
+  alone:"əˈləʊn",sugar:"ˈʃʊgə",salt:"sɔːlt",store:"stɔː",cost:"kɒst",cash:"kæʃ",
+  card:"kɑːd",receipt:"rɪˈsiːt",bill:"bɪl",deliver:"dɪˈlɪvə",taxi:"ˈtæksi",airport:"ˈeəpɔːt",
+  map:"mæp",direction:"dɪˈrekʃən",medicine:"ˈmedsən",pain:"peɪn",fever:"ˈfiːvə",headache:"ˈhedeɪk",
+  rest:"rest",exercise:"ˈeksəsaɪz",body:"ˈbɒdi",eye:"aɪ",message:"ˈmesɪdʒ",email:"ˈiːmeɪl",
+  screen:"skriːn",app:"æp",song:"sɒŋ",lesson:"ˈlesən",test:"test",practice:"ˈpræktɪs",
+  manager:"ˈmænɪdʒə",meeting:"ˈmiːtɪŋ",report:"rɪˈpɔːt",project:"ˈprɒdʒekt",deadline:"ˈdedlaɪn",customer:"ˈkʌstəmə",
+  client:"ˈklaɪənt",salary:"ˈsæləri",wind:"wɪnd",dry:"draɪ",season:"ˈsiːzən",spring:"sprɪŋ",
+  size:"saɪz",color:"ˈkʌlə",finish:"ˈfɪnɪʃ",end:"end",receive:"rɪˈsiːv",afraid:"əˈfreɪd",
+  angry:"ˈæŋgri",glad:"glæd",lonely:"ˈləʊnli",proud:"praʊd",disagree:"ˌdɪsəˈgriː",promise:"ˈprɒmɪs",
+  hurry:"ˈhʌri",certain:"ˈsɜːtən",probably:"ˈprɒbəbli",parent:"ˈpeərənt",son:"sʌn",daughter:"ˈdɔːtə",
+  husband:"ˈhʌzbənd",wife:"waɪf",neighbor:"ˈneɪbə",hotel:"həʊˈtel",reserve:"rɪˈzɜːv",luggage:"ˈlʌgɪdʒ",
+  passport:"ˈpɑːspɔːt",visa:"ˈviːzə",lake:"leɪk",forest:"ˈfɒrɪst",bedroom:"ˈbedruːm",wall:"wɔːl",
+  floor:"flɔː",clean:"kliːn",tidy:"ˈtaɪdi",repair:"rɪˈpeə",match:"mætʃ",score:"skɔː",
+  player:"ˈpleɪə",coach:"kəʊtʃ",government:"ˈgʌvənmənt",law:"lɔː",police:"pəˈliːs",court:"kɔːt",
+  rule:"ruːl",tax:"tæks",service:"ˈsɜːvɪs",public:"ˈpʌblɪk",private:"ˈpraɪvət",culture:"ˈkʌltʃə",
+  history:"ˈhɪstəri",art:"ɑːt",museum:"mjuːˈziːəm",festival:"ˈfestɪvəl",tradition:"trəˈdɪʃən",science:"ˈsaɪəns",
+  research:"rɪˈsɜːtʃ",data:"ˈdeɪtə",solution:"səˈluːʃən",cause:"kɔːz",effect:"ɪˈfekt",fact:"fækt",
+  ago:"əˈgəʊ",air:"eə",ant:"ænt",arm:"ɑːm",bar:"bɑː",bee:"biː",
+  bit:"bɪt",bug:"bʌg",cow:"kaʊ",era:"ˈɪərə",fan:"fæn",fit:"fɪt",
+  fog:"fɒg",fox:"fɒks",fry:"fraɪ",gas:"gæs",gun:"gʌn",guy:"gaɪ",
+  gym:"dʒɪm",hen:"hen",hit:"hɪt",hop:"hɒp",hub:"hʌb",hug:"hʌg",
+  kid:"kɪd",lay:"leɪ",leg:"leg",nap:"næp",nod:"nɒd",nor:"nɔː",
+  owl:"aʊl",pan:"pæn",peg:"peg",per:"pɜː",pet:"pet",pot:"pɒt",
+  rat:"ræt",raw:"rɔː",rip:"rɪp",rug:"rʌg",sew:"səʊ",shy:"ʃaɪ",
+  sin:"sɪn",sob:"sɒb",sum:"sʌm",tap:"tæp",tie:"taɪ",tip:"tɪp",
+  too:"tuː",tug:"tʌg",vet:"vet",war:"wɔː",able:"ˈeɪbəl",ache:"eɪk",
+  area:"ˈeəriə",aunt:"ɑːnt",bake:"beɪk",band:"bænd",bank:"bæŋk",barn:"bɑːn",
+  beam:"biːm",beat:"biːt",beef:"biːf",belt:"belt",bend:"bend",boat:"bəʊt",
+  boil:"bɔɪl",bolt:"bəʊlt",boot:"buːt",born:"bɔːn",bowl:"bəʊl",burn:"bɜːn",
+  cage:"keɪdʒ",calm:"kɑːm",cape:"keɪp",cart:"kɑːt",cave:"keɪv",chef:"ʃef",
+  chip:"tʃɪp",chop:"tʃɒp",coat:"kəʊt",code:"kəʊd",copy:"ˈkɒpi",crab:"kræb",
+  crop:"krɒp",crow:"krəʊ",cuff:"kʌf",dark:"dɑːk",date:"deɪt",dawn:"dɔːn",
+  dead:"ded",deal:"diːl",debt:"det",deep:"diːp",deer:"dɪə",dial:"ˈdaɪəl",
+  dice:"daɪs",diet:"ˈdaɪət",dive:"daɪv",doll:"dɒl",drop:"drɒp",drug:"drʌg",
+  drum:"drʌm",duck:"dʌk",dull:"dʌl",dusk:"dʌsk",east:"iːst",edge:"edʒ",
+  envy:"ˈenvi",ever:"ˈevə",exam:"ɪgˈzæm",exit:"ˈeksɪt",face:"feɪs",fail:"feɪl",
+  fake:"feɪk",farm:"fɑːm",fill:"fɪl",fine:"faɪn",fire:"ˈfaɪə",firm:"fɜːm",
+  flag:"flæg",flat:"flæt",flow:"fləʊ",fold:"fəʊld",four:"fɔː",frog:"frɒg",
+  fuel:"ˈfjuːəl",fund:"fʌnd",gate:"geɪt",glue:"gluː",goal:"gəʊl",goat:"gəʊt",
+  gold:"gəʊld",grab:"græb",gray:"greɪ",grin:"grɪn",halt:"hɔːlt",hang:"hæŋ",
+  hawk:"hɔːk",heal:"hiːl",heat:"hiːt",herb:"hɜːb",herd:"hɜːd",hero:"ˈhɪərəʊ",
+  hide:"haɪd",hike:"haɪk",hire:"ˈhaɪə",hold:"həʊld",hole:"həʊl",holy:"ˈhəʊli",
+  hood:"hʊd",hook:"hʊk",hose:"həʊz",huge:"hjuːdʒ",idle:"ˈaɪdəl",iron:"ˈaɪən",
+  item:"ˈaɪtəm",joke:"dʒəʊk",kick:"kɪk",kill:"kɪl",kind:"kaɪnd",kiss:"kɪs",
+  kite:"kaɪt",knit:"nɪt",knob:"nɒb",knot:"nɒt",lamp:"læmp",lane:"leɪn",
+  leak:"liːk",leap:"liːp",lift:"lɪft",lime:"laɪm",lion:"ˈlaɪən",loan:"ləʊn",
+  lock:"lɒk",mall:"mɔːl",menu:"ˈmenjuː",mild:"maɪld",monk:"mʌŋk",mood:"muːd",
+  myth:"mɪθ",nail:"neɪl",neat:"niːt",nest:"nest",none:"nʌn",noon:"nuːn",
+  nose:"nəʊz",note:"nəʊt",once:"wʌns",onto:"ˈɒntuː",oval:"ˈəʊvəl",oven:"ˈʌvən",
+  pack:"pæk",page:"peɪdʒ",pale:"peɪl",pass:"pɑːs",peak:"piːk",peel:"piːl",
+  pick:"pɪk",pill:"pɪl",pink:"pɪŋk",pipe:"paɪp",pity:"ˈpɪti",plot:"plɒt",
+  poem:"ˈpəʊɪm",pond:"pɒnd",pork:"pɔːk",pour:"pɔː",pray:"preɪ",prey:"preɪ",
+  pump:"pʌmp",quiz:"kwɪz",race:"reɪs",rent:"rent",ripe:"raɪp",rise:"raɪz",
+  rock:"rɒk",role:"rəʊl",roll:"rəʊl",roof:"ruːf",rope:"rəʊp",rude:"ruːd",
+  rush:"rʌʃ",sale:"seɪl",seat:"siːt",sigh:"saɪ",sign:"saɪn",sink:"sɪŋk",
+  site:"saɪt",skin:"skɪn",skip:"skɪp",slip:"slɪp",sock:"sɒk",soft:"sɒft",
+  soil:"sɔɪl",solo:"ˈsəʊləʊ",sour:"ˈsaʊə",spin:"spɪn",star:"stɑː",step:"step",
+  stir:"stɜː",suit:"suːt",swan:"swɒn",tape:"teɪp",task:"tɑːsk",tear:"tɪə",
+  tent:"tent",thin:"θɪn",tide:"taɪd",tile:"taɪl",tire:"ˈtaɪə",toll:"təʊl",
+  tone:"təʊn",tool:"tuːl",tray:"treɪ",trim:"trɪm",trip:"trɪp",tune:"tjuːn",
+  twin:"twɪn",vent:"vent",view:"vjuː",vote:"vəʊt",wasp:"wɒsp",wave:"weɪv",
+  weep:"wiːp",wide:"waɪd",wink:"wɪŋk",wipe:"waɪp",wire:"ˈwaɪə",wise:"waɪz",
+  wolf:"wʊlf",worm:"wɜːm",wrap:"ræp",yard:"jɑːd",yawn:"jɔːn",yell:"jel",
+  actor:"ˈæktə",acute:"əˈkjuːt",adult:"ˈædʌlt",alarm:"əˈlɑːm",album:"ˈælbəm",along:"əˈlɒŋ",
+  amaze:"əˈmeɪz",among:"əˈmʌŋ",amuse:"əˈmjuːz",angle:"ˈæŋgəl",apart:"əˈpɑːt",apply:"əˈplaɪ",
+  aroma:"əˈrəʊmə",attic:"ˈætɪk",avoid:"əˈvɔɪd",awful:"ˈɔːfəl",birth:"bɜːθ",bleed:"bliːd",
+  blend:"blend",blind:"blaɪnd",blink:"blɪŋk",block:"blɒk",blood:"blʌd",blunt:"blʌnt",
+  board:"bɔːd",brain:"breɪn",brake:"breɪk",brand:"brænd",brave:"breɪv",break:"breɪk",
+  breed:"briːd",brick:"brɪk",bride:"braɪd",broom:"bruːm",broth:"brɒθ",buyer:"ˈbaɪə",
+  cable:"ˈkeɪbəl",camel:"ˈkæməl",chain:"tʃeɪn",chase:"tʃeɪs",cheer:"tʃɪə",chess:"tʃes",
+  chill:"tʃɪl",choir:"ˈkwaɪə",chord:"kɔːd",chore:"tʃɔː",cliff:"klɪf",clown:"klaʊn",
+  coast:"kəʊst",cough:"kɒf",cover:"ˈkʌvə",crane:"kreɪn",crash:"kræʃ",crave:"kreɪv",
+  crawl:"krɔːl",crime:"kraɪm",crush:"krʌʃ",dairy:"ˈdeəri",death:"deθ",delay:"dɪˈleɪ",
+  depth:"depθ",digit:"ˈdɪdʒɪt",dizzy:"ˈdɪzi",dough:"dəʊ",dozen:"ˈdʌzən",drain:"dreɪn",
+  drama:"ˈdrɑːmə",drill:"drɪl",dryer:"ˈdraɪə",eager:"ˈiːgə",eagle:"ˈiːgəl",elder:"ˈeldə",
+  enter:"ˈentə",erect:"ɪˈrekt",essay:"ˈeseɪ",fable:"ˈfeɪbəl",faith:"feɪθ",fence:"fens",
+  ferry:"ˈferi",field:"fiːld",fifth:"fɪfθ",fifty:"ˈfɪfti",fight:"faɪt",final:"ˈfaɪnəl",
+  flirt:"flɜːt",flock:"flɒk",flood:"flʌd",forty:"ˈfɔːti",frame:"freɪm",fraud:"frɔːd",
+  fresh:"freʃ",front:"frʌnt",frown:"fraʊn",gauge:"geɪdʒ",genre:"ˈʒɒnrə",glove:"glʌv",
+  grade:"greɪd",grape:"greɪp",greed:"griːd",greet:"griːt",grill:"grɪl",groom:"gruːm",
+  guest:"gest",guide:"gaɪd",harsh:"hɑːʃ",hence:"hens",hinge:"hɪndʒ",hobby:"ˈhɒbi",
+  honey:"ˈhʌni",human:"ˈhjuːmən",humid:"ˈhjuːmɪd",image:"ˈɪmɪdʒ",irony:"ˈaɪərəni",judge:"dʒʌdʒ",
+  juice:"dʒuːs",knead:"niːd",knock:"nɒk",label:"ˈleɪbəl",latch:"lætʃ",later:"ˈleɪtə",
+  lease:"liːs",leash:"liːʃ",least:"liːst",legal:"ˈliːgəl",lemon:"ˈlemən",level:"ˈlevəl",
+  local:"ˈləʊkəl",loner:"ˈləʊnə",magic:"ˈmædʒɪk",mango:"ˈmæŋgəʊ",march:"mɑːtʃ",marry:"ˈmæri",
+  marsh:"mɑːʃ",medal:"ˈmedəl",media:"ˈmiːdiə",messy:"ˈmesi",model:"ˈmɒdəl",mouse:"maʊs",
+  movie:"ˈmuːvi",niece:"niːs",nomad:"ˈnəʊmæd",north:"nɔːθ",novel:"ˈnɒvəl",nudge:"nʌdʒ",
+  ocean:"ˈəʊʃən",onion:"ˈʌnjən",otter:"ˈɒtə",owner:"ˈəʊnə",panda:"ˈpændə",panic:"ˈpænɪk",
+  paste:"peɪst",pause:"pɔːz",peace:"piːs",phase:"feɪz",piano:"piˈænəʊ",piece:"piːs",
+  pilot:"ˈpaɪlət",pitch:"pɪtʃ",plain:"pleɪn",plant:"plɑːnt",pride:"praɪd",proof:"pruːf",
+  puppy:"ˈpʌpi",radio:"ˈreɪdiəʊ",raise:"reɪz",ratio:"ˈreɪʃiəʊ",relax:"rɪˈlæks",relic:"ˈrelɪk",
+  repay:"rɪˈpeɪ",roast:"rəʊst",robot:"ˈrəʊbɒt",rough:"rʌf",route:"ruːt",ruins:"ˈruːɪnz",
+  ruler:"ˈruːlə",rural:"ˈrʊərəl",salty:"ˈsɔːlti",sauce:"sɔːs",scarf:"skɑːf",scene:"siːn",
+  screw:"skruː",scrub:"skrʌb"
+};
 function drpAmGoc(tu){
   const k = String(tu || '').toLowerCase();
   try{ const o = ipaOfWord(k); if(o && o.ipa) return String(o.ipa); }catch(_){ }
-  return DRP_AM_THEM[k] || '';
+  return DRP_AM_THEM[k] || DRP_AM_THEM2[k] || '';
 }
 // Đuôi -ed và -s KHÔNG phải chuyện đoán: tiếng Anh có luật cứng, âm cuối của gốc quyết định
 // hết. Đo được là kho IPA chỉ có dạng nguyên thể, nên "decided", "asked", "smiled" trước đây
@@ -11728,8 +11857,24 @@ function drpThemS(ipa){
   if(DRP_AM_XUYT.indexOf(c) >= 0) return ipa + 'ɪz';
   return ipa + (DRP_VO_THANH.indexOf(c) >= 0 ? 's' : 'z');
 }
+// v275 — CỤM và mục dạng "a/an": phiên âm của cụm chính là phiên âm từng phần ghép lại, nên
+// không phải chép tay thêm dòng nào. Chỉ ghép khi TRA ĐƯỢC HẾT các phần; thiếu một phần thì
+// trả về rỗng, vì một cụm đọc đúng nửa đầu rồi bỏ lửng nửa sau còn khó nghe hơn là không có.
+function drpAmCuaCum(tho){
+  const phan = String(tho || '').toLowerCase().split(/[\s\/]+/).filter(Boolean);
+  if(phan.length < 2) return '';
+  const ra = [];
+  for(const x of phan){
+    const a = drpAmCuaTu(x);
+    if(!a) return '';
+    ra.push(a);
+  }
+  return ra.join(' ');
+}
 function drpAmCuaTu(tho){
-  const sach = String(tho || '').toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, '');
+  const tho2 = String(tho || '');
+  if(/[\s\/]/.test(tho2.trim())) return drpAmCuaCum(tho2);
+  const sach = tho2.toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, '');
   if(!sach) return '';
   const thang = drpAmGoc(sach);
   if(thang) return thang;
@@ -14564,11 +14709,15 @@ function wbMucHienTai(){
   try{
     if(it.t === 'tu'){
       const x = vocabWordByN(it.n); if(!x) return null;
-      return {loai:'tu', n:it.n, en:x[1], phienAm:x[2]||'', vi:x[4]||'',
+      // v275 — LỖI CÓ TỪ LÂU: cột x[2] của kho là TỪ LOẠI ("prep", "v", "n"), không phải phiên
+      // âm. Gán nó vào phienAm thì mặt thẻ in ra chữ "prep" ngay chỗ đáng lẽ là /prɪˈpeə/, mà
+      // vì nó luôn khác rỗng nên cả dãy dự phòng tra IPA bên dưới KHÔNG BAO GIỜ chạy tới.
+      // Nay tách hẳn: tuLoai đi đường của nó, phienAm để trống cho bộ tra IPA lo.
+      return {loai:'tu', n:it.n, en:x[1], phienAm:'', tuLoai:x[2]||'', vi:x[4]||'',
               viDuEn:x[5]||'', viDuVi:x[6]||'', p:vocabProgressFor(it.n)};
     }
     const c = sentByN(it.n); if(!c) return null;
-    return {loai:'cau', n:it.n, en:c[1], phienAm:'', vi:c[4]||'',
+    return {loai:'cau', n:it.n, en:c[1], phienAm:'', tuLoai:'', vi:c[4]||'',
             viDuEn:'', viDuVi:'', p:sentProgressFor(it.n)};
   }catch(_){ return null; }
 }
@@ -14828,7 +14977,11 @@ function wbTheHtml(){
   // đầu tiên thì phủ 162 từ (32%) — tức đúng quãng bạn đang học, nên thêm nó vào là thấy
   // ngay. Không có thì để trống, tuyệt đối không tự chế phiên âm.
   const amNoiBo = (()=>{ try{ const o = ipaOfWord(m.en); return o && o.ipa ? ('/' + o.ipa + '/') : ''; }catch(_){ return ''; } })();
-  const am = m.phienAm || vdPhienAm(m.en) || amNoiBo;
+  // v275 — dùng nốt bộ tra của Daily Reading: kho 440 từ + hai bảng bù (502 + 606 từ) + luật
+  // đuôi -ed/-s + ghép cụm. ĐO trên chính thứ tự học của kho: 1000 từ đầu nay phủ 99%, trước
+  // chỉ 21%. Vẫn giữ đúng nguyên tắc cũ — không có nguồn thì để trống, không tự chế.
+  const amDrp = (()=>{ try{ const a = drpAmCuaTu(m.en); return a ? ('/' + a + '/') : ''; }catch(_){ return ''; } })();
+  const am = m.phienAm || vdPhienAm(m.en) || amNoiBo || amDrp;
   const th = vdTinhHuong(m.en);
   // v270 — BỎ hình tượng trưng. Hình vẽ sẵn chọn theo nghĩa tiếng Việt nên với phần lớn từ
   // nó chỉ là một biểu tượng chung chung, không dạy được gì, mà lại chiếm đúng chỗ giữa lá
@@ -14852,6 +15005,7 @@ function wbTheHtml(){
           <div class="wb-bai-giua">
             <div class="wb-the-en">${escapeHtml(m.en)}</div>
             ${am ? `<div class="wb-the-am">${escapeHtml(am)}</div>` : ''}
+            ${m.tuLoai ? `<div class="wb-the-loai">${escapeHtml(m.tuLoai)}</div>` : ''}
             ${lat ? `<div class="wb-the-vi">${escapeHtml(m.vi)}</div>` : ''}
           </div>
           ${lat ? '' : `<div class="wb-bai-nhac">Tự bật ra nghĩa trong đầu — rồi chạm để lật</div>`}
@@ -24253,6 +24407,9 @@ function dvChamDiem(){
   if(!String(s.go||'').trim()){ showToast('✍️','Chưa gõ gì cả','Nghe rồi gõ lại trước khi chấm.'); return; }
   const kq = dictScoreTyped(d.en, s.go);
   s.ketQua = kq;
+  // v275 — chép chính tả theo video là một phần của "Luyện qua video thật"; ghi vào sổ ngày
+  // để mục này có số liệu thật trong "Hôm nay đã học được gì" và trong bảng AI chấm trình độ.
+  try{ engGhiNgay('hvDailyStats', typeof kq.score === 'number' ? kq.score : null); }catch(_){ }
   if(kq.passed){
     rec.xong = rec.xong || {};
     rec.xong[s.idx] = true;
@@ -28244,6 +28401,9 @@ async function sdBatDauGhi(){
   if(!(sdVe('sdMicWrap') && sdVe('sdErrWrap'))) renderContent();
 }
 function sdDungGhi(){
+  // v275 — mỗi lần thu xong một đoạn shadowing là một lượt luyện thật; ghi vào cùng sổ ngày
+  // với chép chính tả theo video, vì cả hai đều thuộc mục "Luyện qua video thật".
+  try{ if(sdRec && sdRec.state !== 'inactive') engGhiNgay('hvDailyStats', null); }catch(_){ }
   if(sdDemGiay){ clearInterval(sdDemGiay); sdDemGiay = null; }
   try{ sdNgungNhipGhi(); }catch(_){}
   try{ sdChotGainTuDong(); sdNgungDoMuc(); }catch(_){}
@@ -32680,6 +32840,29 @@ function englishModuleStatsCard(startKey, endKey){
 // cho cả "Hôm nay" lẫn các biểu đồ Tuần/Tháng/Năm mới của Thống kê Học tiếng Anh, để toàn bộ khu vực
 // này tách biệt HOÀN TOÀN khỏi LOG/dayXPTrack (dữ liệu tick việc trong Lịch làm việc hằng ngày) —
 // tránh trùng lặp thông tin giữa 2 bảng thống kê vốn phản ánh 2 việc khác nhau.
+// v275 — HAI MỤC CHÍNH TRƯỚC NAY KHÔNG ĐƯỢC ĐẾM. Đo được: "Hôm nay đã học được gì" liệt kê
+// 9 dòng, trong đó 5 dòng là mục đã gỡ khỏi app, còn "Luyện qua video thật" và "Daily Reading
+// Practice" — hai mục chính đang dùng hằng ngày — không có dòng nào, vì chưa hề có sổ ghi.
+function engGhiNgay(kho, diem){
+  try{
+    if(!SETTINGS[kho] || typeof SETTINGS[kho] !== 'object') SETTINGS[kho] = {};
+    const k = todayKey();
+    const o = SETTINGS[kho][k] || (SETTINGS[kho][k] = {answered:0, scoreSum:0, scoreN:0});
+    o.answered = (o.answered || 0) + 1;
+    if(typeof diem === 'number' && isFinite(diem)){
+      o.scoreSum = (o.scoreSum || 0) + diem;
+      o.scoreN = (o.scoreN || 0) + 1;
+    }
+    const ks = Object.keys(SETTINGS[kho]).sort();
+    while(ks.length > 400) delete SETTINGS[kho][ks.shift()];
+    saveSettings();
+  }catch(_){ }
+}
+function engDocNgay(kho, dateKey){
+  const o = (SETTINGS[kho] || {})[dateKey] || {};
+  return {answered: o.answered || 0,
+          score: o.scoreN ? Math.round(o.scoreSum / o.scoreN) : null};
+}
 function englishActivityForDate(dateKey){
   const gLog = (SETTINGS.grammarQuizLog||[]).filter(r=>r.date===dateKey);
   const lLog = (SETTINGS.listenQuizLog||[]).filter(r=>r.date===dateKey);
@@ -32694,23 +32877,20 @@ function englishActivityForDate(dateKey){
   const avgPct = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.pct,0)/arr.length) : null;
   const avgOverall = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.overall,0)/arr.length) : null;
   const pctOf = ds => ds.answered ? Math.round(ds.correct/ds.answered*100) : null;
+  // v275 — DỰNG LẠI theo đúng năm mục đang có trong app (xem ENG_BON). Trước đây bảng này
+  // còn giữ Luyện nghe / Luyện nói / Luyện IPA / Chép chính tả / Hội thoại ngữ cảnh — những
+  // mục đã gỡ khỏi danh sách — nên mở ra thấy một loạt dòng "—" không bao giờ có số, trong khi
+  // hai mục dùng hằng ngày lại không có dòng nào.
+  const tuCau = {answered: vocabDs.answered + sentDs.answered,
+                 correct: vocabDs.correct + sentDs.correct};
+  const hv  = engDocNgay('hvDailyStats', dateKey);
+  const drp = engDocNgay('drpDailyStats', dateKey);
   const rows = [
-    {icon:'📝', name:'Ngữ pháp', count:gLog.length, unit:'lượt thi thử', score:avgPct(gLog), color:'#FF8A3D'},
-    {icon:'🎧', name:'Luyện nghe', count:lLog.length, unit:'lượt', score:avgPct(lLog), color:'#2CDBA8'},
-    {icon:'🗣️', name:'Luyện nói', count:spLog.length, unit:'lượt', score:avgOverall(spLog), color:'#FF6EA8'},
-    {icon:'🔤', name:'Luyện IPA', count:ipaLog.length, unit:'từ', score:avgOverall(ipaLog), color:'#B78CFF'},
-    {icon:'📖', name:'Từ vựng', count:vocabDs.answered, unit:'câu', score:pctOf(vocabDs), color:'#4FA8FF'},
-    {icon:'💬', name:'Câu thông dụng', count:sentDs.answered, unit:'câu', score:pctOf(sentDs), color:'#FFD166'},
-    {icon:'✍️', name:'Chép chính tả', count:dictDs.answered, unit:'câu', score:pctOf(dictDs), color:'#2CDBA8'},
-    {icon:'💬', name:'Hội thoại AI', count:aiTurns, unit:'lượt nói', score:null, color:'#5CD6C0'},
-    // BỔ SUNG: Hội thoại ngữ cảnh — mục này có từ v142 nhưng chưa từng được đếm vào hoạt động trong
-    // ngày, nên làm xong bài vẫn hiện như chưa học. Đếm theo số bài hoàn thành đúng ngày hôm đó.
-    (function(){
-      const dp = SETTINGS.dlgProgress || {};
-      const ids = Object.keys(dp).filter(k=>dp[k] && dp[k].date===dateKey);
-      const sc = ids.length ? Math.round(ids.reduce((a,k)=>a+(dp[k].score||0),0)/ids.length) : null;
-      return {icon:'🗨️', name:'Hội thoại ngữ cảnh', count:ids.length, unit:'bài', score:sc, color:'#FFC94A'};
-    })(),
+    {icon:'📘', name:'Ngữ pháp', count:gLog.length, unit:'lượt thi thử', score:avgPct(gLog), color:'#4F8CFF'},
+    {icon:'🗂️', name:'Từ vựng & Mẫu câu', count:tuCau.answered, unit:'câu', score:pctOf(tuCau), color:'#18C29C'},
+    {icon:'🎬', name:'Luyện qua video thật', count:hv.answered, unit:'lượt', score:hv.score, color:'#FF7A45'},
+    {icon:'💬', name:'Hội thoại AI', count:aiTurns, unit:'lượt nói', score:null, color:'#B268FF'},
+    {icon:'📢', name:'Daily Reading Practice', count:drp.answered, unit:'câu đã chấm', score:drp.score, color:'#4FA8FF'}
   ];
   const totalExercises = rows.reduce((s,r)=>s+(r.count||0),0);
   const scoredRows = rows.filter(r=>r.score!==null && r.count>0);
@@ -33276,7 +33456,10 @@ function renderContentInner(){
   else if(STATE.tab==='divination') renderQuanGia();
   else if(STATE.tab==='english-planner') renderEnglishPlanner();
     else if(STATE.tab==='english-vault') renderEnglishVault();
-    else if(STATE.tab==='english-review') renderEnglishReview();
+    // v275 — đã bỏ tab "Ôn": mọi thứ cần ôn nay nằm ngay trong từng mục (Thẻ bài ưu tiên mục
+    // tới hạn, khối "Mức độ thuộc" chỉ ra từ hay sai). Ai còn đường tắt cũ thì đưa về tab Học
+    // thay vì để màn trắng.
+    else if(STATE.tab==='english-review'){ STATE.tab = 'english'; renderEnglish(); }
   renderNav(); renderHUD();
 }
 
