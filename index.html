@@ -2700,6 +2700,60 @@
   color:var(--text); font-size:11px;}
 .wb-md-tag i{font-style:normal; color:#e0705f; margin-left:5px; font-size:10px;}
 .wb-md-nhac{margin-top:10px; font-size:10.5px; line-height:1.65; color:var(--dim2);}
+/* v273 — đồng hồ hạn mức của hai lối chấm, nằm ngay dưới chỗ chọn Azure/Gemini. */
+.drp-hm-khay{margin-top:10px; display:flex; flex-direction:column; gap:8px;}
+.drp-hm{padding:9px 11px; border-radius:11px; border:1px solid var(--border);
+  background:rgba(255,255,255,.035);}
+.drp-hm.canh{border-color:rgba(255,201,74,.38); background:rgba(255,201,74,.06);}
+.drp-hm.het{border-color:rgba(255,90,110,.42); background:rgba(255,90,110,.07);}
+.drp-hm > b{font-size:11px; font-weight:800; color:var(--text); display:block;}
+.drp-hm > span{display:block; margin-top:2px; font-size:11px; color:var(--dim);}
+.drp-hm > span b{color:var(--text);}
+.drp-hm > i{display:block; height:6px; margin:7px 0 6px; border-radius:99px;
+  background:rgba(255,255,255,.08); overflow:hidden;}
+.drp-hm > i u{display:block; height:100%; text-decoration:none; background:#4FA8FF;}
+.drp-hm.canh > i u{background:#FFC94A;}
+.drp-hm.het > i u{background:#FF5A6E;}
+.drp-hm > small{display:block; font-size:10px; line-height:1.6; color:var(--dim2);}
+.drp-hm > small b{color:var(--dim);}
+/* v273 — phiên âm nằm ngay dưới chân từ, không phải một dòng riêng ở cuối câu: mắt đang
+   đọc tới từ nào thì thấy cách đọc của đúng từ ấy. */
+.drp-am-cong{display:flex; justify-content:center; margin:0 0 10px;}
+.drp-cau p.co-am{line-height:1.35;}
+.drp-tu-am{display:inline-flex; flex-direction:column; align-items:center;
+  vertical-align:top; margin:0 1px 2px;}
+.drp-tu-am b{font-weight:inherit; color:inherit;}
+.drp-tu-am i{font-style:normal; font-size:10px; line-height:1.3; color:var(--dim2);
+  font-family:var(--mono); white-space:nowrap;}
+.drp-tu-am.trong i{display:none;}
+.drp-am-dem{margin:2px 0 8px; font-size:10px; line-height:1.55; color:var(--dim2);}
+.drp-am-dem b{color:var(--dim);}
+/* v273 — bảng tổng kết cả bài, chỉ hiện khi đã có ít nhất một câu được chấm. */
+.drp-tk{margin-top:12px; padding:14px 15px;}
+.drp-tk-h{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800; color:var(--text);}
+.drp-tk-h span{margin-left:auto; font-size:10.5px; font-weight:600; color:var(--dim2);}
+.drp-tk-so{display:flex; gap:8px; margin-top:11px;}
+.drp-tk-o{flex:1; text-align:center; padding:9px 4px; border-radius:11px;
+  border:1px solid var(--border); background:rgba(255,255,255,.04);}
+.drp-tk-o b{display:block; font-size:19px; font-weight:800; color:var(--text); font-family:var(--num);}
+.drp-tk-o span{display:block; margin-top:2px; font-size:9.5px; color:var(--dim2);}
+.drp-tk-tat{margin-top:11px;}
+.drp-tk-tat b{display:block; font-size:11px; color:var(--text); margin-bottom:6px;}
+.drp-tk-tat span{display:inline-flex; align-items:center; gap:6px; margin:0 6px 6px 0;
+  padding:4px 9px; border-radius:8px; font-size:12px; color:var(--text);
+  border:1px solid rgba(255,90,110,.32); background:rgba(255,90,110,.07);}
+.drp-tk-tat span i{font-style:normal; font-size:9.5px; color:var(--dim2);}
+.drp-tk-nx{margin-top:11px; padding:9px 10px; border-radius:10px;
+  border:1px solid var(--border); background:rgba(255,255,255,.035);}
+.drp-tk-nx p{margin:3px 0; font-size:11.5px; line-height:1.6; color:var(--dim);}
+.drp-tk-nx p b{color:var(--text);} .drp-tk-nx p i{font-style:normal; color:var(--text);}
+.drp-tk-ai{margin-top:10px; padding:10px 11px; border-radius:10px;
+  border:1px solid rgba(79,168,255,.3); background:rgba(79,168,255,.06);}
+.drp-tk-ai b{display:block; font-size:10.5px; color:#4FA8FF; margin-bottom:4px;}
+.drp-tk-ai p{margin:0; font-size:12px; line-height:1.65; color:var(--text);}
+.drp-tk-ai.loi{border-color:rgba(255,90,110,.32); background:rgba(255,90,110,.06);
+  font-size:11.5px; color:var(--dim);}
+.drp-tk-hang{margin-top:10px;}
 /* v272 — mỗi bên (từ / mẫu câu) một khối riêng, có thanh, có số, có cột hộp H1→H5. */
 .wb-md-ben{margin-top:12px; padding-top:10px; border-top:1px solid var(--border);}
 .wb-md-bh{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; color:var(--text);}
@@ -4681,7 +4735,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v272';
+const APP_VERSION = 'v273';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10667,6 +10721,123 @@ const DRP_CHAM = [
 ];
 const DRP_TU_TOI_DA = 24;      // worker cũng chặn ở 24; gửi nhiều hơn chỉ làm lời nhắc phình
 
+// ══ v273 · ĐỒNG HỒ HẠN MỨC CHO HAI LỐI CHẤM ════════════════════════════════════════════
+// ĐO ĐƯỢC TRƯỚC KHI LÀM: bộ đếm geminiQuota sẵn có chỉ tính những lượt app TỰ gọi bằng khoá
+// trong máy. Daily Reading thì gọi qua Worker, Worker dùng khoá riêng của nó — nên không lượt
+// nào của phần này được tính, và Azure thì trước nay không đếm gì cả. Vậy con số duy nhất
+// TRUNG THỰC mà app biết là: chính app đã gửi bao nhiêu lượt, và bao nhiêu giây tiếng.
+// Hai mốc để đối chiếu (số công bố của nhà cung cấp, app KHÔNG tự bịa):
+//   · Azure Speech bậc miễn phí F0: 5 giờ tiếng mỗi THÁNG.
+//   · Gemini bậc miễn phí: giới hạn theo NGÀY, đặt lại lúc 0:00 giờ Thái Bình Dương.
+// App chỉ dám nói "bạn đã dùng bao nhiêu", KHÔNG nói "nhà cung cấp còn cho bao nhiêu" — vì
+// khoá có thể dùng chung với máy khác, và app không có cách nào hỏi được số thật bên kia.
+const DRP_AZURE_GIAY_THANG = 5 * 3600;   // 5 giờ/tháng của bậc F0
+const DRP_GEMINI_NGAY = 20;              // ước lượng thận trọng cho một model flash miễn phí
+
+function drpThangKey(d){
+  const t = d || new Date();
+  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0');
+}
+// Hôm nay theo GIỜ THÁI BÌNH DƯƠNG, vì hạn mức ngày của Gemini đặt lại theo múi giờ ấy chứ
+// không theo giờ máy bạn. Tính bằng Intl để khỏi tự trừ tay mà sai vào mùa đổi giờ.
+function drpNgayPT(d){
+  const t = d || new Date();
+  try{
+    return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Los_Angeles',
+      year:'numeric', month:'2-digit', day:'2-digit'}).format(t);
+  }catch(_){ return todayKey(); }
+}
+function drpDung(){
+  const ng = drpNgayPT(), th = drpThangKey();
+  let q = SETTINGS.drpDung;
+  if(!q || typeof q !== 'object') q = SETTINGS.drpDung = {};
+  if(q.ngay !== ng){ q.ngay = ng; q.geminiNgay = 0; }
+  if(q.thang !== th){ q.thang = th; q.azureGiay = 0; q.azureLuot = 0; }
+  q.geminiNgay = +q.geminiNgay || 0;
+  q.azureGiay  = +q.azureGiay  || 0;
+  q.azureLuot  = +q.azureLuot  || 0;
+  return q;
+}
+// Ghi nhận MỘT lượt chấm đã gửi đi. Gọi ngay trước khi fetch, không phải sau khi có kết quả:
+// lượt đã gửi là đã tiêu hạn mức, kể cả khi mạng hỏng giữa chừng hay bên kia trả lỗi.
+function drpGhiNhanCham(nguon, giay){
+  const q = drpDung();
+  if(nguon === 'azure'){
+    q.azureLuot += 1;
+    q.azureGiay += Math.max(0, Math.round(+giay || 0));
+  }else{
+    q.geminiNgay += 1;
+  }
+  try{ saveSettings(); }catch(_){ }
+  return q;
+}
+// Còn bao lâu tới lúc đặt lại. Gemini: 0:00 giờ Thái Bình Dương. Azure: đầu tháng sau.
+function drpConLai(nguon, bayGio){
+  const now = bayGio || new Date();
+  if(nguon === 'gemini'){
+    // Nửa đêm PT kế tiếp = thời điểm mà ngày-theo-PT đổi sang ngày khác. Dò bằng cách nhảy
+    // từng giờ rồi lùi lại từng phút: chắc ăn qua cả hai mùa giờ, không phải tự tính lệch múi.
+    const ng = drpNgayPT(now);
+    let t = new Date(now.getTime());
+    for(let i = 0; i < 26; i++){
+      t = new Date(t.getTime() + 3600000);
+      if(drpNgayPT(t) !== ng) break;
+    }
+    for(let i = 0; i < 60; i++){
+      const lui = new Date(t.getTime() - 60000);
+      if(drpNgayPT(lui) === ng) break;
+      t = lui;
+    }
+    return Math.max(0, t.getTime() - now.getTime());
+  }
+  const sau = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+  return Math.max(0, sau.getTime() - now.getTime());
+}
+function drpDemNguoc(ms){
+  const s = Math.max(0, Math.floor((+ms || 0) / 1000));
+  const ngay = Math.floor(s / 86400), gio = Math.floor(s % 86400 / 3600), phut = Math.floor(s % 3600 / 60);
+  if(ngay >= 1) return ngay + ' ngày ' + gio + ' giờ nữa';
+  if(gio >= 1)  return gio + ' giờ ' + phut + ' phút nữa';
+  return Math.max(1, phut) + ' phút nữa';
+}
+function drpGioPhut(giay){
+  const s = Math.max(0, Math.round(+giay || 0));
+  const g = Math.floor(s / 3600), p = Math.round(s % 3600 / 60);
+  return g ? (g + ' giờ ' + p + ' phút') : (p ? (p + ' phút') : (s + ' giây'));
+}
+// Một dòng cho mỗi lối chấm. Chỉ có số app tự đếm được; mốc của nhà cung cấp ghi rõ là mốc.
+function drpHanMucMot(nguon){
+  const q = drpDung();
+  if(nguon === 'azure'){
+    const pct = Math.min(100, Math.round(q.azureGiay / DRP_AZURE_GIAY_THANG * 100));
+    const con = Math.max(0, DRP_AZURE_GIAY_THANG - q.azureGiay);
+    return `<div class="drp-hm ${pct >= 100 ? 'het' : (pct >= 80 ? 'canh' : '')}">
+      <b>Azure</b>
+      <span>Tháng này bạn đã gửi <b>${drpGioPhut(q.azureGiay)}</b> tiếng · ${q.azureLuot} lượt</span>
+      <i><u style="width:${pct}%;"></u></i>
+      <small>Gói miễn phí F0 cho 5 giờ/tháng → còn khoảng <b>${drpGioPhut(con)}</b>.
+        Đặt lại đầu tháng sau, ${drpDemNguoc(drpConLai('azure'))}.</small>
+    </div>`;
+  }
+  const pct = Math.min(100, Math.round(q.geminiNgay / DRP_GEMINI_NGAY * 100));
+  const con = Math.max(0, DRP_GEMINI_NGAY - q.geminiNgay);
+  return `<div class="drp-hm ${pct >= 100 ? 'het' : (pct >= 80 ? 'canh' : '')}">
+    <b>Gemini</b>
+    <span>Hôm nay bạn đã gửi <b>${q.geminiNgay}</b> lượt chấm</span>
+    <i><u style="width:${pct}%;"></u></i>
+    <small>Bậc miễn phí tính theo ngày (khoảng ${DRP_GEMINI_NGAY} lượt/model) → còn khoảng <b>${con}</b> lượt.
+      Đặt lại 0:00 giờ Thái Bình Dương, ${drpDemNguoc(drpConLai('gemini'))}.</small>
+  </div>`;
+}
+function drpHanMucHtml(){
+  return `<div class="drp-hm-khay">
+    ${drpHanMucMot('azure')}
+    ${drpHanMucMot('gemini')}
+    <div class="drp-ghi">Đây là số <b>app tự đếm</b> từ chính máy này — không phải số bên Azure
+      hay Google báo về. Nếu khoá còn dùng ở nơi khác thì thực tế đã tiêu nhiều hơn con số này.</div>
+  </div>`;
+}
+
 function drpCaiDat(){
   if(!SETTINGS.drpCai || typeof SETTINGS.drpCai !== 'object') SETTINGS.drpCai = {};
   const c = SETTINGS.drpCai;
@@ -10811,6 +10982,15 @@ async function drpSinhVanBan(){
 }
 // Đổi khung xem: từng câu / cả đoạn. Đang thu dở mà đổi khung thì dừng thu trước, không
 // thì mic vẫn chạy cho một câu không còn hiện trên màn hình.
+// v273 — công tắc phiên âm. Mặc định BẬT: người học đọc to thì cần biết cách đọc; ai thấy
+// rối thì tắt một nhát, app nhớ lựa chọn ấy.
+function drpAm(){ const c = drpCaiDat(); return c.am !== false; }
+function drpBatAm(){
+  const c = drpCaiDat();
+  c.am = !drpAm();
+  try{ saveSettings(); }catch(_){ }
+  try{ renderContent(); }catch(_){ }
+}
 function drpDatKhung(v){
   const s = STATE.drpPhien; if(!s) return;
   if(drpDangThu()) drpDungThu();
@@ -10882,6 +11062,7 @@ function drpWorkerHtml(){
     <div class="drp-h">Chấm phát âm bằng</div>
     <div class="drp-chon-r cot">${nut(DRP_CHAM, c.cham, 'drp-cham',
       o=>`<b>${escapeHtml(o.ten)}</b><i>${escapeHtml(o.phu)}</i>`)}</div>
+    ${drpHanMucHtml()}
     <div class="drp-ghi">Khoá Gemini nằm hẳn trong worker (biến <code>GEMINI_API_KEY</code>),
       không bao giờ đi xuống trình duyệt.</div>
   </div>`;
@@ -11184,6 +11365,9 @@ async function drpChamCau(i){
     try{ renderContent(); }catch(_){ } return;
   }
   mau.dangCham = true; mau.chamLoi = null; mau.cham = null;
+  // v273 — đếm TRƯỚC khi gửi: lượt đã rời khỏi máy là đã tiêu hạn mức, kể cả khi mạng hỏng
+  // giữa chừng hoặc bên kia trả lỗi. Đếm sau khi có kết quả thì đồng hồ luôn nhỏ hơn thực tế.
+  try{ drpGhiNhanCham(drpCaiDat().cham, mau.giay); }catch(_){ }
   try{ renderContent(); }catch(_){ }
   try{
     const b64 = await drpWavB64(mau.wav);
@@ -11414,6 +11598,314 @@ function drpNutHtml(i){
     mau.chamSoi ? drpSoiHtml(mau.chamSoi) : ''}</div>` : ''}
   ${mau && mau.cham ? drpChamHtml(mau.cham) : ''}`;
 }
+// ══ v273 · PHIÊN ÂM TỪNG TỪ KHI ĐỌC THEO CÂU ══════════════════════════════════════════
+// ĐO TRƯỚC: ipaOfWord chỉ phủ được 42% số từ khác nhau trong một bài 5 câu mẫu. Nên ở đây
+// KHÔNG bịa: từ nào có nguồn thật thì hiện phiên âm dưới chân từ đó, từ nào không có thì để
+// trống hẳn — thà thiếu còn hơn dạy sai cách đọc. Dòng đếm bên dưới nói thẳng phủ được bao nhiêu.
+function drpTachTu(cau){
+  // Giữ nguyên dấu câu dính vào từ (đọc "home." vẫn là "home"), nên tách theo khoảng trắng
+  // rồi mới bóc dấu ra để tra — không dùng replace toàn cục làm vỡ mất dấu chấm câu.
+  return String(cau || '').split(/(\s+)/).filter(x=>x !== '');
+}
+// Kho IPA luyện tập chỉ có 440 từ (đã đếm), nên một bài đọc bình thường chỉ phủ được 47%.
+// Bảng dưới bù thêm những từ HAY GẶP NHẤT, chép theo chuẩn Anh-Anh (RP) đúng lối ghi mà kho
+// sẵn có đang dùng: không dấu gạch chéo, có dấu nhấn ˈ ˌ và dấu dài ː. Chỉ dạng nguyên thể —
+// các dạng chia đuôi để luật -ed/-s bên dưới suy ra, khỏi chép tay rồi sai.
+// Dùng chữ g thường chứ không dùng ký tự ɡ của IPA: kho 440 từ sẵn có ghi bằng g, hai lối
+// ghi trộn nhau thì cùng một âm lại hiện ra hai kiểu chữ khác nhau trên cùng một câu.
+const DRP_AM_THEM = {
+  the:"ðə",a:"ə",an:"ən",and:"ænd",or:"ɔː",but:"bʌt",
+  if:"ɪf",of:"ɒv",to:"tuː",in:"ɪn",on:"ɒn",at:"æt",
+  by:"baɪ",for:"fɔː",with:"wɪð",from:"frɒm",as:"æz",into:"ˈɪntuː",
+  about:"əˈbaʊt",over:"ˈəʊvə",after:"ˈɑːftə",before:"bɪˈfɔː",between:"bɪˈtwiːn",under:"ˈʌndə",
+  again:"əˈgen",then:"ðen",than:"ðæn",when:"wen",where:"weə",while:"waɪl",
+  because:"bɪˈkɒz",so:"səʊ",very:"ˈveri",just:"dʒʌst",also:"ˈɔːlsəʊ",only:"ˈəʊnli",
+  even:"ˈiːvən",still:"stɪl",already:"ɔːlˈredi",always:"ˈɔːlweɪz",never:"ˈnevə",often:"ˈɒfən",
+  usually:"ˈjuːʒuəli",really:"ˈrɪəli",maybe:"ˈmeɪbi",perhaps:"pəˈhæps",i:"aɪ",you:"juː",
+  he:"hiː",she:"ʃiː",it:"ɪt",we:"wiː",they:"ðeɪ",me:"miː",
+  him:"hɪm",her:"hɜː",us:"ʌs",them:"ðem",my:"maɪ",your:"jɔː",
+  his:"hɪz",its:"ɪts",our:"ˈaʊə",their:"ðeə",this:"ðɪs",that:"ðæt",
+  these:"ðiːz",those:"ðəʊz",who:"huː",what:"wɒt",which:"wɪtʃ",whose:"huːz",
+  someone:"ˈsʌmwʌn",something:"ˈsʌmθɪŋ",anything:"ˈeniθɪŋ",everything:"ˈevriθɪŋ",nothing:"ˈnʌθɪŋ",everyone:"ˈevriwʌn",
+  be:"biː",am:"æm",is:"ɪz",are:"ɑː",was:"wɒz",were:"wɜː",
+  been:"biːn",being:"ˈbiːɪŋ",have:"hæv",has:"hæz",had:"hæd",do:"duː",
+  does:"dʌz",did:"dɪd",will:"wɪl",would:"wʊd",can:"kæn",could:"kʊd",
+  should:"ʃʊd",may:"meɪ",might:"maɪt",must:"mʌst",shall:"ʃæl",go:"gəʊ",
+  going:"ˈgəʊɪŋ",went:"went",gone:"gɒn",get:"get",got:"gɒt",make:"meɪk",
+  made:"meɪd",take:"teɪk",took:"tʊk",taken:"ˈteɪkən",come:"kʌm",came:"keɪm",
+  saw:"sɔː",seen:"siːn",know:"nəʊ",knew:"njuː",known:"nəʊn",think:"θɪŋk",
+  thought:"θɔːt",say:"seɪ",said:"sed",tell:"tel",told:"təʊld",give:"gɪv",
+  gave:"geɪv",given:"ˈgɪvən",find:"faɪnd",found:"faʊnd",want:"wɒnt",need:"niːd",
+  love:"lʌv",work:"wɜːk",use:"juːz",try:"traɪ",ask:"ɑːsk",call:"kɔːl",
+  feel:"fiːl",felt:"felt",leave:"liːv",left:"left",put:"pʊt",mean:"miːn",
+  meant:"ment",keep:"kiːp",kept:"kept",let:"let",begin:"bɪˈgɪn",began:"bɪˈgæn",
+  start:"stɑːt",seem:"siːm",help:"help",show:"ʃəʊ",hear:"hɪə",heard:"hɜːd",
+  play:"pleɪ",run:"rʌn",move:"muːv",live:"lɪv",believe:"bɪˈliːv",bring:"brɪŋ",
+  brought:"brɔːt",happen:"ˈhæpən",write:"raɪt",wrote:"rəʊt",written:"ˈrɪtən",sit:"sɪt",
+  sat:"sæt",stand:"stænd",stood:"stʊd",lose:"luːz",lost:"lɒst",pay:"peɪ",
+  paid:"peɪd",meet:"miːt",met:"met",include:"ɪnˈkluːd",continue:"kənˈtɪnjuː",set:"set",
+  learn:"lɜːn",change:"tʃeɪndʒ",lead:"liːd",understand:"ˌʌndəˈstænd",watch:"wɒtʃ",follow:"ˈfɒləʊ",
+  stop:"stɒp",create:"kriˈeɪt",speak:"spiːk",spoke:"spəʊk",read:"riːd",allow:"əˈlaʊ",
+  add:"æd",spend:"spend",spent:"spent",grow:"grəʊ",open:"ˈəʊpən",win:"wɪn",
+  won:"wʌn",offer:"ˈɒfə",remember:"rɪˈmembə",consider:"kənˈsɪdə",appear:"əˈpɪə",buy:"baɪ",
+  bought:"bɔːt",wait:"weɪt",serve:"sɜːv",die:"daɪ",send:"send",sent:"sent",
+  build:"bɪld",built:"bɪlt",stay:"steɪ",fall:"fɔːl",fell:"fel",cut:"kʌt",
+  reach:"riːtʃ",remain:"rɪˈmeɪn",decide:"dɪˈsaɪd",carry:"ˈkæri",arrive:"əˈraɪv",talk:"tɔːk",
+  smile:"smaɪl",eat:"iːt",drink:"drɪŋk",sleep:"sliːp",drive:"draɪv",sell:"sel",
+  sold:"səʊld",wear:"weə",cook:"kʊk",wash:"wɒʃ",study:"ˈstʌdi",teach:"tiːtʃ",
+  taught:"tɔːt",travel:"ˈtrævəl",visit:"ˈvɪzɪt",order:"ˈɔːdə",choose:"tʃuːz",chose:"tʃəʊz",
+  enjoy:"ɪnˈdʒɔɪ",answer:"ˈɑːnsə",close:"kləʊz",hope:"həʊp",worry:"ˈwʌri",agree:"əˈgriː",
+  explain:"ɪkˈspleɪn",describe:"dɪˈskraɪb",prepare:"prɪˈpeə",improve:"ɪmˈpruːv",check:"tʃek",fix:"fɪks",
+  share:"ʃeə",save:"seɪv",join:"dʒɔɪn",return:"rɪˈtɜːn",invite:"ɪnˈvaɪt",accept:"əkˈsept",
+  refuse:"rɪˈfjuːz",borrow:"ˈbɒrəʊ",lend:"lend",repeat:"rɪˈpiːt",count:"kaʊnt",draw:"drɔː",
+  paint:"peɪnt",sing:"sɪŋ",dance:"dɑːns",laugh:"lɑːf",cry:"kraɪ",touch:"tʌtʃ",
+  taste:"teɪst",push:"pʊʃ",pull:"pʊl",throw:"θrəʊ",catch:"kætʃ",climb:"klaɪm",
+  jump:"dʒʌmp",swim:"swɪm",ride:"raɪd",fly:"flaɪ",land:"lænd",rain:"reɪn",
+  snow:"snəʊ",time:"taɪm",year:"jɪə",people:"ˈpiːpəl",way:"weɪ",day:"deɪ",
+  man:"mæn",woman:"ˈwʊmən",child:"tʃaɪld",children:"ˈtʃɪldrən",thing:"θɪŋ",life:"laɪf",
+  world:"wɜːld",school:"skuːl",house:"haʊs",home:"həʊm",family:"ˈfæməli",friend:"frend",
+  money:"ˈmʌni",water:"ˈwɔːtə",food:"fuːd",city:"ˈsɪti",country:"ˈkʌntri",place:"pleɪs",
+  week:"wiːk",month:"mʌnθ",morning:"ˈmɔːnɪŋ",evening:"ˈiːvnɪŋ",night:"naɪt",hour:"ˈaʊə",
+  minute:"ˈmɪnɪt",name:"neɪm",number:"ˈnʌmbə",part:"pɑːt",problem:"ˈprɒbləm",question:"ˈkwestʃən",
+  story:"ˈstɔːri",room:"ruːm",book:"bʊk",word:"wɜːd",group:"gruːp",company:"ˈkʌmpəni",
+  job:"dʒɒb",business:"ˈbɪznəs",student:"ˈstjuːdənt",teacher:"ˈtiːtʃə",market:"ˈmɑːkɪt",price:"praɪs",
+  shop:"ʃɒp",street:"striːt",road:"rəʊd",car:"kɑː",bus:"bʌs",train:"treɪn",
+  ticket:"ˈtɪkɪt",phone:"fəʊn",computer:"kəmˈpjuːtə",table:"ˈteɪbəl",chair:"tʃeə",door:"dɔː",
+  window:"ˈwɪndəʊ",garden:"ˈgɑːdən",kitchen:"ˈkɪtʃɪn",breakfast:"ˈbrekfəst",lunch:"lʌntʃ",dinner:"ˈdɪnə",
+  coffee:"ˈkɒfi",milk:"mɪlk",bread:"bred",rice:"raɪs",meat:"miːt",fruit:"fruːt",
+  weather:"ˈweðə",sun:"sʌn",moon:"muːn",sky:"skaɪ",sea:"siː",river:"ˈrɪvə",
+  mountain:"ˈmaʊntɪn",tree:"triː",flower:"ˈflaʊə",animal:"ˈænɪməl",dog:"dɒg",cat:"kæt",
+  bird:"bɜːd",seller:"ˈselə",bag:"bæg",clothes:"kləʊðz",shoes:"ʃuːz",health:"helθ",
+  doctor:"ˈdɒktə",hospital:"ˈhɒspɪtəl",music:"ˈmjuːzɪk",film:"fɪlm",game:"geɪm",sport:"spɔːt",
+  team:"tiːm",news:"njuːz",letter:"ˈletə",idea:"aɪˈdɪə",reason:"ˈriːzən",example:"ɪgˈzɑːmpəl",
+  result:"rɪˈzʌlt",plan:"plæn",mistake:"mɪˈsteɪk",chance:"tʃɑːns",moment:"ˈməʊmənt",future:"ˈfjuːtʃə",
+  past:"pɑːst",holiday:"ˈhɒlədeɪ",party:"ˈpɑːti",birthday:"ˈbɜːθdeɪ",good:"gʊd",bad:"bæd",
+  new:"njuː",old:"əʊld",young:"jʌŋ",long:"lɒŋ",short:"ʃɔːt",high:"haɪ",
+  low:"ləʊ",warm:"wɔːm",cool:"kuːl",easy:"ˈiːzi",hard:"hɑːd",difficult:"ˈdɪfɪkəlt",
+  important:"ɪmˈpɔːtənt",different:"ˈdɪfrənt",same:"seɪm",right:"raɪt",wrong:"rɒŋ",true:"truː",
+  false:"fɔːls",happy:"ˈhæpi",sad:"sæd",tired:"ˈtaɪəd",busy:"ˈbɪzi",free:"friː",
+  ready:"ˈredi",sure:"ʃʊə",nice:"naɪs",beautiful:"ˈbjuːtɪfəl",ugly:"ˈʌgli",strong:"strɒŋ",
+  weak:"wiːk",rich:"rɪtʃ",poor:"pɔː",cheap:"tʃiːp",expensive:"ɪkˈspensɪv",quick:"kwɪk",
+  slow:"sləʊ",quiet:"ˈkwaɪət",loud:"laʊd",dirty:"ˈdɜːti",safe:"seɪf",dangerous:"ˈdeɪndʒərəs",
+  heavy:"ˈhevi",light:"laɪt",full:"fʊl",empty:"ˈempti",interesting:"ˈɪntrəstɪŋ",boring:"ˈbɔːrɪŋ",
+  famous:"ˈfeɪməs",careful:"ˈkeəfəl",polite:"pəˈlaɪt",funny:"ˈfʌni",serious:"ˈsɪəriəs",possible:"ˈpɒsəbəl",
+  necessary:"ˈnesəsəri",common:"ˈkɒmən",rare:"reə",early:"ˈɜːli",late:"leɪt",next:"nekst",
+  last:"lɑːst",first:"fɜːst",second:"ˈsekənd",few:"fjuː",many:"ˈmeni",much:"mʌtʃ",
+  more:"mɔː",most:"məʊst",less:"les",little:"ˈlɪtəl",enough:"ɪˈnʌf",other:"ˈʌðə",
+  another:"əˈnʌðə",every:"ˈevri",each:"iːtʃ",both:"bəʊθ",all:"ɔːl",some:"sʌm",
+  any:"ˈeni",no:"nəʊ",yes:"jes",not:"nɒt",here:"hɪə",there:"ðeə",
+  now:"naʊ",today:"təˈdeɪ",tomorrow:"təˈmɒrəʊ",yesterday:"ˈjestədeɪ",together:"təˈgeðə",away:"əˈweɪ",
+  back:"bæk",down:"daʊn",up:"ʌp",out:"aʊt",off:"ɒf",around:"əˈraʊnd",
+  through:"θruː",during:"ˈdjʊərɪŋ",until:"ənˈtɪl",without:"wɪˈðaʊt",inside:"ɪnˈsaɪd",outside:"aʊtˈsaɪd",
+  near:"nɪə",far:"fɑː",above:"əˈbʌv",below:"bɪˈləʊ"
+};
+function drpAmGoc(tu){
+  const k = String(tu || '').toLowerCase();
+  try{ const o = ipaOfWord(k); if(o && o.ipa) return String(o.ipa); }catch(_){ }
+  return DRP_AM_THEM[k] || '';
+}
+// Đuôi -ed và -s KHÔNG phải chuyện đoán: tiếng Anh có luật cứng, âm cuối của gốc quyết định
+// hết. Đo được là kho IPA chỉ có dạng nguyên thể, nên "decided", "asked", "smiled" trước đây
+// đều trống — mà đó lại là những từ người học hay đọc sai nhất. Nay suy ra theo đúng luật:
+//   -ed : sau âm /t/ /d/ → /ɪd/ · sau âm vô thanh → /t/ · còn lại (hữu thanh) → /d/
+//   -s  : sau âm xuýt → /ɪz/ · sau âm vô thanh → /s/ · còn lại → /z/
+// Chỉ suy khi TRA ĐƯỢC gốc thật trong kho; không tra được thì vẫn để trống, không bịa.
+const DRP_VO_THANH = ['p','t','k','f','θ','s','ʃ','tʃ','h'];
+const DRP_AM_XUYT  = ['s','z','ʃ','ʒ','tʃ','dʒ'];
+function drpAmCuoi(ipa){
+  const t = String(ipa || '').replace(/[ˈˌː\s]/g, '');
+  const doi = t.slice(-2);
+  if(DRP_AM_XUYT.indexOf(doi) >= 0 || doi === 'dʒ' || doi === 'tʃ') return doi;
+  return t.slice(-1);
+}
+function drpThemEd(ipa){
+  const c = drpAmCuoi(ipa);
+  if(c === 't' || c === 'd') return ipa + 'ɪd';
+  return ipa + (DRP_VO_THANH.indexOf(c) >= 0 ? 't' : 'd');
+}
+function drpThemS(ipa){
+  const c = drpAmCuoi(ipa);
+  if(DRP_AM_XUYT.indexOf(c) >= 0) return ipa + 'ɪz';
+  return ipa + (DRP_VO_THANH.indexOf(c) >= 0 ? 's' : 'z');
+}
+function drpAmCuaTu(tho){
+  const sach = String(tho || '').toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, '');
+  if(!sach) return '';
+  const thang = drpAmGoc(sach);
+  if(thang) return thang;
+  // -ed: "asked" → ask · "decided" → decide (bỏ mỗi chữ d) · "carried" → carry
+  if(/ed$/.test(sach)){
+    const ung = [sach.slice(0, -1), sach.slice(0, -2), sach.slice(0, -3) + 'y'];
+    for(const g of ung){ const a = drpAmGoc(g); if(a) return drpThemEd(a); }
+  }
+  // -s/-es: "walks" → walk · "boxes" → box · "tries" → try
+  if(/s$/.test(sach)){
+    const ung = [sach.slice(0, -1), sach.slice(0, -2), sach.slice(0, -3) + 'y'];
+    for(const g of ung){ const a = drpAmGoc(g); if(a) return drpThemS(a); }
+  }
+  return '';
+}
+function drpCauAmHtml(cau){
+  const phan = drpTachTu(cau);
+  let co = 0, tong = 0;
+  const html = phan.map(x=>{
+    if(/^\s+$/.test(x)) return ' ';
+    const am = drpAmCuaTu(x);
+    if(/[a-z]/i.test(x)) tong++;
+    if(am) co++;
+    return `<span class="drp-tu-am${am ? '' : ' trong'}"><b>${escapeHtml(x)}</b>${
+      am ? `<i>/${escapeHtml(am)}/</i>` : ''}</span>`;
+  }).join('');
+  return {html: html, co: co, tong: tong};
+}
+// ══ v273 · TỔNG KẾT CẢ BÀI ════════════════════════════════════════════════════════════
+// ĐO TRƯỚC: đọc xong câu cuối thì màn hình chỉ còn đúng một thanh "Đã đọc 5/5 câu" rồi hết —
+// mỗi câu có điểm riêng nhưng KHÔNG chỗ nào nhìn được cả bài. Mà cái đáng học nhất lại nằm ở
+// chỗ ấy: một từ đọc hụt một lần có thể là lỡ, hụt ba lần trong ba câu khác nhau mới là tật.
+function drpTongHop(b){
+  const g = drpGhi();
+  const cau = (b && b.sentences) || [];
+  const diem = [], tu = {};
+  let daCham = 0;
+  cau.forEach((x, i)=>{
+    const m = g.mau[i];
+    const k = m && m.cham;
+    if(!k || !k.ok) return;
+    daCham++;
+    if(typeof k.chung === 'number') diem.push(k);
+    (k.tu || []).forEach(t=>{
+      const chu = String(t.chu || '').toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, '');
+      if(!chu) return;
+      // drpBacTu trả 'te' cho từ đọc hụt (điểm dưới 60) — KHÔNG phải 'kem'. Viết sai tên bậc
+      // thì bảng "tật" rỗng tuếch dù cả bài đầy từ 30-40 điểm; đã đo đúng ca này.
+      const bac = drpBacTu(t);
+      const o = tu[chu] || (tu[chu] = {chu: chu, lan: 0, hong: 0, tongDiem: 0, soDiem: 0});
+      o.lan++;
+      if(bac === 'te' || bac === 'thieu') o.hong++;
+      if(typeof t.diem === 'number'){ o.tongDiem += t.diem; o.soDiem++; }
+    });
+  });
+  const tb = (lay)=>{
+    const ds = diem.map(lay).filter(v=>typeof v === 'number');
+    return ds.length ? Math.round(ds.reduce((a, c)=>a + c, 0) / ds.length) : null;
+  };
+  // "Tật" = từ hỏng ít nhất 2 lần, HOẶC hỏng cả lần duy nhất gặp nhưng điểm rất thấp.
+  const tat = Object.keys(tu).map(k=>tu[k])
+    .filter(o=>o.hong >= 2 || (o.hong === 1 && o.soDiem && o.tongDiem / o.soDiem < 45))
+    .sort((a, b2)=> (b2.hong - a.hong) || (a.tongDiem / Math.max(1, a.soDiem)) - (b2.tongDiem / Math.max(1, b2.soDiem)))
+    .slice(0, 10);
+  return {
+    tongCau: cau.length, daCham: daCham,
+    chung: tb(k=>k.chung), chuanXac: tb(k=>k.chuanXac),
+    troiChay: tb(k=>k.troiChay), tronVen: tb(k=>k.tronVen),
+    tat: tat, soTu: Object.keys(tu).length
+  };
+}
+// Nhận xét dựng từ chính bảng điểm vừa gom — mỗi ý đều phải có số đỡ lưng.
+function drpTongNhanXet(t){
+  const y = [];
+  if(!t.daCham) return ['Chưa chấm câu nào nên chưa có gì để tổng kết.'];
+  const ba = [
+    {ten: 'chuẩn xác từng từ', v: t.chuanXac},
+    {ten: 'trôi chảy',         v: t.troiChay},
+    {ten: 'đọc đủ chữ',        v: t.tronVen}
+  ].filter(x=>typeof x.v === 'number');
+  if(ba.length >= 2){
+    ba.sort((a, b2)=>a.v - b2.v);
+    if(ba[ba.length - 1].v - ba[0].v >= 10){
+      y.push('Yếu nhất là <b>' + ba[0].ten + '</b> (' + ba[0].v + '), mạnh nhất là <b>' +
+             ba[ba.length - 1].ten + '</b> (' + ba[ba.length - 1].v + ') — nên dồn sức vào vế yếu.');
+    }else{
+      y.push('Ba mặt khá đều nhau (' + ba.map(x=>x.v).join(' · ') + ') — chưa có vế nào tụt hẳn.');
+    }
+  }
+  if(t.tat.length){
+    const lapLai = t.tat.filter(o=>o.hong >= 2);
+    if(lapLai.length){
+      y.push('Có <b>' + lapLai.length + ' từ hụt lặp lại</b> ở nhiều câu khác nhau — đó là tật, ' +
+             'không phải lỡ miệng: ' + lapLai.slice(0, 5).map(o=>'<i>' + escapeHtml(o.chu) + '</i> (' + o.hong + ' lần)').join(', ') + '.');
+    }else{
+      y.push('Chưa từ nào hụt tới hai lần — mấy chỗ sai đang rải rác, chưa thành tật.');
+    }
+  }else{
+    y.push('Không từ nào bị đánh dấu là hụt trong cả bài.');
+  }
+  if(typeof t.chung === 'number'){
+    const h = drpXepHang(t.chung);
+    y.push('Điểm trung bình cả bài <b>' + t.chung + '/100</b> — ' + escapeHtml(String((h && h.ten) || '')) + '.');
+  }
+  if(t.daCham < t.tongCau){
+    y.push('Mới chấm <b>' + t.daCham + '/' + t.tongCau + '</b> câu, nên con số trên chỉ nói về phần đã chấm.');
+  }
+  return y;
+}
+function drpTongKetHtml(b){
+  const g = drpGhi();
+  const t = drpTongHop(b);
+  if(!t.daCham) return '';
+  const s = STATE.drpPhien || {};
+  const o = (nhan, v)=> (typeof v === 'number')
+    ? `<div class="drp-tk-o"><b>${v}</b><span>${nhan}</span></div>` : '';
+  const tatHtml = t.tat.length
+    ? `<div class="drp-tk-tat"><b>Những từ nên luyện lại</b>
+        ${t.tat.map(x=>`<span>${escapeHtml(x.chu)}<i>hụt ${x.hong}/${x.lan}</i></span>`).join('')}</div>` : '';
+  const ai = s.tongAI
+    ? `<div class="drp-tk-ai"><b>🤖 AI nhận xét cả bài</b><p>${escapeHtml(String(s.tongAI))}</p></div>`
+    : (s.tongAILoi ? `<div class="drp-tk-ai loi">${escapeHtml(String(s.tongAILoi))}</div>` : '');
+  const nutAI = SETTINGS.geminiApiKey
+    ? `<button class="drp-nut nho" data-action="drp-tong-ai" ${s.dangTongAI ? 'disabled' : ''}>${
+        s.dangTongAI ? 'Đang hỏi AI…' : (s.tongAI ? 'Hỏi lại AI' : '🤖 Nhờ AI nhận xét cả bài')}</button>`
+    : `<div class="drp-ghi">Muốn thêm một đoạn nhận xét bằng lời của AI thì dán khoá Gemini
+        trong Cài đặt — phần tổng kết bằng số ở trên thì không cần khoá nào.</div>`;
+  return `<div class="card drp-tk">
+    <div class="drp-tk-h">📄 Tổng kết cả bài <span>${t.daCham}/${t.tongCau} câu đã chấm</span></div>
+    <div class="drp-tk-so">
+      ${o('Điểm chung', t.chung)}${o('Chuẩn xác', t.chuanXac)}
+      ${o('Trôi chảy', t.troiChay)}${o('Đọc đủ chữ', t.tronVen)}
+    </div>
+    ${tatHtml}
+    <div class="drp-tk-nx">${drpTongNhanXet(t).map(x=>`<p>· ${x}</p>`).join('')}</div>
+    ${ai}
+    <div class="drp-tk-hang">${nutAI}</div>
+  </div>`;
+}
+// Nhận xét bằng lời: gửi ĐÚNG bảng điểm vừa gom, không gửi lại tiếng — nên rẻ, và AI nói
+// về chính những con số bạn nhìn thấy chứ không bịa ra một bài đọc khác.
+async function drpTongAI(){
+  const s = STATE.drpPhien || {};
+  const b = s.bai; if(!b) return;
+  if(s.dangTongAI) return;
+  if(!SETTINGS.geminiApiKey){ s.tongAILoi = 'Chưa có khoá Gemini trong Cài đặt.'; try{ renderContent(); }catch(_){ } return; }
+  const t = drpTongHop(b);
+  s.dangTongAI = true; s.tongAILoi = null;
+  try{ renderContent(); }catch(_){ }
+  try{
+    const nhac = 'Bạn là giáo viên phát âm tiếng Anh, học viên là người Việt.\n'
+      + 'Đây là kết quả chấm phát âm của họ trên một bài đọc ' + t.daCham + ' câu:\n'
+      + '- Điểm chung ' + t.chung + '/100, chuẩn xác ' + t.chuanXac + ', trôi chảy ' + t.troiChay + ', đọc đủ chữ ' + t.tronVen + '.\n'
+      + (t.tat.length ? ('- Những từ bị đánh dấu đọc hụt: ' + t.tat.map(x=>x.chu + ' (hụt ' + x.hong + '/' + x.lan + ' lần)').join(', ') + '.\n') : '- Không từ nào bị đánh dấu đọc hụt.\n')
+      + 'Viết 3-4 câu TIẾNG VIỆT: chỉ ra lỗi phát âm mà người Việt hay mắc ở đúng những từ trên '
+      + '(âm cuối rụng, /θ/ /ð/, cụm phụ âm, /r/ /l/ /v/, trọng âm), rồi nói cụ thể nên luyện gì tiếp theo. '
+      + 'Không khen sáo rỗng, không nhắc lại các con số, không dùng markdown. Trả về JSON {"nx":"..."}.';
+    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac}]}],
+        generationConfig:{temperature:0.4, maxOutputTokens:2048, responseMimeType:'application/json'} })
+    });
+    if(!res.ok) throw new Error('Gemini trả về ' + res.status);
+    const j = await res.json();
+    const cand = (j.candidates || [])[0];
+    const txt = cand ? ((cand.content || {parts:[]}).parts || []).map(x=>x.text || '').join('').trim() : '';
+    let doc = null; try{ doc = JSON.parse(txt); }catch(_){ doc = null; }
+    const nx = doc && doc.nx ? String(doc.nx).trim() : '';
+    if(!nx) throw new Error('AI không trả về nhận xét đọc được.');
+    s.tongAI = nx;
+  }catch(e){
+    s.tongAILoi = 'Không lấy được nhận xét AI: ' + (e && e.message || e);
+  }
+  s.dangTongAI = false;
+  try{ renderContent(); }catch(_){ }
+}
 function drpBaiHtml(b){
   const g = drpGhi();
   const s = STATE.drpPhien || {};
@@ -11425,8 +11917,12 @@ function drpBaiHtml(b){
     // Số thứ tự CHỈ có ở khung từng câu, và để rất nhạt — đủ để biết đang ở câu nào mà
     // không cướp mất sự chú ý khỏi chính câu chữ. Khung đoạn văn thì không đánh số, đúng
     // như khi đọc một đoạn thật.
+    const am = drpAm() ? drpCauAmHtml(x) : null;
     return `<div class="drp-cau${dangThu ? ' thu' : (mau && mau.cham ? ' xong' : '')}">
-      <p><span class="drp-cau-so">${i + 1}</span>${escapeHtml(x)}</p>
+      <p class="${am ? 'co-am' : ''}"><span class="drp-cau-so">${i + 1}</span>${
+        am ? am.html : escapeHtml(x)}</p>
+      ${am && am.tong ? `<div class="drp-am-dem">Có phiên âm cho <b>${am.co}</b>/${am.tong} từ
+        — từ nào không có nguồn chắc chắn thì để trống, không đoán bừa.</div>` : ''}
       ${drpNutHtml(i)}
     </div>`;
   }).join('');
@@ -11467,11 +11963,16 @@ function drpBaiHtml(b){
         <button class="drp-khung-n ${khung === 'cau' ? 'on' : ''}" data-action="drp-khung" data-v="cau">Từng câu</button>
         <button class="drp-khung-n ${khung === 'doan' ? 'on' : ''}" data-action="drp-khung" data-v="doan">Cả đoạn</button>
       </div>
+      ${khung === 'cau' ? `<div class="drp-am-cong">
+        <button class="drp-chip ${drpAm() ? 'on' : ''}" data-action="drp-am">${
+          drpAm() ? '🔡 Đang hiện phiên âm' : '🔡 Hiện phiên âm từng từ'}</button>
+      </div>` : ''}
       ${loiThu}${loiPhat}
       ${khung === 'cau' ? dsCau : dsDoan}
       ${tienDo}
       ${tu}
     </div>
+    ${drpTongKetHtml(b)}
     <div class="drp-hang">
       <button class="drp-nut phu" data-action="drp-bai-khac">Soạn bài khác</button>
     </div>`;
@@ -33060,6 +33561,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
     // dấu + thì 'doan' hoá NaN và mọi nút của khung đoạn văn chết lặng.
     const i = drpChiSo(drpEl.getAttribute('data-i'));
     if(a === 'drp-khung'){ drpDatKhung(v); return; }
+    if(a === 'drp-am'){ drpBatAm(); return; }
+    if(a === 'drp-tong-ai'){ drpTongAI(); return; }
     if(a === 'drp-thu'){ drpBatThu(i); return; }
     if(a === 'drp-thu-lai'){ drpThuLai(i); return; }
     if(a === 'drp-nghe-lai'){ drpNgheLai(i); return; }
