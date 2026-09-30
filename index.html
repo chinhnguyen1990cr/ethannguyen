@@ -4735,7 +4735,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v273';
+const APP_VERSION = 'v274';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13890,7 +13890,10 @@ function vocabPrepareCurrent(){
   let types = ['mc_en_vi','mc_vi_en'];
   if(vocabExampleHasWord(word)) types.push('fill_blank');
   types.push('listen_en_vi');                     // nghe hiểu nên có ngay từ đầu, không phải chờ
-  if(box>=1) types.push('unscramble');
+  // v274 — mở "xếp chữ cái" ngay từ hộp 0 cho từ ngắn. Trong chế độ Câu hỏi thì mục nào cũng
+  // ĐÃ được dạy ở Thẻ lật rồi, nên hộp 0 không có nghĩa là "chưa từng thấy"; bắt nhớ ra mặt chữ
+  // của một từ 3-7 chữ cái là vừa sức, mà đỡ được cảnh cả lượt chỉ toàn chọn 1 trong 4.
+  if(box>=1 || String(word[1]||'').replace(/\s+/g,'').length <= 7) types.push('unscramble');
   if(box>=2 && word[1].replace(/\s+/g,'').length>=3) types.push('type_en');
   // v220 — 3 dạng bài mới cho từ vựng:
   //  • match_pairs  (nối cặp từ–nghĩa): mở ngay từ box 0. Nhận diện SONG SONG 4 cặp một lúc buộc phải
@@ -13911,7 +13914,7 @@ function vocabPrepareCurrent(){
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây — cảm giác đa dạng thật sự thay vì luôn ra đúng 1 kiểu dự đoán được.
   if(!Array.isArray(s.dangGanDay)) s.dangGanDay = [];
-  const exType = pickVariedType(qzLocTheoMuc(types, box), s.lastExType, s.dangGanDay, p.dangTruoc);
+  const exType = pickVariedType(wbTranDang(qzLocTheoMuc(types, box)), s.lastExType, s.dangGanDay, p.dangTruoc);
   s.exType = exType; s.lastExType = exType;
   s.dangGanDay.push(exType);
   if(s.dangGanDay.length > 8) s.dangGanDay.shift();
@@ -13961,9 +13964,11 @@ function vocabPrepareCurrent(){
     }
   }
   if(exType==='match_pairs'){
-    // 10 cặp: từ đang học + 9 từ cùng chủ đề. Nhiều cặp hơn thì phép nối khó hơn thật — với 4 cặp,
-    // nối đúng 3 cái đầu là cái thứ tư chỉ còn một đường, chẳng phải nhớ gì.
-    const khac = vocabPickDistractorWords(word, 9) || [];
+    // v274 — 5 cặp, không phải 10. Đo trên một phiên thật: lưới 10 cặp bày ra 10 từ cùng lúc,
+    // chiếm gần trọn màn hình và mất rất lâu để nối xong; ba lần như thế trong mười sáu câu là
+    // cả lượt học biến thành trò nối cặp. Năm cặp vẫn đủ ép phân biệt các từ gần nghĩa (nối
+    // xong bốn cái đầu vẫn chưa lộ cái cuối như hồi bốn cặp), mà không nuốt trọn buổi học.
+    const khac = vocabPickDistractorWords(word, 4) || [];
     const cap = [word].concat(khac).filter(Boolean).map(w=>({k:w[0], en:w[1], vi:w[4]}));
     s.mpPairs = cap;
     s.mpLeft  = shuffleArr(cap.map(p=>p.k));
@@ -14183,17 +14188,48 @@ function wbNhanDem(){
 }
 // Nạp mục đang tới lượt: dựng một phiên CON đúng một phần tử rồi để chính bộ máy cũ lo phần
 // sinh câu hỏi. Không đụng vào cách hai bộ máy đó làm việc, nên 13 dạng câu hỏi giữ nguyên.
+// v274 — GỐC CỦA "CÂU HỎI LẶP LẠI QUÁ NHIỀU": mỗi câu hỏi dựng một phiên CON mới toanh, nên
+// s.dangGanDay và s.lastExType — hai thứ dùng để né dạng vừa hỏi — bị xoá sạch sau MỖI câu.
+// pickVariedType vì thế chỉ còn né được "dạng lần trước của chính mục ấy", không biết gì về
+// cả phiên, và nguyên một chuỗi trắc nghiệm 1-trong-4 nối đuôi nhau là chuyện bình thường.
+// Nay trí nhớ ấy nằm ở PHIÊN GỘP và được truyền vào/ra từng phiên con.
+function wbNhoDang(){
+  const w = STATE.wbSession; if(!w) return null;
+  if(!Array.isArray(w.dangGanDay)) w.dangGanDay = [];
+  if(!w.demDang || typeof w.demDang !== 'object') w.demDang = {};
+  return w;
+}
+// Không dạng nào được chiếm quá 1/4 số câu của phiên. Trước đây match_pairs (một lưới 10 cặp)
+// có thể ra ba lần trong mười sáu câu — đo được — khiến cả lượt học thành một trò nối cặp dài.
+function wbTranDang(types){
+  const w = wbNhoDang(); if(!w || !Array.isArray(types) || types.length < 2) return types;
+  const tong = Math.max(4, (w.q || []).length);
+  const tran = Math.max(2, Math.ceil(tong / 4));
+  const con = types.filter(t => (w.demDang[t] || 0) < tran);
+  return con.length ? con : types;
+}
+function wbGhiDang(ty){
+  const w = wbNhoDang(); if(!w || !ty) return;
+  w.demDang[ty] = (w.demDang[ty] || 0) + 1;
+  w.dangGanDay.push(ty);
+  if(w.dangGanDay.length > 8) w.dangGanDay.shift();
+  w.lastExType = ty;
+}
 function wbNapItem(){
   const w = STATE.wbSession; if(!w) return;
   const it = w.q[w.idx]; if(!it) return;
+  wbNhoDang();
+  const nho = {lastExType: w.lastExType || null, dangGanDay: (w.dangGanDay || []).slice()};
   if(it.t === 'tu'){
     STATE.sentSession = null;
-    STATE.vocabSession = {mode:'wb', topic:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}};
+    STATE.vocabSession = Object.assign({mode:'wb', topic:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}}, nho);
     try{ vocabPrepareCurrent(); }catch(_){}
+    wbGhiDang(STATE.vocabSession && STATE.vocabSession.exType);
   } else {
     STATE.vocabSession = null;
-    STATE.sentSession = {mode:'wb', category:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}};
+    STATE.sentSession = Object.assign({mode:'wb', category:null, ids:[it.n], idx:0, correct:0, finished:false, retried:{}}, nho);
     try{ sentPrepareCurrent(); }catch(_){}
+    wbGhiDang(STATE.sentSession && STATE.sentSession.exType);
   }
 }
 // Trả lời xong một mục thì gom kết quả về hàng đợi chung rồi đi tiếp. Sai thì đẩy mục đó xuống
@@ -14231,6 +14267,9 @@ function wbTangLuotThe(){
   saveSettings();
 }
 // Gom mọi mục có thể học, kèm hồ sơ tiến độ, để xếp hàng cho thẻ lật.
+// Cứ bốn thẻ thì một thẻ là mẫu câu — tức 25%, khớp với nhịp học 28 từ + 9 câu mỗi ngày.
+// Mẫu câu dài hơn, đọc lâu hơn; để nó chiếm một nửa thì mỗi lượt học được rất ít từ mới.
+const WB_CAU_MOI_NHIP = 4;
 function wbMoiMuc(){
   const ra = [];
   try{
@@ -14268,12 +14307,25 @@ function wbHangThe(){
   const ra = toiHan.slice(0, WB_THE_MOI_LUOT);
   const con = WB_THE_MOI_LUOT - ra.length;
   if(con > 0){
-    // XOAY theo số lượt: lượt 1 lấy đoạn đầu, lượt 2 lấy đoạn kế… nên lật lại là gặp món khác.
+    // v274 — GỐC CỦA "CỤM RA QUÁ NHIỀU SO VỚI TỪ": chỗ này từng gộp từ và mẫu câu vào MỘT danh
+    // sách rồi xếp theo trường uu. Nhưng uu của từ là thứ hạng tần suất (0…3069) còn uu của mẫu
+    // câu chỉ là chỉ số trong kho (0…369) — hai thang đo khác nhau bị đem so trực tiếp, nên 370
+    // mẫu câu luôn chen ngang vào đúng 370 từ đầu bảng. Đo được: một lượt 30 thẻ ra 15 từ + 15
+    // mẫu câu, tức 50/50, trong khi nhịp học đặt ra là 28 từ + 9 câu (~76/24).
+    // Nay rút theo TỈ LỆ rõ ràng: cứ WB_CAU_MOI_NHIP thẻ mới có một mẫu câu.
     const luot = wbLuotThe();
-    const dem = daHoc.concat(moi);
-    if(dem.length){
-      const batDau = (luot * con) % dem.length;
-      for(let i = 0; i < con && i < dem.length; i++) ra.push(dem[(batDau + i) % dem.length]);
+    const xep = (ds)=>ds;                       // đã xếp sẵn ở trên, giữ nguyên thứ tự ưu tiên
+    const benTu  = xep(daHoc.filter(m=>m.t === 'tu').concat(moi.filter(m=>m.t === 'tu')));
+    const benCau = xep(daHoc.filter(m=>m.t === 'cau').concat(moi.filter(m=>m.t === 'cau')));
+    let iT = benTu.length  ? (luot * con) % benTu.length  : 0;
+    let iC = benCau.length ? (luot * con) % benCau.length : 0;
+    for(let i = 0; i < con; i++){
+      const denLuotCau = (i % WB_CAU_MOI_NHIP) === (WB_CAU_MOI_NHIP - 1);
+      const dungCau = denLuotCau ? benCau.length : 0;
+      if(dungCau){ ra.push(benCau[iC % benCau.length]); iC++; }
+      else if(benTu.length){ ra.push(benTu[iT % benTu.length]); iT++; }
+      else if(benCau.length){ ra.push(benCau[iC % benCau.length]); iC++; }
+      else break;
     }
   }
   return ra.map(m=>({t:m.t, n:m.n}));
@@ -16065,7 +16117,10 @@ function pickVariedType(types, lastType, ganDay, dangCuaMuc){
 const QZ_DE = ['mc_en_vi','mc_vi_en','listen_en_vi','match_pairs','listen_choice'];
 function qzLocTheoMuc(types, box){
   if(!Array.isArray(types) || !types.length) return types;
-  if((box||0) < 3) return types;
+  // v274 — hạ ngưỡng từ hộp 3 xuống hộp 2. Đo được: gần như mọi mục trong chế độ Câu hỏi đang
+  // nằm ở hộp 0-2 (vì Câu hỏi chỉ hỏi mục đã học, mà mục vừa học thì hộp còn thấp), nên chặn
+  // ở hộp 3 gần như không bao giờ có tác dụng — cả lượt học toàn trắc nghiệm nhận mặt.
+  if((box||0) < 2) return types;
   const kho = types.filter(t => QZ_DE.indexOf(t) < 0);
   return kho.length ? kho : types;
 }
@@ -18534,7 +18589,7 @@ function sentPrepareCurrent(){
   // chủ động sâu nhất, giống hệt "type_en" đã có ở Luyện từ vựng, áp dụng cho câu ngắn để không quá khó gõ.
   let types = ['mc_en_vi','mc_vi_en'];
   types.push('listen_choice');
-  if(box>=1 && wordCount>=3 && wordCount<=9) types.push('unscramble_words');
+  if(wordCount>=3 && wordCount<=9) types.push('unscramble_words');   // v274 — mở từ hộp 0, xem lý do ở vocabPrepareCurrent
   if(box>=2 && blank) types.push('listen_fill');
   // ══ v271 · BỎ DẠNG "B NÊN ĐÁP LẠI THẾ NÀO" ═══════════════════════════════════════════
   // Bạn báo dạng này không cần thiết, và đúng là nó đo sai thứ: bốn lựa chọn là bốn câu
@@ -18566,7 +18621,7 @@ function sentPrepareCurrent(){
   // Item 6: chọn NGẪU NHIÊN trong các kiểu đã mở khóa (tránh lặp lại đúng kiểu câu ngay trước) thay vì
   // công thức cố định trước đây.
   if(!Array.isArray(s.dangGanDay)) s.dangGanDay = [];
-  const exType = pickVariedType(qzLocTheoMuc(types, box), s.lastExType, s.dangGanDay, p.dangTruoc);
+  const exType = pickVariedType(wbTranDang(qzLocTheoMuc(types, box)), s.lastExType, s.dangGanDay, p.dangTruoc);
   s.exType = exType; s.lastExType = exType;
   s.dangGanDay.push(exType);
   if(s.dangGanDay.length > 8) s.dangGanDay.shift();
@@ -19652,12 +19707,28 @@ async function hvLayTen(recId){
 // Ba lối học này đòi ba kiểu video khác hẳn nhau: Comprehensible Input cần người nói chậm và
 // có hình minh hoạ, Listening & Shadowing cần câu ngắn rõ nhịp, Podcast thì dài và nói thật
 // nhanh. Trộn chung một danh sách thì mỗi lần mở ra phải tự nhớ video nào thuộc lối nào.
+// v274 — BỎ nhóm "Podcast", chỉ còn hai lối. Nhưng KHÔNG được để video cũ biến mất: mọi video
+// đang gắn nhóm 'pod' phải được dời sang "Listening & Shadowing" (gần nhất — cùng là nghe giọng
+// thật rồi nhại), làm một lần rồi ghi cờ lại. Nếu chỉ xoá khỏi danh sách nhóm thì hvNhomCua sẽ
+// âm thầm coi chúng thuộc nhóm ĐẦU TIÊN, tức dồn hết sang Comprehensible Input — sai chỗ.
 const HV_NHOM = [
   {ma:'ci',  ic:'🌱', ten:'Comprehensible Input',  mo:'Nghe hiểu tự nhiên, có hình'},
-  {ma:'ls',  ic:'🎧', ten:'Listening & Shadowing', mo:'Nghe kỹ rồi nhại theo'},
-  {ma:'pod', ic:'🎙️', ten:'Podcast',               mo:'Nghe dài, giọng thật'}
+  {ma:'ls',  ic:'🎧', ten:'Listening & Shadowing', mo:'Nghe kỹ rồi nhại theo'}
 ];
+function hvDoiPodMotLan(){
+  if(SETTINGS.hvBoPod274) return 0;
+  let n = 0;
+  try{
+    (hvVideos() || []).forEach(v=>{ if(v && v.nhom === 'pod'){ v.nhom = 'ls'; n++; } });
+    if(SETTINGS.hvNhomDang === 'pod') SETTINGS.hvNhomDang = 'ls';
+    if(SETTINGS.hvNhomThem === 'pod') SETTINGS.hvNhomThem = 'ls';
+  }catch(_){ }
+  SETTINGS.hvBoPod274 = 1;
+  try{ saveSettings(); }catch(_){ }
+  return n;
+}
 function hvNhomCua(v){
+  try{ hvDoiPodMotLan(); }catch(_){ }
   const m = v && v.nhom;
   return HV_NHOM.some(x=>x.ma === m) ? m : 'ci';     // video cũ chưa gắn nhóm thì về nhóm đầu
 }
