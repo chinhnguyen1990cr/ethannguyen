@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ren-luyen-cache-v276';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json',
+const CACHE_NAME = 'ren-luyen-cache-v277';
+const ASSETS = ['./index.html', './version.txt', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json',
   './lay-moc-youtube.html',
   './dialogue-context-data.json', './dictation-data.json'];
 // Giới hạn thời gian chờ mạng khi mở app (navigate). Nếu mạng chậm/treo lâu hơn mức này,
@@ -21,6 +21,10 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// v277 — trang có thể bảo service worker mới chiếm quyền ngay, khỏi chờ đóng hết tab.
+self.addEventListener('message', (e) => {
+  if (e && e.data === 'nhay-ban-moi') self.skipWaiting();
+});
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
@@ -47,7 +51,10 @@ self.addEventListener('fetch', (event) => {
       const cachedFallback = (await cache.match(req)) || (await cache.match('./index.html'));
       try {
         const networkResponse = await Promise.race([
-          fetch(req),
+          // v277 — BỎ QUA bộ nhớ đệm HTTP của trình duyệt. GitHub Pages gắn max-age cho
+          // index.html, nên fetch thường vẫn có thể lấy lại đúng bản cũ vừa nằm sẵn trong
+          // cache của trình duyệt — vá trên server rồi mà máy vẫn chạy mã cũ là vì chỗ này.
+          fetch(req, {cache:'reload'}),
           new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), NAV_TIMEOUT_MS))
         ]);
         cache.put(req, networkResponse.clone());

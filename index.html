@@ -1418,6 +1418,12 @@
   .banner-sub{position:relative; z-index:1; font-size:11px; color:rgba(255,255,255,0.82); margin-top:2px; font-weight:600; word-break:break-all;}
   .banner-version{position:relative; z-index:1; font-size:9.5px; color:rgba(255,255,255,0.5); margin-top:3px; font-weight:700;
     font-family:var(--mono); letter-spacing:.4px;}
+  /* v277 — nút tải bản mới nằm ngay cạnh số bản: khi nghi máy còn chạy mã cũ thì bấm một
+     nhát là biết ngay, khỏi phải đi tìm trong cài đặt. */
+  .ver-nut{margin-left:8px; font-family:var(--sans); font-size:9.5px; font-weight:800;
+    color:#fff; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+    border-radius:7px; padding:2px 8px; cursor:pointer;}
+  .ver-nut:active{background:rgba(255,255,255,.3);}
   .acct-menu-backdrop{position:fixed; inset:0; z-index:250;}
   .acct-menu-dropdown{position:absolute; top:48px; right:10px; z-index:260; width:226px; background:var(--panel);
     border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 16px 34px rgba(0,0,0,0.45); animation:avatarFade .15s ease;}
@@ -4743,7 +4749,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v276';
+const APP_VERSION = 'v277';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8900,7 +8906,9 @@ function renderHub(){
         </div>
         <div class="banner-title">${p.name? escapeHtml(p.name) : 'Ethan Nguyễn'}</div>
         <div class="banner-sub">${escapeHtml(menuHeader)}</div>
-        <div class="banner-version">Version ${APP_VERSION}</div>
+        <div class="banner-version">Version ${APP_VERSION}
+          <button class="ver-nut" data-action="nap-ban-moi" title="Kiểm tra và tải bản mới nhất">⟳ Bản mới</button>
+        </div>
         ${acctMenuHtml}
       </div>
     </div>`;
@@ -33870,6 +33878,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     if(a === 'drp-khung'){ drpDatKhung(v); return; }
     if(a === 'drp-am'){ drpBatAm(); return; }
     if(a === 'drp-tong-ai'){ drpTongAI(); return; }
+    if(a === 'nap-ban-moi'){ bamNapBanMoi(); return; }
     if(a === 'drp-thu'){ drpBatThu(i); return; }
     if(a === 'drp-thu-lai'){ drpThuLai(i); return; }
     if(a === 'drp-nghe-lai'){ drpNgheLai(i); return; }
@@ -34701,8 +34710,61 @@ setTimeout(()=>{
   }
 }, 4000);
 
+// ══ v277 · TỰ NHẬN BẢN MỚI, KHÔNG ĐỂ MÁY CHẠY MÃ CŨ ═══════════════════════════════════
+// Gốc của việc "đã sửa trên server mà máy vẫn hiện như cũ": không có chỗ nào ĐỐI CHIẾU số bản
+// đang chạy với số bản trên server. reg.update() chỉ lo phần service worker; nếu vì lý do gì
+// đó nó chưa đổi thì trang vẫn chạy mã cũ mà không ai biết. Nay app tự hỏi một tệp bé xíu
+// (version.txt, đọc thẳng từ mạng, không qua cache) rồi so với số bản của chính mình.
+const VER_FILE = './version.txt';
+// Bấm tay: nói thẳng kết quả — đang mới nhất, hay vừa tải bản nào về.
+async function bamNapBanMoi(){
+  showToast('⟳','Đang kiểm tra bản mới…','Chờ một giây.');
+  let tren = null;
+  try{
+    const res = await fetch(VER_FILE + '?t=' + Date.now(), {cache:'no-store'});
+    if(res.ok) tren = String(await res.text()).trim();
+  }catch(_){ }
+  if(!tren){ showToast('📴','Không hỏi được server','Kiểm tra mạng rồi thử lại.'); return; }
+  if(tren === APP_VERSION){ showToast('✅','Đang chạy bản mới nhất', 'Máy bạn đang ở ' + APP_VERSION + '.'); return; }
+  showToast('⬇️','Có bản ' + tren,'Đang dọn bộ nhớ đệm và tải lại…');
+  try{ sessionStorage.removeItem('daNapLai_' + tren); }catch(_){ }
+  setTimeout(()=>{ napBanMoi(tren); }, 600);
+}
+async function kiemTraBanMoi(tuTai){
+  try{
+    const res = await fetch(VER_FILE + '?t=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return null;
+    const tren = String(await res.text()).trim();
+    if(!tren || tren === APP_VERSION) return null;
+    if(tuTai) await napBanMoi(tren);
+    return tren;
+  }catch(_){ return null; }
+}
+// Dọn sạch rồi tải lại ĐÚNG MỘT LẦN cho mỗi số bản — có cờ chặn để không rơi vào vòng lặp
+// tải lại vô tận nếu vì lý do nào đó bản mới vẫn chưa về được.
+async function napBanMoi(tren){
+  try{
+    const khoa = 'daNapLai_' + tren;
+    if(sessionStorage.getItem(khoa)) return false;
+    sessionStorage.setItem(khoa, '1');
+    try{
+      const ks = await caches.keys();
+      await Promise.all(ks.map(k=>caches.delete(k)));
+    }catch(_){ }
+    try{
+      const regs = await navigator.serviceWorker.getRegistrations();
+      regs.forEach(r=>{ try{ if(r.waiting) r.waiting.postMessage('nhay-ban-moi'); }catch(_){ } });
+    }catch(_){ }
+    location.reload();
+    return true;
+  }catch(_){ return false; }
+}
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
+    kiemTraBanMoi(true);
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState === 'visible') kiemTraBanMoi(true);
+    });
     navigator.serviceWorker.register('service-worker.js').then(reg=>{
       // App dạng TWA thường không bị "đóng hẳn" khi người dùng chuyển sang app khác — chỉ chạy nền —
       // nên có thể giữ nguyên bản JS cũ rất lâu dù server đã có bản vá lỗi mới. Chủ động kiểm tra
