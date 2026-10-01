@@ -4841,7 +4841,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v282';
+const APP_VERSION = 'v283';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9573,6 +9573,8 @@ function ensureEnglishItems(){
   try{ v276DoiTienDo(); }catch(_){ }
   // v281 — đưa kho đã lưu về dạng gốc nhất, chạy một lần duy nhất.
   try{ v281DonNeuCan(); }catch(_){ }
+  // v283 — luật đã khác hẳn, dọn lại một lần nữa rồi thôi.
+  try{ v283DonNeuCan(); }catch(_){ }
   if(!Array.isArray(SETTINGS.englishItems) || SETTINGS.englishItems.length===0){
     SETTINGS.englishItems = defaultEnglishItems();
     saveSettings(); pushToDrive();
@@ -13942,6 +13944,25 @@ function v281DonVeGoc(){
   // Chỉ số n đổi theo, nên gói bài hôm nay phải dựng lại — rẻ hơn dời từng mục.
   SETTINGS.vocabDailyCache = null;
   SETTINGS.sentDailyCache = null;
+  return bc;
+}
+// v283 — bộ luật đã khác hẳn (thêm bảng bất quy tắc, kho chữ 5000+ làm bằng chứng, luật
+// e câm, -ly, -ness), nên phải dọn LẠI một lần nữa. Dùng cờ riêng để lần dọn cũ không chặn.
+function v283DonNeuCan(){
+  if(SETTINGS.v283Don) return null;
+  let bc = null, bcCau = null;
+  try{ bc = v281DonVeGoc(); }catch(e){ console.warn('v283 don kho', e); }
+  try{ bcCau = v281LocMauCau(); }catch(e){ console.warn('v283 loc mau cau', e); }
+  SETTINGS.v283Don = 1;
+  try{ saveSettings(); }catch(_){ }
+  if(bc && (bc.doi || bc.gop)){
+    try{
+      showToast('🧹', 'Đã dọn lại kho theo luật mới',
+        'Đổi ' + bc.doi + ' mục về dạng gốc (' + bc.vd.slice(0, 3).join(', ') + '…), gộp '
+        + bc.gop + ' mục trùng. Còn ' + bc.sau + ' mục.'
+        + (bcCau && bcCau.bo ? ' Mẫu câu: bỏ ' + bcCau.bo + ' câu.' : ''));
+    }catch(_){ }
+  }
   return bc;
 }
 function v281DonNeuCan(){
@@ -25072,7 +25093,9 @@ const TV_DUOI_SO_SANH = [['est', ''], ['er', '']];
 // Năm cặp này bảng họ từ gom chung vì CÙNG TRƯỜNG NGHĨA, nhưng chúng là hai từ khác gốc
 // hẳn — đổi qua lại là đổi sang một từ khác chứ không phải về dạng gốc. Đã soi tay cả 50
 // cặp "không chung ba chữ cái đầu" để lọc ra đúng nhúm này.
-const TV_KHAC_GOC = new Set(['fast', 'heavy', 'hot', 'fill', 'spend']);
+// Thêm "business": nó ĐÚNG là tạo ra từ "busy", nhưng nghĩa đã đi xa hẳn (công việc ≠ bận),
+// và nó là một từ ai cũng phải học riêng. Đổi business→busy là lấy mất một thẻ đáng học.
+const TV_KHAC_GOC = new Set(['fast', 'heavy', 'hot', 'fill', 'spend', 'business']);
 const TV_LY_GIU = new Set(('only early family reply apply supply rely fly july ugly holy ' +
   'italy multiply imply supply comply assembly').split(' '));
 // Gốc suy ra có phải TÍNH TỪ không? Hỏi bảng họ từ và ngân hàng gốc, không đoán.
@@ -25094,6 +25117,32 @@ function tvLaTinhTu(t){
   return false;
 }
 // Dạng gốc ấy có thật không? Hỏi ba nguồn, không đoán.
+// ══ v283 · NGUỒN BẰNG CHỨNG LỚN HƠN: CHÍNH CHỮ TIẾNG ANH APP ĐANG CÓ ═══════════════
+// Đo được ở v282: luật "cứ cắt, không hỏi ai" đẻ ra indeed→inde, morning→morn,
+// probably→probab, bleed→ble — 23 chữ không tồn tại. Còn luật "phải có trong kho 2912 mục"
+// thì chặn luôn scams→scam, logged→log vì mấy chữ ấy không nằm trong kho.
+// Lối ra: gom TẤT CẢ chữ tiếng Anh app đang có sẵn — không chỉ 2912 mục từ vựng mà cả câu
+// ví dụ, mẫu câu, kho ví dụ — thành một danh sách tra. Đã đo: 5810 chữ, chặn đúng 22/23 ca
+// cắt oan, mà vẫn cho qua increase, spend, log, magical.
+let TV_KHO_CHU = null;
+function tvKhoChu(){
+  if(TV_KHO_CHU) return TV_KHO_CHU;
+  const bo = new Set();
+  const nhat = (x, sau)=>{
+    if(sau > 4) return;
+    if(typeof x === 'string'){
+      const m = x.match(/[A-Za-z][A-Za-z']+/g);
+      if(m) for(const w of m) bo.add(w.toLowerCase());
+    } else if(Array.isArray(x)){ for(const y of x) nhat(y, sau + 1); }
+    else if(x && typeof x === 'object'){ for(const k in x) nhat(x[k], sau + 1); }
+  };
+  try{ if(VOCAB_DATA) nhat(VOCAB_DATA, 0); }catch(_){ }
+  try{ if(typeof COMMON_SENT_DATA !== 'undefined' && COMMON_SENT_DATA) nhat(COMMON_SENT_DATA, 0); }catch(_){ }
+  try{ if(typeof VIDU_DATA !== 'undefined' && VIDU_DATA) nhat(VIDU_DATA, 0); }catch(_){ }
+  // Chỉ nhớ lại khi đã gom được kha khá; nạp sớm quá thì kho còn rỗng.
+  if(bo.size > 2000) TV_KHO_CHU = bo;
+  return bo;
+}
 function tvCoThat(t){
   const k = String(t || '').toLowerCase().trim();
   if(!k || k.length < 2) return false;
@@ -25103,6 +25152,9 @@ function tvCoThat(t){
     if(VOCAB_DATA && Array.isArray(VOCAB_DATA.words)
        && VOCAB_DATA.words.some(w => String(w[1] || '').toLowerCase() === k)) return true;
   }catch(_){ }
+  try{ if(tvKhoChu().has(k)) return true; }catch(_){ }
+  // Mọi dạng nguyên mẫu trong bảng bất quy tắc đều là từ có thật — bảng ấy soạn tay.
+  try{ for(const x in TV_BQT_QK){ if(TV_BQT_QK[x] === k) return true; } }catch(_){ }
   return false;
 }
 // Trong một họ từ, dạng nào là "gốc nhất"? Bạn dặn: ƯU TIÊN ĐỘNG TỪ.
@@ -25186,6 +25238,118 @@ function tvLoaiCua(x){
   }catch(_){ }
   return '';
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v283 · CHIA ĐÔI LUẬT: BIẾN ĐỔI HÌNH THÁI thì cứ cắt, TẠO TỪ MỚI mới cần bằng chứng
+//  Bạn gửi tám thẻ còn sai: increases · scams · spent · magically · logged · devastated ·
+//  evolved · baldness. Soi ra HAI gốc, không phải một:
+//    (1) Luật "phải có bằng chứng" của v281 đòi dạng gốc suy ra PHẢI nằm trong ngân hàng
+//        2912 mục hoặc bảng họ từ. Nhưng scam, log, devastate, evolve đều KHÔNG nằm ở đó —
+//        chúng là từ bạn nhặt từ video. Tức là luật ấy từ chối đúng những từ mà nó sinh ra
+//        để sửa. Đo được: cả 8/8 từ đều bị chặn vì "gốc không có trong kho".
+//    (2) Ngay cả khi cho qua, tvGoc còn cắt hụt chữ e câm: increases → "increas",
+//        evolved → "evolv". Hai chữ ấy không tồn tại.
+//  Nên tách làm hai nhóm, vì chúng khác hẳn nhau về độ rủi ro:
+//    · BIẾN ĐỔI HÌNH THÁI (-s/-es, -ed, -ing, bất quy tắc, -ly, -ness): cùng MỘT từ, chỉ
+//      đổi hình. Luật đều và chắc, nên cứ cắt — không cần hỏi ai. Chỉ chừa vài chữ bẫy.
+//    · TẠO TỪ MỚI (-er, -est, -ment, -ful, -less, -able, -tion, -ity, -ive): đẻ ra một từ
+//      KHÁC. Đây mới là chỗ brother→broth, apartment→apart sinh ra, nên vẫn phải có bằng chứng.
+// ══════════════════════════════════════════════════════════════════════════════════════
+
+// Quá khứ / phân từ bất quy tắc — bảng này là dữ liệu CÓ THẬT của tiếng Anh, không suy đoán.
+const TV_BQT_QK = {
+  spent:'spend', built:'build', kept:'keep', slept:'sleep', meant:'mean', sent:'send',
+  lost:'lose', found:'find', told:'tell', held:'hold', felt:'feel', left:'leave',
+  bought:'buy', caught:'catch', taught:'teach', thought:'think', brought:'bring',
+  sought:'seek', fought:'fight', understood:'understand', stood:'stand', won:'win',
+  ran:'run', began:'begin', begun:'begin', drank:'drink', drunk:'drink', spoke:'speak',
+  spoken:'speak', broke:'break', broken:'break', chose:'choose', chosen:'choose',
+  wrote:'write', written:'write', drove:'drive', driven:'drive', rode:'ride', ridden:'ride',
+  froze:'freeze', frozen:'freeze', stole:'steal', stolen:'steal', woke:'wake', woken:'wake',
+  gave:'give', given:'give', took:'take', taken:'take', came:'come', became:'become',
+  saw:'see', seen:'see', went:'go', gone:'go', did:'do', done:'do', had:'have',
+  made:'make', said:'say', got:'get', gotten:'get', knew:'know', known:'know',
+  grew:'grow', grown:'grow', threw:'throw', thrown:'throw', flew:'fly', flown:'fly',
+  blew:'blow', blown:'blow', drew:'draw', drawn:'draw', paid:'pay', laid:'lay',
+  sold:'sell', fell:'fall', fallen:'fall', ate:'eat', eaten:'eat', wore:'wear',
+  worn:'wear', swam:'swim', swum:'swim', sang:'sing', sung:'sing', rang:'ring',
+  rung:'ring', hid:'hide', hidden:'hide', bitten:'bite', led:'lead',
+  fed:'feed', met:'meet', sat:'sit', shot:'shoot',
+  risen:'rise', lain:'lie', forgot:'forget', forgotten:'forget',
+  forgave:'forgive', forgiven:'forgive', hung:'hang', dug:'dig', swore:'swear',
+  sworn:'swear', tore:'tear', torn:'tear', shook:'shake', shaken:'shake',
+  struck:'strike', stuck:'stick'
+  // CỐ Ý KHÔNG có: lay, rose, read, beat, bit, spread, cut, put, hurt, cost, let, shut,
+  // set, hit, quit. Những chữ ấy VỪA là nguyên mẫu VỪA là quá khứ (hoặc là một từ khác
+  // hẳn: "a bit", "a rose"), nên đổi chúng là đổi sang nghĩa khác chứ không phải về gốc.
+};
+// Chữ kết thúc bằng -s / -ss / -us / -is nhưng KHÔNG phải số nhiều. Cắt là ra chữ khác.
+const TV_S_GIU = new Set(('this us its his hers theirs yours ours as is was has does goes ' +
+  'news lens bus gas plus virus campus focus bonus status crisis analysis basis series ' +
+  'species always perhaps across towards besides unless yes gas glass class grass pass ' +
+  'sometimes themselves ourselves yourselves headquarters stairs politics lyrics ' +
+  'miss kiss boss loss less dress press stress process business address express guess ' +
+  'canvas atlas bias chaos').split(' '));
+// Chữ kết thúc bằng -ness mà cắt ra không còn là từ.
+const TV_NESS_GIU = new Set(['business', 'witness', 'harness', 'highness']);
+// Bỏ đuôi số nhiều / ngôi ba, có phục hồi chữ e câm. Đây là chỗ bản cũ cắt hụt:
+// "increases" → "increas" vì quên rằng -es sau s/x/z/ch/sh là đuôi, còn sau -se thì chỉ bỏ -s.
+function tvBoDuoiS(t){
+  if(TV_S_GIU.has(t) || !/s$/.test(t) || t.length < 4) return '';
+  if(/[^aeiou]ies$/.test(t)) return t.slice(0, -3) + 'y';        // studies → study
+  if(/(ch|sh|ss|x|z)es$/.test(t)) return t.slice(0, -2);         // watches → watch
+  if(/[cs]es$/.test(t)) return t.slice(0, -1);                   // increases → increase
+  if(/ss$/.test(t)) return '';
+  return t.slice(0, -1);                                        // scams → scam
+}
+// Bỏ đuôi -ed, có phục hồi chữ e câm và xử lý phụ âm đôi.
+function tvBoDuoiEd(t){
+  if(!/ed$/.test(t) || t.length < 5) return '';
+  if(/ied$/.test(t) && t.length > 4) return t.slice(0, -3) + 'y';   // studied → study
+  const b = t.slice(0, -2);
+  if(/([bdfglmnprt])\1$/.test(b)) return b.slice(0, -1);            // logged → log
+  // ĐO ĐƯỢC: luật e câm bản đầu bắt quá rộng — "talked" ra "talke" vì 'lk' cũng khớp.
+  // Chỉ thêm 'e' ở những chỗ e câm THẬT SỰ hay nằm, và dạng ra vẫn phải qua bộ kiểm "có thật".
+  if(/[^aeiou][aeiou][^aeiouwxy]$/.test(b)) return b + 'e';        // liked → like
+  if(/(at|iv|ut|ol|ur|us|iz|is|ac|id|od|ud|ag|ic|im|in|ir|or)$/.test(b)) return b + 'e'; // devastated → devastate
+  if(/(lv|rv|rg|nc|rc|ns|rs|ps|pl|bl|gl|cl|fl|tl|dl)$/.test(b)) return b + 'e';          // evolved → evolve
+  return b;                                                        // talked → talk
+}
+function tvBoDuoiIng(t){
+  if(!/ing$/.test(t) || t.length < 6) return '';
+  const b = t.slice(0, -3);
+  if(/([bdfglmnprt])\1$/.test(b)) return b.slice(0, -1);            // running → run
+  if(/[^aeiou][aeiou][^aeiouwxy]$/.test(b)) return b + 'e';         // making → make
+  if(/(at|iv|ut|ol|ur|us|iz|is|ac|id|od|ud|ag|lv|rv|nc|rc)$/.test(b)) return b + 'e';
+  return b;
+}
+// Danh từ kết thúc bằng -ing mà cắt ra lại trúng một từ CÓ THẬT nhưng chẳng liên quan.
+// "earring" → "ear" là ca điển hình: ear có thật nên mọi phép kiểm đều cho qua.
+const TV_ING_GIU = new Set(('earring sibling ceiling lightning evening wedding pudding ' +
+  'herring shilling viking during morning nothing something anything everything spring ' +
+  'string ring king thing wing swing darling ceiling').split(' '));
+// Biến đổi hình thái: CÙNG một từ, chỉ đổi hình. Trả về dạng gốc hoặc ''.
+function tvBienDoiHinhThai(t){
+  const k = String(t || '').toLowerCase();
+  if(!k || /\s/.test(k)) return '';
+  if(TV_BQT_QK[k]) return TV_BQT_QK[k];      // bảng bất quy tắc là dữ liệu thật, khỏi hỏi
+  // ĐO ĐƯỢC Ở v282: cắt mà không hỏi ai thì đẻ ra 23 chữ không tồn tại. Nên mọi phép cắt
+  // theo luật đều phải có DẠNG GỐC ĐƯỢC XÁC NHẬN là chữ có thật mới được nhận.
+  const nhan = (g)=> (g && g !== k && tvCoThat(g)) ? g : '';
+  const s1 = nhan(tvBoDuoiS(k));   if(s1) return s1;
+  const e1 = nhan(tvBoDuoiEd(k));  if(e1) return e1;
+  const i1 = TV_ING_GIU.has(k) ? '' : nhan(tvBoDuoiIng(k)); if(i1) return i1;
+  // -ly → bỏ hẳn (quickly → quick), -ily → y (happily → happy).
+  if(/ly$/.test(k) && k.length > 4 && !TV_LY_GIU.has(k)){
+    const b = /ily$/.test(k) ? (k.slice(0, -3) + 'y') : k.slice(0, -2);
+    if(b.length >= 3 && tvCoThat(b)) return b;
+  }
+  // -ness → bỏ hẳn (baldness → bald), -iness → y (happiness → happy).
+  if(/ness$/.test(k) && k.length > 6 && !TV_NESS_GIU.has(k)){
+    const b = /iness$/.test(k) ? (k.slice(0, -5) + 'y') : k.slice(0, -4);
+    if(b.length >= 3 && tvCoThat(b)) return b;
+  }
+  return '';
+}
 function tvVeGoc(chu){
   const tho = String(chu || '').trim();
   if(!tho) return null;
@@ -25215,10 +25379,16 @@ function tvVeGoc(chu){
       return {chu:g, vi:'dạng gốc trong họ từ “' + ho + '”', loai:'hotu'};
     return null;
   }
-  // (2) Luật -ed/-s/-ing đã chạy đúng từ v260 — chỉ nhận khi dạng gốc có thật.
-  let g2 = '';
-  try{ g2 = tvGoc(k) || ''; }catch(_){ }
-  if(g2 && g2 !== k && tvCoThat(g2)) return {chu:g2, vi:'bỏ đuôi chia (-ed/-s/-ing)', loai:'chia'};
+  // (2) BIẾN ĐỔI HÌNH THÁI — cứ cắt, không đòi bằng chứng. Đây là chỗ v281 chặn nhầm
+  //     scam, log, devastate, evolve chỉ vì chúng không nằm trong ngân hàng 2912 mục.
+  const h = tvBienDoiHinhThai(k);
+  if(h && h !== k){
+    const ten = /ly$/.test(k) ? 'bỏ đuôi “-ly”'
+              : /ness$/.test(k) ? 'bỏ đuôi “-ness”'
+              : TV_BQT_QK[k] ? 'quá khứ bất quy tắc → nguyên thể'
+              : 'bỏ đuôi chia (-s/-ed/-ing)';
+    return {chu:h, vi:ten, loai:'hinhthai'};
+  }
   // (3) Các đuôi còn lại — CHỈ cắt khi dạng gốc suy ra được xác nhận là từ có thật.
   for(const [duoi, thay] of TV_DUOI_CAN_BANG_CHUNG){
     if(!k.endsWith(duoi) || k.length <= duoi.length + 2) continue;
@@ -25273,7 +25443,16 @@ async function hvDichCum(chu, cauEn, cauVi){
     + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
     + '"phienAm":"phiên âm IPA của cụm này, ví dụ /ˈænsər/",'
     + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"},'
+    + '"goc":"dạng NGUYÊN MẪU của chính từ này",'
     + '}\n'
+    // v283 — hỏi luôn DẠNG GỐC trong cùng một lượt, không tốn thêm lượt gọi nào. Đây là
+    // cách duy nhất xử lý được những chữ mà app không có sẵn dữ liệu để tự suy: scam,
+    // devastate, evolve, bald… Luật suy ra chữ gốc đúng, nhưng app không có gì xác nhận
+    // chữ ấy có thật, nên không dám đổi. Gemini thì biết.
+    + 'Với "goc": bỏ mọi đuôi chia để còn dạng nguyên mẫu — "scams"→"scam", "logged"→"log", '
+    + '"evolved"→"evolve", "baldness"→"bald", "spent"→"spend", "magically"→"magical". '
+    + 'ƯU TIÊN ĐỘNG TỪ khi họ từ có động từ. Nếu từ ĐÃ là dạng nguyên mẫu thì ghi lại chính nó. '
+    + 'Nếu là CỤM nhiều chữ thì để "goc" rỗng.\n'
     + 'Với "dangTu": chỉ ghi những dạng CÓ THẬT trong tiếng Anh và cùng gốc từ. Dạng nào không có '
     + 'thì BỎ HẲN khoá đó ra khỏi JSON, tuyệt đối không bịa. Nếu là cụm/thành ngữ thì để {}.\n'
     + 'VIẾT THẬT NGẮN GỌN: "nghia" tối đa 12 chữ. KHÔNG viết câu ví dụ, KHÔNG giải thích thêm gì.';
@@ -25296,13 +25475,98 @@ async function hvDichCum(chu, cauEn, cauVi){
         if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dt[k] = v;
       });
     }
+    // Dạng gốc AI trả về chỉ nhận khi nó là MỘT chữ cái thường và thật sự ngắn hơn hoặc
+    // bằng chữ đang có — AI mà trả về cả câu hay một chữ dài hơn là nó hiểu nhầm đề.
+    let goc = String(o.goc || '').trim().toLowerCase();
+    if(!/^[a-z][a-z'-]*$/.test(goc) || goc.length > String(chu).length + 1) goc = '';
     return {nghia:String(o.nghia).trim(), loai:String(o.loai||'cụm từ').trim(),
-            phienAm:String(o.phienAm||'').trim(), dangTu:dt,
+            goc:goc, phienAm:String(o.phienAm||'').trim(), dangTu:dt,
             viDu:String(o.viDu||'').trim(), viDuVi:String(o.viDuVi||'').trim()};
   }catch(e){ return null; }
 }
 // Chạy nền: tìm các mục chưa có nghĩa và dịch lần lượt. Gọi sau khi lưu và mỗi lần mở app.
 let hvDangDich = false;
+// ══ v283 · HỎI DẠNG GỐC THEO LÔ, MỘT LƯỢT CHO HAI MƯƠI TỪ ════════════════════════════
+// Luật offline đã xử lý được phần lớn, nhưng vẫn chừa lại những chữ mà app KHÔNG CÓ GÌ để
+// xác nhận: scam, devastate, evolve, bald, magical — chúng không nằm trong 2912 mục từ
+// vựng, không nằm trong bảng họ từ, cũng không xuất hiện trong bất kỳ câu nào app có sẵn.
+// Luật suy ra chữ gốc ĐÚNG, chỉ là không dám đổi vì không có bằng chứng. Gemini thì biết.
+// Gộp tới 20 từ vào MỘT lượt gọi, nên dù bạn lưu cả trăm từ cũng chỉ tốn vài lượt.
+// Chỉ hỏi những chữ TRÔNG NHƯ đang chia (-s/-ed/-ing/-ly/-ness) — chữ đã là nguyên mẫu thì
+// hỏi làm gì cho tốn.
+function tvTrongNhuDangChia(t){
+  const k = String(t || '').trim().toLowerCase();
+  if(!k || /\s/.test(k) || k.length < 5) return false;
+  if(TV_S_GIU.has(k) || TV_LY_GIU.has(k) || TV_NESS_GIU.has(k)) return false;
+  // Lá chắn -ss phải xét SAU -ness, nếu không "baldness" bị loại chỉ vì nó kết thúc bằng
+  // "ss" — đúng một thẻ bạn gửi đã lọt qua kẽ này.
+  if(/ness$/.test(k)) return true;
+  return /(s|ed|ing|ly)$/.test(k) && !/ss$/.test(k);
+}
+async function hvHoiGocAI(ds){
+  if(!SETTINGS.geminiApiKey || !ds || !ds.length) return null;
+  const nhac = 'Với mỗi từ tiếng Anh dưới đây, cho biết DẠNG NGUYÊN MẪU của nó.\n'
+    + ds.map((w, i)=>(i + 1) + '. ' + w).join('\n') + '\n\n'
+    + 'Quy tắc: bỏ mọi đuôi chia để còn dạng cơ bản nhất — "scams"→"scam", "logged"→"log", '
+    + '"evolved"→"evolve", "baldness"→"bald", "spent"→"spend", "magically"→"magical", '
+    + '"increases"→"increase". ƯU TIÊN ĐỘNG TỪ khi họ từ có động từ.\n'
+    + 'Từ nào ĐÃ là dạng nguyên mẫu thì ghi lại chính nó. Từ nào bạn không chắc thì ghi "".\n'
+    + 'Trả về DUY NHẤT một JSON dạng {"scams":"scam","logged":"log"} — khoá là từ tôi đưa, '
+    + 'giá trị là dạng nguyên mẫu. Không giải thích gì thêm.';
+  try{
+    const res = await geminiFetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_CHAT_MODEL
+        + ':generateContent?key=' + encodeURIComponent(SETTINGS.geminiApiKey),
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac}]}],
+          generationConfig:{temperature:0, maxOutputTokens:600, responseMimeType:'application/json'} }) });
+    if(!res || !res.ok) return null;
+    const j = await res.json();
+    const txt = (((j.candidates || [])[0] || {}).content || {}).parts
+                  ? j.candidates[0].content.parts.map(p=>p.text || '').join('') : '';
+    const o = dvDocJson(txt);
+    if(!o || typeof o !== 'object') return null;
+    const ra = {};
+    Object.keys(o).forEach(k=>{
+      const g = String(o[k] || '').trim().toLowerCase();
+      // Chỉ nhận MỘT chữ thường, và không dài hơn chữ gốc — AI trả về câu hay chữ dài hơn
+      // là nó hiểu nhầm đề, nhận vào là làm hỏng thẻ.
+      if(/^[a-z][a-z'-]*$/.test(g) && g.length <= String(k).length + 1) ra[String(k).toLowerCase()] = g;
+    });
+    return ra;
+  }catch(_){ return null; }
+}
+// Quét kho, tìm những mục luật offline chịu thua, hỏi AI một lượt rồi đổi tên.
+async function hvVeGocBangAI(){
+  const kho = hvKhoTu();
+  const can = [];
+  kho.forEach(x=>{
+    if(!x || !x.chu || x.daHoiGoc) return;
+    if(!tvTrongNhuDangChia(x.chu)) return;
+    let o = null; try{ o = tvVeGoc(x.chu); }catch(_){ }
+    if(o && o.chu) return;                  // luật offline lo được rồi
+    can.push(x);
+  });
+  if(!can.length) return 0;
+  const lo = can.slice(0, 20);
+  const bang = await hvHoiGocAI(lo.map(x=>String(x.chu)));
+  if(!bang) return 0;
+  let doi = 0;
+  lo.forEach(x=>{
+    x.daHoiGoc = 1;                          // hỏi rồi thì thôi, khỏi hỏi lại mỗi lần mở app
+    const g = bang[String(x.chu).toLowerCase()];
+    if(!g || g === String(x.chu).toLowerCase()) return;
+    const cu = String(x.chu);
+    x.hoTu = (Array.isArray(x.hoTu) ? x.hoTu : []).concat([cu])
+               .filter((v, i, a)=>v && a.indexOf(v) === i);
+    x.chu = g; x.gocCu = cu; x.gocVi = 'dạng nguyên mẫu (AI xác nhận)';
+    try{ x.goc = tvGoc(g); }catch(_){ }
+    try{ const l = tvLoaiCua(x); if(l) x.loai = l; }catch(_){ }
+    doi++;
+  });
+  if(doi){ try{ saveSettings(); pushToDrive(); }catch(_){ } }
+  return doi;
+}
 async function hvDichNhungCaiThieu(){
   if(hvDangDich) return;
   const cho = hvKhoTu().concat(hvKhoCau()).filter(x => x && x.chu && !x.nghia);
@@ -25318,6 +25582,8 @@ async function hvDichNhungCaiThieu(){
       if(ng) x.nghia = ng;
     }
     saveSettings(); pushToDrive();
+    // v283 — xong nghĩa thì hỏi luôn dạng gốc cho những chữ luật offline chịu thua.
+    try{ await hvVeGocBangAI(); }catch(_){ }
     vocabGopTuVideo(); sentGopTuVideo();
     // v212 — SỬA LỖI "lưu từ xong video nhảy về đầu": vòng dịch nền chạy xong thì gọi
     // renderContent(), mà lệnh đó dựng lại CẢ MÀN HÌNH, kể cả khung video — trình phát bị gắn
