@@ -2732,6 +2732,41 @@
 .drp-tu-am i{font-style:normal; font-size:10px; line-height:1.3; color:var(--dim2);
   font-family:var(--mono); white-space:nowrap;}
 .drp-tu-am.trong i{display:none;}
+/* ══ v279 · trọng âm, ngắt nghỉ, tra từ, nghĩa tiếng Việt ══ */
+.drp-tu-am{cursor:pointer; border-radius:5px; transition:background .12s;}
+.drp-tu-am:active{background:rgba(255,200,110,.22);}
+/* Chữ cần NHẤN: tô vàng và đậm hơn. Chữ không nhấn để mờ đi — chính sự chênh lệch sáng/mờ
+   này dạy mắt thấy nhịp của câu, thứ người Việt đọc tiếng Anh hay thiếu nhất. */
+.drp-tu-am.nhan b{color:#FFD24A; font-weight:800; text-shadow:0 0 14px rgba(255,200,60,.3);}
+.drp-tu-am:not(.nhan) b{color:var(--dim); font-weight:500;}
+.drp-ngat{font-style:normal; font-weight:800; color:#5FD3FF; padding:0 2px; opacity:.8;
+  font-size:.95em; cursor:help;}
+.drp-ngat.dai{color:#7B8CFF; letter-spacing:-1px;}
+.drp-doan-cau{margin:0 0 7px; line-height:1.68;}
+.drp-doan-cau:last-child{margin-bottom:0;}
+.drp-vi{margin:1px 0 8px; padding:6px 10px; border-radius:9px; font-size:12px; line-height:1.55;
+  font-weight:600; color:#BFE9D8; background:rgba(44,219,168,.07);
+  border-left:2px solid rgba(44,219,168,.4);}
+.drp-vi.dang{color:var(--dim2); font-weight:500;}
+.drp-am-cong{flex-wrap:wrap; gap:7px;}
+.drp-chugiai{margin:0 0 10px; font-size:10.5px; line-height:1.7; color:var(--dim2);
+  text-align:center;}
+.drp-chugiai b.vd{color:#FFD24A;}
+.drp-chugiai b{color:var(--dim);}
+/* Thanh nghĩa dính trên đỉnh bài đọc. */
+.drp-tra{position:sticky; top:4px; z-index:5; margin:0 0 10px; padding:9px 12px 10px;
+  border-radius:13px; background:rgba(18,22,30,.97); border:1px solid rgba(255,210,74,.3);
+  box-shadow:0 12px 30px -14px #000; backdrop-filter:blur(8px);}
+.drp-tra-tren{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.drp-tra-tu{font-size:16px; font-weight:800; color:#FFD24A; letter-spacing:-.2px;}
+.drp-tra-am{font-family:var(--mono); font-size:12px; font-weight:700; color:#FFD79A;}
+.drp-tra-loai{font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+  color:var(--dim2); background:var(--panel2); border-radius:6px; padding:2px 6px;}
+.drp-tra-x{margin-left:auto; width:24px; height:24px; border-radius:8px; border:1px solid var(--border);
+  background:var(--panel2); color:var(--dim); font-size:11px; font-weight:800; cursor:pointer;}
+.drp-tra-vi{margin-top:4px; font-size:13.5px; font-weight:600; line-height:1.5; color:var(--text);}
+.drp-tra-goc{margin-top:3px; font-size:10px; color:var(--dim2);}
+.drp-tra-goc b{color:var(--dim);}
 .drp-am-dem{margin:2px 0 8px; font-size:10px; line-height:1.55; color:var(--dim2);}
 .drp-am-dem b{color:var(--dim);}
 /* v273 — bảng tổng kết cả bài, chỉ hiện khi đã có ít nhất một câu được chấm. */
@@ -4760,7 +4795,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v278';
+const APP_VERSION = 'v279';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11651,6 +11686,146 @@ function drpNutHtml(i){
 // ĐO TRƯỚC: ipaOfWord chỉ phủ được 42% số từ khác nhau trong một bài 5 câu mẫu. Nên ở đây
 // KHÔNG bịa: từ nào có nguồn thật thì hiện phiên âm dưới chân từ đó, từ nào không có thì để
 // trống hẳn — thà thiếu còn hơn dạy sai cách đọc. Dòng đếm bên dưới nói thẳng phủ được bao nhiêu.
+// ══ v279 · TRỌNG ÂM CÂU VÀ CHỖ NGẮT NGHỈ ══════════════════════════════════════════════
+// Người Việt đọc tiếng Anh hay bị đều đều từng chữ một, vì tiếng Việt là ngôn ngữ ÂM TIẾT
+// (mọi tiếng dài gần bằng nhau) còn tiếng Anh là ngôn ngữ TRỌNG ÂM (các từ mang nội dung
+// được kéo dài và nhấn mạnh, các từ chức năng bị nuốt gọn). Hai bảng dưới đây là quy tắc
+// CÓ THẬT của tiếng Anh, không phải máy đoán:
+//   · Từ CHỨC NĂNG (mạo từ, giới từ, trợ động từ, đại từ, liên từ) → đọc nhẹ, lướt qua.
+//   · Từ NỘI DUNG (danh, động chính, tính, trạng, số đếm, từ để hỏi, từ phủ định) → NHẤN.
+// Chỗ ngắt lấy theo dấu câu và theo liên từ nối mệnh đề — đúng chỗ người bản xứ dừng lấy hơi.
+const DRP_TU_NHE = new Set(('a an the this that these those my your his her its our their ' +
+  'i you he she it we they me him us them ' +
+  'am is are was were be been being do does did have has had ' +
+  'can could will would shall should may might must ' +
+  'and or but so if as than then of in on at to for with from by about into over under ' +
+  'up down out off near through during until within without between above below ' +
+  'there here some any no not very just also too').split(' '));
+// Từ để hỏi và từ phủ định LUÔN được nhấn dù ngắn.
+const DRP_TU_NHAN = new Set(('what when where why how who which whose not never no nothing ' +
+  'always must now today tomorrow yesterday very').split(' '));
+function drpNhanTu(tho, truoc){
+  const sach = String(tho || '').toLowerCase().replace(/[^a-z']/g, '');
+  if(!sach) return false;
+  if(DRP_TU_NHAN.has(sach)) return true;
+  if(DRP_TU_NHE.has(sach)) return false;
+  // "to" trong "to go" là tiểu từ (nhẹ); các từ còn lại coi là từ nội dung.
+  return true;
+}
+// Ngắt nghỉ: | là nghỉ ngắn (trong câu), ‖ là nghỉ dài (hết câu/hết mệnh đề chính).
+const DRP_LIEN_TU_NGAT = new Set(('and but or so because although though while when if since ' +
+  'before after until unless whereas however therefore').split(' '));
+function drpNgatCau(cau){
+  const phan = drpTachTu(cau);           // giữ nguyên cả khoảng trắng lẫn dấu câu
+  const ra = [];
+  let demTu = 0;
+  for(let i = 0; i < phan.length; i++){
+    const x = phan[i];
+    if(/^\s+$/.test(x)){ ra.push({loai:'cach'}); continue; }
+    const sach = x.toLowerCase().replace(/[^a-z']/g, '');
+    const nhan = drpNhanTu(x);
+    if(sach) demTu++;
+    ra.push({loai:'tu', chu:x, nhan:nhan, am:drpAmCuaTu(x)});
+    // Sau dấu phẩy/chấm phẩy/hai chấm → nghỉ ngắn. Sau dấu kết câu → nghỉ dài.
+    if(/[.!?]$/.test(x))      { ra.push({loai:'ngat', dai:true});  demTu = 0; continue; }
+    if(/[,;:—–]$/.test(x))    { ra.push({loai:'ngat', dai:false}); demTu = 0; continue; }
+    // Trước một liên từ nối mệnh đề, nếu vế trước đã đủ dài thì cũng nên lấy hơi.
+    const ke = phan[i + 2] ? String(phan[i + 2]).toLowerCase().replace(/[^a-z']/g, '') : '';
+    if(ke && DRP_LIEN_TU_NGAT.has(ke) && demTu >= 4){ ra.push({loai:'ngat', dai:false}); demTu = 0; }
+  }
+  return ra;
+}
+// Vẽ ra màn hình: từ nhấn được tô vàng và đậm, từ nhẹ để mờ, chỗ ngắt hiện ký hiệu | hoặc ‖.
+function drpNgatHtml(cau, keoAm){
+  const ds = drpNgatCau(cau);
+  let co = 0, tong = 0;
+  const html = ds.map(x=>{
+    if(x.loai === 'cach') return ' ';
+    if(x.loai === 'ngat') return `<i class="drp-ngat${x.dai ? ' dai' : ''}" title="${
+      x.dai ? 'Nghỉ dài — hết câu, lấy hơi' : 'Nghỉ ngắn — ngắt ý, đừng lấy hơi sâu'}">${x.dai ? '‖' : '|'}</i>`;
+    if(/[a-z]/i.test(x.chu)) tong++;
+    if(x.am) co++;
+    return `<span class="drp-tu-am${x.am ? '' : ' trong'}${x.nhan ? ' nhan' : ''}"
+      data-action="drp-tra-tu" data-tu="${escapeHtml(x.chu)}"><b>${escapeHtml(x.chu)}</b>${
+      (keoAm && x.am) ? `<i>/${escapeHtml(x.am)}/</i>` : ''}</span>`;
+  }).join('');
+  return {html: html, co: co, tong: tong};
+}
+// ══ v279 · CHẠM VÀO TỪ NÀO HIỆN NGHĨA TỪ ẤY ═══════════════════════════════════════════
+// Nguồn nghĩa xếp theo độ tin: (1) chính kho từ vựng của bạn — nghĩa đã được soạn và bạn
+// đang ôn; (2) dạng gốc của từ (bỏ -s/-ed/-ing/-ly) tra lại trong kho; (3) hết thì mới
+// nhờ đường dịch miễn phí. Không có nguồn nào thì nói thẳng là chưa tra được.
+const DRP_DUOI_BO = [['ies','y'],['ied','y'],['ying','ie'],['ing',''],['ing','e'],
+  ['ied','y'],['ed',''],['ed','e'],['es',''],['s',''],['ly',''],['er',''],['est','']];
+function drpGocTu(sach){
+  const ra = [sach];
+  for(const [d, t] of DRP_DUOI_BO){
+    if(sach.endsWith(d) && sach.length > d.length + 1) ra.push(sach.slice(0, -d.length) + t);
+  }
+  // Phụ âm đôi: "stopped" → "stop", "running" → "run".
+  if(sach.length > 4){
+    const g = sach.replace(/(ed|ing)$/, '');
+    if(g !== sach && g.length > 2 && g[g.length-1] === g[g.length-2]) ra.push(g.slice(0, -1));
+  }
+  return ra;
+}
+function drpNghiaKho(tho){
+  const sach = String(tho || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                 .replace(/[^a-z'-]/g, '');
+  if(!sach) return null;
+  const kho = (VOCAB_DATA && Array.isArray(VOCAB_DATA.words)) ? VOCAB_DATA.words : [];
+  if(!kho.length) return null;
+  for(const dang of drpGocTu(sach)){
+    const w = kho.find(x=>String(x[1]||'').toLowerCase() === dang);
+    if(w && w[4]) return {vi:String(w[4]), goc:w[1], loai:w[2]||'', nguon:'kho'};
+  }
+  return null;
+}
+// Bộ nhớ tạm trong phiên: cùng một từ chạm hai lần thì không gọi mạng lần nữa.
+const DRP_NHO_NGHIA = {};
+function drpTraTu(tho){
+  const s = STATE.drpPhien; if(!s) return;
+  const sach = String(tho || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                 .replace(/[^a-z'-]/g, '');
+  if(!sach) return;
+  const am = drpAmCuaTu(sach);
+  const trong = drpNghiaKho(sach) || DRP_NHO_NGHIA[sach] || null;
+  s.traTu = {tu:sach, am:am, vi:trong ? trong.vi : '', goc:trong ? (trong.goc||'') : '',
+             loai:trong ? (trong.loai||'') : '', nguon:trong ? trong.nguon : '',
+             dang: !trong};
+  try{ renderContentPreserveScroll(); }catch(_){ try{ renderContent(); }catch(_){} }
+  if(trong) return;
+  hvDichMienPhi(sach).then(vi=>{
+    const kq = {vi:String(vi||'').trim(), nguon:'dich'};
+    if(!kq.vi) throw new Error('rỗng');
+    DRP_NHO_NGHIA[sach] = kq;
+    const t = STATE.drpPhien && STATE.drpPhien.traTu;
+    if(t && t.tu === sach){ t.vi = kq.vi; t.nguon = 'dich'; t.dang = false; }
+  }).catch(()=>{
+    const t = STATE.drpPhien && STATE.drpPhien.traTu;
+    if(t && t.tu === sach){ t.dang = false; t.loi = 'Chưa tra được nghĩa của từ này.'; }
+  }).then(()=>{ try{ renderContentPreserveScroll(); }catch(_){ } });
+}
+// Dịch CẢ BÀI một lần, gửi theo lô nên chỉ một lượt gọi mạng cho mọi câu.
+async function drpDichBai(){
+  const s = STATE.drpPhien; const b = s && s.bai; if(!b) return;
+  if(s.hienDich){ s.hienDich = false; try{ renderContentPreserveScroll(); }catch(_){ } return; }
+  s.hienDich = true;
+  if(Array.isArray(b.viCau) && b.viCau.length === b.sentences.length){
+    try{ renderContentPreserveScroll(); }catch(_){ } return;
+  }
+  s.dangDich = true; s.loiDich = '';
+  try{ renderContentPreserveScroll(); }catch(_){ }
+  try{
+    const ra = await hvDichMienPhiCum(b.sentences.map(x=>String(x)));
+    if(!ra) throw new Error('Đường dịch trả về lệch số câu.');
+    b.viCau = ra;
+  }catch(e){
+    s.loiDich = 'Không dịch được: ' + (e && e.message || e);
+  }
+  s.dangDich = false;
+  try{ renderContentPreserveScroll(); }catch(_){ }
+}
 function drpTachTu(cau){
   // Giữ nguyên dấu câu dính vào từ (đọc "home." vẫn là "home"), nên tách theo khoảng trắng
   // rồi mới bóc dấu ra để tra — không dùng replace toàn cục làm vỡ mất dấu chấm câu.
@@ -12422,6 +12597,34 @@ async function drpTongAI(){
   s.dangTongAI = false;
   try{ renderContent(); }catch(_){ }
 }
+// Dòng nghĩa tiếng Việt của một câu — chỉ hiện khi bạn đã bật "Dịch nghĩa".
+function drpDichCauHtml(b, i){
+  const s = STATE.drpPhien || {};
+  if(!s.hienDich) return '';
+  const vi = (Array.isArray(b.viCau) && b.viCau[i]) ? String(b.viCau[i]) : '';
+  if(!vi) return s.dangDich ? '<div class="drp-vi dang">Đang dịch…</div>' : '';
+  return `<div class="drp-vi">${escapeHtml(vi)}</div>`;
+}
+// Thanh nghĩa của từ vừa chạm. Nằm NGAY TRÊN bài đọc như bạn yêu cầu, và dính ở đó khi
+// cuộn, nên chạm một từ ở câu cuối vẫn đọc được nghĩa mà không phải cuộn ngược lên.
+function drpTraThanhHtml(){
+  const t = (STATE.drpPhien || {}).traTu;
+  if(!t) return '';
+  return `<div class="drp-tra">
+    <div class="drp-tra-tren">
+      <span class="drp-tra-tu">${escapeHtml(t.tu)}</span>
+      ${t.am ? `<span class="drp-tra-am">/${escapeHtml(t.am)}/</span>` : ''}
+      ${t.loai ? `<span class="drp-tra-loai">${escapeHtml(t.loai)}</span>` : ''}
+      <button class="drp-tra-x" data-action="drp-dong-tra" title="Đóng">✕</button>
+    </div>
+    <div class="drp-tra-vi">${t.dang ? 'Đang tra…' : (t.vi ? escapeHtml(t.vi)
+      : escapeHtml(t.loi || 'Chưa tra được nghĩa của từ này.'))}</div>
+    ${(t.goc && t.goc.toLowerCase() !== t.tu) ? `<div class="drp-tra-goc">dạng gốc:
+      <b>${escapeHtml(t.goc)}</b> — nghĩa lấy từ chính kho từ vựng bạn đang ôn</div>`
+      : (t.nguon === 'kho' ? '<div class="drp-tra-goc">nghĩa lấy từ chính kho từ vựng bạn đang ôn</div>'
+      : (t.nguon === 'dich' ? '<div class="drp-tra-goc">nghĩa tra nhanh — từ này chưa có trong kho của bạn</div>' : ''))}
+  </div>`;
+}
 function drpBaiHtml(b){
   const g = drpGhi();
   const s = STATE.drpPhien || {};
@@ -12433,11 +12636,13 @@ function drpBaiHtml(b){
     // Số thứ tự CHỈ có ở khung từng câu, và để rất nhạt — đủ để biết đang ở câu nào mà
     // không cướp mất sự chú ý khỏi chính câu chữ. Khung đoạn văn thì không đánh số, đúng
     // như khi đọc một đoạn thật.
-    const am = drpAm() ? drpCauAmHtml(x) : null;
+    // v279 — trọng âm và chỗ ngắt nghỉ LUÔN hiện (đó là cái dạy cách đọc), còn công tắc 🔡
+    // chỉ quyết định có kéo thêm phiên âm xuống chân từng từ hay không.
+    const am = drpNgatHtml(x, drpAm());
     return `<div class="drp-cau${dangThu ? ' thu' : (mau && mau.cham ? ' xong' : '')}">
-      <p class="${am ? 'co-am' : ''}"><span class="drp-cau-so">${i + 1}</span>${
-        am ? am.html : escapeHtml(x)}</p>
-      ${am && am.tong ? `<div class="drp-am-dem">Có phiên âm cho <b>${am.co}</b>/${am.tong} từ
+      <p class="${drpAm() ? 'co-am' : ''}"><span class="drp-cau-so">${i + 1}</span>${am.html}</p>
+      ${drpDichCauHtml(b, i)}
+      ${(drpAm() && am.tong) ? `<div class="drp-am-dem">Có phiên âm cho <b>${am.co}</b>/${am.tong} từ
         — từ nào không có nguồn chắc chắn thì để trống, không đoán bừa.</div>` : ''}
       ${drpNutHtml(i)}
     </div>`;
@@ -12451,8 +12656,14 @@ function drpBaiHtml(b){
     ? `<div class="drp-ghi">Đọc cả đoạn rồi nghe lại thì thoải mái. Riêng phần <b>chấm phát âm</b>,
          Azure chỉ nhận tối đa 58 giây một lần — đoạn dài hơn thì chấm từng câu, hoặc đổi sang
          Gemini trong ⚙.</div>` : '';
+  // v279 — bạn yêu cầu: ở khung "Cả đoạn" vẫn phải thấy TỪNG CÂU MỘT DÒNG. Một khối chữ
+  // liền 5 câu thì mắt mất chỗ bám, đọc tới giữa là không biết đang ở câu nào. Vẫn là MỘT
+  // bản thu duy nhất cho cả đoạn — chỉ cách xếp chữ là đổi, không tách thành 5 lần thu.
   const dsDoan = `<div class="drp-doan${g.dang === DRP_DOAN ? ' thu' : ''}">
-      <p>${escapeHtml(doanChu)}</p>
+      ${b.sentences.map((x, i)=>{
+        const am = drpNgatHtml(x, false);
+        return `<p class="drp-doan-cau">${am.html}</p>${drpDichCauHtml(b, i)}`;
+      }).join('')}
     </div>
     ${drpNutHtml(DRP_DOAN)}
     ${nhacDoan}`;
@@ -12479,10 +12690,17 @@ function drpBaiHtml(b){
         <button class="drp-khung-n ${khung === 'cau' ? 'on' : ''}" data-action="drp-khung" data-v="cau">Từng câu</button>
         <button class="drp-khung-n ${khung === 'doan' ? 'on' : ''}" data-action="drp-khung" data-v="doan">Cả đoạn</button>
       </div>
-      ${khung === 'cau' ? `<div class="drp-am-cong">
-        <button class="drp-chip ${drpAm() ? 'on' : ''}" data-action="drp-am">${
-          drpAm() ? '🔡 Đang hiện phiên âm' : '🔡 Hiện phiên âm từng từ'}</button>
-      </div>` : ''}
+      <div class="drp-am-cong">
+        ${khung === 'cau' ? `<button class="drp-chip ${drpAm() ? 'on' : ''}" data-action="drp-am">${
+          drpAm() ? '🔡 Đang hiện phiên âm' : '🔡 Hiện phiên âm từng từ'}</button>` : ''}
+        <button class="drp-chip ${s.hienDich ? 'on' : ''}" data-action="drp-dich">${
+          s.dangDich ? '⏳ Đang dịch…' : (s.hienDich ? '🙈 Ẩn nghĩa tiếng Việt' : '🇻🇳 Dịch nghĩa')}</button>
+      </div>
+      ${s.loiDich ? `<div class="drp-loi-thu">${escapeHtml(s.loiDich)}</div>` : ''}
+      ${drpTraThanhHtml()}
+      <div class="drp-chugiai">Chữ <b class="vd">tô vàng</b> là chữ cần <b>nhấn mạnh</b>;
+        chữ mờ thì đọc nhẹ, lướt qua. <i class="drp-ngat">|</i> nghỉ ngắn,
+        <i class="drp-ngat dai">‖</i> nghỉ dài lấy hơi. <b>Chạm vào chữ nào hiện nghĩa chữ ấy.</b></div>
       ${loiThu}${loiPhat}
       ${khung === 'cau' ? dsCau : dsDoan}
       ${tienDo}
@@ -34244,6 +34462,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const i = drpChiSo(drpEl.getAttribute('data-i'));
     if(a === 'drp-khung'){ drpDatKhung(v); return; }
     if(a === 'drp-am'){ drpBatAm(); return; }
+    if(a === 'drp-tra-tu'){ drpTraTu(drpEl.getAttribute('data-tu')); return; }
+    if(a === 'drp-dong-tra'){ if(STATE.drpPhien) STATE.drpPhien.traTu = null;
+      try{ renderContentPreserveScroll(); }catch(_){ } return; }
+    if(a === 'drp-dich'){ drpDichBai(); return; }
     if(a === 'drp-tong-ai'){ drpTongAI(); return; }
     if(a === 'nap-ban-moi'){ bamNapBanMoi(); return; }
     if(a === 'drp-thu'){ drpBatThu(i); return; }
