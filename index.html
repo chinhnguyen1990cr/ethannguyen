@@ -4841,7 +4841,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v281';
+const APP_VERSION = 'v282';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11056,27 +11056,139 @@ async function drpKiemTraWorker(){
   try{ renderContent(); }catch(_){ }
   return !s.loi;
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v282 · SOẠN BÀI ĐỌC KHÔNG CÒN PHỤ THUỘC WORKER
+//  ĐO ĐƯỢC HÔM NAY, không phải đoán:
+//    · /health trả về ok, có khoá Gemini (53 ký tự, dạng "auth").
+//    · /generate trả 400 "User location is not supported for the API use."
+//    · Header cf-placement = "remote-OMA" → worker ĐANG chạy ở Omaha, Mỹ. Tức là cái
+//      [placement] region = "gcp:us-central1" trong wrangler.toml ĐÃ có tác dụng.
+//  Vậy lời nhắn cũ ("vào Cloudflare đổi Region sang us-central1") là chỉ sai chỗ: việc ấy
+//  đã làm rồi mà Google vẫn chặn. Thứ bị chặn là DẢI IP của Cloudflare, không phải quốc gia.
+//
+//  Nhưng app vốn đã gọi thẳng Gemini từ trình duyệt cho Hội thoại AI, dịch nghĩa, soạn ví
+//  dụ — và những mục ấy chạy tốt, vì máy bạn ở Việt Nam, nơi Gemini có phục vụ. Nên đường
+//  ra là: worker bị chặn thì app TỰ SOẠN bằng chính khoá Gemini bạn đã khai trong app.
+//  Không bắt bạn đụng vào Cloudflare nữa.
+// ══════════════════════════════════════════════════════════════════════════════════════
+// Dựng đúng lời nhắc mà worker vẫn dùng, để bài soạn ở hai đường ra cùng một chất.
+function drpLoiNhac(soCau, level, chuDe, tu){
+  const MUC = {
+    A2: 'CEFR A2: short simple sentences, very common everyday words',
+    B1: 'CEFR B1: everyday topics, some linking words, moderate sentence length',
+    B2: 'CEFR B2: natural connected prose, varied structures, some idiomatic phrasing',
+    C1: 'CEFR C1: fluent, nuanced, varied register and rhythm'
+  };
+  const d = [
+    'Write a short passage in ENGLISH for an English-learning student to READ ALOUD as pronunciation practice.',
+    'LANGUAGE: every sentence in "sentences" must be ENGLISH. The student is Vietnamese, but the '
+      + 'passage they read is ENGLISH. The ONLY Vietnamese text you produce is the "titleVi" field.',
+    '- Exactly ' + soCau + ' sentences. Each sentence 8-16 words — long enough to need real phrasing, '
+      + 'short enough to say in one breath.',
+    '- Level: ' + (MUC[level] || MUC.B1) + '.'
+  ];
+  if(chuDe){
+    d.push('- The student asked for this idea (it may be written in Vietnamese; still write the passage '
+           + 'in ENGLISH): "' + chuDe + '".',
+           '- Follow that idea closely. It is the subject of the whole passage, not a passing mention.');
+  }
+  if(tu && tu.length){
+    d.push('- Weave in as many of these words as fit NATURALLY (do not force all of them, do not list them): '
+           + tu.join(', ') + '.');
+  }
+  d.push(
+    'COHERENCE — this is the most important requirement:',
+    '- All sentences together must form ONE single paragraph about ONE situation, with ONE narrator and ONE continuous timeline.',
+    '- Sentence 1 sets the scene. Every later sentence must continue directly from the one before it.',
+    '- Bind them together: use pronouns (it, she, that, there) and linking words (then, so, but, after that, meanwhile).',
+    '- FORBIDDEN: unrelated facts, a list of examples, sentences that could be shuffled into any order.',
+    '- Use natural spoken rhythm: contractions, a question or an exclamation somewhere, varied sentence openings.',
+    '- No headings, no bullet points, no emoji.',
+    'Return ONLY JSON: {"title":"<short ENGLISH title>","titleVi":"<tiêu đề tiếng Việt>",'
+      + '"sentences":["<ENGLISH sentence 1>","<ENGLISH sentence 2>", ...]}',
+    'Reminder: "sentences" must be ENGLISH, not Vietnamese.'
+  );
+  return d.join('\n');
+}
+// Chốt chặn giống worker: câu tiếng Anh gần như toàn ASCII. Lọt một câu tiếng Việt vào bài
+// đọc tiếng Anh thì cả bài hỏng, mà nhìn thoáng qua không ai để ý.
+function drpLaCauAnh(c){
+  const t = String(c || '').trim();
+  if(t.length < 6) return false;
+  const la = (t.match(/[^\x00-\x7F]/g) || []).length;
+  return (la / t.length) < 0.08;
+}
+// Soạn bài THẲNG từ trình duyệt bằng khoá Gemini của chính app. Trả về cùng hình dạng mà
+// worker trả, để chỗ gọi không cần biết bài đến từ đường nào.
+async function drpSinhBangAppGemini(soCau, level, chuDe, tu){
+  if(!SETTINGS.geminiApiKey) throw new Error('App chưa có khoá Gemini riêng.');
+  const res = await geminiFetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_CHAT_MODEL
+      + ':generateContent?key=' + encodeURIComponent(SETTINGS.geminiApiKey),
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{role:'user', parts:[{text: drpLoiNhac(soCau, level, chuDe, tu)}]}],
+        generationConfig: {temperature: 0.9, responseMimeType: 'application/json'}
+      }) });
+  if(!res || !res.ok) throw new Error('Gemini trả lỗi ' + (res ? res.status : '?') + '.');
+  const j = await res.json().catch(()=>null);
+  let txt = '';
+  try{ txt = j.candidates[0].content.parts.map(p=>p.text || '').join(''); }catch(_){ txt = ''; }
+  let o = null;
+  try{ o = JSON.parse(txt); }
+  catch(_){ const m = String(txt).match(/\{[\s\S]*\}/); if(m){ try{ o = JSON.parse(m[0]); }catch(_){ } } }
+  const cau = (o && Array.isArray(o.sentences) ? o.sentences : [])
+                .map(x=>String(x).trim()).filter(drpLaCauAnh);
+  if(!cau.length) throw new Error('Gemini không trả về câu tiếng Anh nào đọc được.');
+  return {ok:true, title:String((o && o.title) || 'Reading practice'),
+          titleVi:String((o && o.titleVi) || ''), sentences:cau, level:level,
+          wordsAsked:(tu || []).length,
+          wordsUsed:(tu || []).filter(w=>{
+            try{ return new RegExp('\\b' + String(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i')
+                        .test(cau.join(' ')); }catch(_){ return false; }
+          })};
+}
 async function drpSinhVanBan(){
   const s = STATE.drpPhien || (STATE.drpPhien = {});
   const w = drpDocOWorker();
-  if(!w){
-    s.loi = 'Chưa có địa chỉ Worker. Dán vào ô bên trên rồi bấm Kiểm tra.';
+  // v282 — không còn BẮT BUỘC phải có worker. Thiếu worker mà app có khoá Gemini riêng thì
+  // soạn thẳng; chỉ khi không có cả hai mới chịu thua.
+  if(!w && !SETTINGS.geminiApiKey){
+    s.loi = 'Chưa có địa chỉ Worker, mà app cũng chưa có khoá Gemini riêng. '
+          + 'Khai một trong hai thứ là soạn được bài.';
     try{ renderContent(); }catch(_){ } return;
   }
   if(s.dangSinh) return;
   const c = drpCaiDat();
   s.dangSinh = true; s.loi = null;
   try{ renderContent(); }catch(_){ }
+  const tuDung = drpTuVung(DRP_TU_TOI_DA);
+  const chuDe = drpDocOChuDe();
   try{
-    const res = await fetch(w + '/generate', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({count: c.soCau, level: c.level,
-        words: drpTuVung(DRP_TU_TOI_DA), topic: drpDocOChuDe()})
-    });
-    const j = await res.json().catch(()=>null);
-    if(!res.ok || !j || !j.ok){
-      s.loi = (j && j.error) ? j.error : ('Worker trả lỗi ' + res.status + '.');
+    let j = null, duong = 'worker';
+    if(w){
+      try{
+        const res = await fetch(w + '/generate', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({count: c.soCau, level: c.level, words: tuDung, topic: chuDe})
+        });
+        const k = await res.json().catch(()=>null);
+        if(res.ok && k && k.ok) j = k;
+        else s.loiWorker = (k && k.error) ? k.error : ('Worker trả lỗi ' + res.status + '.');
+      }catch(e){ s.loiWorker = 'Không gọi được worker: ' + ((e && e.message) || e); }
+    }
+    // Worker không ra bài (bị Google chặn IP, hết hạn mức, mạng hỏng…) thì app tự soạn
+    // bằng khoá Gemini của chính nó — đường này chạy từ máy bạn nên không dính chuyện IP.
+    if(!j && SETTINGS.geminiApiKey){
+      try{ j = await drpSinhBangAppGemini(c.soCau, c.level, chuDe, tuDung); duong = 'app'; }
+      catch(e){ s.loiApp = (e && e.message) || String(e); }
+    }
+    if(!j){
+      s.loi = (s.loiWorker || 'Không soạn được bài.')
+            + (s.loiApp ? ' · App tự soạn cũng không xong: ' + s.loiApp
+                        : (SETTINGS.geminiApiKey ? '' : ' Khai khoá Gemini riêng cho app thì app tự soạn được, khỏi cần worker.'));
     } else {
+      s.duongSinh = duong;
       // ══ v269 · THỨ TỰ NÀY LÀ GỐC CỦA LỖI NÚT BACK ════════════════════════════════════
       // navForward() PHẢI gọi TRƯỚC khi đặt s.bai. Quy tắc ấy đã ghi hoa ngay trên đầu
       // hàm navForward, kèm cảnh báo "đã từng gây bug thật" — và chính chỗ này phạm nó.
@@ -11102,7 +11214,7 @@ async function drpSinhVanBan(){
       s.khung = 'cau';
     }
   }catch(e){
-    s.loi = 'Không gọi được worker: ' + ((e && e.message) || e);
+    s.loi = 'Không soạn được bài: ' + ((e && e.message) || e);
   }
   s.dangSinh = false;
   try{ renderContent(); }catch(_){ }
@@ -24957,6 +25069,10 @@ const TV_DUOI_CAN_BANG_CHUNG = [
 // Hai đuôi so sánh — chỉ hợp lệ khi gốc là tính từ.
 const TV_DUOI_SO_SANH = [['est', ''], ['er', '']];
 // Vài chữ kết thúc bằng -ly nhưng không phải trạng từ. Cắt là ra chữ khác hẳn.
+// Năm cặp này bảng họ từ gom chung vì CÙNG TRƯỜNG NGHĨA, nhưng chúng là hai từ khác gốc
+// hẳn — đổi qua lại là đổi sang một từ khác chứ không phải về dạng gốc. Đã soi tay cả 50
+// cặp "không chung ba chữ cái đầu" để lọc ra đúng nhúm này.
+const TV_KHAC_GOC = new Set(['fast', 'heavy', 'hot', 'fill', 'spend']);
 const TV_LY_GIU = new Set(('only early family reply apply supply rely fly july ugly holy ' +
   'italy multiply imply supply comply assembly').split(' '));
 // Gốc suy ra có phải TÍNH TỪ không? Hỏi bảng họ từ và ngân hàng gốc, không đoán.
@@ -25083,6 +25199,18 @@ function tvVeGoc(chu){
   try{ ho = HO_TU_TRA[k] || ''; }catch(_){ }
   if(ho){
     const g = tvDangGocNhat(ho);
+    // ĐO ĐƯỢC Ở v282: "heavy" bị đổi thành "weigh". Bảng họ từ gom weigh/weight/heavy vào
+    // MỘT họ vì chúng cùng TRƯỜNG NGHĨA, nhưng "heavy" không hề được tạo ra từ "weigh" —
+    // đổi là sai hệt như fast→speed, hot→heat, full→fill.
+    // Đã thử hai mẹo và cả hai đều hụt, nên không đoán nữa mà ĐẾM:
+    //   · "chung ba chữ cái đầu" chặn luôn depth→deep, length→long — hai cái ấy đổi là ĐÚNG;
+    //   · "có mặt trong kho nền thì giữ" lại giữ luôn quickly, beautiful, collection — sai nốt.
+    // Quét cả 320 họ: chỉ có 50 dạng không chung ba chữ cái đầu với tên họ, và chúng chia
+    // làm ba loại rõ rệt — tiền tố phủ định (unhappy, impossible, asleep…) và biến âm bất
+    // quy tắc (depth/deep, length/long, thought/think, death/die) đều là phái sinh THẬT,
+    // đổi là đúng; chỉ còn một nhúm là hai từ khác hẳn gốc, bị gom chung vì cùng trường
+    // nghĩa. Nhúm ấy đếm được hết nên ghi tay, khỏi đoán.
+    if(TV_KHAC_GOC.has(k)) return null;
     if(g && g.toLowerCase() !== k && !tvCungONguLoai(ho, k, g))
       return {chu:g, vi:'dạng gốc trong họ từ “' + ho + '”', loai:'hotu'};
     return null;
@@ -25200,9 +25328,50 @@ async function hvDichNhungCaiThieu(){
   hvDangDich = false;
 }
 function hvKhoCau(){ if(!Array.isArray(SETTINGS.hvCauDaLuu)) SETTINGS.hvCauDaLuu = []; return SETTINGS.hvCauDaLuu; }
+// ══ v282 · LỌC NGAY LÚC LƯU, KHÔNG ĐỂ DỒN RỒI DỌN SAU ════════════════════════════════
+// v281 đã dọn được kho cũ, nhưng nếu chỗ LƯU vẫn nhận y nguyên dạng đang chia trong câu thì
+// thêm một video mới là kho lại bẩn lại. Nay ba việc ấy làm ngay tại cửa:
+//   · TỪ → đưa về dạng gốc nhất (ưu tiên động từ) trước khi lưu, kèm họ từ;
+//   · CÂU → phải là câu dùng được trong giao tiếp hằng ngày mới nhận;
+//   · cả hai → ghi đúng từ loại ngay, không để trống rồi bị dán "cụm từ".
+// Cổng lọc của lúc lưu, tách hẳn ra thành một hàm THUẦN để bài kiểm tra gọi thẳng được.
+// Để nó nằm lẫn trong hvLuuChon thì chỉ soi được mặt chữ, mà soi mặt chữ thì một phép phá
+// kiểu `if(false)` vẫn lọt — đã bị bắt quả tang đúng như thế ở lượt kiểm chứng ngược.
+// Trả về {ok, chu, gocCu, gocVi, loai, dangTu, lyDo}.
+function hvLocTruocKhiLuu(chu, dich){
+  const tho = String(chu || '').trim();
+  if(!tho) return {ok:false, lyDo:'Chưa chọn chữ nào.'};
+  if(dich === 'cau'){
+    let o = null;
+    try{ o = tvCauHangNgay(tho); }catch(_){ o = {ok:true}; }
+    if(o && !o.ok) return {ok:false, lyDo:o.lyDo
+      + ' Mẫu câu đáng học là câu bạn nói lại được trong đời thường.'};
+    return {ok:true, chu:tho};
+  }
+  // Từ: đưa về dạng gốc nhất NGAY. "depending" lưu vào thành "depend".
+  const ra = {ok:true, chu:tho};
+  let g = null;
+  try{ g = tvVeGoc(tho); }catch(_){ g = null; }
+  if(g && g.chu && String(g.chu).toLowerCase() !== tho.toLowerCase()){
+    ra.gocCu = tho; ra.gocVi = g.vi; ra.chu = g.chu;
+  }
+  // Họ từ điền sẵn từ bảng 320 họ, để thẻ bài đủ danh/động/tính/trạng ngay, khỏi chờ AI.
+  try{ const h = hoTuDayDu(ra.chu); if(h && Object.keys(h).length) ra.dangTu = h; }catch(_){ }
+  // Từ loại ghi ngay, không để trống rồi bị dán "cụm từ" như bốn thẻ bạn chụp.
+  try{ const l = tvLoaiCua({chu:ra.chu}); if(l) ra.loai = l; }catch(_){ }
+  return ra;
+}
 function hvLuuChon(dich){
   const c = hvCumDangChon(); if(!c || !c.chu) return;
   const kho = (dich === 'cau') ? hvKhoCau() : hvKhoTu();
+  const loc = hvLocTruocKhiLuu(c.chu, dich);
+  if(!loc.ok){
+    showToast('⚠️', dich === 'cau' ? 'Chưa lưu mẫu câu' : 'Chưa lưu', loc.lyDo);
+    STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+    hvVeTamTaiCho();
+    return;
+  }
+  c.chu = loc.chu; c.gocCu = loc.gocCu; c.gocVi = loc.gocVi;
   // v260 — chặn cụm rác TRƯỚC khi lưu. Chặn ở đây thì không tốn một lượt gọi AI nào,
   // và người dùng biết ngay vì sao thay vì thấy kho phình ra toàn thứ vô nghĩa.
   if(dich !== 'cau'){
@@ -25237,10 +25406,15 @@ function hvLuuChon(dich){
     // bổ sung sau — lúc bạn mở Luyện từ vựng / Câu thông dụng thì đã có đủ.
     kho.push({chu:c.chu, vi:c.vi, cauEn:c.cauEn||'', tu:'hocvideo', ngay:todayKey(),
               goc: (dich === 'cau') ? undefined : tvGoc(c.chu),
-              phienAm: hvPhienAmDangCo() || undefined});
+              phienAm: hvPhienAmDangCo() || undefined,
+              dangTu: loc.dangTu,
+              loai: loc.loai,
+              hoTu: loc.gocCu ? [loc.gocCu] : undefined,
+              gocCu: loc.gocCu, gocVi: loc.gocVi});
     saveSettings(); pushToDrive();
     showToast('✅', dich==='cau' ? 'Đã lưu vào Câu thông dụng' : 'Đã lưu vào Luyện từ vựng',
-      '"' + c.chu + '" — nghĩa và câu ví dụ sẽ được AI bổ sung ngay sau đây.');
+      '"' + c.chu + '"' + (c.gocCu ? ' (đưa về dạng gốc từ "' + c.gocCu + '")' : '')
+      + ' — nghĩa và câu ví dụ sẽ được AI bổ sung ngay sau đây.');
     try{ hvDichNhungCaiThieu(); }catch(e){}
   }
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
@@ -27264,7 +27438,31 @@ function aiCallSystemPrompt(mode, sc){
   //     quá dễ thì chán và không học được gì.
   const tam = `The learner is at roughly CEFR ${td.ma} (${td.en}). Pitch your English just slightly above that level: mostly words they will know, but slip in one or two more useful expressions per exchange and let context carry them. Speak at a natural but unhurried pace. Never dumb it down to robotic textbook English.`;
   // (2) Đẩy bóng về phía người học. Không có dòng này thì AI độc thoại và mình chỉ ngồi nghe.
-  const day = `Keep the ball in their court: end almost every turn with a real question or a prompt that needs more than yes/no. If they give a one-word answer, warmly push for more ("Oh yeah? What happened next?"). If they go quiet for a while, don't fill the silence with a monologue — ask a shorter, easier question instead.`;
+  // ══ v282 · BẠN BÁO: AI NÓI QUÁ NHIỀU, KHÔNG BÁM MẠCH, KHÔNG CÓ BIỂU CẢM ══════════════
+  // Đọc lại lời nhắc cũ thì thấy hai dòng TỰ ĐÁNH NHAU:
+  //   · "mỗi lượt 15-40 chữ" — một cái trần phẳng, áp cho mọi lượt như nhau;
+  //   · "gần như lượt nào cũng kết bằng một câu hỏi" — ép thành khuôn, và chính nó làm
+  //     cuộc nói nghe như phỏng vấn: hỏi, nghe, hỏi tiếp, không ai phản ứng với điều vừa nghe.
+  // Hai dòng ấy cộng lại ra đúng thứ bạn gặp: lượt nào cũng dài bằng nhau, lượt nào cũng
+  // kết bằng câu hỏi, và không lượt nào thật sự ĐÁP LẠI chuyện bạn vừa kể.
+  // Nay thay bằng ba luật rời nhau, mỗi luật nói đúng một việc.
+  const day = `TAKE TURNS LIKE A PERSON, NOT AN INTERVIEWER.
+- Do NOT end every turn with a question. Ending two turns in a row with a question already feels like an interview. Often the natural move is to react, add your own small piece, and simply stop — let them pick it up.
+- Ask a question when you genuinely want to know something, when the thread has run out, or when they have gone quiet. Not as a habit.
+- Sometimes just react and say nothing more ("Oh that's rough." / "Ha, classic."). A real listener does that constantly.
+- If they give a one-word answer, show interest in the thing itself rather than demanding more: "A cat? What's its name?" beats "Tell me more about that."`;
+  // Bám mạch — đây là thứ bạn thấy thiếu nhất: AI nói chuyện của nó, không đáp chuyện của bạn.
+  const mach = `STAY ON THEIR THREAD — this is what makes it feel like a real conversation:
+- Your first words must respond to the SPECIFIC thing they just said, not to the topic in general. If they mention their sister's wedding, you react to the wedding, not to "family" as a subject.
+- Carry details forward. If they said earlier they hate coffee, do not later ask what coffee they like. Names, places, jobs, feelings they mentioned — remember and use them.
+- Never restate or summarise what they just said before replying. Just reply.
+- Never change topic while they are still in the middle of one. Only move on when the thread is genuinely finished, and then say so out loud ("Anyway—").`;
+  // Biểu cảm — người thật phản ứng TRƯỚC rồi mới nói nội dung.
+  const camXuc = `REACT BEFORE YOU ANSWER.
+- Lead with a genuine reaction that matches what they said: delight, surprise, sympathy, amusement, mild disagreement. "Oh no." / "Wait, really?" / "That's actually great." / "Hmm, I'm not sure about that."
+- Match their energy. If they are excited, be excited. If they are tired or telling you something sad, slow down and be gentle — do not stay bright and chirpy.
+- Have your own opinions and small preferences, and say them. A person who only asks questions and agrees with everything is not a person.
+- Disagree sometimes, kindly. Agreement with everything reads as fake.`;
   // (3) Sửa lỗi kiểu "nói lại cho đúng" chứ không giảng bài — cách người bản xứ thật sự phản hồi.
   const sua = `When they make a grammar or word-choice mistake, do NOT stop to correct them like a teacher. Naturally reuse the correct phrasing in your own next sentence, so the right version is the last thing they heard. Only if they make the SAME mistake three times in one call, say it once, lightly and kindly, in one short sentence, then move straight back to the conversation.`;
   // (4) Nối mạch với buổi trước.
@@ -27276,8 +27474,16 @@ function aiCallSystemPrompt(mode, sc){
   // v250 — CHỐNG NÓI DÀI. Bản trước chỉ dặn "đừng ngắn giả tạo", thế là AI nói thành đoạn văn:
   // người học ngồi nghe chứ không nói được câu nào, mà nói chuyện thật có ai độc thoại thế đâu.
   // Nay đặt hẳn một trần cụ thể — dặn chung chung thì mô hình nào cũng trôi về phía dài dòng.
-  const gon = `LENGTH — this matters more than anything else: a normal turn is ONE to THREE short sentences, about 15-40 words. Real people on a call do not deliver paragraphs. Say the one thing worth saying, then hand the turn back. Go longer ONLY when they explicitly ask you to explain or tell a story, and even then keep it under 80 words. Never list options like a menu. Never restate what they just said before replying.`;
-  const base = `This is a live spoken phone-call-style conversation with a Vietnamese learner practicing English. Talk exactly like a real person on a call: contractions everywhere (I'm, you're, gonna, kinda), casual reactions ("oh nice", "hmm", "really?", "no way"), and the occasional false start or "I mean" — that is how natives actually sound. Never say you are an AI and never break character. Never switch to Vietnamese unless they are completely stuck, and even then give the English right after.\n${gon}\n${tam}\n${day}\n${sua}${tri}`;
+  // Độ dài: bạn muốn "khi cần thì nói nhiều và diễn đạt đầy đủ, khi thì nói ngắn gọn".
+  // Một cái trần phẳng không làm được điều đó — nó chỉ làm mọi lượt dài BẰNG NHAU, mà đều
+  // đều chính là thứ nghe ra máy móc. Nên thay bằng luật gắn độ dài vào LOẠI LƯỢT NÓI.
+  const gon = `LENGTH — vary it the way a real person does. There is no fixed turn length.
+- Most turns are SHORT: one or two sentences. Many are just a few words ("Really?" / "Oh nice." / "Same here.").
+- Go LONG — four to six sentences, up to about 90 words — only when the moment actually calls for it: they asked you to explain something, they asked for your story or opinion in depth, or they are stuck and need you to carry the conversation for a moment.
+- The rhythm matters: several short turns in a row, then one longer one, then short again. Never two long turns in a row.
+- Length must follow the content. If you only have one thing to say, say it in one sentence and stop. Padding a thin reply into three sentences is exactly what makes it sound like a machine.
+- Never list options like a menu.`;
+  const base = `This is a live spoken phone-call-style conversation with a Vietnamese learner practicing English. Talk exactly like a real person on a call: contractions everywhere (I'm, you're, gonna, kinda), casual reactions ("oh nice", "hmm", "really?", "no way"), and the occasional false start or "I mean" — that is how natives actually sound. Never say you are an AI and never break character. Never switch to Vietnamese unless they are completely stuck, and even then give the English right after.\n${gon}\n${camXuc}\n${mach}\n${tam}\n${day}\n${sua}${tri}`;
   if(mode==='phanxa'){
     // Luyện phản xạ: nhịp nhanh, câu ngắn, không cho nghĩ lâu. Đây là bài tập, nên nói rõ là bài tập.
     return `You are a friendly English speaking coach running a fast-paced REFLEX DRILL with a Vietnamese learner over a live call. Fire a short, concrete everyday question at them (5-12 words), wait for their answer, react in ONE short sentence, then immediately fire the next question. Keep an energetic, encouraging rhythm — this is a drill, not a chat, so do not go off on long tangents. Mix question types: personal ("What did you eat this morning?"), opinion ("Coffee or tea, and why?"), quick situation ("Your train is late — what do you say to your boss?"). If they hesitate more than a few seconds, rephrase it shorter and easier rather than waiting.\n${tam}\n${sua}${tri}`;
