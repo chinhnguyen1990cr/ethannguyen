@@ -4841,7 +4841,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v280';
+const APP_VERSION = 'v281';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9571,6 +9571,8 @@ function defaultEnglishItems(){
 function ensureEnglishItems(){
   // v276 — dời tiến độ sang chỉ số mới TRƯỚC khi bất cứ màn học nào đọc tới nó.
   try{ v276DoiTienDo(); }catch(_){ }
+  // v281 — đưa kho đã lưu về dạng gốc nhất, chạy một lần duy nhất.
+  try{ v281DonNeuCan(); }catch(_){ }
   if(!Array.isArray(SETTINGS.englishItems) || SETTINGS.englishItems.length===0){
     SETTINGS.englishItems = defaultEnglishItems();
     saveSettings(); pushToDrive();
@@ -13715,6 +13717,140 @@ function tvDonKho(){
 
 // Chạy đúng MỘT lần. Đặt cờ rồi mới làm, để lỡ có lỗi giữa chừng thì lần mở sau không
 // chạy lại lần nữa trên dữ liệu đã bị sửa dở.
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v281 · DỌN MỘT LẦN: ĐƯA KHO ĐÃ LƯU VỀ DẠNG GỐC NHẤT
+//  Chạy đúng MỘT lần rồi tự đánh dấu. Không xoá mục nào — chỉ đổi tên về dạng gốc và gộp
+//  những mục rơi về cùng một gốc, giữ lại hồ sơ học của mục dày dặn hơn. Mục nào không có
+//  bằng chứng để đổi thì để nguyên tại chỗ.
+// ══════════════════════════════════════════════════════════════════════════════════════
+// ══ v281 · MẪU CÂU: CHỈ GIỮ CÂU DÙNG ĐƯỢC TRONG GIAO TIẾP HÀNG NGÀY ═══════════════════
+// Bạn bảo lọc bỏ mẫu câu không thường dùng. Đã đo ngân hàng gốc 341 câu: chúng vốn đã là
+// câu nói hằng ngày cả (It's going to rain · Can I see the menu? · Talk to you later).
+// Thứ cần lọc là kho MẪU CÂU BẠN TỰ LƯU khi xem video — ở đó câu được nhặt thẳng từ lời
+// thoại nên có cả câu kể chuyện riêng của video, câu dài lê thê, câu đứt giữa chừng.
+// Luật dưới đây đều là dấu hiệu ĐỌC ĐƯỢC, không phải cảm tính:
+const TV_CAU_TOI_DA = 14;      // dài hơn thế thì không ai nhắc lại nguyên câu trong đời thường
+const TV_CAU_TOI_THIEU = 2;
+// Tên riêng, số liệu, mốc thời gian cụ thể → câu kể của riêng video, mượn về không dùng được.
+const TV_CAU_RIENG = /\b(\d{4}|\d+%|\$\d|\d+,\d{3})\b/;
+// ĐO LẦN 1 BẮT ĐƯỢC: bản đầu loại oan 50/341 câu của ngân hàng gốc — "Nice to meet you.",
+// "How've you been?", "Morning!". Vì tôi dùng lại TV_CUOI_DUT, vốn soạn cho CỤM 2–5 chữ
+// (ở đó "in the", "is a" đúng là đứt). Nhưng một CÂU kết thúc bằng "you" hay "been" thì
+// hoàn chỉnh hẳn hoi. Nay: có dấu kết câu là câu trọn, khỏi xét đứt; và lời chào một chữ
+// ("Morning!", "Thanks!") cũng là câu nói hằng ngày, không phải mẩu vụn.
+const TV_CAU_DUT_CUOI = ('the a an and or but my your his her its our their').split(' ');
+function tvCauHangNgay(cau){
+  const t = String(cau || '').trim().replace(/\s+/g, ' ');
+  if(!t) return {ok:false, lyDo:'Câu rỗng.'};
+  const tu = t.split(' ');
+  const coDauKet = /[.!?…]$/.test(t);
+  if(tu.length < TV_CAU_TOI_THIEU && !coDauKet)
+    return {ok:false, lyDo:'Ngắn quá, chưa thành câu.'};
+  if(tu.length > TV_CAU_TOI_DA)
+    return {ok:false, lyDo:'Dài ' + tu.length + ' chữ — câu nói hằng ngày hiếm khi dài vậy.'};
+  // Đứt giữa chừng: CHỈ xét khi câu không có dấu kết, và chỉ với mạo từ / liên từ / sở hữu.
+  const cuoi = tu[tu.length - 1].toLowerCase().replace(/[^a-z']/g, '');
+  if(!coDauKet && TV_CAU_DUT_CUOI.indexOf(cuoi) >= 0)
+    return {ok:false, lyDo:'Câu đang đứt ở giữa.'};
+  // Phải có ít nhất một từ mang nghĩa, không phải chuỗi toàn từ chức năng.
+  if(tu.length >= 2 && !tu.some(x => !tvLaTuChucNang(x)))
+    return {ok:false, lyDo:'Toàn từ chức năng.'};
+  // Số liệu / năm / tiền → chuyện riêng của video ấy.
+  if(TV_CAU_RIENG.test(t)) return {ok:false, lyDo:'Có số liệu riêng của video, mượn về không dùng được.'};
+  // Nhiều tên riêng giữa câu (viết hoa mà không đứng đầu) → câu kể về người/nơi cụ thể.
+  const hoaGiua = tu.slice(1).filter(x => /^[A-Z][a-z]{2,}/.test(x)).length;
+  if(hoaGiua >= 2) return {ok:false, lyDo:'Nhắc tên riêng cụ thể, không dùng lại được.'};
+  return {ok:true, lyDo:''};
+}
+function v281LocMauCau(){
+  const bc = {truoc:0, bo:0, sau:0, vd:[]};
+  const kho = hvKhoCau();
+  bc.truoc = kho.length;
+  const giu = [];
+  kho.forEach(x=>{
+    const c = String((x && x.chu) || '');
+    let o = null;
+    try{ o = tvCauHangNgay(c); }catch(_){ o = {ok:true}; }
+    if(o && o.ok){ giu.push(x); return; }
+    bc.bo++;
+    if(bc.vd.length < 8) bc.vd.push(c.slice(0, 44) + ' — ' + (o ? o.lyDo : ''));
+  });
+  SETTINGS.hvCauDaLuu = giu;
+  bc.sau = giu.length;
+  return bc;
+}
+
+function v281DonVeGoc(){
+  const bc = {xet:0, doi:0, gop:0, truoc:0, sau:0, vd:[]};
+  const kho = hvKhoTu();
+  bc.truoc = kho.length;
+  // ── 1. Đổi từng mục về dạng gốc ─────────────────────────────────────────────────
+  kho.forEach(x=>{
+    if(!x || !x.chu) return;
+    bc.xet++;
+    let o = null;
+    try{ o = tvVeGoc(x.chu); }catch(_){ o = null; }
+    if(!o || !o.chu || String(o.chu).toLowerCase() === String(x.chu).toLowerCase()) return;
+    // Giữ lại dạng cũ trong HỌ TỪ, để tra "depending" sau này vẫn ra đúng thẻ "depend".
+    const cu = String(x.chu);
+    x.hoTu = (Array.isArray(x.hoTu) ? x.hoTu : []).concat([cu])
+               .filter((v, i, a) => v && a.indexOf(v) === i);
+    x.chu = o.chu;
+    x.gocCu = cu;                 // vì sao thẻ đổi tên — màn Thư viện nói lại được cho bạn
+    x.gocVi = o.vi;
+    x.goc = (function(){ try{ return tvGoc(x.chu); }catch(_){ return x.chu; } })();
+    // Từ loại cũ (nếu là 'cụm từ' dán bừa) phải tính lại theo chữ MỚI.
+    try{ const l = tvLoaiCua(x); if(l) x.loai = l; }catch(_){ }
+    bc.doi++;
+    if(bc.vd.length < 10) bc.vd.push(cu + ' → ' + x.chu);
+  });
+  // ── 2. Gộp những mục nay trùng nhau ────────────────────────────────────────────
+  const giu = [];
+  kho.forEach(x=>{
+    if(!x || !x.chu) return;
+    const cu = giu.find(y => String(y.chu).toLowerCase() === String(x.chu).toLowerCase());
+    if(!cu){ giu.push(x); return; }
+    bc.gop++;
+    // Mục nào dày dặn hơn thì đứng tên — dùng lại đúng thước đo của bộ dọn v260.
+    let hon = false;
+    try{ hon = tvDiemDayDu(x) > tvDiemDayDu(cu); }catch(_){ hon = false; }
+    const chinh = hon ? x : cu, phu = hon ? cu : x;
+    if(hon){ giu[giu.indexOf(cu)] = x; }
+    chinh.hoTu = (Array.isArray(chinh.hoTu) ? chinh.hoTu : [])
+                   .concat(Array.isArray(phu.hoTu) ? phu.hoTu : [], [phu.chu])
+                   .filter((v, i, a) => v && a.indexOf(v) === i
+                                     && String(v).toLowerCase() !== String(chinh.chu).toLowerCase());
+    if(!chinh.nghia && phu.nghia) chinh.nghia = phu.nghia;
+    if(!chinh.viDu && phu.viDu) chinh.viDu = phu.viDu;
+    if(!chinh.phienAm && phu.phienAm) chinh.phienAm = phu.phienAm;
+    if((!chinh.dangTu || !Object.keys(chinh.dangTu).length) && phu.dangTu) chinh.dangTu = phu.dangTu;
+  });
+  SETTINGS.hvTuDaLuu = giu;
+  bc.sau = giu.length;
+  // Chỉ số n đổi theo, nên gói bài hôm nay phải dựng lại — rẻ hơn dời từng mục.
+  SETTINGS.vocabDailyCache = null;
+  SETTINGS.sentDailyCache = null;
+  return bc;
+}
+function v281DonNeuCan(){
+  if(SETTINGS.v281Don) return null;
+  let bc = null, bcCau = null;
+  try{ bc = v281DonVeGoc(); }catch(e){ console.warn('v281 don kho', e); }
+  try{ bcCau = v281LocMauCau(); }catch(e){ console.warn('v281 loc mau cau', e); }
+  SETTINGS.v281Don = 1;
+  try{ saveSettings(); }catch(_){ }
+  if(bc && (bc.doi || bc.gop)){
+    try{
+      showToast('🧹', 'Đã đưa kho về dạng gốc',
+        'Đổi ' + bc.doi + ' mục về dạng gốc nhất (' + bc.vd.slice(0, 3).join(', ') + '…), '
+        + 'gộp ' + bc.gop + ' mục trùng. Còn ' + bc.sau + ' mục.'
+        + (bcCau && bcCau.bo ? ' Mẫu câu: bỏ ' + bcCau.bo + ' câu không dùng hằng ngày, còn '
+           + bcCau.sau + '.' : ''));
+    }catch(_){ }
+  }
+  return bc;
+}
+
 function tvDonKhoNeuCan(){
   try{
     if(SETTINGS.tvDaDon === 'v260') return null;
@@ -14114,7 +14250,7 @@ function vocabGopTuVideo(){
     if(x.n !== nMoi){ x.n = nMoi; doi = true; }
     // Ô thứ 8 (chỉ số 7) là bảng các dạng từ — đúng ô mà màn Luyện từ vựng đã biết cách hiện.
     // Ô thứ 9 (chỉ số 8) = mấy câu ví dụ phụ, đúng ô mà màn Luyện từ vựng đã biết cách hiện.
-    VOCAB_DATA.words.push([nMoi, x.chu, x.loai || 'cụm từ', VOC_CHU_DE_VIDEO,
+    VOCAB_DATA.words.push([nMoi, x.chu, tvLoaiCua(x), VOC_CHU_DE_VIDEO,
                            x.nghia, x.viDu || x.cauEn || '', x.viDuVi || x.vi || '',
                            (x.dangTu && Object.keys(x.dangTu).length) ? x.dangTu : undefined,
                            (Array.isArray(x.viDuThem) && x.viDuThem.length) ? x.viDuThem : undefined]);
@@ -24775,6 +24911,213 @@ function hvSanSang(x){ return !!(x && x.chu && x.nghia); }
 // Nay mọi mục đều phải qua cổng này MỘT LẦN NỮA ngay trước khi được đưa vào bộ bài học.
 // Chặn ở đây an toàn hơn xoá: mục vẫn còn trong Thư viện để bạn tự xem và sửa, chỉ là
 // không được đem ra dạy.
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v281 · ĐƯA MỌI MỤC VỀ DẠNG GỐC NHẤT — CÓ BẰNG CHỨNG MỚI CẮT
+//  Bạn gửi bốn thẻ bài: "depending", "objectively", "heavier", "I'm". Đo ra ngay:
+//  KHÔNG mục nào trong ngân hàng gốc cả — chúng là từ CHÍNH BẠN nhặt khi xem video, và
+//  được nhặt y nguyên dạng đang chia trong câu.
+//  Vì sao không cắt đuôi bừa: đã thử luật cắt -er/-ly/-ment lên ngân hàng gốc, nó đẻ ra
+//  brother→broth, forest→for, letter→let, flower→flow, career→care, manner→man. Cắt bừa
+//  là phá kho. Nên ở đây chỉ cắt khi CÓ BẰNG CHỨNG, theo đúng ba nguồn này:
+//    (1) bảng họ từ HO_TU — 320 họ có thật, đã soạn tay;
+//    (2) chính ngân hàng gốc — nếu dạng gốc suy ra có mặt ở đó thì nó là từ có thật;
+//    (3) luật -ed/-s/-ing đã dùng từ v260 (tvGoc), vốn đã chạy đúng suốt nhiều bản.
+//  Không nguồn nào đỡ thì GIỮ NGUYÊN — thà để một dạng chia còn hơn đẻ ra một từ không có thật.
+// ══════════════════════════════════════════════════════════════════════════════════════
+
+// Viết tắt KHÔNG phải từ vựng, nó là ngữ pháp. "I'm" học thuộc như một từ thì vừa thừa
+// vừa sai chỗ — nên app trả nó về dạng đầy đủ rồi để bộ lọc cụm quyết định giữ hay bỏ.
+const TV_VIET_TAT = {
+  "i'm":"I am", "you're":"you are", "he's":"he is", "she's":"she is", "it's":"it is",
+  "we're":"we are", "they're":"they are", "that's":"that is", "there's":"there is",
+  "what's":"what is", "who's":"who is", "here's":"here is", "let's":"let us",
+  "don't":"do not", "doesn't":"does not", "didn't":"did not", "can't":"cannot",
+  "won't":"will not", "isn't":"is not", "aren't":"are not", "wasn't":"was not",
+  "weren't":"were not", "haven't":"have not", "hasn't":"has not", "hadn't":"had not",
+  "couldn't":"could not", "shouldn't":"should not", "wouldn't":"would not",
+  "i've":"I have", "you've":"you have", "we've":"we have", "they've":"they have",
+  "i'll":"I will", "you'll":"you will", "he'll":"he will", "she'll":"she will",
+  "we'll":"we will", "they'll":"they will", "i'd":"I would", "you'd":"you would"
+};
+// Những đuôi mà app CHỈ cắt khi dạng gốc suy ra được một trong ba nguồn trên xác nhận.
+// ĐO LẦN 1 BẮT ĐƯỢC: danh sách đuôi ban đầu của tôi cắt oan 10 từ — brother→broth,
+// forest→for, letter→let, flower→flow, career→care, manner→man, customer→custom,
+// apartment→apart, summer→sum. Lý do: "dạng gốc suy ra CÓ MẶT trong kho" là bằng chứng
+// QUÁ YẾU — broth, for, let, flow, care, man đều là từ có thật, nhưng chẳng dính dáng gì
+// tới brother, forest, letter. Nên nay:
+//   · Các đuôi tạo từ (-ment, -ness, -ful, -less, -able, -tion, -ity, -ive, -er danh từ
+//     chỉ người): KHÔNG cắt bằng luật nữa. Chúng chỉ đi qua bảng họ từ soạn tay, nơi
+//     "teacher thuộc họ teach" là điều đã được người viết xác nhận.
+//   · Đuôi SO SÁNH -er/-est: chỉ cắt khi gốc suy ra là một TÍNH TỪ có thật (faster→fast ✓,
+//     brother→broth ✗ vì broth là danh từ). Đây mới đúng là luật so sánh hơn / nhất.
+//   · Đuôi -ly và -ier/-iest: rất đều, giữ lại nhưng vẫn phải có gốc xác nhận.
+const TV_DUOI_CAN_BANG_CHUNG = [
+  ['iest', 'y'], ['ier', 'y'], ['ly', '']
+];
+// Hai đuôi so sánh — chỉ hợp lệ khi gốc là tính từ.
+const TV_DUOI_SO_SANH = [['est', ''], ['er', '']];
+// Vài chữ kết thúc bằng -ly nhưng không phải trạng từ. Cắt là ra chữ khác hẳn.
+const TV_LY_GIU = new Set(('only early family reply apply supply rely fly july ugly holy ' +
+  'italy multiply imply supply comply assembly').split(' '));
+// Gốc suy ra có phải TÍNH TỪ không? Hỏi bảng họ từ và ngân hàng gốc, không đoán.
+function tvLaTinhTu(t){
+  const k = String(t || '').toLowerCase().trim();
+  if(!k) return false;
+  try{
+    const g = HO_TU_TRA[k];
+    if(g && HO_TU[g]){
+      const adj = String(HO_TU[g].adj || '').toLowerCase();
+      if(adj.split(',').some(x=>x.trim() === k)) return true;
+    }
+  }catch(_){ }
+  try{
+    if(VOCAB_DATA && Array.isArray(VOCAB_DATA.words))
+      return VOCAB_DATA.words.some(w => String(w[1] || '').toLowerCase() === k
+                                     && String(w[2] || '').toLowerCase() === 'adj');
+  }catch(_){ }
+  return false;
+}
+// Dạng gốc ấy có thật không? Hỏi ba nguồn, không đoán.
+function tvCoThat(t){
+  const k = String(t || '').toLowerCase().trim();
+  if(!k || k.length < 2) return false;
+  try{ if(HO_TU[k]) return true; }catch(_){ }
+  try{ if(HO_TU_TRA[k]) return true; }catch(_){ }
+  try{
+    if(VOCAB_DATA && Array.isArray(VOCAB_DATA.words)
+       && VOCAB_DATA.words.some(w => String(w[1] || '').toLowerCase() === k)) return true;
+  }catch(_){ }
+  return false;
+}
+// Trong một họ từ, dạng nào là "gốc nhất"? Bạn dặn: ƯU TIÊN ĐỘNG TỪ.
+// Thứ tự ưu tiên khi phải tự chọn dạng gốc: ĐỘNG TỪ trước, đúng lời bạn dặn.
+const TV_UU_TIEN = ['v', 'n', 'adj', 'adv'];
+function tvDangGocNhat(khoaHo){
+  let d = null;
+  try{ d = HO_TU[khoaHo]; }catch(_){ }
+  if(!d) return '';
+  // ĐO LẦN 1 BẮT ĐƯỢC: "quickly" ra "quickness". Vì bảng ưu tiên lấy danh từ trước, mà họ
+  // "quick" có danh từ "quickness". CHÍNH TÊN HỌ mới là dạng gốc nhất — người soạn bảng đã
+  // đặt tên họ bằng đúng dạng cơ bản ấy. Nên: tên họ có mặt trong họ thì lấy tên họ.
+  const ten = String(khoaHo || '').toLowerCase();
+  let coTen = false;
+  for(const loai of ['v','n','adj','adv']){
+    if(String(d[loai] || '').toLowerCase().split(',').some(x=>x.trim() === ten)) coTen = true;
+  }
+  // Lời bạn dặn "ƯU TIÊN ĐỘNG TỪ" — nhưng phép đo trên cả 320 họ cho thấy không được áp mù:
+  //   · họ "boredom" {n:boredom, v:bore} → tên họ là DANH TỪ, gốc thật là "bore". Phải lấy động từ.
+  //   · họ "deep"    {adj:deep, v:deepen} → "deepen" là động từ ĐƯỢC TẠO RA TỪ "deep",
+  //     lấy nó làm gốc là đi ngược. Phải giữ "deep".
+  // Phân biệt hai ca ấy bằng đúng một dấu hiệu đọc được: động từ NGẮN HƠN tên họ và hai chữ
+  // cùng gốc chữ cái (bore/boredom chung "bor"; deepen dài hơn deep nên không áp dụng;
+  // spend/expense khác gốc chữ nên "expense" được giữ).
+  const dt = String(d.v || '').split(',')[0].trim();
+  if(dt && coTen && dt.toLowerCase() !== ten
+     && dt.length < ten.length
+     && ten.slice(0, 3) === dt.toLowerCase().slice(0, 3)) return dt;
+  if(coTen) return khoaHo;
+  // ĐO ĐƯỢC: cả 320 họ chỉ có ĐÚNG MỘT họ mà tên họ không nằm trong chính nó — "avail"
+  // {adj:available, n:availability}. Và nếu rơi vào bảng ưu tiên, nó trả "availability",
+  // tức biến "available" thành một chữ DÀI HƠN và hiếm hơn — tệ hơn hẳn chỗ xuất phát.
+  // Nên bỏ hẳn nhánh ấy: tên họ không dùng được thì GIỮ NGUYÊN chữ đang có.
+  // Còn lời bạn dặn "ưu tiên động từ" thì nằm sẵn trong chính bảng họ từ: người soạn đã
+  // đặt tên họ bằng động từ ở mọi họ có động từ (accept, decide, move, create…), nên lấy
+  // tên họ CHÍNH LÀ lấy động từ. Bài kiểm tra bên dưới soi lại điều đó trên cả 320 họ.
+  return '';
+}
+// Hai chữ chỉ khác nhau cách viết Anh-Anh / Anh-Mỹ (centre ↔ center) thì KHÔNG phải một
+// dạng phái sinh — đổi qua lại chỉ làm bạn rối, không dạy thêm được gì.
+function tvCungONguLoai(khoaHo, a, b){
+  let d = null;
+  try{ d = HO_TU[khoaHo]; }catch(_){ }
+  if(!d) return false;
+  const x = String(a || '').toLowerCase(), y = String(b || '').toLowerCase();
+  return ['n','v','adj','adv'].some(loai=>{
+    const ds = String(d[loai] || '').toLowerCase().split(',').map(t=>t.trim());
+    return ds.indexOf(x) >= 0 && ds.indexOf(y) >= 0;
+  });
+}
+// Đưa MỘT chữ về dạng gốc nhất của nó. Trả về {chu, vi, loai} — vi là lý do, để màn Thư
+// viện nói được cho bạn biết vì sao mục ấy đổi tên.
+// ══ v281 · TỪ LOẠI THẬT, KHÔNG DÁN "CỤM TỪ" CHO TẤT CẢ ════════════════════════════════
+// Bốn tấm ảnh bạn gửi đều có chữ "CỤM TỪ" dưới chân thẻ, kể cả "I'm" và "heavier" — rõ ràng
+// không phải cụm. Gốc lỗi: mục nhặt từ video không mang theo từ loại, mà chỗ nối kho lại
+// ghi mặc định 'cụm từ' cho mọi mục thiếu. Nay tra từ loại THẬT, và chỉ nói "cụm từ" khi
+// chữ ấy thật sự có khoảng trắng. Không tra được thì ĐỂ TRỐNG — thà thiếu còn hơn dán sai.
+function tvLoaiCua(x){
+  const chu = String((x && x.chu) || '').trim();
+  if(!chu) return '';
+  if(/\s/.test(chu)) return 'cụm từ';
+  const sanCo = String((x && x.loai) || '').trim();
+  if(sanCo && sanCo.toLowerCase() !== 'cụm từ') return sanCo;
+  const k = chu.toLowerCase();
+  // (1) Ngân hàng gốc đã ghi từ loại cho 2912 mục — nguồn chắc nhất.
+  try{
+    if(VOCAB_DATA && Array.isArray(VOCAB_DATA.words)){
+      const w = VOCAB_DATA.words.find(w => String(w[1] || '').toLowerCase() === k
+                                        && String(w[3] || '') !== VOC_CHU_DE_VIDEO);
+      if(w && w[2]) return String(w[2]);
+    }
+  }catch(_){ }
+  // (2) Bảng họ từ: chữ này nằm ở ô nào thì mang từ loại ấy.
+  try{
+    const g = HO_TU_TRA[k];
+    if(g && HO_TU[g]){
+      for(const loai of ['v','n','adj','adv']){
+        if(String(HO_TU[g][loai] || '').toLowerCase().split(',').some(t=>t.trim() === k)) return loai;
+      }
+    }
+  }catch(_){ }
+  return '';
+}
+function tvVeGoc(chu){
+  const tho = String(chu || '').trim();
+  if(!tho) return null;
+  const k = tho.toLowerCase();
+  // (0) Viết tắt → dạng đầy đủ. Đây là bước duy nhất làm chữ DÀI RA, và đúng như thế:
+  //     "I'm" không phải một từ vựng, nó là "I am".
+  if(TV_VIET_TAT[k]) return {chu:TV_VIET_TAT[k], vi:'viết tắt → dạng đầy đủ', loai:'viettat'};
+  if(/\s/.test(tho)) return null;                 // cụm từ: không đụng tới
+  // (1) Bảng họ từ biết chữ này thuộc họ nào → lấy dạng gốc nhất của họ ấy (ưu tiên động từ).
+  let ho = '';
+  try{ ho = HO_TU_TRA[k] || ''; }catch(_){ }
+  if(ho){
+    const g = tvDangGocNhat(ho);
+    if(g && g.toLowerCase() !== k && !tvCungONguLoai(ho, k, g))
+      return {chu:g, vi:'dạng gốc trong họ từ “' + ho + '”', loai:'hotu'};
+    return null;
+  }
+  // (2) Luật -ed/-s/-ing đã chạy đúng từ v260 — chỉ nhận khi dạng gốc có thật.
+  let g2 = '';
+  try{ g2 = tvGoc(k) || ''; }catch(_){ }
+  if(g2 && g2 !== k && tvCoThat(g2)) return {chu:g2, vi:'bỏ đuôi chia (-ed/-s/-ing)', loai:'chia'};
+  // (3) Các đuôi còn lại — CHỈ cắt khi dạng gốc suy ra được xác nhận là từ có thật.
+  for(const [duoi, thay] of TV_DUOI_CAN_BANG_CHUNG){
+    if(!k.endsWith(duoi) || k.length <= duoi.length + 2) continue;
+    if(duoi === 'ly' && TV_LY_GIU.has(k)) continue;
+    const than = k.slice(0, -duoi.length);
+    const ung = [than + thay, than, than + 'e', than + 'y'];
+    if(than.length > 2 && than[than.length-1] === than[than.length-2]) ung.push(than.slice(0, -1));
+    for(const u of ung){
+      if(u.length >= 3 && u !== k && tvCoThat(u))
+        return {chu:u, vi:'bỏ đuôi “-' + duoi + '”', loai:'duoi'};
+    }
+  }
+  // Đuôi so sánh hơn / nhất: chỉ cắt khi gốc là TÍNH TỪ. Đây là chỗ bản đầu cắt oan nhiều nhất.
+  for(const [duoi] of TV_DUOI_SO_SANH){
+    if(!k.endsWith(duoi) || k.length <= duoi.length + 2) continue;
+    const than = k.slice(0, -duoi.length);
+    const ung = [than, than + 'e'];
+    if(than.length > 2 && than[than.length-1] === than[than.length-2]) ung.push(than.slice(0, -1));
+    for(const u of ung){
+      if(u.length >= 3 && u !== k && tvLaTinhTu(u))
+        return {chu:u, vi:'bỏ đuôi so sánh “-' + duoi + '”', loai:'sosanh'};
+    }
+  }
+  // (4) Dạng chia mà không nguồn nào xác nhận dạng gốc → GIỮ NGUYÊN, không bịa.
+  return null;
+}
+
 function tvDangHoc(x){
   if(!x || !x.chu || !x.nghia) return false;
   const t = String(x.chu).trim().replace(/\s+/g, ' ');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ren-luyen-cache-v280';
+const CACHE_NAME = 'ren-luyen-cache-v281';
 const ASSETS = ['./index.html', './version.txt', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json',
   './lay-moc-youtube.html',
   './dialogue-context-data.json', './dictation-data.json'];
