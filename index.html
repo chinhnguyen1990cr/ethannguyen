@@ -1579,12 +1579,39 @@
   .avatar-upload-btn{background:linear-gradient(90deg,var(--gold),#FFE08A); color:#0E1218; border:none;}
   .avatar-reset-btn{background:var(--panel2); color:var(--dim);}
 
-  .kh-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
-  .kh-cat-card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:12px;
-    display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; text-align:center;}
-  .kh-cat-card .ic{width:100%; aspect-ratio:1.6/1; border-radius:12px; overflow:hidden;}
-  .kh-cat-card .lbl{font-size:12.5px; font-weight:700;}
-  .kh-cat-card .cnt{font-size:10.5px; color:var(--dim); font-family:var(--mono);}
+  /* ══ v286 · KINH NGHIỆM KIỂM HÀNG — DỰNG LẠI ════════════════════════════════════════
+     Mỗi thẻ dòng hàng nay mang MÀU CỦA CHÍNH DÒNG ẤY qua biến --khm: một vệt sáng rất mảnh
+     ở mép trên, viền đổi màu khi chạm, và quầng sáng mờ phía sau ảnh. Nhờ vậy nhận ra dòng
+     hàng bằng màu trước khi kịp đọc chữ — thứ đáng giá khi đang cầm điện thoại một tay
+     trong xưởng. Vẫn giữ nền tối của app, không đổi tông. */
+  .kh-intro{font-size:11.5px; color:var(--dim); margin:-4px 0 16px; line-height:1.68;
+    text-align:center; padding:0 6px;}
+  .kh-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+  .kh-cat-card{position:relative; background:linear-gradient(170deg, var(--panel2), var(--panel));
+    border:1px solid var(--border); border-radius:20px; padding:13px 12px 12px; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer; text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.26);
+    transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;}
+  /* Vệt sáng mép trên — màu dòng hàng, mảnh, không ồn ào. */
+  .kh-cat-card::before{content:''; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg, transparent, var(--khm, var(--blue)), transparent); opacity:.95;}
+  /* Quầng sáng mờ sau ảnh, cho thẻ có chiều sâu thay vì phẳng lì. */
+  .kh-cat-card::after{content:''; position:absolute; left:50%; top:-28%; width:78%; height:72%;
+    transform:translateX(-50%); border-radius:50%; background:var(--khm, var(--blue));
+    filter:blur(34px); opacity:.16; pointer-events:none;}
+  .kh-cat-card:active{transform:scale(.965); border-color:var(--khm, var(--blue));
+    box-shadow:0 3px 10px rgba(0,0,0,.3);}
+  .kh-cat-card .ic{position:relative; z-index:1; width:100%; aspect-ratio:1.6/1; border-radius:14px;
+    overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.3);}
+  .kh-cat-card .lbl{position:relative; z-index:1; font-size:13px; font-weight:800; letter-spacing:.1px;
+    line-height:1.25;}
+  .kh-cat-card .cnt{position:relative; z-index:1; font-size:10px; font-weight:700; color:var(--dim);
+    font-family:var(--mono); padding:2.5px 9px; border-radius:999px;
+    background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
+  /* Dòng hàng đã có ghi chú thì con số sáng lên theo màu dòng — nhìn lướt là biết chỗ nào
+     mình đã ghi, chỗ nào còn trống. */
+  .kh-cat-card .cnt.co{color:var(--khm, var(--blue)); border-color:color-mix(in srgb, var(--khm) 38%, transparent);
+    background:color-mix(in srgb, var(--khm) 11%, transparent);}
   .kh-backrow{position:relative; display:flex; align-items:center; justify-content:center; min-height:38px; margin-bottom:16px;}
   /* Nút về thẳng trang chính — có mặt ở MỌI màn hình con, khỏi phải bấm back nhiều lần */
   .kh-homebtn{position:absolute; right:0; top:50%; transform:translateY(-50%); width:38px; height:38px;
@@ -1604,22 +1631,192 @@
   .title-icon-badge{display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:9px;
     flex-shrink:0; color:#fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);}
   .title-icon-badge svg{width:15px; height:15px; display:block;}
-  .kh-refcard{background:linear-gradient(135deg, rgba(8,145,178,0.15), rgba(8,145,178,0.04));
-    border:1px solid rgba(8,145,178,0.4); border-radius:14px; padding:14px; margin-bottom:14px;
-    display:flex; align-items:center; justify-content:space-between; gap:10px; text-decoration:none; color:var(--text);}
-  .kh-refcard .t1{font-size:13px; font-weight:700;} .kh-refcard .t2{font-size:10.5px; color:var(--dim); margin-top:2px;}
-  .kh-add-btn{width:100%; padding:12px; border-radius:12px; font-size:13px; font-weight:700; margin-bottom:14px;
-    cursor:pointer; border:none; background:linear-gradient(90deg,var(--gold),#FFE08A); color:#0E1208;}
-  .kh-note-item{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px;
-    margin-bottom:10px; cursor:pointer; position:relative;}
-  .kh-note-item .t{font-size:13.5px; font-weight:700; padding-right:24px;}
+  .kh-refcard{position:relative; overflow:hidden;
+    background:linear-gradient(135deg, rgba(8,145,178,0.17), rgba(8,145,178,0.035));
+    border:1px solid rgba(8,145,178,0.4); border-radius:18px; padding:15px 16px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; text-decoration:none;
+    color:var(--text); cursor:pointer; box-shadow:0 5px 16px rgba(0,0,0,.22);
+    transition:transform .16s ease, border-color .16s ease;}
+  .kh-refcard:active{transform:scale(.985);}
+  .kh-refcard .t1{font-size:13.5px; font-weight:800;}
+  .kh-refcard .t2{font-size:10.5px; color:var(--dim); margin-top:3px; line-height:1.5;}
+  /* Thẻ mở bộ tiêu chuẩn dùng tông xanh dương, tách khỏi tông xanh ngọc của Bách Khoa Nhựa
+     để hai lối vào không bị nhìn nhầm thành một. */
+  .kh-refcard.tc{background:linear-gradient(135deg, rgba(79,168,255,.19), rgba(79,168,255,.04));
+    border-color:rgba(79,168,255,.44);}
+  .kh-add-btn{width:100%; padding:13px; border-radius:15px; font-size:13px; font-weight:800; margin-bottom:14px;
+    cursor:pointer; border:none; background:linear-gradient(135deg,var(--gold),#FFE08A); color:#0E1208;
+    box-shadow:0 5px 16px rgba(255,201,74,.22); transition:transform .15s ease, box-shadow .15s ease;}
+  .kh-add-btn:active{transform:translateY(1px) scale(.99); box-shadow:0 2px 8px rgba(255,201,74,.18);}
+  .kh-note-item{background:linear-gradient(170deg, var(--panel2), var(--panel));
+    border:1px solid var(--border); border-left:3px solid var(--khm, var(--border));
+    border-radius:16px; padding:14px 15px; margin-bottom:11px; cursor:pointer; position:relative;
+    box-shadow:0 4px 12px rgba(0,0,0,.2); transition:transform .15s ease, border-color .15s ease;}
+  .kh-note-item:active{transform:scale(.99);}
+  .kh-note-item .t{font-size:13.5px; font-weight:800; padding-right:28px; line-height:1.35;}
   .kh-note-item .c{font-size:11.5px; color:var(--dim); margin-top:5px; line-height:1.5; white-space:pre-wrap;
     display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
   .kh-note-item .d{font-size:10px; color:var(--dim2); margin-top:6px; font-family:var(--mono);}
   .kh-note-del{position:absolute; top:12px; right:12px; width:22px;height:22px; border-radius:50%;
     background:var(--panel2); border:1px solid var(--border); color:var(--red); font-size:12px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;}
-  .kh-empty{text-align:center; color:var(--dim); font-size:12px; padding:30px 10px;}
+  .kh-empty{text-align:center; color:var(--dim); font-size:12px; padding:34px 14px; line-height:1.7;
+    background:var(--panel); border:1px dashed var(--border); border-radius:16px;}
+
+  /* ══ v286 · MÀN TRA CỨU TIÊU CHUẨN ══════════════════════════════════════════════════ */
+  .tc-dau{text-align:center; margin:-4px 0 14px;}
+  .tc-dau-t{font-size:12.5px; font-weight:700; color:var(--text);}
+  .tc-dau-s{font-size:10.5px; color:var(--dim2); font-family:var(--mono); margin-top:4px; letter-spacing:.2px;}
+  .tc-drive{display:flex; align-items:center; gap:11px; padding:13px 15px; margin-bottom:12px;
+    border-radius:16px; text-decoration:none; color:var(--text); cursor:pointer;
+    background:linear-gradient(135deg, rgba(44,219,168,.15), rgba(44,219,168,.035));
+    border:1px solid rgba(44,219,168,.4); box-shadow:0 5px 16px rgba(0,0,0,.2);
+    transition:transform .15s ease;}
+  .tc-drive:active{transform:scale(.985);}
+  .tc-drive .ic{font-size:19px; flex-shrink:0;}
+  .tc-drive span:nth-child(2){flex:1; min-width:0;}
+  .tc-drive b{display:block; font-size:12.5px; font-weight:800;}
+  .tc-drive i{display:block; font-style:normal; font-size:10.5px; color:var(--dim); margin-top:2px;}
+  .tc-drive .mui{font-size:14px; color:var(--dim2); flex-shrink:0;}
+  /* Khối nói rõ vì sao bản PDF không nằm trong app. Để nhạt, nhưng KHÔNG giấu đi: người
+     dùng có quyền biết tại sao thứ họ gửi lại không xuất hiện ở nơi họ mong. */
+  .tc-bq{font-size:10.5px; line-height:1.75; color:var(--dim2); background:var(--panel);
+    border:1px solid var(--border); border-left:3px solid rgba(255,201,74,.55);
+    border-radius:12px; padding:11px 13px; margin-bottom:18px;}
+  .tc-bq b{color:var(--dim);}
+  .tc-nhom{margin-bottom:18px;}
+  .tc-nhom-t{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:800;
+    letter-spacing:.4px; text-transform:uppercase; color:var(--dim); margin-bottom:9px;}
+  .tc-nhom-t span{width:9px; height:9px; border-radius:3px; flex-shrink:0;}
+  .tc-nhom-t b{margin-left:auto; font-family:var(--mono); font-size:10px; font-weight:700;
+    color:var(--dim2); background:rgba(255,255,255,.05); padding:2px 7px; border-radius:999px;}
+  .tc-nut-g{display:flex; flex-direction:column; gap:9px;}
+  /* Nút chủ đề: khối lớn, chạm được bằng ngón cái, ba dòng chữ phân cấp rõ — tên tiếng
+     Việt đọc trước, tên tiếng Anh để đối chiếu với báo cáo lab, dòng tóm tắt để biết bên
+     trong có gì mà không cần mở ra. */
+  .tc-nut{position:relative; width:100%; text-align:left; cursor:pointer; overflow:hidden;
+    display:flex; flex-direction:column; gap:3px; padding:13px 38px 13px 15px; border-radius:16px;
+    background:linear-gradient(170deg, var(--panel2), var(--panel));
+    border:1px solid var(--border); border-left:3px solid var(--tcm, var(--blue));
+    font-family:inherit; color:var(--text); box-shadow:0 4px 12px rgba(0,0,0,.2);
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;}
+  .tc-nut::after{content:'›'; position:absolute; right:15px; top:50%; transform:translateY(-50%);
+    font-size:21px; line-height:1; color:var(--dim2);}
+  .tc-nut:active{transform:scale(.985); border-color:var(--tcm, var(--blue));
+    box-shadow:0 2px 7px rgba(0,0,0,.25);}
+  .tc-nut .t{font-size:13.5px; font-weight:800; line-height:1.35;}
+  .tc-nut .e{font-size:10.5px; font-style:italic; color:var(--tcm, var(--blue)); opacity:.85;}
+  .tc-nut .s{font-size:10.5px; color:var(--dim); line-height:1.5; margin-top:1px;}
+
+  .tc-doc{background:var(--panel); border:1px solid var(--border); border-radius:18px;
+    padding:16px 16px 18px; box-shadow:0 6px 18px rgba(0,0,0,.22);}
+  .tc-doc-dau{padding-bottom:12px; margin-bottom:13px; border-bottom:1px solid var(--border);}
+  .tc-doc-dau .nh{display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.5px;
+    text-transform:uppercase; color:var(--tcm, var(--blue)); padding:3px 9px; border-radius:999px;
+    background:color-mix(in srgb, var(--tcm) 13%, transparent);
+    border:1px solid color-mix(in srgb, var(--tcm) 34%, transparent);}
+  .tc-doc-en{font-size:11px; font-style:italic; color:var(--dim2); margin-top:7px;}
+  .tc-de{font-size:12px; font-weight:800; color:var(--tcm, var(--blue)); margin:16px 0 8px;
+    letter-spacing:.2px;}
+  .tc-de:first-of-type{margin-top:2px;}
+  .tc-y{margin:0 0 10px; font-size:12.5px; line-height:1.78; color:var(--text);}
+  .tc-y b{color:#fff;}
+  .tc-ds{margin:0 0 10px; padding-left:18px;}
+  .tc-ds li{font-size:12.5px; line-height:1.72; color:var(--text); margin-bottom:6px;}
+  .tc-ds li::marker{color:var(--tcm, var(--blue));}
+  /* Cặp Anh–Việt: nguyên văn tiếng Anh ở trên để đối chiếu khi tranh luận với lab hoặc
+     khách, diễn giải tiếng Việt ở dưới. Hai nền khác nhau để mắt không lẫn. */
+  .tc-song{margin:0 0 12px; border-radius:13px; overflow:hidden; border:1px solid var(--border);}
+  .tc-song .en, .tc-song .vi{position:relative; padding:10px 13px 10px 40px; font-size:12px; line-height:1.7;}
+  .tc-song .en{background:rgba(255,255,255,.035); color:var(--dim); font-style:italic;}
+  .tc-song .vi{background:color-mix(in srgb, var(--tcm) 8%, transparent); color:var(--text);
+    border-top:1px solid var(--border);}
+  .tc-song .nhan{position:absolute; left:11px; top:10px; font-family:var(--mono); font-size:8.5px;
+    font-weight:800; letter-spacing:.5px; padding:2px 5px; border-radius:5px;}
+  .tc-song .en .nhan{color:var(--dim2); background:rgba(255,255,255,.07);}
+  .tc-song .vi .nhan{color:var(--tcm, var(--blue));
+    background:color-mix(in srgb, var(--tcm) 17%, transparent);}
+  .tc-song .vi b{color:#fff;}
+  /* Bảng số liệu: cuộn ngang được trên điện thoại, hàng tiêu đề dính khi cuộn dọc. Đây là
+     thứ người kiểm hàng mở ra nhiều nhất, nên nó phải đọc được trên màn hình nhỏ. */
+  .tc-bang-o{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 12px;
+    border:1px solid var(--border); border-radius:13px;}
+  .tc-bang{border-collapse:collapse; width:100%; min-width:460px; font-size:11px;}
+  .tc-bang th{position:sticky; top:0; background:var(--panel2); color:var(--dim);
+    font-size:10px; font-weight:800; letter-spacing:.3px; text-transform:uppercase;
+    text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap;}
+  .tc-bang td{padding:9px 10px; line-height:1.62; color:var(--text); vertical-align:top;
+    border-bottom:1px solid rgba(255,255,255,.045);}
+  .tc-bang tr:last-child td{border-bottom:none;}
+  .tc-bang tr:nth-child(even) td{background:rgba(255,255,255,.018);}
+  .tc-bang td:first-child{font-family:var(--mono); font-weight:700; color:var(--tcm, var(--blue));
+    white-space:nowrap;}
+  .tc-bang b{color:#fff;}
+  .tc-bang i{font-style:italic; color:var(--dim2); font-size:10.5px;}
+  .tc-dk{display:block; margin-top:3px; font-size:9.5px; font-style:normal; color:var(--dim2);
+    line-height:1.5;}
+  /* Ghi chú thực chiến: do tôi soạn, không phải nội dung tiêu chuẩn — nên nó có nền riêng
+     và có nhãn hẳn hoi, để bạn không bao giờ nhầm lời khuyên của tôi với điều khoản. */
+  .tc-luu{position:relative; margin:0 0 11px; padding:11px 13px 11px 13px; border-radius:12px;
+    font-size:12px; line-height:1.72; color:var(--text);
+    background:rgba(255,201,74,.07); border:1px solid rgba(255,201,74,.26);
+    border-left:3px solid rgba(255,201,74,.75);}
+  .tc-luu b{color:#FFD98A;}
+  .tc-luu-i{display:inline-block; font-size:9px; font-weight:800; letter-spacing:.5px;
+    text-transform:uppercase; color:#FFC94A; background:rgba(255,201,74,.15);
+    padding:2px 7px; border-radius:5px; margin-right:8px; vertical-align:1px;}
+  .tc-dieuhuong{display:flex; gap:9px; margin-top:14px;}
+  .tc-dieuhuong > span{flex:1;}
+  .tc-dh{flex:1; min-width:0; padding:11px 12px; border-radius:14px; cursor:pointer;
+    font-family:inherit; font-size:11px; font-weight:700; line-height:1.4; text-align:center;
+    background:var(--panel2); border:1px solid var(--border); color:var(--dim);
+    overflow:hidden; text-overflow:ellipsis; transition:transform .15s ease, color .15s ease;}
+  .tc-dh:active{transform:scale(.97); color:var(--text);}
+  /* ══ Bảng trên màn hẹp: xếp lại thành THẺ, không cuộn ngang ══════════════════════════
+     Đã dựng thử và chụp lại: ở bề ngang 611 px, bảng 6 cột đã cắt mất cột CONTRACT — đúng
+     cột mà người kiểm hàng dự án cần nhất, và người dùng không hề biết là mình đang thiếu
+     một cột. Cuộn ngang để tìm một con số lực trong lúc đứng ở xưởng là cách chắc chắn
+     đọc nhầm cột. Nên dưới 720 px, mỗi hàng thành một thẻ: tên phép thử trên cùng, rồi
+     ba cấp nằm thành ba dòng có nhãn — thấy hết, không cuộn, không nhầm cột. */
+  @media (max-width:720px){
+    .tc-bang-o{overflow:visible; border:none; border-radius:0;}
+    .tc-bang{min-width:0; width:100%; display:block; font-size:12px;}
+    .tc-bang thead{display:none;}
+    .tc-bang tbody{display:block;}
+    .tc-bang tr{display:block; margin-bottom:10px; border-radius:14px; overflow:hidden;
+      border:1px solid var(--border); border-left:3px solid var(--tcm, var(--blue));
+      background:var(--panel2);}
+    .tc-bang tr:last-child{margin-bottom:0;}
+    .tc-bang tr:nth-child(even) td{background:transparent;}
+    .tc-bang td{display:block; padding:9px 13px; border-bottom:1px solid rgba(255,255,255,.05);}
+    .tc-bang td:last-child{border-bottom:none;}
+    /* Ô có nhãn thì in nhãn ra phía trước, chữ nhỏ và mờ, để biết con số này của cấp nào. */
+    .tc-bang td[data-nhan]:not([data-nhan=''])::before{content:attr(data-nhan); display:block;
+      font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:.5px;
+      text-transform:uppercase; color:var(--dim2); margin-bottom:3px;}
+    /* Ô đầu tiên (số thứ tự phép thử) và ô thứ hai (tên phép thử) làm thành phần đầu thẻ. */
+    .tc-bang td:first-child{background:color-mix(in srgb, var(--tcm) 12%, transparent);
+      font-size:11px; padding:7px 13px;}
+    .tc-bang td:first-child::before{display:none;}
+    .tc-bang td:nth-child(2){font-size:12.5px; line-height:1.6;}
+    /* Ba cột cấp cuối bảng nằm cạnh nhau thành một dòng ngang: liếc một cái là so được
+       Camping với Contract, thay vì cuộn dọc qua ba khối rời. */
+    .tc-bang.ba-cap td:nth-last-child(-n+3){display:inline-block; width:33.33%;
+      box-sizing:border-box; vertical-align:top; border-bottom:none;
+      border-right:1px solid rgba(255,255,255,.05); padding:8px 9px;
+      font-family:var(--mono); font-size:11.5px; line-height:1.75;}
+    .tc-bang.ba-cap td:last-child{border-right:none;}
+    .tc-bang.ba-cap td:nth-last-child(3){border-top:1px solid rgba(255,255,255,.05);}
+    .tc-bang.ba-cap td:nth-last-child(-n+3)::before{font-size:8.5px; letter-spacing:.3px;}
+    /* Cấp Contract — cấp nặng nhất, hay bị nhầm nhất — được tô sáng hơn một bậc. */
+    .tc-bang.ba-cap td:last-child{background:color-mix(in srgb, var(--tcm) 9%, transparent);}
+    .tc-bang.ba-cap td:last-child::before{color:var(--tcm, var(--blue));}
+  }
+  @media (max-width:420px){
+    .tc-nut{padding:12px 34px 12px 13px;}
+    .kh-grid{gap:10px;}
+    .tc-doc{padding:14px 13px 16px;}
+  }
   textarea.form-input{min-height:120px; line-height:1.5;}
   /* Danh sách mục con "Học tiếng Anh" — kiểu pill Medical ID/Emergency SOS: icon tròn màu + tên + phụ đề + chevron. */
   .eng-item-list{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
@@ -4733,6 +4930,17 @@ function titleBadge(name, c1, c2){
 // Ảnh minh họa (dạng illustration nhiều màu, giống ảnh sản phẩm) cho các dòng hàng Kinh nghiệm kiểm hàng.
 // Ghi chú: đây là hình minh họa tự thiết kế, chưa phải ảnh chụp thật — có thể thay bằng ảnh thật của bạn sau.
 const KH_PHOTOS = {
+  // v286 — dòng hàng Outdoor Furniture: bàn, ghế và dù, trên nền trời chiều.
+  outdoor: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="url(#og)"/>
+    <circle cx="74" cy="24" r="10" fill="#FFD98A" opacity="0.9"/>
+    <path d="M50 14 L74 40 L26 40 Z" fill="#FF6B5A"/><path d="M50 14 L62 40 L38 40 Z" fill="#FF9382"/>
+    <rect x="48" y="38" width="4" height="34" rx="2" fill="#8B6341"/>
+    <rect x="22" y="58" width="56" height="6" rx="3" fill="#C68642"/>
+    <rect x="26" y="64" width="4" height="18" rx="2" fill="#A8683A"/><rect x="70" y="64" width="4" height="18" rx="2" fill="#A8683A"/>
+    <rect x="12" y="66" width="18" height="5" rx="2.5" fill="#2CDBA8"/><rect x="12" y="52" width="5" height="18" rx="2.5" fill="#25B88D"/>
+    <rect x="70" y="66" width="18" height="5" rx="2.5" fill="#2CDBA8"/><rect x="83" y="52" width="5" height="18" rx="2.5" fill="#25B88D"/>
+    <rect x="8" y="84" width="84" height="5" rx="2.5" fill="#1E6B52" opacity="0.65"/>
+    <defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B4A6B"/><stop offset="1" stop-color="#0E2C3F"/></linearGradient></defs></svg>`,
   wood: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="#3E2A1A"/>
     <rect x="10" y="16" width="80" height="15" rx="4" fill="#C68642"/><rect x="10" y="16" width="80" height="15" rx="4" fill="url(#wg)" opacity="0.5"/>
     <rect x="10" y="35" width="80" height="15" rx="4" fill="#B5763B"/><rect x="10" y="54" width="80" height="15" rx="4" fill="#C68642"/>
@@ -4867,7 +5075,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v285';
+const APP_VERSION = 'v286';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -5161,6 +5369,9 @@ function saveProfile(){
 let LOG = {};
 let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
 const KH_CATEGORIES = [
+  // v286 — EN 581 là tiêu chuẩn cho đồ ngoài trời, nên dòng hàng này đứng đầu: mở ra là
+  // vào thẳng bộ tra cứu, không phải lục qua ghi chú.
+  {id:'outdoor', label:'Outdoor Furniture', icon:'outdoor', hex:'#4FA8FF'},
   {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
   {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
   {id:'nhua', label:'Nhựa', icon:'plastic', hex:'#0891B2'},
@@ -5169,8 +5380,464 @@ const KH_CATEGORIES = [
   {id:'bamboo', label:'Bamboo', icon:'bamboo', hex:'#2CDBA8'},
   {id:'khac', label:'Khác', icon:'grid', hex:'#8B96A8'}
 ];
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v286 · BỘ TRA CỨU EN 581 — ĐỒ GỖ / NỘI THẤT NGOÀI TRỜI
+//
+//  BA FILE PDF BẠN GỬI KHÔNG NẰM TRONG APP, VÀ CÓ LÝ DO.
+//  Bản PDF ấy ghi rõ trên bìa: "All network exploitation, reproduction and
+//  re-dissemination, even partial, whatever the form, is strictly prohibited", và trang
+//  cuối: "licensed to a sole named user for personal or internal company use only".
+//  Giấy phép lại cấp cho STEINHOFF INT SOURCING AND LOGISTICS. App này chạy công khai
+//  trên GitHub Pages, nên nhúng file vào đây đúng là phát tán — thứ giấy phép cấm.
+//
+//  Thứ nằm dưới đây là CÁI KHÁC: các CON SỐ YÊU CẦU (lực, chu kỳ, kích thước, chiều cao
+//  rơi) là dữ kiện kỹ thuật, không phải nội dung được bảo hộ; phần diễn giải tiếng Việt và
+//  ghi chú thực chiến là do tôi soạn, không phải bản dịch nguyên văn tiêu chuẩn. Dùng để
+//  tra nhanh khi đứng ở xưởng. Khi cần trích dẫn chính thức cho hồ sơ hay tranh chấp,
+//  vẫn phải mở bản gốc có giấy phép — bộ này KHÔNG thay thế tiêu chuẩn.
+//
+//  Nguồn số liệu: EN 581-1:2017 · EN 581-2:2015 (Bảng 1, Bảng 2) · EN 581-3:2017 (Bảng 1).
+// ══════════════════════════════════════════════════════════════════════════════════════
+const TC_DRIVE = 'https://drive.google.com/drive/folders/1ibpvgIdNsHPR5RUKOgdqcUhlRfzv8NBh';
+const TC_NHOM = [
+  {id:'tq', ten:'Tổng quan',        hex:'#4FA8FF'},
+  {id:'p1', ten:'EN 581-1 · An toàn chung', hex:'#2CDBA8'},
+  {id:'p2', ten:'EN 581-2 · Ghế',   hex:'#FFC94A'},
+  {id:'p3', ten:'EN 581-3 · Bàn',   hex:'#FF8A3D'},
+  {id:'tc', ten:'Thực chiến',       hex:'#C77DFF'}
+];
+// Mỗi mục: {id, nhom, ten, tenEn, tom, khoi:[...]}
+//   khoi: {k:'y', t} đoạn văn · {k:'ds', ts:[]} gạch đầu dòng · {k:'song', en, vi} cặp
+//   Anh–Việt · {k:'bang', cot:[], hang:[[...]]} bảng · {k:'luu', t} ghi chú thực chiến
+//   {k:'de', t} tiểu đề
+const TC_MUC = [
+
+// ══ TỔNG QUAN ════════════════════════════════════════════════════════════════════════
+{id:'tq-bo', nhom:'tq', ten:'Bộ EN 581 gồm những gì', tenEn:'Structure of the standard',
+ tom:'Ba phần, phần nào quản cái gì',
+ khoi:[
+  {k:'y', t:'EN 581 là bộ tiêu chuẩn châu Âu cho <b>ghế và bàn ngoài trời dùng cho người lớn</b>, chia làm ba phần. Một sản phẩm đạt EN 581 là phải đạt <b>cả phần 1 cộng với phần tương ứng</b> (phần 2 nếu là ghế, phần 3 nếu là bàn) — không có chuyện đạt riêng một phần.'},
+  {k:'bang', cot:['Phần','Tên đầy đủ','Quản cái gì'], hang:[
+   ['EN 581-1:2017','Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
+    'An toàn chung: cạnh sắc, góc nhọn, đầu ống hở, điểm cắt và kẹp tay. Áp cho <b>cả ghế lẫn bàn</b>.'],
+   ['EN 581-2:2015','… Part 2: Mechanical safety requirements and test methods for seating',
+    'An toàn cơ học cho <b>ghế</b>: độ bền, độ bền mỏi, độ ổn định. Hai bảng riêng — ghế nằm và các loại ghế khác.'],
+   ['EN 581-3:2017','… Part 3: Mechanical safety requirements for tables',
+    'An toàn cơ học cho <b>bàn</b>: tải trọng mặt bàn, độ bền ngang, độ ổn định, mặt bàn kính, lỗ cắm dù.']
+  ]},
+  {k:'y', t:'EN 581-1:2017 thay cho bản 2006. Khác biệt chính của bản mới: định nghĩa ba cấp sử dụng được dời từ Phụ lục B lên Điều 3; phương pháp thử bị bỏ; yêu cầu về cạnh và góc được viết lại theo <b>phần có thể chạm tới khi dùng</b>; chi tiết dạng ống được định nghĩa rõ và yêu cầu về khe hở/lỗ bị gỡ bỏ.'},
+  {k:'luu', t:'EN 581 KHÔNG quản: ghế cho khán đài; độ bền của vật liệu bọc nệm; bánh xe (castors); cơ cấu ngả lưng và nghiêng; cơ cấu chỉnh chiều cao ghế. Khách hỏi "nệm ngoài trời này đạt EN 581 chưa" thì câu trả lời đúng là EN 581 không nói gì về nệm — phải viện tiêu chuẩn khác.'}
+ ]},
+
+{id:'tq-cap', nhom:'tq', ten:'Ba cấp sử dụng — chọn sai là sai hết', tenEn:'Camping · Domestic · Contract',
+ tom:'Cấp nào thì lực thử bấy nhiêu',
+ khoi:[
+  {k:'y', t:'Đây là thứ phải chốt <b>trước tiên</b> trong mọi đơn hàng. Toàn bộ bảng lực và chu kỳ ở phần 2 và phần 3 đều chia theo ba cấp này. Nhận nhầm cấp thì mọi con số phía sau đều sai.'},
+  {k:'song', en:'outdoor furniture for contract use — outdoor furniture intended for non-private use in places with public access',
+   vi:'<b>Contract</b> — đồ ngoài trời dùng ở nơi <b>không riêng tư, có công chúng ra vào</b>: nhà hàng, khách sạn, quán cà phê, khu nghỉ dưỡng, công viên. Đây là cấp <b>nặng nhất</b>, lực và chu kỳ cao nhất.'},
+  {k:'song', en:'outdoor furniture for domestic use — outdoor furniture intended for private use in places without public access',
+   vi:'<b>Domestic</b> — đồ dùng <b>riêng tư, nơi công chúng không vào được</b>: sân vườn nhà ở, ban công, sân thượng riêng. Cấp trung bình.'},
+  {k:'song', en:'outdoor furniture for camping use — outdoor furniture foldable or knock-down and light-weight, intended for use in connection with camping and travelling',
+   vi:'<b>Camping</b> — đồ <b>gấp được hoặc tháo rời được và nhẹ</b>, dùng khi cắm trại và đi lại. Cấp nhẹ nhất. Chú ý: định nghĩa đòi <b>cả hai</b> — vừa gấp/tháo được vừa nhẹ. Một cái ghế sắt gấp được nhưng nặng 12 kg thì không phải camping.'},
+  {k:'luu', t:'Cấp sử dụng phải được ghi trong hướng dẫn sử dụng kèm sản phẩm (EN 581-2 điều 8.1 b và EN 581-3 điều 6 b). Khi kiểm hàng, mở hộp lấy tờ hướng dẫn ra đọc — nếu nó ghi "domestic" mà khách đặt hàng cho chuỗi nhà hàng thì đó là một phát hiện (finding) thật, không phải chuyện nhỏ.'},
+  {k:'luu', t:'Chênh lệch giữa ba cấp rất lớn. Ví dụ phép thử độ bền mỏi ghế: Camping 12.500 chu kỳ · Domestic 25.000 · Contract 50.000 — gấp bốn lần. Nhà máy báo giá theo domestic rồi giao cho dự án contract là rủi ro thường gặp nhất ở dòng hàng này.'}
+ ]},
+
+// ══ EN 581-1 ═════════════════════════════════════════════════════════════════════════
+{id:'p1-pham-vi', nhom:'p1', ten:'Phạm vi áp dụng', tenEn:'Scope (Clause 1)',
+ tom:'Áp cho ai, không áp cho cái gì',
+ khoi:[
+  {k:'song', en:'This part of EN 581 specifies the general safety requirements for outdoor seating and tables for camping, domestic and contract for use by adults, without regard to materials, design/construction or manufacturing processes.',
+   vi:'Phần này quy định yêu cầu an toàn chung cho ghế và bàn ngoài trời ở ba cấp camping, domestic, contract, <b>dùng cho người lớn</b>, và <b>không phân biệt vật liệu, kiểu dáng/kết cấu hay quy trình sản xuất</b>.'},
+  {k:'de', t:'Không áp dụng cho'},
+  {k:'ds', ts:[
+   'Ghế cho khu vực khán giả (spectator facilities).',
+   'Độ bền của vật liệu bọc nệm (upholstery materials).',
+   'Bánh xe (castors).',
+   'Cơ cấu ngả lưng và nghiêng (reclining and tilting mechanisms).',
+   'Cơ cấu chỉnh chiều cao mặt ngồi (seat height adjustment mechanisms).'
+  ]},
+  {k:'luu', t:'"Không phân biệt vật liệu" là câu quan trọng nhất với người kiểm hàng. Gỗ teak, nhôm, nhựa đan, thép, HDPE, sợi tổng hợp — cùng một bộ yêu cầu. Không có chuyện "hàng gỗ thì châm chước hơn".'},
+  {k:'luu', t:'"Dùng cho người lớn" — đồ ngoài trời cho trẻ em KHÔNG thuộc phạm vi EN 581. Gặp bộ bàn ghế sân vườn cỡ trẻ em thì phải hỏi khách tiêu chuẩn nào áp dụng, đừng mặc định EN 581.'}
+ ]},
+
+{id:'p1-dau-do', nhom:'p1', ten:'Ba đầu dò 7 · 12 · 18 mm', tenEn:'Test probes (Clause 4)',
+ tom:'Dụng cụ gốc để bắt lỗi kẹp tay',
+ khoi:[
+  {k:'y', t:'Tiêu chuẩn quy định <b>ba đầu dò hình trụ, đầu bán cầu</b>. Mọi yêu cầu về điểm cắt/kẹp (điều 5.3) và lỗ đầu ống (điều 5.2) đều được đánh giá bằng ba đầu dò này, không phải bằng mắt.'},
+  {k:'bang', cot:['Đầu dò','Dung sai','Dùng để'], hang:[
+   ['Ø 7 mm','+0 / −0,1 mm','Ngưỡng <b>dưới</b>: khe nhỏ hơn 7 mm thì ngón tay không lọt vào được — không phải điểm kẹp.'],
+   ['Ø 12 mm','+0,1 / −0 mm','Ngưỡng trên của lỗ đầu ống: lỗ Ø 7–12 mm sâu ≥ 10 mm là lỗ bẫy ngón tay.'],
+   ['Ø 18 mm','+0,1 / −0 mm','Ngưỡng <b>trên</b> của điểm kẹp: khe lớn hơn 18 mm thì ngón tay rút ra kịp — không phải điểm kẹp.']
+  ]},
+  {k:'luu', t:'Không có bộ đầu dò chuẩn ở xưởng thì dùng thước cặp đo khe, nhưng phải ghi rõ trong báo cáo là "đo bằng thước cặp, không phải đầu dò theo Điều 4". Đừng ghi là đã thử theo tiêu chuẩn khi chưa có đúng dụng cụ — đó là chỗ báo cáo kiểm hàng hay bị bắt lỗi nhất.'},
+  {k:'luu', t:'Mẹo nhanh ở xưởng: ngón út người lớn khoảng 15–17 mm, bút bi thường Ø 8–10 mm. Dùng để sàng lọc sơ bộ rồi mới đo chính xác chỗ nghi ngờ.'}
+ ]},
+
+{id:'p1-canh', nhom:'p1', ten:'Cạnh, góc và bề mặt chạm tới được', tenEn:'General safety (5.1)',
+ tom:'120 mm với ghế · 500 mm với bàn',
+ khoi:[
+  {k:'song', en:'In order to avoid physical injury when the product is in its intended position of use, all edges and corners shall be rounded, chamfered or otherwise protected.',
+   vi:'Để tránh gây thương tích khi sản phẩm ở <b>tư thế sử dụng dự kiến</b>, mọi cạnh và góc phải được <b>bo tròn, vát cạnh hoặc che chắn</b> bằng cách khác.'},
+  {k:'de', t:'Phạm vi phải xử lý — con số phải nhớ'},
+  {k:'bang', cot:['Loại','Vùng bắt buộc bo/vát/che'], hang:[
+   ['Ghế','Cạnh mặt ngồi, cạnh tựa lưng, cạnh tay vịn, và <b>mọi phần mặt dưới của mặt ngồi nằm trong vòng 120 mm tính từ bất kỳ cạnh nào</b> — chỗ mà ngón tay thường chạm tới được.'],
+   ['Bàn','Mặt bàn, và <b>mọi phần mặt dưới của mặt bàn nằm trong vòng 500 mm tính từ bất kỳ cạnh nào phía dưới bàn</b> — chỗ mà đầu gối và/hoặc cánh tay thường chạm tới được.']
+  ]},
+  {k:'de', t:'Bốn yêu cầu còn lại trong 5.1'},
+  {k:'ds', ts:[
+   'Mọi phần khác phải <b>không có ba via, cạnh sắc và mũi nhọn</b> (free from burrs, sharp edges and sharp points).',
+   'Phần chuyển động và phần điều chỉnh được phải thiết kế sao cho <b>tránh gây thương tích và tránh thao tác ngoài ý muốn</b>.',
+   '<b>Không bộ phận chịu lực nào được tự tuột ra ngoài ý muốn</b> (come loose unintentionally).',
+   'Phần nào được bôi trơn để trượt thì phải thiết kế sao cho <b>người dùng không bị dính dầu mỡ</b> khi dùng bình thường.'
+  ]},
+  {k:'luu', t:'Vùng 120 mm dưới mặt ngồi là chỗ bị bỏ sót nhiều nhất ở ghế gỗ: đầu vít bắt từ dưới lên, mép nẹp đỡ, đầu bulông thừa ra. Lật ngửa ghế lên và rà tay dọc mép — đúng cách tiêu chuẩn nghĩ tới.'},
+  {k:'luu', t:'Vùng 500 mm dưới mặt bàn: khung sắt hàn, mép ke góc, đầu ốc tăng đơ. Người ngồi vào bàn ăn sẽ cụng đầu gối đúng chỗ đó.'},
+  {k:'luu', t:'"Ở tư thế sử dụng dự kiến" — ghế gấp thì xét ở tư thế mở ra dùng, không phải tư thế gấp. Nhưng lỗi khi gấp lại thuộc điều 5.3.1, xem mục Điểm cắt & kẹp.'}
+ ]},
+
+{id:'p1-ong', nhom:'p1', ten:'Chi tiết dạng ống — lỗ bẫy ngón tay', tenEn:'Tubular components (5.2)',
+ tom:'Cấm lỗ Ø 7–12 mm sâu ≥ 10 mm',
+ khoi:[
+  {k:'song', en:'There shall be no accessible holes in the ends of tubular components with a diameter between 7 mm to 12 mm and with a depth more or equal to 10 mm.',
+   vi:'<b>Không được có lỗ hở chạm tới được ở đầu các chi tiết dạng ống</b> có đường kính <b>từ 7 mm đến 12 mm</b> và <b>độ sâu từ 10 mm trở lên</b>.'},
+  {k:'song', en:'The bottom of tubular legs in contact with the floor shall be closed or capped, however, holes in them are allowed as long as they are not between 7 and 12 mm.',
+   vi:'Đáy chân ống tiếp xúc với sàn <b>phải được bịt kín hoặc chụp nút</b>. Vẫn được phép có lỗ trên đó, <b>miễn là không nằm trong khoảng 7–12 mm</b>.'},
+  {k:'de', t:'Vì sao lại là khoảng 7–12 mm'},
+  {k:'y', t:'Theo Phụ lục B (tham khảo) của tiêu chuẩn, điều 5.2 nhằm vào hai rủi ro: <b>ngón tay bị kẹt trong lỗ của chi tiết ống</b>, và <b>làm hỏng sàn nhà</b>. Lỗ nhỏ hơn 7 mm thì ngón tay không lọt; lớn hơn 12 mm thì rút ra được. Khoảng giữa mới là khoảng bẫy.'},
+  {k:'luu', t:'Đây là lỗi kinh điển của bàn ghế khung nhôm/thép ngoài trời: nhà máy quên đóng nút nhựa chân ống, hoặc đóng nút nhưng nút rơi mất trong vận chuyển. Khi kiểm hàng phải <b>lật ngửa từng cái</b> và đếm đủ số nút, không kiểm mẫu đại diện — nút rơi là chuyện ngẫu nhiên từng cái.'},
+  {k:'luu', t:'Đầu ống bị cắt chéo để hàn rồi để hở cũng tính là lỗ hở. Chú ý cả đầu trên của chân ghế chỗ gắn tay vịn, không chỉ đáy chân.'},
+  {k:'luu', t:'Chân ống không bịt còn kéo theo hai hệ quả thương mại ngoài tiêu chuẩn: nước đọng trong ống gây gỉ từ trong ra, và cạnh ống cứa xước sàn gỗ/sàn đá của khách.'}
+ ]},
+
+{id:'p1-kep', nhom:'p1', ten:'Điểm cắt và kẹp — ba tình huống khác nhau', tenEn:'Shear and squeeze points (5.3)',
+ tom:'7–18 mm · ba tình huống, ba mức xử lý',
+ khoi:[
+  {k:'song', en:'shear and squeeze points exist if the distance between two accessible parts moving relative to each other can be more or equal than 7 mm and less or equal than 18 mm in any position during movement',
+   vi:'<b>Điểm cắt và kẹp tồn tại khi</b> khoảng cách giữa hai bộ phận chạm tới được, chuyển động tương đối với nhau, <b>có thể từ 7 mm đến 18 mm</b> ở <b>bất kỳ vị trí nào trong suốt quá trình chuyển động</b>.'},
+  {k:'y', t:'Chữ quan trọng là <b>"ở bất kỳ vị trí nào trong suốt quá trình chuyển động"</b>. Không phải đo khe ở trạng thái đóng và trạng thái mở rồi kết luận. Phải rà <b>toàn bộ hành trình</b> — khe có thể đi qua vùng 7–18 mm ở giữa chừng rồi lại ra khỏi vùng đó.'},
+  {k:'de', t:'Ba tình huống, ba mức xử lý khác nhau'},
+  {k:'bang', cot:['Điều','Tình huống','Kết luận'], hang:[
+   ['5.3.1','Điểm kẹp <b>chỉ sinh ra khi dựng, điều chỉnh hoặc gấp cất</b> sản phẩm',
+    '<b>CHẤP NHẬN ĐƯỢC</b> — với điều kiện có thể coi là người dùng đang chủ động điều khiển cử động của mình và có thể ngừng tác dụng lực ngay khi thấy đau. Nhưng chỉ áp dụng khi 5.3.2 và 5.3.3 không áp dụng.'],
+   ['5.3.2','Điểm kẹp do bộ phận vận hành bằng <b>cơ cấu có tích năng lượng</b> — ví dụ lò xo cơ khí, ty hơi (gas lift)',
+    '<b>CẤM TUYỆT ĐỐI</b> — không được có điểm cắt/kẹp chạm tới được. Người dùng không kịp phản ứng với lực do lò xo hay ty hơi sinh ra.'],
+   ['5.3.3','Điểm kẹp sinh ra do <b>tải trọng tác dụng khi dùng bình thường</b>',
+    '<b>CẤM</b> — không được có điểm cắt/kẹp chạm tới được. Cũng không chấp nhận nếu có rủi ro thương tích do <b>chính trọng lượng người dùng</b> trong các cử động thông thường, ví dụ nhấc mặt ngồi để xê dịch ghế, hoặc chỉnh tựa lưng.']
+  ]},
+  {k:'de', t:'5.3.3 — "tải trọng khi dùng bình thường" là tải nào'},
+  {k:'y', t:'Tiêu chuẩn không để câu này mơ hồ, mà chỉ đích danh các phép thử cơ học sẽ sinh ra tải đó:'},
+  {k:'bang', cot:['Loại sản phẩm','Các phép thử định nghĩa "tải khi dùng bình thường"'], hang:[
+   ['Ghế nằm (loungers)','EN 581-2:2015 Bảng 1 — Thử 2 (tải tĩnh bổ sung mặt ngồi và gác chân) · Thử 3 (độ bền mỏi mặt ngồi và lưng) · Thử 4 (độ bền mỏi mặt ngồi bổ sung) · Thử 5 (độ bền mỏi cơ cấu tựa lưng)'],
+   ['Các loại ghế khác','EN 581-2:2015 Bảng 2 — Thử 2 (tải tĩnh mép trước mặt ngồi) · Thử 3 (độ bền mỏi kết hợp mặt ngồi và lưng) · Thử 4 (độ bền mỏi ghế có lưng nhiều nấc)'],
+   ['Bàn','EN 581-3:2007 Bảng 1 — Thử 1 (tải tĩnh thẳng đứng trên mặt chính) · Thử 4 (tải tĩnh thẳng đứng trên mặt phụ) · Thử 5 (độ bền mỏi theo phương ngang)']
+  ]},
+  {k:'luu', t:'Phụ lục B ghi rõ điều 5.3 nhằm chống <b>cắt và kẹp ngón tay, không tính ngón cái</b> (thumbs excluded). Ngón cái to hơn nên không rơi vào vùng 7–18 mm theo cùng cách.'},
+  {k:'luu', t:'Ghế gấp và bàn gấp là nơi điều 5.3 sống. Thao tác gấp/mở <b>chậm</b> từng nấc và dò khe bằng đầu dò ở từng vị trí. Chỗ hay bắt được lỗi: bản lề chữ X của ghế xếp, khớp nối tay vịn với chân, cơ cấu khoá tựa lưng nhiều nấc.'},
+  {k:'luu', t:'Thấy ty hơi hoặc lò xo trợ lực trên ghế ngoài trời thì dừng lại soi kỹ — đó là 5.3.2, mức CẤM TUYỆT ĐỐI, không có đường miễn trừ "người dùng tự chủ" như 5.3.1.'}
+ ]},
+
+// ══ EN 581-2 ═════════════════════════════════════════════════════════════════════════
+{id:'p2-lounger', nhom:'p2', ten:'Ghế nằm — 12 phép thử (Bảng 1)', tenEn:'Loungers — EN 581-2:2015 Table 1',
+ tom:'Thử theo đúng thứ tự, không đảo',
+ khoi:[
+  {k:'y', t:'Ghế nằm phải được thử <b>theo đúng thứ tự liệt kê</b> trong bảng. Mọi lực đơn vị niutơn (N), chu kỳ là số lần lặp.'},
+  {k:'bang', cot:['#','Phép thử · Viện dẫn','Thông số','Camping','Domestic','Contract'], hang:[
+   ['1','<b>Tải tĩnh mặt ngồi và lưng</b><br><i>Seat and back static load test</i><br>EN 1728:2012, 8.2',
+    'Tải mặt ngồi, N<br>Tải tựa lưng, N<br>Lực tối thiểu F2 (lưng), N<br>Chu kỳ<br>Chu kỳ bổ sung 30 phút ± 10 s',
+    '1 100<br>–<br>–<br>10<br>1','1 600<br>410<br>360<br>10<br>1','2 000<br>560<br>500<br>10<br>1'],
+   ['2','<b>Tải tĩnh bổ sung mặt ngồi và gác chân</b><br><i>Additional seat and leg rest static load</i><br>EN 1728:2012, 8.3',
+    'Tải mặt ngồi tại điểm đặt, N<br>Lực tại điểm D-E, N','750<br>600','750<br>900','750<br>900'],
+   ['3','<b>Độ bền mỏi mặt ngồi và lưng</b><br><i>Seat and back durability test</i><br>EN 1728:2012, 8.4.1',
+    'Tải mặt ngồi, N<br>Tải tựa lưng, N<br>Lực tối thiểu F4 (lưng), N<br>Chu kỳ',
+    '750<br>250<br>220<br>12 500','1 000<br>333<br>300<br>25 000','1 000<br>333<br>300<br>50 000'],
+   ['4','<b>Độ bền mỏi mặt ngồi bổ sung</b><br><i>Additional seat durability test</i><br>EN 1728:2012, 8.4.2',
+    'Lực, N<br>Chu kỳ','750<br>5 000','1 000<br>10 000','1 000<br>20 000'],
+   ['5','<b>Độ bền mỏi cơ cấu tựa lưng</b><br><i>Durability test on back rest mechanism</i><br>EN 1728:2012, 8.5',
+    'Lực, N<br>Tải mặt ngồi, N<br>Chu kỳ','190<br>1 000<br>5 000','250<br>1 000<br>10 000','250<br>1 000<br>20 000'],
+   ['6','<b>Tải tĩnh tay vịn</b><br><i>Arm rest static load test</i><br>EN 1728:2012, 8.6',
+    'Lực thẳng đứng, N','–','700','900'],
+   ['7','<b>Độ bền mỏi tay vịn</b><br><i>Arm rest durability test</i><br>EN 1728:2012, 8.7',
+    'Lực, N<br>Chu kỳ','400<br>5 000','400<br>10 000','400<br>30 000'],
+   ['8','<b>Thử va đập</b><br><i>Impact test</i><br>EN 1728:2012, 8.8',
+    'Chiều cao rơi, mm<br>Chu kỳ','140<br>10','180<br>10','240<br>10'],
+   ['9','<b>Thử nhấc ghế nằm di động</b><br><i>Lifting test for mobile loungers</i><br>EN 1728:2012, 8.9',
+    'Tải, N<br>Chu kỳ','1 000<br>500','1 000<br>1 000','1 000<br>2 000'],
+   ['10','<b>Ổn định về phía trước</b><br><i>Forward stability</i> — A.1.2','—','—','—','—'],
+   ['11','<b>Ổn định về phía sau</b><br><i>Rearward stability</i><br>EN 1022:2005, 6.6 (tư thế dựng) và 7.5 (tư thế ngả nhất)','—','—','—','—'],
+   ['12','<b>Ổn định sang ngang</b><br><i>Sideways stability</i> — A.1.1','—','—','—','—']
+  ]},
+  {k:'de', t:'Bốn chú thích của bảng — đọc kỹ, chúng đổi kết quả'},
+  {k:'ds', ts:[
+   '<b>a</b> — Nếu mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải), thì <b>chỉ thực hiện phép thử trên mặt ngồi</b>. Áp cho Thử 1 và Thử 3.',
+   '<b>b</b> — Nếu tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> (thay vì 900 N của cấp contract).',
+   '<b>c</b> — Với ghế có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện các phép thử ổn định TRƯỚC</b> khi bắt đầu chuỗi thử trong bảng. Lý do thực tế: nếu ghế lật ngay thì không cần tốn 50.000 chu kỳ mới biết.',
+   '<b>d</b> — <b>Không áp dụng</b> phép thử ổn định trước và ngang cho ghế có <b>chiều cao mặt ngồi &lt; 200 mm VÀ khối lượng &lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên, tại <b>tâm hình học của mặt ngồi khi chưa chất tải</b>.'
+  ]},
+  {k:'luu', t:'Chú thích d đòi <b>cả hai</b> điều kiện cùng lúc (&lt; 200 mm VÀ &lt; 5 kg). Ghế bệt 180 mm nhưng nặng 6 kg thì vẫn phải thử ổn định.'},
+  {k:'luu', t:'Thử 7 là chỗ chênh lệch cấp lớn nhất mà nhà máy hay bỏ qua: tay vịn Domestic 10.000 chu kỳ nhưng Contract <b>30.000</b> — gấp ba, trong khi lực vẫn 400 N cho cả ba cấp. Mối ghép tay vịn vào khung là điểm chết của ghế nằm hàng dự án.'}
+ ]},
+
+{id:'p2-ghe', nhom:'p2', ten:'Các loại ghế khác — 13 phép thử (Bảng 2)', tenEn:'Other seating — EN 581-2:2015 Table 2',
+ tom:'Ghế ăn, ghế bành, ghế xếp…',
+ khoi:[
+  {k:'y', t:'Áp dụng cho mọi loại ghế ngoài trời <b>không phải ghế nằm</b>: ghế ăn ngoài trời, ghế bành sân vườn, ghế xếp, ghế đẩu, ghế băng. Trước và sau khi thử, sản phẩm <b>vẫn phải đạt EN 581-1</b>.'},
+  {k:'bang', cot:['#','Phép thử · Viện dẫn','Thông số','Camping','Domestic','Contract'], hang:[
+   ['1','<b>Tải tĩnh mặt ngồi và tải tĩnh lưng</b><br><i>Seat static load and back static load</i><br>EN 1728:2012, 6.4',
+    'Tải mặt ngồi, N<br>Tải đặt lên mặt ngồi không được thử, N<br>Tải tựa lưng, N<br>Lực tối thiểu F2 (lưng), N<br>Chu kỳ<br>Chu kỳ bổ sung 30 phút ± 10 s',
+    '1 100<br>750<br>–<br>–<br>10<br>1','1 600<br>750<br>410<br>360<br>10<br>1','2 000<br>750<br>560<br>500<br>10<br>1'],
+   ['2','<b>Tải tĩnh mép trước mặt ngồi</b><br><i>Seat front edge static load</i><br>EN 1728:2012, 6.5',
+    'Lực, N<br>Tải mặt ngồi, N<br>Chu kỳ','1 100<br>750<br>10','1 300<br>750<br>10','1 300<br>750<br>10'],
+   ['3','<b>Độ bền mỏi kết hợp mặt ngồi và lưng</b><br><i>Combined seat and back durability</i><br>EN 1728:2012, 6.17',
+    'Tải mặt ngồi quy định, N<br>Tải mặt ngồi, N<br>Tải tựa lưng, N<br>Lực tối thiểu F4 (lưng), N<br>Chu kỳ',
+    '1 000<br>750<br>250<br>220<br>12 500','1 000<br>750<br>333<br>300<br>25 000','1 000<br>750<br>333<br>300<br>50 000'],
+   ['4','<b>Độ bền mỏi ghế có lưng nhiều nấc</b><br><i>Durability on seating with multi-position back</i><br>EN 1728:2012, 6.19',
+    'Tải mặt ngồi, N<br>Lực, N<br>Chu kỳ','750<br>190<br>5 000','750<br>250<br>10 000','750<br>250<br>20 000'],
+   ['5','<b>Tải tĩnh tay vịn</b><br><i>Arm rest static load test</i><br>EN 1728:2012, 6.11',
+    'Lực thẳng đứng, N','–','700','900'],
+   ['6','<b>Độ bền mỏi tay vịn</b><br><i>Arm rest durability test</i><br>EN 1728:2012, 6.20',
+    'Lực, N<br>Chu kỳ','400<br>5 000','400<br>10 000','400<br>30 000'],
+   ['7','<b>Tải tĩnh chân theo phương trước</b><br><i>Leg forward static load</i><br>EN 1728:2012, 6.15',
+    'Tải mặt ngồi, N<br>Lực ngang, N<br>Lực tối thiểu, N<br>Chu kỳ',
+    '750<br>250<br>150<br>10','1 000<br>300<br>175<br>10','1 000<br>400<br>250<br>10'],
+   ['8','<b>Tải tĩnh chân theo phương ngang</b><br><i>Leg sideways static load</i><br>EN 1728:2012, 6.16',
+    'Tải mặt ngồi, N<br>Lực ngang, N<br>Lực tối thiểu, N<br>Chu kỳ',
+    '750<br>200<br>150<br>10','1 000<br>300<br>175<br>10','1 000<br>300<br>200<br>10'],
+   ['9','<b>Thử va đập mặt ngồi</b><br><i>Seat impact test</i><br>EN 1728:2012, 6.24',
+    'Chiều cao rơi, mm<br>Chu kỳ','140<br>10','180<br>10','240<br>10'],
+   ['10','<b>Thử tĩnh gác chân</b><br><i>Foot rest static test</i><br>EN 1728:2012, 6.8',
+    'Lực thẳng đứng, N<br>Chu kỳ','–<br>10','1 000<br>10','1 200<br>10'],
+   ['11','<b>Ổn định về phía trước</b> — EN 1022','—','—','—','—'],
+   ['12','<b>Ổn định về phía sau</b> — EN 1022','—','—','—','—'],
+   ['13','<b>Ổn định sang ngang</b> — EN 1022','—','—','—','—']
+  ]},
+  {k:'de', t:'Sáu chú thích của bảng'},
+  {k:'ds', ts:[
+   '<b>a</b> — Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải) thì chỉ thử trên mặt ngồi. Áp cho Thử 1 và Thử 3.',
+   '<b>b</b> — Tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> cho cấp contract.',
+   '<b>c</b> — Thử va đập: điểm đặt phải cách mép trước <b>ít nhất 100 mm</b>. <b>Không thực hiện</b> phép thử này với ghế có chiều cao mặt ngồi <b>&gt; 600 mm</b>.',
+   '<b>d</b> — Thử gác chân <b>chỉ thực hiện</b> với ghế có chiều cao mặt ngồi <b>&gt; 700 mm</b> (ghế quầy bar).',
+   '<b>e</b> — <b>Không áp dụng</b> thử ổn định trước và ngang cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm VÀ</b> khối lượng <b>&lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên tại tâm hình học mặt ngồi khi chưa chất tải.',
+   '<b>f</b> — Ghế có thể không đạt ổn định ngay từ đầu thì <b>được phép thử ổn định trước</b> chuỗi thử trong bảng.'
+  ]},
+  {k:'luu', t:'Chú thích c và d là cặp ngưỡng chiều cao dễ nhầm: <b>&gt; 600 mm thì BỎ thử va đập</b>, <b>&gt; 700 mm thì THÊM thử gác chân</b>. Ghế quầy bar ngoài trời cao 750 mm rơi vào cả hai — bỏ va đập, thêm gác chân.'},
+  {k:'luu', t:'So Bảng 2 với Bảng 1: ghế thường có thêm <b>Thử 7 và Thử 8 (tải chân trước/ngang)</b> mà ghế nằm không có. Đó là chỗ ghế gỗ ngoài trời hay gãy — mối ghép mộng chân với seat rail chịu lực ngang 400 N ở cấp contract.'},
+  {k:'luu', t:'Thử 2 (mép trước) Camping 1 100 N trong khi Domestic và Contract đều 1 300 N — đây là một trong vài chỗ hiếm hoi mà Domestic và Contract bằng nhau. Đừng suy diễn "contract luôn cao hơn" cho mọi dòng.'}
+ ]},
+
+{id:'p2-dat', nhom:'p2', ten:'Tiêu chí ĐẠT của ghế', tenEn:'Requirements (6.2.2 · 7.2.2)',
+ tom:'Năm điều kiện, thiếu một là trượt',
+ khoi:[
+  {k:'y', t:'Sau khi thử xong theo bảng, ghế được coi là <b>đạt</b> yêu cầu an toàn, độ bền và độ bền mỏi khi:'},
+  {k:'song', en:'a) there are no fractures of any joint, member or component',
+   vi:'<b>a)</b> Không có <b>nứt gãy</b> ở bất kỳ mối ghép, thanh/chi tiết hay bộ phận nào.'},
+  {k:'song', en:'b) there is no loosening of joints intended to be rigid',
+   vi:'<b>b)</b> Không có <b>lỏng lẻo</b> ở các mối ghép vốn được thiết kế là cứng (không khớp động).'},
+  {k:'song', en:'c) the seating fulfils its function after removal of the test loads',
+   vi:'<b>c)</b> Ghế <b>vẫn thực hiện được chức năng</b> của nó sau khi dỡ bỏ tải thử.'},
+  {k:'song', en:'d) the seating fulfils the safety requirements',
+   vi:'<b>d)</b> Ghế <b>vẫn đạt các yêu cầu an toàn</b> (tức EN 581-1) — chỉ có trong mục ghế thường 7.2.2.'},
+  {k:'song', en:'e) the product shall not overturn when subjected to the stability tests',
+   vi:'<b>e)</b> Sản phẩm <b>không được lật</b> khi chịu các phép thử ổn định.'},
+  {k:'luu', t:'Điều b là chỗ dễ bị bỏ qua nhất khi kiểm hàng. Sau khi thử, phải <b>lắc và vặn thử từng mối ghép</b>, không chỉ nhìn xem có gãy không. Mộng gỗ hở 1–2 mm sau 50.000 chu kỳ là "loosening", là trượt — dù chẳng có gì gãy.'},
+  {k:'luu', t:'Điều c "vẫn thực hiện được chức năng" bao gồm cả cơ cấu: ghế xếp sau khi thử vẫn phải gấp/mở được trơn tru, lưng nhiều nấc vẫn khoá được ở mọi nấc. Ghế còn nguyên nhưng kẹt không gấp được là trượt.'},
+  {k:'luu', t:'Điều d nhắc rằng EN 581-1 phải đạt <b>cả trước lẫn sau</b> khi thử. Một cạnh vốn nhẵn nhưng sau thử bị nứt tạo thành mép sắc thì vừa trượt a vừa trượt d.'}
+ ]},
+
+{id:'p2-nhan', nhom:'p2', ten:'Hướng dẫn sử dụng và ghi nhãn (ghế)', tenEn:'Information for use (Clause 8)',
+ tom:'Chữ ≥ 5 mm · pictogram ≥ 25 mm',
+ khoi:[
+  {k:'y', t:'Phần này kiểm được <b>ngay tại xưởng mà không cần máy móc</b>, nên thường là phần sinh ra nhiều phát hiện nhất trong một đợt kiểm hàng.'},
+  {k:'de', t:'Yêu cầu về tờ hướng dẫn'},
+  {k:'ds', ts:[
+   'Phải được cung cấp bằng <b>ngôn ngữ của nước nơi ghế được bán</b>.',
+   'Phải có tiêu đề <b>"IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY"</b> với <b>chiều cao chữ không nhỏ hơn 5 mm</b> — trừ khi các thông tin dưới đây đã được <b>ghi cố định ngay trên sản phẩm</b>.',
+   'Nội dung tối thiểu: <b>a)</b> tên và địa chỉ nhà sản xuất / nhà cung cấp / nhà bán lẻ; <b>b)</b> <b>điều kiện sử dụng của sản phẩm</b> (domestic, camping hay contract).',
+   'Nếu có áp dụng: <b>c)</b> hướng dẫn lắp ráp; <b>d)</b> hướng dẫn bảo quản và bảo dưỡng; <b>e)</b> nếu ghế có cơ cấu chỉnh chiều cao dùng bộ tích năng lượng thì phải có ghi chú bổ sung nêu rõ <b>chỉ nhân viên được đào tạo mới được thay hoặc sửa</b> bộ phận ấy.'
+  ]},
+  {k:'de', t:'Ghi nhãn riêng cho ghế nằm (8.2)'},
+  {k:'song', en:'Loungers equipped with wheels, but not intended to be lifted and moved with a person in it shall be permanently marked with the pictogram as shown in Figure 2. The smallest dimension of the pictogram shall not be less than 25 mm.',
+   vi:'Ghế nằm <b>có bánh xe</b> nhưng <b>không dành để nhấc và di chuyển khi có người ngồi trên đó</b> phải được <b>ghi nhãn cố định</b> bằng hình cảnh báo (pictogram) theo Hình 2. <b>Kích thước nhỏ nhất của hình không được dưới 25 mm.</b>'},
+  {k:'luu', t:'"Ghi nhãn cố định" (permanently marked) nghĩa là không được dùng tem giấy dán bóc ra được. Phải là in ép nhiệt, khắc, đúc liền hoặc nhãn dệt khâu chắc. Tem sticker là trượt.'},
+  {k:'luu', t:'Mang theo thước đo tới xưởng và <b>đo thật chiều cao chữ tiêu đề</b> và kích thước pictogram. 5 mm và 25 mm là con số đo được, không phải chuyện cảm tính. Đây là lỗi bị bắt rất nhiều ở lô hàng đi EU.'},
+  {k:'luu', t:'Ngôn ngữ phải đúng <b>nước bán</b>, không phải nước sản xuất. Hàng đi Đức mà tờ hướng dẫn chỉ có tiếng Anh là một phát hiện.'}
+ ]},
+
+// ══ EN 581-3 ═════════════════════════════════════════════════════════════════════════
+{id:'p3-ban', nhom:'p3', ten:'Bàn — 8 phép thử (Bảng 1)', tenEn:'Tables — EN 581-3:2017 Table 1',
+ tom:'Phân biệt theo diện tích và chiều cao mặt bàn',
+ khoi:[
+  {k:'y', t:'Việc thử thực hiện theo EN 1730. Bàn phải được thử <b>theo đúng thứ tự</b> liệt kê trong bảng. Trước và sau khi thử, bàn <b>vẫn phải đạt EN 581-1:2017</b>.'},
+  {k:'y', t:'Điểm khác biệt lớn nhất so với ghế: <b>phép thử nào áp dụng còn phụ thuộc vào kích thước mặt bàn</b>. Phải đo diện tích mặt bàn và chiều cao bàn trước khi quyết định chạy thử nào.'},
+  {k:'bang', cot:['#','Phép thử · Viện dẫn','Thông số','Camping','Domestic','Contract'], hang:[
+   ['1','<b>Tải tĩnh thẳng đứng trên mặt chính</b><br><i>Vertical static load on main surface</i><br>EN 1730:2012, 6.3.1<br><span class="tc-dk">Áp dụng cho bàn có mặt bàn <b>&gt; 0,25 m²</b></span>',
+    'a) Lực — bàn cao <b>≤ 950 mm</b>, N<br>b) Lực — bàn cao <b>&gt; 950 mm</b>, N<br>Chu kỳ',
+    '300<br>–<br>10','750<br>500<br>10','1 000<br>500<br>10'],
+   ['2','<b>Tải tĩnh thẳng đứng trên mặt chính</b><br><i>Vertical static load on main surface</i><br>EN 1730:2012, 6.3.1<br><span class="tc-dk">Áp dụng cho bàn có mặt bàn <b>≤ 0,25 m²</b></span>',
+    'Lực, N<br>Chu kỳ','150<br>10','300<br>10','500<br>10'],
+   ['3','<b>Tải tĩnh thẳng đứng bổ sung</b><br><i>Additional vertical static load test</i><br>EN 1730:2012, 6.3.2<br><span class="tc-dk">Chỉ khi mặt chính có chiều dài <b>&gt; 1 600 mm</b></span>',
+    'Lực, N<br>Chu kỳ','500<br>10','750<br>10','1 000<br>10'],
+   ['4','<b>Tải tĩnh thẳng đứng trên mặt phụ</b><br><i>Vertical static load on ancillary surface</i><br>EN 1730:2012, 6.3.3',
+    'Lực, N<br>Chu kỳ','100<br>10','200<br>10','300<br>10'],
+   ['5','<b>Độ bền mỏi theo phương ngang</b><br><i>Horizontal durability test</i><br>EN 1730:2012, 6.4.2',
+    'Khối lượng quy định, kg<br>Lực, N<br>Chu kỳ','50<br>100<br>5 000','50<br>150<br>10 000','50<br>300<br>20 000'],
+   ['6','<b>Ổn định dưới tải thẳng đứng</b><br><i>Stability under vertical load</i><br>EN 1730:2012, 7.2',
+    'Lực, N<br>V₁ / V₂, N <span class="tc-dk">(xác định theo EN 1730:2012, Bảng 2)</span>',
+    '200<br>200','200<br>400','200<br>400'],
+   ['7','<b>Ổn định của bàn có tấm nối dài</b><br><i>Stability for tables with extension elements</i><br>EN 1730:2012, 7.3',
+    'Tải tấm nối dài, kg/dm³<br>Tải thẳng đứng, N<br>V₁ / V₂, N <span class="tc-dk">(theo EN 1730:2012, Bảng 2)</span>',
+    '0,2<br>200<br>200','0,2<br>200<br>400','0,5<br>200<br>400'],
+   ['8','<b>Ổn định của bàn thiết kế để đỡ dù</b><br><i>Stability of tables designed to support a parasol</i><br>EN 1730:2012, 7.4',
+    'Lực thử, N','30','30','30']
+  ]},
+  {k:'de', t:'Hai chú thích của bảng — rất quan trọng với bàn nối dài'},
+  {k:'ds', ts:[
+   '<b>a</b> — Với bàn có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện bổ sung các phép thử ổn định TRƯỚC</b> chuỗi thử trong bảng.',
+   '<b>b</b> — Bàn có <b>tấm nối dài</b> phải được thử ở <b>CẢ HAI cấu hình: đã kéo dài và chưa kéo dài</b>. Tấm nối dài đặt ở <b>giữa</b> bàn thì được thử <b>như mặt chính</b>. Một phần của mặt chính ở cấu hình chưa kéo dài <b>có thể trở thành mặt phụ</b> ở cấu hình đã kéo dài.'
+  ]},
+  {k:'luu', t:'Chú thích b là cái bẫy lớn nhất của dòng bàn ăn ngoài trời nối dài. Số lượt thử <b>nhân đôi</b>, và việc "mặt chính biến thành mặt phụ" nghĩa là cùng một vùng mặt bàn phải chịu hai mức lực khác nhau ở hai cấu hình. Báo giá thử nghiệm cho bàn nối dài mà tính như bàn thường là thiếu một nửa.'},
+  {k:'luu', t:'0,25 m² là ngưỡng chia Thử 1 và Thử 2 — tương đương mặt bàn 50 × 50 cm. Bàn phụ (side table) ngoài trời thường rơi dưới ngưỡng này, nên chỉ thử 150/300/500 N chứ không phải 300/750/1 000 N. Đo diện tích trước, đừng áng chừng.'},
+  {k:'luu', t:'950 mm là ngưỡng chiều cao của Thử 1. Bàn quầy bar ngoài trời (thường 1 000–1 100 mm) dùng dòng b: Camping <b>không áp dụng</b>, Domestic và Contract đều <b>500 N</b>.'},
+  {k:'luu', t:'1 600 mm là ngưỡng chiều dài kích hoạt Thử 3. Bàn ăn 6–8 chỗ gần như luôn vượt ngưỡng này, nên phải có thêm một phép thử nữa so với bàn 4 chỗ.'}
+ ]},
+
+{id:'p3-kinh', nhom:'p3', ten:'Mặt bàn kính và lỗ cắm dù', tenEn:'Glass tops & parasol holes (5.1)',
+ tom:'Hai đường đạt cho kính, một quy định cho lỗ dù',
+ khoi:[
+  {k:'song', en:'Glass table tops shall fulfil the requirements in EN 12150-1:2015, Clause 8, fragmentation test, or the mode of breakage (β) according to EN 12600:2002 shall be Type B or Type C.',
+   vi:'Mặt bàn kính phải đạt <b>MỘT TRONG HAI</b>: (1) yêu cầu <b>thử vỡ vụn</b> (fragmentation test) theo <b>EN 12150-1:2015, Điều 8</b>; HOẶC (2) <b>kiểu vỡ (β)</b> theo <b>EN 12600:2002</b> phải là <b>Type B hoặc Type C</b>.'},
+  {k:'song', en:'Holes for parasol in glass table top shall be protected to prevent metal to glass contact.',
+   vi:'Lỗ cắm dù trên mặt bàn kính <b>phải được bảo vệ để ngăn kim loại tiếp xúc trực tiếp với kính</b>.'},
+  {k:'de', t:'Hiểu cho đúng hai đường đạt'},
+  {k:'y', t:'Cả hai đường đều nhằm một mục đích: <b>khi kính vỡ thì không được tạo ra mảnh sắc lớn</b>. EN 12150-1 là kính tôi nhiệt an toàn — vỡ thành hạt nhỏ đều. EN 12600 Type B là kính dán nhiều lớp (mảnh dính vào màng film), Type C là vỡ vụn thành hạt. Cái <b>không</b> được chấp nhận là Type A — vỡ thành mảnh lớn sắc như kính thường (annealed).'},
+  {k:'luu', t:'Khi kiểm hàng, tìm <b>dấu khắc (etch mark)</b> ở góc tấm kính — kính tôi nhiệt đạt chuẩn luôn có khắc tên nhà sản xuất và tiêu chuẩn. Không có dấu khắc thì phải đòi chứng chỉ của lô kính, đừng chấp nhận lời nói.'},
+  {k:'luu', t:'Yêu cầu "ngăn kim loại tiếp xúc kính" ở lỗ dù thường được thoả bằng một <b>vòng đệm nhựa hoặc cao su</b> lót trong lỗ. Nhà máy hay quên hoặc lắp thiếu ở một số cái. Kiểm từng cái, và kiểm cả việc vòng đệm có bị xô lệch khi siết cột dù không — thép chạm kính là nguồn nứt ngay cả khi chưa dùng.'},
+  {k:'luu', t:'Kính tôi nhiệt có một đặc tính phải nói với khách: nó <b>không</b> bền va đập điểm hơn kính thường ở cạnh. Va vào cạnh/góc tấm kính tôi là vỡ tung cả tấm. Vận chuyển và kê kho là chỗ hỏng nhiều hơn cả khi dùng.'}
+ ]},
+
+{id:'p3-dat', nhom:'p3', ten:'Tiêu chí ĐẠT của bàn + hướng dẫn sử dụng', tenEn:'Requirements (5.2.2) & Information for use (Clause 6)',
+ tom:'Bốn điều kiện + cảnh báo chân dù',
+ khoi:[
+  {k:'de', t:'Tiêu chí đạt (5.2.2)'},
+  {k:'y', t:'Sau khi thử theo Bảng 1, bàn được coi là <b>đạt</b> khi:'},
+  {k:'ds', ts:[
+   '<b>a)</b> Không có <b>nứt gãy</b> ở bất kỳ thanh/chi tiết, mối ghép hay bộ phận nào.',
+   '<b>b)</b> Không có <b>lỏng lẻo</b> ở các mối ghép vốn được thiết kế là cứng.',
+   '<b>c)</b> Bàn <b>vẫn thực hiện được các chức năng</b> của nó sau khi dỡ bỏ tải thử.',
+   '<b>d)</b> Sản phẩm <b>không được lật</b> khi chịu các phép thử ổn định.'
+  ]},
+  {k:'de', t:'Hướng dẫn sử dụng (Điều 6)'},
+  {k:'ds', ts:[
+   'Bằng <b>ngôn ngữ của nước nơi bàn được bán</b>.',
+   'Tiêu đề <b>"IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY"</b>, <b>chiều cao chữ ≥ 5 mm</b> — trừ khi thông tin đã ghi cố định trên sản phẩm.',
+   '<b>a)</b> tên và địa chỉ nhà sản xuất / nhà cung cấp / nhà bán lẻ. <b>b)</b> điều kiện sử dụng (domestic, camping hay contract).',
+   'Nếu có áp dụng: <b>c)</b> hướng dẫn lắp ráp; <b>d)</b> hướng dẫn bảo quản và bảo dưỡng.',
+   '<b>e)</b> Với bàn <b>có lỗ cắm dù nhưng KHÔNG dành để đỡ dù một mình</b>: phải có <b>cảnh báo rằng dù phải luôn được dùng kèm một chân đế phù hợp</b>.'
+  ]},
+  {k:'de', t:'Báo cáo thử nghiệm (Điều 7)'},
+  {k:'y', t:'Báo cáo tối thiểu phải có: viện dẫn EN 581-3:2017 · chi tiết sản phẩm được thử · các khuyết tật quan sát được <b>trước khi thử</b> · <b>mọi sai lệch so với dải nhiệt độ quy định</b> · kết quả thử · tên và địa chỉ cơ sở thử nghiệm · ngày thử.'},
+  {k:'luu', t:'Mục e là một trong những phát hiện hay gặp nhất ở bàn ăn ngoài trời có lỗ dù. Phần lớn bàn <b>không</b> được thiết kế để đỡ dù một mình — lỗ chỉ để xuyên cột dù qua, còn chân đế mới chịu lực. Thiếu dòng cảnh báo này là trượt, và về mặt an toàn thì dù bị gió lật là tai nạn thật.'},
+  {k:'luu', t:'"Sai lệch so với dải nhiệt độ quy định" chỉ có ở báo cáo bàn (phần 3), không có ở phần 1 và phần 2. Khi duyệt báo cáo thử nghiệm của bàn, tìm mục nhiệt độ — thiếu là báo cáo chưa đủ theo Điều 7.'},
+  {k:'luu', t:'Điều c "khuyết tật quan sát được trước khi thử" bảo vệ chính bạn: nếu mẫu gửi đi thử đã có vết nứt sẵn mà không ghi nhận, sau khi thử không phân định được là lỗi thử hay lỗi sẵn có. Chụp ảnh mẫu trước khi gửi.'}
+ ]},
+
+// ══ THỰC CHIẾN ═══════════════════════════════════════════════════════════════════════
+{id:'tc-checklist', nhom:'tc', ten:'Checklist kiểm tại xưởng', tenEn:'Field inspection checklist',
+ tom:'Thứ làm được bằng tay, không cần máy thử',
+ khoi:[
+  {k:'y', t:'Phần lớn phép thử trong EN 581-2 và 581-3 cần máy thử chuyên dụng, <b>không làm được ở xưởng</b>. Nhưng toàn bộ EN 581-1 và phần ghi nhãn thì kiểm được bằng tay và thước. Dưới đây là thứ tự tôi khuyên làm — xếp theo tỉ lệ bắt được lỗi, cao xuống thấp.'},
+  {k:'de', t:'1 · Giấy tờ trước khi chạm vào hàng'},
+  {k:'ds', ts:[
+   'Đọc đơn hàng/quy cách: <b>cấp sử dụng là gì</b> — camping, domestic hay contract?',
+   'Mở tờ hướng dẫn sử dụng: cấp ghi trên đó <b>có khớp với đơn hàng không</b>?',
+   'Ngôn ngữ tờ hướng dẫn có đúng nước bán không?',
+   'Đo chiều cao chữ tiêu đề cảnh báo — <b>≥ 5 mm</b>?',
+   'Có đủ tên + địa chỉ nhà sản xuất/cung cấp/bán lẻ không?',
+   'Bàn có lỗ dù: có dòng cảnh báo <b>phải dùng chân đế</b> không?',
+   'Ghế nằm có bánh xe: có pictogram <b>cạnh nhỏ nhất ≥ 25 mm</b>, ghi <b>cố định</b> (không phải sticker) không?'
+  ]},
+  {k:'de', t:'2 · Lật ngửa sản phẩm lên'},
+  {k:'ds', ts:[
+   'Đếm <b>đủ nút bịt chân ống</b>? Thiếu một cái là một phát hiện.',
+   'Đầu ống nào còn hở: đo đường kính — <b>có nằm trong 7–12 mm và sâu ≥ 10 mm không</b>?',
+   'Ghế: rà tay toàn bộ mặt dưới trong <b>vòng 120 mm từ mép</b> — đầu vít, ba via, mép nẹp sắc.',
+   'Bàn: rà toàn bộ mặt dưới trong <b>vòng 500 mm từ mép dưới bàn</b> — chỗ đầu gối cụng.',
+   'Lắc thử từng mối ghép: mối nào lẽ ra cứng mà lỏng?'
+  ]},
+  {k:'de', t:'3 · Thao tác cơ cấu chậm từng nấc'},
+  {k:'ds', ts:[
+   'Gấp/mở ghế xếp <b>thật chậm</b>, dừng ở nhiều vị trí, dò khe giữa các bộ phận chuyển động.',
+   'Khe nào rơi vào <b>7–18 mm ở bất kỳ vị trí nào</b> trong hành trình → điểm cắt/kẹp.',
+   'Khe đó sinh ra <b>chỉ khi gấp/mở</b> → tạm chấp nhận theo 5.3.1.',
+   'Khe đó do <b>lò xo hoặc ty hơi</b> → CẤM TUYỆT ĐỐI theo 5.3.2.',
+   'Khe đó xuất hiện <b>khi chịu tải lúc dùng bình thường</b> (ví dụ nhấc mặt ngồi lên để kéo ghế) → CẤM theo 5.3.3.',
+   'Lưng nhiều nấc: khoá được chắc ở <b>mọi nấc</b> không? Có tự tuột nấc khi tì lưng không?'
+  ]},
+  {k:'de', t:'4 · Cạnh, góc, bề mặt'},
+  {k:'ds', ts:[
+   'Mọi cạnh và góc chạm tới được đã <b>bo tròn, vát hoặc che chắn</b> chưa?',
+   'Có ba via kim loại ở chỗ cắt, khoan, hàn không?',
+   'Gỗ: có dằm, nứt chân chim, mắt gỗ rời không? (không nằm trong EN 581 nhưng là lỗi ngoại quan phải ghi)',
+   'Chỗ bôi trơn để trượt: có dính dầu mỡ ra tay người dùng không?'
+  ]},
+  {k:'de', t:'5 · Mặt bàn kính'},
+  {k:'ds', ts:[
+   'Có <b>dấu khắc</b> ở góc tấm kính không? Không có thì đòi chứng chỉ lô kính.',
+   'Lỗ dù có <b>vòng đệm nhựa/cao su</b> ngăn kim loại chạm kính không? Kiểm <b>từng cái</b>.',
+   'Cạnh kính đã mài chưa, có sứt mẻ không? (cạnh sứt là mầm vỡ cả tấm khi vận chuyển)'
+  ]},
+  {k:'luu', t:'Nguyên tắc ghi báo cáo: những gì bạn <b>thật sự đo bằng dụng cụ nào</b> thì ghi đúng như vậy. "Đo khe bằng thước cặp" khác với "thử bằng đầu dò Ø 7/12/18 mm theo EN 581-1 Điều 4". Ghi quá lên là chỗ báo cáo bị bác và mất uy tín nhanh nhất.'},
+  {k:'luu', t:'Những gì cần máy thử (toàn bộ Bảng 1 và Bảng 2 của phần 2, Bảng 1 của phần 3) thì kiểm bằng <b>báo cáo thử nghiệm của phòng lab</b>: xem báo cáo có đủ các mục theo Điều 9 (ghế) / Điều 7 (bàn) không, cấp sử dụng ghi trên báo cáo có khớp đơn hàng không, ngày thử có còn hiệu lực với mẫu mã hiện tại không.'}
+ ]},
+
+{id:'tc-thuatngu', nhom:'tc', ten:'Từ điển thuật ngữ Anh – Việt', tenEn:'Glossary',
+ tom:'Dịch sát nghĩa kỹ thuật, không dịch máy',
+ khoi:[
+  {k:'y', t:'Những cụm hay gặp khi đọc báo cáo thử nghiệm và trao đổi với phòng lab. Bản dịch chọn theo <b>nghĩa trong ngữ cảnh EN 581</b>, không phải nghĩa từ điển phổ thông.'},
+  {k:'bang', cot:['Tiếng Anh','Tiếng Việt kỹ thuật','Ghi chú'], hang:[
+   ['shear and squeeze point','điểm cắt và kẹp','Không dịch là "điểm cắt kéo". "Shear" ở đây là hai mặt trượt qua nhau cắt ngón tay.'],
+   ['accessible part','phần chạm tới được','Then chốt: phần nào tay/đầu gối người dùng với tới được khi dùng bình thường.'],
+   ['static load test','thử tải tĩnh','Đặt lực giữ một lúc, lặp ít lần (thường 10). Đo sức chịu tức thời.'],
+   ['durability test','thử độ bền mỏi','Lặp hàng vạn chu kỳ. Đo sức chịu theo thời gian. Đừng dịch là "thử độ bền" chung chung.'],
+   ['cycles','chu kỳ','Số lần lặp của phép thử.'],
+   ['specified force / load','lực / tải quy định','Giá trị tiêu chuẩn bắt buộc, không phải lực thực đo.'],
+   ['minimum specified force','lực tối thiểu quy định','Sàn dưới — thiết bị phải duy trì ít nhất mức này.'],
+   ['stability','độ ổn định','Khả năng không bị lật. Tách bạch với "strength" (độ bền).'],
+   ['overturn','lật','Tiêu chí trượt của mọi phép thử ổn định.'],
+   ['fracture','nứt gãy','Bao gồm cả nứt chưa đứt rời.'],
+   ['loosening of joints intended to be rigid','lỏng mối ghép vốn thiết kế là cứng','Phân biệt với khớp động vốn phải lỏng.'],
+   ['member','thanh / chi tiết chịu lực','Không dịch là "thành viên".'],
+   ['component','bộ phận','Một đơn vị lắp ráp được.'],
+   ['main surface','mặt chính','Mặt bàn dùng để đặt đồ chính.'],
+   ['ancillary surface','mặt phụ','Kệ dưới, mặt mở rộng, tầng phụ.'],
+   ['extension element','tấm nối dài','Tấm chèn thêm để kéo dài bàn.'],
+   ['seat load','tải mặt ngồi','Tải đặt lên mặt ngồi, thường để mô phỏng người ngồi.'],
+   ['back rest','tựa lưng','—'],
+   ['arm rest','tay vịn','—'],
+   ['foot rest','gác chân','Chỉ thử với ghế cao &gt; 700 mm.'],
+   ['leg rest','gác chân (ghế nằm)','Phần duỗi chân của ghế nằm, khác foot rest của ghế bar.'],
+   ['multi-position back','lưng nhiều nấc','Tựa lưng chỉnh được nhiều vị trí.'],
+   ['lounger','ghế nằm','Ghế tắm nắng, ghế thư giãn duỗi chân.'],
+   ['impact test','thử va đập','Thả vật nặng từ độ cao quy định.'],
+   ['drop height','chiều cao rơi','mm. 140 / 180 / 240 theo ba cấp.'],
+   ['energy accumulator','bộ tích năng lượng','Lò xo, ty hơi. Chỉ người được đào tạo mới thay/sửa.'],
+   ['gas lift','ty hơi','Xi-lanh khí nén nâng hạ.'],
+   ['automatic locking mechanism','cơ cấu khoá tự động','Tự ăn khớp mà không cần người dùng dẫn hướng, ngăn chuyển động ngoài ý muốn.'],
+   ['burr','ba via','Mép thừa sắc sau cắt/khoan/dập.'],
+   ['chamfered','vát cạnh','Khác với "rounded" (bo tròn) — cả hai đều được chấp nhận.'],
+   ['tubular component','chi tiết dạng ống','—'],
+   ['capped','chụp nút / bịt đầu','Nút nhựa đầu chân ống.'],
+   ['fragmentation test','thử vỡ vụn','EN 12150-1 Điều 8, cho kính tôi nhiệt.'],
+   ['mode of breakage','kiểu vỡ','EN 12600. Chỉ chấp nhận Type B hoặc Type C.'],
+   ['knock-down','tháo rời được','Một trong hai điều kiện của cấp camping.'],
+   ['permanently marked','ghi nhãn cố định','Không được dùng tem dán bóc ra được.'],
+   ['test report','báo cáo thử nghiệm','Nội dung tối thiểu quy định ở Điều 9 (ghế) / Điều 7 (bàn).']
+  ]}
+ ]}
+];
+
 let KIEMHANG = {}; // { catId: [ {id,title,content,updatedAt} ] }
-let KH_STATE = { view:'list', cat:null, editId:null };
+let KH_STATE = { view:'list', cat:null, editId:null, tcId:null };
 
 // ================= ĐIỀU HƯỚNG BẰNG CỬ CHỈ VUỐT (History API) =================
 // Trước đây app chỉ đổi STATE.tab trong bộ nhớ, không tạo lịch sử trình duyệt thật nào — nên khi
@@ -6988,35 +7655,47 @@ function khFmtDate(ts){
 function renderKiemHang(){
   if(KH_STATE.view==='catlist') renderKhCatList();
   else if(KH_STATE.view==='edit') renderKhEditForm();
+  else if(KH_STATE.view==='tclist') renderTcList();
+  else if(KH_STATE.view==='tcdoc') renderTcDoc();
   else renderKhCategories();
 }
 function renderKhCategories(){
   const cards = KH_CATEGORIES.map(c=>{
     const n = khNotes(c.id).length;
-    return `<div class="kh-cat-card" data-action="kh-open-cat" data-cat="${c.id}" style="border-color:${c.hex}44;">
+    // v286 — màu dòng hàng đi vào CSS qua biến --khm, nhờ vậy vệt sáng mép trên, quầng
+    // sáng sau ảnh và viền lúc chạm đều tự ăn theo màu mà không phải viết tay từng dòng.
+    return `<div class="kh-cat-card" data-action="kh-open-cat" data-cat="${c.id}" style="--khm:${c.hex}">
       <div class="ic">${khPhoto(c.icon)}</div><div class="lbl">${c.label}</div>
-      <div class="cnt">${n} ghi chú</div>
+      <div class="cnt${n ? ' co' : ''}">${n} ghi chú</div>
     </div>`;
   }).join('');
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('box','#FF5A6E','#FF8A3D')+' Kinh nghiệm kiểm hàng')}
-    <div style="font-size:11.5px; color:var(--dim); margin-bottom:16px; line-height:1.5;">Ghi lại kinh nghiệm, tiêu chuẩn và lỗi thường gặp cho từng dòng hàng. Dữ liệu tự động đồng bộ qua Google Drive.</div>
+    <div class="kh-intro">Ghi lại kinh nghiệm, tiêu chuẩn và lỗi thường gặp cho từng dòng hàng.
+      Dữ liệu tự động đồng bộ qua Google Drive.</div>
     <div class="kh-grid">${cards}</div>`;
 }
 function renderKhCatList(){
   const cat = KH_CATEGORIES.find(c=>c.id===KH_STATE.cat) || KH_CATEGORIES[0];
   const notes = khNotes(cat.id).slice().sort((a,b)=>b.updatedAt-a.updatedAt);
-  const refCard = cat.id==='nhua' ? `<div class="kh-refcard" data-action="hub-open" data-target="nhua-embed" style="cursor:pointer;">
+  let refCard = '';
+  if(cat.id === 'nhua') refCard = `<div class="kh-refcard" data-action="hub-open" data-target="nhua-embed" style="cursor:pointer;">
       <div><div class="t1">📖 Mở Bách Khoa Nhựa</div><div class="t2">Tra cứu, phân biệt và so sánh 12 loại nhựa phổ biến</div></div>
       <div style="font-size:18px;">→</div>
-    </div>` : '';
+    </div>`;
+  // v286 — EN 581 là tiêu chuẩn của chính dòng hàng này, nên để ngay trên đầu danh sách
+  // ghi chú: mở dòng hàng ra là thấy, không phải nhớ nó nằm ở đâu.
+  if(cat.id === 'outdoor') refCard = `<div class="kh-refcard tc" data-action="tc-mo" style="cursor:pointer;">
+      <div><div class="t1">📐 Tiêu chuẩn EN 581</div><div class="t2">16 mục tra cứu · bảng lực và chu kỳ ba cấp · dịch tiếng Việt kỹ thuật</div></div>
+      <div style="font-size:18px;">→</div>
+    </div>`;
   const list = notes.length ? notes.map(n=>`
-    <div class="kh-note-item" data-action="kh-edit-note" data-id="${n.id}">
+    <div class="kh-note-item" data-action="kh-edit-note" data-id="${n.id}" style="--khm:${cat.hex}">
       <div class="kh-note-del" data-action="kh-delete-note" data-id="${n.id}">✕</div>
       <div class="t">${escapeHtml(n.title)}</div>
       ${n.content? `<div class="c">${escapeHtml(n.content)}</div>`:''}
       <div class="d">Cập nhật ${khFmtDate(n.updatedAt)}</div>
-    </div>`).join('') : `<div class="kh-empty">Chưa có ghi chú nào cho dòng hàng này.<br>Bấm "+ Thêm ghi chú" để bắt đầu.</div>`;
+    </div>`).join('') : `<div class="kh-empty">Chưa có ghi chú nào cho dòng hàng <b>${escapeHtml(cat.label)}</b>.<br>Bấm <b>+ Thêm ghi chú</b> để ghi lại kinh nghiệm đầu tiên.</div>`;
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="kh-back-categories">${svgIcon('back')}</div>
@@ -7025,6 +7704,99 @@ function renderKhCatList(){
     ${refCard}
     <button class="kh-add-btn" data-action="kh-new-note">+ Thêm ghi chú</button>
     ${list}`;
+}
+// ══ v286 · MÀN TRA CỨU TIÊU CHUẨN ════════════════════════════════════════════════════
+// Dựng một khối HTML từ mô tả trong TC_MUC. Mọi chuỗi trong kho đã được tôi soạn tay và
+// có chứa thẻ <b>/<i>/<span> cố ý, nên KHÔNG escapeHtml ở đây — nếu escape thì bảng số
+// liệu mất hết phần in đậm và trở nên khó đọc đúng lúc cần đọc nhanh nhất.
+function tcKhoiHtml(k){
+  if(k.k === 'de')   return `<div class="tc-de">${k.t}</div>`;
+  if(k.k === 'y')    return `<p class="tc-y">${k.t}</p>`;
+  if(k.k === 'luu')  return `<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${k.t}</div>`;
+  if(k.k === 'ds')   return `<ul class="tc-ds">${k.ts.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  if(k.k === 'song') return `<div class="tc-song">
+      <div class="en"><span class="nhan">EN</span>${k.en}</div>
+      <div class="vi"><span class="nhan">VI</span>${k.vi}</div></div>`;
+  // Mỗi ô mang theo TÊN CỘT của nó trong data-nhan. Trên màn rộng thuộc tính ấy nằm im;
+  // trên màn hẹp, CSS dùng nó làm nhãn để xếp lại cả hàng thành một thẻ đọc dọc. Nhờ vậy
+  // không phải viết hai bản HTML cho cùng một bảng.
+  // Bảng nào kết thúc bằng đúng ba cột Camping · Domestic · Contract thì đánh dấu, để
+  // trên màn hẹp ba cột ấy nằm CẠNH NHAU thành một dòng ngang — so ba cấp bằng cách liếc
+  // một hàng, đúng như đọc bảng gốc. Xếp dọc thì phải nhớ dòng nào ứng với cấp nào.
+  if(k.k === 'bang'){
+   const baCap = k.cot.length >= 4
+     && k.cot.slice(-3).join('|') === 'Camping|Domestic|Contract';
+   return `<div class="tc-bang-o"><table class="tc-bang${baCap ? ' ba-cap' : ''}">
+      <thead><tr>${k.cot.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${k.hang.map(h=>`<tr>${h.map((o, i)=>
+        `<td data-nhan="${escapeHtml(String(k.cot[i] || ''))}">${o}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+  return '';
+}
+function tcNhomCua(id){ return TC_NHOM.find(n=>n.id === id) || TC_NHOM[0]; }
+function renderTcList(){
+  const nhom = TC_NHOM.map(n=>{
+    const ds = TC_MUC.filter(m=>m.nhom === n.id);
+    if(!ds.length) return '';
+    return `<div class="tc-nhom">
+      <div class="tc-nhom-t"><span style="background:${n.hex}"></span>${n.ten}
+        <b>${ds.length}</b></div>
+      <div class="tc-nut-g">${ds.map(m=>`
+        <button class="tc-nut" data-action="tc-open" data-id="${m.id}"
+          style="--tcm:${n.hex}">
+          <span class="t">${m.ten}</span>
+          <span class="e">${m.tenEn}</span>
+          <span class="s">${m.tom}</span>
+        </button>`).join('')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow">
+      <div class="kh-backbtn" data-action="tc-back-cat">${svgIcon('back')}</div>
+      <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} Tiêu chuẩn EN 581</div>
+    </div>
+    <div class="tc-dau">
+      <div class="tc-dau-t">Ghế và bàn ngoài trời · camping · domestic · contract</div>
+      <div class="tc-dau-s">EN 581-1:2017 &nbsp;·&nbsp; EN 581-2:2015 &nbsp;·&nbsp; EN 581-3:2017</div>
+    </div>
+    <a class="tc-drive" href="${TC_DRIVE}" target="_blank" rel="noopener">
+      <span class="ic">📁</span>
+      <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
+        <i>Nơi bạn cất bản PDF có giấy phép của mình</i></span>
+      <span class="mui">↗</span></a>
+    <div class="tc-bq">
+      <b>Vì sao bản PDF không nằm trong app.</b> Ba file bạn gửi ghi rõ trên bìa rằng mọi hình
+      thức sao chép và phát tán lại, kể cả một phần, đều bị cấm; và giấy phép cấp cho một
+      người dùng được nêu tên. App này chạy công khai nên nhúng file vào đây đúng là phát tán.
+      Thứ bên dưới là các <b>số liệu yêu cầu</b> — dữ kiện kỹ thuật — cùng diễn giải và ghi chú
+      thực chiến do tôi soạn, <b>không phải bản dịch nguyên văn</b>. Dùng để tra nhanh tại xưởng;
+      khi cần trích dẫn chính thức vẫn phải mở bản gốc.
+    </div>
+    ${nhom}`;
+}
+function renderTcDoc(){
+  const m = TC_MUC.find(x=>x.id === KH_STATE.tcId);
+  if(!m){ KH_STATE.view = 'tclist'; return renderTcList(); }
+  const n = tcNhomCua(m.nhom);
+  const i = TC_MUC.indexOf(m);
+  const truoc = TC_MUC[i-1], sau = TC_MUC[i+1];
+  document.getElementById('content').innerHTML = `
+    <div class="kh-backrow">
+      <div class="kh-backbtn" data-action="tc-back-list">${svgIcon('back')}</div>
+      <div class="title">${m.ten}</div>
+    </div>
+    <div class="tc-doc" style="--tcm:${n.hex}">
+      <div class="tc-doc-dau">
+        <span class="nh">${n.ten}</span>
+        <div class="tc-doc-en">${m.tenEn}</div>
+      </div>
+      ${m.khoi.map(tcKhoiHtml).join('')}
+    </div>
+    <div class="tc-dieuhuong">
+      ${truoc ? `<button class="tc-dh" data-action="tc-open" data-id="${truoc.id}">← ${truoc.ten}</button>` : '<span></span>'}
+      ${sau   ? `<button class="tc-dh" data-action="tc-open" data-id="${sau.id}">${sau.ten} →</button>` : '<span></span>'}
+    </div>`;
 }
 function renderNhuaEmbed(){
   document.getElementById('content').innerHTML = `
@@ -37322,6 +38094,26 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(authgateContinueEl){ STATE.tab = 'hub'; renderContent(); window.scrollTo(0,0); return; }
   const driveResyncEl = e.target.closest('[data-action="drive-resync"]');
   if(driveResyncEl){ STATE.acctMenuOpen = false; driveManualResync(); return; }
+
+  // ══ v286 · TRA CỨU TIÊU CHUẨN ══════════════════════════════════════════════════════
+  // Mỗi màn mới đều đẩy một mốc lịch sử bằng navForward và tiêu thụ đúng mốc ấy bằng
+  // navBack khi lùi — đúng quy tắc đã đặt từ v227, nếu không thì vuốt back sẽ thoát app.
+  const tcMoEl = e.target.closest('[data-action="tc-mo"]');
+  if(tcMoEl){ navForward(); KH_STATE.view='tclist'; renderContent(); return; }
+  const tcOpenEl = e.target.closest('[data-action="tc-open"]');
+  if(tcOpenEl){
+    // Bấm từ thanh điều hướng dưới chân một mục ĐANG MỞ thì là đi ngang, không phải đi
+    // sâu thêm — nên chỉ đẩy mốc lịch sử khi đang ở màn danh sách.
+    if(KH_STATE.view !== 'tcdoc') navForward();
+    KH_STATE.view='tcdoc'; KH_STATE.tcId=tcOpenEl.getAttribute('data-id');
+    renderContent();
+    try{ window.scrollTo({top:0, behavior:'instant'}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){ } }
+    return;
+  }
+  const tcBackListEl = e.target.closest('[data-action="tc-back-list"]');
+  if(tcBackListEl){ KH_STATE.view='tclist'; KH_STATE.tcId=null; renderContent(); navBack(); return; }
+  const tcBackCatEl = e.target.closest('[data-action="tc-back-cat"]');
+  if(tcBackCatEl){ KH_STATE.view='catlist'; renderContent(); navBack(); return; }
 
   const khOpenCatEl = e.target.closest('[data-action="kh-open-cat"]');
   if(khOpenCatEl){ navForward(); KH_STATE.view='catlist'; KH_STATE.cat=khOpenCatEl.getAttribute('data-cat'); renderContent(); return; }
