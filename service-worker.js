@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ren-luyen-cache-v283';
-const ASSETS = ['./index.html', './version.txt', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json',
+const CACHE_NAME = 'ren-luyen-cache-v284';
+const ASSETS = ['./index.html', './version.txt', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './nhua.html', './english-grammar.html', './listening-quiz-data.json', './grammar-quiz-data.json', './speaking-practice-data.json', './video-lessons-data.json', './vocab-data.json', './common-sentences-data.json', './vidu-data.json', './tu-dien-data.json',
   './lay-moc-youtube.html',
   './dialogue-context-data.json', './dictation-data.json'];
 // Giới hạn thời gian chờ mạng khi mở app (navigate). Nếu mạng chậm/treo lâu hơn mức này,
