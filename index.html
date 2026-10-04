@@ -2771,16 +2771,24 @@
 /* v273 — phiên âm nằm ngay dưới chân từ, không phải một dòng riêng ở cuối câu: mắt đang
    đọc tới từ nào thì thấy cách đọc của đúng từ ấy. */
 .drp-am-cong{display:flex; justify-content:center; margin:0 0 10px;}
-.drp-cau p.co-am{line-height:1.35;}
+.drp-cau p.co-am{line-height:1.5;}
 .drp-tu-am{display:inline-flex; flex-direction:column; align-items:center;
   vertical-align:top; margin:0 1px 2px;}
 .drp-tu-am b{font-weight:inherit; color:inherit;}
-.drp-tu-am i{font-style:normal; font-size:10px; line-height:1.3; color:var(--dim2);
-  font-family:var(--mono); white-space:nowrap;}
+/* v285 — phiên âm cũ 10px, nhỏ tới mức phải nheo mắt. 13px đọc được mà vẫn rõ là hàng
+   phụ dưới chân từ, và sáng hơn một bậc (dim2 → dim) để không chìm vào nền. */
+.drp-tu-am i{font-style:normal; font-size:13px; line-height:1.35; color:var(--dim);
+  font-family:var(--mono); white-space:nowrap; letter-spacing:.1px;}
 .drp-tu-am.trong i{display:none;}
 /* ══ v279 · trọng âm, ngắt nghỉ, tra từ, nghĩa tiếng Việt ══ */
 .drp-tu-am{cursor:pointer; border-radius:5px; transition:background .12s;}
 .drp-tu-am:active{background:rgba(255,200,110,.22);}
+/* v285 — từ đang được đọc trong bản ghi của chính bạn. Màu xanh, khác hẳn vàng (nhấn
+   mạnh) và khác hẳn màu chấm điểm, để ba thứ không lẫn vào nhau. */
+.drp-tu-am.dang-doc{background:rgba(79,168,255,.26); box-shadow:0 0 0 1px rgba(79,168,255,.45) inset;}
+.drp-chay-nguon{margin:7px 0 0; font-size:10.5px; line-height:1.65; color:var(--dim2);}
+.drp-chay-nguon b{color:var(--dim);}
+.drp-tu-am.dang-doc b{color:#CFE8FF !important; font-weight:800 !important;}
 /* Chữ cần NHẤN: tô vàng và đậm hơn. Chữ không nhấn để mờ đi — chính sự chênh lệch sáng/mờ
    này dạy mắt thấy nhịp của câu, thứ người Việt đọc tiếng Anh hay thiếu nhất. */
 .drp-tu-am.nhan b{color:#FFD24A; font-weight:800; text-shadow:0 0 14px rgba(255,200,60,.3);}
@@ -2788,7 +2796,10 @@
 .drp-ngat{font-style:normal; font-weight:800; color:#5FD3FF; padding:0 2px; opacity:.8;
   font-size:.95em; cursor:help;}
 .drp-ngat.dai{color:#7B8CFF; letter-spacing:-1px;}
-.drp-doan-cau{margin:0 0 7px; line-height:1.68;}
+/* v285 — 7px giữa hai câu là quá sát; khi một câu tự xuống dòng thì không còn phân biệt
+   được đâu là dòng tiếp của câu cũ, đâu là câu mới. 22px thì khoảng cách GIỮA HAI CÂU lớn
+   hẳn so với khoảng cách giữa hai dòng trong cùng một câu (~27px × 1.68), đủ để mắt bám. */
+.drp-doan-cau{margin:0 0 22px; line-height:1.78;}
 .drp-doan-cau:last-child{margin-bottom:0;}
 .drp-vi{margin:1px 0 8px; padding:6px 10px; border-radius:9px; font-size:12px; line-height:1.55;
   font-weight:600; color:#BFE9D8; background:rgba(44,219,168,.07);
@@ -4206,14 +4217,26 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
   font-family:inherit; font-size:11.5px; font-weight:800; background:transparent; color:var(--dim);}
 .drp-khung-n.on{background:var(--panel2); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,.05) inset;}
 
-.drp-cau{padding:11px 0;}
+/* ══ v285 · BỐ CỤC ĐỌC ĐƯỢC ═══════════════════════════════════════════════════════════
+   Bạn báo khó tập trung và hay nhầm dòng. Đo ra ba nguyên nhân, cả ba đều trong CSS:
+     · khoảng cách giữa hai câu chỉ 22px (padding 11px trên + dưới) — chưa đủ để mắt
+       biết câu này đã hết, nhất là khi câu dài tự xuống dòng;
+     · không có max-width, nên trên laptop một dòng chạy hết bề ngang khung. Dòng càng dài
+       thì mắt càng dễ nhảy nhầm sang dòng dưới lúc quay về đầu dòng;
+     · khung "Cả đoạn" dùng text-align:justify, nên khoảng cách giữa các chữ co giãn
+       mỗi dòng một khác — đọc to thì cực kỳ dễ vấp.
+   Khổ chữ 34em (~62 ký tự một dòng) là khổ sách quen thuộc, và canh giữa cho cả laptop
+   lẫn điện thoại như bạn dặn. */
+.drp-doc{max-width:34em; margin-left:auto; margin-right:auto;}
+.drp-cau{padding:19px 0;}
 .drp-cau-so{display:inline-block; min-width:16px; margin-right:9px; font-family:var(--mono);
   font-size:10px; font-weight:700; color:var(--dim2); vertical-align:2px;}
 .drp-cau + .drp-cau{border-top:1px solid rgba(255,255,255,.055);}
 .drp-cau p, .drp-doan p{margin:0; font-size:16.5px; line-height:1.78; color:var(--text);
   font-weight:400; font-family:'Bookerly','Georgia',ui-serif,serif;}
 .drp-doan{padding:4px 0 2px;}
-.drp-doan p{text-align:justify; hyphens:auto;}
+/* v285 — bỏ justify: khoảng cách chữ co giãn mỗi dòng một khác là thứ làm vấp khi đọc to. */
+.drp-doan p{text-align:left; hyphens:none;}
 .drp-cau.thu, .drp-doan.thu{border-left:2px solid var(--red); padding-left:11px;
   margin-left:-13px; padding-right:2px;}
 .drp-cau.xong p{color:var(--dim);}
@@ -4330,7 +4353,10 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .drp-nx{margin:10px 0 0; padding-left:17px; font-size:11.5px; line-height:1.8; color:var(--dim);}
 .drp-nguon{margin-top:9px; font-size:9.5px; color:var(--dim2); font-weight:700;}
 @media (max-width:420px){
-  .drp-cau p, .drp-doan p{font-size:15.5px;} .drp-tu-c{font-size:12.5px; padding:3px 6px;}
+  .drp-cau p, .drp-doan p{font-size:16px;} .drp-tu-c{font-size:12.5px; padding:3px 6px;}
+  /* Trên điện thoại khổ chữ đã hẹp sẵn, nhưng khoảng cách giữa hai câu thì vẫn phải giữ. */
+  .drp-doc{max-width:100%;} .drp-cau{padding:17px 0;} .drp-doan-cau{margin-bottom:20px;}
+  .drp-tu-am i{font-size:12px;}
   .drp-m{padding:7px 10px; font-size:10.5px;}
 }
 /* v251 — bảng kết quả của nút "Kiểm tra & nối câu vỡ". */
@@ -4841,7 +4867,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v284';
+const APP_VERSION = 'v285';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10851,6 +10877,7 @@ const DRP_CHAM = [
   {ma:'gemini', ten:'Gemini',       phu:'Nhận xét bằng lời, dùng khi Azure hết gói'}
 ];
 const DRP_TU_TOI_DA = 24;      // worker cũng chặn ở 24; gửi nhiều hơn chỉ làm lời nhắc phình
+const DRP_MAU_TOI_DA = 6;      // sáu khung câu là đủ để dệt vào 5-8 câu, hơn nữa thì AI chép nguyên
 
 // ══ v273 · ĐỒNG HỒ HẠN MỨC CHO HAI LỐI CHẤM ════════════════════════════════════════════
 // ĐO ĐƯỢC TRƯỚC KHI LÀM: bộ đếm geminiQuota sẵn có chỉ tính những lượt app TỰ gọi bằng khoá
@@ -10994,23 +11021,194 @@ function drpDatWorker(v){
 
 // ── Lấy vốn từ của bạn để worker dệt vào bài ───────────────────────────────────────────
 // Ưu tiên từ ĐANG TỚI HẠN ÔN: đọc to đúng cái từ hôm nay phải ôn thì một công đôi việc.
-function drpTuVung(n){
+// ══ v285 · NGÂN HÀNG CHỦ ĐỀ THẬT ══════════════════════════════════════════════════════
+// Bạn báo: để trống ô ý tưởng thì bài nào cũng nói chuyện trời mưa. Đã soi lời nhắc —
+// khi không có chủ đề, nó KHÔNG có lấy một dòng nào về chủ đề, cũng không có mầm ngẫu
+// nhiên. Hỏi một mô hình ngôn ngữ "viết một đoạn ngắn để luyện đọc" mà không nói gì thêm
+// thì nó rơi về đúng cái mặc định của nó: một buổi sáng, trời mưa, một tách cà phê.
+// Nên không phải siết lời nhắc, mà phải ĐƯA CHO NÓ một chủ đề thật — bốc từ ngân hàng
+// dưới đây. Soạn tay theo đời sống một người đi làm ở Việt Nam, chia nhóm để bốc đều.
+const DRP_KHO_CHU_DE = {
+  'công việc': [
+    'xin nghỉ phép đột xuất vì nhà có việc',
+    'ngày đầu tiên đi làm ở chỗ mới',
+    'họp xong mới nhận ra mình hiểu nhầm yêu cầu',
+    'được giao thêm việc trong khi đang quá tải',
+    'phỏng vấn qua video mà mạng chập chờn',
+    'đồng nghiệp nghỉ việc, bàn giao vội trong một buổi chiều',
+    'thuyết trình trước phòng ban lần đầu',
+    'deadline bị dời sớm hơn hai ngày'
+  ],
+  'đi lại': [
+    'lỡ chuyến xe cuối cùng về quê',
+    'kẹt xe giờ tan tầm trên cầu',
+    'lần đầu đi tàu điện một mình',
+    'xe máy chết máy giữa đường',
+    'tìm chỗ gửi xe ở khu trung tâm',
+    'đi xe khách đường dài, ngồi cạnh một người lạ hay chuyện'
+  ],
+  'ăn uống': [
+    'quán ăn quen đổi chủ, món cũ không còn như trước',
+    'tự nấu một món lần đầu và làm cháy nồi',
+    'rủ bạn đi ăn mà quán hết chỗ',
+    'đi chợ sớm mua đồ cho cả tuần',
+    'thử một món lạ ở quán vỉa hè',
+    'đặt đồ ăn giao tới thì giao nhầm đơn'
+  ],
+  'nhà cửa': [
+    'dọn sang phòng trọ mới, đồ đạc còn trong thùng',
+    'máy giặt hỏng vào đúng ngày cuối tuần',
+    'hàng xóm sửa nhà ồn từ sáng sớm',
+    'mất điện cả khu trong hai tiếng',
+    'tìm lại một thứ cất kỹ quá nên quên mất chỗ',
+    'trồng mấy chậu cây ở ban công'
+  ],
+  'tiền bạc': [
+    'so giá hai cái điện thoại rồi vẫn chưa quyết được',
+    'lần đầu ghi chép chi tiêu cả tháng',
+    'mua đồ giảm giá rồi về mới thấy không cần',
+    'trả góp xong món đồ cuối cùng',
+    'đi đổi hàng mà quên mang hoá đơn'
+  ],
+  'sức khoẻ': [
+    'bắt đầu dậy sớm chạy bộ và bỏ cuộc ở ngày thứ tư',
+    'đi khám răng sau mấy năm hẹn lần',
+    'mất ngủ vì xem điện thoại tới khuya',
+    'tập ở phòng gym lần đầu, không biết dùng máy nào',
+    'bị cảm và phải tự xoay xở một mình'
+  ],
+  'bạn bè và gia đình': [
+    'họp lớp sau mười năm, nhận không ra nhau',
+    'gọi điện cho bố mẹ vào tối chủ nhật',
+    'trông cháu một buổi chiều',
+    'bạn thân chuyển vào Nam sống',
+    'cãi nhau với anh chị em vì một chuyện nhỏ rồi làm lành',
+    'đi đám cưới bạn ở tỉnh khác'
+  ],
+  'học và sở thích': [
+    'học lại một nhạc cụ bỏ dở từ hồi nhỏ',
+    'đọc hết một cuốn sách dày trong một tuần',
+    'xem một bộ phim không hiểu kết thúc',
+    'tập chụp ảnh bằng điện thoại',
+    'học nấu ăn qua video trên mạng',
+    'bắt đầu viết nhật ký mỗi tối'
+  ],
+  'công nghệ': [
+    'điện thoại đầy bộ nhớ, phải xoá bớt ảnh cũ',
+    'quên mật khẩu và phải lấy lại tài khoản',
+    'mua một món đồ trên mạng và chờ hàng',
+    'máy tính chạy chậm dần theo năm tháng',
+    'lần đầu dùng một ứng dụng mới và bấm nhầm'
+  ],
+  'ngoài trời và đi chơi': [
+    'đi biển ngày thường, bãi vắng người',
+    'leo núi và hết nước uống giữa đường',
+    'đi dạo công viên buổi tối',
+    'cắm trại qua đêm với mấy người bạn',
+    'về quê đúng mùa gặt',
+    'đi chợ đêm ở một thành phố lạ'
+  ]
+};
+// Nhớ vài chủ đề vừa ra để lần sau không bốc lại — đây mới là thứ chặn chuyện lặp,
+// chứ bốc ngẫu nhiên không thôi thì vẫn trùng.
+const DRP_NHO_CHU_DE = 12;
+function drpChuDeGanDay(){
+  if(!Array.isArray(SETTINGS.drpChuDeCu)) SETTINGS.drpChuDeCu = [];
+  return SETTINGS.drpChuDeCu;
+}
+function drpGhiChuDe(x){
+  const t = String(x || '').trim(); if(!t) return;
+  const ds = drpChuDeGanDay();
+  SETTINGS.drpChuDeCu = [t].concat(ds.filter(y=>y !== t)).slice(0, DRP_NHO_CHU_DE);
+  try{ saveSettings(); }catch(_){ }
+}
+// Bốc một chủ đề: bỏ hẳn những cái vừa dùng, và bốc theo NHÓM trước rồi mới tới chủ đề
+// trong nhóm — bốc phẳng thì nhóm nào nhiều mục sẽ ra nhiều hơn hẳn.
+function drpBocChuDe(){
+  const cu = drpChuDeGanDay();
+  const nhom = Object.keys(DRP_KHO_CHU_DE);
+  const conNhom = nhom.filter(k => DRP_KHO_CHU_DE[k].some(x => cu.indexOf(x) < 0));
+  const dung = conNhom.length ? conNhom : nhom;
+  const k = dung[Math.floor(Math.random() * dung.length)];
+  const ds = DRP_KHO_CHU_DE[k];
+  const con = ds.filter(x => cu.indexOf(x) < 0);
+  const lay = con.length ? con : ds;
+  return lay[Math.floor(Math.random() * lay.length)];
+}
+// ══ v285 · CHỌN TỪ: DÙNG CẢ THƯ VIỆN CỦA BẠN, KHÔNG CHỈ KHO NỀN ═══════════════════════
+// Trước v285 hàm này chỉ đọc VOCAB_DATA — kho 2875 từ đi kèm app. Những từ chính bạn nhặt
+// từ video và những mẫu câu bạn đã lưu thì không bao giờ được dệt vào bài đọc, tức đúng
+// phần bạn muốn ôn nhất lại là phần không bao giờ gặp lại. Nay gom cả ba nguồn, và vẫn
+// giữ nguyên cách chấm điểm theo lịch ôn: tới hạn ôn đứng trước, chưa học đứng sau.
+// Trình độ phải lọc TỪ, không chỉ là một dòng chữ trong lời nhắc. Kho nền có cột thứ 10
+// mà tôi định dùng làm tần suất — nhưng ĐO RỒI MỚI DÙNG: nó không phải thứ hạng tần suất
+// thật, giá trị dồn thành ba cụm rõ rệt (1000–3999: 371 từ lõi · 6000–6999: 2087 từ · 9000+:
+// 417 từ khó/mới nhất). Tức nó chỉ đỡ được BA bậc, không phải bốn. Nên đặt đúng ba bậc và
+// nói thẳng ra ở đây, thay vì bịa bốn ngưỡng rồi B1 với B2 hoá ra y hệt nhau. Phần phân
+// biệt A2/B1/B2 còn lại nằm ở lời nhắc, nơi nó thật sự lộ ra: độ dài câu, số mệnh đề, thì.
+const DRP_TRAN_TAN_SUAT = { A2: 4000, B1: 7000, B2: 7000, C1: 1e9 };
+function drpHopTrinhDo(freq, level){
+  const t = DRP_TRAN_TAN_SUAT[level] || DRP_TRAN_TAN_SUAT.B1;
+  const f = +freq;
+  return !isFinite(f) || f <= 0 ? true : f <= t;
+}
+function drpTuVung(n, level){
   const ra = [];
   try{
-    const kho = (typeof VOCAB_DATA === 'object' && VOCAB_DATA && Array.isArray(VOCAB_DATA.words)) ? VOCAB_DATA.words : [];
     const hs = SETTINGS.vocabProgress || {};
     const hnay = todayKey();
-    const cham = (w)=>{
-      const p = hs[w[0]];
+    const cham = (p)=>{
       if(!p) return 1;                                   // chưa học: đáng đưa vào
       if(p.next && p.next <= hnay) return 3;             // tới hạn ôn: ưu tiên nhất
       if((p.box || 0) <= 2) return 2;                    // còn non
       return 0;                                          // đã thuộc kỹ: để dành
     };
-    const xep = kho.map(w=>({w, d:cham(w)})).filter(x=>x.d > 0);
-    xep.sort((a,b)=>b.d - a.d);
-    shuffleArr(xep.slice(0, Math.max(n * 3, 30))).slice(0, n)
-      .forEach(x=>{ if(x.w && x.w[1]) ra.push(String(x.w[1])); });
+    const gom = [];
+    const kho = (typeof VOCAB_DATA === 'object' && VOCAB_DATA && Array.isArray(VOCAB_DATA.words)) ? VOCAB_DATA.words : [];
+    kho.forEach(w=>{
+      if(!w || !w[1]) return;
+      if(!drpHopTrinhDo(w[9], level)) return;
+      gom.push({chu:String(w[1]), d:cham(hs[w[0]])});
+    });
+    // Kho bạn TỰ LƯU được cộng thêm một bậc: bạn đã chủ động nhặt nó ra thì nó đáng gặp
+    // lại hơn một từ bất kỳ trong kho nền.
+    try{
+      hvKhoTu().forEach(x=>{
+        const c = String((x && x.chu) || '').trim();
+        if(c) gom.push({chu:c, d: 3});
+      });
+    }catch(_){ }
+    // ĐO ĐƯỢC: bản trước sắp xếp rồi cắt 30 đầu rồi mới xáo. Phép sắp xếp ổn định, nên khi
+    // cả kho cùng một mức ưu tiên (hồ sơ mới tinh) thì "30 đầu" chính là 30 từ đầu bảng
+    // chữ cái — bài đọc nào cũng toàn after, alone, above, always… Phải XÁO TRONG TỪNG MỨC
+    // rồi mới ghép, thì mức ưu tiên vẫn được tôn trọng mà không còn thiên vị vần A.
+    const xep = [];
+    [3, 2, 1].forEach(muc=>{
+      const t = gom.filter(x=>x.d === muc && x.chu.split(/\s+/).length <= 3);
+      shuffleArr(t).forEach(x=>xep.push(x));
+    });
+    const da = Object.create(null);
+    xep.forEach(x=>{
+      const k = x.chu.toLowerCase();
+      if(da[k] || ra.length >= n) return;
+      da[k] = 1; ra.push(x.chu);
+    });
+  }catch(_){ }
+  return ra;
+}
+// Mẫu câu đáng ôn — gửi kèm để AI mượn đúng KHUNG CÂU ấy, chứ không phải chép nguyên.
+function drpMauCau(n){
+  const ra = [];
+  try{
+    const gom = [];
+    try{ hvKhoCau().forEach(x=>{ const c = String((x && x.chu) || '').trim(); if(c) gom.push(c); }); }catch(_){ }
+    // Hình dạng thật của kho mẫu câu: mảng [id, câu tiếng Anh, IPA, nhóm, nghĩa Việt].
+    try{
+      const k = (typeof COMMON_SENT_DATA === 'object' && COMMON_SENT_DATA
+                 && Array.isArray(COMMON_SENT_DATA.sentences)) ? COMMON_SENT_DATA.sentences : [];
+      k.forEach(x=>{ const c = String((Array.isArray(x) ? x[1] : (x && x.en)) || '').trim(); if(c) gom.push(c); });
+    }catch(_){ }
+    shuffleArr(gom).slice(0, n).forEach(c=>ra.push(c));
   }catch(_){ }
   return ra;
 }
@@ -11076,21 +11274,39 @@ async function drpKiemTraWorker(){
 //  Không bắt bạn đụng vào Cloudflare nữa.
 // ══════════════════════════════════════════════════════════════════════════════════════
 // Dựng đúng lời nhắc mà worker vẫn dùng, để bài soạn ở hai đường ra cùng một chất.
-function drpLoiNhac(soCau, level, chuDe, tu){
-  const MUC = {
-    A2: 'CEFR A2: short simple sentences, very common everyday words',
-    B1: 'CEFR B1: everyday topics, some linking words, moderate sentence length',
-    B2: 'CEFR B2: natural connected prose, varied structures, some idiomatic phrasing',
-    C1: 'CEFR C1: fluent, nuanced, varied register and rhythm'
-  };
+// ══ v285 · TRÌNH ĐỘ PHẢI ĐO ĐƯỢC, KHÔNG PHẢI MỘT TÍNH TỪ ══════════════════════════════
+// Bản cũ chỉ nói "CEFR B1: everyday topics, moderate sentence length". "Moderate" thì mô
+// hình nào cũng tự hiểu một kiểu, nên bốn bậc ra bốn bài gần như nhau. Nay mỗi bậc có số:
+// độ dài câu, số mệnh đề, thì được dùng, loại từ được phép — những thứ nhìn vào bài là
+// đếm được, nên nếu sai thì bạn thấy ngay chứ không phải ngờ ngợ.
+const DRP_MUC = {
+  A2: ['CEFR A2.', '6-10 words per sentence. ONE clause per sentence — no relative clauses, no "which/although/despite".',
+       'Only present simple, present continuous and past simple. No perfect tenses, no conditionals, no passive.',
+       'Only the most common everyday words. No idioms, no phrasal verbs beyond get up / go out / come back.'],
+  B1: ['CEFR B1.', '9-14 words per sentence. At most TWO clauses, joined by because / so / when / if / but.',
+       'Present, past, future and present perfect are fine. One simple conditional is fine. Avoid the passive.',
+       'Everyday vocabulary plus a few common phrasal verbs. At most one idiom in the whole passage.'],
+  B2: ['CEFR B2.', '12-18 words per sentence, and VARY the length — a short one after two long ones.',
+       'Use a relative clause, a passive and a past perfect somewhere in the passage.',
+       'Natural connected prose: however, although, by the time, the thing is. Two or three idiomatic phrases.'],
+  C1: ['CEFR C1.', '14-22 words per sentence with deliberate rhythm; one very short sentence for effect.',
+       'Use fronting, inversion or a cleft sentence ("What struck me was…") at least once.',
+       'Nuanced word choice, hedging (tended to, more or less), and register shifts. Idioms used naturally, not showcased.']
+};
+function drpLoiNhac(soCau, level, chuDe, tu, mau){
   const d = [
     'Write a short passage in ENGLISH for an English-learning student to READ ALOUD as pronunciation practice.',
     'LANGUAGE: every sentence in "sentences" must be ENGLISH. The student is Vietnamese, but the '
       + 'passage they read is ENGLISH. The ONLY Vietnamese text you produce is the "titleVi" field.',
-    '- Exactly ' + soCau + ' sentences. Each sentence 8-16 words — long enough to need real phrasing, '
-      + 'short enough to say in one breath.',
-    '- Level: ' + (MUC[level] || MUC.B1) + '.'
+    '- Exactly ' + soCau + ' sentences.',
+    'LEVEL — follow every line of this, they are checkable:',
+    ...(DRP_MUC[level] || DRP_MUC.B1).map(x=>'- ' + x)
   ];
+  if(mau && mau.length){
+    d.push('SENTENCE PATTERNS the student is revising. Reuse the SHAPE of two or three of these '
+           + '(same structure, different content) so the passage quietly drills them. Do NOT copy them '
+           + 'word for word, and do NOT list them: ' + mau.map(x=>'"' + x + '"').join(' · ') + '.');
+  }
   if(chuDe){
     d.push('- The student asked for this idea (it may be written in Vietnamese; still write the passage '
            + 'in ENGLISH): "' + chuDe + '".',
@@ -11124,14 +11340,14 @@ function drpLaCauAnh(c){
 }
 // Soạn bài THẲNG từ trình duyệt bằng khoá Gemini của chính app. Trả về cùng hình dạng mà
 // worker trả, để chỗ gọi không cần biết bài đến từ đường nào.
-async function drpSinhBangAppGemini(soCau, level, chuDe, tu){
+async function drpSinhBangAppGemini(soCau, level, chuDe, tu, mau){
   if(!SETTINGS.geminiApiKey) throw new Error('App chưa có khoá Gemini riêng.');
   const res = await geminiFetch(
     'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_CHAT_MODEL
       + ':generateContent?key=' + encodeURIComponent(SETTINGS.geminiApiKey),
     { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        contents: [{role:'user', parts:[{text: drpLoiNhac(soCau, level, chuDe, tu)}]}],
+        contents: [{role:'user', parts:[{text: drpLoiNhac(soCau, level, chuDe, tu, mau)}]}],
         generationConfig: {temperature: 0.9, responseMimeType: 'application/json'}
       }) });
   if(!res || !res.ok) throw new Error('Gemini trả lỗi ' + (res ? res.status : '?') + '.');
@@ -11166,15 +11382,24 @@ async function drpSinhVanBan(){
   const c = drpCaiDat();
   s.dangSinh = true; s.loi = null;
   try{ renderContent(); }catch(_){ }
-  const tuDung = drpTuVung(DRP_TU_TOI_DA);
-  const chuDe = drpDocOChuDe();
+  const tuDung = drpTuVung(DRP_TU_TOI_DA, c.level);
+  const mauDung = drpMauCau(DRP_MAU_TOI_DA);
+  // v285 — Ô ý tưởng để trống KHÔNG còn nghĩa là "không có chủ đề". Bốc một chủ đề thật
+  // từ ngân hàng, vì để trống là chỗ đã sinh ra cảnh bài nào cũng nói chuyện trời mưa.
+  // Chủ đề tự bốc KHÔNG ghi ngược vào ô nhập: ô ấy là ý của bạn, app không viết hộ.
+  const chuDeNhap = drpDocOChuDe();
+  const tuBoc = chuDeNhap ? '' : drpBocChuDe();
+  const chuDe = chuDeNhap || tuBoc;
+  if(tuBoc) drpGhiChuDe(tuBoc);
+  s.chuDeBoc = tuBoc || null;
   try{
     let j = null, duong = 'worker';
     if(w){
       try{
         const res = await fetch(w + '/generate', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({count: c.soCau, level: c.level, words: tuDung, topic: chuDe})
+          body: JSON.stringify({count: c.soCau, level: c.level, words: tuDung,
+                                topic: chuDe, patterns: mauDung})
         });
         const k = await res.json().catch(()=>null);
         if(res.ok && k && k.ok) j = k;
@@ -11184,7 +11409,7 @@ async function drpSinhVanBan(){
     // Worker không ra bài (bị Google chặn IP, hết hạn mức, mạng hỏng…) thì app tự soạn
     // bằng khoá Gemini của chính nó — đường này chạy từ máy bạn nên không dính chuyện IP.
     if(!j && SETTINGS.geminiApiKey){
-      try{ j = await drpSinhBangAppGemini(c.soCau, c.level, chuDe, tuDung); duong = 'app'; }
+      try{ j = await drpSinhBangAppGemini(c.soCau, c.level, chuDe, tuDung, mauDung); duong = 'app'; }
       catch(e){ s.loiApp = (e && e.message) || String(e); }
     }
     if(!j){
@@ -11228,6 +11453,21 @@ async function drpSinhVanBan(){
 // v273 — công tắc phiên âm. Mặc định BẬT: người học đọc to thì cần biết cách đọc; ai thấy
 // rối thì tắt một nhát, app nhớ lựa chọn ấy.
 function drpAm(){ const c = drpCaiDat(); return c.am !== false; }
+// ══ v285 · CÔNG TẮC NHẤN MẠNH VÀ NGẮT CÂU ════════════════════════════════════════════
+// Từ v279 tới nay, chữ tô vàng và dấu | ‖ LUÔN hiện — chú thích trong mã còn ghi hẳn thế.
+// Lý do lúc ấy: đó chính là thứ dạy cách đọc. Nhưng bạn nói đúng — có lúc chỉ muốn đọc
+// trơn một đoạn chữ sạch, mà chữ mờ/chữ vàng xen kẽ thì mắt bị kéo đi. Nên cho tắt được,
+// và MẶC ĐỊNH vẫn BẬT để người mới vào không mất thứ đang giúp họ.
+function drpNhan(){ const c = drpCaiDat(); return c.nhan !== false; }
+function drpBatNhan(){
+  const c = drpCaiDat();
+  c.nhan = !drpNhan();
+  try{ saveSettings(); }catch(_){ }
+  try{ renderContent(); }catch(_){ }
+  showToast(c.nhan ? '🎯' : '📄', c.nhan ? 'Đã bật nhấn mạnh & ngắt câu' : 'Đã tắt, còn chữ trơn',
+    c.nhan ? 'Chữ vàng là chữ cần nhấn; | nghỉ ngắn, ‖ nghỉ dài lấy hơi.'
+           : 'Đoạn văn hiện ra sạch, không tô màu và không dấu ngắt — dễ đọc liền mạch hơn.');
+}
 function drpBatAm(){
   const c = drpCaiDat();
   c.am = !drpAm();
@@ -11254,6 +11494,12 @@ function drpBaiKhac(){
   try{ drpDongThu(); }catch(_){ }
   const s = STATE.drpPhien; if(!s) return;
   s.bai = null; s.loi = null;
+  // v285 — bạn báo: "Ẩn nghĩa tiếng Việt" còn bật sang bài mới. Đúng vậy — bản cũ chỉ xoá
+  // s.bai và s.loi. Bản dịch là của BÀI CŨ, nên giữ cờ hienDich lại thì bài mới vừa hiện
+  // ra đã mang sẵn trạng thái "đang hiện nghĩa" mà chẳng có nghĩa nào để hiện, và nút thì
+  // đề "Ẩn nghĩa". Dọn cả cụm dịch, không chỉ cái cờ.
+  s.hienDich = false; s.dangDich = false; s.loiDich = null;
+  s.traTu = null;
   try{ renderContent(); }catch(_){ }
   // Rời lớp bài đọc thì trả lại đúng mốc lịch sử đã đẩy lúc mở bài, nếu không lịch sử
   // trình duyệt sâu dần lên và vuốt back sẽ phải vuốt thừa mấy lần mới ra được.
@@ -11508,6 +11754,59 @@ function drpThuLai(i){ drpXoaMau(i); drpBatThu(i); }
 
 // Nghe lại chính giọng mình. Dùng một thẻ audio dùng chung, không đẻ thẻ mới mỗi lần bấm.
 let drpAudio = null;
+// ══ v285 · NGHE LẠI THÌ CHỮ CHẠY THEO NHỊP MÌNH VỪA NÓI ══════════════════════════════
+// Trước v285 nghe lại chỉ là audio.play(): tiếng chạy, chữ đứng im. Nay có hai nguồn mốc,
+// và app nói rõ đang dùng nguồn nào chứ không lặng lẽ đoán:
+//   (1) MỐC THẬT — nếu câu này đã chấm bằng Azure thì mỗi từ có Offset/Duration do chính
+//       Azure đo trên giọng bạn. Đây mới đúng là "theo nhịp tôi đang nói".
+//   (2) ƯỚC LƯỢNG — chưa chấm thì chia thời lượng bản ghi theo SỐ ÂM TIẾT của từng từ
+//       (không chia đều theo số từ: "international" dài hơn "a" gấp mấy lần). Vẫn bám sát
+//       hơn hẳn chữ đứng im, nhưng là ước lượng, và giao diện ghi rõ thế.
+function drpAmTiet(tu){
+  const t = String(tu || '').toLowerCase().replace(/[^a-z]/g, '');
+  if(!t) return 0;
+  // Đếm cụm nguyên âm; bỏ chữ 'e' câm cuối từ. Thô nhưng đúng với phần lớn từ tiếng Anh.
+  const c = (t.replace(/e$/, '').match(/[aeiouy]+/g) || []).length;
+  return Math.max(1, c);
+}
+// Trả về mảng {bd, kt} theo giây cho từng từ của câu. Luôn trả đủ số từ.
+function drpMocTu(cau, giay, cham){
+  const tu = String(cau || '').split(/\s+/).filter(Boolean);
+  if(!tu.length) return [];
+  // (1) mốc thật từ Azure — chỉ nhận khi số từ khớp và mốc tăng dần, không thì thà ước lượng
+  const az = (cham && cham.nguon === 'azure' && Array.isArray(cham.tu)) ? cham.tu : null;
+  if(az && az.length === tu.length && az.every(w => w && isFinite(w.bd) && w.bd != null)){
+    const ra = az.map(w=>({bd: +w.bd, kt: +w.bd + (+w.dai > 0 ? +w.dai : 0.18), that: true}));
+    if(ra.every((x, k) => k === 0 || x.bd >= ra[k-1].bd)) return ra;
+  }
+  // (2) ước lượng theo số âm tiết
+  const d = +giay > 0 ? +giay : 0;
+  if(!d) return tu.map(()=>({bd:0, kt:0, that:false}));
+  const w = tu.map(drpAmTiet);
+  const tong = w.reduce((a,b)=>a+b, 0) || tu.length;
+  const ra = []; let moc = 0;
+  for(let k = 0; k < tu.length; k++){
+    const dai = d * (w[k] / tong);
+    ra.push({bd: moc, kt: moc + dai, that: false});
+    moc += dai;
+  }
+  return ra;
+}
+// Tô từ thứ `k` của câu `i`. Đụng THẲNG vào DOM thay vì renderContent(): vẽ lại cả màn
+// hình bốn lần một giây thì máy yếu giật, mà thẻ audio cũng có nguy cơ bị thay mới.
+function drpToTu(i, k){
+  try{
+    const o = document.querySelector('[data-drp-doc="' + i + '"]');
+    if(!o) return;
+    const ds = o.querySelectorAll('.drp-tu-am');
+    for(let n = 0; n < ds.length; n++) ds[n].classList.toggle('dang-doc', n === k);
+  }catch(_){ }
+}
+function drpXoaTo(){
+  try{
+    document.querySelectorAll('.drp-tu-am.dang-doc').forEach(x=>x.classList.remove('dang-doc'));
+  }catch(_){ }
+}
 function drpNgheLai(i){
   const g = drpGhi();
   const m = g.mau[i];
@@ -11519,7 +11818,7 @@ function drpNgheLai(i){
   g.loiPhat = null;
   try{
     if(!drpAudio) drpAudio = new Audio();
-    drpAudio.onended = ()=>{ const gg = drpGhi(); gg.phat = null; try{ renderContent(); }catch(_){ } };
+    drpAudio.onended = ()=>{ const gg = drpGhi(); gg.phat = null; drpXoaTo(); try{ renderContent(); }catch(_){ } };
     drpAudio.onerror = ()=>{
       const gg = drpGhi(); gg.phat = null;
       gg.loiPhat = 'Trình duyệt không mở được bản ghi này. Thử thu lại.';
@@ -11529,7 +11828,20 @@ function drpNgheLai(i){
     // ném InvalidStateError, và vì cả khối nằm trong try/catch nên lệnh play() phía sau
     // không bao giờ chạy — im lặng hoàn toàn. Nay đặt lại vị trí khi đã có dữ liệu.
     drpAudio.onloadedmetadata = ()=>{ try{ drpAudio.currentTime = 0; }catch(_){ } };
-    drpAudio.src = m.url;
+    // v285 — mốc dựng MỘT LẦN lúc bắt đầu phát, không dựng lại mỗi nhịp timeupdate.
+    const cau = (i === DRP_DOAN)
+      ? drpDoanVan((STATE.drpPhien && STATE.drpPhien.bai) || {sentences:[]})
+      : (((STATE.drpPhien && STATE.drpPhien.bai && STATE.drpPhien.bai.sentences) || [])[i] || '');
+    let moc = [];
+    try{ moc = drpMocTu(cau, m.giay, m.cham); }catch(_){ moc = []; }
+    g.mocThat = !!(moc[0] && moc[0].that);
+    drpAudio.ontimeupdate = ()=>{
+      if(!moc.length) return;
+      const t = drpAudio.currentTime || 0;
+      let k = -1;
+      for(let n = 0; n < moc.length; n++){ if(t >= moc[n].bd) k = n; else break; }
+      drpToTu(i, k);
+    };
     g.phat = i;
     const p = drpAudio.play();
     if(p && p.catch) p.catch((e)=>{
@@ -11545,6 +11857,7 @@ function drpNgheLai(i){
 }
 function drpDungPhat(){
   const g = drpGhi();
+  drpXoaTo();
   drpNhaAudio();
   if(g.phat != null){ g.phat = null; try{ renderContent(); }catch(_){ } }
 }
@@ -11840,6 +12153,12 @@ function drpNutHtml(i){
       mau.dangCham ? 'Đang chấm…' : (mau.cham ? 'Chấm lại' : 'Chấm phát âm')}</button>` : ''}
   </div>
   ${dangThu ? `<div class="drp-kim-o" title="Vạch này nhảy theo giọng bạn. Nằm im nghĩa là micro không nghe thấy gì."><span id="drpKim"></span></div>` : ''}
+  ${dangPhat ? `<div class="drp-chay-nguon">${
+    (mau && mau.cham && mau.cham.nguon === 'azure'
+     && Array.isArray(mau.cham.tu) && mau.cham.tu.some(w=>w && w.bd != null))
+      ? '🔵 Chữ đang chạy theo <b>mốc thật</b> Azure đo được trên chính giọng bạn.'
+      : '🔵 Chữ đang chạy theo <b>ước lượng</b> — chia thời lượng bản ghi theo số âm tiết từng từ. '
+        + 'Bấm <b>Chấm phát âm</b> (Azure) một lần là lần sau chạy theo mốc thật.'}</div>` : ''}
   ${mau && mau.imLang ? `<div class="drp-canh">Bản ghi gần như <b>im lặng</b> — micro có thể đang thu nhầm thiết bị, hoặc bị tắt tiếng. Kiểm tra lại rồi bấm “Thu lại”.</div>` : ''}
   ${mau && mau.chamLoi ? `<div class="drp-cham-loi">${escapeHtml(mau.chamLoi)}${
     mau.goiY === 'gemini' ? ' <b>Chuyển công tắc “Chấm phát âm bằng” sang Gemini là dùng được ngay.</b>' : ''}${
@@ -11900,16 +12219,22 @@ function drpNgatCau(cau){
   return ra;
 }
 // Vẽ ra màn hình: từ nhấn được tô vàng và đậm, từ nhẹ để mờ, chỗ ngắt hiện ký hiệu | hoặc ‖.
-function drpNgatHtml(cau, keoAm){
+// v285 — công tắc nhấn/ngắt đi qua ĐÚNG hàm này. Tắt thì BỎ HẲN dấu | ‖ và bỏ lớp "nhan",
+// nhưng VẪN giữ thẻ bao quanh từng từ: chạm vào chữ nào hiện nghĩa chữ ấy là chức năng
+// khác, không được tắt theo. Chỉ đổi cách tô, không đổi cách bấm.
+function drpNgatHtml(cau, keoAm, coNhan){
+  const batNhan = (coNhan == null) ? drpNhan() : !!coNhan;
   const ds = drpNgatCau(cau);
   let co = 0, tong = 0;
   const html = ds.map(x=>{
     if(x.loai === 'cach') return ' ';
-    if(x.loai === 'ngat') return `<i class="drp-ngat${x.dai ? ' dai' : ''}" title="${
-      x.dai ? 'Nghỉ dài — hết câu, lấy hơi' : 'Nghỉ ngắn — ngắt ý, đừng lấy hơi sâu'}">${x.dai ? '‖' : '|'}</i>`;
+    if(x.loai === 'ngat') return batNhan
+      ? `<i class="drp-ngat${x.dai ? ' dai' : ''}" title="${
+          x.dai ? 'Nghỉ dài — hết câu, lấy hơi' : 'Nghỉ ngắn — ngắt ý, đừng lấy hơi sâu'}">${x.dai ? '‖' : '|'}</i>`
+      : '';
     if(/[a-z]/i.test(x.chu)) tong++;
     if(x.am) co++;
-    return `<span class="drp-tu-am${x.am ? '' : ' trong'}${x.nhan ? ' nhan' : ''}"
+    return `<span class="drp-tu-am${x.am ? '' : ' trong'}${(batNhan && x.nhan) ? ' nhan' : ''}"
       data-action="drp-tra-tu" data-tu="${escapeHtml(x.chu)}"><b>${escapeHtml(x.chu)}</b>${
       (keoAm && x.am) ? `<i>/${escapeHtml(x.am)}/</i>` : ''}</span>`;
   }).join('');
@@ -12804,7 +13129,7 @@ function drpBaiHtml(b){
     // chỉ quyết định có kéo thêm phiên âm xuống chân từng từ hay không.
     const am = drpNgatHtml(x, drpAm());
     return `<div class="drp-cau${dangThu ? ' thu' : (mau && mau.cham ? ' xong' : '')}">
-      <p class="${drpAm() ? 'co-am' : ''}"><span class="drp-cau-so">${i + 1}</span>${am.html}</p>
+      <p class="${drpAm() ? 'co-am' : ''}" data-drp-doc="${i}"><span class="drp-cau-so">${i + 1}</span>${am.html}</p>
       ${drpDichCauHtml(b, i)}
       ${(drpAm() && am.tong) ? `<div class="drp-am-dem">Có phiên âm cho <b>${am.co}</b>/${am.tong} từ
         — từ nào không có nguồn chắc chắn thì để trống, không đoán bừa.</div>` : ''}
@@ -12823,7 +13148,9 @@ function drpBaiHtml(b){
   // v279 — bạn yêu cầu: ở khung "Cả đoạn" vẫn phải thấy TỪNG CÂU MỘT DÒNG. Một khối chữ
   // liền 5 câu thì mắt mất chỗ bám, đọc tới giữa là không biết đang ở câu nào. Vẫn là MỘT
   // bản thu duy nhất cho cả đoạn — chỉ cách xếp chữ là đổi, không tách thành 5 lần thu.
-  const dsDoan = `<div class="drp-doan${g.dang === DRP_DOAN ? ' thu' : ''}">
+  // v285 — cả đoạn là MỘT bản ghi duy nhất, nên mốc tô chữ cũng phải trải trên cả đoạn:
+  // bọc chung một thẻ mang data-drp-doc, bên trong vẫn là từng câu một dòng.
+  const dsDoan = `<div class="drp-doan${g.dang === DRP_DOAN ? ' thu' : ''}" data-drp-doc="${DRP_DOAN}">
       ${b.sentences.map((x, i)=>{
         const am = drpNgatHtml(x, false);
         return `<p class="drp-doan-cau">${am.html}</p>${drpDichCauHtml(b, i)}`;
@@ -12857,16 +13184,19 @@ function drpBaiHtml(b){
       <div class="drp-am-cong">
         ${khung === 'cau' ? `<button class="drp-chip ${drpAm() ? 'on' : ''}" data-action="drp-am">${
           drpAm() ? '🔡 Đang hiện phiên âm' : '🔡 Hiện phiên âm từng từ'}</button>` : ''}
+        <button class="drp-chip ${drpNhan() ? 'on' : ''}" data-action="drp-nhan">${
+          drpNhan() ? '🎯 Đang có nhấn & ngắt' : '📄 Chữ trơn, không nhấn'}</button>
         <button class="drp-chip ${s.hienDich ? 'on' : ''}" data-action="drp-dich">${
           s.dangDich ? '⏳ Đang dịch…' : (s.hienDich ? '🙈 Ẩn nghĩa tiếng Việt' : '🇻🇳 Dịch nghĩa')}</button>
       </div>
       ${s.loiDich ? `<div class="drp-loi-thu">${escapeHtml(s.loiDich)}</div>` : ''}
       ${drpTraThanhHtml()}
-      <div class="drp-chugiai">Chữ <b class="vd">tô vàng</b> là chữ cần <b>nhấn mạnh</b>;
+      ${drpNhan() ? `<div class="drp-chugiai">Chữ <b class="vd">tô vàng</b> là chữ cần <b>nhấn mạnh</b>;
         chữ mờ thì đọc nhẹ, lướt qua. <i class="drp-ngat">|</i> nghỉ ngắn,
-        <i class="drp-ngat dai">‖</i> nghỉ dài lấy hơi. <b>Chạm vào chữ nào hiện nghĩa chữ ấy.</b></div>
+        <i class="drp-ngat dai">‖</i> nghỉ dài lấy hơi. <b>Chạm vào chữ nào hiện nghĩa chữ ấy.</b></div>`
+        : `<div class="drp-chugiai"><b>Chạm vào chữ nào hiện nghĩa chữ ấy.</b></div>`}
       ${loiThu}${loiPhat}
-      ${khung === 'cau' ? dsCau : dsDoan}
+      <div class="drp-doc">${khung === 'cau' ? dsCau : dsDoan}</div>
       ${tienDo}
       ${tu}
     </div>
@@ -36302,6 +36632,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const i = drpChiSo(drpEl.getAttribute('data-i'));
     if(a === 'drp-khung'){ drpDatKhung(v); return; }
     if(a === 'drp-am'){ drpBatAm(); return; }
+    if(a === 'drp-nhan'){ drpBatNhan(); return; }
     if(a === 'drp-tra-tu'){ drpTraTu(drpEl.getAttribute('data-tu')); return; }
     if(a === 'drp-dong-tra'){ if(STATE.drpPhien) STATE.drpPhien.traTu = null;
       try{ renderContentPreserveScroll(); }catch(_){ } return; }
