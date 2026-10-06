@@ -2172,6 +2172,12 @@
     line-height:1.75; color:var(--dim); background:var(--panel2);
     border:1px dashed var(--border);}
   .tc-chuyen b{color:var(--text);}
+
+  /* v291 — viện dẫn trong thân văn bản. Trông như chữ gạch chân chứ không như nút to,
+     để câu văn không bị băm nhỏ; nhưng bấm được và đổi màu khi rê chuột. */
+  .tc-nd{display:inline; padding:0 2px; margin:0; font:inherit; color:var(--tcm);
+    background:none; border:none; border-bottom:1px dashed var(--tcm); cursor:pointer;}
+  .tc-nd:hover{background:color-mix(in srgb, var(--tcm) 18%, transparent); border-radius:4px;}
   .tc-tb{display:flex; flex-direction:column; gap:7px; margin:0 0 13px;}
   .tc-tb-o{display:flex; align-items:flex-start; gap:10px; padding:9px 12px; border-radius:12px;
     background:var(--panel2); border:1px solid var(--border); width:100%; text-align:left;
@@ -5554,7 +5560,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v290';
+const APP_VERSION = 'v291';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8223,7 +8229,7 @@ function renderKhCatList(){
   if(cat.id === 'outdoor') refCard = `
     <div class="tc-h2ng">Tiêu chuẩn của dòng hàng này<i>Outdoor furniture standards</i></div>
     <div class="tc-ba">
-      ${TC_BO.map(b=>`
+      ${TC_BO.filter(b=>!b.phu).map(b=>`
         <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
           <span class="hao"></span>
           <span class="vai">${escapeHtml(b.vai)}</span>
@@ -8618,6 +8624,59 @@ const TC_HINH = [
  doc:'Lực ngang F đặt ở chiều cao <b>h = 2 200 mm</b> trên ống thử cắm vào lỗ giữ dù của bàn. Lực chỉ 30 N nhưng cánh tay đòn 2,2 m, nên mô men lật là <b>66 N·m</b>.'},
 
 // ── EN 581 ──────────────────────────────────────────────────────────────────────────
+// ══ v291 · HÌNH VÀ BẢNG CÒN THIẾU CỦA BA PHẦN EN 581 ══════════════════════════════
+//  Ảnh BẢNG cũng để chung sổ này (loai:'bang'), không dựng sổ riêng — nhờ vậy nó tự
+//  hưởng cả ba thứ đã làm sẵn: bộ lọc tên tệp khi nhập, đồng bộ Drive, và khung xem
+//  phóng to/xoay ngang. Dựng sổ riêng là phải nhớ nối lại cả ba chỗ, và chắc chắn sẽ
+//  quên một chỗ.
+{id:'f581-1-A1', bo:'en581-1', so:'A.1', dieu:['A'], loai:'hinh',
+ tep:'EN581-1-Figure-A1-shear-and-squeeze-points-schematic.png',
+ ten:'Schematic presentation of requirements and conditions concerning shear and squeeze points',
+ vi:'Sơ đồ yêu cầu và điều kiện về điểm cắt, kẹp', kichThuoc:'', phu:[], giai:[],
+ doc:'Sơ đồ quyết định: khe có nằm trong 7–18 mm không → sinh ra lúc nào (dựng/gấp, do cơ cấu tích năng, hay do tải khi dùng) → từ đó ra kết luận chấp nhận hay không. Đây là cách đọc nhanh ba điều 5.3.1, 5.3.2 và 5.3.3 trong một hình.'},
+
+{id:'f581-2-1', bo:'en581-2', so:1, dieu:['3.4'], loai:'hinh',
+ tep:'EN581-2-Figure-01-teta-angle-in-lounger.png',
+ ten:'Teta angle in lounger', vi:'Góc teta của ghế nằm', kichThuoc:'',
+ phu:[], giai:[['θ','teta angle','góc teta']],
+ doc:'Góc teta đo giữa mặt phẳng tựa lưng và phương ngang. Ghế có ít nhất một nấc lưng cho góc teta trong khoảng 0°–45° VÀ có gác chân liền khối đỡ cả người thì mới là lounger, tức là thử theo Bảng 1 chứ không phải Bảng 2.'},
+
+{id:'f581-2-A1', bo:'en581-2', so:'A.1', dieu:['A.1.1'], loai:'hinh',
+ tep:'EN581-2-Figure-A1-application-points-sideway-stability.png',
+ ten:'Example of application points for sideway stability',
+ vi:'Ví dụ các điểm đặt lực khi thử ổn định hướng ngang',
+ kichThuoc:'Dimensions in millimetres', phu:['a) Lounger with arm rest','b) Lounger without arm rest'], giai:[],
+ doc:'Hai trường hợp: ghế nằm CÓ tay vịn và KHÔNG có tay vịn. Điểm đặt tải nằm trên đường cách mép bên 60 mm; điểm đầu cách mép trước 300 mm; các điểm sau cách nhau ít nhất 600 mm và cách tay vịn hoặc mép sau ít nhất 300 mm.'},
+
+{id:'f581-2-A2', bo:'en581-2', so:'A.2', dieu:['A.1.2'], loai:'hinh',
+ tep:'EN581-2-Figure-A2-forward-stability.png',
+ ten:'Forward stability', vi:'Ổn định hướng trước',
+ kichThuoc:'Dimensions in millimetres', phu:[], giai:[['L','length of the lounger','chiều dài ghế nằm']],
+ doc:'Lực F(B.3) hướng xuống đặt theo Bảng A.1, kèm lực F(B.4) nằm ngang hướng ra ngoài; giữ cả hai ít nhất 5 giây. Ký hiệu L là chiều dài ghế nằm, dùng để xác định vị trí đặt lực.'},
+
+{id:'b581-2-t1', bo:'en581-2', so:'Table 1', dieu:['6.2.1'], loai:'bang',
+ tep:'EN581-2-Table-01-test-sequence-loungers.png',
+ ten:'Table 1 — Test sequence and test parameters for loungers',
+ vi:'Bảng 1 — Trình tự và thông số thử cho ghế nằm', kichThuoc:'', phu:[], giai:[],
+ doc:'Toàn bộ 12 phép thử của ghế nằm, theo đúng thứ tự phải làm, kèm ba cột Camping / Domestic / Contract và bốn chú giải a–d. Thử 10, 11, 12 là ba phép thử ổn định, viện dẫn Phụ lục A và EN 1022.'},
+
+{id:'b581-2-t2', bo:'en581-2', so:'Table 2', dieu:['7.2.1'], loai:'bang',
+ tep:'EN581-2-Table-02-test-sequence-other-seating.png',
+ ten:'Table 2 — Test sequence and test parameters for other seating',
+ vi:'Bảng 2 — Trình tự và thông số thử cho ghế loại khác', kichThuoc:'', phu:[], giai:[],
+ doc:'Dùng cho mọi ghế KHÔNG phải ghế nằm. Bảng này có sáu chú giải a–f, nhiều hơn Bảng 1 hai mục, trong đó có điều kiện chiều cao mặt ngồi quyết định phép thử nào áp dụng.'},
+
+{id:'b581-2-tA1', bo:'en581-2', so:'Table A.1', dieu:['A.1.2'], loai:'bang',
+ tep:'EN581-2-Table-A1-forces-value.png',
+ ten:'Table A.1 — Forces value', vi:'Bảng A.1 — Giá trị các lực', kichThuoc:'', phu:[], giai:[],
+ doc:'Bốn giá trị lực dùng cho hai phép thử ổn định của ghế nằm: F(B.1) = 600 N, F(B.2) = 250 N, F(B.3) = 600 N, F(B.4) = 20 N. Khác mọi bảng khác, bốn số này KHÔNG đổi theo cấp sử dụng.'},
+
+{id:'b581-3-t1', bo:'en581-3', so:'Table 1', dieu:['5.2.1'], loai:'bang',
+ tep:'EN581-3-Table-01-test-sequence-tables.png',
+ ten:'Table 1 — Test sequence and test parameters',
+ vi:'Bảng 1 — Trình tự và thông số thử cho bàn', kichThuoc:'', phu:[], giai:[],
+ doc:'Tám phép thử của bàn, viện dẫn thẳng sang EN 1730. Chú ý hai dòng đầu là CÙNG một phép thử 6.3.1 nhưng tách theo diện tích mặt bàn: trên 0,25 m² và từ 0,25 m² trở xuống, lực khác nhau hẳn.'},
+
 {id:'f581-1-1', bo:'en581-1', so:1, dieu:['4'],
  tep:'EN581-1-Figure-01-measuring-probes.png',
  ten:'Measuring probes', vi:'Các đầu dò đo', kichThuoc:'Dimensions in millimetres', phu:[], giai:[],
@@ -8644,6 +8703,21 @@ const TC_HINH = [
 //  bạn biết nó bị bỏ có chủ đích, không phải sót.
 // ══════════════════════════════════════════════════════════════════════════════════════
 const TC_BO = [
+ // v291 — ba phần của EN 581 thành ba BỘ CON. Chúng phải có mặt trong TC_BO vì trang
+ // điều khoản lấy mã, màu và tên bộ từ đây; nhưng gắn phu:true để màn dòng hàng vẫn chỉ
+ // hiện ba thẻ lớn (EN 581 / EN 1728 / EN 1730), không thành sáu thẻ rối mắt.
+ {id:'en581-1', ma:'EN 581-1', nam:'2017', hex:'#4FA8FF', vai:'Yêu cầu an toàn chung', phu:true,
+  en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
+  vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại — Phần 1: Yêu cầu an toàn chung',
+  mo:'Áp cho <b>cả ghế lẫn bàn</b>: cạnh sắc, góc nhọn, đầu ống hở, điểm cắt và kẹp tay.'},
+ {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#7CC4FF', vai:'An toàn cơ học — GHẾ', phu:true,
+  en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 2: Mechanical safety requirements and test methods for seating',
+  vi:'Đồ ngoài trời — Phần 2: Yêu cầu an toàn cơ học và phương pháp thử cho ghế',
+  mo:'Nêu ghế phải chịu <b>lực nào, bao nhiêu chu kỳ</b> theo ba cấp. Hai bảng riêng: ghế nằm và ghế loại khác.'},
+ {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#A8D8FF', vai:'An toàn cơ học — BÀN', phu:true,
+  en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 3: Mechanical safety requirements for tables',
+  vi:'Đồ ngoài trời — Phần 3: Yêu cầu an toàn cơ học cho bàn',
+  mo:'Tải mặt bàn, độ bền ngang, độ ổn định, mặt bàn kính, lỗ cắm dù.'},
  {id:'en581', ma:'EN 581', nam:'2015 / 2017', hex:'#4FA8FF', vai:'Yêu cầu sản phẩm',
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use',
   vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại',
@@ -9848,16 +9922,518 @@ const TC_DIEU_4 = [
 // tôi soạn, nên mở ra thấy nhảy cóc. Sắp bằng cách so từng bậc số (6.9 < 6.10, không phải
 // so chuỗi — so chuỗi thì "6.10" đứng trước "6.9" và đọc vào là thấy sai ngay).
 function tcSoSanhSo(a, b){
-  const x = a.split('.').map(Number), y = b.split('.').map(Number);
+  // Mỗi bậc so bằng CẶP (hạng, giá trị): hạng 0 cho chữ số, hạng 1 cho chữ cái của phụ
+  // lục. Nhờ vậy "A.1" luôn đứng SAU "9" mà không phải liệt kê ngoại lệ. Bản đầu dùng
+  // Number() thẳng nên 'A' thành NaN, NaN trừ gì cũng ra NaN, so sánh trả 0 — và phụ lục
+  // A, B nhảy lên đứng trước điều 1 ngay trên màn hình.
+  const tach = t => t.split('.').map(p=>/^\d+$/.test(p)
+    ? [0, parseInt(p, 10)]
+    : [1, p.toUpperCase().charCodeAt(0)]);
+  const x = tach(a), y = tach(b);
   for(let i=0; i<Math.max(x.length, y.length); i++){
-    const d = (x[i] || 0) - (y[i] || 0);
-    if(d) return d;
+    const u = x[i] || [-1, 0], v = y[i] || [-1, 0];
+    if(u[0] !== v[0]) return u[0] - v[0];
+    if(u[1] !== v[1]) return u[1] - v[1];
   }
   return 0;
 }
 // Phải sắp theo CẢ HAI khoá (bộ rồi tới số). Lần đầu tôi viết trả 0 khi khác bộ — đó
 // không phải quan hệ thứ tự toàn phần, và sort của JS được phép xáo tung khi gặp kiểu
 // so sánh ấy. Kết quả: điều 2 của EN 1728 văng đi đâu mất trong danh sách.
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v291 · CÂY ĐIỀU KHOẢN CỦA BA PHẦN EN 581
+//
+//  Tới v290 app vẫn để EN 581 dưới dạng 19 CHỦ ĐỀ do tôi tự gom, không mang số điều của
+//  bản in. Tra theo chủ đề thì nhanh, nhưng khi cần trích dẫn vào báo cáo kiểm hàng thì
+//  phải ghi đúng số điều — mà số ấy không có trong app. Nay dựng đủ cây điều khoản của
+//  cả ba phần, giữ nguyên phần tra theo chủ đề bên cạnh.
+//
+//  Nguồn: EN 581-1:2017 và EN 581-2:2015 có lớp chữ nên trích thẳng; EN 581-3:2017 là
+//  bản scan, phần thân lấy từ bản PDF 4 trang có lớp chữ, ba điều đầu (Scope, Normative
+//  references, Terms) lấy bằng OCR trang 4 của bản scan rồi soát lại từng câu bằng mắt.
+//
+//  Bản in có chỗ IN CHỒNG hai dòng lên nhau ("2An neNxo Br (minafotrimveat riveef)e irs
+//  ea nracteiosn ale...") — đó là tiêu đề điều chen vào giữa câu của điều trước. Tôi gỡ
+//  chồng thủ công, không đoán: mỗi câu dưới đây đều đọc được nguyên vẹn trong bản in.
+// ══════════════════════════════════════════════════════════════════════════════════════
+const TC_DIEU_5 = [
+
+// ══════════════════════════════════════════════════════════════════════════════════
+//  EN 581-1:2017 — YÊU CẦU AN TOÀN CHUNG (ghế VÀ bàn)
+// ══════════════════════════════════════════════════════════════════════════════════
+{bo:'en581-1', so:'1', en:'Scope', vi:'Phạm vi áp dụng', nhom:'nen',
+ than:[
+ {en:'This part of EN 581 specifies the general safety requirements for outdoor seating and tables for camping, domestic and contract for use by adults, without regard to materials, design/construction or manufacturing processes.',
+  vi:'Phần này của EN 581 quy định <b>yêu cầu an toàn chung</b> cho <b>ghế và bàn ngoài trời</b> dùng cho <b>người lớn</b>, ở ba cấp <b>camping, domestic và contract</b>, <b>không phân biệt vật liệu, kiểu dáng/kết cấu hay quy trình sản xuất</b>.'},
+ {en:'It does not apply to seating for spectator facilities.',
+  vi:'<b>Không</b> áp dụng cho ghế khán đài.'},
+ {en:'It does not include requirements for the durability of upholstery materials, castors, reclining and tilting mechanisms and seat height adjustment mechanisms.',
+  vi:'<b>Không</b> bao gồm yêu cầu về độ bền của <b>vật liệu bọc nệm, bánh xe, cơ cấu ngả lưng và nghiêng, cơ cấu chỉnh chiều cao ghế</b>.'},
+ {en:'Mechanical safety requirements are covered by EN 581-2 for seating and EN 581-3 for tables.',
+  vi:'Yêu cầu <b>an toàn cơ học</b> nằm ở <b>EN 581-2 (ghế)</b> và <b>EN 581-3 (bàn)</b>.'},
+ {en:'Annex A (informative) is a schematic presentation of requirements and conditions concerning shear and squeeze points.',
+  vi:'<b>Phụ lục A</b> (tham khảo) là sơ đồ yêu cầu và điều kiện về <b>điểm cắt và kẹp</b>.'},
+ {en:'Annex B (informative) is a rationale concerning fingers injury.',
+  vi:'<b>Phụ lục B</b> (tham khảo) giải thích cơ sở của các yêu cầu về <b>thương tích ngón tay</b>.'}],
+ luu:['Khách hỏi "nệm ngoài trời này đạt EN 581 chưa" thì câu trả lời đúng là: EN 581 KHÔNG nói gì về độ bền vật liệu bọc nệm — phải viện tiêu chuẩn khác.']},
+
+{bo:'en581-1', so:'2', en:'Normative references', vi:'Tài liệu viện dẫn', nhom:'nen',
+ than:[
+ {en:'The following documents, in whole or in part, are normatively referenced in this document and are indispensable for its application. For dated references, only the edition cited applies. For undated references, the latest edition of the referenced document (including any amendments) applies.',
+  vi:'Các tài liệu sau được viện dẫn <b>bắt buộc</b> và <b>không thể thiếu</b> khi áp dụng. Viện dẫn <b>có ghi năm</b>: chỉ dùng đúng bản năm đó; <b>không ghi năm</b>: dùng bản mới nhất kể cả sửa đổi.'},
+ {en:'EN 581-2, Outdoor furniture - Seating and tables for camping, domestic and contract use - Part 2: Mechanical safety requirements and test methods for seating',
+  vi:'<b>EN 581-2</b> — Đồ ngoài trời: ghế và bàn dùng cho camping, gia dụng và thương mại — Phần 2: Yêu cầu an toàn cơ học và phương pháp thử cho <b>ghế</b>.'},
+ {en:'EN 581-3, Outdoor furniture - Seating and tables for camping, domestic and contract use - Part 3: Mechanical safety requirements and test methods for tables',
+  vi:'<b>EN 581-3</b> — nt — Phần 3: Yêu cầu an toàn cơ học và phương pháp thử cho <b>bàn</b>.'}]},
+
+{bo:'en581-1', so:'3', en:'Terms and definitions', vi:'Thuật ngữ và định nghĩa', nhom:'nen',
+ than:[{en:'For the purposes of this document, the following terms and definitions apply.',
+  vi:'Trong tiêu chuẩn này, áp dụng các thuật ngữ và định nghĩa sau.'}],
+ muc:['3.1','3.2','3.3','3.4','3.5']},
+
+{bo:'en581-1', so:'3.1', en:'automatic locking mechanism', vi:'cơ cấu khoá tự động', nhom:'nen',
+ than:[{en:'mechanism which engages without guidance by the user and prevents unintended movement',
+  vi:'cơ cấu <b>tự ăn khớp mà người dùng không phải thao tác</b>, và <b>ngăn chuyển động ngoài ý muốn</b>.'}]},
+
+{bo:'en581-1', so:'3.2', en:'shear and squeeze point', vi:'điểm cắt và kẹp', nhom:'nen',
+ than:[{en:'shear and squeeze points exist if the distance between two accessible parts moving relative to each other can be more or equal than 7 mm and less or equal than 18 mm in any position during movement',
+  vi:'Có <b>điểm cắt và kẹp</b> khi khoảng cách giữa <b>hai bộ phận chạm tới được</b> và <b>chuyển động tương đối với nhau</b> nằm trong khoảng <b>từ 7 mm đến 18 mm</b> (lớn hơn hoặc bằng 7, nhỏ hơn hoặc bằng 18) ở <b>bất kỳ vị trí nào trong hành trình</b>.'}],
+ luu:['Đây là định nghĩa gốc của ba đầu dò 7 / 12 / 18 mm ở Điều 4. Khe NHỎ HƠN 7 mm hoặc LỚN HƠN 18 mm đều không phải điểm kẹp — ngón tay không lọt vào, hoặc rút ra kịp.']},
+
+{bo:'en581-1', so:'3.3', en:'outdoor furniture for contract use', vi:'đồ ngoài trời dùng thương mại', nhom:'nen',
+ than:[{en:'outdoor furniture intended for non-private use in places with public access',
+  vi:'đồ ngoài trời dùng cho mục đích <b>không riêng tư</b>, ở <b>nơi công cộng có người ra vào</b>.'}]},
+
+{bo:'en581-1', so:'3.4', en:'outdoor furniture for domestic use', vi:'đồ ngoài trời dùng gia dụng', nhom:'nen',
+ than:[{en:'outdoor furniture intended for private use in places without public access',
+  vi:'đồ ngoài trời dùng <b>riêng tư</b>, ở <b>nơi không có người ngoài ra vào</b>.'}]},
+
+{bo:'en581-1', so:'3.5', en:'outdoor furniture for camping use', vi:'đồ ngoài trời dùng cắm trại', nhom:'nen',
+ than:[{en:'outdoor furniture foldable or knock-down and light-weight, intended for use in connection with camping and travelling',
+  vi:'đồ ngoài trời <b>gấp được hoặc tháo rời được</b> và <b>nhẹ</b>, dùng cho <b>cắm trại và đi lại</b>.'}],
+ luu:['Ba định nghĩa 3.3–3.5 chính là ba cột Camping / Domestic / Contract trong mọi bảng thông số. Khách ghi "contract" là hàng chịu lực cao nhất.']},
+
+{bo:'en581-1', so:'4', en:'Test probes', vi:'Đầu dò kiểm tra', nhom:'tb',
+ hinh:['f581-1-1'],
+ than:[{en:'There shall be three cylindrical probes with diameters of 7 +0/−0,1 mm, 12 +0,1/−0 mm and 18 +0,1/−0 mm with hemispherical ends, see Figure 1.',
+  vi:'Phải có <b>ba đầu dò hình trụ, đầu bán cầu</b>, đường kính <b>7 mm (+0 / −0,1)</b>, <b>12 mm (+0,1 / −0)</b> và <b>18 mm (+0,1 / −0)</b> — xem <b>Hình 1</b>.'}],
+ luu:['Không có bộ đầu dò chuẩn ở xưởng thì dùng thước cặp đo khe, nhưng báo cáo phải ghi rõ "đo bằng thước cặp, không phải đầu dò theo Điều 4".']},
+
+{bo:'en581-1', so:'5', en:'Safety requirements', vi:'Yêu cầu an toàn', nhom:'yc',
+ than:[{en:'This clause covers general requirements (5.1), tubular components (5.2) and shear and squeeze points (5.3).',
+  vi:'Điều này gồm: <b>yêu cầu chung (5.1)</b>, <b>chi tiết dạng ống (5.2)</b> và <b>điểm cắt, kẹp (5.3)</b>.'}],
+ muc:['5.1','5.2','5.3']},
+
+{bo:'en581-1', so:'5.1', en:'General', vi:'Yêu cầu chung', nhom:'yc',
+ than:[
+ {en:'In order to avoid physical injury when the product is in its intended position of use, all edges and corners shall be rounded, chamfered or otherwise protected.',
+  vi:'Để tránh gây thương tích khi sản phẩm ở <b>tư thế sử dụng dự kiến</b>, <b>mọi cạnh và góc phải được bo tròn, vát hoặc che chắn</b>.'},
+ {en:'This applies to — Seating: Edges of the seat, back rest and arm rests and any part of the bottom surface of the seat at a distance less than 120 mm from any edge, where a finger can commonly access.',
+  vi:'Với <b>ghế</b>: áp dụng cho <b>cạnh mặt ngồi, tựa lưng, tay vịn</b>, và <b>mọi phần mặt dưới mặt ngồi nằm trong 120 mm tính từ mép</b> — chỗ <b>ngón tay thường chạm tới được</b>.'},
+ {en:'— Tables: Table tops, any part of the underside of the top surface at a distance less than 500 mm from any edge below the table, where a knee and/or an arm can commonly access.',
+  vi:'Với <b>bàn</b>: áp dụng cho <b>mặt bàn</b> và <b>mọi phần mặt dưới nằm trong 500 mm tính từ mép bàn</b> — chỗ <b>đầu gối và/hoặc cánh tay thường chạm tới được</b>.'},
+ {en:'All other parts shall be free from burrs, sharp edges and sharp points.',
+  vi:'Mọi bộ phận còn lại phải <b>không có ba via, cạnh sắc, mũi nhọn</b>.'},
+ {en:'Movable and adjustable parts shall be designed so that injuries and inadvertent operation are avoided.',
+  vi:'Bộ phận <b>chuyển động và điều chỉnh được</b> phải thiết kế sao cho <b>không gây thương tích và không bị thao tác nhầm</b>.'},
+ {en:'It shall not be possible for any load bearing part of the furniture to come loose unintentionally.',
+  vi:'<b>Không được</b> để bất kỳ <b>bộ phận chịu lực</b> nào <b>tự lỏng ra ngoài ý muốn</b>.'},
+ {en:'All parts which are lubricated to assist sliding shall be designed to protect users from lubricant stains when in normal use.',
+  vi:'Bộ phận <b>có bôi trơn để trượt</b> phải thiết kế sao cho người dùng <b>không bị dính dầu mỡ</b> khi dùng bình thường.'}],
+ luu:['Hai con số 120 mm (ghế) và 500 mm (bàn) là vùng BẮT BUỘC soi. Ngoài vùng đó vẫn phải không ba via, nhưng không bắt buộc bo tròn.',
+ 'Câu "ở tư thế sử dụng dự kiến" quan trọng: ghế gấp thì soi ở trạng thái MỞ RA dùng, không soi lúc đang gấp — lúc gấp thuộc điều 5.3.1.']},
+
+{bo:'en581-1', so:'5.2', en:'Tubular components', vi:'Chi tiết dạng ống', nhom:'yc',
+ than:[
+ {en:'There shall be no accessible holes in the ends of tubular components with a diameter between 7 mm to 12 mm and with a depth more or equal to 10 mm.',
+  vi:'<b>Không được</b> có lỗ hở chạm tới được ở <b>đầu ống</b> có <b>đường kính từ 7 mm đến 12 mm</b> và <b>sâu từ 10 mm trở lên</b>.'},
+ {en:'The bottom of tubular legs in contact with the floor shall be closed or capped, however, holes in them are allowed as long as they are not between 7 and 12 mm.',
+  vi:'<b>Đầu dưới của chân ống tiếp xúc sàn phải bịt kín hoặc có nút</b>; vẫn được phép có lỗ, <b>miễn là đường kính không nằm trong khoảng 7–12 mm</b>.'}],
+ luu:['Đây là bẫy ngón tay: lỗ 7–12 mm sâu ≥ 10 mm thì ngón tay trẻ con thọc vào rút không ra. Chân ống nhôm cắt trần không bịt nút là lỗi gặp nhiều nhất ở hàng outdoor.']},
+
+{bo:'en581-1', so:'5.3', en:'Shear and squeeze points', vi:'Điểm cắt và kẹp', nhom:'yc',
+ than:[{en:'These requirements shall be assessed using the test probes (Clause 4).',
+  vi:'Các yêu cầu này phải được <b>đánh giá bằng bộ đầu dò (Điều 4)</b>.'}],
+ muc:['5.3.1','5.3.2','5.3.3'], dan:'4'},
+
+{bo:'en581-1', so:'5.3.1', en:'Shear and squeeze points when erecting, adjusting and folding away', vi:'Điểm cắt kẹp khi dựng, chỉnh và gấp cất', nhom:'yc',
+ than:[{en:'Unless 5.3.2 or 5.3.3 are applicable, shear and squeeze points that are created only during erecting, adjusting or folding away are acceptable providing the user can be assumed to be in control of his/her movements and to be able to cease applying the force immediately on experiencing pain.',
+  vi:'Trừ khi rơi vào 5.3.2 hoặc 5.3.3, điểm cắt kẹp <b>chỉ sinh ra trong lúc dựng, chỉnh hoặc gấp cất</b> thì <b>được chấp nhận</b>, với điều kiện có thể coi là người dùng <b>đang chủ động điều khiển thao tác</b> và <b>ngừng được ngay khi thấy đau</b>.'}],
+ luu:['Đây là lối thoát cho ghế gấp: khe kẹp xuất hiện lúc gấp thì chấp nhận được. Nhưng nếu khe ấy do LÒ XO/GIẢM CHẤN tự đóng (5.3.2) hoặc do SỨC NẶNG người ngồi (5.3.3) thì KHÔNG được chấp nhận.']},
+
+{bo:'en581-1', so:'5.3.2', en:'Shear and squeeze points under the influence of powered mechanisms', vi:'Điểm cắt kẹp do cơ cấu có tích năng', nhom:'yc',
+ than:[
+ {en:'There shall be no accessible shear and squeeze points created by parts of the furniture operated by powered mechanisms, e.g. mechanical springs and gas lifts.',
+  vi:'<b>Không được</b> có điểm cắt kẹp chạm tới được do bộ phận <b>vận hành bằng cơ cấu tích năng</b> gây ra — ví dụ <b>lò xo cơ khí và ty hơi</b>.'},
+ {en:'This requirement shall be assessed using the test probes (Clause 4).',
+  vi:'Yêu cầu này đánh giá bằng <b>bộ đầu dò (Điều 4)</b>.'}],
+ dan:'4'},
+
+{bo:'en581-1', so:'5.3.3', en:'Shear and squeeze points during use', vi:'Điểm cắt kẹp trong khi sử dụng', nhom:'yc',
+ than:[
+ {en:'There shall be no accessible shear and squeeze points created by loads applied during normal use.',
+  vi:'<b>Không được</b> có điểm cắt kẹp chạm tới được sinh ra do <b>tải trọng đặt lên trong quá trình sử dụng bình thường</b>.'},
+ {en:'Shear and squeeze points are not acceptable if there is a risk of injury created by the weight of the user during normal movements and actions, e.g. attempting to move the seating by lifting the seat or by adjusting the backrest.',
+  vi:'<b>Không chấp nhận</b> điểm cắt kẹp nếu có nguy cơ gây thương tích do <b>sức nặng của người dùng</b> trong các cử động bình thường — ví dụ <b>nhấc mặt ngồi để xê dịch ghế</b> hoặc <b>chỉnh tựa lưng</b>.'},
+ {en:'This requirement shall be assessed using the test probes (Clause 4).',
+  vi:'Yêu cầu này đánh giá bằng <b>bộ đầu dò (Điều 4)</b>.'},
+ {en:'For loungers, the loads applied during normal use are the loads used for the following mechanical tests in Table 1 of EN 581-2:2015: Test 2: Additional seat and leg rest static load; Test 3: Seat and back durability; Test 4: Additional seat durability; Test 5: Durability on back rest mechanism.',
+  vi:'Với <b>ghế nằm</b>, tải "sử dụng bình thường" là tải của các phép thử trong <b>Bảng 1 của EN 581-2:2015</b>: <b>Thử 2</b> (tải tĩnh bổ sung mặt ngồi và gác chân), <b>Thử 3</b> (độ bền mỏi mặt ngồi và tựa lưng), <b>Thử 4</b> (độ bền mỏi mặt ngồi bổ sung), <b>Thử 5</b> (độ bền cơ cấu tựa lưng).'},
+ {en:'For other seating, the loads applied during normal use are the loads used for the following mechanical tests in Table 2 of EN 581-2:2015: Test 2: Seat front edge static; Test 3: Combined seat and back durability; Test 4: Durability test on seating with a multi-position back.',
+  vi:'Với <b>ghế loại khác</b>, lấy tải của các phép thử trong <b>Bảng 2 của EN 581-2:2015</b>: <b>Thử 2</b> (tải tĩnh mép trước mặt ngồi), <b>Thử 3</b> (độ bền mỏi kết hợp mặt ngồi và tựa lưng), <b>Thử 4</b> (độ bền ghế có lưng nhiều nấc).'},
+ {en:'For tables, the loads applied during normal use are the loads used for the following mechanical tests in Table 1 of EN 581-3:2007: Test 1: Vertical static load on main surface; Test 4: Vertical static load on ancillary surface; Test 5: Horizontal durability test.',
+  vi:'Với <b>bàn</b>, lấy tải của các phép thử trong <b>Bảng 1 của EN 581-3:2007</b>: <b>Thử 1</b> (tải tĩnh thẳng đứng mặt chính), <b>Thử 4</b> (tải tĩnh thẳng đứng mặt phụ), <b>Thử 5</b> (độ bền mỏi theo phương ngang).'}],
+ luu:['Điều này nói rõ: phải soi điểm kẹp KHI ĐANG CHẤT TẢI, không phải lúc ghế rỗng. Đây là chỗ hay bị bỏ qua nhất trong kiểm hàng.',
+ 'Chú ý bản in viện dẫn EN 581-3:2007 (bản cũ) dù EN 581-1 là bản 2017 — đó là nguyên văn, tôi không sửa. Khi tra bảng bàn thì dùng Bảng 1 của bản 581-3 đang hiệu lực.']},
+
+{bo:'en581-1', so:'6', en:'Test report', vi:'Báo cáo thử nghiệm', nhom:'bc',
+ than:[
+ {en:'The test report shall include at least the following information: a) reference to this part of the European Standard (EN 581-1:2017); b) details of piece of furniture tested; c) any defects observed before testing; d) the test results according to the applicable clauses; e) compliance with the requirements; f) the name and address of the test facility; g) the date of test.',
+  vi:'Báo cáo thử <b>tối thiểu</b> phải có: <b>a)</b> viện dẫn phần này của tiêu chuẩn (EN 581-1:2017); <b>b)</b> mô tả chi tiết món hàng được thử; <b>c)</b> mọi khuyết tật quan sát được <b>trước khi thử</b>; <b>d)</b> kết quả thử theo các điều áp dụng; <b>e)</b> kết luận đạt/không đạt; <b>f)</b> tên và địa chỉ phòng thử; <b>g)</b> ngày thử.'}],
+ luu:['Mục c) "khuyết tật quan sát được TRƯỚC khi thử" là mục hay bị bỏ trống. Thiếu nó thì sau khi thử xong không ai phân biệt được hư hỏng nào có sẵn, hư hỏng nào do phép thử.']},
+
+{bo:'en581-1', so:'A', en:'Annex A (informative) — Schematic presentation of requirements and conditions concerning shear and squeeze points',
+ vi:'Phụ lục A (tham khảo) — Sơ đồ yêu cầu và điều kiện về điểm cắt, kẹp', nhom:'pl',
+ than:[{en:'Figure A.1 is a Schematic presentation of requirements and conditions concerning shear and squeeze points.',
+  vi:'<b>Hình A.1</b> là sơ đồ trình bày yêu cầu và điều kiện liên quan tới <b>điểm cắt và kẹp</b>.'}],
+ hinh:['f581-1-A1']},
+
+{bo:'en581-1', so:'B', en:'Annex B (informative) — Rationale for injury of fingers',
+ vi:'Phụ lục B (tham khảo) — Cơ sở của yêu cầu về thương tích ngón tay', nhom:'pl',
+ than:[
+ {en:'5.1 General — Risk of cutting a part of the user\'s body when in contact with the product.',
+  vi:'<b>5.1 Yêu cầu chung</b> — rủi ro <b>cắt vào một phần cơ thể</b> khi chạm vào sản phẩm.'},
+ {en:'5.2 Tubular components — Finger entrapment in holes on tubular component and damage on floors.',
+  vi:'<b>5.2 Chi tiết dạng ống</b> — rủi ro <b>kẹt ngón tay trong lỗ đầu ống</b>, và <b>làm hỏng mặt sàn</b>.'},
+ {en:'5.3 Shear and squeeze points — Shearing and squeezing of fingers, thumbs excluded.',
+  vi:'<b>5.3 Điểm cắt và kẹp</b> — rủi ro <b>cắt và kẹp ngón tay</b>; <b>không tính ngón cái</b>.'}],
+ luu:['Chi tiết "thumbs excluded" giải thích vì sao ngưỡng trên là 18 mm chứ không lớn hơn: ngưỡng tính theo bề dày ngón tay, không tính ngón cái.']},
+
+// ══════════════════════════════════════════════════════════════════════════════════
+//  EN 581-2:2015 — AN TOÀN CƠ HỌC CHO GHẾ
+// ══════════════════════════════════════════════════════════════════════════════════
+{bo:'en581-2', so:'1', en:'Scope', vi:'Phạm vi áp dụng', nhom:'nen',
+ than:[
+ {en:'This European Standard specifies the minimum requirements for the safety, strength and durability of all types of outdoor seating for adults, without regard to materials, design/construction or manufacturing processes.',
+  vi:'Tiêu chuẩn này quy định <b>yêu cầu tối thiểu</b> về <b>an toàn, độ bền và độ bền mỏi</b> cho <b>mọi loại ghế ngoài trời dùng cho người lớn</b>, không phân biệt vật liệu, kiểu dáng/kết cấu hay quy trình sản xuất.'},
+ {en:'It does not apply to street furniture.',
+  vi:'<b>Không</b> áp dụng cho <b>đồ nội thất đường phố</b> (xem định nghĩa 3.5).'},
+ {en:'It does not apply to removable upholstery and covering.',
+  vi:'<b>Không</b> áp dụng cho <b>nệm và vỏ bọc tháo rời được</b>.'},
+ {en:'It does not include requirements for the durability of castors/wheels and height adjustment mechanisms.',
+  vi:'<b>Không</b> bao gồm yêu cầu độ bền của <b>bánh xe và cơ cấu chỉnh chiều cao</b>.'},
+ {en:'It does not include requirements for electrical safety.',
+  vi:'<b>Không</b> bao gồm yêu cầu <b>an toàn điện</b>.'},
+ {en:'It does not include requirements for the resistance to ageing and degradation caused by light, temperature and moisture.',
+  vi:'<b>Không</b> bao gồm yêu cầu <b>chịu lão hoá và suy giảm do ánh sáng, nhiệt độ và độ ẩm</b>.'},
+ {en:'The test requirements contained within this standard are based on use by persons weighing up to 110 kg.',
+  vi:'Các yêu cầu thử trong tiêu chuẩn này dựa trên <b>người dùng nặng tới 110 kg</b>.'}],
+ luu:['Mốc 110 kg là cơ sở của mọi con số lực trong Bảng 1 và Bảng 2. Khách muốn ghế chịu người nặng hơn thì phải thoả thuận riêng, EN 581-2 không phủ.',
+ 'Hai dòng "không áp dụng cho lão hoá do ánh sáng, nhiệt độ, độ ẩm" rất đáng nhớ: hàng outdoor phơi nắng mưa, nhưng EN 581 KHÔNG quản phần đó.']},
+
+{bo:'en581-2', so:'2', en:'Normative references', vi:'Tài liệu viện dẫn', nhom:'nen',
+ than:[
+ {en:'The following documents, in whole or in part, are normatively referenced in this document and are indispensable for its application. For dated references, only the edition cited applies. For undated references, the latest edition of the referenced document (including any amendments) applies.',
+  vi:'Các tài liệu sau được viện dẫn <b>bắt buộc</b> và <b>không thể thiếu</b> khi áp dụng. Viện dẫn có ghi năm thì chỉ dùng đúng bản ấy; không ghi năm thì dùng bản mới nhất.'},
+ {en:'EN 581-1, Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
+  vi:'<b>EN 581-1</b> — Phần 1: Yêu cầu an toàn chung.'},
+ {en:'EN 1022:2005, Domestic furniture — Seating — Determination of stability',
+  vi:'<b>EN 1022:2005</b> — Nội thất gia dụng — Ghế — Xác định <b>độ ổn định</b>.'},
+ {en:'EN 1728:2012, Furniture — Seating — Test methods for the determination of strength and durability',
+  vi:'<b>EN 1728:2012</b> — Nội thất — Ghế — <b>Phương pháp thử</b> xác định độ bền và độ bền mỏi.'}],
+ luu:['Ba phép thử ổn định trong Bảng 1 (Thử 10, 11, 12) viện dẫn EN 1022 — tiêu chuẩn này tôi KHÔNG có file, nên app không dựng được điều khoản gốc của chúng.']},
+
+{bo:'en581-2', so:'3', en:'Terms and definitions', vi:'Thuật ngữ và định nghĩa', nhom:'nen',
+ than:[{en:'For the purposes of this document, the following terms and definitions apply.',
+  vi:'Trong tiêu chuẩn này, áp dụng các thuật ngữ và định nghĩa sau.'}],
+ muc:['3.1','3.2','3.3','3.4','3.5']},
+
+{bo:'en581-2', so:'3.1', en:'outdoor seating for contract use', vi:'ghế ngoài trời dùng thương mại', nhom:'nen',
+ than:[{en:'outdoor seating intended for non-private use in places with public access',
+  vi:'ghế ngoài trời dùng cho mục đích <b>không riêng tư</b>, ở <b>nơi công cộng có người ra vào</b>.'}]},
+
+{bo:'en581-2', so:'3.2', en:'outdoor seating for domestic use', vi:'ghế ngoài trời dùng gia dụng', nhom:'nen',
+ than:[{en:'outdoor seating intended for private use in places use without public access',
+  vi:'ghế ngoài trời dùng <b>riêng tư</b>, ở <b>nơi không có người ngoài ra vào</b>.'}]},
+
+{bo:'en581-2', so:'3.3', en:'outdoor seating for camping use', vi:'ghế ngoài trời dùng cắm trại', nhom:'nen',
+ than:[{en:'outdoor seating foldable or knock-down and light-weight, intended for use in connection with camping and travelling',
+  vi:'ghế ngoài trời <b>gấp được hoặc tháo rời được</b> và <b>nhẹ</b>, dùng cho <b>cắm trại và đi lại</b>.'}]},
+
+{bo:'en581-2', so:'3.4', en:'lounger', vi:'ghế nằm', nhom:'nen',
+ hinh:['f581-2-1'],
+ than:[
+ {en:'seating intended for reclined posture with at least one backrest position with an "teta angle" between 0° and 45° and a leg rest which is integral part of the product and which is intended to support the full body weight of a user',
+  vi:'ghế dùng cho <b>tư thế nằm ngả</b>, có <b>ít nhất một nấc tựa lưng với "góc teta" trong khoảng 0° đến 45°</b>, và có <b>gác chân liền khối với sản phẩm</b>, <b>đỡ được toàn bộ trọng lượng cơ thể người dùng</b>.'},
+ {en:'Note 1 to entry: Figure 1 shows teta angle in lounger.',
+  vi:'<b>CHÚ THÍCH 1</b> — <b>Hình 1</b> thể hiện góc teta của ghế nằm.'}],
+ luu:['Định nghĩa này quyết định ghế của anh dùng BẢNG 1 hay BẢNG 2. Thiếu một trong hai điều kiện (góc teta 0–45° / gác chân liền khối đỡ cả người) thì không phải lounger, phải thử theo Bảng 2.']},
+
+{bo:'en581-2', so:'3.5', en:'street furniture', vi:'đồ nội thất đường phố', nhom:'nen',
+ than:[{en:'outdoor furniture use in public space, permanently fixed to the ground or any structure (e.g. bus stop, wall…) or not able to be manually removed',
+  vi:'đồ ngoài trời dùng ở <b>không gian công cộng</b>, <b>gắn cố định vĩnh viễn xuống đất hoặc vào kết cấu</b> (ví dụ trạm xe buýt, tường…), <b>hoặc không thể dời bằng tay</b>.'}],
+ luu:['Ghế băng công viên bắt bu lông xuống nền là street furniture → NẰM NGOÀI phạm vi EN 581-2. Đây là chỗ hay cãi nhau với khách.']},
+
+{bo:'en581-2', so:'4', en:'Testing', vi:'Thử nghiệm', nhom:'nen',
+ than:[
+ {en:'Testing shall be carried out as specified in EN 1728 and EN 1022.',
+  vi:'Thử nghiệm phải thực hiện <b>theo đúng EN 1728 và EN 1022</b>.'},
+ {en:'With the exception of seating with a seat and back made of one piece of flexible material (e.g. textile), attached at the upper and lower edges only, seat and back loading points shall be determined according to EN 1728.',
+  vi:'Trừ loại ghế có <b>mặt ngồi và lưng làm liền một tấm vật liệu mềm</b> (ví dụ vải), <b>chỉ gắn ở mép trên và mép dưới</b>, còn lại <b>điểm đặt tải mặt ngồi và lưng xác định theo EN 1728</b>.'},
+ {en:'For seating with a seat and back made of one piece of flexible material (e.g. textile), attached at the upper and lower edges only, the loading point shall be the lowest point when a rolling cylinder (Clause 5) is placed in the seating.',
+  vi:'Với loại ghế vải liền tấm nói trên: <b>điểm đặt tải là điểm thấp nhất</b> mà <b>con lăn hình trụ (Điều 5)</b> dừng lại khi thả vào lòng ghế.'}],
+ dan:'5'},
+
+{bo:'en581-2', so:'5', en:'Test equipment', vi:'Thiết bị thử', nhom:'tb',
+ than:[
+ {en:'In derogation to EN 1728 and EN 1022, the loading position template for seating with seat and back made of one suspended or hanging piece of flexible material (e.g. textile) shall be a cylinder with a mass of (1 ± 0,5) kg and a diameter of (70 ± 10) mm.',
+  vi:'<b>Khác với EN 1728 và EN 1022</b>: với ghế có mặt ngồi và lưng là <b>một tấm vật liệu mềm căng/treo</b>, dưỡng xác định vị trí đặt tải là <b>con lăn hình trụ, khối lượng (1 ± 0,5) kg, đường kính (70 ± 10) mm</b>.'},
+ {en:'Axis of the cylinder shall be perpendicular to the median plane of the seat.',
+  vi:'<b>Trục con lăn phải vuông góc với mặt phẳng trung tuyến của ghế</b>.'},
+ {en:'Let the cylinder roll from the higher part of the top front of the flexible part. Where the cylinder stops the seat load shall be applied.',
+  vi:'<b>Thả con lăn lăn từ phần cao phía trước trên của tấm vải</b>. <b>Con lăn dừng ở đâu thì đặt tải mặt ngồi ở đó.</b>'},
+ {en:'NOTE A suitable length of the cylinder is 200 mm.',
+  vi:'<b>CHÚ THÍCH</b> — Chiều dài con lăn phù hợp là <b>200 mm</b>.'}],
+ luu:['Đây là điều RIÊNG của EN 581-2, không có trong EN 1728 — vì ghế bố, ghế vải căng là đặc sản đồ ngoài trời. Phòng thử quen làm ghế gỗ hay bỏ sót điều này.']},
+
+{bo:'en581-2', so:'6', en:'Safety, strength and durability requirements for loungers', vi:'Yêu cầu an toàn, độ bền và độ bền mỏi cho ghế nằm', nhom:'yc',
+ than:[{en:'This clause covers general requirements (6.1) and stability, strength and durability (6.2) for loungers.',
+  vi:'Điều này gồm <b>yêu cầu chung (6.1)</b> và <b>độ ổn định, độ bền, độ bền mỏi (6.2)</b> cho <b>ghế nằm</b>.'}],
+ muc:['6.1','6.2']},
+
+{bo:'en581-2', so:'6.1', en:'General', vi:'Yêu cầu chung', nhom:'yc',
+ than:[{en:'Before and after the strength, durability and stability tests are carried out, the EN 581-1 requirements shall be fulfilled.',
+  vi:'<b>Trước và sau</b> khi thực hiện các phép thử độ bền, độ bền mỏi và độ ổn định, sản phẩm <b>đều phải đạt các yêu cầu của EN 581-1</b>.'}],
+ luu:['Chữ "trước VÀ sau" là then chốt: thử xong mà sinh ra cạnh sắc hay điểm kẹp mới thì vẫn là KHÔNG ĐẠT, dù khung ghế không gãy.']},
+
+{bo:'en581-2', so:'6.2', en:'Stability, strength and durability', vi:'Độ ổn định, độ bền và độ bền mỏi', nhom:'yc',
+ than:[{en:'This subclause covers the test sequence and parameters (6.2.1) and the requirements (6.2.2).',
+  vi:'Mục này gồm <b>trình tự và thông số thử (6.2.1)</b> và <b>tiêu chí đạt (6.2.2)</b>.'}],
+ muc:['6.2.1','6.2.2']},
+
+{bo:'en581-2', so:'6.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+ bang:'b581-2-t1',
+ than:[{en:'The lounger shall be tested following the order listed in Table 1.',
+  vi:'<b>Ghế nằm phải được thử theo đúng thứ tự liệt kê trong Bảng 1.</b>'}],
+ luu:['"Theo đúng thứ tự" không phải chữ thừa: thử va đập (Thử 8) trước thử độ bền mỏi (Thử 3) thì kết quả không so sánh được với phòng thử khác.']},
+
+{bo:'en581-2', so:'6.2.2', en:'Requirements', vi:'Tiêu chí đạt', nhom:'yc',
+ than:[{en:'The safety, strength and durability requirements are fulfilled after testing in accordance with Table 1 when: a) there are no fractures of any joint, member or component, b) there is no loosening of joints intended to be rigid, c) the lounger fulfils its function after removal of the test loads, d) the product shall not overturn when subjected to the stability tests.',
+  vi:'Sau khi thử theo <b>Bảng 1</b>, coi là <b>ĐẠT</b> khi: <b>a)</b> <b>không nứt gãy</b> ở bất kỳ mối nối, thanh hay chi tiết nào; <b>b)</b> <b>không lỏng</b> ở các mối nối vốn phải cứng; <b>c)</b> <b>ghế nằm vẫn dùng được bình thường</b> sau khi dỡ tải thử; <b>d)</b> <b>không lật</b> khi chịu các phép thử độ ổn định.'}]},
+
+{bo:'en581-2', so:'7', en:'Safety, strength and durability requirements for other seating', vi:'Yêu cầu an toàn, độ bền và độ bền mỏi cho ghế loại khác', nhom:'yc',
+ than:[{en:'This clause covers general requirements (7.1) and stability, strength and durability (7.2) for seating other than loungers.',
+  vi:'Điều này gồm <b>yêu cầu chung (7.1)</b> và <b>độ ổn định, độ bền, độ bền mỏi (7.2)</b> cho <b>ghế không phải ghế nằm</b>.'}],
+ muc:['7.1','7.2']},
+
+{bo:'en581-2', so:'7.1', en:'General', vi:'Yêu cầu chung', nhom:'yc',
+ than:[{en:'Before and after the strength, durability and stability tests are carried out, the EN 581-1 requirements shall be fulfilled.',
+  vi:'<b>Trước và sau</b> khi thử độ bền, độ bền mỏi và độ ổn định, sản phẩm <b>đều phải đạt các yêu cầu của EN 581-1</b>.'}]},
+
+{bo:'en581-2', so:'7.2', en:'Stability, strength and durability', vi:'Độ ổn định, độ bền và độ bền mỏi', nhom:'yc',
+ than:[{en:'This subclause covers the test sequence and parameters (7.2.1) and the requirements (7.2.2).',
+  vi:'Mục này gồm <b>trình tự và thông số thử (7.2.1)</b> và <b>tiêu chí đạt (7.2.2)</b>.'}],
+ muc:['7.2.1','7.2.2']},
+
+{bo:'en581-2', so:'7.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+ bang:'b581-2-t2',
+ than:[{en:'The seating shall be tested following the order listed in Table 2.',
+  vi:'<b>Ghế phải được thử theo đúng thứ tự liệt kê trong Bảng 2.</b>'}]},
+
+{bo:'en581-2', so:'7.2.2', en:'Requirements', vi:'Tiêu chí đạt', nhom:'yc',
+ than:[{en:'The safety, strength and durability requirements are fulfilled after testing in accordance with Table 2 when: a) there are no fractures of any joint, member or component, b) there is no loosening of joints intended to be rigid, c) the seating fulfils its function after removal of the test loads, d) the seating fulfils the safety requirements, e) the product shall not overturn when subjected to the stability tests.',
+  vi:'Sau khi thử theo <b>Bảng 2</b>, coi là <b>ĐẠT</b> khi: <b>a)</b> <b>không nứt gãy</b> ở mối nối, thanh hay chi tiết nào; <b>b)</b> <b>không lỏng</b> ở mối nối vốn phải cứng; <b>c)</b> <b>ghế vẫn dùng được</b> sau khi dỡ tải; <b>d)</b> <b>ghế vẫn đạt các yêu cầu an toàn</b>; <b>e)</b> <b>không lật</b> khi chịu các phép thử ổn định.'}],
+ luu:['Tiêu chí của ghế thường có năm mục, ghế nằm chỉ bốn — ghế thường có thêm mục d) "vẫn đạt yêu cầu an toàn", tức là soi lại EN 581-1 sau khi thử.']},
+
+{bo:'en581-2', so:'8', en:'Information for use', vi:'Thông tin sử dụng', nhom:'bc',
+ than:[{en:'This clause covers general requirements for instructions (8.1) and marking for loungers (8.2).',
+  vi:'Điều này gồm <b>yêu cầu chung cho hướng dẫn sử dụng (8.1)</b> và <b>ghi nhãn cho ghế nằm (8.2)</b>.'}],
+ muc:['8.1','8.2']},
+
+{bo:'en581-2', so:'8.1', en:'General', vi:'Yêu cầu chung', nhom:'bc',
+ than:[
+ {en:'Instruction for use shall be provided in the language(s) of the country where the seating are sold.',
+  vi:'<b>Hướng dẫn sử dụng phải viết bằng ngôn ngữ của nước bán hàng.</b>'},
+ {en:'These instructions shall be headed "IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY" in letters no less than 5 mm high, unless if the following information are permanently marked on the product.',
+  vi:'Hướng dẫn phải có <b>tiêu đề "IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY"</b>, <b>chữ cao không dưới 5 mm</b> — trừ khi các thông tin dưới đây đã được <b>ghi cố định ngay trên sản phẩm</b>.'},
+ {en:'It shall contain at least the following details: a) name and address of the manufacturer/supplier/retailer; b) conditions for use of the product (domestic, camping or contract).',
+  vi:'Tối thiểu phải có: <b>a)</b> tên và địa chỉ <b>nhà sản xuất / nhà cung cấp / nhà bán lẻ</b>; <b>b)</b> <b>điều kiện sử dụng</b> của sản phẩm (gia dụng, cắm trại hay thương mại).'},
+ {en:'If applicable: c) assembly instructions; d) instructions for the care and maintenance of the seating; e) if the seating is fitted with seat height adjustments with energy accumulators, an additional note is required pointing out that only trained personnel may replace or repair seat height adjustment components with energy accumulators.',
+  vi:'Nếu có liên quan: <b>c)</b> hướng dẫn lắp ráp; <b>d)</b> hướng dẫn bảo quản, bảo dưỡng; <b>e)</b> nếu ghế có <b>cơ cấu chỉnh chiều cao dùng bộ tích năng</b> thì phải ghi thêm: <b>chỉ người được đào tạo mới được thay hoặc sửa</b> bộ phận ấy.'}],
+ luu:['Chiều cao chữ 5 mm là con số đo được — mang thước ra đo tờ hướng dẫn. Đây là lỗi hay gặp khi nhà máy in gộp hướng dẫn vào bao bì cho nhỏ gọn.']},
+
+{bo:'en581-2', so:'8.2', en:'Marking for loungers', vi:'Ghi nhãn cho ghế nằm', nhom:'bc',
+ hinh:['f581-2-2'],
+ than:[{en:'Loungers equipped with wheels, but not intended to be lifted and moved with a person in it shall be permanently marked with the pictogram as shown in Figure 2. The smallest dimension of the pictogram shall not be less than 25 mm.',
+  vi:'Ghế nằm <b>có bánh xe</b> nhưng <b>không nhằm để nhấc và di chuyển khi có người nằm trên</b> thì <b>phải ghi nhãn cố định bằng hình tượng trưng như Hình 2</b>. <b>Kích thước nhỏ nhất của hình không được dưới 25 mm.</b>'}],
+ luu:['Ghế nằm hồ bơi có bánh xe mà không dán pictogram này là lỗi ghi nhãn — không cần thử lực cũng bắt được, chỉ cần nhìn và đo 25 mm.']},
+
+{bo:'en581-2', so:'9', en:'Test report', vi:'Báo cáo thử nghiệm', nhom:'bc',
+ than:[{en:'The test report shall include at least the following information: a) reference to this part of the European Standard; b) details of piece of furniture tested; c) use of the product (Camping, Domestic or Contract); d) any defects observed before testing; e) the test results according to the applicable clauses; f) compliance with the requirements; g) the name and address of the test facility; h) the date of test.',
+  vi:'Báo cáo thử tối thiểu phải có: <b>a)</b> viện dẫn phần này của tiêu chuẩn; <b>b)</b> mô tả chi tiết món hàng; <b>c)</b> <b>cấp sử dụng</b> (Camping, Domestic hay Contract); <b>d)</b> khuyết tật quan sát được <b>trước khi thử</b>; <b>e)</b> kết quả thử theo các điều áp dụng; <b>f)</b> kết luận đạt/không đạt; <b>g)</b> tên và địa chỉ phòng thử; <b>h)</b> ngày thử.'}],
+ luu:['So với EN 581-1, báo cáo của phần 2 có thêm mục c) CẤP SỬ DỤNG. Thiếu dòng này thì không ai biết báo cáo thử theo cột nào của Bảng 1/Bảng 2 — tức là báo cáo vô nghĩa.']},
+
+{bo:'en581-2', so:'A', en:'Annex A (normative) — Forward and sideways stability tests for loungers',
+ vi:'Phụ lục A (quy định) — Thử độ ổn định hướng trước và hướng ngang cho ghế nằm', nhom:'pl',
+ than:[{en:'This annex is normative and specifies the test procedure for sideways stability (A.1.1) and forward stability (A.1.2) of loungers.',
+  vi:'Phụ lục này <b>có tính quy định</b> (bắt buộc), nêu trình tự thử <b>ổn định hướng ngang (A.1.1)</b> và <b>ổn định hướng trước (A.1.2)</b> cho ghế nằm.'}],
+ muc:['A.1']},
+
+{bo:'en581-2', so:'A.1', en:'Test procedure', vi:'Trình tự thử', nhom:'pl',
+ than:[{en:'This subclause covers sideways stability (A.1.1) and forward stability (A.1.2).',
+  vi:'Mục này gồm <b>ổn định hướng ngang (A.1.1)</b> và <b>ổn định hướng trước (A.1.2)</b>.'}],
+ muc:['A.1.1','A.1.2']},
+
+{bo:'en581-2', so:'A.1.1', en:'Sideways stability', vi:'Ổn định hướng ngang', nhom:'pl',
+ hinh:['f581-2-A1'],
+ than:[
+ {en:'The seat loading points shall be on a line 60 mm from the side edge and the first point shall be 300 mm from the front edge.',
+  vi:'Các <b>điểm đặt tải mặt ngồi</b> nằm trên <b>một đường cách mép bên 60 mm</b>; <b>điểm đầu tiên cách mép trước 300 mm</b>.'},
+ {en:'The following loading points shall be placed at least 600 mm apart from each other and at least 300 mm from an armrest or the rear edge of the lounger. See Figure A.1.',
+  vi:'Các điểm tiếp theo đặt <b>cách nhau ít nhất 600 mm</b> và <b>cách tay vịn hoặc mép sau ghế ít nhất 300 mm</b> — xem <b>Hình A.1</b>.'},
+ {en:'The forces shall be applied using the loading pad defined in EN 1022:2005, 4.2.',
+  vi:'Đặt lực qua <b>đệm đặt tải quy định ở EN 1022:2005, điều 4.2</b>.'},
+ {en:'If the arm rest is more than 400 mm in length apply additional vertical force F B.2 in the centre of it.',
+  vi:'Nếu <b>tay vịn dài hơn 400 mm</b>: đặt thêm <b>lực thẳng đứng F<sub>B.2</sub> vào giữa tay vịn</b>.'},
+ {en:'Apply simultaneously the downwards forces F B.1 on seat as specified in Table A.1 and the load on the arm rest (see Figure A.1).',
+  vi:'Đặt <b>đồng thời</b> lực hướng xuống <b>F<sub>B.1</sub></b> lên mặt ngồi theo <b>Bảng A.1</b> và tải lên tay vịn.'},
+ {en:'Maintain forces for 5 s.',
+  vi:'<b>Giữ lực trong 5 giây.</b>'}]},
+
+{bo:'en581-2', so:'A.1.2', en:'Forward stability', vi:'Ổn định hướng trước', nhom:'pl',
+ hinh:['f581-2-A2'], bang:'b581-2-tA1',
+ than:[
+ {en:'Apply the downwards force F B.3 as specified in Table A.1 (see Figure A.2).',
+  vi:'Đặt <b>lực hướng xuống F<sub>B.3</sub></b> theo <b>Bảng A.1</b> — xem <b>Hình A.2</b>.'},
+ {en:'Apply a force F B.4 horizontally outwards.',
+  vi:'Đặt <b>lực F<sub>B.4</sub> theo phương ngang, hướng ra ngoài</b>.'},
+ {en:'Maintain both forces for at least 5 s.',
+  vi:'<b>Giữ cả hai lực ít nhất 5 giây.</b>'},
+ {en:'Table A.1 — Forces value: F B.1 = 600 N; F B.2 = 250 N; F B.3 = 600 N; F B.4 = 20 N.',
+  vi:'<b>Bảng A.1 — Giá trị lực</b>: <b>F<sub>B.1</sub> = 600 N</b>; <b>F<sub>B.2</sub> = 250 N</b>; <b>F<sub>B.3</sub> = 600 N</b>; <b>F<sub>B.4</sub> = 20 N</b>.'}],
+ luu:['Bốn giá trị lực này KHÔNG đổi theo cấp sử dụng — camping, domestic hay contract đều dùng chung. Khác hẳn các bảng thông số ba cột.']},
+
+{bo:'en581-2', so:'B', en:'Annex B (informative) — Purchase information (guidelines)',
+ vi:'Phụ lục B (tham khảo) — Thông tin cho người mua (hướng dẫn)', nhom:'pl',
+ than:[
+ {en:'To allow the consumer to select a product that will be suitable for the intended use prior to purchase, purchase information should be available without the need to open any package.',
+  vi:'Để người mua chọn đúng sản phẩm hợp mục đích <b>trước khi mua</b>, thông tin mua hàng <b>nên xem được mà không phải bóc bao bì</b>.'},
+ {en:'This should include: — identification of the product; — product characteristics such as dimensions, storage information, maintenance, etc.; — conditions for use of the product (camping, domestic or contract).',
+  vi:'Nên gồm: <b>nhận dạng sản phẩm</b>; <b>đặc tính sản phẩm</b> như kích thước, thông tin cất giữ, bảo dưỡng…; và <b>điều kiện sử dụng</b> (cắm trại, gia dụng hay thương mại).'}],
+ luu:['Phụ lục này là THAM KHẢO, không bắt buộc — nhưng nhiều khách châu Âu đưa nguyên nội dung này vào yêu cầu bao bì, lúc đó nó thành bắt buộc theo hợp đồng.']},
+
+// ══════════════════════════════════════════════════════════════════════════════════
+//  EN 581-3:2017 — AN TOÀN CƠ HỌC CHO BÀN
+// ══════════════════════════════════════════════════════════════════════════════════
+{bo:'en581-3', so:'1', en:'Scope', vi:'Phạm vi áp dụng', nhom:'nen',
+ than:[
+ {en:'This European Standard specifies the minimum requirements for the safety, strength and durability of all types of outdoor tables for adults, without regard to materials, design/construction or manufacturing processes.',
+  vi:'Tiêu chuẩn này quy định <b>yêu cầu tối thiểu</b> về <b>an toàn, độ bền và độ bền mỏi</b> cho <b>mọi loại bàn ngoài trời dùng cho người lớn</b>, không phân biệt vật liệu, kiểu dáng/kết cấu hay quy trình sản xuất.'},
+ {en:'It does not apply to street furniture.',
+  vi:'<b>Không</b> áp dụng cho <b>đồ nội thất đường phố</b>.'},
+ {en:'With the exception of stability tests the standard does not provide assessment of the suitability of any storage features included in tables.',
+  vi:'Trừ các phép thử độ ổn định, tiêu chuẩn này <b>không đánh giá</b> tính phù hợp của <b>các ngăn/khoang chứa đồ gắn trong bàn</b>.'},
+ {en:'It does not include requirements for the durability of castors/wheels and height adjustment mechanisms.',
+  vi:'<b>Không</b> bao gồm yêu cầu độ bền của <b>bánh xe và cơ cấu chỉnh chiều cao</b>.'},
+ {en:'It does not include requirements for electrical safety.',
+  vi:'<b>Không</b> bao gồm yêu cầu <b>an toàn điện</b>.'},
+ {en:'It does not include requirements for the resistance to ageing and degradation caused by light, temperature and moisture.',
+  vi:'<b>Không</b> bao gồm yêu cầu <b>chịu lão hoá và suy giảm do ánh sáng, nhiệt độ và độ ẩm</b>.'}]},
+
+{bo:'en581-3', so:'2', en:'Normative references', vi:'Tài liệu viện dẫn', nhom:'nen',
+ than:[
+ {en:'EN 581-1:2017, Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
+  vi:'<b>EN 581-1:2017</b> — Phần 1: Yêu cầu an toàn chung.'},
+ {en:'EN 1730:2012, Furniture - Tables - Test methods for the determination of stability, strength and durability',
+  vi:'<b>EN 1730:2012</b> — Nội thất — Bàn — <b>Phương pháp thử</b> xác định độ ổn định, độ bền và độ bền mỏi.'},
+ {en:'EN 12150-1:2015, Glass in building - Thermally toughened soda lime silicate safety glass - Part 1: Definition and description',
+  vi:'<b>EN 12150-1:2015</b> — Kính xây dựng — <b>Kính an toàn tôi nhiệt</b> — Phần 1: Định nghĩa và mô tả.'},
+ {en:'EN 12600:2002, Glass in building - Pendulum test - Impact test method and classification for flat glass',
+  vi:'<b>EN 12600:2002</b> — Kính xây dựng — <b>Thử con lắc</b> — Phương pháp thử va đập và phân loại kính phẳng.'}],
+ luu:['Hai tiêu chuẩn kính (EN 12150-1 và EN 12600) chỉ dùng cho bàn MẶT KÍNH. Bàn mặt kính nhập khẩu châu Âu phải có chứng chỉ kính riêng, không nằm trong báo cáo EN 581-3.']},
+
+{bo:'en581-3', so:'3', en:'Terms and definitions', vi:'Thuật ngữ và định nghĩa', nhom:'nen',
+ than:[{en:'For the purposes of this document, the following terms and definitions apply.',
+  vi:'Trong tiêu chuẩn này, áp dụng các thuật ngữ và định nghĩa sau.'}],
+ muc:['3.1','3.2','3.3','3.4']},
+
+{bo:'en581-3', so:'3.1', en:'outdoor furniture for contract use', vi:'đồ ngoài trời dùng thương mại', nhom:'nen',
+ than:[{en:'outdoor furniture intended for non-private use in places with public access',
+  vi:'đồ ngoài trời dùng cho mục đích <b>không riêng tư</b>, ở <b>nơi công cộng có người ra vào</b>.'}]},
+
+{bo:'en581-3', so:'3.2', en:'outdoor furniture for domestic use', vi:'đồ ngoài trời dùng gia dụng', nhom:'nen',
+ than:[{en:'outdoor furniture intended for private use in places without public access',
+  vi:'đồ ngoài trời dùng <b>riêng tư</b>, ở <b>nơi không có người ngoài ra vào</b>.'}]},
+
+{bo:'en581-3', so:'3.3', en:'outdoor furniture for camping use', vi:'đồ ngoài trời dùng cắm trại', nhom:'nen',
+ than:[{en:'outdoor furniture foldable or knock-down and light-weight, intended for use in connection with camping and travelling',
+  vi:'đồ ngoài trời <b>gấp được hoặc tháo rời được</b> và <b>nhẹ</b>, dùng cho <b>cắm trại và đi lại</b>.'}]},
+
+{bo:'en581-3', so:'3.4', en:'street furniture', vi:'đồ nội thất đường phố', nhom:'nen',
+ than:[{en:'outdoor furniture use in public space, permanently fixed to the ground or any structure (e.g. bus stop, wall etc.) or not able to be manually removed',
+  vi:'đồ ngoài trời dùng ở <b>không gian công cộng</b>, <b>gắn cố định vĩnh viễn xuống đất hoặc vào kết cấu</b>, <b>hoặc không thể dời bằng tay</b>.'}]},
+
+{bo:'en581-3', so:'4', en:'Testing', vi:'Thử nghiệm', nhom:'nen',
+ than:[{en:'Testing shall be carried out as specified in EN 1730.',
+  vi:'Thử nghiệm phải thực hiện <b>theo đúng EN 1730</b>.'}],
+ luu:['Khác EN 581-2 (viện dẫn cả EN 1728 lẫn EN 1022), bàn chỉ viện dẫn MỘT tiêu chuẩn: EN 1730 — vì EN 1730 đã bao gồm cả phần ổn định cho bàn.']},
+
+{bo:'en581-3', so:'5', en:'Safety, strength and durability requirements', vi:'Yêu cầu an toàn, độ bền và độ bền mỏi', nhom:'yc',
+ than:[{en:'This clause covers general requirements (5.1) and stability, strength and durability (5.2).',
+  vi:'Điều này gồm <b>yêu cầu chung (5.1)</b> và <b>độ ổn định, độ bền, độ bền mỏi (5.2)</b>.'}],
+ muc:['5.1','5.2']},
+
+{bo:'en581-3', so:'5.1', en:'General', vi:'Yêu cầu chung', nhom:'yc',
+ than:[
+ {en:'Before and after the strength, durability and stability tests are carried out, the requirements of EN 581-1:2017 shall be fulfilled.',
+  vi:'<b>Trước và sau</b> khi thử độ bền, độ bền mỏi và độ ổn định, sản phẩm <b>đều phải đạt các yêu cầu của EN 581-1:2017</b>.'},
+ {en:'Glass table tops shall fulfil the requirements in EN 12150-1:2015, Clause 8, fragmentation test, or the mode of breakage (β) according to EN 12600:2002 shall be Type B or Type C.',
+  vi:'<b>Mặt bàn kính</b> phải đạt <b>EN 12150-1:2015, Điều 8 — thử vỡ vụn</b>; hoặc <b>kiểu vỡ (β) theo EN 12600:2002 phải là Type B hoặc Type C</b>.'},
+ {en:'Holes for parasol in glass table top shall be protected to prevent metal to glass contact.',
+  vi:'<b>Lỗ cắm dù trên mặt bàn kính phải được bọc/đệm</b> để <b>kim loại không tiếp xúc trực tiếp với kính</b>.'}],
+ luu:['Lỗ cắm dù kim loại chạm thẳng vào kính là nguyên nhân nứt mặt bàn kính phổ biến nhất. Kiểm hàng phải sờ vào lỗ xem có vòng nhựa/cao su đệm không.']},
+
+{bo:'en581-3', so:'5.2', en:'Stability, strength and durability', vi:'Độ ổn định, độ bền và độ bền mỏi', nhom:'yc',
+ than:[{en:'This subclause covers the test sequences and parameters (5.2.1) and the requirements (5.2.2).',
+  vi:'Mục này gồm <b>trình tự và thông số thử (5.2.1)</b> và <b>tiêu chí đạt (5.2.2)</b>.'}],
+ muc:['5.2.1','5.2.2']},
+
+{bo:'en581-3', so:'5.2.1', en:'Test sequences and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+ bang:'b581-3-t1',
+ than:[{en:'The table shall be tested following the order listed in Table 1.',
+  vi:'<b>Bàn phải được thử theo đúng thứ tự liệt kê trong Bảng 1.</b>'}]},
+
+{bo:'en581-3', so:'5.2.2', en:'Requirements', vi:'Tiêu chí đạt', nhom:'yc',
+ than:[
+ {en:'The safety, strength and durability requirements are fulfilled after testing in accordance with Table 1 when: a) there are no fractures of any member, joint or component, b) there are no loosening of joints intended to be rigid, c) the table fulfils its functions after removal of the test loads.',
+  vi:'Sau khi thử theo <b>Bảng 1</b>, coi là <b>ĐẠT</b> khi: <b>a)</b> <b>không nứt gãy</b> ở thanh, mối nối hay chi tiết nào; <b>b)</b> <b>không lỏng</b> ở mối nối vốn phải cứng; <b>c)</b> <b>bàn vẫn dùng được bình thường</b> sau khi dỡ tải thử.'},
+ {en:'The product shall not overturn when subjected to the stability tests.',
+  vi:'<b>Sản phẩm không được lật</b> khi chịu các phép thử độ ổn định.'}]},
+
+{bo:'en581-3', so:'6', en:'Information for use', vi:'Thông tin sử dụng', nhom:'bc',
+ than:[
+ {en:'Instruction for use shall be provided in the language(s) of the country where the tables are sold.',
+  vi:'<b>Hướng dẫn sử dụng phải viết bằng ngôn ngữ của nước bán hàng.</b>'},
+ {en:'These instructions shall be headed "IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY" in letters no less than 5 mm high, unless if the following information is permanently marked on the product.',
+  vi:'Phải có <b>tiêu đề "IMPORTANT, RETAIN FOR FUTURE REFERENCE: READ CAREFULLY"</b>, <b>chữ cao không dưới 5 mm</b>, trừ khi thông tin đã <b>ghi cố định trên sản phẩm</b>.'},
+ {en:'It shall contain at least the following details: a) name and address of the manufacturer/supplier/retailer; b) conditions for use of the product (domestic, camping or contract).',
+  vi:'Tối thiểu phải có: <b>a)</b> tên và địa chỉ nhà sản xuất / cung cấp / bán lẻ; <b>b)</b> <b>điều kiện sử dụng</b> (gia dụng, cắm trại hay thương mại).'},
+ {en:'If applicable: c) assembly instructions; d) instructions for the care and maintenance of the table; e) tables which have a hole for a parasol, but which are not intended to support a parasol alone, a warning indicating that a parasol shall always be used with a suitable base.',
+  vi:'Nếu có liên quan: <b>c)</b> hướng dẫn lắp ráp; <b>d)</b> hướng dẫn bảo quản, bảo dưỡng; <b>e)</b> bàn <b>có lỗ cắm dù nhưng không dùng để giữ dù một mình</b> thì phải có <b>cảnh báo: luôn phải dùng dù kèm chân đế phù hợp</b>.'}],
+ luu:['Mục e) là cảnh báo bắt buộc rất hay bị bỏ: bàn có lỗ dù mà không ghi "phải dùng chân đế" thì dù lật kéo đổ cả bàn. Kiểm hàng phải tìm đúng câu này trong tờ hướng dẫn.']},
+
+{bo:'en581-3', so:'7', en:'Test report', vi:'Báo cáo thử nghiệm', nhom:'bc',
+ than:[{en:'The test report shall include at least the following information: a) a reference to this European Standard (EN 581-3:2017); b) details of the piece of furniture tested; c) details of defects observed before testing; d) any variation from the specified temperature range; e) the test results; f) the name and address of the test facility; g) the date of test.',
+  vi:'Báo cáo thử tối thiểu phải có: <b>a)</b> viện dẫn tiêu chuẩn này (EN 581-3:2017); <b>b)</b> mô tả chi tiết món hàng; <b>c)</b> chi tiết khuyết tật quan sát được <b>trước khi thử</b>; <b>d)</b> <b>mọi sai lệch so với khoảng nhiệt độ quy định</b>; <b>e)</b> kết quả thử; <b>f)</b> tên và địa chỉ phòng thử; <b>g)</b> ngày thử.'}],
+ luu:['Riêng báo cáo của bàn có mục d) về NHIỆT ĐỘ — hai phần kia không có. Bàn mặt kính và mặt nhựa đổi độ cứng theo nhiệt độ, nên lệch nhiệt độ phải ghi vào báo cáo.']},
+
+{bo:'en581-3', so:'A', en:'Annex A (informative) — Purchase information (guidelines)',
+ vi:'Phụ lục A (tham khảo) — Thông tin cho người mua (hướng dẫn)', nhom:'pl',
+ than:[{en:'To allow the consumer to select a product that will be suitable for the intended use prior to purchase, purchase information should be available without the need to open any package. This should include identification of the product; product characteristics such as dimensions, storage information, maintenance; and conditions for use of the product (camping, domestic or contract).',
+  vi:'Để người mua chọn đúng sản phẩm trước khi mua, thông tin mua hàng <b>nên xem được mà không phải bóc bao bì</b>, gồm: <b>nhận dạng sản phẩm</b>; <b>đặc tính</b> như kích thước, cất giữ, bảo dưỡng; và <b>điều kiện sử dụng</b> (cắm trại, gia dụng hay thương mại).'}]}
+
+];
+
 const TC_BO_THUTU = ['en1728','en1730','en581-1','en581-2','en581-3'];
 // Gộp có KHỬ TRÙNG. Khi soạn thêm, không tránh khỏi có điều đã soạn ở đợt trước (4.2 và
 // 4.3 bị soạn hai lần thật). Bản soạn SAU thường đầy đủ hơn nên lấy làm gốc, nhưng phải
@@ -9879,7 +10455,7 @@ function tcGopDieu(ds){
   });
   return [...theo.values()];
 }
-const TC_DIEU_HET = tcGopDieu(TC_DIEU.concat(TC_DIEU_2, TC_DIEU_3, TC_DIEU_4)).sort((a,b)=>{
+const TC_DIEU_HET = tcGopDieu(TC_DIEU.concat(TC_DIEU_2, TC_DIEU_3, TC_DIEU_4, TC_DIEU_5)).sort((a,b)=>{
   const d = TC_BO_THUTU.indexOf(a.bo) - TC_BO_THUTU.indexOf(b.bo);
   return d ? d : tcSoSanhSo(a.so, b.so);
 });
@@ -11241,11 +11817,73 @@ function tcThanhCongCu(bo){
 // ══════════════════════════════════════════════════════════════════════════════════════
 //  v288 · DỰNG KHỐI SONG NGỮ, HÌNH VÀ ĐIỀU KHOẢN
 // ══════════════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v291 · MỌI VIỆN DẪN TRONG THÂN VĂN BẢN THÀNH LIÊN KẾT BẤM ĐƯỢC
+//
+//  Tiêu chuẩn viết chằng chịt kiểu "(5.4)", "see Figure 12", "Table 1", "EN 1728:2012,
+//  8.2". Đọc trên giấy thì lật trang; đọc trên app mà phải quay ra danh sách rồi tìm lại
+//  thì còn chậm hơn giấy. Nên bóc hết các viện dẫn ấy thành nút.
+//
+//  Nguyên tắc để không bịa ra liên kết chết: CHỈ biến thành nút khi tra ra được một điều
+//  khoản / hình / bảng CÓ THẬT trong kho. Không tra ra thì để nguyên chữ.
+//
+//  Không đụng vào bên trong thẻ HTML: dữ liệu có sẵn <b>…</b>, nên phải bỏ qua phần nằm
+//  trong dấu ngoặc nhọn, nếu không sẽ phá tan thẻ khi số rơi vào thuộc tính.
+function tcNoiVienDan(html, boHienTai){
+  if(!html) return html;
+  // Mỗi nút dựng xong được CẤT ĐI và thay bằng một mã giữ chỗ không chứa chữ nào khớp
+  // được mẫu sau. Không làm vậy thì "Table 1 of EN 581-2" bị thay hai lần chồng nhau và
+  // sinh ra nút LỒNG TRONG NÚT — HTML hỏng, mà bấm thì trúng nút bên trong, tức là nhảy
+  // sai chỗ. Lỗi này tôi đã dựng ra thật rồi mới thấy, nên viết hẳn cơ chế khoá vùng.
+  const kho = [];
+  const cat = h => { kho.push(h); return '\u0001' + (kho.length - 1) + '\u0001'; };
+  const phan = String(html).split(/(<[^>]*>)/g);
+  for(let i=0; i<phan.length; i++){
+    if(i % 2) continue;                       // phần lẻ là thẻ HTML — để nguyên
+    let t = phan[i];
+    // Thứ tự quan trọng: mẫu DÀI trước, mẫu ngắn sau, vì mẫu dài chứa mẫu ngắn.
+    // "Table 1 of EN 581-2:2015" / "Table 2" → ảnh bảng
+    t = t.replace(/\b(Bảng|Table)\s+([A-Z]?\.?\d+)(\s+of\s+EN\s*581-([123])(?::\d{4})?)?/g,
+      (tron, tu, so, _du, ph)=>{
+        const bo = ph ? 'en581-' + ph : boHienTai;
+        const b = TC_HINH.find(x=>x.loai === 'bang' && x.bo === bo
+          && String(x.so).replace(/^(Table|Bảng)\s+/, '') === String(so));
+        return b ? cat(`<button class="tc-nd" data-action="tc-xem-hinh" data-id="${b.id}">${tron}</button>`) : tron;
+      });
+    // "Figure 12" / "Hình A.1" → ảnh hình
+    t = t.replace(/\b(Figure|Hình)\s+([A-Z]?\.?\d+)/g, (tron, tu, so)=>{
+      const h = TC_HINH.find(x=>x.loai !== 'bang' && x.bo === boHienTai && String(x.so) === String(so));
+      return h ? cat(`<button class="tc-nd" data-action="tc-xem-hinh" data-id="${h.id}">${tron}</button>`) : tron;
+    });
+    // "EN 1728:2012, 8.2" / "EN 1730, 6.3.1" / "EN 581-2:2015" → sang bộ khác
+    t = t.replace(/\bEN\s*(1728|1730|581-[123])(?::\d{4})?(?:,?\s*(\d+(?:\.\d+){0,3}))?/g,
+      (tron, bo, so)=>{
+        const id = 'en' + bo;
+        if(so && tcDieuCua(id, so))
+          return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="${so}">${tron}</button>`);
+        if(!so && tcDieuCua(id, '1'))
+          return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="1">${tron}</button>`);
+        return tron;
+      });
+    // "(5.4)", "(7.2.2)" → điều khoản của chính bộ đang đọc
+    t = t.replace(/\((\d+(?:\.\d+){1,3})\)/g, (tron, so)=>
+      tcDieuCua(boHienTai, so)
+        ? '(' + cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</button>`) + ')'
+        : tron);
+    // "(Clause 4)" / "Điều 4" → điều cấp một của bộ đang đọc
+    t = t.replace(/\b(Clause|Điều)\s+(\d+)\b/g, (tron, tu, so)=>
+      tcDieuCua(boHienTai, so)
+        ? cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${tron}</button>`)
+        : tron);
+    phan[i] = t;
+  }
+  return phan.join('').replace(/\u0001(\d+)\u0001/g, (_, k)=>kho[+k]);
+}
 // Khối song ngữ chuẩn của cả app: tiếng Anh to, có nền tô sáng; tiếng Việt nhỏ hơn ở dưới.
-function tcSongHtml(en, vi, nhan){
+function tcSongHtml(en, vi, nhan, bo){
   return `<div class="tc-s">
-    <div class="tc-s-en"><span class="nh">${nhan || 'EN'}</span>${en}</div>
-    ${vi ? `<div class="tc-s-vi">${vi}</div>` : ''}
+    <div class="tc-s-en"><span class="nh">${nhan || 'EN'}</span>${tcNoiVienDan(en, bo)}</div>
+    ${vi ? `<div class="tc-s-vi">${tcNoiVienDan(vi, bo)}</div>` : ''}
   </div>`;
 }
 // Ô hình: ảnh + chú thích nguyên văn + bảng Key của tiêu chuẩn + diễn giải của tôi.
@@ -11262,7 +11900,8 @@ function tcHinhHtml(id){
         trên laptop bằng nút <b>Nhập hình còn thiếu</b> ở đầu màn hình.</span>
     </div></div>
     <figcaption>
-      <div class="tc-f-so">${bo ? escapeHtml(bo.ma) : ''} · Figure ${h.so}</div>
+      <div class="tc-f-so">${bo ? escapeHtml(bo.ma) : ''} · ${
+        h.loai === 'bang' ? escapeHtml(String(h.so)) : 'Figure ' + escapeHtml(String(h.so))}</div>
       <div class="tc-f-en">${escapeHtml(h.ten)}</div>
       <div class="tc-f-vi">${escapeHtml(h.vi)}</div>
       ${h.kichThuoc ? `<div class="tc-f-kt">${escapeHtml(h.kichThuoc)}</div>` : ''}
@@ -11288,6 +11927,9 @@ const TC_NHOM_DIEU = [
  {id:'tb',  ten:'Test equipment and apparatus',            vi:'Thiết bị và dụng cụ thử'},
  {id:'pp',  ten:'Test procedures',                          vi:'Các phương pháp thử'},
  {id:'lv',  ten:'Test procedures – Work chairs',           vi:'Phương pháp thử ghế làm việc — ngoài phạm vi đồ ngoài trời'},
+ {id:'yc',  ten:'Safety, strength and durability requirements', vi:'Yêu cầu an toàn, độ bền và độ bền mỏi'},
+ {id:'bc',  ten:'Information for use and test report',     vi:'Thông tin sử dụng và báo cáo thử'},
+ {id:'pl',  ten:'Annexes',                                 vi:'Các phụ lục'},
  {id:'gn',  ten:'Test procedures – Loungers',               vi:'Phương pháp thử riêng cho ghế nằm'},
  {id:'od',  ten:'Test procedures – Stability',              vi:'Phương pháp thử độ ổn định'}
 ];
@@ -11385,8 +12027,9 @@ function renderTcDieu(){
         thay. Xem mục “Lực theo góc tựa lưng” bên EN 581 để biết công thức đang có hiệu lực.</div>` : ''}
       ${d.dan ? `<div class="tc-dan">Điều này chỉ là một dòng chuyển tiếp. Toàn bộ cách thử nằm ở:
         ${tcLienKet(bo.id, d.dan, 'xem cách thử')}</div>` : ''}
+      ${d.bang ? tcHinhHtml(d.bang) : ''}
       ${(d.hinh||[]).map(tcHinhHtml).join('')}
-      ${d.than.map(p=>tcSongHtml(p.en, p.vi)).join('')}
+      ${d.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id)).join('')}
       ${d.bang2 ? tcBang2Html() : ''}
       ${(d.luu||[]).map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
@@ -11446,6 +12089,20 @@ function renderTcList(){
       <div class="tc-dau-t">Ghế và bàn ngoài trời · camping · domestic · contract</div>
       <div class="tc-dau-s">EN 581-1:2017 &nbsp;·&nbsp; EN 581-2:2015 &nbsp;·&nbsp; EN 581-3:2017</div>
     </div>
+    <div class="tc-h2ng">Tra theo điều khoản<i>Clause-by-clause — đúng số của bản in</i></div>
+    <div class="tc-ba">
+      ${TC_BO.filter(b=>b.phu).map(b=>`
+        <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
+          <span class="hao"></span>
+          <span class="vai">${escapeHtml(b.vai)}</span>
+          <span class="ma">${escapeHtml(b.ma)}</span>
+          <span class="nam">${escapeHtml(b.nam)}</span>
+          <span class="en">${escapeHtml(b.en)}</span>
+          <span class="dem">${tcDieuTheoBo(b.id).length} điều khoản</span>
+          <span class="mui">→</span>
+        </button>`).join('')}
+    </div>
+    <div class="tc-h2ng">Tra theo chủ đề<i>Gom theo việc cần làm khi kiểm hàng</i></div>
     <a class="tc-drive" href="${TC_DRIVE}" target="_blank" rel="noopener">
       <span class="ic">📁</span>
       <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
@@ -41873,6 +42530,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // bề ngang màn hình bóp lại — phóng mà vẫn không đọc nổi kích thước ghi trên bản vẽ.
   const tcAnhToEl = e.target.closest('[data-action="tc-anh-to"]');
   if(tcAnhToEl){ tcMoKhungAnh(tcAnhToEl.getAttribute('src'), tcAnhToEl.getAttribute('data-ten')); return; }
+  // Bấm "Figure 12" ngay trong câu văn: mở thẳng khung xem hình nếu máy đã có hình ấy.
+  const tcXemHinhEl = e.target.closest('[data-action="tc-xem-hinh"]');
+  if(tcXemHinhEl){
+    const h = tcHinhCua(tcXemHinhEl.getAttribute('data-id'));
+    if(h) tcAnhDoc(h.tep).then(url=>{
+      if(url) tcMoKhungAnh(url, h.tep);
+      else alert('Hình "' + h.tep + '" chưa có trên máy này. Nhập hình một lần trên laptop, các máy khác sẽ tự kéo về.');
+    });
+    return;
+  }
   const tcXemEl = e.target.closest('[data-action="tc-xem"]');
   if(tcXemEl){
     const nut = tcXemEl.getAttribute('data-nut');
