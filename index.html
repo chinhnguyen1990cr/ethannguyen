@@ -1848,6 +1848,47 @@
   .tc-ml-n:active{color:#fff;}
 
   /* Thẻ chọn bộ tiêu chuẩn */
+  /* v289 — BA THẺ TIÊU CHUẨN Ở TẦNG NGOÀI.
+     Dùng grid auto-fit: laptop đủ rộng thì ba thẻ nằm cạnh nhau, điện thoại tự rơi thành
+     một cột. Không viết hai bố cục rồi phải nhớ sửa cả hai. Nền có một vệt sáng theo màu
+     riêng của từng bộ — màu ấy lấy từ chính TC_BO nên thẻ, tiêu đề và trang điều khoản
+     của cùng một bộ luôn cùng một màu, mở ra là biết đang ở bộ nào. */
+  .tc-h2ng{font-size:15px; font-weight:800; margin:2px 0 11px; letter-spacing:.2px;}
+  .tc-h2ng i{display:block; font-style:normal; font-size:11px; color:var(--dim2);
+    font-weight:600; margin-top:2px;}
+  .tc-ba{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+    gap:11px; margin:0 0 11px;}
+  .tc-ba-n{position:relative; overflow:hidden; display:flex; flex-direction:column;
+    text-align:left; padding:15px 15px 16px; border-radius:20px; cursor:pointer;
+    font-family:inherit; color:var(--text); min-height:148px;
+    background:
+      radial-gradient(130% 90% at 100% 0%, color-mix(in srgb, var(--tcm) 26%, transparent) 0%, transparent 62%),
+      linear-gradient(165deg, var(--panel2), var(--panel));
+    border:1px solid color-mix(in srgb, var(--tcm) 38%, transparent);
+    box-shadow:0 6px 18px rgba(0,0,0,.26);
+    transition:transform .14s ease, box-shadow .16s ease, border-color .16s ease;}
+  .tc-ba-n:hover{border-color:color-mix(in srgb, var(--tcm) 70%, transparent);
+    box-shadow:0 9px 26px color-mix(in srgb, var(--tcm) 22%, rgba(0,0,0,.3));}
+  .tc-ba-n:active{transform:translateY(1px) scale(.988);}
+  /* Vệt sáng mảnh ở mép trên: đánh dấu màu của bộ mà không làm nhoè chữ bên dưới. */
+  .tc-ba-n .hao{position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg, var(--tcm), transparent);}
+  .tc-ba-n .vai{align-self:flex-start; font-size:9px; font-weight:800; letter-spacing:.7px;
+    text-transform:uppercase; padding:3px 8px; border-radius:6px; color:var(--tcm);
+    background:color-mix(in srgb, var(--tcm) 16%, transparent);}
+  .tc-ba-n .ma{margin:10px 0 0; font-family:var(--mono); font-size:21px; font-weight:800;
+    color:#fff; line-height:1.1;}
+  .tc-ba-n .nam{font-family:var(--mono); font-size:10.5px; color:var(--dim2); margin-top:3px;}
+  .tc-ba-n .en{margin-top:8px; font-size:11.5px; font-weight:600; line-height:1.5;
+    color:var(--dim); overflow-wrap:anywhere;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .tc-ba-n .dem{margin-top:auto; padding-top:10px; font-size:10.5px; font-weight:700;
+    color:var(--tcm); font-family:var(--mono);}
+  .tc-ba-n .mui{position:absolute; right:13px; bottom:12px; font-size:15px; color:var(--tcm);}
+  .tc-ba-qh{width:100%; padding:11px; margin:0 0 14px; border-radius:14px; cursor:pointer;
+    font-family:inherit; font-size:11.5px; font-weight:700; color:var(--dim);
+    background:var(--panel); border:1px dashed var(--border);}
+  .tc-ba-qh:hover{color:var(--text); border-color:var(--blue);}
   .tc-bo{display:block; width:100%; text-align:left; margin:0 0 11px; padding:14px 15px;
     border-radius:18px; cursor:pointer; font-family:inherit; color:var(--text);
     background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--tcm);
@@ -1879,6 +1920,10 @@
     border:1px solid var(--border); transition:transform .12s ease;}
   .tc-cc-n:active{transform:scale(.96);}
   .tc-cc-n.on{color:#0b0f14; background:var(--blue); border-color:transparent;}
+  /* v289 — nút nhập hình chỉ hiện khi CÒN THIẾU, nên lúc nó hiện là có việc cần làm thật:
+     tô vàng cho nổi. Hết thiếu là nút biến mất, không còn nút chết nằm đó gây rối. */
+  .tc-cc-n.cham{color:#0E1208; background:linear-gradient(135deg,var(--gold),#FFE08A);
+    border-color:transparent; font-weight:800;}
   .tc-cc-tt{flex:1 1 100%; font-size:11px; color:var(--dim2); line-height:1.6;}
 
   /* Nút điều khoản — số điều in đậm, to, đứng riêng một cột để quét mắt theo số */
@@ -5461,7 +5506,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v288';
+const APP_VERSION = 'v289';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8122,10 +8167,28 @@ function renderKhCatList(){
     </div>`;
   // v286 — EN 581 là tiêu chuẩn của chính dòng hàng này, nên để ngay trên đầu danh sách
   // ghi chú: mở dòng hàng ra là thấy, không phải nhớ nó nằm ở đâu.
-  if(cat.id === 'outdoor') refCard = `<div class="kh-refcard tc" data-action="tc-mo" style="cursor:pointer;">
-      <div><div class="t1">📐 Tiêu chuẩn EN 581</div><div class="t2">16 mục tra cứu · bảng lực và chu kỳ ba cấp · dịch tiếng Việt kỹ thuật</div></div>
-      <div style="font-size:18px;">→</div>
-    </div>`;
+  //
+  // v289 — ba bộ ra NGANG HÀNG nhau ngay ở tầng ngoài. v288 chỉ hiện một thẻ “EN 581”, hai
+  // bộ phương pháp thử nằm ẩn một tầng bên trong, nên nhìn vào tưởng app chỉ có một tiêu
+  // chuẩn. Mỗi thẻ vào thẳng bộ của nó; thẻ cuối vẫn giữ lối vào màn quan hệ ba bộ cho
+  // người cần xem bộ nào viện dẫn bộ nào.
+  if(cat.id === 'outdoor') refCard = `
+    <div class="tc-h2ng">Tiêu chuẩn của dòng hàng này<i>Outdoor furniture standards</i></div>
+    <div class="tc-ba">
+      ${TC_BO.map(b=>`
+        <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
+          <span class="hao"></span>
+          <span class="vai">${escapeHtml(b.vai)}</span>
+          <span class="ma">${escapeHtml(b.ma)}</span>
+          <span class="nam">${escapeHtml(b.nam)}</span>
+          <span class="en">${escapeHtml(b.en)}</span>
+          <span class="dem">${b.id === 'en581'
+            ? TC_MUC.length + ' mục tra cứu · ' + TC_THU.length + ' phép thử'
+            : tcDieuTheoBo(b.id).length + ' điều khoản'}</span>
+          <span class="mui">→</span>
+        </button>`).join('')}
+    </div>
+    <button class="tc-ba-qh" data-action="tc-mo">Ba bộ này liên quan nhau thế nào →</button>`;
   const list = notes.length ? notes.map(n=>`
     <div class="kh-note-item" data-action="kh-edit-note" data-id="${n.id}" style="--khm:${cat.hex}">
       <div class="kh-note-del" data-action="kh-delete-note" data-id="${n.id}">✕</div>
@@ -10118,8 +10181,16 @@ function tcAnhXoa(ten){
   })).catch(()=>false);
 }
 // Đếm xem đã nhập được bao nhiêu hình trên tổng số hình mà kho dữ liệu có nhắc tới.
+//
+// v289 — ĐÂY LÀ CHỖ GÂY LỖI "trên điện thoại không có hình". Hàm này trước chỉ gom tên
+// tệp từ TC_THU + TC_THIETBI (31 tên), KHÔNG gom từ sổ đăng ký hình TC_HINH (47 tên) —
+// mà trang điều khoản lại lấy hình từ TC_HINH. Nó là bộ lọc của CẢ HAI đường:
+// tcNhapAnh() lọc tệp khi nhập, tcKeoTuDrive() lọc tên khi kéo về. Nên 16 hình của trang
+// điều khoản bị gạt đi lặng lẽ ở cả hai đầu: nhập trên laptop cũng không nhận, mà máy
+// khác kéo về cũng không thấy. Phải gom từ TC_HINH trước, rồi mới tới hai nguồn kia.
 function tcAnhCanCo(){
   const t = new Set();
+  TC_HINH.forEach(h=>{ if(h.tep) t.add(h.tep); });
   TC_THU.forEach(x=>x.hinh.forEach(h=>t.add(h)));
   Object.keys(TC_THIETBI).forEach(k=>{ if(TC_THIETBI[k].hinh) t.add(TC_THIETBI[k].hinh); });
   return t;
@@ -10178,8 +10249,10 @@ function tcAnhHtml(ten){
       <span class="ic">🖼</span>
       <b>Chưa nhập hình</b>
       <i>${escapeHtml(ten)}</i>
-      <span class="gt">Hình này nằm trong file tiêu chuẩn của bạn. Bấm “Nhập hình” ở đầu
-        màn hình rồi chọn thư mục <b>tieu-chuan-hinh</b> — app tự khớp theo tên tệp.</span>
+      <span class="gt">Hình nằm trên máy bạn chứ không trong app — giấy phép của bộ PDF
+        cấm phát tán lại. Lần đầu: bấm <b>Nhập hình còn thiếu</b> ở đầu màn hình, chọn hết tệp
+        trong thư mục <b>tieu-chuan-hinh</b>. Sau đó app tự đẩy lên Drive riêng của bạn và
+        máy khác tự kéo về.</span>
     </div></figure>`;
 }
 
@@ -10426,14 +10499,46 @@ async function tcKeoTuDrive(bao){
   }
   return {keo:xong};
 }
-// Chạy ngầm lúc mở màn tiêu chuẩn: nếu đã đăng nhập Drive thì tự kéo ảnh còn thiếu về.
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v289 · MỘT ĐƯỜNG ĐỒNG BỘ DUY NHẤT, TỰ CHẠY HAI CHIỀU
+//
+//  v288 có ba nút “Nhập hình” nằm ba chỗ khác nhau cộng một nút “Đẩy lên Drive” riêng,
+//  nên không ai biết phải bấm cái nào trước cái nào — và quả thật là rối. Nay mở màn
+//  tiêu chuẩn là app TỰ KÉO VỀ rồi TỰ ĐẨY LÊN trong cùng một lượt: máy nào mở sau cũng
+//  tự gom đủ, không phải bấm gì. Nút duy nhất còn lại là nút nhập lần đầu, và nó chỉ
+//  hiện khi kho CÒN THIẾU hình — đủ hình là nó tự biến mất.
+//
+//  Vì sao vẫn phải còn ĐÚNG MỘT lần nhập tay trên laptop: phạm vi OAuth của app là
+//  drive.file, nghĩa là app chỉ đọc được tệp do CHÍNH NÓ tạo ra. Ảnh bạn tự tải lên Drive
+//  bằng trình duyệt thì app không thấy — không phải app làm chưa tới, mà Google không cho.
+//  Nên đường đi là: nhập một lần ở laptop → app tự đẩy lên thư mục riêng của bạn → mọi
+//  máy khác đăng nhập cùng tài khoản tự kéo về. Từ đó trở đi không còn bước tay nào.
+// ══════════════════════════════════════════════════════════════════════════════════════
+async function tcDongBo(bao){
+  const keo = await tcKeoTuDrive(bao);
+  const day = await tcDayLenDrive(bao);
+  return {keo:keo.keo, day:day.day, tren:day.daCo + day.day};
+}
 function tcTuDongKeo(){
   if(tcDriveDangChay || !driveAccessToken) return;
   tcDriveDangChay = true;
-  tcKeoTuDrive().then(kq=>{
+  tcDongBo().then(kq=>{
     tcDriveDangChay = false;
-    if(kq.keo){ tcDriveTin = 'Đã kéo ' + kq.keo + ' hình từ Drive của bạn'; renderContent(); }
+    const p = [];
+    if(kq.keo) p.push('kéo về ' + kq.keo + ' hình');
+    if(kq.day) p.push('đẩy lên ' + kq.day + ' hình');
+    if(p.length){ tcDriveTin = 'Tự đồng bộ Drive: ' + p.join(' · '); renderContent(); }
   }).catch(()=>{ tcDriveDangChay = false; });
+}
+// Đếm số hình THỰC SỰ đang nằm trên máy này. Chỉ dựng lại màn hình khi con số đổi, nên
+// không thể thành vòng lặp dựng vô tận.
+let tcAnhSo = -1;
+function tcCapNhatDem(){
+  tcAnhDaCo().then(s=>{
+    const can = tcAnhCanCo();
+    const n = [...s].filter(t=>can.has(t)).length;
+    if(n !== tcAnhSo){ tcAnhSo = n; renderContent(); }
+  }).catch(()=>{});
 }
 
 // ══════════════════════════════════════════════════════════════════════════════════════
@@ -10447,13 +10552,17 @@ function tcDoiDich(){
   saveSettings(); renderContent();
 }
 function tcThanhCongCu(bo){
-  const n = tcAnhCanCo().size;
+  const can = tcAnhCanCo().size;
+  const co = tcAnhSo < 0 ? 0 : tcAnhSo;
+  const thieu = Math.max(0, can - co);
+  const tt = tcDriveTin || (tcAnhSo < 0 ? 'Đang kiểm kho hình…'
+    : thieu ? 'Đang có ' + co + '/' + can + ' hình trên máy này'
+            : 'Đủ ' + can + ' hình · Drive tự đồng bộ, không phải bấm gì');
   return `<div class="tc-cc">
     <button class="tc-cc-n${tcDich() ? ' on' : ''}" data-action="tc-dich">
       ${tcDich() ? 'Đang hiện bản dịch' : 'Chỉ tiếng Anh'}</button>
-    <button class="tc-cc-n" data-action="tc-anh-nhap">Nhập hình</button>
-    <button class="tc-cc-n" data-action="tc-anh-day">Đẩy lên Drive</button>
-    <span class="tc-cc-tt" id="tc-cc-tt">${escapeHtml(tcDriveTin || (n + ' hình trong kho'))}</span>
+    ${thieu ? `<button class="tc-cc-n cham" data-action="tc-anh-nhap">Nhập ${thieu} hình còn thiếu</button>` : ''}
+    <span class="tc-cc-tt" id="tc-cc-tt">${escapeHtml(tt)}</span>
   </div>`;
 }
 
@@ -10476,8 +10585,9 @@ function tcHinhHtml(id){
     <div class="tc-f-anh"><div class="tc-f-trong">
       <span class="ic">🖼</span><b>Chưa có hình này trên máy</b>
       <i>${escapeHtml(h.tep)}</i>
-      <span class="gt">Bấm <b>Nhập hình</b> ở đầu màn hình rồi chọn thư mục
-        <b>tieu-chuan-hinh</b>; sau đó bấm <b>Đẩy lên Drive</b> để máy khác tự có.</span>
+      <span class="gt">Máy này chưa kéo được hình về. Nếu đã đăng nhập Google thì chờ
+        một nhịp — app đang tự kéo từ Drive của bạn. Nếu chưa máy nào nhập, hãy nhập một lần
+        trên laptop bằng nút <b>Nhập hình còn thiếu</b> ở đầu màn hình.</span>
     </div></div>
     <figcaption>
       <div class="tc-f-so">${bo ? escapeHtml(bo.ma) : ''} · Figure ${h.so}</div>
@@ -10538,7 +10648,7 @@ function renderTcBoList(){
       <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
         <i>Nơi bạn cất bản PDF có giấy phép của mình</i></span>
       <span class="mui">↗</span></a>`;
-  tcGanAnh(); tcTuDongKeo();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 
 function renderTcDieuList(){
@@ -10576,7 +10686,7 @@ function renderTcDieuList(){
     ${bo.id === 'en1730' ? `<div class="tc-bq">Bản EN 1730 bạn gửi là <b>bản scan song ngữ</b>,
       không có lớp chữ, nên phải nhận dạng quang học. App chỉ chép các điều mà EN 581-3 viện
       dẫn, và từng câu đã được đối chiếu tay với ảnh trang in.</div>` : ''}`;
-  tcGanAnh(); tcTuDongKeo();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 
 function renderTcDieu(){
@@ -10615,7 +10725,7 @@ function renderTcDieu(){
       ${tr ? `<button class="tc-dh" data-action="tc-dieu" data-bo="${bo.id}" data-so="${escapeHtml(tr.so)}">← ${escapeHtml(tr.so)} ${escapeHtml(tr.en)}</button>` : '<span></span>'}
       ${sa ? `<button class="tc-dh" data-action="tc-dieu" data-bo="${bo.id}" data-so="${escapeHtml(sa.so)}">${escapeHtml(sa.so)} ${escapeHtml(sa.en)} →</button>` : '<span></span>'}
     </div>`;
-  tcGanAnh(); tcTuDongKeo();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 
 // Bảng 2 của EN 1730 — công thức nội suy V. EN 581-3 chỉ viện dẫn chứ không in ra, nên
@@ -10668,13 +10778,6 @@ function renderTcList(){
       <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
         <i>Nơi bạn cất bản PDF có giấy phép của mình</i></span>
       <span class="mui">↗</span></a>
-    <div class="tc-anh-bar">
-      <div class="noi"><b>Hình trong file tiêu chuẩn</b>
-        <i id="tc-anh-tt">Hình nằm trên máy bạn, không nằm trong app — vì giấy phép của ba
-          bộ PDF cấm phát tán lại. Bấm “Nhập hình”, chọn hết tệp trong thư mục
-          <b>tieu-chuan-hinh</b>; app khớp theo tên tệp và lưu vào bộ nhớ của chính máy này.</i></div>
-      <button class="tc-anh-nut" data-action="tc-anh-nhap">Nhập hình</button>
-    </div>
     <div class="tc-bq">
       <b>Vì sao bản PDF không nằm trong app.</b> Ba file bạn gửi ghi rõ trên bìa rằng mọi hình
       thức sao chép và phát tán lại, kể cả một phần, đều bị cấm; và giấy phép cấp cho một
@@ -41092,18 +41195,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(tcBackDlEl){ KH_STATE.view='tcdieulist'; KH_STATE.tcSo=null; renderContent(); navBack(); return; }
   const tcDichEl = e.target.closest('[data-action="tc-dich"]');
   if(tcDichEl){ tcDoiDich(); return; }
-  // Đẩy ảnh đang có trên máy này lên thư mục riêng trong Drive của chính bạn.
-  const tcDayEl = e.target.closest('[data-action="tc-anh-day"]');
-  if(tcDayEl){
-    const n = document.getElementById('tc-cc-tt');
-    if(!driveAccessToken){ if(n) n.textContent = 'Cần đăng nhập Google trước (ở trang Thông tin cá nhân)'; return; }
-    if(n) n.textContent = 'Đang đẩy lên Drive…';
-    tcDayLenDrive((x,t)=>{ if(n) n.textContent = 'Đang đẩy ' + x + '/' + t + '…'; })
-      .then(kq=>{ tcDriveTin = 'Đã đẩy ' + kq.day + ' hình lên Drive · trên Drive đang có '
-                    + (kq.daCo + kq.day) + ' hình'; renderContent(); })
-      .catch(()=>{ if(n) n.textContent = 'Không đẩy được — thử đăng nhập lại Google'; });
-    return;
-  }
   const tcAnhToEl = e.target.closest('[data-action="tc-anh-to"]');
   if(tcAnhToEl){ tcAnhToEl.classList.toggle('to'); return; }
 
@@ -41129,10 +41220,27 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const inp = document.createElement('input');
     inp.type='file'; inp.accept='image/*'; inp.multiple=true;
     inp.addEventListener('change', ()=>{
-      const n = document.getElementById('tc-anh-tt');
+      const n = document.getElementById('tc-cc-tt');
       if(n) n.textContent = 'Đang nhập…';
       tcNhapAnh(inp.files).then(kq=>{
-        if(n) n.textContent = `Đã nhập ${kq.nhan} hình` + (kq.bo ? ` · bỏ qua ${kq.bo} tệp không khớp tên` : '');
+        tcDriveTin = `Đã nhập ${kq.nhan} hình` + (kq.bo ? ` · bỏ qua ${kq.bo} tệp không khớp tên` : '');
+        if(n) n.textContent = tcDriveTin;
+        tcAnhSo = -1;
+        // Nhập xong là ĐẨY LUÔN lên Drive, không chờ bấm thêm nút nào — đây chính là chỗ
+        // v288 bắt bấm tay lần thứ hai và là lý do điện thoại mãi không có hình.
+        if(driveAccessToken && !tcDriveDangChay){
+          tcDriveDangChay = true;
+          if(n) n.textContent = tcDriveTin + ' · đang đẩy lên Drive…';
+          tcDayLenDrive((x,t)=>{ if(n) n.textContent = 'Đang đẩy lên Drive ' + x + '/' + t + '…'; })
+            .then(kq2=>{
+              tcDriveDangChay = false;
+              tcDriveTin = 'Đã nhập ' + kq.nhan + ' hình và đẩy ' + kq2.day
+                + ' hình lên Drive · máy khác đăng nhập cùng tài khoản sẽ tự có';
+              renderContent();
+            })
+            .catch(()=>{ tcDriveDangChay = false;
+              if(n) n.textContent = 'Đã nhập xong nhưng chưa đẩy được lên Drive — thử đăng nhập lại Google'; });
+        }
         renderContent();
       }).catch(()=>{ if(n) n.textContent = 'Không nhập được — thiết bị chặn IndexedDB'; });
     });
