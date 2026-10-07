@@ -5598,7 +5598,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v292';
+const APP_VERSION = 'v293';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -11776,6 +11776,20 @@ function tcMoKhungAnh(src, ten){
   // khung thay vì nhảy ra khỏi màn điều khoản — và bộ xử lý popstate biết mốc này là của
   // khung, nên đóng rồi dừng, không lùi thêm nấc nữa.
   try{ history.pushState({tcXem:1}, ''); }catch(_){ }
+
+  // Lớp phủ này nằm NGOÀI #content, còn bộ điều phối data-action chung chỉ nghe trong
+  // #content — nên mọi nút ✕ + − ⤢ ⟳ ở đây phải TỰ gắn bộ nghe, không mượn bộ điều phối.
+  o.querySelectorAll('[data-action="tc-xem"]').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      const n = b.getAttribute('data-nut');
+      if(n === 'dong') tcDongKhungAnh();
+      else if(n === 'xoay') tcXoayAnh();
+      else if(n === 'vua') tcXemVeGoc();
+      else if(n === 'phong') tcPhongAnh(1);
+      else if(n === 'thu') tcPhongAnh(-1);
+    });
+  });
 
   const khung = o.querySelector('#tc-xem-khung');
   const img = o.querySelector('#tc-xem-anh');
