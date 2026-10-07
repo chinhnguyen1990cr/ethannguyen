@@ -2151,17 +2151,23 @@
     background:rgba(255,255,255,.04); border-bottom:1px solid var(--border);}
   .tc-xem-thanh .ten{flex:1; min-width:0; font-family:var(--mono); font-size:10.5px;
     color:var(--dim2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  .tc-xem-thanh .ti{flex:0 0 auto; font-family:var(--mono); font-size:11px; font-weight:800;
+    color:var(--blue); padding:0 4px;}
   .tc-xem-thanh .n{flex:0 0 auto; width:38px; height:38px; border-radius:11px; cursor:pointer;
     font-family:inherit; font-size:17px; font-weight:800; color:var(--text);
     background:var(--panel2); border:1px solid var(--border);}
   .tc-xem-thanh .n:active{transform:scale(.94);}
   .tc-xem-thanh .n.dong{color:#0b0f14; background:var(--blue); border-color:transparent;}
   .tc-xem-khung{flex:1; min-height:0; overflow:hidden; display:flex;
-    align-items:center; justify-content:center;}
+    align-items:center; justify-content:center; touch-action:none; cursor:grab;}
+  .tc-xem-khung:active{cursor:grabbing;}
+  /* Bộ nghe cử chỉ gắn ở KHUNG chứ không ở tấm ảnh: phóng to rồi kéo, ngón tay hay ra
+     ngoài mép ảnh, mà ra ngoài ảnh là mất luôn pointer — kéo được nửa chừng rồi đứng.
+     Gắn ở khung thì kéo ở đâu trong màn cũng được. */
   .tc-xem-khung img{max-width:100%; max-height:100%; background:#fff; border-radius:6px;
-    touch-action:none; cursor:grab; transform-origin:center center;
-    transform:translate(var(--dx,0px), var(--dy,0px)) rotate(0deg) scale(1);}
-  .tc-xem-khung img:active{cursor:grabbing;}
+    transform-origin:center center; will-change:transform; user-select:none;
+    -webkit-user-drag:none; pointer-events:none;}
   .tc-xem-gt{flex:0 0 auto; padding:9px 12px 14px; text-align:center; font-size:10.5px;
     color:var(--dim2); line-height:1.6;}
 
@@ -2178,6 +2184,38 @@
   .tc-nd{display:inline; padding:0 2px; margin:0; font:inherit; color:var(--tcm);
     background:none; border:none; border-bottom:1px dashed var(--tcm); cursor:pointer;}
   .tc-nd:hover{background:color-mix(in srgb, var(--tcm) 18%, transparent); border-radius:4px;}
+
+  /* ══ v292 · CÂY ĐIỀU KHOẢN ════════════════════════════════════════════════════════
+     Mỗi điều cấp một là MỘT THẺ; điều con nằm trong thẻ ấy, thụt vào và có vạch dọc nối
+     xuống. Nhìn một cái là biết 5.3.1 thuộc 5.3, thuộc 5 — thay vì sáu dòng ngang hàng
+     nhau như bản trước, đọc xong vẫn không biết cái nào thuộc cái nào. */
+  .tc-cay{margin:0 0 12px; border-radius:16px; overflow:hidden;
+    border:1px solid color-mix(in srgb, var(--tcm) 26%, var(--border));
+    background:color-mix(in srgb, var(--tcm) 5%, transparent); scroll-margin-top:12px;}
+  .tc-cay > .tc-dnut{margin:0; border-radius:0; border:none;
+    border-bottom:1px solid color-mix(in srgb, var(--tcm) 20%, transparent);
+    background:color-mix(in srgb, var(--tcm) 9%, transparent);}
+  .tc-cay > .tc-dnut .so{font-size:12px; font-weight:800;}
+  .tc-cay > .tc-dnut .en{font-size:13.5px;}
+  .tc-cay-con{padding:7px 7px 8px 0; position:relative;}
+  /* Vạch dọc nối các điều con — đường gióng mắt, không phải trang trí. */
+  .tc-cay-con::before{content:''; position:absolute; left:17px; top:4px; bottom:6px; width:2px;
+    background:color-mix(in srgb, var(--tcm) 30%, transparent); border-radius:2px;}
+  .tc-dnut.con{margin:0 0 5px 0; background:transparent; border:none; border-radius:11px;}
+  .tc-dnut.con:hover{background:color-mix(in srgb, var(--tcm) 11%, transparent);}
+  .tc-dnut.con .en{font-size:12.5px;}
+  .tc-dnut.con.b2{padding-left:30px;} .tc-dnut.con.b3{padding-left:46px;}
+  .tc-dnut.con.b4{padding-left:62px;}
+  .tc-dnut.trong{cursor:default; opacity:.75;}
+  /* Dấu hiệu nội dung: nhìn danh sách là biết điều nào có hình, điều nào có ghi chú. */
+  .tc-dnut .dau{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px;}
+  .tc-dnut .dau .d{font-size:9.5px; font-weight:800; letter-spacing:.3px; padding:2px 7px;
+    border-radius:6px; white-space:nowrap;}
+  .tc-dnut .dau .d-h{color:#0b0f14; background:var(--tcm);}
+  .tc-dnut .dau .d-t{color:var(--gold); background:color-mix(in srgb, var(--gold) 16%, transparent);}
+  .tc-dnut .dau .d-n{color:var(--dim2); background:rgba(255,255,255,.06);}
+  .tc-ml .nh{font-size:10px; font-weight:800; color:var(--dim2); letter-spacing:.5px;
+    text-transform:uppercase; margin-right:3px; align-self:center;}
   .tc-tb{display:flex; flex-direction:column; gap:7px; margin:0 0 13px;}
   .tc-tb-o{display:flex; align-items:flex-start; gap:10px; padding:9px 12px; border-radius:12px;
     background:var(--panel2); border:1px solid var(--border); width:100%; text-align:left;
@@ -5560,7 +5598,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v291';
+const APP_VERSION = 'v292';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6481,6 +6519,14 @@ function navBack(){
   try{ history.back(); }catch(e){}
 }
 window.addEventListener('popstate', ()=>{
+  // v292 — ĐÓNG KHUNG XEM HÌNH TRƯỚC MỌI THỨ KHÁC.
+  // Lỗi đã dựng lại được: mở hình toàn màn rồi vuốt back thì popstate dựng lại màn trước,
+  // NHƯNG lớp phủ #tc-xem vẫn nằm trên cùng (position:fixed, z-index 9000) và body vẫn
+  // mang class tc-xem-mo (overflow:hidden). Màn hình đen kịt, cuộn không được, bấm không
+  // trúng gì — đúng là app treo, dù thực ra nó vẫn chạy bình thường phía dưới.
+  // Khung xem tự đẩy một mốc lịch sử khi mở, nên lần popstate này LÀ của chính nó: đóng
+  // khung rồi dừng, không lùi thêm một nấc màn hình.
+  if(document.getElementById('tc-xem')){ tcDongKhungAnh(true); return; }
   if(NAV_STACK.length){
     // v210 — GỠ chốt chặn của v209. Ý định của nó là nuốt các mốc thừa, nhưng những hàm đóng
     // phiên (hvDongPhien…) đã tự xoá STATE rồi mới gọi navBack(); lúc đó mốc trên cùng ĐÚNG BẰNG
@@ -10434,6 +10480,249 @@ const TC_DIEU_5 = [
 
 ];
 
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v292 · EN 1730:2012 — 24 ĐIỀU CÒN THIẾU
+//
+//  v287 chỉ dựng 10 điều của EN 1730: đúng những điều mà Bảng 1 của EN 581-3 viện dẫn.
+//  Mở app ra thì thấy bắt đầu thẳng từ 6.3.1 — không có Phạm vi, không có điều kiện thử
+//  chung, không có thiết bị thử, và nhảy cóc giữa chừng. Nay dựng đủ theo mục lục bản in.
+//
+//  Nguồn: bản EN 1730 là SCAN SONG NGỮ, không có lớp chữ, nên phải nhận dạng quang học
+//  toàn bộ 35 trang. Bản OCR có lẫn lỗi ký tự ở cột tiếng Việt, nên tôi chỉ lấy cột
+//  TIẾNG ANH và soát lại từng câu bằng mắt trên ảnh trang in. Chỗ nào OCR cho ra ký tự
+//  đáng ngờ ("+" thay cho "±", "m’" thay cho "m³") tôi sửa về đúng ký hiệu của bản in,
+//  và đã đối chiếu lại con số trên ảnh trước khi sửa.
+// ══════════════════════════════════════════════════════════════════════════════════════
+const TC_DIEU_6 = [
+
+{bo:'en1730', so:'1', en:'Scope', vi:'Phạm vi áp dụng', nhom:'nen',
+ than:[
+ {en:'This European Standard specifies test methods for the determination of stability, strength and durability of the structure of all types of tables and desks without regard to use, materials, design/construction or manufacturing process.',
+  vi:'Tiêu chuẩn này quy định <b>phương pháp thử</b> để xác định <b>độ ổn định, độ bền và độ bền mỏi của kết cấu</b> cho <b>mọi loại bàn và bàn làm việc</b>, không phân biệt mục đích dùng, vật liệu, kiểu dáng/kết cấu hay quy trình sản xuất.'},
+ {en:'This European Standard does not apply to changing units which are covered by other European Standards.',
+  vi:'<b>Không</b> áp dụng cho <b>bàn thay tã</b> — loại ấy có tiêu chuẩn riêng.'},
+ {en:'Test methods for the assessment of ageing and degradation are not included.',
+  vi:'<b>Không</b> bao gồm phương pháp thử đánh giá <b>lão hoá và suy giảm chất lượng</b>.'}],
+ luu:['EN 1730 chỉ nêu CÁCH THỬ, không nêu phải đạt bao nhiêu. Con số lực và chu kỳ nằm ở Bảng 1 của EN 581-3. Hai tài liệu phải đọc kèm nhau.']},
+
+{bo:'en1730', so:'2', en:'Normative references', vi:'Tài liệu viện dẫn', nhom:'nen',
+ than:[
+ {en:'The following documents, in whole or in part, are normatively referenced in this document and are indispensable for its application. For dated references, only the edition cited applies. For undated references, the latest edition of the referenced document (including any amendments) applies.',
+  vi:'Các tài liệu sau được viện dẫn <b>bắt buộc</b> và <b>không thể thiếu</b> khi áp dụng. Viện dẫn có ghi năm thì dùng đúng bản ấy; không ghi năm thì dùng bản mới nhất.'},
+ {en:'EN 14072:2003, Glass in furniture — Test methods',
+  vi:'<b>EN 14072:2003</b> — Kính trong đồ nội thất — Phương pháp thử.'},
+ {en:'ISO 7619-2, Rubber, vulcanized or thermoplastic — Determination of indentation hardness — Part 2: IRHD pocket meter method',
+  vi:'<b>ISO 7619-2</b> — Cao su lưu hoá hoặc nhiệt dẻo — Xác định độ cứng ấn lõm — Phần 2: Đo IRHD bằng đồng hồ cầm tay.'}],
+ luu:['EN 14072 là đường vào cho bàn MẶT KÍNH: thử va đập thẳng đứng của mặt kính (6.6.2) đẩy hẳn sang tiêu chuẩn ấy, không làm theo EN 1730.']},
+
+{bo:'en1730', so:'3', en:'Terms and definitions', vi:'Thuật ngữ và định nghĩa', nhom:'nen',
+ than:[
+ {en:'For the purposes of this document, the following terms and definitions apply.',
+  vi:'Trong tiêu chuẩn này, áp dụng các thuật ngữ và định nghĩa sau.'},
+ {en:'3.1 structure — load bearing parts of furniture such as the frame, top and legs.',
+  vi:'<b>3.1 kết cấu</b> — các bộ phận <b>chịu lực</b> của đồ nội thất: khung, mặt bàn và chân.'},
+ {en:'3.2 ancillary surface — surface additional to the main surface intended for occasional use as part of the table top.',
+  vi:'<b>3.2 mặt phụ</b> — phần mặt <b>thêm vào ngoài mặt chính</b>, dùng <b>thỉnh thoảng</b> như một phần của mặt bàn.'},
+ {en:'3.3 duty cycle — length of time the height adjustable table\'s drive system may be operated without impairing its useful life.',
+  vi:'<b>3.3 chu kỳ làm việc</b> — khoảng thời gian <b>bộ truyền động</b> của bàn chỉnh chiều cao được phép chạy mà <b>không làm giảm tuổi thọ</b>.'},
+ {en:'3.4 levelling device — device fitted to a leg/support to compensate for uneven floors.',
+  vi:'<b>3.4 cơ cấu cân bằng</b> — chi tiết gắn ở chân/trụ đỡ để <b>bù sàn không phẳng</b>.'}],
+ luu:['Phân biệt "main surface" và "ancillary surface" quyết định dùng dòng nào của Bảng 1 EN 581-3 — lực thử của mặt phụ chỉ bằng khoảng một phần ba mặt chính.']},
+
+{bo:'en1730', so:'4', en:'General test conditions', vi:'Điều kiện thử chung', nhom:'nen',
+ than:[{en:'This clause covers preliminary preparation (4.1), application of forces (4.2) and tolerances (4.3).',
+  vi:'Điều này gồm: <b>chuẩn bị trước khi thử (4.1)</b>, <b>cách đặt lực (4.2)</b> và <b>dung sai (4.3)</b>.'}],
+ muc:['4.1','4.2','4.3']},
+
+{bo:'en1730', so:'4.1', en:'Preliminary preparation', vi:'Chuẩn bị trước khi thử', nhom:'nen',
+ than:[
+ {en:'The furniture shall be tested as delivered.',
+  vi:'Phải thử sản phẩm <b>đúng như khi giao hàng</b>.'},
+ {en:'Knock-down furniture shall be assembled according to the instructions supplied with it.',
+  vi:'Hàng <b>tháo rời</b> thì <b>lắp theo đúng hướng dẫn kèm theo</b>.'},
+ {en:'If the instructions allow the furniture to be assembled or combined in different ways, the most adverse combination shall be used for each test.',
+  vi:'Nếu hướng dẫn cho phép <b>lắp theo nhiều cách</b>: mỗi phép thử phải dùng <b>tổ hợp bất lợi nhất</b>.'},
+ {en:'Knock-down fittings shall be tightened before testing. Further tightening shall not take place unless specifically required by the manufacturer.',
+  vi:'<b>Siết chặt phụ kiện lắp ráp trước khi thử</b>. <b>Không siết lại giữa chừng</b>, trừ khi nhà sản xuất yêu cầu rõ.'}],
+ luu:['Câu "không siết lại giữa chừng" là chỗ hay bị lách: phòng thử siết lại ốc giữa các phép thử thì mối nối lỏng — đúng thứ cần bắt — bị che mất.']},
+
+{bo:'en1730', so:'4.2', en:'Application of forces', vi:'Cách đặt lực', nhom:'nen',
+ than:[
+ {en:'The test forces in durability and static load tests shall be applied sufficiently slowly to ensure that negligible dynamic load is applied.',
+  vi:'Lực trong phép thử độ bền mỏi và tải tĩnh phải đặt <b>đủ chậm</b> để phần tải động sinh ra là <b>không đáng kể</b>.'},
+ {en:'The forces in durability tests shall be applied sufficiently slowly to ensure that kinetic heating does not occur.',
+  vi:'Riêng thử độ bền mỏi còn phải chậm tới mức <b>không sinh nhiệt do động học</b>.'},
+ {en:'Unless otherwise stated, static loads shall be maintained for (10 ± 2) s.',
+  vi:'Nếu không quy định khác, <b>tải tĩnh giữ (10 ± 2) giây</b>.'},
+ {en:'Unless otherwise stated, durability loads shall be maintained for (2 ± 1) s.',
+  vi:'Nếu không quy định khác, <b>tải trong thử độ bền mỏi giữ (2 ± 1) giây</b> mỗi chu kỳ.'}],
+ luu:['Giống hệt điều 4.2 của EN 1728 — hai tiêu chuẩn dùng chung quy ước thời gian giữ lực. Nhớ một lần là dùng được cho cả ghế lẫn bàn.']},
+
+{bo:'en1730', so:'4.3', en:'Tolerances', vi:'Dung sai', nhom:'nen',
+ than:[
+ {en:'Unless otherwise stated, the following tolerances are applicable to the test equipment: Forces: ± 5 % of the nominal force; Velocities: ± 5 % of the nominal velocity; Masses: ± 1 % of the nominal mass; Dimensions: ± 1 mm of the nominal dimension; Angles: ± 2° of the nominal angle.',
+  vi:'Nếu không quy định khác, dung sai thiết bị thử: <b>Lực ± 5 %</b>; <b>Vận tốc ± 5 %</b>; <b>Khối lượng ± 1 %</b>; <b>Kích thước ± 1 mm</b>; <b>Góc ± 2°</b>.'},
+ {en:'The accuracy for the positioning of loading pads and impact plates shall be ± 5 mm.',
+  vi:'Độ chính xác khi <b>đặt vị trí đệm tải và tấm va đập: ± 5 mm</b>.'}]},
+
+{bo:'en1730', so:'5', en:'Test equipment and apparatus', vi:'Thiết bị và dụng cụ thử', nhom:'tb',
+ than:[
+ {en:'5.1 Vertical impactor, consisting of a circular body 200 mm in diameter separated from the striking surface by helical compression springs, and a rigid circular striking surface 200 mm in diameter.',
+  vi:'<b>5.1 Đầu va đập thẳng đứng</b>: thân hình trụ <b>Ø 200 mm</b>, nối với <b>mặt đập cứng Ø 200 mm</b> qua <b>lò xo nén xoắn</b>.'},
+ {en:'5.2 Floor, horizontal, flat and rigid with a smooth surface. For the drop test (6.9) the floor shall be faced with a 2 mm thick layer of rubber with a hardness of 85 ± 10 IRHD according to ISO 7619-2.',
+  vi:'<b>5.2 Sàn thử</b>: <b>nằm ngang, phẳng, cứng, mặt nhẵn</b>. Riêng <b>thử thả rơi (6.9)</b>, sàn phải <b>bọc cao su dày 2 mm, độ cứng 85 ± 10 IRHD</b> theo ISO 7619-2.'},
+ {en:'5.3 Stops, to prevent the article from sliding but not tilting, no higher than 42 mm except in cases where the design of the item necessitates the use of higher stops, in which case the lowest that will prevent the item from moving shall be used.',
+  vi:'<b>5.3 Cữ chặn</b>: giữ cho sản phẩm <b>không trượt nhưng vẫn nghiêng được</b>, <b>cao không quá 42 mm</b>; nếu kiểu dáng buộc phải dùng cữ cao hơn thì <b>chọn mức thấp nhất đủ giữ</b>.'},
+ {en:'5.4 Loading pad, a rigid cylindrical object, 100 mm in diameter, with a flat, smooth face and a 12 mm edge radius.',
+  vi:'<b>5.4 Đệm đặt tải</b>: khối trụ cứng <b>Ø 100 mm</b>, <b>mặt phẳng nhẵn</b>, <b>bán kính bo mép 12 mm</b>.'},
+ {en:'5.5 Foam, 25 mm thick layer of flexible foam with a bulk density of (120 ± 25) kg/m³.',
+  vi:'<b>5.5 Mút</b>: lớp mút mềm <b>dày 25 mm</b>, <b>khối lượng riêng (120 ± 25) kg/m³</b>.'},
+ {en:'5.6 Steel test tube, (18 ± 1,5) mm in diameter and (1,5 ± 0,5) mm in wall thickness with a length such that a force can be applied at a distance of 2 200 mm above the floor.',
+  vi:'<b>5.6 Ống thép thử</b>: <b>Ø (18 ± 1,5) mm</b>, <b>dày thành (1,5 ± 0,5) mm</b>, dài đủ để đặt lực ở <b>cao 2 200 mm so với sàn</b>.'},
+ {en:'5.7 Test surface for castor durability tests, horizontal, flat smooth and rigid steel surface.',
+  vi:'<b>5.7 Mặt thử bánh xe</b>: mặt <b>thép nằm ngang, phẳng, nhẵn và cứng</b>.'},
+ {en:'5.8 Obstacles for castor durability tests, steel strips 50 mm wide and 2 mm high with the top edges having a radius of 2 mm, 500 mm apart and parallel on the floor surface and perpendicular to the test direction.',
+  vi:'<b>5.8 Vật cản thử bánh xe</b>: thanh thép <b>rộng 50 mm, cao 2 mm</b>, <b>bo mép trên R2</b>, đặt <b>song song, cách nhau 500 mm</b>, <b>vuông góc với hướng thử</b>.'}],
+ luu:['Đệm tải của bàn là Ø 100 mm — khác hẳn đệm mặt ngồi ghế Ø 200 mm (EN 1728, 5.4). Lẫn hai cái là sai áp suất tiếp xúc, mặt bàn mỏng có thể vỡ oan.']},
+
+{bo:'en1730', so:'6', en:'Test procedures — Strength and durability', vi:'Trình tự thử — Độ bền và độ bền mỏi', nhom:'pp',
+ than:[{en:'This clause specifies the strength and durability test procedures, from 6.1 to 6.9.',
+  vi:'Điều này quy định trình tự thử <b>độ bền và độ bền mỏi</b>, gồm 6.1 đến 6.9.'}]},
+
+{bo:'en1730', so:'6.1', en:'General', vi:'Quy định chung', nhom:'pp',
+ than:[
+ {en:'Unless otherwise specified, the tests shall be carried out in the configuration most likely to cause failure.',
+  vi:'Nếu không quy định khác, thử ở <b>cấu hình dễ gây hư hỏng nhất</b>.'},
+ {en:'Where the table top can be extended, and the smallest dimension of the unextended table top is less than 300 mm, then the extended configuration shall be considered most likely to cause failure. In this case, the extended configuration is considered to be the main surface.',
+  vi:'Bàn <b>kéo dài được</b> mà <b>cạnh nhỏ nhất của mặt bàn chưa kéo dưới 300 mm</b>: coi <b>cấu hình đã kéo dài</b> là bất lợi nhất, và khi đó <b>phần kéo dài được tính là mặt chính</b>.'},
+ {en:'Levelling devices shall be set as near as possible to 5 mm from the fully closed position.',
+  vi:'<b>Cơ cấu cân bằng</b> chỉnh về vị trí <b>cách vị trí đóng hết khoảng 5 mm</b>, càng sát càng tốt.'}]},
+
+{bo:'en1730', so:'6.2', en:'Horizontal static load test', vi:'Thử tải tĩnh theo phương ngang', nhom:'pp',
+ than:[
+ {en:'Position the table on the test surface, in its normal position of use without extending, or inserting, ancillary surfaces.',
+  vi:'Đặt bàn lên mặt thử ở <b>tư thế dùng bình thường</b>, <b>không kéo dài và không lắp thêm mặt phụ</b>.'},
+ {en:'Unless otherwise specified, height adjustable tables shall be set to their highest position.',
+  vi:'Nếu không quy định khác, bàn chỉnh chiều cao đặt ở <b>vị trí cao nhất</b>.'},
+ {en:'Restrain the base of the table by stops placed in all directions at the opposite end to that at which the horizontal test force is first to be applied.',
+  vi:'Chặn chân bàn bằng <b>cữ chặn đặt theo mọi hướng</b>, ở <b>đầu đối diện</b> với nơi sẽ đặt lực ngang đầu tiên.'},
+ {en:'Apply the specified mass to an area of (300 ± 50) mm x (300 ± 50) mm, or a diameter of (300 ± 50) mm, at the centre of the table top.',
+  vi:'Chất khối lượng quy định lên <b>vùng (300 ± 50) mm x (300 ± 50) mm</b>, hoặc <b>đường kính (300 ± 50) mm</b>, tại <b>tâm mặt bàn</b>.'}]},
+
+{bo:'en1730', so:'6.3', en:'Vertical static load tests', vi:'Các phép thử tải tĩnh thẳng đứng', nhom:'pp',
+ than:[{en:'This subclause covers vertical static load on the main surface (6.3.1), the additional test where the main surface has a length greater than 1 600 mm (6.3.2), and vertical static load on ancillary surfaces (6.3.3).',
+  vi:'Mục này gồm: <b>tải tĩnh thẳng đứng mặt chính (6.3.1)</b>, <b>phép thử bổ sung khi mặt chính dài hơn 1 600 mm (6.3.2)</b>, và <b>tải tĩnh thẳng đứng mặt phụ (6.3.3)</b>.'}],
+ muc:['6.3.1','6.3.2','6.3.3']},
+
+{bo:'en1730', so:'6.4', en:'Horizontal durability and stiffness test', vi:'Thử độ bền mỏi ngang và độ cứng vững', nhom:'pp',
+ than:[{en:'This subclause covers the general method (6.4.1), the horizontal durability test (6.4.2) and the stiffness of the structure (6.4.3).',
+  vi:'Mục này gồm: <b>quy định chung (6.4.1)</b>, <b>thử độ bền mỏi ngang (6.4.2)</b> và <b>độ cứng vững của kết cấu (6.4.3)</b>.'}],
+ muc:['6.4.1','6.4.2','6.4.3']},
+
+{bo:'en1730', so:'6.4.3', en:'Stiffness of the structure', vi:'Độ cứng vững của kết cấu', nhom:'pp',
+ than:[
+ {en:'Apply the test force by means of the loading pad (5.4), at the table top level in a direction perpendicular to a line joining two legs/supports and midway between the legs/supports, or midway between the outermost legs for a table with more than two legs in a straight line.',
+  vi:'Đặt lực thử qua <b>đệm đặt tải (5.4)</b>, <b>ở cao độ mặt bàn</b>, theo hướng <b>vuông góc với đường nối hai chân</b> và <b>ở chính giữa hai chân</b>; bàn có hơn hai chân thẳng hàng thì lấy <b>giữa hai chân ngoài cùng</b>.'},
+ {en:'Maintain the force for (10 ± 1) s and record the position of a point D on the length of the table. Remove the force and repeat in the opposite direction.',
+  vi:'<b>Giữ lực (10 ± 1) giây</b> và <b>ghi vị trí của điểm D</b> trên chiều dài bàn. Bỏ lực rồi <b>lặp lại theo hướng ngược</b>.'}],
+ luu:['Đây là phép đo ĐỘ VÕNG/ĐỘ LẮC, không phải phép thử đạt–trượt. Kết quả ghi thành số đo trong báo cáo; EN 581-3 không đặt ngưỡng cho nó.']},
+
+{bo:'en1730', so:'6.5', en:'Vertical durability test', vi:'Thử độ bền mỏi theo phương thẳng đứng', nhom:'pp',
+ than:[
+ {en:'Position the table on the test surface in its normal position of use. Tables with extensions inserted in the centre shall be tested in the extended configuration. All other tables shall be tested without extending ancillary surfaces.',
+  vi:'Đặt bàn ở <b>tư thế dùng bình thường</b>. Bàn có <b>tấm nối chèn ở giữa</b> thì thử ở <b>cấu hình đã kéo dài</b>; các bàn khác thử <b>không kéo dài mặt phụ</b>.'},
+ {en:'Apply the vertical force specified in the requirement document by means of the loading pad (5.4), on the table top at the most adverse position, 100 mm from the table top edge.',
+  vi:'Đặt lực thẳng đứng theo tài liệu yêu cầu qua <b>đệm đặt tải (5.4)</b>, lên mặt bàn ở <b>vị trí bất lợi nhất</b>, <b>cách mép mặt bàn 100 mm</b>.'},
+ {en:'If the article tends to lift, load the centre of the table.',
+  vi:'Nếu bàn <b>chực bị nhấc lên</b>: <b>chất thêm tải vào tâm bàn</b>.'}]},
+
+{bo:'en1730', so:'6.6', en:'Vertical impact test', vi:'Thử va đập thẳng đứng', nhom:'pp',
+ than:[{en:'This subclause covers the general method (6.6.1), the test for glass table tops (6.6.2) and the test for all other table tops (6.6.3).',
+  vi:'Mục này gồm: <b>quy định chung (6.6.1)</b>, <b>thử cho mặt bàn kính (6.6.2)</b> và <b>thử cho mọi mặt bàn khác (6.6.3)</b>.'}],
+ muc:['6.6.1','6.6.2','6.6.3']},
+
+{bo:'en1730', so:'6.6.1', en:'General', vi:'Quy định chung', nhom:'pp',
+ than:[{en:'Position the table on the test surface, in its normal position of use. Tables with extensions inserted in the centre shall be tested in the extended configuration. All other tables shall be tested without extending ancillary surfaces.',
+  vi:'Đặt bàn ở <b>tư thế dùng bình thường</b>. Bàn có <b>tấm nối chèn giữa</b> thử ở <b>cấu hình đã kéo dài</b>; bàn khác thử <b>không kéo dài mặt phụ</b>.'}]},
+
+{bo:'en1730', so:'6.6.2', en:'Vertical impact test for glass table tops', vi:'Thử va đập thẳng đứng cho mặt bàn kính', nhom:'pp',
+ than:[{en:'For the vertical impact testing of tables incorporating glass tops, testing shall be in accordance with EN 14072:2003, Clause 6.',
+  vi:'Bàn có <b>mặt kính</b>: thử va đập thẳng đứng <b>theo EN 14072:2003, Điều 6</b>, không làm theo 6.6.3.'}],
+ luu:['Đây là chỗ bàn mặt kính rẽ sang tiêu chuẩn khác. Báo cáo EN 581-3 của bàn kính mà không kèm kết quả theo EN 14072 là báo cáo thiếu.']},
+
+{bo:'en1730', so:'6.6.3', en:'Vertical impact test for all other table tops', vi:'Thử va đập thẳng đứng cho mọi mặt bàn khác', nhom:'pp',
+ than:[
+ {en:'Place one layer of foam (5.5) on the table top. The height of drop shall be measured from the position where the impactor is resting on the surface of that layer of foam.',
+  vi:'Đặt <b>một lớp mút (5.5)</b> lên mặt bàn. <b>Chiều cao thả đo từ vị trí đầu va đập đang tì trên lớp mút ấy</b>.'},
+ {en:'Place a second layer of foam (5.5) between the striking surface and the table top.',
+  vi:'Đặt <b>lớp mút thứ hai (5.5)</b> giữa <b>mặt đập và mặt bàn</b>.'},
+ {en:'Allow the vertical impactor (5.1) to fall freely from the height specified in the requirement document onto the foam surface.',
+  vi:'<b>Thả rơi tự do đầu va đập (5.1)</b> từ chiều cao nêu trong tài liệu yêu cầu xuống <b>mặt lớp mút</b>.'}],
+ luu:['Hai lớp mút không phải để "nương tay": chúng chuẩn hoá cách truyền xung lực, nếu thiếu một lớp thì kết quả của hai phòng thử không so được với nhau.']},
+
+{bo:'en1730', so:'6.7', en:'Deflection of table tops', vi:'Độ võng mặt bàn', nhom:'pp',
+ than:[
+ {en:'Position the table on the test surface, in its normal position of use. Tables with extensions inserted in the centre shall be tested in the extended configuration. All other tables shall be tested without extending ancillary surfaces.',
+  vi:'Đặt bàn ở <b>tư thế dùng bình thường</b>; bàn có tấm nối chèn giữa thử ở <b>cấu hình đã kéo dài</b>.'},
+ {en:'Testing of the deflection of table tops that are not made of metal, glass or stone shall be carried out in a relative humidity as specified in 4.1.',
+  vi:'Mặt bàn <b>không phải kim loại, kính hay đá</b>: phải thử trong <b>điều kiện độ ẩm tương đối nêu ở 4.1</b>.'},
+ {en:'The greatest deflection shall be measured and recorded.',
+  vi:'<b>Đo và ghi lại độ võng lớn nhất</b>.'}],
+ luu:['Điều kiện độ ẩm là chỗ dễ bỏ qua với mặt bàn gỗ/MDF: thử lúc khô cho kết quả đẹp hơn thực tế dùng ngoài trời.']},
+
+{bo:'en1730', so:'6.8', en:'Durability of tables with castors', vi:'Thử độ bền mỏi bàn có bánh xe', nhom:'pp',
+ than:[
+ {en:'This test is only applicable to tables that have castors fitted to all legs/supports.',
+  vi:'Chỉ áp dụng cho bàn có <b>bánh xe gắn ở TẤT CẢ các chân/trụ đỡ</b>.'},
+ {en:'Tables shall be tested without extending or inserting ancillary surfaces. Place the table on the floor surface (5.2). Apply the specified load, centred on the table.',
+  vi:'Thử <b>không kéo dài và không lắp mặt phụ</b>. Đặt bàn lên <b>sàn thử (5.2)</b>, chất <b>tải quy định vào giữa bàn</b>.'},
+ {en:'The castors shall be free to rotate and swivel. The operating force shall be applied no lower than 50 mm from the top surface of the table.',
+  vi:'<b>Bánh xe để lăn và xoay tự do</b>. Lực đẩy đặt ở <b>không thấp hơn 50 mm tính từ mặt trên của bàn</b>.'},
+ {en:'At least one castor shall be run over obstacles (5.8).',
+  vi:'<b>Ít nhất một bánh xe phải lăn qua vật cản (5.8)</b>.'}]},
+
+{bo:'en1730', so:'6.9', en:'Drop test', vi:'Thử thả rơi', nhom:'pp',
+ than:[
+ {en:'Place the table unloaded on the floor surface (5.2), in its normal position of use, without ancillary surfaces inserted or extended, but with ancillary surfaces in their normal stored position.',
+  vi:'Đặt bàn <b>không tải</b> lên <b>sàn thử (5.2)</b>, ở tư thế dùng bình thường, <b>không lắp và không kéo dài mặt phụ</b>, nhưng <b>mặt phụ để ở vị trí cất bình thường</b>.'},
+ {en:'Height adjustable tables shall be set to their lowest position.',
+  vi:'Bàn chỉnh chiều cao đặt ở <b>vị trí thấp nhất</b>.'},
+ {en:'Determine the drop height as a percentage of the specified nominal drop height in accordance with Table 1.',
+  vi:'Tính <b>chiều cao thả thực tế theo phần trăm chiều cao danh nghĩa</b>, tra <b>Bảng 1</b> của chính EN 1730.'},
+ {en:'The vertical force is determined as the lowest upwards vertical force to lift at least one leg off the floor.',
+  vi:'Lực thẳng đứng xác định là <b>lực hướng lên nhỏ nhất đủ nhấc ít nhất một chân rời sàn</b>.'}],
+ luu:['Sàn thử của riêng phép này phải bọc cao su 2 mm, 85 ± 10 IRHD (xem 5.2). Thả xuống nền xi măng trần là sai điều kiện thử.']},
+
+{bo:'en1730', so:'7', en:'Test procedures — Stability', vi:'Trình tự thử — Độ ổn định', nhom:'od',
+ than:[{en:'This clause specifies the stability test procedures, from 7.1 to 7.4.',
+  vi:'Điều này quy định trình tự thử <b>độ ổn định</b>, gồm 7.1 đến 7.4. <b>Đây là chương Bảng 1 của EN 581-3 viện dẫn cho ba phép thử ổn định của bàn.</b>'}]},
+
+{bo:'en1730', so:'7.2', en:'Stability under vertical load', vi:'Ổn định dưới tải thẳng đứng', nhom:'od',
+ than:[{en:'This subclause covers the general method (7.2.1), the test for tables set to a height of 950 mm or less (7.2.2), and the test for tables set to a height greater than 950 mm (7.2.3).',
+  vi:'Mục này gồm: <b>quy định chung (7.2.1)</b>, <b>bàn cao từ 950 mm trở xuống (7.2.2)</b> và <b>bàn cao hơn 950 mm (7.2.3)</b>.'}],
+ muc:['7.2.1','7.2.2','7.2.3']},
+
+{bo:'en1730', so:'7.2.1', en:'General', vi:'Quy định chung', nhom:'od',
+ than:[{en:'Tables that can be set to heights both above and below 950 mm shall be tested to both 7.2.2 and 7.2.3.',
+  vi:'Bàn <b>chỉnh được cả trên lẫn dưới 950 mm</b> thì <b>phải thử CẢ HAI</b>: theo 7.2.2 và theo 7.2.3.'}],
+ luu:['Bàn ngoài trời chỉnh chiều cao (bàn bar nâng hạ) rơi đúng vào đây: một sản phẩm phải chịu hai phép thử ổn định, không được chọn một.']},
+
+{bo:'en1730', so:'8', en:'Test procedures — Height adjustment mechanisms', vi:'Trình tự thử — Cơ cấu chỉnh chiều cao', nhom:'pp', ngoai:true,
+ than:[{en:'This clause covers the general method (8.1) and the durability of height adjustment mechanisms (8.2).',
+  vi:'Điều này gồm <b>quy định chung (8.1)</b> và <b>độ bền cơ cấu chỉnh chiều cao (8.2)</b>.'}],
+ muc:['8.1','8.2']},
+
+{bo:'en1730', so:'8.1', en:'General', vi:'Quy định chung', nhom:'pp', ngoai:true,
+ than:[{en:'The tests in this clause apply to tables fitted with height adjustment mechanisms.',
+  vi:'Các phép thử trong điều này áp dụng cho <b>bàn có cơ cấu chỉnh chiều cao</b>.'}]},
+
+{bo:'en1730', so:'8.2', en:'Durability of height adjustment mechanisms', vi:'Độ bền cơ cấu chỉnh chiều cao', nhom:'pp', ngoai:true,
+ than:[{en:'The height adjustment mechanism shall be operated through its full range for the number of cycles specified, within the duty cycle declared by the manufacturer (3.3).',
+  vi:'Vận hành cơ cấu chỉnh chiều cao <b>hết hành trình</b>, đủ <b>số chu kỳ quy định</b>, trong phạm vi <b>chu kỳ làm việc do nhà sản xuất công bố (3.3)</b>.'}],
+ luu:['EN 581-3 KHÔNG viện dẫn điều 8 — tiêu chuẩn đồ ngoài trời nói rõ không quản độ bền cơ cấu chỉnh chiều cao. Dựng ở đây cho đủ cấu trúc tài liệu, và gắn cờ ngoài phạm vi.']}
+
+];
+
 const TC_BO_THUTU = ['en1728','en1730','en581-1','en581-2','en581-3'];
 // Gộp có KHỬ TRÙNG. Khi soạn thêm, không tránh khỏi có điều đã soạn ở đợt trước (4.2 và
 // 4.3 bị soạn hai lần thật). Bản soạn SAU thường đầy đủ hơn nên lấy làm gốc, nhưng phải
@@ -10455,7 +10744,7 @@ function tcGopDieu(ds){
   });
   return [...theo.values()];
 }
-const TC_DIEU_HET = tcGopDieu(TC_DIEU.concat(TC_DIEU_2, TC_DIEU_3, TC_DIEU_4, TC_DIEU_5)).sort((a,b)=>{
+const TC_DIEU_HET = tcGopDieu(TC_DIEU.concat(TC_DIEU_2, TC_DIEU_3, TC_DIEU_4, TC_DIEU_5, TC_DIEU_6)).sort((a,b)=>{
   const d = TC_BO_THUTU.indexOf(a.bo) - TC_BO_THUTU.indexOf(b.bo);
   return d ? d : tcSoSanhSo(a.so, b.so);
 });
@@ -11430,56 +11719,133 @@ function tcGanAnh(){
 //  screen.orientation.lock, trình duyệt trên iOS không cho, và nó còn làm xoay luôn phần
 //  app phía dưới. Xoay riêng tấm ảnh thì chạy ở mọi máy và không đụng gì tới phần còn lại.
 // ══════════════════════════════════════════════════════════════════════════════════════
-let tcXemGoc = 0, tcXemTiLe = 1, tcXemKeo = null;
+let tcXemGoc = 0, tcXemTiLe = 1, tcXemDx = 0, tcXemDy = 0;
+const tcXemNgon = new Map();          // các ngón đang chạm, để tính chụm hai ngón
+let tcXemKeo = null, tcXemChum = null, tcXemChamCuoi = 0;
+
+function tcXemApDung(){
+  const img = document.getElementById('tc-xem-anh');
+  if(!img) return;
+  img.style.transform = 'translate(' + tcXemDx + 'px,' + tcXemDy + 'px) rotate('
+    + tcXemGoc + 'deg) scale(' + tcXemTiLe + ')';
+  const n = document.getElementById('tc-xem-ti');
+  if(n) n.textContent = Math.round(tcXemTiLe * 100) + '%';
+}
+function tcDatTiLe(x, tamX, tamY){
+  const cu = tcXemTiLe;
+  tcXemTiLe = Math.min(8, Math.max(0.4, x));
+  // Giữ cho điểm đang chạm đứng yên khi phóng: nếu không, phóng vào là hình trượt đi mất
+  // và phải kéo lại từ đầu — phóng kiểu đó không dùng được trên điện thoại.
+  if(tamX !== undefined){
+    const k = tcXemTiLe / cu;
+    tcXemDx = tamX - (tamX - tcXemDx) * k;
+    tcXemDy = tamY - (tamY - tcXemDy) * k;
+  }
+  tcXemApDung();
+}
+function tcXoayAnh(){ tcXemGoc = (tcXemGoc + 90) % 360; tcXemApDung(); }
+function tcPhongAnh(huong){ tcDatTiLe(tcXemTiLe * (huong > 0 ? 1.4 : 1/1.4)); }
+function tcXemVeGoc(){ tcXemTiLe = 1; tcXemDx = 0; tcXemDy = 0; tcXemGoc = 0; tcXemApDung(); }
+
 function tcMoKhungAnh(src, ten){
   if(!src) return;
-  tcXemGoc = 0; tcXemTiLe = 1;
+  if(document.getElementById('tc-xem')) tcDongKhungAnh(true);
+  tcXemGoc = 0; tcXemTiLe = 1; tcXemDx = 0; tcXemDy = 0; tcXemNgon.clear();
+  tcXemKeo = null; tcXemChum = null;
   const o = document.createElement('div');
   o.className = 'tc-xem'; o.id = 'tc-xem';
   o.innerHTML = `
     <div class="tc-xem-thanh">
       <span class="ten">${escapeHtml(ten || '')}</span>
+      <span class="ti" id="tc-xem-ti">100%</span>
       <button class="n" data-action="tc-xem" data-nut="thu" title="Thu nhỏ">−</button>
       <button class="n" data-action="tc-xem" data-nut="phong" title="Phóng to">+</button>
+      <button class="n" data-action="tc-xem" data-nut="vua" title="Vừa màn">⤢</button>
       <button class="n" data-action="tc-xem" data-nut="xoay" title="Xoay ngang">⟳</button>
       <button class="n dong" data-action="tc-xem" data-nut="dong" title="Đóng">✕</button>
     </div>
-    <div class="tc-xem-khung"><img id="tc-xem-anh" src="${src}" alt="${escapeHtml(ten||'')}"></div>
-    <div class="tc-xem-gt">Chụm hai ngón để phóng · kéo để di chuyển · ⟳ để xoay ngang</div>`;
+    <div class="tc-xem-khung" id="tc-xem-khung">
+      <img id="tc-xem-anh" src="${src}" alt="${escapeHtml(ten||'')}"></div>
+    <div class="tc-xem-gt">Chụm hai ngón để phóng · nhấn đúp để phóng nhanh · kéo để di chuyển
+      · ⟳ xoay ngang · vuốt back hoặc ✕ để đóng</div>`;
   document.body.appendChild(o);
   document.body.classList.add('tc-xem-mo');
+  tcXemApDung();
+
+  // Đẩy MỘT mốc lịch sử riêng cho khung xem. Nhờ vậy cử chỉ vuốt back của điện thoại đóng
+  // khung thay vì nhảy ra khỏi màn điều khoản — và bộ xử lý popstate biết mốc này là của
+  // khung, nên đóng rồi dừng, không lùi thêm nấc nữa.
+  try{ history.pushState({tcXem:1}, ''); }catch(_){ }
+
+  const khung = o.querySelector('#tc-xem-khung');
   const img = o.querySelector('#tc-xem-anh');
-  tcXemApDung();   // đặt transform ngay, nếu không thì biến --dx/--dy chưa có chỗ bám
-  // Kéo bằng một ngón: dùng pointer event nên chạy cả chuột lẫn ngón tay, không phải
-  // viết hai bộ xử lý rồi quên đồng bộ một bên.
-  let x0 = 0, y0 = 0, dx = 0, dy = 0;
-  img.addEventListener('pointerdown', ev=>{
-    tcXemKeo = {x: ev.clientX - dx, y: ev.clientY - dy};
-    try{ img.setPointerCapture(ev.pointerId); }catch(_){ }
+  const giua = (a, b)=>({x:(a.x+b.x)/2, y:(a.y+b.y)/2});
+  const xa = (a, b)=>Math.hypot(a.x-b.x, a.y-b.y);
+
+  khung.addEventListener('pointerdown', ev=>{
+    khung.setPointerCapture && khung.setPointerCapture(ev.pointerId);
+    tcXemNgon.set(ev.pointerId, {x:ev.clientX, y:ev.clientY});
+    if(tcXemNgon.size === 2){
+      const [a, b] = [...tcXemNgon.values()];
+      tcXemChum = {xa: xa(a,b), tiLe: tcXemTiLe, giua: giua(a,b), dx: tcXemDx, dy: tcXemDy};
+      tcXemKeo = null;
+    } else if(tcXemNgon.size === 1){
+      tcXemKeo = {x: ev.clientX - tcXemDx, y: ev.clientY - tcXemDy};
+      // Nhấn đúp (hai lần chạm cách nhau dưới 300 ms): phóng nhanh lên 2,5× rồi về 1×.
+      const gio = Date.now();
+      if(gio - tcXemChamCuoi < 300){
+        const r = khung.getBoundingClientRect();
+        if(tcXemTiLe > 1.05) tcXemVeGoc();
+        else tcDatTiLe(2.5, ev.clientX - r.left - r.width/2, ev.clientY - r.top - r.height/2);
+        tcXemKeo = null;
+      }
+      tcXemChamCuoi = gio;
+    }
   });
-  img.addEventListener('pointermove', ev=>{
-    if(!tcXemKeo) return;
-    dx = ev.clientX - tcXemKeo.x; dy = ev.clientY - tcXemKeo.y;
-    img.style.setProperty('--dx', dx + 'px'); img.style.setProperty('--dy', dy + 'px');
+  khung.addEventListener('pointermove', ev=>{
+    if(!tcXemNgon.has(ev.pointerId)) return;
+    tcXemNgon.set(ev.pointerId, {x:ev.clientX, y:ev.clientY});
+    if(tcXemNgon.size >= 2 && tcXemChum){
+      const [a, b] = [...tcXemNgon.values()];
+      const k = xa(a, b) / (tcXemChum.xa || 1);
+      tcXemTiLe = Math.min(8, Math.max(0.4, tcXemChum.tiLe * k));
+      const g = giua(a, b);
+      tcXemDx = tcXemChum.dx + (g.x - tcXemChum.giua.x);
+      tcXemDy = tcXemChum.dy + (g.y - tcXemChum.giua.y);
+      tcXemApDung();
+    } else if(tcXemKeo){
+      tcXemDx = ev.clientX - tcXemKeo.x;
+      tcXemDy = ev.clientY - tcXemKeo.y;
+      tcXemApDung();
+    }
   });
-  img.addEventListener('pointerup', ()=>{ tcXemKeo = null; });
-  img.addEventListener('pointercancel', ()=>{ tcXemKeo = null; });
+  const nha = ev=>{
+    tcXemNgon.delete(ev.pointerId);
+    if(tcXemNgon.size < 2) tcXemChum = null;
+    if(tcXemNgon.size === 0) tcXemKeo = null;
+  };
+  khung.addEventListener('pointerup', nha);
+  khung.addEventListener('pointercancel', nha);
+  khung.addEventListener('pointerleave', nha);
+  // Con lăn chuột trên laptop.
+  khung.addEventListener('wheel', ev=>{
+    ev.preventDefault();
+    const r = khung.getBoundingClientRect();
+    tcDatTiLe(tcXemTiLe * (ev.deltaY < 0 ? 1.15 : 1/1.15),
+      ev.clientX - r.left - r.width/2, ev.clientY - r.top - r.height/2);
+  }, {passive:false});
 }
-function tcDongKhungAnh(){
+
+// tuPopstate = true nghĩa là chính cử chỉ back đã tiêu thụ mốc lịch sử rồi, không gọi
+// history.back() nữa — gọi thêm là lùi hai nấc và văng khỏi màn điều khoản.
+function tcDongKhungAnh(tuPopstate){
   const o = document.getElementById('tc-xem');
   if(o) o.remove();
   document.body.classList.remove('tc-xem-mo');
+  tcXemNgon.clear(); tcXemKeo = null; tcXemChum = null;
+  if(o && !tuPopstate){ try{ history.back(); }catch(_){ } }
 }
-function tcXemApDung(){
-  const img = document.getElementById('tc-xem-anh');
-  if(img) img.style.transform =
-    'translate(var(--dx,0px), var(--dy,0px)) rotate(' + tcXemGoc + 'deg) scale(' + tcXemTiLe + ')';
-}
-function tcXoayAnh(){ tcXemGoc = (tcXemGoc + 90) % 360; tcXemApDung(); }
-function tcPhongAnh(huong){
-  tcXemTiLe = Math.min(6, Math.max(0.5, tcXemTiLe + huong * 0.5));
-  tcXemApDung();
-}
+
 function tcAnhHtml(ten){
   return `<figure class="tc-anh" data-ten="${escapeHtml(ten)}">
     <div class="tc-anh-trong">
@@ -11966,24 +12332,88 @@ function renderTcBoList(){
   tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v292 · DANH SÁCH ĐIỀU KHOẢN DẠNG CÂY — MỤC CON NẰM TRONG MỤC CHA
+//
+//  Bản trước dàn phẳng: 3, rồi 3.1, 3.2, 3.3, 3.4, 3.5 nằm thành sáu dòng ngang hàng
+//  nhau. Nhìn vào không biết 3.1 thuộc về đâu, mà danh sách thì dài gấp mấy lần cần
+//  thiết. Tài liệu kỹ thuật vốn có cấp; màn hình phải giữ đúng cấp ấy.
+//
+//  Cách làm: gom theo ĐIỀU CẤP MỘT. Mỗi điều cấp một là một thẻ; mọi điều con của nó
+//  (3.1, 5.3.1, 7.2.10, A.1.1…) nằm BÊN TRONG thẻ đó, thụt vào theo độ sâu. Không viết
+//  tay danh sách cha–con: suy từ chính số điều, nên thêm điều mới là tự vào đúng chỗ.
+//
+//  Chủ đề thực chiến (19 mục tôi soạn) nay KHÔNG còn là danh sách riêng song song nữa —
+//  mỗi chủ đề gắn vào đúng điều khoản mà nó nói về, hiện ngay trong thẻ của điều ấy.
+//  Trước đây hai danh sách nằm cạnh nhau, cùng nói về một thứ, và người đọc phải tự đoán
+//  cái nào ứng với cái nào.
+// ══════════════════════════════════════════════════════════════════════════════════════
+function tcDieuGoc(so){ return String(so).split('.')[0]; }
+function tcDieuSau(so){ return String(so).split('.').length; }
+
+// Chủ đề thực chiến thuộc về điều khoản nào. Bốn chủ đề không gắn với điều cụ thể
+// (tổng quan + checklist + từ điển) để riêng ở đầu màn EN 581.
+const TC_MUC_DIEU = {
+  'p1-pham-vi':['en581-1','1'], 'p1-dau-do':['en581-1','4'], 'p1-canh':['en581-1','5.1'],
+  'p1-ong':['en581-1','5.2'],   'p1-kep':['en581-1','5.3'],
+  'p2-diem':['en581-2','4'],    'p2-lounger':['en581-2','6.2.1'], 'p2-goc':['en581-2','6.2.1'],
+  'p2-dat':['en581-2','6.2.2'], 'p2-ghe':['en581-2','7.2.1'],     'p2-nhan':['en581-2','8'],
+  'p3-kinh':['en581-3','5.1'],  'p3-ban':['en581-3','5.2.1'],     'p3-v':['en581-3','5.2.1'],
+  'p3-dat':['en581-3','5.2.2']
+};
+function tcMucCuaDieu(bo, so){
+  return TC_MUC.filter(m=>{
+    const d = TC_MUC_DIEU[m.id];
+    return d && d[0] === bo && d[1] === so;
+  });
+}
+function tcMucKhongGanDieu(){
+  return TC_MUC.filter(m=>!TC_MUC_DIEU[m.id]);
+}
+
+function tcDieuNutHtml(bo, d){
+  const sau = tcDieuSau(d.so);
+  const muc = tcMucCuaDieu(bo.id, d.so);
+  const coHinh = (d.hinh && d.hinh.length) || d.bang;
+  return `<button class="tc-dnut${sau > 1 ? ' con b' + Math.min(sau, 4) : ''}"
+      data-action="tc-dieu" data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
+      <span class="so">${escapeHtml(d.so)}</span>
+      <span class="noi"><span class="en">${escapeHtml(d.en)}</span>
+        <span class="vi">${escapeHtml(d.vi)}</span>
+        ${(coHinh || muc.length || d.ngoai) ? `<span class="dau">
+          ${coHinh ? '<span class="d d-h">có hình</span>' : ''}
+          ${muc.length ? '<span class="d d-t">' + muc.length + ' ghi chú thực chiến</span>' : ''}
+          ${d.ngoai ? '<span class="d d-n">ngoài phạm vi đồ ngoài trời</span>' : ''}
+        </span>` : ''}</span>
+      <span class="mui">›</span></button>`;
+}
+
 function renderTcDieuList(){
   const bo = tcBoCua(KH_STATE.tcBo) || TC_BO[1];
   const ds = tcDieuTheoBo(bo.id);
-  const nhom = TC_NHOM_DIEU.map(n=>{
-    const con = ds.filter(d=>d.nhom === n.id);
-    if(!con.length) return '';
-    return `<section class="tc-nh" id="nh-${n.id}">
-      <h2 class="tc-h2">${escapeHtml(n.ten)}<i>${escapeHtml(n.vi)}</i></h2>
-      ${con.map(d=>`<button class="tc-dnut" data-action="tc-dieu" data-bo="${bo.id}"
-          data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
-          <span class="so">${escapeHtml(d.so)}</span>
-          <span class="noi"><span class="en">${escapeHtml(d.en)}</span>
-            <span class="vi">${escapeHtml(d.vi)}</span></span>
-          <span class="mui">›</span></button>`).join('')}
+  // Gom theo điều CẤP MỘT, giữ nguyên thứ tự đã sắp.
+  const khoi = [];
+  ds.forEach(d=>{
+    const g = tcDieuGoc(d.so);
+    let k = khoi.find(x=>x.goc === g);
+    if(!k){ k = {goc:g, cha:null, con:[]}; khoi.push(k); }
+    if(tcDieuSau(d.so) === 1) k.cha = d; else k.con.push(d);
+  });
+  const than = khoi.map(k=>{
+    const cha = k.cha;
+    const dau = cha
+      ? tcDieuNutHtml(bo, cha)
+      : `<div class="tc-dnut trong" style="--tcm:${bo.hex}">
+           <span class="so">${escapeHtml(k.goc)}</span>
+           <span class="noi"><span class="en">(bản in không có tiêu đề riêng cho điều này)</span></span>
+         </div>`;
+    return `<section class="tc-cay" style="--tcm:${bo.hex}">
+      ${dau}
+      ${k.con.length ? `<div class="tc-cay-con">${k.con.map(d=>tcDieuNutHtml(bo, d)).join('')}</div>` : ''}
     </section>`;
   }).join('');
-  const mucluc = TC_NHOM_DIEU.filter(n=>ds.some(d=>d.nhom===n.id))
-    .map(n=>`<a class="tc-ml-n" href="#nh-${n.id}">${escapeHtml(n.vi)}</a>`).join('');
+  // Mục lục nhảy nhanh: một ô cho mỗi điều cấp một.
+  const mucluc = khoi.map(k=>`<a class="tc-ml-n" href="#dg-${k.goc}">${escapeHtml(k.goc)}</a>`).join('');
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-bo">${svgIcon('back')}</div>
@@ -11993,14 +12423,15 @@ function renderTcDieuList(){
       <span class="ma">${escapeHtml(bo.ma)}:${escapeHtml(bo.nam)}</span>
       ${escapeHtml(bo.en)}<i>${escapeHtml(bo.vi)}</i></div>
     ${tcThanhCongCu(bo.id)}
-    <div class="tc-ml">${mucluc}</div>
-    ${nhom}
-    ${bo.id === 'en1728' ? `<div class="tc-bq">Điều 7 (<i>Work Chairs</i> — ghế làm việc văn phòng)
-      <b>không đưa vào</b>: EN 581 không viện dẫn tới nó, và ghế xoay văn phòng không phải đồ
-      ngoài trời. Nói rõ ra đây để bạn biết nó bị bỏ có chủ đích, không phải sót.</div>` : ''}
+    <div class="tc-ml"><span class="nh">Nhảy tới điều</span>${mucluc}</div>
+    ${than}
     ${bo.id === 'en1730' ? `<div class="tc-bq">Bản EN 1730 bạn gửi là <b>bản scan song ngữ</b>,
-      không có lớp chữ, nên phải nhận dạng quang học. App chỉ chép các điều mà EN 581-3 viện
+      không có lớp chữ, nên phải nhận dạng quang học. App chép các điều mà EN 581-3 viện
       dẫn, và từng câu đã được đối chiếu tay với ảnh trang in.</div>` : ''}`;
+  // Gắn mốc neo cho mục lục — đặt sau khi dựng, vì mốc nằm trên chính nút của điều cha.
+  document.querySelectorAll('.tc-cay').forEach((el, k)=>{
+    if(khoi[k]) el.id = 'dg-' + khoi[k].goc;
+  });
   tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 
@@ -12032,6 +12463,12 @@ function renderTcDieu(){
       ${d.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id)).join('')}
       ${d.bang2 ? tcBang2Html() : ''}
       ${(d.luu||[]).map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
+      ${(()=>{ const mc = tcMucCuaDieu(bo.id, d.so);
+        return mc.length ? `<div class="tc-h3">Field notes for this clause<i>Ghi chú thực chiến cho đúng điều này</i></div>
+          <div class="tc-lkg">${mc.map(m=>`<button class="tc-lk" data-action="tc-open" data-id="${m.id}"
+            style="--tcm:var(--gold)"><span class="ma">Thực chiến</span>
+            <span class="t">${escapeHtml(m.ten)}</span>
+            <span class="n">${escapeHtml(m.tom||'')}</span></button>`).join('')}</div>` : ''; })()}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
         <div class="tc-lkg">${thu.map(t=>`<button class="tc-lk" data-action="tc-thu" data-id="${t.id}"
           style="--tcm:#FF8A3D"><span class="ma">${escapeHtml(tcBangCua(t.bang).ten)} · Thử ${t.so}</span>
@@ -12064,22 +12501,19 @@ function tcBang2Html(){
     nên không cần nội suy.</div>`;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v292 · MÀN EN 581 — MỘT DANH SÁCH DUY NHẤT
+//
+//  Bản trước có HAI danh sách nằm cạnh nhau: "Tra theo điều khoản" (3 thẻ) và "Tra theo
+//  chủ đề" (19 mục). Cùng nói về một bộ tiêu chuẩn, mà người đọc phải tự đoán mục chủ đề
+//  nào ứng với điều khoản nào. Nay chỉ còn MỘT danh sách theo đúng thứ tự của bản in:
+//  ba phần, mỗi phần mở ra là cây điều khoản. Mười lăm chủ đề thực chiến đã dời hẳn vào
+//  trong điều khoản mà chúng nói về; bốn chủ đề còn lại không gắn với điều nào (tổng quan
+//  bộ, ba cấp sử dụng, checklist xưởng, từ điển thuật ngữ) nên để riêng một khối cuối —
+//  và nói rõ vì sao chúng đứng riêng.
+// ══════════════════════════════════════════════════════════════════════════════════════
 function renderTcList(){
-  const nhom = TC_NHOM.map(n=>{
-    const ds = TC_MUC.filter(m=>m.nhom === n.id);
-    if(!ds.length) return '';
-    return `<div class="tc-nhom">
-      <div class="tc-nhom-t"><span style="background:${n.hex}"></span>${n.ten}
-        <b>${ds.length}</b></div>
-      <div class="tc-nut-g">${ds.map(m=>`
-        <button class="tc-nut" data-action="tc-open" data-id="${m.id}"
-          style="--tcm:${n.hex}">
-          <span class="t">${m.tenEn}</span>
-          <span class="e">${m.ten}</span>
-          <span class="s">${m.tom}</span>
-        </button>`).join('')}</div>
-    </div>`;
-  }).join('');
+  const chung = tcMucKhongGanDieu();
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>
@@ -12089,9 +12523,27 @@ function renderTcList(){
       <div class="tc-dau-t">Ghế và bàn ngoài trời · camping · domestic · contract</div>
       <div class="tc-dau-s">EN 581-1:2017 &nbsp;·&nbsp; EN 581-2:2015 &nbsp;·&nbsp; EN 581-3:2017</div>
     </div>
-    <div class="tc-h2ng">Tra theo điều khoản<i>Clause-by-clause — đúng số của bản in</i></div>
+    <div class="tc-h2ng">Ba phần của bộ EN 581<i>Mở ra là toàn bộ điều khoản, đúng số và đúng thứ tự bản in</i></div>
     <div class="tc-ba">
-      ${TC_BO.filter(b=>b.phu).map(b=>`
+      ${TC_BO.filter(b=>b.phu).map(b=>{
+        const ds = tcDieuTheoBo(b.id);
+        const soHinh = TC_HINH.filter(h=>h.bo === b.id).length;
+        const soMuc = TC_MUC.filter(m=>(TC_MUC_DIEU[m.id]||[])[0] === b.id).length;
+        return `<button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
+          <span class="hao"></span>
+          <span class="vai">${escapeHtml(b.vai)}</span>
+          <span class="ma">${escapeHtml(b.ma)}</span>
+          <span class="nam">${escapeHtml(b.nam)}</span>
+          <span class="en">${escapeHtml(b.en)}</span>
+          <span class="dem">${ds.length} điều khoản${soHinh ? ' · ' + soHinh + ' hình và bảng' : ''}${
+            soMuc ? ' · ' + soMuc + ' ghi chú thực chiến' : ''}</span>
+          <span class="mui">→</span>
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="tc-h2ng">Tra chéo sang bộ phương pháp thử<i>EN 581 nêu yêu cầu · EN 1728 và EN 1730 nêu cách thử</i></div>
+    <div class="tc-ba">
+      ${TC_BO.filter(b=>b.id === 'en1728' || b.id === 'en1730').map(b=>`
         <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
           <span class="hao"></span>
           <span class="vai">${escapeHtml(b.vai)}</span>
@@ -12102,7 +12554,13 @@ function renderTcList(){
           <span class="mui">→</span>
         </button>`).join('')}
     </div>
-    <div class="tc-h2ng">Tra theo chủ đề<i>Gom theo việc cần làm khi kiểm hàng</i></div>
+    <div class="tc-h2ng">Không thuộc riêng điều nào<i>Bốn mục bắc ngang cả ba phần — để riêng vì không gắn được vào một điều cụ thể</i></div>
+    <div class="tc-nut-g">${chung.map(m=>`
+      <button class="tc-nut" data-action="tc-open" data-id="${m.id}" style="--tcm:var(--gold)">
+        <span class="t">${escapeHtml(m.tenEn)}</span>
+        <span class="e">${escapeHtml(m.ten)}</span>
+        <span class="s">${escapeHtml(m.tom)}</span>
+      </button>`).join('')}</div>
     <a class="tc-drive" href="${TC_DRIVE}" target="_blank" rel="noopener">
       <span class="ic">📁</span>
       <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
@@ -12112,11 +12570,10 @@ function renderTcList(){
       <b>Vì sao bản PDF không nằm trong app.</b> Ba file bạn gửi ghi rõ trên bìa rằng mọi hình
       thức sao chép và phát tán lại, kể cả một phần, đều bị cấm; và giấy phép cấp cho một
       người dùng được nêu tên. App này chạy công khai nên nhúng file vào đây đúng là phát tán.
-      Thứ bên dưới là các <b>số liệu yêu cầu</b> — dữ kiện kỹ thuật — cùng diễn giải và ghi chú
-      thực chiến do tôi soạn, <b>không phải bản dịch nguyên văn</b>. Dùng để tra nhanh tại xưởng;
-      khi cần trích dẫn chính thức vẫn phải mở bản gốc.
-    </div>
-    ${nhom}`;
+      Thứ bên dưới là <b>nguyên văn điều khoản</b> kèm bản dịch và ghi chú thực chiến do tôi
+      soạn. Khi cần trích dẫn chính thức vẫn phải mở bản gốc.
+    </div>`;
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
 }
 function renderTcDoc(){
   const m = TC_MUC.find(x=>x.id === KH_STATE.tcId);
@@ -42545,6 +43002,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const nut = tcXemEl.getAttribute('data-nut');
     if(nut === 'dong') tcDongKhungAnh();
     else if(nut === 'xoay') tcXoayAnh();
+    else if(nut === 'vua') tcXemVeGoc();
     else if(nut === 'phong') tcPhongAnh(1);
     else if(nut === 'thu') tcPhongAnh(-1);
     return;
