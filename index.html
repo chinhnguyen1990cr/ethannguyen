@@ -6527,6 +6527,9 @@ window.addEventListener('popstate', ()=>{
   // Khung xem tự đẩy một mốc lịch sử khi mở, nên lần popstate này LÀ của chính nó: đóng
   // khung rồi dừng, không lùi thêm một nấc màn hình.
   if(document.getElementById('tc-xem')){ tcDongKhungAnh(true); return; }
+  // v293 — cú back này do chính nút ✕ của khung xem gây ra, chỉ để tiêu mốc lịch sử của nó.
+  // Nuốt luôn, đừng lùi thêm một màn (đo được: bấm ✕ ở điều 5.1 văng về danh sách điều khoản).
+  if(tcXemNuotPop){ tcXemNuotPop = false; return; }
   if(NAV_STACK.length){
     // v210 — GỠ chốt chặn của v209. Ý định của nó là nuốt các mốc thừa, nhưng những hàm đóng
     // phiên (hvDongPhien…) đã tự xoá STATE rồi mới gọi navBack(); lúc đó mốc trên cùng ĐÚNG BẰNG
@@ -11722,6 +11725,11 @@ function tcGanAnh(){
 let tcXemGoc = 0, tcXemTiLe = 1, tcXemDx = 0, tcXemDy = 0;
 const tcXemNgon = new Map();          // các ngón đang chạm, để tính chụm hai ngón
 let tcXemKeo = null, tcXemChum = null, tcXemChamCuoi = 0;
+// Khi NÚT ✕ đóng khung, ta phải tự gọi history.back() để tiêu mốc lịch sử mà lúc mở đã đẩy
+// vào. Nhưng lần popstate sinh ra từ cú back ĐÓ không còn thấy #tc-xem (đã gỡ xong rồi), nên
+// bộ xử lý tưởng là người dùng vuốt back thật và lùi THÊM một màn — bấm ✕ trong điều 5.1 lại
+// văng về danh sách điều khoản. Cờ này đánh dấu "cú back là của chính tôi, nuốt đi".
+let tcXemNuotPop = false;
 
 function tcXemApDung(){
   const img = document.getElementById('tc-xem-anh');
@@ -11857,7 +11865,7 @@ function tcDongKhungAnh(tuPopstate){
   if(o) o.remove();
   document.body.classList.remove('tc-xem-mo');
   tcXemNgon.clear(); tcXemKeo = null; tcXemChum = null;
-  if(o && !tuPopstate){ try{ history.back(); }catch(_){ } }
+  if(o && !tuPopstate){ tcXemNuotPop = true; try{ history.back(); }catch(_){ tcXemNuotPop = false; } }
 }
 
 function tcAnhHtml(ten){
