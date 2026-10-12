@@ -8321,23 +8321,26 @@ function renderKhCatList(){
   // bộ phương pháp thử nằm ẩn một tầng bên trong, nên nhìn vào tưởng app chỉ có một tiêu
   // chuẩn. Mỗi thẻ vào thẳng bộ của nó; thẻ cuối vẫn giữ lối vào màn quan hệ ba bộ cho
   // người cần xem bộ nào viện dẫn bộ nào.
+  // v295 — MỖI TIÊU CHUẨN MỘT THẺ, SÁU THẺ NGANG HÀNG.
+  // v289 đã kéo EN 1728/EN 1730 ra ngang hàng, nhưng ba phần của EN 581 vẫn nằm gộp
+  // trong MỘT thẻ "EN 581" — mở ra mới thấy chúng, nên nhìn vào tưởng EN 1728 và EN 1730
+  // là phụ lục của EN 581. Thực tế đây là sáu tiêu chuẩn độc lập, mỗi cái một số hiệu và
+  // một năm ban hành. Nay cả sáu cùng một hàng, và SỐ HIỆU VỚI NĂM nằm cùng một dòng.
   if(cat.id === 'outdoor') refCard = `
-    <div class="tc-h2ng">Tiêu chuẩn của dòng hàng này<i>Outdoor furniture standards</i></div>
+    <div class="tc-h2ng">Tiêu chuẩn của dòng hàng này<i>EN 581 nêu YÊU CẦU · EN 1728, EN 1730, EN 1022 nêu CÁCH THỬ</i></div>
     <div class="tc-ba">
-      ${TC_BO.filter(b=>!b.phu).map(b=>`
+      ${TC_BO.filter(b=>b.id !== 'en581').map(b=>`
         <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
           <span class="hao"></span>
           <span class="vai">${escapeHtml(b.vai)}</span>
-          <span class="ma">${escapeHtml(b.ma)}</span>
-          <span class="nam">${escapeHtml(b.nam)}</span>
+          <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
           <span class="en">${escapeHtml(b.en)}</span>
-          <span class="dem">${b.id === 'en581'
-            ? TC_MUC.length + ' mục tra cứu · ' + TC_THU.length + ' phép thử'
-            : tcDieuTheoBo(b.id).length + ' điều khoản'}</span>
+          <span class="dem">${tcDieuTheoBo(b.id).length} điều khoản${
+            TC_HINH.filter(h=>h.bo === b.id).length ? ' · ' + TC_HINH.filter(h=>h.bo === b.id).length + ' hình và bảng' : ''}</span>
           <span class="mui">→</span>
         </button>`).join('')}
     </div>
-    <button class="tc-ba-qh" data-action="tc-mo">Ba bộ này liên quan nhau thế nào →</button>`;
+    <button class="tc-ba-qh" data-action="tc-mo">Sáu bộ này liên quan nhau thế nào →</button>`;
   const list = notes.length ? notes.map(n=>`
     <div class="kh-note-item" data-action="kh-edit-note" data-id="${n.id}" style="--khm:${cat.hex}">
       <div class="kh-note-del" data-action="kh-delete-note" data-id="${n.id}">✕</div>
