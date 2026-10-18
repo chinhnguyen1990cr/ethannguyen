@@ -1619,6 +1619,24 @@
     background:var(--panel); border:1px solid var(--border); cursor:pointer; z-index:3;
     transition:transform .15s ease, background .15s ease;}
   .kh-homebtn:active{transform:translateY(-50%) scale(.92); background:var(--panel2);}
+  /* v306 — VỀ THẲNG MÀN CHÍNH OUTDOOR FURNITURE.
+     Khác với 🏠 (về hub của cả app): nút này đưa bạn về đúng màn EU/US Market, nơi có
+     đủ bảy tiêu chuẩn. Trong bộ tiêu chuẩn có bốn tầng (thị trường → bộ → điều → chi
+     tiết điều) và còn liên kết chéo nhảy ngang giữa các bộ, nên bấm back nhiều lần là
+     việc phải làm thường xuyên. Nút đứng ngay cạnh nút back, chữ chứ không phải biểu
+     tượng, để không ai phải đoán nó dẫn đi đâu. */
+  .kh-tcnha{position:absolute; left:44px; top:50%; transform:translateY(-50%);
+    display:flex; align-items:center; gap:6px; height:36px; padding:0 12px;
+    border-radius:12px; cursor:pointer; z-index:3; white-space:nowrap;
+    font-size:11.5px; font-weight:800; letter-spacing:.2px; color:#9FD0FF;
+    background:rgba(79,168,255,.12); border:1px solid rgba(79,168,255,.34);
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+    transition:transform .15s ease, background .15s ease;}
+  .kh-tcnha:hover{background:rgba(79,168,255,.2);}
+  .kh-tcnha:active{transform:translateY(-50%) scale(.94);}
+  .kh-tcnha .ic{font-size:13px; line-height:1;}
+  /* Màn hẹp: giữ nguyên biểu tượng, giấu chữ để không đè lên tiêu đề giữa hàng. */
+  @media (max-width:560px){ .kh-tcnha{padding:0 10px;} .kh-tcnha .ch{display:none;} }
   .kh-backbtn{position:absolute; left:0; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:12px;
     background:var(--panel); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
     color:var(--text); cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .15s ease;}
@@ -1846,19 +1864,36 @@
   /* v304 — MỤC LỤC LUÔN HIỆN. Bỏ hẳn nút "Nhảy tới điều": danh sách đề mục là thứ
      người đọc cần thấy đầu tiên, không phải thứ phải đi tìm. Ô ghi SỐ và TÊN TIẾNG ANH
      trên một dòng; nghĩa tiếng Việt nằm dưới và chỉ hiện khi bật dịch. */
-  .tc-ml{display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:5px;
-    margin:9px 0 0; padding-top:9px; border-top:1px solid var(--border);
-    max-height:300px; overflow-y:auto; -webkit-overflow-scrolling:touch;}
-  .tc-ml-n{display:grid; grid-template-columns:auto 1fr; align-items:baseline;
-    column-gap:8px; row-gap:1px; text-align:left;
-    padding:6px 10px; border-radius:8px; background:rgba(255,255,255,.04);
-    border:1px solid var(--border); cursor:pointer;}
-  .tc-ml-n .s{font-family:var(--mono); font-size:11.5px; font-weight:800; color:var(--tcm);}
-  .tc-ml-n .t{font-size:12px; font-weight:700; color:#fff; min-width:0;
+  /* ══ v306 · KHỐI ĐỀ MỤC — DỰNG LẠI ════════════════════════════════════════════════
+     GỐC CỦA CHUYỆN "KHÔNG VỪA KHUNG" TRONG ẢNH BẠN GỬI, đã đo trên bản chạy:
+     khung công cụ .tc-cc rộng 1398px, nhưng khối đề mục bên trong chỉ 715px — đúng một
+     nửa. Vì .tc-cc là display:flex còn .tc-ml là một flex item với flex-basis:auto và
+     flex-grow:0, nên nó chỉ lấy phần thừa của HÀNG NGANG chứa mấy cái nút, thay vì
+     xuống hàng riêng và trải hết bề ngang. Thêm max-height:300px nữa nên bản in dài là
+     sinh thanh cuộn trong một ô hẹp — vừa khó đọc vừa khó bấm.
+     Nay: ép xuống một hàng của riêng nó (flex-basis 100%), cột tự chia đều theo bề
+     ngang thật, bỏ cuộn trên màn rộng, chữ to hơn và số điều có nền màu của bộ. */
+  .tc-ml{flex:1 1 100%; width:100%; display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px;
+    margin:11px 0 0; padding-top:11px; border-top:1px solid var(--border);}
+  .tc-ml-n{display:grid; grid-template-columns:auto 1fr; align-items:center;
+    column-gap:10px; row-gap:2px; text-align:left;
+    padding:10px 12px; border-radius:11px; cursor:pointer;
+    background:linear-gradient(135deg,
+      color-mix(in srgb, var(--tcm) 10%, transparent), rgba(255,255,255,.03));
+    border:1px solid color-mix(in srgb, var(--tcm) 26%, transparent);
+    transition:transform .12s ease, border-color .14s ease, background .14s ease;}
+  .tc-ml-n .s{grid-row:span 2; align-self:center; min-width:30px; text-align:center;
+    font-family:var(--mono); font-size:15px; font-weight:800; color:#0b0f14;
+    padding:4px 7px; border-radius:8px; background:var(--tcm);}
+  .tc-ml-n .t{font-size:14px; font-weight:800; color:#fff; min-width:0; line-height:1.3;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .tc-ml-n i{grid-column:2; font-style:normal; font-size:10.5px; font-weight:600;
+  .tc-ml-n i{grid-column:2; font-style:normal; font-size:11.5px; font-weight:600;
     color:var(--dim2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .tc-ml-n:active{background:rgba(255,255,255,.12);}
+  .tc-ml-n:hover{border-color:color-mix(in srgb, var(--tcm) 62%, transparent);
+    background:linear-gradient(135deg,
+      color-mix(in srgb, var(--tcm) 18%, transparent), rgba(255,255,255,.05));}
+  .tc-ml-n:active{transform:scale(.985);}
   .tc-cc-n.nho{padding:6px 11px; font-family:var(--mono); font-size:11px; letter-spacing:.4px;}
 
   /* Thanh công cụ gộp: hàng nút + trạng thái, rồi tới mục lục xổ ra. */
@@ -1906,11 +1941,20 @@
   .tc-h2ng{font-size:15px; font-weight:800; margin:2px 0 11px; letter-spacing:.2px;}
   .tc-h2ng i{display:block; font-style:normal; font-size:11px; color:var(--dim2);
     font-weight:600; margin-top:2px;}
-  .tc-ba{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
-    gap:11px; margin:0 0 11px;}
+  /* v306 — MỌI THẺ TIÊU CHUẨN CÙNG MỘT CỠ.
+     Đã đo trên laptop 1536px của bạn: ba thẻ EN 581 cao 165px, ba thẻ phương pháp thử cao
+     148px, còn UL 4041 rộng tới 1091px cạnh các thẻ 352px. Gốc là hai chuyện:
+       · auto-fit kéo giãn track cho đầy hàng, nên khối chỉ có MỘT thẻ (US Market) thì thẻ
+         ấy nuốt trọn bề ngang — đổi sang auto-fill thì track rỗng vẫn được giữ, thẻ đứng
+         đúng một ô như mọi thẻ khác;
+       · ba khối nằm ở ba lưới riêng nên chiều cao chỉ cân BÊN TRONG từng lưới — đặt chiều
+         cao cố định cho thẻ thì cân trên toàn màn, bất kể thẻ thuộc khối nào.
+     Điện thoại: một cột, thả chiều cao cho chữ tự xuống dòng (xem @media bên dưới). */
+  .tc-ba{display:grid; grid-template-columns:repeat(auto-fill, minmax(248px, 1fr));
+    gap:12px; margin:0 0 11px; justify-content:start;}
   .tc-ba-n{position:relative; overflow:hidden; display:flex; flex-direction:column;
     text-align:left; padding:15px 15px 16px; border-radius:20px; cursor:pointer;
-    font-family:inherit; color:var(--text); min-height:148px;
+    font-family:inherit; color:var(--text); height:178px;
     background:
       radial-gradient(130% 90% at 100% 0%, color-mix(in srgb, var(--tcm) 26%, transparent) 0%, transparent 62%),
       linear-gradient(165deg, var(--panel2), var(--panel));
@@ -2106,6 +2150,24 @@
     .tc-f img{max-height:230px;}
     .tc-dnut .so{min-width:38px; font-size:11.5px;}
     .tc-cc{padding:9px;} .tc-cc-n{flex:1 1 auto; text-align:center;}
+    /* v306 — ĐIỆN THOẠI. Thẻ tiêu chuẩn một cột và THẢ chiều cao: trên màn hẹp tên tiêu
+       chuẩn phải xuống ba bốn dòng, ép cứng 178px là chữ bị cắt mất. Đề mục cũng một cột,
+       chữ nhỏ lại một nhịp nhưng vẫn to hơn bản cũ. */
+    .tc-ba{grid-template-columns:1fr; gap:10px;}
+    .tc-ba-n{height:auto; min-height:150px;}
+    .tc-ml{grid-template-columns:1fr; gap:7px;}
+    .tc-ml-n{padding:9px 11px;}
+    .tc-ml-n .s{font-size:13.5px; min-width:28px;}
+    .tc-ml-n .t{font-size:13px; white-space:normal;}
+    .tc-ml-n i{font-size:11px; white-space:normal;}
+    .tc-tt-d .t{font-size:18px;}
+    .tc-tt-mt .t{font-size:14px;} .tc-tt-mt .ma{font-size:13px;}
+  }
+  /* v306 — MÀN TRUNG BÌNH (máy tính bảng, cửa sổ hẹp): hai cột cho đề mục là vừa mắt,
+     ba cột thì chữ bị cắt cụt. */
+  @media (min-width:561px) and (max-width:900px){
+    .tc-ml{grid-template-columns:repeat(2,1fr);}
+    .tc-ba{grid-template-columns:repeat(2,1fr);}
   }
 
   /* ══ v287 · DANH SÁCH PHÉP THỬ ═════════════════════════════════════════════════════
@@ -2255,16 +2317,23 @@
   .tc-tt-d{display:flex; align-items:center; gap:11px; margin-bottom:11px;}
   .tc-tt-d .co{padding:4px 10px; border-radius:8px; font-family:var(--mono); font-size:12px;
     font-weight:800; letter-spacing:.8px; color:#0b0f14; background:var(--tcm);}
-  .tc-tt-d .t{font-size:15px; font-weight:800; color:#fff; line-height:1.25;}
-  .tc-tt-d .t i{display:block; font-style:normal; font-size:11px; font-weight:600;
-    color:var(--dim2); margin-top:2px;}
+  /* v306 — BA BẬC TIÊU ĐỀ, TO DẦN TỪ NGOÀI VÀO.
+     Trước đây "EU Market" 15px và "EN 581" 13px gần bằng nhau, nên nhìn vào không thấy
+     cái nào bao cái nào. Nay: thị trường 22px → tiêu chuẩn mẹ 16px → thẻ con 21px mã số
+     nhưng nhãn nhỏ. Mắt bắt được cấp ngay cả khi lướt nhanh. */
+  .tc-tt-d .t{font-size:22px; font-weight:800; color:#fff; line-height:1.2;
+    letter-spacing:-.3px;}
+  .tc-tt-d .t i{display:block; font-style:normal; font-size:11.5px; font-weight:600;
+    color:var(--dim2); margin-top:3px; letter-spacing:0;}
   .tc-tt-me{padding:10px 10px 11px; border-radius:13px; background:rgba(255,255,255,.03);
     border:1px dashed color-mix(in srgb, var(--tcm) 38%, transparent);}
   .tc-tt-mt{display:flex; align-items:baseline; gap:9px; margin-bottom:8px;}
   .tc-tt-mt.lon{margin-top:13px;}
-  .tc-tt-mt .ma{font-family:var(--mono); font-size:13px; font-weight:800; color:var(--tcm);}
-  .tc-tt-mt .t{font-size:12.5px; font-weight:700; color:#fff; line-height:1.3;}
-  .tc-tt-mt .t i{display:block; font-style:normal; font-size:10.5px; font-weight:600;
+  .tc-tt-mt .ma{font-family:var(--mono); font-size:15px; font-weight:800; color:var(--tcm);
+    padding:2px 9px; border-radius:7px;
+    background:color-mix(in srgb, var(--tcm) 15%, transparent);}
+  .tc-tt-mt .t{font-size:16px; font-weight:800; color:#fff; line-height:1.25;}
+  .tc-tt-mt .t i{display:block; font-style:normal; font-size:11px; font-weight:600;
     color:var(--dim2); margin-top:2px;}
   .tc-tt-gc{margin-top:10px; font-size:11.5px; line-height:1.6; color:var(--dim2);}
   .tc-ba.trong{gap:7px;}
@@ -5768,7 +5837,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v305';
+const APP_VERSION = 'v306';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6579,6 +6648,13 @@ function snapshotNav(){
   return {
     tab: STATE.tab,
     khView: KH_STATE.view, khCat: KH_STATE.cat, khEditId: KH_STATE.editId,
+    // v306 — BỐN TRƯỜNG NÀY BỊ BỎ SÓT TỪ ĐẦU, VÀ ĐÓ LÀ GỐC CỦA LỖI BẠN BÁO.
+    // Mốc lịch sử chỉ ghi TÊN MÀN (khView), không ghi đang xem BỘ nào, ĐIỀU nào. Nên khi
+    // bạn đang đọc EN 581-3, bấm một liên kết chéo sang EN 1728 rồi vuốt quay lại, app
+    // khôi phục đúng tên màn "danh sách điều khoản" nhưng tcBo đã là en1728 — bạn rơi vào
+    // mục lục EN 1728 thay vì về chỗ vừa đứng. Đã đo: {view:tcdieu, bo:en1728, so:6.1}
+    // sau khi lùi, trong khi phải là {view:tcdieulist, bo:en581-3, so:null}.
+    khTcId: KH_STATE.tcId, khTcBo: KH_STATE.tcBo, khTcSo: KH_STATE.tcSo, khThuId: KH_STATE.thuId,
     activeCustomCat: STATE.activeCustomCat,
     avatarOpen: !!(am && am.classList.contains('show')),
     dayDetailOpen: !!(dm && dm.classList.contains('show')),
@@ -6617,6 +6693,13 @@ function snapshotNav(){
 function restoreNav(snap){
   STATE.tab = snap.tab;
   KH_STATE.view = snap.khView; KH_STATE.cat = snap.khCat; KH_STATE.editId = snap.khEditId;
+  // v306 — khôi phục luôn chỗ đang đứng trong bộ tiêu chuẩn (xem chú thích ở snapshotNav).
+  // Mốc cũ không có bốn trường này nên phải chấp nhận undefined: giữ nguyên giá trị hiện
+  // tại thay vì xoá trắng, để bản cũ đang mở trong trình duyệt không gãy giữa chừng.
+  if(snap.khTcId  !== undefined) KH_STATE.tcId  = snap.khTcId;
+  if(snap.khTcBo  !== undefined) KH_STATE.tcBo  = snap.khTcBo;
+  if(snap.khTcSo  !== undefined) KH_STATE.tcSo  = snap.khTcSo;
+  if(snap.khThuId !== undefined) KH_STATE.thuId = snap.khThuId;
   STATE.activeCustomCat = snap.activeCustomCat;
   STATE.listenQuiz = snap.listenQuiz!==undefined ? snap.listenQuiz : null;
   STATE.speakSession = snap.speakSession!==undefined ? snap.speakSession : null;
@@ -14222,7 +14305,7 @@ function renderTcThu(){
   const moiHinh = t.hinh.concat(hinhTb.filter(h=>t.hinh.indexOf(h) < 0));
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-thu-back">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-thu-back">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${escapeHtml(t.en)}</div>
     </div>
     <div class="tc-doc tc-thu-doc" style="--tcm:${b.hex}">
@@ -14455,6 +14538,40 @@ function tcThanhCongCu(bo, mucluc){
 //
 // Cách chữa gốc: không dùng hash nữa. Nút thường, cuộn thẳng bằng scrollIntoView, không
 // đụng tới lịch sử nên popstate không nổ.
+// v306 · Mục 1 — NÚT VỀ MÀN CHÍNH OUTDOOR FURNITURE, DÙNG CHUNG CHO MỌI TRANG.
+// Một hàm duy nhất dựng nút, nên thêm màn mới sau này chỉ việc gọi nó — không còn cảnh
+// mỗi trang tự chép một nút rồi sót mất vài trang.
+function tcNutNhaHtml(){
+  return `<div class="kh-tcnha" data-action="tc-nha" title="Về màn chính Outdoor furniture"
+    ><span class="ic">🪑</span><span class="ch">Outdoor</span></div>`;
+}
+// Nhảy thẳng về màn EU/US Market, dù đang ở tầng nào.
+//
+// Lịch sử phải tiêu đúng số mốc đã đẩy, nếu không thì vuốt back sau đó sẽ lệch pha —
+// đúng loại lỗi mà v227 và v295 đã mất công sửa. Cách làm: tìm mốc "danh sách dòng hàng"
+// gần nhất trong NAV_STACK, bỏ các mốc nằm TRÊN nó, rồi lùi đúng bấy nhiêu bước lịch sử.
+// Một sự kiện popstate duy nhất sẽ nổ, bộ xử lý sẵn có bóc nốt mốc cuối và dựng lại màn —
+// không cần đường dựng màn riêng nào ở đây.
+function tcVeNhaOutdoor(){
+  let i = -1;
+  for(let k = NAV_STACK.length - 1; k >= 0; k--){
+    if(NAV_STACK[k] && NAV_STACK[k].khView === 'catlist'){ i = k; break; }
+  }
+  if(i < 0){
+    // Không tìm thấy mốc nào (mở thẳng vào giữa chừng): dựng màn tại chỗ, không đụng lịch sử.
+    KH_STATE.view = 'catlist'; KH_STATE.cat = 'outdoor';
+    KH_STATE.tcBo = null; KH_STATE.tcSo = null; KH_STATE.tcId = null; KH_STATE.thuId = null;
+    renderContent(); window.scrollTo(0,0);
+    return 0;
+  }
+  const n = NAV_STACK.length - i;          // số mốc phải tiêu, kể cả mốc catlist
+  NAV_STACK.splice(i + 1);                 // bỏ các tầng ở trên, chừa lại đúng mốc catlist
+  try{ history.go(-n); }catch(_){
+    // Trình duyệt chặn thì vẫn phải về được màn chính — thà lệch lịch sử còn hơn kẹt.
+    const snap = NAV_STACK.pop(); if(snap) restoreNav(snap);
+  }
+  return n;
+}
 function tcNhayToiDieu(goc){
   const el = document.getElementById('dg-' + goc);
   if(!el) return;
@@ -14955,7 +15072,7 @@ function renderTcBoList(){
     </button>`).join('');
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-back-cat">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-back-cat">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">Outdoor furniture standards</div>
     </div>
     <div class="tc-h1">Outdoor furniture — standards<i>Bộ tiêu chuẩn đồ ngoài trời</i></div>
@@ -15099,7 +15216,7 @@ function renderTcDieuList(){
   const mucluc = khoi.map(k=>({goc:k.goc, ten:(k.cha ? k.cha.en : ''), vi:(k.cha ? k.cha.vi : '')}));
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-back-bo">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-back-bo">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${escapeHtml(bo.ma)}</div>
     </div>
     <div class="tc-h1" style="--tcm:${bo.hex}">
@@ -15125,7 +15242,7 @@ function renderTcDieu(){
   const thu = (d.thu||[]).map(id=>tcThuCua(id)).filter(Boolean);
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-back-dieulist">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-back-dieulist">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${escapeHtml(bo.ma)} · ${escapeHtml(d.so)} – ${escapeHtml(d.en)}</div>
     </div>
     <article class="tc-doc" style="--tcm:${bo.hex}">
@@ -15207,7 +15324,7 @@ function renderTcList(){
   const ds = TC_BO.filter(b=>b.id !== 'en581');
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} Tiêu chuẩn Outdoor</div>
     </div>
     <div class="tc-dau">
@@ -15260,7 +15377,7 @@ function renderTcDoc(){
   const truoc = TC_MUC[i-1], sau = TC_MUC[i+1];
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
-      <div class="kh-backbtn" data-action="tc-back-list">${svgIcon('back')}</div>
+      <div class="kh-backbtn" data-action="tc-back-list">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${m.tenEn}</div>
     </div>
     <div class="tc-doc" style="--tcm:${n.hex}">
@@ -46364,6 +46481,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
     try{ window.scrollTo({top:0, behavior:'instant'}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){ } }
     return;
   }
+  // v306 · Mục 1 — về thẳng màn chính Outdoor furniture từ bất kỳ tầng nào.
+  const tcNhaEl = e.target.closest('[data-action="tc-nha"]');
+  if(tcNhaEl){ e.stopPropagation(); tcVeNhaOutdoor(); return; }
   const tcBackListEl = e.target.closest('[data-action="tc-back-list"]');
   if(tcBackListEl){ KH_STATE.view='tclist'; KH_STATE.tcId=null; renderContent(); navBack(); return; }
   const tcBackCatEl = e.target.closest('[data-action="tc-back-cat"]');
