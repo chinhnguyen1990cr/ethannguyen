@@ -5768,7 +5768,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v304';
+const APP_VERSION = 'v305';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -21718,8 +21718,13 @@ async function fetchVocabData(){
     VOCAB_DATA = {topics:[], words:[]};
   }
   vocabDataLoading = false;
+  // v305 — nghĩa đã dịch lần trước phải vào kho TRƯỚC khi màn hình nào đọc tới, không thì
+  // mở app lên thấy trống rồi lại đi dịch lại từ đầu.
+  try{ oxNapNghiaDaLuu(); }catch(e){}
   try{ vocabGopTuVideo(); }catch(e){}
   try{ hvDichNhungCaiThieu(); }catch(e){}    // mục nào còn thiếu nghĩa thì dịch nốt
+  // Lấp nghĩa cho từ Oxford sắp học — chạy nền, lô nhỏ, sau khi màn hình đã dựng xong.
+  try{ setTimeout(()=>{ oxLapNghia(); }, 2500); }catch(e){}
   if(STATE.tab==='english-item') renderContent();
 }
 function vocabWordByN(n){ if(!VOCAB_DATA) return null; return VOCAB_DATA.words[n-1] || null; }
@@ -22821,6 +22826,9 @@ function tvDonKhoNeuCan(){
 // nhớ thêm một tiêu chí khi tìm. Kho là MỘT.
 const TV_LOC = [
   {ma:'tat',   ten:'Tất cả'},
+  // v305 — hai bộ lọc mới: xem đúng lộ trình đang học, và xem phần để tra.
+  {ma:'ox',    ten:'Oxford 3000'},
+  {ma:'ngoai', ten:'Ngoài Oxford'},
   {ma:'tu',    ten:'Từ đơn'},
   {ma:'cum',   ten:'Cụm & câu'},
   {ma:'hoTu',  ten:'Có họ từ'},
@@ -22969,6 +22977,9 @@ function tvLocDanhSach(){
   const tim = t.tim.trim().toLowerCase();
   const ra = tvTatCa().filter(x => {
     const nhieuChu = /\s/.test(String(x.chu||'')) || x.__kho === 'cau';
+    // Chỉ mục từ ĐƠN của ngân hàng mới có cờ Oxford; chunk không thuộc danh sách này.
+    if(t.loc === 'ox'    && !(x.n && vocabLaOxford(x.n))) return false;
+    if(t.loc === 'ngoai' && (x.__kho !== 'tu' || (x.n && vocabLaOxford(x.n)))) return false;
     if(t.loc === 'tu'    && nhieuChu) return false;
     if(t.loc === 'cum'   && !nhieuChu) return false;
     if(t.loc === 'hoTu'  && !hoTuDayDu(x.chu)) return false;
@@ -23635,6 +23646,97 @@ function vocabStats(){
 }
 // ---- Xây gói "Từ hôm nay": từ đến hạn ôn tập + từ mới theo thứ tự tần suất, cache theo ngày để phiên
 // học không đổi giữa các lần mở lại trong cùng 1 ngày (kể cả khi đã làm xong vài từ). ----
+// ══ v305 · OXFORD 3000 LÀ LỘ TRÌNH HỌC ════════════════════════════════════════════════
+// Bạn đưa danh sách Oxford 3000 (A1–B2) và muốn học theo đúng bộ ấy. Đã bóc từ chính tệp
+// bạn gửi: 2.973 từ. Đối chiếu với kho app:
+//   · 1.600 từ TRÙNG  → giữ nguyên nghĩa, 5 câu ví dụ, phiên âm và tiến độ học đã có.
+//   · 1.373 từ MỚI    → thêm vào, nghĩa để app tự dịch (đường mở của Google, không tốn
+//                       hạn mức Gemini), ví dụ để trống.
+//   · 1.276 từ NGOÀI Oxford → KHÔNG xoá. Chúng vẫn nằm trong Thư viện để tra, chỉ không
+//                       chen vào thẻ lật, câu hỏi và gói học mỗi ngày nữa.
+// Xoá hẳn 1.276 từ ấy là mất luôn nghĩa, ví dụ đã soạn và tiến độ bạn đã học — nên bạn
+// chọn để riêng thay vì xoá, và đây là chỗ thi hành lựa chọn đó.
+function vocabCapOxford(n){
+  try{ const m = (VOCAB_DATA && VOCAB_DATA.oxford) || null; return m ? (m[String(n)] || null) : null; }
+  catch(_){ return null; }
+}
+function vocabLaOxford(n){ return !!vocabCapOxford(n); }
+// Kho app có sẵn từ TRƯỚC khi có danh sách Oxford thì không mang cờ; nhưng nếu danh sách
+// chưa nạp được (mạng lỗi, tệp cũ) thì KHÔNG được khoá sạch bài học — lúc ấy coi như
+// không có cổng, học bình thường như cũ.
+function vocabCoDanhSachOxford(){
+  try{ return !!(VOCAB_DATA && VOCAB_DATA.oxford && Object.keys(VOCAB_DATA.oxford).length > 100); }
+  catch(_){ return false; }
+}
+
+// ══ v305 · LẤP NGHĨA CHO TỪ OXFORD MỚI — MIỄN PHÍ, CHẠY NỀN ═══════════════════════════
+// 1.373 từ mới vào kho không có nghĩa tiếng Việt. Dùng ĐƯỜNG DỊCH MỞ của Google (cùng
+// đường mà phần phụ đề video đang dùng): không cần khoá, không tính vào hạn mức Gemini.
+// Chạy từng lô nhỏ, chỉ khi app rảnh, và chỉ cho từ SẮP ĐƯỢC HỌC — dịch sạch 1.373 từ
+// ngay lúc mở app là treo máy mà phần lớn còn lâu mới tới lượt.
+const OX_LO_DICH = 12;              // mỗi lượt dịch chừng này từ
+let oxDangDich = false;
+function oxCanDich(gioiHan){
+  const ra = [];
+  try{
+    const ds = (VOCAB_DATA && VOCAB_DATA.words) || [];
+    const thuTu = (VOCAB_DATA && VOCAB_DATA.learnOrder) || [];
+    for(let i = 0; i < thuTu.length && ra.length < (gioiHan || OX_LO_DICH); i++){
+      const w = ds[thuTu[i] - 1];
+      if(!w || !w[1]) continue;
+      if(String(w[4] || '').trim()) continue;        // đã có nghĩa
+      if(!vocabLaOxford(w[0])) continue;             // chỉ lấp cho từ Oxford
+      ra.push(w);
+    }
+  }catch(_){ }
+  return ra;
+}
+function oxConThieuNghia(){
+  try{
+    const ds = (VOCAB_DATA && VOCAB_DATA.words) || [];
+    let n = 0;
+    ds.forEach(w => { if(w && w[1] && !String(w[4]||'').trim() && vocabLaOxford(w[0])) n++; });
+    return n;
+  }catch(_){ return 0; }
+}
+async function oxLapNghia(){
+  if(oxDangDich) return 0;
+  const can = oxCanDich();
+  if(!can.length) return 0;
+  oxDangDich = true;
+  let xong = 0;
+  try{
+    for(const w of can){
+      try{
+        const vi = await hvDichMienPhi(String(w[1]).replace(/\//g, ' / '));
+        if(vi && vi.toLowerCase() !== String(w[1]).toLowerCase()){ w[4] = vi; xong++; }
+      }catch(_){ break; }                 // mất mạng thì dừng, lần sau chạy tiếp
+      await new Promise(r => setTimeout(r, 120));
+    }
+    if(xong){
+      // Nghĩa vừa dịch phải GIỮ LẠI, không thì mở lại app là dịch lại từ đầu.
+      SETTINGS.oxNghia = SETTINGS.oxNghia || {};
+      can.forEach(w => { if(String(w[4]||'').trim()) SETTINGS.oxNghia[String(w[0])] = w[4]; });
+      try{ saveSettings(); }catch(_){ }
+      try{ if(STATE.tab === 'english-vault' || STATE.tab === 'wordbank') renderContent(); }catch(_){ }
+    }
+  } finally { oxDangDich = false; }
+  return xong;
+}
+// Nạp lại nghĩa đã dịch lần trước vào kho ngay khi app khởi động.
+function oxNapNghiaDaLuu(){
+  try{
+    const m = SETTINGS.oxNghia; if(!m) return 0;
+    const ds = (VOCAB_DATA && VOCAB_DATA.words) || [];
+    let n = 0;
+    Object.keys(m).forEach(k => {
+      const w = ds[parseInt(k, 10) - 1];
+      if(w && !String(w[4]||'').trim() && m[k]){ w[4] = m[k]; n++; }
+    });
+    return n;
+  }catch(_){ return 0; }
+}
+
 function vocabBuildDailyQueue(){
   const today = todayKey();
   if(SETTINGS.vocabDailyCache && SETTINGS.vocabDailyCache.date===today && Array.isArray(SETTINGS.vocabDailyCache.ids)){
@@ -23665,18 +23767,33 @@ function vocabBuildDailyQueue(){
   // TẦN SUẤT trong tiếng Anh nói, bốc bừa là học phải từ hiếm ngay ngày đầu.
   // Cách dung hoà: lấy một CỬA SỔ gồm 4 lần số cần, tính từ đầu danh sách tần suất, rồi
   // xáo bên trong cửa sổ ấy. Vẫn luôn là những từ hay gặp nhất, nhưng mỗi lượt một khác.
+  // v305 — chỉ lấy từ trong Oxford 3000. Từ bạn tự nhặt từ video vẫn được vào (xử lý ngay
+  // dưới), còn 1.276 từ ngoài Oxford thì ở lại Thư viện, không vào bài học.
+  const cong = vocabCoDanhSachOxford();
   const chuaHoc = [];
   for(let k=0; k<order.length && chuaHoc.length < newCount * 4; k++){
     const n = order[k];
     if(dueSet.has(n)) continue;
     const p = prog[n];
     if(p && p.introduced) continue;
+    if(cong && !vocabLaOxford(n)){
+      const w = vocabWordByN(n);
+      if(!w || w[3] !== VOC_CHU_DE_VIDEO) continue;   // ngoài Oxford và không phải từ bạn nhặt
+    }
     chuaHoc.push(n);
   }
   // Nhưng TỪ BẠN TỰ NHẶT từ video thì vẫn phải đứng đầu, không đem xáo. Đó là từ chính
   // bạn chọn lúc đang nghe, nên đáng gặp lại sớm nhất; xáo chung là nó trôi mất tăm.
   // (Phép đo v186 bắt được đúng chỗ này ngay khi tôi xáo cả rổ.)
-  const cuaToiTu = chuaHoc.filter(n=>{ const w = vocabWordByN(n); return w && w[3] === VOC_CHU_DE_VIDEO; });
+  // v305 — TỪ BẠN VỪA BẤM "HỌC" TRONG VIDEO ĐỨNG TRƯỚC TẤT CẢ.
+  // Những từ ấy có sẵn trong giáo trình nên không tạo thẻ mới (xem hvDuaVaoHoc), chỉ được ghi
+  // số thứ tự vào SETTINGS.vocabUuTien. Nếu không đọc danh sách ấy ở đây thì cú bấm của bạn
+  // chẳng dẫn tới đâu — đúng cái bẫy mà bản trước đã mắc.
+  const uuTien = (Array.isArray(SETTINGS.vocabUuTien) ? SETTINGS.vocabUuTien : [])
+    .filter(n => !dueSet.has(n) && !(prog[n] && prog[n].introduced)
+                 && chuaHoc.indexOf(n) < 0 && vocabWordByN(n));
+  uuTien.forEach(n => chuaHoc.unshift(n));
+  const cuaToiTu = chuaHoc.filter(n=>{ const w = vocabWordByN(n); return uuTien.indexOf(n) >= 0 || (w && w[3] === VOC_CHU_DE_VIDEO); });
   const conLaiTu = chuaHoc.filter(n=>cuaToiTu.indexOf(n) < 0);
   cuaToiTu.concat(shuffleArr(conLaiTu)).slice(0, newCount).forEach(n=>newWords.push(n));
   // 'due' đã được sắp sẵn theo NGÀY ĐẾN HẠN (quá hạn lâu nhất trước). Trước đây bị shuffleArr() xáo
@@ -32974,7 +33091,16 @@ function hvVanKho(){
   try{ a = ((VOCAB_DATA||{}).words||[]).length; }catch(_){ }
   try{ b = ((COMMON_SENT_DATA||{}).sentences||[]).length; }catch(_){ }
   try{ c = hvKhoTu().length; d = hvKhoCau().length; }catch(_){ }
-  return a + '/' + b + '/' + c + '/' + d;
+  // v305 — TIẾN ĐỘ HỌC PHẢI NẰM TRONG CHÌA KHOÁ NHỚ ĐỆM.
+  // Từ v304 "đã biết" = từ ĐÃ HỌC, nhưng chìa khoá chỉ đếm cỡ kho và cỡ thư viện. Hệ quả: học
+  // xong một từ, bảng "đã biết" vẫn là bảng cũ, nên transcript cứ tô từ ấy là "chưa có" đến hết
+  // phiên. Đếm luôn số từ đã được giới thiệu thì bảng tự dựng lại đúng lúc.
+  let e = 0;
+  try{
+    const vp = SETTINGS.vocabProgress || {};
+    Object.keys(vp).forEach(k => { if(vp[k] && vp[k].introduced) e++; });
+  }catch(_){ }
+  return a + '/' + b + '/' + c + '/' + d + '/' + e;
 }
 function hvDungKho(){
   const van = hvVanKho();
@@ -33240,7 +33366,7 @@ function hvLuuGop(dich){
   // Nên một lần bấm là đổ vào kho hàng chục mục trùng hoặc vô nghĩa. Đây chính là nguồn
   // của cảnh "gõ buil ra ba thẻ" và của kho phình mà mở ra toàn thứ đã biết.
   const bo = {daCoKho:0, daCoNganHang:0, cumXoang:0};
-  let them = 0;
+  let them = 0, vaoHoc = 0;   // v305 — vaoHoc: mục của giáo trình được đẩy lên đầu gói học
   ds.forEach(o=>{
     const chu = String(o.chu||'').trim();
     if(!chu) return;
@@ -33256,7 +33382,14 @@ function hvLuuGop(dich){
     }
     let nGoc = null;
     try{ nGoc = tvNganHangCo(chu, dich === 'cau'); }catch(_){ }
-    if(nGoc != null){ bo.daCoNganHang++; return; }
+    if(nGoc != null){
+      // v305 — xem chú thích ở hvLuuChon: từ của giáo trình thì ĐƯA VÀO BÀI HỌC, không đẻ
+      // thẻ trùng. Trước đây nhánh này chỉ đếm rồi bỏ, nên nút "Lưu N từ" luôn vô hiệu.
+      let kq = 'da-hoc';
+      try{ kq = hvDuaVaoHoc(nGoc, dich === 'cau'); }catch(_){ }
+      if(kq === 'moi') vaoHoc++; else bo.daCoNganHang++;
+      return;
+    }
     let daCo = null;
     try{
       daCo = (dich === 'cau')
@@ -33275,8 +33408,17 @@ function hvLuuGop(dich){
   try{ tvXoaBangGoc(); }catch(_){ }
   const boQua = bo.daCoKho + bo.daCoNganHang + bo.cumXoang;
   if(!them){
+    // v305 — nếu không thêm thẻ nào nhưng có mục được đẩy vào bài học thì đó là THÀNH CÔNG,
+    // không phải "không làm gì". Báo đúng việc đã làm.
+    if(vaoHoc){
+      saveSettings(); pushToDrive();
+      showToast('📘','Đã đưa ' + vaoHoc + (dich === 'cau' ? ' mẫu câu' : ' từ') + ' vào bài học',
+        'Những mục này có sẵn trong giáo trình nên không tạo thẻ trùng — chúng được đẩy lên '
+        + 'đầu gói học của bạn.');
+      return;
+    }
     showToast('ℹ️','Không thêm mục nào',
-      boQua ? ('Đã lọc bỏ ' + boQua + ' mục: ' + bo.daCoNganHang + ' vốn có sẵn trong kho, '
+      boQua ? ('Đã lọc bỏ ' + boQua + ' mục: ' + bo.daCoNganHang + ' bạn đã học rồi, '
                + bo.daCoKho + ' trùng dạng với mục đã lưu, ' + bo.cumXoang + ' cụm không đạt.')
             : 'Những mục này nằm trong thư viện từ trước.');
     return;
@@ -35045,6 +35187,27 @@ function hvLocTruocKhiLuu(chu, dich){
   try{ const l = tvLoaiCua({chu:ra.chu}); if(l) ra.loai = l; }catch(_){ }
   return ra;
 }
+// v305 — ĐƯA MỘT MỤC CỦA GIÁO TRÌNH LÊN ĐẦU GÓI HỌC.
+// Không chép thêm thẻ (thẻ ấy đã có trong giáo trình, chép là trùng), chỉ ghi số thứ tự của nó
+// vào danh sách ưu tiên để gói học hôm sau lấy trước. Trả về:
+//   'da-hoc'  — bạn đã học từ này rồi, không cần đẩy
+//   'da-xep'  — đã nằm trong danh sách ưu tiên
+//   'moi'     — vừa thêm vào
+function hvDuaVaoHoc(n, laCau){
+  if(n == null) return 'da-hoc';
+  const khoa = laCau ? 'sentUuTien' : 'vocabUuTien';
+  const tienDo = laCau ? (SETTINGS.sentProgress || {}) : (SETTINGS.vocabProgress || {});
+  const p = tienDo[n];
+  if(p && p.introduced) return 'da-hoc';
+  const ds = SETTINGS[khoa] = Array.isArray(SETTINGS[khoa]) ? SETTINGS[khoa] : [];
+  if(ds.indexOf(n) >= 0) return 'da-xep';
+  ds.push(n);
+  if(ds.length > 300) ds.splice(0, ds.length - 300);
+  // Gói học hôm nay đã chốt trong bộ nhớ đệm; xoá đi để lần mở sau tính lại có từ mới này.
+  if(laCau) SETTINGS.sentDailyCache = null; else SETTINGS.vocabDailyCache = null;
+  try{ saveSettings(); }catch(_){ }
+  return 'moi';
+}
 function hvLuuChon(dich){
   const c = hvCumDangChon(); if(!c || !c.chu) return;
   const kho = (dich === 'cau') ? hvKhoCau() : hvKhoTu();
@@ -35076,8 +35239,18 @@ function hvLuuChon(dich){
   // bạn lưu chỉ là bản sao của thứ app vốn đã dạy bạn — đã đo: 1139/2466.
   const nGoc = daCo ? null : tvNganHangCo(c.chu, dich === 'cau');
   if(nGoc != null){
-    showToast('ℹ️','Đã có trong kho', '"' + c.chu + '" vốn đã nằm trong '
-      + (dich === 'cau' ? 'Kho mẫu câu' : 'Kho từ vựng') + ' — không cần lưu thêm một bản nữa.');
+    // v305 — SỬA MỘT MÂU THUẪN THẬT GIỮA HAI BẢN TRƯỚC.
+    // v302 chỉ gạch chân từ NẰM TRONG giáo trình mà bạn chưa học; còn nhánh này (từ v262) lại
+    // từ chối đúng những từ nằm trong giáo trình. Hai luật cộng lại thành: nút lưu đếm ra số,
+    // bấm vào thì luôn báo "không thêm mục nào". Đo tại chỗ: nhặt được 4 từ, lưu 0.
+    // Nay đúng việc: không đẻ thẻ trùng, mà ĐƯA TỪ ẤY VÀO BÀI HỌC SỚM.
+    const vao = hvDuaVaoHoc(nGoc, dich === 'cau');
+    if(vao === 'da-hoc'){
+      showToast('ℹ️','Bạn đã học từ này', '"' + c.chu + '" nằm trong giáo trình và đã có trong tiến độ học của bạn.');
+    } else {
+      showToast('📘','Đã đưa vào bài học', '"' + c.chu + '" có trong giáo trình, nên không tạo thẻ trùng — '
+        + 'nó được đẩy lên đầu gói học của bạn.');
+    }
   }
   else if(daCo){
     const khac = String(daCo.chu||'').toLowerCase() !== c.chu.toLowerCase();
