@@ -1642,8 +1642,13 @@
     color:var(--text); cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .15s ease;}
   .kh-backbtn:active{background:var(--panel2);}
   .kh-backbtn svg{width:17px; height:17px; display:block;}
-  .kh-backrow .title{font-size:13.5px; font-weight:800; text-align:center; color:var(--text); background:var(--panel);
-    border:1px solid var(--border); padding:7px 20px 7px 10px; border-radius:16px; box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  /* v310 · Mục 2 — tên tiêu chuẩn trên đầu trang TO và SÁNG hơn. Trước là chữ 13,5px trên
+     nền var(--panel) tối om, viền xám, nhìn như một cái nhãn phụ chứ không phải tên tài liệu
+     đang đọc. */
+  .kh-backrow .title{font-size:17px; font-weight:800; text-align:center; color:#fff;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.18); padding:9px 22px 9px 13px; border-radius:16px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.18);
     max-width:78%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center;
     justify-content:center; gap:9px;}
   .title-icon-badge{display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:9px;
@@ -1961,21 +1966,25 @@
   /* v304 — Mục con KHÔNG còn phải bấm mới xổ: luôn trải sẵn. Dải trên chỉ còn là nhãn
      ghi khoảng số, không phải nút. */
   /* v309 · Mục 2 — dải mục con là NÚT xổ. */
-  .tc-con-dau{display:flex; align-items:center; gap:9px; width:100%; text-align:left;
-    margin:9px 0 2px; padding:7px 10px; border-radius:11px; cursor:pointer;
+  .tc-con-dau{display:flex; align-items:center; gap:9px; width:calc(100% - 14px); text-align:left;
+    margin:9px 0 2px 14px; padding:7px 10px; border-radius:11px; cursor:pointer;
     font-family:inherit; color:var(--text);
     background:color-mix(in srgb, var(--tcm) 9%, transparent);
     border:1px solid color-mix(in srgb, var(--tcm) 24%, transparent);}
   .tc-con-dau:hover{background:color-mix(in srgb, var(--tcm) 15%, transparent);}
   .tc-con-dau .mui{margin-left:auto; font-size:13px; color:var(--tcm);}
   /* Mỗi cấp số điều lùi thêm một bậc: 3.1 lùi một, 3.1.1 lùi hai. */
-  .tc-con-d.c2{margin-left:18px;}
-  .tc-con-d.c3{margin-left:40px;}
-  .tc-con-d.c4{margin-left:62px;}
+  .tc-con-d.c2{margin-left:28px;}
+  .tc-con-d.c3{margin-left:58px;}
+  .tc-con-d.c4{margin-left:88px;}
   .tc-con-dau .n{font-size:10.5px; font-weight:800; letter-spacing:.3px; color:var(--tcm);
     text-transform:uppercase;}
   .tc-con-dau .s{font-family:var(--mono); font-size:10.5px; color:var(--dim2);}
-  .tc-cay-con{display:block;}
+  /* v310 · Mục 3 — GỐC LỖI "bấm xổ mà không thấy gì đổi": bộ điều phối lật lớp "mo" đúng
+     từ đầu, nhưng CSS chưa bao giờ có luật ẩn khối khi KHÔNG có lớp ấy. Lật hay không lật
+     thì khối vẫn display:block, nên nút coi như chết. */
+  .tc-cay-con{display:none;}
+  .tc-cay-con.mo{display:block;}
   .tc-con-d{display:flex; align-items:center; gap:10px; width:100%; text-align:left;
     padding:9px 12px; margin-top:5px; border-radius:10px; background:transparent;
     border:1px solid var(--border); cursor:pointer;}
@@ -2418,7 +2427,8 @@
   .tc-cay-con{padding:4px 0 6px 0; position:relative;}
   .tc-cay-con::before{content:''; position:absolute; left:6px; top:2px; bottom:4px; width:2px;
     background:color-mix(in srgb, var(--tcm) 32%, transparent); border-radius:2px;}
-  .tc-cay-con > *{margin-left:18px;}
+  /* Khối mục con lùi hẳn vào trong so với tiêu đề mục chính, không còn thẳng một hàng. */
+  .tc-cay-con > *{margin-left:28px;}
   .tc-dnut.con{margin:0 0 5px 0; background:transparent; border:none; border-radius:11px;}
   .tc-dnut.con:hover{background:color-mix(in srgb, var(--tcm) 11%, transparent);}
   .tc-dnut.con .en{font-size:12.5px;}
@@ -5890,7 +5900,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v309';
+const APP_VERSION = 'v310';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15275,7 +15285,7 @@ function tcDieuNutHtml(bo, d){
         ''}</span>
         <span class="vi">${escapeHtml(d.vi)}</span>
         ${(coHinh || muc.length || d.ngoai) ? `<span class="dau">
-          ${coHinh ? '<span class="d d-h">có hình</span>' : ''}
+          ${/* v310 · Mục 4 — tắt nhãn "có hình" theo yêu cầu */ ''}
           ${''}
           ${d.ngoai ? '<span class="d d-n">ngoài phạm vi đồ ngoài trời</span>' : ''}
         </span>` : ''}</span>
@@ -15326,7 +15336,7 @@ function renderTcDieuList(){
             data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
           <span class="so">${escapeHtml(d.so)}</span>
           <span class="noi"><span class="en">${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
-          ${coHinh ? '<span class="d d-h">có hình</span>' : ''}
+          ${/* v310 · Mục 4 — tắt nhãn "có hình" theo yêu cầu */ ''}
           ${''}
           <span class="mui">›</span>
         </button>`;}).join('')}</div>` : '';
