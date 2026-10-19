@@ -1792,6 +1792,11 @@
     border-radius:13px; font-size:15px; line-height:1.72; color:var(--text);
     background:rgba(255,200,60,.06); border:1px solid rgba(255,200,60,.26);}
   .tc-luu b{color:#FFD98A;}
+  /* Ghi chú CẬP NHẬT TIÊU CHUẨN — xanh ngọc, khác hẳn màu vàng của ghi chú thực chiến. */
+  .tc-luu.capnhat{border-color:color-mix(in srgb, #4ED8E6 52%, transparent);
+    background:color-mix(in srgb, #4ED8E6 11%, transparent);}
+  .tc-luu.capnhat .tc-luu-i{background:linear-gradient(135deg,#4ED8E6,#9BEDF5); color:#06282D;}
+  .tc-luu.capnhat b{color:#BFF4FA;}
   /* v308 — nhãn THỰC CHIẾN cùng dáng với ô NOTE của ảnh số 2: nền vàng đặc, chữ đen. */
   .tc-luu-i{display:inline-block; font-family:var(--mono); font-size:10px; font-weight:800;
     letter-spacing:.6px; text-transform:uppercase; color:#1A1405;
@@ -2354,7 +2359,8 @@
 
   /* v291 — viện dẫn trong thân văn bản. Trông như chữ gạch chân chứ không như nút to,
      để câu văn không bị băm nhỏ; nhưng bấm được và đổi màu khi rê chuột. */
-  .tc-nd{display:inline; padding:0 2px; margin:0; font:inherit; color:var(--tcm);
+  /* v311 · Mục 3 — nút viện dẫn trong câu phải NGẮT DÒNG ĐƯỢC như chữ thường. */
+  .tc-nd{display:inline; white-space:normal;display:inline; padding:0 2px; margin:0; font:inherit; color:var(--tcm);
     background:none; border:none; border-bottom:1px dashed var(--tcm); cursor:pointer;}
   .tc-nd:hover{background:color-mix(in srgb, var(--tcm) 18%, transparent); border-radius:4px;}
 
@@ -2409,12 +2415,43 @@
   .tc-d-ghi{padding-left:11px; border-left:2px solid var(--border); color:var(--dim);
     font-size:.95em;}
   /* v304 · Mục 4 — ghi chú thực chiến MỞ SẴN ngay trong trang điều. */
+  /* v311 · Mục 1 — Summary là MỘT KHUNG THẬT. Trước đây .tc-sum không có viền nào, nên
+     các ô thực chiến bên trong trông như rơi ra ngoài. */
+  /* Mục con dựng trong trang mục cha (v311 · Mục 6, 11). */
+  .tc-concha{margin:0 0 14px; padding:0 0 2px; border-radius:16px;
+    border:1px solid color-mix(in srgb, var(--tcm) 28%, var(--border));
+    background:color-mix(in srgb, var(--tcm) 4%, transparent); overflow:hidden;}
+  .tc-concha-d{display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+    padding:11px 13px; border:none; cursor:pointer; font-family:inherit; color:var(--text);
+    background:color-mix(in srgb, var(--tcm) 12%, transparent);}
+  .tc-concha-d .so{font-family:var(--mono); font-size:14px; font-weight:800; color:#0b0f14;
+    padding:4px 9px; border-radius:8px; background:var(--tcm);}
+  .tc-concha-d .noi{display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;}
+  .tc-concha-d .noi .en{font-size:15px; font-weight:800; color:#fff;}
+  .tc-concha-d .noi .vi{font-size:12px; color:var(--dim2);}
+  .tc-concha-d .mui{color:var(--dim2); font-size:14px;}
+  .tc-concha > .tc-nv, .tc-concha > .tc-luu{margin-left:13px; margin-right:13px;}
+  .tc-concha > .tc-nv{margin-top:11px;}
+  .tc-nv{margin:2px 0 14px; padding:13px 14px 4px; border-radius:16px;
+    background:rgba(255,255,255,.022); border:1px solid var(--border);}
+  .tc-nv-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:9px; margin-bottom:10px;}
+  .tc-nv-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
+    color:#0b0f14; background:var(--tcm); padding:3px 8px; border-radius:6px;}
+  .tc-nv-d .n{font-size:11.5px; color:var(--dim2);}
+  /* Mã tiêu chuẩn không bấm được vẫn nằm trong khung sáng (v311 · Mục 9). */
+  .tc-ma{display:inline; padding:1px 6px; border-radius:6px; font-weight:800;
+    color:#CFE6FF; background:rgba(79,168,255,.16);
+    border:1px solid rgba(79,168,255,.34); white-space:normal;}
+  .tc-sum{margin:4px 0 14px; padding:14px; border-radius:16px;
+    background:color-mix(in srgb, var(--tcm) 6%, rgba(255,255,255,.02));
+    border:1px solid color-mix(in srgb, var(--tcm) 34%, transparent);}
+  .tc-sum > .tc-luu:last-child{margin-bottom:0;}
   .tc-sum-m{margin:9px 0 0; padding:12px 13px; border-radius:13px;
     background:rgba(255,200,60,.06); border:1px solid rgba(255,200,60,.26);}
   .tc-sum-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;}
   .tc-sum-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
     color:var(--gold);}
-  .tc-sum-d .t{font-size:14px; font-weight:800; color:#fff;}
+  .tc-sum-d .t{font-size:16.5px; font-weight:800; color:#fff;}
   .tc-sum-d .n{font-size:11.5px; color:var(--dim2);}
   .tc-sum-b{margin-top:7px;}
   .tc-sum-p{margin:0 0 6px; font-size:13px; line-height:1.62; color:var(--dim);}
@@ -5900,7 +5937,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v310';
+const APP_VERSION = 'v311';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -10481,14 +10518,20 @@ const TC_DIEU_5 = [
  {en:'There shall be no accessible holes in the ends of tubular components with a diameter between 7 mm to 12 mm and with a depth more or equal to 10 mm.',
   vi:'<b>Không được</b> có lỗ hở chạm tới được ở <b>đầu ống</b> có <b>đường kính từ 7 mm đến 12 mm</b> và <b>sâu từ 10 mm trở lên</b>.'},
  {en:'The bottom of tubular legs in contact with the floor shall be closed or capped, however, holes in them are allowed as long as they are not between 7 and 12 mm.',
-  vi:'<b>Đầu dưới của chân ống tiếp xúc sàn phải bịt kín hoặc có nút</b>; vẫn được phép có lỗ, <b>miễn là đường kính không nằm trong khoảng 7–12 mm</b>.'}],
+  vi:'<b>Đầu dưới của chân ống tiếp xúc sàn phải bịt kín hoặc có nút</b>; vẫn được phép có lỗ, <b>miễn là đường kính không nằm trong khoảng 7–12 mm</b>.'},
+ // v311 · Mục 6 — CÂU NÀY TRẢ VỀ ĐÚNG CHỖ: nó đóng lại các yêu cầu của 5.2 (lỗ và bẫy
+ // ngón tay), không phải của 5.3. Trước tôi đặt nhầm sang 5.3, làm 5.3 trông như có thân
+ // riêng trong khi bản in chỉ dùng 5.3 làm TIÊU ĐỀ cho ba mục con.
+ {en:'These requirements shall be assessed using the test probes (Clause 4).',
+  vi:'Các yêu cầu này phải được <b>đánh giá bằng bộ đầu dò (Điều 4)</b>.'}],
  luu:['Đây là bẫy ngón tay: lỗ 7–12 mm sâu ≥ 10 mm thì ngón tay trẻ con thọc vào rút không ra. Chân ống nhôm cắt trần không bịt nút là lỗi gặp nhiều nhất ở hàng outdoor.',
       'TÜV 2024 · Lỗ ống hở nằm trong khoảng 7 mm đến 12 mm VÀ sâu ≥ 10 mm là lỗi. Mang sẵn que dò 7 và 12 mm ra xưởng — đo mắt không đủ, khoảng này hẹp.']},
 
 {bo:'en581-1', so:'5.3', en:'Shear and squeeze points', vi:'Điểm cắt và kẹp', nhom:'yc',
- than:[{en:'These requirements shall be assessed using the test probes (Clause 4).',
-  vi:'Các yêu cầu này phải được <b>đánh giá bằng bộ đầu dò (Điều 4)</b>.'}],
- muc:['5.3.1','5.3.2','5.3.3'], dan:'4',
+ // 5.3 không có thân riêng trong bản in, và vì vậy cũng KHÔNG phải "dòng chuyển tiếp" —
+ // toàn bộ nội dung nằm ở ba mục con, nay dựng thẳng trong trang này.
+ than:[],
+ muc:['5.3.1','5.3.2','5.3.3'],
  luu:['TÜV 2024 · Ngưỡng an toàn của điểm cắt và kẹp: 7 mm ≤ khe ≤ 18 mm là KHÔNG đạt. Khe nhỏ hơn 7 mm hoặc lớn hơn 18 mm thì ngón tay không kẹt.']},
 
 {bo:'en581-1', so:'5.3.1', en:'Shear and squeeze points when erecting, adjusting and folding away', vi:'Điểm cắt kẹp khi dựng, chỉnh và gấp cất', nhom:'yc',
@@ -10576,7 +10619,7 @@ const TC_DIEU_5 = [
   vi:'<b>EN 1022:2005</b> — Nội thất gia dụng — Ghế — Xác định <b>độ ổn định</b>.'},
  {en:'EN 1728:2012, Furniture — Seating — Test methods for the determination of strength and durability',
   vi:'<b>EN 1728:2012</b> — Nội thất — Ghế — <b>Phương pháp thử</b> xác định độ bền và độ bền mỏi.'}],
- luu:['Ba phép thử ổn định trong Bảng 1 (Thử 10, 11, 12) viện dẫn EN 1022 — tiêu chuẩn này tôi KHÔNG có file, nên app không dựng được điều khoản gốc của chúng.']},
+ luu:['Ba phép thử ổn định trong Bảng 1 (Thử 10, 11, 12) viện dẫn EN 1022. Bộ tra cứu EN 1022:2023 đã có sẵn trong app — bấm vào mã EN 1022 ở bất kỳ đâu là mở thẳng sang điều khoản gốc, kèm đủ hình.']},
 
 {bo:'en581-2', so:'3', en:'Terms and definitions', vi:'Thuật ngữ và định nghĩa', nhom:'nen',
  than:[{en:'For the purposes of this document, the following terms and definitions apply.',
@@ -13948,15 +13991,34 @@ const TC_THU_B3 = [
 
 const TC_THU = TC_THU_B1.concat(TC_THU_B2, TC_THU_B3);
 
+// v311 · Mục 5 — TÁCH GHI CHÚ CẬP NHẬT RA KHỎI GHI CHÚ THỰC CHIẾN.
+// Nội dung lấy từ tài liệu cập nhật của TÜV viết sẵn với tiền tố "TÜV <năm> ·". Trước đây
+// nó đeo chung nhãn THỰC CHIẾN nên không phân biệt được đâu là kinh nghiệm của mình, đâu
+// là thay đổi của tiêu chuẩn. Nay nhãn riêng, màu riêng.
+// v311 · Mục 2 — NGUYÊN VĂN TIÊU CHUẨN ĐÓNG KHUNG RIÊNG, có dòng ghi rõ đây là chữ lấy
+// thẳng từ bản in, để không lẫn với phần Summary do tôi viết ở dưới.
+function tcNguyenVanHtml(ma, than){
+  return `<section class="tc-nv">
+    <div class="tc-nv-d"><span class="ma">ORIGINAL TEXT</span>
+      <span class="n">Nguyên văn tiêu chuẩn${ma ? ' · ' + escapeHtml(ma) : ''}</span></div>
+    ${than}
+  </section>`;
+}
+function tcLuuHtml(t){
+  const m = String(t || '').match(/^\s*T[ÜU]V\s*(\d{4})\s*[·:\-]\s*([\s\S]*)$/);
+  if(m) return `<div class="tc-luu capnhat"><span class="tc-luu-i">Update follow TÜV ${m[1]}</span>${m[2]}</div>`;
+  return `<div class="tc-luu"><span class="tc-luu-i">Note</span>${t}</div>`;
+}
 function tcKhoiHtml(k){
   if(k.k === 'de')   return `<div class="tc-de">${k.t}</div>`;
   if(k.k === 'thu')  return tcThuDsHtml(k.bang);
   if(k.k === 'y')    return `<p class="tc-y">${k.t}</p>`;
-  if(k.k === 'luu')  return `<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${k.t}</div>`;
+  if(k.k === 'luu')  return tcLuuHtml(k.t);
   if(k.k === 'ds')   return `<ul class="tc-ds">${k.ts.map(x=>`<li>${x}</li>`).join('')}</ul>`;
   if(k.k === 'song') return `<div class="tc-song">
       <div class="en"><span class="nhan">EN</span>${k.en}</div>
       <div class="vi"><span class="nhan">VI</span>${k.vi}</div></div>`;
+  if(k.k === 'nguyenvan') return tcNguyenVanHtml(k.ma, k.than);
   // Mỗi ô mang theo TÊN CỘT của nó trong data-nhan. Trên màn rộng thuộc tính ấy nằm im;
   // trên màn hẹp, CSS dùng nó làm nhãn để xếp lại cả hàng thành một thẻ đọc dọc. Nhờ vậy
   // không phải viết hai bản HTML cho cùng một bảng.
@@ -14406,7 +14468,7 @@ function renderTcThu(){
       <div class="tc-de">Pass criteria<i>Tiêu chí đạt</i></div>
       <ul class="tc-ds tc-dat">${t.dat.map(x=>`<li>${x}</li>`).join('')}</ul>
 
-      ${t.luu.map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
+      ${t.luu.map(tcLuuHtml).join('')}
     </div>
     <div class="tc-dieuhuong">
       ${tr ? `<button class="tc-dh" data-action="tc-thu" data-id="${tr.id}">← ${t.so-1}. ${escapeHtml(tr.en)}</button>` : '<span></span>'}
@@ -14720,6 +14782,9 @@ function tcNhayToiDieu(goc){
 //
 //  Không đụng vào bên trong thẻ HTML: dữ liệu có sẵn <b>…</b>, nên phải bỏ qua phần nằm
 //  trong dấu ngoặc nhọn, nếu không sẽ phá tan thẻ khi số rơi vào thuộc tính.
+// v311 · Mục 3 — GỐC LỖI "câu dịch rớt xuống dòng dù dòng trên còn chỗ": các mã viện dẫn
+// trong câu được bọc bằng <button class="tc-nd">, mà nút là inline-block nên cả cụm không
+// ngắt được; chữ còn lại bị đẩy nguyên xuống dòng. Nay cho nút chảy theo dòng như chữ.
 function tcNoiVienDan(html, boHienTai){
   if(!html) return html;
   // Mỗi nút dựng xong được CẤT ĐI và thay bằng một mã giữ chỗ không chứa chữ nào khớp
@@ -14754,12 +14819,25 @@ function tcNoiVienDan(html, boHienTai){
           return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="${so}">${tron}</button>`);
         if(!so && tcDieuCua(id, '1'))
           return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="1">${tron}</button>`);
-        return tron;
+        // v311 · Mục 9 — bộ chưa dựng thì KHÔNG bấm được, nhưng mã vẫn phải nổi trong khung
+        // sáng để mắt nhận ra ngay đó là một tiêu chuẩn.
+        return cat(`<span class="tc-ma">${tron}</span>`);
       });
+    // Mọi mã tiêu chuẩn khác (EN 1022:2005, EN 12521, ISO ...) — không có bộ tra cứu trong
+    // app thì vẫn phải nằm trong khung sáng, đúng yêu cầu "lúc nào cũng được highlight".
+    t = t.replace(/\b((?:EN|ISO|BS|ANSI|UL|BIFMA)\s*[A-Z]*\s*\d+(?:-\d+)?(?::\d{4})?)/g,
+      (tron)=>cat(`<span class="tc-ma">${tron}</span>`));
     // "(5.4)", "(7.2.2)" → điều khoản của chính bộ đang đọc
     t = t.replace(/\((\d+(?:\.\d+){1,3})\)/g, (tron, so)=>
       tcDieuCua(boHienTai, so)
         ? '(' + cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</button>`) + ')'
+        : tron);
+    // v311 · Mục 7 — SỐ ĐIỀU TRẦN, KHÔNG NGOẶC: "Unless 5.3.2 or 5.3.3 are applicable".
+    // Luật cũ chỉ bắt số nằm trong ngoặc nên hai mã này chết. Đòi có ít nhất một dấu chấm
+    // và điều phải CÓ THẬT, nên không nuốt nhầm số đo kiểu "7.2 mm".
+    t = t.replace(/(^|[\s(\[,;>])(\d+(?:\.\d+){1,3})(?![\d.])/g, (tron, dau, so)=>
+      tcDieuCua(boHienTai, so)
+        ? dau + cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</button>`)
         : tron);
     // "(Clause 4)" / "Điều 4" → điều cấp một của bộ đang đọc
     t = t.replace(/\b(Clause|Điều)\s+(\d+)\b/g, (tron, tu, so)=>
@@ -14864,7 +14942,7 @@ function tcHinhHtml(id){
       ${h.giai && h.giai.length ? `<table class="tc-f-key"><caption>Key — chú giải của chính tiêu chuẩn</caption>
         ${h.giai.map(g=>`<tr><th>${escapeHtml(g[0])}</th><td class="en">${escapeHtml(g[1])}</td>
           <td class="vi">${escapeHtml(g[2])}</td></tr>`).join('')}</table>` : ''}
-      ${h.doc ? `<div class="tc-f-doc"><span class="nh">Đọc hình</span>${h.doc}</div>` : ''}
+      ${h.doc ? `<div class="tc-f-doc"><span class="nh">How to read this figure</span>${h.doc}</div>` : ''}
     </figcaption>
   </figure>`;
 }
@@ -15246,6 +15324,13 @@ const TC_MUC_DIEU = {
   'p3-kinh':['en581-3','5.1'],  'p3-ban':['en581-3','5.2.1'],     'p3-v':['en581-3','5.2.1'],
   'p3-dat':['en581-3','5.2.2']
 };
+// v311 — Các mục con TRỰC TIẾP của một điều: 5.3 → 5.3.1, 5.3.2, 5.3.3 (không lấy 5.3.1.1).
+function tcDieuConTrucTiep(bo, so){
+  const sau = String(so).split('.').length + 1;
+  return TC_DIEU_HET.filter(d => d.bo === bo
+    && String(d.so).indexOf(so + '.') === 0
+    && String(d.so).split('.').length === sau);
+}
 function tcMucCuaDieu(bo, so){
   return TC_MUC.filter(m=>{
     const d = TC_MUC_DIEU[m.id];
@@ -15389,8 +15474,27 @@ function renderTcDieu(){
       ${d.dan ? `<div class="tc-dan">Điều này chỉ là một dòng chuyển tiếp. Toàn bộ cách thử nằm ở:
         ${tcLienKet(bo.id, d.dan, 'xem cách thử')}</div>` : ''}
       ${tcHinhCuaDieu(bo.id, d.so, d).map(tcHinhHtml).join('')}
-      ${d.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id, p.so)).join('')}
+      ${d.than.length ? tcNguyenVanHtml(bo.ma + (bo.nam ? ':' + bo.nam : ''),
+          d.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id, p.so)).join('')) : ''}
       ${d.bang2 ? tcBang2Html() : ''}
+      ${(()=>{
+        // v311 · Mục 6 + 11 — MỤC CON NẰM TRONG MỤC CHA. Trước đây mở 5.3 chỉ thấy một dòng
+        // chuyển tiếp, muốn đọc 5.3.1–5.3.3 phải quay ra danh sách. Nay nội dung các mục con
+        // dựng thẳng trong trang mục cha, ĐẶT TRÊN khối Summary đúng như bạn yêu cầu.
+        const con = tcDieuConTrucTiep(bo.id, d.so);
+        if(!con.length) return '';
+        return `${tcH3Html('Sub-clauses', 'Các mục con của ' + d.so)}
+          ${con.map(c=>`<section class="tc-concha" id="dgc-${escapeHtml(c.so)}">
+            <button class="tc-concha-d" data-action="tc-dieu" data-bo="${bo.id}"
+              data-so="${escapeHtml(c.so)}" style="--tcm:${bo.hex}">
+              <span class="so">${escapeHtml(c.so)}</span>
+              <span class="noi"><span class="en">${escapeHtml(c.en)}</span>
+                <span class="vi">${escapeHtml(c.vi)}</span></span>
+              <span class="mui">›</span></button>
+            ${c.than.length ? tcNguyenVanHtml(bo.ma + ' · ' + c.so,
+                c.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id, p.so)).join('')) : ''}
+            ${(c.luu||[]).map(tcLuuHtml).join('')}
+          </section>`).join('')}`; })()}
       ${(()=>{
         // v309 · Mục 1 — MỘT KHỐI "SUMMARY" DUY NHẤT.
         // Trước: ô "Notes" chỉ chứa ghi chú gắn theo điều, còn các ô THỰC CHIẾN của chính
@@ -15408,7 +15512,7 @@ function renderTcDieu(){
                 <span class="n">${escapeHtml(m.ten)}${m.tom ? ' · ' + m.tom : ''}</span></div>
               <div class="tc-sum-b">${tcMucThanHtml(m, bo.id)}</div>
             </div>`).join('')}
-            ${luu.map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
+            ${luu.map(tcLuuHtml).join('')}
           </section>`; })()}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
         <div class="tc-lkg">${thu.map(t=>`<button class="tc-lk" data-action="tc-thu" data-id="${t.id}"
