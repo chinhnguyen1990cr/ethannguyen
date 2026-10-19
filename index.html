@@ -1731,11 +1731,6 @@
 
   .tc-doc{background:var(--panel); border:1px solid var(--border); border-radius:18px;
     padding:16px 16px 18px; box-shadow:0 6px 18px rgba(0,0,0,.22);}
-  .tc-doc-dau{padding-bottom:12px; margin-bottom:13px; border-bottom:1px solid var(--border);}
-  .tc-doc-dau .nh{display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.5px;
-    text-transform:uppercase; color:var(--tcm, var(--blue)); padding:3px 9px; border-radius:999px;
-    background:color-mix(in srgb, var(--tcm) 13%, transparent);
-    border:1px solid color-mix(in srgb, var(--tcm) 34%, transparent);}
   .tc-doc-en{font-size:11px; font-style:italic; color:var(--dim2); margin-top:7px;}
   /* v287 — tên tiếng Anh lên làm tiêu đề chính, tiếng Việt xuống dưới: đây là tài liệu
      tiêu chuẩn, bản tiếng Anh mới là bản có hiệu lực khi tranh luận với lab hay với khách. */
@@ -1926,22 +1921,28 @@
     background:rgba(255,255,255,.025);
     border:1px solid color-mix(in srgb, var(--tcm) 45%, transparent); border-top:none;}
   .tc-ml-n{display:grid; grid-template-columns:auto 1fr; align-items:center;
-    column-gap:10px; row-gap:2px; text-align:left;
+    column-gap:10px; row-gap:3px; text-align:left;
     padding:10px 12px; border-radius:11px; cursor:pointer;
     background:linear-gradient(135deg,
-      color-mix(in srgb, var(--tcm) 10%, transparent), rgba(255,255,255,.03));
-    border:1px solid color-mix(in srgb, var(--tcm) 26%, transparent);
+      color-mix(in srgb, var(--mlc, var(--tcm)) 12%, transparent), rgba(255,255,255,.03));
+    border:1px solid color-mix(in srgb, var(--mlc, var(--tcm)) 30%, transparent);
     transition:transform .12s ease, border-color .14s ease, background .14s ease;}
-  .tc-ml-n .s{grid-row:span 2; align-self:center; min-width:30px; text-align:center;
-    font-family:var(--mono); font-size:15px; font-weight:800; color:#0b0f14;
-    padding:4px 7px; border-radius:8px; background:var(--tcm);}
-  .tc-ml-n .t{font-size:14px; font-weight:800; color:#fff; min-width:0; line-height:1.3;
+  /* v309 · Mục 3 — SỐ và CHỮ đều nằm trong khung riêng, mỗi đề mục một màu (--mlc). */
+  .tc-ml-n .s{grid-row:span 2; align-self:center; min-width:34px; text-align:center;
+    font-family:var(--mono); font-size:16px; font-weight:800; color:#0b0f14;
+    padding:6px 9px; border-radius:9px; background:var(--mlc, var(--tcm));
+    box-shadow:0 2px 8px color-mix(in srgb, var(--mlc, var(--tcm)) 38%, transparent);}
+  .tc-ml-n .t{font-size:14.5px; font-weight:800; color:#fff; min-width:0; line-height:1.3;
+    padding:4px 9px; border-radius:8px;
+    background:color-mix(in srgb, var(--mlc, var(--tcm)) 20%, transparent);
+    border:1px solid color-mix(in srgb, var(--mlc, var(--tcm)) 34%, transparent);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .tc-ml-n i{grid-column:2; font-style:normal; font-size:11.5px; font-weight:600;
-    color:var(--dim2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .tc-ml-n:hover{border-color:color-mix(in srgb, var(--tcm) 62%, transparent);
+  .tc-ml-n i{grid-column:2; font-style:normal; font-size:12px; font-weight:600;
+    padding-left:9px; color:var(--dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .tc-ml-n:hover{border-color:color-mix(in srgb, var(--mlc, var(--tcm)) 66%, transparent);
     background:linear-gradient(135deg,
-      color-mix(in srgb, var(--tcm) 18%, transparent), rgba(255,255,255,.05));}
+      color-mix(in srgb, var(--mlc, var(--tcm)) 22%, transparent), rgba(255,255,255,.05));}
   .tc-ml-n:active{transform:scale(.985);}
   .tc-cc-n.nho{padding:6px 11px; font-family:var(--mono); font-size:11px; letter-spacing:.4px;}
 
@@ -1959,7 +1960,18 @@
      chiếm trọn một màn. Nay một dải tóm tắt, xổ ra thì mỗi mục con là MỘT DÒNG. */
   /* v304 — Mục con KHÔNG còn phải bấm mới xổ: luôn trải sẵn. Dải trên chỉ còn là nhãn
      ghi khoảng số, không phải nút. */
-  .tc-con-dau{display:flex; align-items:center; gap:9px; margin:9px 0 2px; padding:0 4px;}
+  /* v309 · Mục 2 — dải mục con là NÚT xổ. */
+  .tc-con-dau{display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    margin:9px 0 2px; padding:7px 10px; border-radius:11px; cursor:pointer;
+    font-family:inherit; color:var(--text);
+    background:color-mix(in srgb, var(--tcm) 9%, transparent);
+    border:1px solid color-mix(in srgb, var(--tcm) 24%, transparent);}
+  .tc-con-dau:hover{background:color-mix(in srgb, var(--tcm) 15%, transparent);}
+  .tc-con-dau .mui{margin-left:auto; font-size:13px; color:var(--tcm);}
+  /* Mỗi cấp số điều lùi thêm một bậc: 3.1 lùi một, 3.1.1 lùi hai. */
+  .tc-con-d.c2{margin-left:18px;}
+  .tc-con-d.c3{margin-left:40px;}
+  .tc-con-d.c4{margin-left:62px;}
   .tc-con-dau .n{font-size:10.5px; font-weight:800; letter-spacing:.3px; color:var(--tcm);
     text-transform:uppercase;}
   .tc-con-dau .s{font-family:var(--mono); font-size:10.5px; color:var(--dim2);}
@@ -1987,9 +1999,6 @@
      một cột. Không viết hai bố cục rồi phải nhớ sửa cả hai. Nền có một vệt sáng theo màu
      riêng của từng bộ — màu ấy lấy từ chính TC_BO nên thẻ, tiêu đề và trang điều khoản
      của cùng một bộ luôn cùng một màu, mở ra là biết đang ở bộ nào. */
-  .tc-h2ng{font-size:15px; font-weight:800; margin:2px 0 11px; letter-spacing:.2px;}
-  .tc-h2ng i{display:block; font-style:normal; font-size:11px; color:var(--dim2);
-    font-weight:600; margin-top:2px;}
   /* v306 — MỌI THẺ TIÊU CHUẨN CÙNG MỘT CỠ.
      Đã đo trên laptop 1536px của bạn: ba thẻ EN 581 cao 165px, ba thẻ phương pháp thử cao
      148px, còn UL 4041 rộng tới 1091px cạnh các thẻ 352px. Gốc là hai chuyện:
@@ -2090,7 +2099,12 @@
   .tc-dhead{margin:0 0 16px; padding-bottom:14px; border-bottom:2px solid var(--tcm);}
   /* v304 — Mã bộ TO lên (trước nhỏ như chú thích), và SỐ ĐIỀU nằm NGANG cạnh tên
      ("1 – Scope"), không còn rớt xuống dòng riêng. */
-  .tc-dhead-bo{font-family:var(--mono); font-size:16px; font-weight:800; letter-spacing:.6px;
+  /* v309 · Mục 4 — số hiệu bộ (EN 581-1:2017) LÚC NÀO CŨNG nằm trong khung, không còn là
+     chữ trần lẫn vào nền. */
+  .tc-dhead-bo{display:inline-block; padding:5px 12px; border-radius:9px;
+    background:color-mix(in srgb, var(--tcm) 16%, transparent);
+    border:1px solid color-mix(in srgb, var(--tcm) 42%, transparent);
+    font-family:var(--mono); font-size:16px; font-weight:800; letter-spacing:.6px;
     color:var(--tcm);}
   .tc-dhead-en{margin:7px 0 0; font-size:25px; font-weight:800; line-height:1.3; color:#fff;
     overflow-wrap:anywhere;}
@@ -2256,19 +2270,6 @@
   .tc-thu-nut .mui{flex:0 0 auto; margin-top:1px; font-size:17px; color:var(--dim2); line-height:1;}
 
   /* ══ TRANG CHI TIẾT PHÉP THỬ ════════════════════════════════════════════════════════ */
-  .tc-thu-dau{margin:0 0 16px; padding-bottom:14px; border-bottom:1px solid var(--border);}
-  .tc-thu-dau .nh{display:inline-block; font-family:var(--mono); font-size:9.5px; font-weight:800;
-    letter-spacing:.5px; text-transform:uppercase; padding:3px 8px; border-radius:6px;
-    color:var(--tcm); background:color-mix(in srgb, var(--tcm) 15%, transparent);}
-  .tc-thu-dau h3{margin:9px 0 0; font-size:17px; line-height:1.35; color:#fff;
-    overflow-wrap:anywhere;}
-  .tc-thu-dau .vi{margin-top:4px; font-size:13.5px; line-height:1.5; color:var(--dim);
-    overflow-wrap:anywhere;}
-  .tc-thu-dau .vien{margin-top:10px; font-family:var(--mono); font-size:10.5px; line-height:1.6;
-    color:var(--dim2); overflow-wrap:anywhere;}
-  .tc-thu-dau .vien span{display:inline-block; margin-right:7px; padding:2px 6px; border-radius:5px;
-    font-size:8.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase;
-    color:var(--dim2); background:rgba(255,255,255,.07);}
   /* Đề mục song ngữ: tiếng Anh trước, tiếng Việt ngay dưới — cùng một quy tắc áp cho cả
      trang, kể cả tiêu đề mục, chứ không chỉ cho các đoạn trích. */
   .tc-de i{display:block; margin-top:2px; font-style:normal; font-weight:600;
@@ -2399,19 +2400,17 @@
   .tc-d-ghi{padding-left:11px; border-left:2px solid var(--border); color:var(--dim);
     font-size:.95em;}
   /* v304 · Mục 4 — ghi chú thực chiến MỞ SẴN ngay trong trang điều. */
-  .tc-note{margin:9px 0 0; padding:12px 13px; border-radius:13px;
+  .tc-sum-m{margin:9px 0 0; padding:12px 13px; border-radius:13px;
     background:rgba(255,200,60,.06); border:1px solid rgba(255,200,60,.26);}
-  .tc-note-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;}
-  .tc-note-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
+  .tc-sum-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;}
+  .tc-sum-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
     color:var(--gold);}
-  .tc-note-d .t{font-size:14px; font-weight:800; color:#fff;}
-  .tc-note-d .n{font-size:11.5px; color:var(--dim2);}
-  .tc-note-b{margin-top:7px;}
-  .tc-note-p{margin:0 0 6px; font-size:13px; line-height:1.62; color:var(--dim);}
-  .tc-note-t{margin:0 0 7px; font-size:14px; line-height:1.65; color:var(--dim2);}
-  .tc-note-mo{margin-top:4px; padding:5px 10px; border-radius:8px; cursor:pointer;
-    font-family:inherit; font-size:11px; font-weight:700; color:var(--gold);
-    background:transparent; border:1px solid rgba(255,200,60,.3);}
+  .tc-sum-d .t{font-size:14px; font-weight:800; color:#fff;}
+  .tc-sum-d .n{font-size:11.5px; color:var(--dim2);}
+  .tc-sum-b{margin-top:7px;}
+  .tc-sum-p{margin:0 0 6px; font-size:13px; line-height:1.62; color:var(--dim);}
+  .tc-sum-t{margin:0 0 7px; font-size:14px; line-height:1.65; color:var(--dim2);}
+
   .tc-cay > .tc-dnut .so{font-size:12px; font-weight:800;}
   .tc-cay > .tc-dnut .en{font-size:17px;}
   /* v304 — Vạch dọc DỜI HẲN RA LỀ TRÁI và các dòng con thụt vào, nên nó không còn
@@ -5891,7 +5890,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v308';
+const APP_VERSION = 'v309';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14584,7 +14583,8 @@ function tcThanhCongCu(bo, mucluc){
         <span class="mui">${mo ? '▾' : '▸'}</span>
       </button>
       <div class="tc-ml${mo ? ' mo' : ''}" id="tc-ml">${
-      mucluc.map(k=>`<button class="tc-ml-n" data-action="tc-nhay" data-goc="${escapeHtml(k.goc)}"
+      mucluc.map((k, i)=>`<button class="tc-ml-n" data-action="tc-nhay" data-goc="${escapeHtml(k.goc)}"
+        style="--mlc:${TC_MAU_DEMUC[i % TC_MAU_DEMUC.length]}"
         ><span class="s">${escapeHtml(k.goc)}</span><span class="t">${escapeHtml(k.ten)}</span
         >${k.vi ? `<i>${escapeHtml(k.vi)}</i>` : ''}</button>`).join('')}</div>` : ''}
   </div>`;
@@ -14623,6 +14623,9 @@ function tcThanhCongCu(bo, mucluc){
 //    4. tc-note         — ô ghi chú viền vàng, nhãn THỰC CHIẾN
 //  Thêm hàm tcKhungHtml để bọc nội dung màn trong đúng thẻ <article class="tc-doc"> mang
 //  biến màu --tcm của bộ, vì chính biến ấy là thứ làm mỗi tiêu chuẩn một màu.
+// v309 · Mục 3 — BẢNG MÀU CHO ĐỀ MỤC. Trước đây mọi ô đề mục đều mang đúng một màu của
+// bộ tiêu chuẩn, nên tám đề mục nhìn như nhau. Nay mỗi ô một màu để phân biệt bằng mắt.
+const TC_MAU_DEMUC = ['#4FA8FF','#FF8A3D','#38D39F','#C792FF','#FFC94A','#FF6B9D','#4ED8E6','#9CCB5A'];
 function tcDauTrangHtml(o){
   const mau = o.hex || 'var(--blue)';
   return `<header class="tc-dhead" style="--tcm:${mau}">
@@ -15304,14 +15307,22 @@ function renderTcDieuList(){
          </div>`;
     // v304 — MỤC CON LUÔN HIỆN. Trước phải bấm "n mục con" mới xổ; bạn muốn thấy ngay
     // toàn bộ cây, đúng như mục lục bản in.
+    // v309 · Mục 2 — DẢI MỤC CON LÀ NÚT XỔ, MẶC ĐỊNH MỞ.
+    // Bộ điều phối tc-con-xo đã có từ trước nhưng KHÔNG màn nào phát ra hành động ấy, nên
+    // tính năng xổ coi như chết. Nay chính dải "N mục con" là nút bấm.
     const con = k.con.length ? `
-      <div class="tc-con-dau"><span class="n">${k.con.length} mục con</span>
-        <span class="s">${escapeHtml(k.con[0].so)} – ${escapeHtml(k.con[k.con.length-1].so)}</span></div>
+      <button class="tc-con-dau on" data-action="tc-con-xo" data-goc="${escapeHtml(k.goc)}"
+        ><span class="n">${k.con.length} mục con</span>
+        <span class="s">${escapeHtml(k.con[0].so)} – ${escapeHtml(k.con[k.con.length-1].so)}</span>
+        <span class="mui">▴</span></button>
       <div class="tc-cay-con mo" data-con="${escapeHtml(k.goc)}">${
         k.con.map(d=>{
           const muc = tcMucCuaDieu(bo.id, d.so);
           const coHinh = (d.hinh && d.hinh.length) || d.bang;
-          return `<button class="tc-con-d" data-action="tc-dieu"
+          // Thụt lùi theo ĐỘ SÂU THẬT của số điều: 3 → 3.1 → 3.1.1 mỗi cấp lùi thêm một bậc,
+          // nên nhìn là thấy cái nào thuộc cái nào, thay vì mọi mục con thẳng một hàng.
+          const cap = Math.min(4, String(d.so).split('.').length);
+          return `<button class="tc-con-d c${cap}" data-action="tc-dieu"
             data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
           <span class="so">${escapeHtml(d.so)}</span>
           <span class="noi"><span class="en">${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
@@ -15370,18 +15381,25 @@ function renderTcDieu(){
       ${tcHinhCuaDieu(bo.id, d.so, d).map(tcHinhHtml).join('')}
       ${d.than.map(p=>tcSongHtml(p.en, p.vi, null, bo.id, p.so)).join('')}
       ${d.bang2 ? tcBang2Html() : ''}
-      ${(d.luu||[]).map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
-      ${(()=>{ const mc = tcMucCuaDieu(bo.id, d.so);
-        // v304 — Ghi chú MỞ SẴN. Trước đây phải bấm từng thẻ mới đọc được, mà đây đúng là
-        // phần người đi kiểm hàng cần thấy ngay nhất.
-        return mc.length ? `<div class="tc-h3">Notes<i>Ghi chú thực chiến cho đúng điều này</i></div>
-          ${mc.map(m=>`<section class="tc-note">
-            <div class="tc-note-d"><span class="ma">NOTE</span>
-              <span class="t">${escapeHtml(m.tenEn || m.ten)}</span>
-              <span class="n">${escapeHtml(m.ten)}${m.tom ? ' · ' + m.tom : ''}</span></div>
-            <div class="tc-note-b">${tcMucThanHtml(m, bo.id)}</div>
-            <button class="tc-note-mo" data-action="tc-open" data-id="${m.id}">Mở riêng ghi chú này ›</button>
-          </section>`).join('')}` : ''; })()}
+      ${(()=>{
+        // v309 · Mục 1 — MỘT KHỐI "SUMMARY" DUY NHẤT.
+        // Trước: ô "Notes" chỉ chứa ghi chú gắn theo điều, còn các ô THỰC CHIẾN của chính
+        // điều ấy lại nằm rời phía trên, và mỗi ghi chú còn kèm nút "Mở riêng ghi chú này"
+        // mở lại đúng nội dung đang hiện ngay bên trên — bấm vào chẳng thấy gì mới.
+        // Nay gom tất cả vào MỘT khối Summary: tóm tắt điều này nói về gì, rồi tới các ô
+        // thực chiến. Không còn nút mở riêng.
+        const mc = tcMucCuaDieu(bo.id, d.so), luu = d.luu || [];
+        if(!mc.length && !luu.length) return '';
+        return `${tcH3Html('Summary', 'Tóm tắt điều này nói về vấn đề gì')}
+          <section class="tc-sum">
+            ${mc.map(m=>`<div class="tc-sum-m" data-id="${m.id}">
+              <div class="tc-sum-d"><span class="ma">SUMMARY</span>
+                <span class="t">${escapeHtml(m.tenEn || m.ten)}</span>
+                <span class="n">${escapeHtml(m.ten)}${m.tom ? ' · ' + m.tom : ''}</span></div>
+              <div class="tc-sum-b">${tcMucThanHtml(m, bo.id)}</div>
+            </div>`).join('')}
+            ${luu.map(x=>`<div class="tc-luu"><span class="tc-luu-i">Thực chiến</span>${x}</div>`).join('')}
+          </section>`; })()}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
         <div class="tc-lkg">${thu.map(t=>`<button class="tc-lk" data-action="tc-thu" data-id="${t.id}"
           style="--tcm:#FF8A3D"><span class="ma">${escapeHtml(tcBangCua(t.bang).ten)} · Thử ${t.so}</span>
