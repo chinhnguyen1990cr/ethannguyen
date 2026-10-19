@@ -2443,7 +2443,7 @@
   .tc-cts-m .en{font-size:14.5px; line-height:1.6; font-weight:700; color:#fff;}
   .tc-cts-m .vi{margin-top:7px; padding-top:7px; border-top:1px solid var(--border);
     font-size:13.5px; line-height:1.62; color:var(--dim);}
-  .tc-nv{margin:2px 0 14px; padding:13px 14px 4px; border-radius:16px;
+  .tc-nv{margin:2px 0 14px; padding:4px 14px; border-radius:16px;
     background:rgba(255,255,255,.022); border:1px solid var(--border);}
   .tc-nv-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:9px; margin-bottom:10px;}
   .tc-nv-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
@@ -2460,8 +2460,8 @@
   .tc-sum-m{margin:9px 0 0; padding:12px 13px; border-radius:13px;
     background:rgba(255,200,60,.06); border:1px solid rgba(255,200,60,.26);}
   .tc-sum-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;}
-  .tc-sum-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
-    color:var(--gold);}
+  .tc-sum-d .ma{font-family:var(--mono); font-size:15px; font-weight:800; letter-spacing:.9px;
+    color:#0b0f14; background:var(--gold); padding:4px 11px; border-radius:8px;}
   .tc-sum-d .t{font-size:16.5px; font-weight:800; color:#fff;}
   .tc-sum-d .n{font-size:11.5px; color:var(--dim2);}
   .tc-sum-b{margin-top:7px;}
@@ -5948,7 +5948,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v312';
+const APP_VERSION = 'v313';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14021,16 +14021,15 @@ const TC_THU = TC_THU_B1.concat(TC_THU_B2, TC_THU_B3);
 // v311 · Mục 2 — NGUYÊN VĂN TIÊU CHUẨN ĐÓNG KHUNG RIÊNG, có dòng ghi rõ đây là chữ lấy
 // thẳng từ bản in, để không lẫn với phần Summary do tôi viết ở dưới.
 function tcNguyenVanHtml(ma, than){
-  return `<section class="tc-nv">
-    <div class="tc-nv-d"><span class="ma">ORIGINAL TEXT</span>
-      <span class="n">Nguyên văn tiêu chuẩn${ma ? ' · ' + escapeHtml(ma) : ''}</span></div>
-    ${than}
-  </section>`;
+  // v313 — bỏ dòng nhãn "ORIGINAL TEXT / Nguyên văn tiêu chuẩn". Khối EN/VI đã tự nói
+  // nó là nguyên văn; thêm một dòng nhãn nữa chỉ làm trang dài ra.
+  return `<section class="tc-nv">${than}</section>`;
 }
 function tcLuuHtml(t){
   const m = String(t || '').match(/^\s*T[ÜU]V\s*(\d{4})\s*[·:\-]\s*([\s\S]*)$/);
   if(m) return `<div class="tc-luu capnhat"><span class="tc-luu-i">Update follow TÜV ${m[1]}</span>${m[2]}</div>`;
-  return `<div class="tc-luu"><span class="tc-luu-i">Note</span>${t}</div>`;
+  // v313 — bỏ nhãn "Note": khung vàng đã đủ phân biệt với nguyên văn tiêu chuẩn.
+  return `<div class="tc-luu">${t}</div>`;
 }
 function tcKhoiHtml(k){
   if(k.k === 'de')   return `<div class="tc-de">${k.t}</div>`;
@@ -14812,7 +14811,7 @@ function tcNhayToiDieu(goc){
 //  Không đụng vào bên trong thẻ HTML: dữ liệu có sẵn <b>…</b>, nên phải bỏ qua phần nằm
 //  trong dấu ngoặc nhọn, nếu không sẽ phá tan thẻ khi số rơi vào thuộc tính.
 // v311 · Mục 3 — GỐC LỖI "câu dịch rớt xuống dòng dù dòng trên còn chỗ": các mã viện dẫn
-// trong câu được bọc bằng <button class="tc-nd">, mà nút là inline-block nên cả cụm không
+// trong câu được bọc bằng <span class="tc-nd" role="button" tabindex="0">, mà nút là inline-block nên cả cụm không
 // ngắt được; chữ còn lại bị đẩy nguyên xuống dòng. Nay cho nút chảy theo dòng như chữ.
 function tcNoiVienDan(html, boHienTai){
   if(!html) return html;
@@ -14833,21 +14832,21 @@ function tcNoiVienDan(html, boHienTai){
         const bo = ph ? 'en581-' + ph : boHienTai;
         const b = TC_HINH.find(x=>x.loai === 'bang' && x.bo === bo
           && String(x.so).replace(/^(Table|Bảng)\s+/, '') === String(so));
-        return b ? cat(`<button class="tc-nd" data-action="tc-xem-hinh" data-id="${b.id}">${tron}</button>`) : tron;
+        return b ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-xem-hinh" data-id="${b.id}">${tron}</span>`) : tron;
       });
     // "Figure 12" / "Hình A.1" → ảnh hình
     t = t.replace(/\b(Figure|Hình)\s+([A-Z]?\.?\d+)/g, (tron, tu, so)=>{
       const h = TC_HINH.find(x=>x.loai !== 'bang' && x.bo === boHienTai && String(x.so) === String(so));
-      return h ? cat(`<button class="tc-nd" data-action="tc-xem-hinh" data-id="${h.id}">${tron}</button>`) : tron;
+      return h ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-xem-hinh" data-id="${h.id}">${tron}</span>`) : tron;
     });
     // "EN 1728:2012, 8.2" / "EN 1730, 6.3.1" / "EN 581-2:2015" → sang bộ khác
     t = t.replace(/\bEN\s*(1728|1730|581-[123])(?::\d{4})?(?:,?\s*(\d+(?:\.\d+){0,3}))?/g,
       (tron, bo, so)=>{
         const id = 'en' + bo;
         if(so && tcDieuCua(id, so))
-          return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="${so}">${tron}</button>`);
+          return cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${id}" data-so="${so}">${tron}</span>`);
         if(!so && tcDieuCua(id, '1'))
-          return cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${id}" data-so="1">${tron}</button>`);
+          return cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${id}" data-so="1">${tron}</span>`);
         // v311 · Mục 9 — bộ chưa dựng thì KHÔNG bấm được, nhưng mã vẫn phải nổi trong khung
         // sáng để mắt nhận ra ngay đó là một tiêu chuẩn.
         return cat(`<span class="tc-ma">${tron}</span>`);
@@ -14859,19 +14858,19 @@ function tcNoiVienDan(html, boHienTai){
     // "(5.4)", "(7.2.2)" → điều khoản của chính bộ đang đọc
     t = t.replace(/\((\d+(?:\.\d+){1,3})\)/g, (tron, so)=>
       tcDieuCua(boHienTai, so)
-        ? '(' + cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</button>`) + ')'
+        ? '(' + cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</span>`) + ')'
         : tron);
     // v311 · Mục 7 — SỐ ĐIỀU TRẦN, KHÔNG NGOẶC: "Unless 5.3.2 or 5.3.3 are applicable".
     // Luật cũ chỉ bắt số nằm trong ngoặc nên hai mã này chết. Đòi có ít nhất một dấu chấm
     // và điều phải CÓ THẬT, nên không nuốt nhầm số đo kiểu "7.2 mm".
     t = t.replace(/(^|[\s(\[,;>])(\d+(?:\.\d+){1,3})(?![\d.])/g, (tron, dau, so)=>
       tcDieuCua(boHienTai, so)
-        ? dau + cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</button>`)
+        ? dau + cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${so}</span>`)
         : tron);
     // "(Clause 4)" / "Điều 4" → điều cấp một của bộ đang đọc
     t = t.replace(/\b(Clause|Điều)\s+(\d+)\b/g, (tron, tu, so)=>
       tcDieuCua(boHienTai, so)
-        ? cat(`<button class="tc-nd" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${tron}</button>`)
+        ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${boHienTai}" data-so="${so}">${tron}</span>`)
         : tron);
     phan[i] = t;
   }
@@ -15354,6 +15353,9 @@ const TC_MUC_DIEU = {
   'p3-dat':['en581-3','5.2.2']
 };
 // v311 — Các mục con TRỰC TIẾP của một điều: 5.3 → 5.3.1, 5.3.2, 5.3.3 (không lấy 5.3.1.1).
+// v313 — Danh sách ĐÍCH DANH những mục cha được phép gom mục con vào trong. Mặc định
+// KHÔNG gom, đúng như bản in: mục 3, 5, 5.3 của EN 581-1 chỉ là tiêu đề.
+const TC_CHA_GOM_CON = {'en581-2:8': 1};
 function tcDieuConTrucTiep(bo, so){
   const sau = String(so).split('.').length + 1;
   return TC_DIEU_HET.filter(d => d.bo === bo
@@ -15383,6 +15385,11 @@ function tcLaPhepThu(d){
 }
 // v304 · Mục 4 — thân ghi chú thực chiến dựng ngay trong trang điều.
 function tcMucThanHtml(m, bo){
+  // v313 · Mục 1 — nội dung trong khung Summary cũng phải NỐI VIỆN DẪN: trước đây chỉ thân
+  // điều khoản đi qua tcNoiVienDan, nên mã "EN 1728, 8.2" nằm trong ghi chú là chữ chết.
+  return (m.khoi || []).map(k => tcNoiVienDan(tcKhoiHtml(k), bo)).join('');
+}
+function tcMucThanHtmlCu(m, bo){
   // Thân ghi chú đã có sẵn bộ dựng khối từ v288 (tcKhoiHtml) — dùng lại nguyên vẹn,
   // chỉ bọc thêm một lớp để canh lề trong trang điều.
   return (m.khoi || []).map(tcKhoiHtml).join('');
@@ -15510,7 +15517,9 @@ function renderTcDieu(){
         // v311 · Mục 6 + 11 — MỤC CON NẰM TRONG MỤC CHA. Trước đây mở 5.3 chỉ thấy một dòng
         // chuyển tiếp, muốn đọc 5.3.1–5.3.3 phải quay ra danh sách. Nay nội dung các mục con
         // dựng thẳng trong trang mục cha, ĐẶT TRÊN khối Summary đúng như bạn yêu cầu.
-        const con = tcDieuConTrucTiep(bo.id, d.so);
+        // v313 — TRẢ VỀ ĐÚNG DẠNG BẢN IN: mục cha chỉ là tiêu đề, không nhồi nội dung mục
+        // con vào trong. Chỉ giữ ở đúng chỗ bạn đã yêu cầu gom (EN 581-2 điều 8).
+        const con = TC_CHA_GOM_CON[bo.id + ':' + d.so] ? tcDieuConTrucTiep(bo.id, d.so) : [];
         if(!con.length) return '';
         return `${tcH3Html('Sub-clauses', 'Các mục con của ' + d.so)}
           ${con.map(c=>`<section class="tc-concha" id="dgc-${escapeHtml(c.so)}">
@@ -15533,15 +15542,15 @@ function renderTcDieu(){
         // thực chiến. Không còn nút mở riêng.
         const mc = tcMucCuaDieu(bo.id, d.so), luu = d.luu || [];
         if(!mc.length && !luu.length) return '';
-        return `${tcH3Html('Summary', 'Tóm tắt điều này nói về vấn đề gì')}
-          <section class="tc-sum">
+        // v313 — bỏ dòng tiêu đề ngoài khung; chữ SUMMARY trong khung đã đủ nhận ra.
+        return `<section class="tc-sum">
             ${mc.map(m=>`<div class="tc-sum-m" data-id="${m.id}">
               <div class="tc-sum-d"><span class="ma">SUMMARY</span>
                 <span class="t">${escapeHtml(m.tenEn || m.ten)}</span>
                 <span class="n">${escapeHtml(m.ten)}${m.tom ? ' · ' + m.tom : ''}</span></div>
               <div class="tc-sum-b">${tcMucThanHtml(m, bo.id)}</div>
             </div>`).join('')}
-            ${luu.map(tcLuuHtml).join('')}
+            ${luu.map(x => tcNoiVienDan(tcLuuHtml(x), bo.id)).join('')}
           </section>`; })()}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
         <div class="tc-lkg">${thu.map(t=>`<button class="tc-lk" data-action="tc-thu" data-id="${t.id}"
