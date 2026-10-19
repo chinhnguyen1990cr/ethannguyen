@@ -2432,6 +2432,17 @@
   .tc-concha-d .mui{color:var(--dim2); font-size:14px;}
   .tc-concha > .tc-nv, .tc-concha > .tc-luu{margin-left:13px; margin-right:13px;}
   .tc-concha > .tc-nv{margin-top:11px;}
+  /* v312 — chú thích bảng song ngữ: ký hiệu a/b/c trong ô, nguyên văn trên, bản dịch dưới. */
+  .tc-cts{display:flex; flex-direction:column; gap:9px; margin:0 0 13px;}
+  .tc-cts-m{display:flex; gap:11px; padding:11px 13px; border-radius:13px;
+    background:rgba(255,255,255,.028); border:1px solid var(--border);}
+  .tc-cts-m .ky{flex-shrink:0; width:26px; height:26px; display:flex; align-items:center;
+    justify-content:center; border-radius:8px; font-family:var(--mono); font-size:13px;
+    font-weight:800; color:#0b0f14; background:var(--tcm);}
+  .tc-cts-m .noi{min-width:0; flex:1;}
+  .tc-cts-m .en{font-size:14.5px; line-height:1.6; font-weight:700; color:#fff;}
+  .tc-cts-m .vi{margin-top:7px; padding-top:7px; border-top:1px solid var(--border);
+    font-size:13.5px; line-height:1.62; color:var(--dim);}
   .tc-nv{margin:2px 0 14px; padding:13px 14px 4px; border-radius:16px;
     background:rgba(255,255,255,.022); border:1px solid var(--border);}
   .tc-nv-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:9px; margin-bottom:10px;}
@@ -5937,7 +5948,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v311';
+const APP_VERSION = 'v312';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6406,11 +6417,15 @@ const TC_MUC = [
   {k:'y', t:'Ghế nằm phải được thử <b>theo đúng thứ tự liệt kê</b> trong bảng. Mọi lực đơn vị niutơn (N), chu kỳ là số lần lặp.'},
   {k:'thu', bang:'b1'},
   {k:'de', t:'Bốn chú thích của bảng — đọc kỹ, chúng đổi kết quả'},
-  {k:'ds', ts:[
-   '<b>a</b> — Nếu mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải), thì <b>chỉ thực hiện phép thử trên mặt ngồi</b>. Áp cho Thử 1 và Thử 3.',
-   '<b>b</b> — Nếu tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> (thay vì 900 N của cấp contract).',
-   '<b>c</b> — Với ghế có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện các phép thử ổn định TRƯỚC</b> khi bắt đầu chuỗi thử trong bảng. Lý do thực tế: nếu ghế lật ngay thì không cần tốn 50.000 chu kỳ mới biết.',
-   '<b>d</b> — <b>Không áp dụng</b> phép thử ổn định trước và ngang cho ghế có <b>chiều cao mặt ngồi &lt; 200 mm VÀ khối lượng &lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên, tại <b>tâm hình học của mặt ngồi khi chưa chất tải</b>.'
+  {k:'cts', ts:[
+   {ky:'a', en:'If seat and back are of one piece of flexible material (e.g. textile), only the tests on seat shall be carried out.',
+    vi:'Nếu mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải), thì <b>chỉ thực hiện phép thử trên mặt ngồi</b>. Áp cho Thử 1 và Thử 3.'},
+   {ky:'b', en:'If armrest is less than 15 mm wide, carry out test with 700 N.',
+    vi:'Nếu tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> (thay vì 900 N của cấp contract).'},
+   {ky:'c', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.',
+    vi:'Với ghế có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện các phép thử ổn định TRƯỚC</b> khi bắt đầu chuỗi thử trong bảng. Lý do thực tế: nếu ghế lật ngay thì không cần tốn 50.000 chu kỳ mới biết.'},
+   {ky:'d', en:'This test is not applicable for seating with a seat height &lt; 200 mm and a mass &lt; 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unloaded seat.',
+    vi:'<b>Không áp dụng</b> phép thử ổn định trước và ngang cho ghế có <b>chiều cao mặt ngồi &lt; 200 mm VÀ khối lượng &lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên, tại <b>tâm hình học của mặt ngồi khi chưa chất tải</b>.'}
   ]},
   {k:'luu', t:'Chú thích d đòi <b>cả hai</b> điều kiện cùng lúc (&lt; 200 mm VÀ &lt; 5 kg). Ghế bệt 180 mm nhưng nặng 6 kg thì vẫn phải thử ổn định.'},
   {k:'luu', t:'Thử 7 là chỗ chênh lệch cấp lớn nhất mà nhà máy hay bỏ qua: tay vịn Domestic 10.000 chu kỳ nhưng Contract <b>30.000</b> — gấp ba, trong khi lực vẫn 400 N cho cả ba cấp. Mối ghép tay vịn vào khung là điểm chết của ghế nằm hàng dự án.'}
@@ -6422,13 +6437,19 @@ const TC_MUC = [
   {k:'y', t:'Áp dụng cho mọi loại ghế ngoài trời <b>không phải ghế nằm</b>: ghế ăn ngoài trời, ghế bành sân vườn, ghế xếp, ghế đẩu, ghế băng. Trước và sau khi thử, sản phẩm <b>vẫn phải đạt EN 581-1</b>.'},
   {k:'thu', bang:'b2'},
   {k:'de', t:'Sáu chú thích của bảng'},
-  {k:'ds', ts:[
-   '<b>a</b> — Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải) thì chỉ thử trên mặt ngồi. Áp cho Thử 1 và Thử 3.',
-   '<b>b</b> — Tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> cho cấp contract.',
-   '<b>c</b> — Thử va đập: điểm đặt phải cách mép trước <b>ít nhất 100 mm</b>. <b>Không thực hiện</b> phép thử này với ghế có chiều cao mặt ngồi <b>&gt; 600 mm</b>.',
-   '<b>d</b> — Thử gác chân <b>chỉ thực hiện</b> với ghế có chiều cao mặt ngồi <b>&gt; 700 mm</b> (ghế quầy bar).',
-   '<b>e</b> — <b>Không áp dụng</b> thử ổn định trước và ngang cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm VÀ</b> khối lượng <b>&lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên tại tâm hình học mặt ngồi khi chưa chất tải.',
-   '<b>f</b> — Ghế có thể không đạt ổn định ngay từ đầu thì <b>được phép thử ổn định trước</b> chuỗi thử trong bảng.'
+  {k:'cts', ts:[
+   {ky:'a', en:'If seat and back are of one piece of flexible material (e.g. textile), only the tests on seat shall be carried out.',
+    vi:'Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền khối</b> (ví dụ vải) thì chỉ thử trên mặt ngồi. Áp cho Thử 1 và Thử 3.'},
+   {ky:'b', en:'If armrest is less than 15 mm wide, carry out test with 700 N for contract use.',
+    vi:'Tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> cho cấp contract.'},
+   {ky:'c', en:'The application point shall be at least 100 mm from the front edge. This test shall not be carried out on seating with a seat height &gt; 600 mm.',
+    vi:'Thử va đập: điểm đặt phải cách mép trước <b>ít nhất 100 mm</b>. <b>Không thực hiện</b> phép thử này với ghế có chiều cao mặt ngồi <b>&gt; 600 mm</b>.'},
+   {ky:'d', en:'This test is carried out only on seating with a seat height &gt; 700 mm.',
+    vi:'Thử gác chân <b>chỉ thực hiện</b> với ghế có chiều cao mặt ngồi <b>&gt; 700 mm</b> (ghế quầy bar).'},
+   {ky:'e', en:'This test is not applicable for seating with a seat height &lt; 200 mm and a mass &lt; 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unload seat.',
+    vi:'<b>Không áp dụng</b> thử ổn định trước và ngang cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm VÀ</b> khối lượng <b>&lt; 5 kg</b>. Chiều cao đo từ sàn tới vùng ngồi phía trên tại tâm hình học mặt ngồi khi chưa chất tải.'},
+   {ky:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.',
+    vi:'Ghế có thể không đạt ổn định ngay từ đầu thì <b>được phép thử ổn định trước</b> chuỗi thử trong bảng.'}
   ]},
   {k:'luu', t:'Chú thích c và d là cặp ngưỡng chiều cao dễ nhầm: <b>&gt; 600 mm thì BỎ thử va đập</b>, <b>&gt; 700 mm thì THÊM thử gác chân</b>. Ghế quầy bar ngoài trời cao 750 mm rơi vào cả hai — bỏ va đập, thêm gác chân.'},
   {k:'luu', t:'So Bảng 2 với Bảng 1: ghế thường có thêm <b>Thử 7 và Thử 8 (tải chân trước/ngang)</b> mà ghế nằm không có. Đó là chỗ ghế gỗ ngoài trời hay gãy — mối ghép mộng chân với seat rail chịu lực ngang 400 N ở cấp contract.'},
@@ -6481,9 +6502,11 @@ const TC_MUC = [
   {k:'y', t:'Điểm khác biệt lớn nhất so với ghế: <b>phép thử nào áp dụng còn phụ thuộc vào kích thước mặt bàn</b>. Phải đo diện tích mặt bàn và chiều cao bàn trước khi quyết định chạy thử nào.'},
   {k:'thu', bang:'b3'},
   {k:'de', t:'Hai chú thích của bảng — rất quan trọng với bàn nối dài'},
-  {k:'ds', ts:[
-   '<b>a</b> — Với bàn có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện bổ sung các phép thử ổn định TRƯỚC</b> chuỗi thử trong bảng.',
-   '<b>b</b> — Bàn có <b>tấm nối dài</b> phải được thử ở <b>CẢ HAI cấu hình: đã kéo dài và chưa kéo dài</b>. Tấm nối dài đặt ở <b>giữa</b> bàn thì được thử <b>như mặt chính</b>. Một phần của mặt chính ở cấu hình chưa kéo dài <b>có thể trở thành mặt phụ</b> ở cấu hình đã kéo dài.'
+  {k:'cts', ts:[
+   {ky:'a', en:'For tables that might not fulfil the stability requirements before carrying out any tests, the applicable stability tests can be carried out additionally before starting the sequence of tests specified in this table.',
+    vi:'Với bàn có thể không đạt yêu cầu ổn định ngay từ đầu, <b>được phép thực hiện bổ sung các phép thử ổn định TRƯỚC</b> chuỗi thử trong bảng.'},
+   {ky:'b', en:'Tables with extension pieces shall be tested both in the extended and unextended configurations. A table extension added in the centre of the table shall be tested as the main surface. A part of the main surface in the unextended configuration can become an ancillary surface in the extended configuration.',
+    vi:'Bàn có <b>tấm nối dài</b> phải được thử ở <b>CẢ HAI cấu hình: đã kéo dài và chưa kéo dài</b>. Tấm nối dài đặt ở <b>giữa</b> bàn thì được thử <b>như mặt chính</b>. Một phần của mặt chính ở cấu hình chưa kéo dài <b>có thể trở thành mặt phụ</b> ở cấu hình đã kéo dài.'}
   ]},
   {k:'luu', t:'Chú thích b là cái bẫy lớn nhất của dòng bàn ăn ngoài trời nối dài. Số lượt thử <b>nhân đôi</b>, và việc "mặt chính biến thành mặt phụ" nghĩa là cùng một vùng mặt bàn phải chịu hai mức lực khác nhau ở hai cấu hình. Báo giá thử nghiệm cho bàn nối dài mà tính như bàn thường là thiếu một nửa.'},
   {k:'luu', t:'0,25 m² là ngưỡng chia Thử 1 và Thử 2 — tương đương mặt bàn 50 × 50 cm. Bàn phụ (side table) ngoài trời thường rơi dưới ngưỡng này, nên chỉ thử 150/300/500 N chứ không phải 300/750/1 000 N. Đo diện tích trước, đừng áng chừng.'},
@@ -14015,6 +14038,12 @@ function tcKhoiHtml(k){
   if(k.k === 'y')    return `<p class="tc-y">${k.t}</p>`;
   if(k.k === 'luu')  return tcLuuHtml(k.t);
   if(k.k === 'ds')   return `<ul class="tc-ds">${k.ts.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  // v312 — CHÚ THÍCH DƯỚI BẢNG, SONG NGỮ. Các dòng a/b/c/d này đổi hẳn kết quả thử, nên
+  // phải có nguyên văn tiếng Anh của bản in bên cạnh bản dịch, không chỉ bản dịch.
+  if(k.k === 'cts') return `<div class="tc-cts">${k.ts.map(x=>`<div class="tc-cts-m">
+      <span class="ky">${escapeHtml(x.ky)}</span>
+      <div class="noi"><div class="en">${x.en}</div><div class="vi">${x.vi}</div></div>
+    </div>`).join('')}</div>`;
   if(k.k === 'song') return `<div class="tc-song">
       <div class="en"><span class="nhan">EN</span>${k.en}</div>
       <div class="vi"><span class="nhan">VI</span>${k.vi}</div></div>`;
