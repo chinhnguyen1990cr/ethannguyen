@@ -5948,7 +5948,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v313';
+const APP_VERSION = 'v314';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14028,8 +14028,9 @@ function tcNguyenVanHtml(ma, than){
 function tcLuuHtml(t){
   const m = String(t || '').match(/^\s*T[ÜU]V\s*(\d{4})\s*[·:\-]\s*([\s\S]*)$/);
   if(m) return `<div class="tc-luu capnhat"><span class="tc-luu-i">Update follow TÜV ${m[1]}</span>${m[2]}</div>`;
-  // v313 — bỏ nhãn "Note": khung vàng đã đủ phân biệt với nguyên văn tiêu chuẩn.
-  return `<div class="tc-luu">${t}</div>`;
+  // v314 — XOÁ HẲN ô ghi chú thường (cả nội dung). Chỉ còn giữ ô CẬP NHẬT TIÊU CHUẨN ở
+  // nhánh trên, vì đó là thay đổi của chính tiêu chuẩn chứ không phải lời bình của tôi.
+  return '';
 }
 function tcKhoiHtml(k){
   if(k.k === 'de')   return `<div class="tc-de">${k.t}</div>`;
@@ -14894,9 +14895,20 @@ function tcTachDong(html){
   const moc = [];
   // Chỉ gạch NGANG DÀI (—) mới là gạch đầu dòng. Gạch ngắn (–) trong bản UL là dấu
   // ngăn "THUẬT NGỮ – định nghĩa", cắt ở đó là xé đôi câu định nghĩa.
-  const RE = /(?:^|\s)(?=(?:[a-h]\)|—\s|•|NOTE\b|Note\b|CHÚ THÍCH|Ghi chú:|Exception\b|[0-9]{1,2}\)\s)[^)])/g;
+  // v314 — Đầu mục chỉ tính khi đứng ở ĐẦU CHUỖI, sau xuống dòng / dấu chấm phẩy, sau dấu
+  // kết câu, HOẶC ngay sau một thẻ HTML (đã che thành \u0002) — vì bản dịch hay viết
+  // "<b>a)</b> nội dung". Không còn tính "cứ sau một dấu cách bất kỳ", nên "(Điều 4)" giữa
+  // câu không bị hiểu nhầm là mục đánh số và cắt đôi câu nữa.
+  // v314 — CHỈ SIẾT ĐÚNG THỦ PHẠM. Gạch đầu dòng (— •), mục chữ a) b), NOTE… vẫn nhận ra
+  // như cũ (sau một dấu cách bất kỳ, hoặc ngay sau thẻ HTML). Riêng MỤC ĐÁNH SỐ "N)" mới
+  // phải đứng sau dấu kết câu / xuống dòng — vì chính nó làm "(Điều 4)" giữa câu bị hiểu
+  // nhầm là đầu mục và cắt đôi câu. Siết cả nắm thì gạch đầu dòng chết oan (đã đo: EN 581-1
+  // điều 5.1 tụt từ 2 dòng xuống 1).
+  const RE = /(?:^|\s|\u0002+)(?=(?:[a-h]\)|—\s|•|NOTE\b|Note\b|CHÚ THÍCH|Ghi chú:|Exception\b|(?<=(?:^|[\n;:.])\s)[0-9]{1,2}\)\s)[^)])/g;
   let m, truoc = 0;
-  const sach = s.replace(/<[^>]*>/g, x=>' '.repeat(x.length));   // mặt nạ giữ nguyên vị trí
+  // Che bằng một KÝ TỰ ĐIỀU KHIỂN, không phải khoảng trắng — xem ghi chú v314 ở trên.
+  const CHE_THE = String.fromCharCode(2);
+  const sach = s.replace(/<[^>]*>/g, x=>CHE_THE.repeat(x.length));
   while((m = RE.exec(sach)) !== null){
     const i = m.index + (m[0].length ? m[0].length : 0);
     if(i > truoc){ moc.push([truoc, i]); }
@@ -15540,7 +15552,9 @@ function renderTcDieu(){
         // mở lại đúng nội dung đang hiện ngay bên trên — bấm vào chẳng thấy gì mới.
         // Nay gom tất cả vào MỘT khối Summary: tóm tắt điều này nói về gì, rồi tới các ô
         // thực chiến. Không còn nút mở riêng.
-        const mc = tcMucCuaDieu(bo.id, d.so), luu = d.luu || [];
+        const mc = tcMucCuaDieu(bo.id, d.so);
+        // Chỉ còn ghi chú CẬP NHẬT mới được hiện (v314).
+        const luu = (d.luu || []).filter(x => /^\s*T[ÜU]V\s*\d{4}\s*[·:\-]/.test(String(x)));
         if(!mc.length && !luu.length) return '';
         // v313 — bỏ dòng tiêu đề ngoài khung; chữ SUMMARY trong khung đã đủ nhận ra.
         return `<section class="tc-sum">
