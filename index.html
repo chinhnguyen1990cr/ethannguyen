@@ -44,65 +44,33 @@
      nền tối. Lớp này do renderContentInner bật/tắt, tính lại ở MỌI lần dựng màn nên không
      có đường nào thoát ra mà quên gỡ.
      Chỉ lật BIẾN, không lật từng luật: 363 luật .tc- tự đi theo. */
-  body.tc-giay{
-    --bg:#F3F5F7; --panel:#FFFFFF; --panel2:#EDF0F4; --border:#D5DBE3;
-    --text:#111820; --dim:#4F5967; --dim2:#7C8695;
-    --manh:#0A1119;
-    --nhan1:rgba(14,22,32,.035); --nhan2:rgba(14,22,32,.07); --nhan3:rgba(14,22,32,.13);
-    /* Màu tín hiệu đậm lại cho đủ tương phản trên giấy — bản gốc chọn cho nền tối nên
-       trên nền trắng chúng nhạt tới mức đọc mỏi mắt. */
-    --blue:#1565C0; --orange:#B45309; --teal:#0F766E; --red:#C2283B; --gold:#A16207;
-    /* Đo trên bản sống mới thấy: ẢNH NỀN của app do người dùng chọn được gắn bằng style
-       NGAY TRÊN THẺ body, kèm một lớp phủ tối. Style gắn thẳng trên thẻ thắng mọi luật
-       trong bảng kiểu, nên tông giấy bị tấm ảnh tối phủ lên và coi như vô hiệu. Phải dùng
-       !important mới gỡ được — đây là một trong số rất ít chỗ xứng đáng dùng nó. */
+  /* ══ v320 · TÔNG TÀI LIỆU — NỀN TỐI, LÀM KỸ ════════════════════════════════════════
+     v317–v319 lật phần tiêu chuẩn sang nền giấy trắng. Đo lại thì nền #F3F5F7 với khung
+     trắng tinh #FFFFFF là sai từ gốc: cả hai đều nằm gần đỉnh thang sáng, nên KHUNG KHÔNG
+     NỔI ĐƯỢC KHỎI NỀN, và viền #D5DBE3 nhạt hơn nữa thì coi như không có. Trên nền tối
+     khung sáng hơn nền là nổi; trên giấy phải làm ngược lại, mà tôi lại bê nguyên cách cũ.
+     Cộng với việc chói mắt và lạc tông với phần còn lại của app, nên quay về nền tối.
+
+     Nhưng KHÔNG phải quay về y như cũ. Ba thứ siết lại cho ra tinh thần tài liệu tra cứu:
+      1. Nền trang TRẦM HƠN nền app (#080C11 so với #0E1218) — để khung có chỗ mà nổi lên.
+      2. Khung SÁNG HƠN HẲN nền trang (#1C2531), không phải nhỉnh hơn một chút như trước.
+         Chênh lệch độ sáng giữa khung và nền tăng từ 0,018 lên 0,055 — gấp ba.
+      3. Viền SÁNG VÀ NÉT (#45566B thay cho #2A3341) để thấy rõ ranh giới từng ô.
+     Chữ phụ cũng sáng lên một nấc, vì chữ mờ trên nền trầm là chỗ mỏi mắt nhất khi tra cứu.
+
+     Vẫn chỉ lật BIẾN, không lật từng luật: 363 luật .tc- tự đi theo. */
+  body.tc-doc{
+    --bg:#070A0E; --panel:#202B3A; --panel2:#2C3A4C; --border:#4C5E75;
+    --text:#F2F6FA; --dim:#A6B2C2; --dim2:#7B8699;
+    --manh:#FFFFFF;
+    --nhan1:rgba(255,255,255,.045); --nhan2:rgba(255,255,255,.085); --nhan3:rgba(255,255,255,.15);
+    /* Ảnh nền của app được gắn bằng style NGAY TRÊN THẺ body nên thắng mọi luật trong bảng
+       kiểu. Trang tra cứu cần nền phẳng và đều — có tấm ảnh chạy phía sau thì chữ nhỏ và
+       đường kẻ bảng đọc rất mệt. Gỡ bằng !important, một trong ít chỗ xứng đáng dùng nó. */
     background-image:none !important;
-    background-color:#F3F5F7 !important;
+    background-color:#080C11 !important;
   }
-  body.tc-giay #hud{background:#FFFFFF; border-bottom:1px solid var(--border);}
-  /* ══ v318 · SIẾT MÀU TÍN HIỆU TRÊN GIẤY ══════════════════════════════════════
-     Màu nhận dạng của mỗi bộ (--tcm) được chọn cho NỀN TỐI: #4FA8FF đọc tốt trên
-     nền than, nhưng trên giấy trắng thì nhạt tới mức mờ hẳn. Đo trên bản sống mới
-     thấy. Trộn 62% màu bộ với màu mực để vẫn nhận ra được bộ nào, mà đọc được. */
-  body.tc-giay :is(.tc-ba-n .dem,
-    .tc-ba-n .mui,
-    .tc-ba-n .vai,
-    .tc-bang td:first-child,
-    .tc-bo .vai,
-    .tc-buoc .stt,
-    .tc-buoc .vi .nhan,
-    .tc-con-d .so,
-    .tc-con-dau .mui,
-    .tc-con-dau .n,
-    .tc-de,
-    .tc-dh:active,
-    .tc-dhead-bo,
-    .tc-dhead-en .so,
-    .tc-dnut .so,
-    .tc-ds li::marker,
-    .tc-f-doc .nh,
-    .tc-f-key th,
-    .tc-f-so,
-    .tc-h1 .ma,
-    .tc-h3,
-    .tc-lk .ma,
-    .tc-ml-dau .ic,
-    .tc-nd,
-    .tc-s-en .nh,
-    .tc-s-so,
-    .tc-song .vi .nhan,
-    .tc-tb-o .ma,
-    .tc-tb-o .mui,
-    .tc-thu-ds-dau b,
-    .tc-thu-nut .tom,
-    .tc-thu-vien span,
-    .tc-ts-dau .cap:last-child,
-    .tc-tt-mt .ma){
-    color:color-mix(in srgb, var(--tcm, var(--blue)) 62%, #0A1119);}
-  /* Tiêu đề trên thanh trên cùng ghi cứng chữ trắng — nằm ngoài vùng kiểu .tc-,
-     nên lượt đổi máy móc không chạm tới. Trên giấy nó trắng trên trắng. */
-  body.tc-giay .kh-backrow .title{color:var(--text);}
-  body.tc-giay .title-icon-badge{box-shadow:none;}
+  body.tc-doc #hud{background:#121A24; border-bottom:1px solid var(--border);}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
   body{display:flex; justify-content:center; min-height:100vh;
@@ -1997,7 +1965,7 @@
   .tc-ml-dau{flex:1 1 100%; width:100%; display:flex; align-items:center; gap:11px;
     margin:11px 0 0; padding:11px 13px; border-radius:13px; cursor:pointer;
     text-align:left; font-family:inherit; color:var(--text);
-    background:var(--nhan2); border:1px solid var(--border);
+    background:var(--panel2); border:1px solid var(--border);
     transition:background .14s ease, border-color .14s ease;}
   .tc-ml-dau:hover{background:var(--nhan2);}
   .tc-ml-dau.mo{border-color:color-mix(in srgb, var(--tcm) 45%, transparent);
@@ -2011,7 +1979,7 @@
   .tc-ml.mo{flex:1 1 100%; width:100%; display:grid;
     grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px;
     margin:0; padding:11px; border-radius:0 0 13px 13px;
-    background:var(--nhan1);
+    background:var(--panel2);
     border:1px solid color-mix(in srgb, var(--tcm) 45%, transparent); border-top:none;}
   .tc-ml-n{display:grid; grid-template-columns:auto 1fr; align-items:center;
     column-gap:10px; row-gap:3px; text-align:left;
@@ -2165,7 +2133,7 @@
   .tc-cc{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 13px;
     padding:10px 11px; border-radius:14px; background:var(--panel2); border:1px solid var(--border);}
   .tc-cc-n{padding:7px 13px; border-radius:10px; cursor:pointer; font-family:inherit;
-    font-size:11.5px; font-weight:700; color:var(--dim); background:var(--nhan2);
+    font-size:11.5px; font-weight:700; color:var(--dim); background:var(--panel2);
     border:1px solid var(--border); transition:transform .12s ease;}
   .tc-cc-n:active{transform:scale(.96);}
   .tc-cc-n.on{color:#0b0f14; background:var(--blue); border-color:transparent;}
@@ -2275,7 +2243,7 @@
   .tc-f-key td.en{color:var(--manh); padding-right:9px;}
   .tc-f-key td.vi{color:var(--dim);}
   .tc-f-doc{margin-top:10px; padding:10px 12px; border-radius:11px; font-size:11.5px;
-    line-height:1.7; color:var(--dim); background:var(--nhan1);
+    line-height:1.7; color:var(--dim); background:var(--panel2);
     border:1px solid var(--border);}
   .tc-f-doc b{color:var(--text);}
   .tc-f-doc .nh{display:inline-block; margin-right:8px; padding:2px 7px; border-radius:6px;
@@ -2473,7 +2441,7 @@
   /* v304 · Mục 9 — điều nào LÀ PHÉP THỬ thì có dấu riêng, quét mắt là thấy. */
   /* v304 · Mục 1 — HAI KHỐI THỊ TRƯỜNG. */
   .tc-tt{display:flex; flex-direction:column; gap:14px; margin:4px 0 12px;}
-  .tc-tt-k{padding:13px; border-radius:17px; background:var(--nhan1);
+  .tc-tt-k{padding:13px; border-radius:17px; background:var(--panel2);
     border:1px solid var(--border); border-left:3px solid var(--tcm);}
   .tc-tt-d{display:flex; align-items:center; gap:11px; margin-bottom:11px;}
   .tc-tt-d .co{padding:4px 10px; border-radius:8px; font-family:var(--mono); font-size:12px;
@@ -2486,7 +2454,7 @@
     letter-spacing:-.3px;}
   .tc-tt-d .t i{display:block; font-style:normal; font-size:11.5px; font-weight:600;
     color:var(--dim2); margin-top:3px; letter-spacing:0;}
-  .tc-tt-me{padding:10px 10px 11px; border-radius:13px; background:var(--nhan1);
+  .tc-tt-me{padding:10px 10px 11px; border-radius:13px; background:var(--panel2);
     border:1px dashed color-mix(in srgb, var(--tcm) 38%, transparent);}
   .tc-tt-mt{display:flex; align-items:baseline; gap:9px; margin-bottom:8px;}
   .tc-tt-mt.lon{margin-top:13px;}
@@ -2531,7 +2499,7 @@
   /* v312 — chú thích bảng song ngữ: ký hiệu a/b/c trong ô, nguyên văn trên, bản dịch dưới. */
   .tc-cts{display:flex; flex-direction:column; gap:9px; margin:0 0 13px;}
   .tc-cts-m{display:flex; gap:11px; padding:11px 13px; border-radius:13px;
-    background:var(--nhan1); border:1px solid var(--border);}
+    background:var(--panel2); border:1px solid var(--border);}
   .tc-cts-m .ky{flex-shrink:0; width:26px; height:26px; display:flex; align-items:center;
     justify-content:center; border-radius:8px; font-family:var(--mono); font-size:13px;
     font-weight:800; color:#0b0f14; background:var(--tcm);}
@@ -2540,7 +2508,7 @@
   .tc-cts-m .vi{margin-top:7px; padding-top:7px; border-top:1px solid var(--border);
     font-size:13.5px; line-height:1.62; color:var(--dim);}
   .tc-nv{margin:2px 0 14px; padding:4px 14px; border-radius:16px;
-    background:var(--nhan1); border:1px solid var(--border);}
+    background:var(--panel2); border:1px solid var(--border);}
   .tc-nv-d{display:flex; align-items:baseline; flex-wrap:wrap; gap:9px; margin-bottom:10px;}
   .tc-nv-d .ma{font-family:var(--mono); font-size:9.5px; font-weight:800; letter-spacing:.7px;
     color:#0b0f14; background:var(--tcm); padding:3px 8px; border-radius:6px;}
@@ -6066,7 +6034,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v319';
+const APP_VERSION = 'v320';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -45837,7 +45805,7 @@ function renderContentInner(){
   // v317 — Tính lại ở MỌI lần dựng màn, không chỉ lúc vào. Nếu chỉ bật lúc mở tiêu chuẩn
   // mà không tính lại ở đây thì bấm back ra ngoài sẽ mang theo nền trắng sang cả app.
   try{
-    document.body.classList.toggle('tc-giay',
+    document.body.classList.toggle('tc-doc',
       STATE.tab === 'kiemhang' && TC_MAN_GIAY.indexOf(KH_STATE.view) >= 0);
   }catch(e){}
   if(STATE.dlgSession){ dlgRender(); return; }   // phiên hội thoại ngữ cảnh chiếm toàn màn hình
