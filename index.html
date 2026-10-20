@@ -60,6 +60,49 @@
     background-color:#F3F5F7 !important;
   }
   body.tc-giay #hud{background:#FFFFFF; border-bottom:1px solid var(--border);}
+  /* ══ v318 · SIẾT MÀU TÍN HIỆU TRÊN GIẤY ══════════════════════════════════════
+     Màu nhận dạng của mỗi bộ (--tcm) được chọn cho NỀN TỐI: #4FA8FF đọc tốt trên
+     nền than, nhưng trên giấy trắng thì nhạt tới mức mờ hẳn. Đo trên bản sống mới
+     thấy. Trộn 62% màu bộ với màu mực để vẫn nhận ra được bộ nào, mà đọc được. */
+  body.tc-giay :is(.tc-ba-n .dem,
+    .tc-ba-n .mui,
+    .tc-ba-n .vai,
+    .tc-bang td:first-child,
+    .tc-bo .vai,
+    .tc-buoc .stt,
+    .tc-buoc .vi .nhan,
+    .tc-con-d .so,
+    .tc-con-dau .mui,
+    .tc-con-dau .n,
+    .tc-de,
+    .tc-dh:active,
+    .tc-dhead-bo,
+    .tc-dhead-en .so,
+    .tc-dnut .so,
+    .tc-ds li::marker,
+    .tc-f-doc .nh,
+    .tc-f-key th,
+    .tc-f-so,
+    .tc-h1 .ma,
+    .tc-h3,
+    .tc-lk .ma,
+    .tc-ml-dau .ic,
+    .tc-nd,
+    .tc-s-en .nh,
+    .tc-s-so,
+    .tc-song .vi .nhan,
+    .tc-tb-o .ma,
+    .tc-tb-o .mui,
+    .tc-thu-ds-dau b,
+    .tc-thu-nut .tom,
+    .tc-thu-vien span,
+    .tc-ts-dau .cap:last-child,
+    .tc-tt-mt .ma){
+    color:color-mix(in srgb, var(--tcm, var(--blue)) 62%, #0A1119);}
+  /* Tiêu đề trên thanh trên cùng ghi cứng chữ trắng — nằm ngoài vùng kiểu .tc-,
+     nên lượt đổi máy móc không chạm tới. Trên giấy nó trắng trên trắng. */
+  body.tc-giay .kh-backrow .title{color:var(--text);}
+  body.tc-giay .title-icon-badge{box-shadow:none;}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
   body{display:flex; justify-content:center; min-height:100vh;
@@ -6023,7 +6066,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v318';
+const APP_VERSION = 'v319';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
