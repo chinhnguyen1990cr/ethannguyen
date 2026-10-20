@@ -22,6 +22,9 @@
     --gold:#FFC94A; --orange:#FF8A3D; --blue:#4FA8FF; --teal:#2CDBA8; --red:#FF5A6E;
     --mono: ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --sans: "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    /* v315 · Mục 6 — ngăn xếp font riêng cho phần ĐỌC TÀI LIỆU: ưu tiên mặt chữ có bộ dấu
+       tiếng Việt đầy đủ và nét rõ ở cỡ nhỏ trên điện thoại. */
+    --doc: "Source Sans 3","Source Sans Pro","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
     /* Font riêng cho SỐ (đồng hồ, điểm, thời gian): dùng chữ số đều bề ngang (tabular) để số không
        nhảy qua nhảy lại mỗi giây, và nét đậm khỏe hơn cho cảm giác trẻ trung. */
     --num: "Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -1637,6 +1640,7 @@
   .kh-tcnha .ic{font-size:13px; line-height:1;}
   /* Màn hẹp: giữ nguyên biểu tượng, giấu chữ để không đè lên tiêu đề giữa hàng. */
   @media (max-width:560px){ .kh-tcnha{padding:0 10px;} .kh-tcnha .ch{display:none;} }
+
   .kh-backbtn{position:absolute; left:0; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:12px;
     background:var(--panel); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
     color:var(--text); cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,0.2); transition:background .15s ease;}
@@ -1758,16 +1762,21 @@
      bộ); trang chủ đề lại dùng .tc-song cỡ 12px, nên cùng một thứ — nguyên văn kèm bản
      dịch — mà hai màn nhìn khác hẳn nhau. Nay cùng cỡ chữ, cùng cách đặt nhãn, cùng nền. */
   .tc-song{margin:0 0 12px; border-radius:13px; overflow:hidden; border:1px solid var(--border);}
-  .tc-song .en, .tc-song .vi{position:relative; padding:15px 17px 15px 46px; font-size:16.5px; line-height:1.75;}
-  .tc-song .en{background:rgba(255,255,255,.035); color:var(--dim); font-style:italic;}
-  .tc-song .vi{background:color-mix(in srgb, var(--tcm) 8%, transparent); color:var(--text);
+  .tc-song .en, .tc-song .vi{font-family:var(--doc); position:relative;
+    padding:15px 17px 15px 46px; font-size:16px; line-height:1.72;}
+  /* v315 · Mục 2 — TIẾNG ANH LÀ BẢN GỐC CÓ HIỆU LỰC: đậm, sáng, nền nổi, vạch màu bên
+     trái. TIẾNG VIỆT là bản dịch hỗ trợ: nhẹ hơn, nền chìm. Trước đây khối Summary làm
+     NGƯỢC — tiếng Anh in nghiêng màu mờ, tiếng Việt lại sáng hơn bản gốc. */
+  .tc-song .en{background:color-mix(in srgb, var(--tcm) 11%, transparent); color:#fff;
+    font-weight:600; border-left:3px solid var(--tcm);}
+  .tc-song .vi{background:rgba(255,255,255,.02); color:var(--dim); font-weight:400;
     border-top:1px solid var(--border);}
   .tc-song .nhan{position:absolute; left:13px; top:15px; font-family:var(--mono); font-size:10px;
     font-weight:800; letter-spacing:.5px; padding:3px 7px; border-radius:6px;}
   .tc-song .en .nhan{color:var(--dim2); background:rgba(255,255,255,.07);}
   .tc-song .vi .nhan{color:var(--tcm, var(--blue));
     background:color-mix(in srgb, var(--tcm) 17%, transparent);}
-  .tc-song .vi b{color:#fff;}
+  .tc-song .vi b{color:var(--text);} .tc-song .en b{color:#fff;}
   /* Bảng số liệu: cuộn ngang được trên điện thoại, hàng tiêu đề dính khi cuộn dọc. Đây là
      thứ người kiểm hàng mở ra nhiều nhất, nên nó phải đọc được trên màn hình nhỏ. */
   .tc-bang-o{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 12px;
@@ -2131,14 +2140,14 @@
      Đây là tài liệu tiêu chuẩn: bản tiếng Anh mới là bản có hiệu lực khi tranh luận với
      lab hay với khách, bản dịch chỉ để hiểu nhanh. Nên phân cấp đúng vai trò của chúng. */
   .tc-s{margin:0 0 12px; border-radius:14px; overflow:hidden; border:1px solid var(--border);}
-  .tc-s-en{position:relative; padding:15px 17px; font-size:16.5px; line-height:1.75;
+  .tc-s-en{font-family:var(--doc); position:relative; padding:15px 17px; font-size:16.5px; line-height:1.72;
     font-weight:600; color:#fff; background:color-mix(in srgb, var(--tcm) 11%, transparent);
     border-left:3px solid var(--tcm); overflow-wrap:anywhere;}
   .tc-s-en .nh{display:inline-block; margin-right:9px; padding:2px 7px; border-radius:6px;
     font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:.6px;
     vertical-align:2px; color:var(--tcm);
     background:color-mix(in srgb, var(--tcm) 22%, transparent);}
-  .tc-s-vi{padding:13px 17px; font-size:15px; line-height:1.75; color:var(--dim);
+  .tc-s-vi{font-family:var(--doc); padding:13px 17px; font-size:14.5px; line-height:1.72; color:var(--dim);
     background:rgba(255,255,255,.02); border-top:1px solid var(--border);
     overflow-wrap:anywhere;}
   .tc-s-vi b{color:var(--text); font-weight:700;}
@@ -2259,7 +2268,10 @@
   .tc-thu-ds-dau span{font-size:11px; color:var(--dim); font-family:var(--mono);}
   .tc-thu-ds-dau i{display:block; margin-top:7px; font-style:normal; font-size:11.5px;
     line-height:1.65; color:var(--dim2);}
-  .tc-thu-nut{display:flex; align-items:flex-start; gap:11px; width:100%; margin:0 0 8px;
+  /* v315 · Mục 9 — danh sách phép thử xếp HAI CỘT trên màn rộng cho đỡ dài. */
+  .tc-thu-ds{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:8px;}
+  .tc-thu-ds-dau{grid-column:1/-1;}
+  .tc-thu-nut{display:flex; align-items:flex-start; gap:11px; width:100%; margin:0;
     padding:12px 11px 12px 12px; border-radius:15px; cursor:pointer; text-align:left;
     font-family:inherit; background:var(--panel); color:var(--text);
     border:1px solid var(--border); border-left:3px solid var(--tcm);
@@ -5673,6 +5685,28 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 @supports (backdrop-filter: blur(2px)){
   @media (max-width:700px){ .hv-chon-bang{background:#131A24F2; backdrop-filter:blur(10px);} }
 }
+
+  /* ══ v315 · Mục 6 — KHỐI ĐIỆN THOẠI PHẢI ĐỨNG CUỐI ══════════════════════════════════
+     Lúc đầu tôi chèn khối này ở giữa bảng kiểu, TRƯỚC các luật nền. Cùng độ ưu tiên thì
+     luật đứng SAU thắng, nên luật nền đè ngược lại và phần thu nhỏ trên điện thoại không
+     bao giờ có tác dụng. Khối @media phải nằm sau cùng. */
+  /* v315 · Mục 6 — ĐIỆN THOẠI: trên laptop cỡ chữ này vừa, nhưng màn 360–430px thì nó quá
+     to, mỗi câu chiếm 4–5 dòng và phải cuộn rất lâu. Thu cỡ chữ, bóp lề, giảm bo góc. */
+  @media (max-width:560px){
+    .tc-s-en{font-size:14.5px; line-height:1.62; padding:11px 12px;}
+    .tc-s-vi{font-size:13.5px; line-height:1.62; padding:10px 12px;}
+    .tc-song .en, .tc-song .vi{font-size:14px; line-height:1.62; padding:11px 12px 11px 40px;}
+    .tc-song .nhan{left:10px; top:12px;}
+    .tc-dhead-en{font-size:19px;} .tc-dhead-vi{font-size:13.5px;}
+    .tc-dhead-bo{font-size:13px; padding:4px 9px;}
+    .tc-nv{padding:3px 10px; border-radius:13px;}
+    .tc-sum{padding:10px; border-radius:13px;}
+    .tc-sum-d .ma{font-size:12.5px; padding:3px 8px;}
+    .tc-sum-d .t{font-size:14.5px;}
+    .tc-cts-m{padding:9px 10px;} .tc-cts-m .en{font-size:13.5px;} .tc-cts-m .vi{font-size:12.5px;}
+    .tc-thu-ds{grid-template-columns:1fr;}
+    .tc-thu-nut{padding:10px;} .tc-thu-nut .en{font-size:13.5px;} .tc-thu-nut .vi{font-size:12px;}
+  }
 </style>
 </head>
 <body>
@@ -5948,7 +5982,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v314';
+const APP_VERSION = 'v315';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6317,6 +6351,36 @@ const TC_MUC = [
  ]},
 
 // ══ EN 581-1 ═════════════════════════════════════════════════════════════════════════
+{id:'p2-pham-vi', nhom:'p2', ten:'Phạm vi áp dụng', tenEn:'Scope (Clause 1)',
+ tom:'Phần 2 phủ cái gì, và ranh giới với phần 1',
+ khoi:[
+  {k:'song', en:'This part of EN 581 specifies the mechanical safety requirements and test methods for outdoor seating for camping, domestic and contract use.',
+   vi:'Phần 2 quy định <b>yêu cầu an toàn CƠ HỌC và phương pháp thử</b> cho <b>ghế ngoài trời</b> ở ba cấp camping, domestic, contract.'},
+  {k:'song', en:'It is applicable to seating for adults.',
+   vi:'Chỉ áp dụng cho <b>ghế dùng cho người lớn</b>.'},
+  {k:'de', t:'Ranh giới cần nhớ khi đi kiểm hàng'},
+  {k:'ds', ts:[
+   'Yêu cầu an toàn CHUNG (cạnh sắc, điểm kẹp, lỗ bẫy ngón tay) nằm ở EN 581-1, không nằm ở đây.',
+   'Phần này chỉ nói về GHẾ. Bàn nằm ở EN 581-3.',
+   'Cách thử cụ thể của từng phép thử viện dẫn sang EN 1728 (độ bền ghế) và EN 1022 (độ ổn định).'
+  ]}
+ ]},
+
+{id:'p3-pham-vi', nhom:'p3', ten:'Phạm vi áp dụng', tenEn:'Scope (Clause 1)',
+ tom:'Phần 3 phủ cái gì, và ranh giới với phần 1',
+ khoi:[
+  {k:'song', en:'This part of EN 581 specifies the mechanical safety requirements and test methods for outdoor tables for camping, domestic and contract use.',
+   vi:'Phần 3 quy định <b>yêu cầu an toàn CƠ HỌC và phương pháp thử</b> cho <b>bàn ngoài trời</b> ở ba cấp camping, domestic, contract.'},
+  {k:'song', en:'It is applicable to tables for adults.',
+   vi:'Chỉ áp dụng cho <b>bàn dùng cho người lớn</b>.'},
+  {k:'de', t:'Ranh giới cần nhớ khi đi kiểm hàng'},
+  {k:'ds', ts:[
+   'Yêu cầu an toàn CHUNG nằm ở EN 581-1, không nằm ở đây.',
+   'Phần này chỉ nói về BÀN. Ghế nằm ở EN 581-2.',
+   'Cách thử viện dẫn sang EN 1730 (độ bền và ổn định của bàn).'
+  ]}
+ ]},
+
 {id:'p1-pham-vi', nhom:'p1', ten:'Phạm vi áp dụng', tenEn:'Scope (Clause 1)',
  tom:'Áp cho ai, không áp cho cái gì',
  khoi:[
@@ -9169,11 +9233,11 @@ const TC_BO = [
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
   vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại — Phần 1: Yêu cầu an toàn chung',
   mo:'Áp cho <b>cả ghế lẫn bàn</b>: cạnh sắc, góc nhọn, đầu ống hở, điểm cắt và kẹp tay.'},
- {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#7CC4FF', vai:'An toàn cơ học — GHẾ', phu:true,
+ {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#4FA8FF', vai:'An toàn cơ học — GHẾ', phu:true,
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 2: Mechanical safety requirements and test methods for seating',
   vi:'Đồ ngoài trời — Phần 2: Yêu cầu an toàn cơ học và phương pháp thử cho ghế',
   mo:'Nêu ghế phải chịu <b>lực nào, bao nhiêu chu kỳ</b> theo ba cấp. Hai bảng riêng: ghế nằm và ghế loại khác.'},
- {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#A8D8FF', vai:'An toàn cơ học — BÀN', phu:true,
+ {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#4FA8FF', vai:'An toàn cơ học — BÀN', phu:true,
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 3: Mechanical safety requirements for tables',
   vi:'Đồ ngoài trời — Phần 3: Yêu cầu an toàn cơ học cho bàn',
   mo:'Tải mặt bàn, độ bền ngang, độ ổn định, mặt bàn kính, lỗ cắm dù.'},
@@ -14026,8 +14090,9 @@ function tcNguyenVanHtml(ma, than){
   return `<section class="tc-nv">${than}</section>`;
 }
 function tcLuuHtml(t){
-  const m = String(t || '').match(/^\s*T[ÜU]V\s*(\d{4})\s*[·:\-]\s*([\s\S]*)$/);
-  if(m) return `<div class="tc-luu capnhat"><span class="tc-luu-i">Update follow TÜV ${m[1]}</span>${m[2]}</div>`;
+  // v315 · Mục 3 — XOÁ HẲN cả phần "Update follow TÜV". Trang chỉ còn nguyên văn tiêu
+  // chuẩn và phần Summary; không còn lớp bình luận nào chen giữa.
+  if(/^\s*T[ÜU]V\s*\d{4}\s*[·:\-]/.test(String(t || ''))) return '';
   // v314 — XOÁ HẲN ô ghi chú thường (cả nội dung). Chỉ còn giữ ô CẬP NHẬT TIÊU CHUẨN ở
   // nhánh trên, vì đó là thay đổi của chính tiêu chuẩn chứ không phải lời bình của tôi.
   return '';
@@ -14384,13 +14449,14 @@ function tcThuDsHtml(bangId){
       <span>${escapeHtml(b.ten)} · ${escapeHtml(b.enTen)}</span>
       <i>Bấm vào một phép thử để xem đủ: hình trong file tiêu chuẩn, điều khoản gốc,
          thiết bị, trình tự thử, thông số ba cấp và tiêu chí đạt.</i></div>
-    ${ds.map(t=>`<button class="tc-thu-nut" data-action="tc-thu" data-id="${t.id}">
+    ${ds.map((t, i)=>`<button class="tc-thu-nut" data-action="tc-thu" data-id="${t.id}"
+        style="--tcm:${TC_MAU_DEMUC[i % TC_MAU_DEMUC.length]}">
         <span class="so">${t.so}</span>
         <span class="noi">
           <span class="en">${escapeHtml(t.en)}</span>
           <span class="vi">${escapeHtml(t.vi)}</span>
           <span class="vien">${escapeHtml(t.vien)}</span>
-          <span class="tom">${escapeHtml(tcTomTat(t))}</span>
+          ${/* v315 · Mục 9 — bỏ dòng thông số: bấm vào phép thử là hiện đủ rồi */ ''}
         </span>
         <span class="mui">›</span>
       </button>`).join('')}
@@ -14828,7 +14894,10 @@ function tcNoiVienDan(html, boHienTai){
     let t = phan[i];
     // Thứ tự quan trọng: mẫu DÀI trước, mẫu ngắn sau, vì mẫu dài chứa mẫu ngắn.
     // "Table 1 of EN 581-2:2015" / "Table 2" → ảnh bảng
-    t = t.replace(/\b(Bảng|Table)\s+([A-Z]?\.?\d+)(\s+of\s+EN\s*581-([123])(?::\d{4})?)?/g,
+    // v315 · Mục 4 — bản dịch viết "Bảng 2 CỦA EN 581-2:2015". Luật cũ chỉ bắt chữ "of",
+    // nên vế tiếng Việt trượt khỏi nhánh BẢNG rồi rơi xuống nhánh mã EN và nhảy sang điều 1
+    // — tức là cùng một câu mà hai ngôn ngữ dẫn đi hai nơi khác nhau.
+    t = t.replace(/\b(Bảng|Table)\s+([A-Z]?\.?\d+)(\s+(?:of|của)\s+EN\s*581-([123])(?::\d{4})?)?/g,
       (tron, tu, so, _du, ph)=>{
         const bo = ph ? 'en581-' + ph : boHienTai;
         const b = TC_HINH.find(x=>x.loai === 'bang' && x.bo === bo
@@ -14841,12 +14910,18 @@ function tcNoiVienDan(html, boHienTai){
       return h ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-xem-hinh" data-id="${h.id}">${tron}</span>`) : tron;
     });
     // "EN 1728:2012, 8.2" / "EN 1730, 6.3.1" / "EN 581-2:2015" → sang bộ khác
-    t = t.replace(/\bEN\s*(1728|1730|581-[123])(?::\d{4})?(?:,?\s*(\d+(?:\.\d+){0,3}))?/g,
+    // v315 · Mục 4 + 12 — thêm EN 1022 và UL 4041 vào danh sách bộ tra cứu có thật, nếu
+    // không thì EN 1022 chỉ được tô sáng mà bấm không đi đâu, trong khi EN 1728 thì đi được.
+    t = t.replace(/\b(?:EN|UL)\s*(1728|1730|1022|4041|581-[123])(?::\d{4})?(?:,?\s*(\d+(?:\.\d+){0,3}))?/g,
       (tron, bo, so)=>{
-        const id = 'en' + bo;
+        const id = (bo === '4041' ? 'ul' : 'en') + bo;
         if(so && tcDieuCua(id, so))
           return cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${id}" data-so="${so}">${tron}</span>`);
-        if(!so && tcDieuCua(id, '1'))
+        // v315 · Mục 4 + 12 — "EN 1022:2005, 6.6": bộ CÓ trong app nhưng điều 6.6 chưa dựng.
+        // Luật cũ chỉ lùi về điều 1 khi KHÔNG có số điều, nên trường hợp này rơi hết ra
+        // ngoài và mã chỉ được tô sáng mà bấm không đi đâu. Nay bộ có thật thì luôn mở
+        // được, cùng lắm là mở ở điều 1.
+        if(tcDieuCua(id, '1'))
           return cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-dieu" data-bo="${id}" data-so="1">${tron}</span>`);
         // v311 · Mục 9 — bộ chưa dựng thì KHÔNG bấm được, nhưng mã vẫn phải nổi trong khung
         // sáng để mắt nhận ra ngay đó là một tiêu chuẩn.
@@ -15359,15 +15434,19 @@ function tcDieuSau(so){ return String(so).split('.').length; }
 const TC_MUC_DIEU = {
   'p1-pham-vi':['en581-1','1'], 'p1-dau-do':['en581-1','4'], 'p1-canh':['en581-1','5.1'],
   'p1-ong':['en581-1','5.2'],   'p1-kep':['en581-1','5.3'],
-  'p2-diem':['en581-2','4'],    'p2-lounger':['en581-2','6.2.1'], 'p2-goc':['en581-2','6.2.1'],
-  'p2-dat':['en581-2','6.2.2'], 'p2-ghe':['en581-2','7.2.1'],     'p2-nhan':['en581-2','8'],
+  // v315 · Mục 8 + 10 — bỏ Summary ở EN 581-2 điều 4 (Testing) và 6.2.2 (Requirement);
+  // hai chỗ này bản in đã nói đủ, thêm tóm tắt chỉ làm trang dài ra.
+  'p2-lounger':['en581-2','6.2.1'], 'p2-goc':['en581-2','6.2.1'],
+  'p2-ghe':['en581-2','7.2.1'],     'p2-nhan':['en581-2','8'],
+  // v315 · Mục 7 — bổ sung Summary cho điều 1 (Scope) của EN 581-2 và EN 581-3.
+  'p2-pham-vi':['en581-2','1'], 'p3-pham-vi':['en581-3','1'],
   'p3-kinh':['en581-3','5.1'],  'p3-ban':['en581-3','5.2.1'],     'p3-v':['en581-3','5.2.1'],
   'p3-dat':['en581-3','5.2.2']
 };
 // v311 — Các mục con TRỰC TIẾP của một điều: 5.3 → 5.3.1, 5.3.2, 5.3.3 (không lấy 5.3.1.1).
 // v313 — Danh sách ĐÍCH DANH những mục cha được phép gom mục con vào trong. Mặc định
 // KHÔNG gom, đúng như bản in: mục 3, 5, 5.3 của EN 581-1 chỉ là tiêu đề.
-const TC_CHA_GOM_CON = {'en581-2:8': 1};
+const TC_CHA_GOM_CON = {};   // v315 · Mục 11 — không mục cha nào gom mục con nữa.
 function tcDieuConTrucTiep(bo, so){
   const sau = String(so).split('.').length + 1;
   return TC_DIEU_HET.filter(d => d.bo === bo
@@ -15554,7 +15633,7 @@ function renderTcDieu(){
         // thực chiến. Không còn nút mở riêng.
         const mc = tcMucCuaDieu(bo.id, d.so);
         // Chỉ còn ghi chú CẬP NHẬT mới được hiện (v314).
-        const luu = (d.luu || []).filter(x => /^\s*T[ÜU]V\s*\d{4}\s*[·:\-]/.test(String(x)));
+        const luu = [];   // v315 · Mục 3 — không còn ô ghi chú nào trong khung Summary.
         if(!mc.length && !luu.length) return '';
         // v313 — bỏ dòng tiêu đề ngoài khung; chữ SUMMARY trong khung đã đủ nhận ra.
         return `<section class="tc-sum">
