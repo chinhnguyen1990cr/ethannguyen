@@ -2271,17 +2271,23 @@
   /* v315 · Mục 9 — danh sách phép thử xếp HAI CỘT trên màn rộng cho đỡ dài. */
   .tc-thu-ds{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:8px;}
   .tc-thu-ds-dau{grid-column:1/-1;}
+  /* v316 · TÔ NỀN KHUNG, KHÔNG TÔ CHỮ. Trước đây màu chỉ nằm ở viền trái và ở con số,
+     nhìn lướt cả danh sách vẫn thấy mười mấy ô xám giống hệt nhau. Nay chính NỀN ô mang
+     màu của phép thử, nên liếc qua là phân biệt được ngay. Dùng color-mix trộn màu vào
+     nền panel để ô vẫn chìm trong tông tối của app, không chói. */
   .tc-thu-nut{display:flex; align-items:flex-start; gap:11px; width:100%; margin:0;
     padding:12px 11px 12px 12px; border-radius:15px; cursor:pointer; text-align:left;
-    font-family:inherit; background:var(--panel); color:var(--text);
-    border:1px solid var(--border); border-left:3px solid var(--tcm);
+    font-family:inherit; color:var(--text);
+    background:color-mix(in srgb, var(--tcm) 14%, var(--panel));
+    border:1px solid color-mix(in srgb, var(--tcm) 38%, transparent);
+    border-left:4px solid var(--tcm);
     transition:transform .12s ease, background .15s ease;}
   .tc-thu-nut:active{transform:scale(.985);}
-  .tc-thu-nut:hover{background:var(--panel2);}
+  .tc-thu-nut:hover{background:color-mix(in srgb, var(--tcm) 24%, var(--panel));}
   .tc-thu-nut .so{flex:0 0 auto; min-width:23px; height:23px; margin-top:1px; display:flex;
     align-items:center; justify-content:center; border-radius:8px; font-family:var(--mono);
-    font-size:11.5px; font-weight:800; color:var(--tcm);
-    background:color-mix(in srgb, var(--tcm) 15%, transparent);}
+    font-size:11.5px; font-weight:800; color:#10151c;
+    background:var(--tcm);}
   .tc-thu-nut .noi{flex:1; min-width:0;}
   .tc-thu-nut .en{display:block; font-size:13px; font-weight:700; line-height:1.4;
     color:#fff; overflow-wrap:anywhere;}
@@ -2289,6 +2295,11 @@
     color:var(--dim); overflow-wrap:anywhere;}
   .tc-thu-nut .vien{display:block; margin-top:5px; font-family:var(--mono); font-size:9.5px;
     letter-spacing:.2px; color:var(--dim2); overflow-wrap:anywhere;}
+  /* v316 — Dòng viện dẫn trong ô phép thử: .tc-nd vốn lấy màu từ var(--tcm), mà trong ô
+     này --tcm là màu của chính phép thử, nên chữ bị nhuộm theo. Màu nay nằm ở NỀN ô rồi,
+     chữ phải trả về trung tính thì mới đọc được. */
+  .tc-thu-nut .vien .tc-nd{color:var(--dim); border-bottom-color:var(--dim2);}
+  .tc-thu-nut .vien .tc-nd:hover{background:rgba(255,255,255,.12);}
   .tc-thu-nut .tom{display:block; margin-top:5px; padding:3px 7px; border-radius:6px;
     font-family:var(--mono); font-size:10px; color:var(--tcm);
     background:color-mix(in srgb, var(--tcm) 11%, transparent);
@@ -5982,7 +5993,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v315';
+const APP_VERSION = 'v316';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -14450,7 +14461,7 @@ function tcThuDsHtml(bangId){
       <i>Bấm vào một phép thử để xem đủ: hình trong file tiêu chuẩn, điều khoản gốc,
          thiết bị, trình tự thử, thông số ba cấp và tiêu chí đạt.</i></div>
     ${ds.map((t, i)=>`<button class="tc-thu-nut" data-action="tc-thu" data-id="${t.id}"
-        style="--tcm:${TC_MAU_DEMUC[i % TC_MAU_DEMUC.length]}">
+        style="--tcm:${TC_MAU_THU[i % TC_MAU_THU.length]}">
         <span class="so">${t.so}</span>
         <span class="noi">
           <span class="en">${escapeHtml(t.en)}</span>
@@ -14793,6 +14804,14 @@ function tcThanhCongCu(bo, mucluc){
 // v309 · Mục 3 — BẢNG MÀU CHO ĐỀ MỤC. Trước đây mọi ô đề mục đều mang đúng một màu của
 // bộ tiêu chuẩn, nên tám đề mục nhìn như nhau. Nay mỗi ô một màu để phân biệt bằng mắt.
 const TC_MAU_DEMUC = ['#4FA8FF','#FF8A3D','#38D39F','#C792FF','#FFC94A','#FF6B9D','#4ED8E6','#9CCB5A'];
+// v316 — BẢNG MÀU RIÊNG CHO PHÉP THỬ. Trước đây danh sách phép thử mượn TC_MAU_DEMUC chỉ
+// có 8 màu, mà Bảng 2 có tới 14 phép thử: từ phép thứ 9 trở đi màu quay vòng lại, hai phép
+// thử khác hẳn nhau lại cùng một màu — đúng điều phải tránh. Bảng này có 16 màu, nhiều hơn
+// danh sách dài nhất (14), nên trong cùng một bảng KHÔNG BAO GIỜ lặp màu.
+// Thứ tự đã được xáo theo vòng màu: hai ô cạnh nhau luôn cách nhau trên 100° sắc độ, chứ
+// xếp theo thứ tự cầu vồng thì cam với vàng nằm sát nhau, nhìn ra một khối.
+const TC_MAU_THU = ['#FF6B6B','#38D39F','#C792FF','#FFB33D','#4FA8FF','#FF6BD6','#BEE04A',
+  '#6E8CFF','#FF8A3D','#2FC9C0','#E26BFF','#FFD94A','#4ED8E6','#FF6B9D','#7FD455','#9A7CFF'];
 function tcDauTrangHtml(o){
   const mau = o.hex || 'var(--blue)';
   return `<header class="tc-dhead" style="--tcm:${mau}">
