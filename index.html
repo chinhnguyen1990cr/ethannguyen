@@ -4770,12 +4770,17 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-dk-chon{font-family:inherit;font-size:12px;font-weight:700;padding:5px 7px;
   border-radius:9px;color:var(--text);background:var(--panel2);
   border:1px solid var(--border);cursor:pointer;}
-/* Tay kéo cỡ khung: góc dưới phải của khung video, đủ to để ngón tay bắt trúng. */
-.hv-keo{position:absolute;right:6px;bottom:6px;z-index:6;
-  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
-  border-radius:9px;cursor:ns-resize;touch-action:none;user-select:none;
-  font-size:14px;color:var(--text);background:var(--nhan3);border:1px solid var(--border);}
-.hv-keo:hover{background:var(--panel2);}
+/* Tay kéo cỡ khung — v331 SỬA CHỖ ĐẶT. Bản v330 để nó ở góc dưới phải NGAY TRONG khung
+   video, mà đúng góc ấy đã có hàng nút ⤢ A+ ▤ 🇻🇳 ¶ CC ⛶ với z-index cao hơn, nên hàng nút
+   nằm đè lên và kéo không được. Nay dời hẳn RA NGOÀI khung: một thanh ngang mỏng ngay dưới
+   video, không chồng lên thứ gì, và rộng cả bề ngang nên ngón tay bắt trúng dễ hơn nhiều. */
+.hv-keo{display:flex;align-items:center;justify-content:center;
+  height:16px;margin:2px 0 0;border-radius:8px;
+  cursor:ns-resize;touch-action:none;user-select:none;background:transparent;}
+.hv-keo span{display:block;width:46px;height:4px;border-radius:999px;background:var(--border);
+  transition:background .15s ease, width .15s ease;}
+.hv-keo:hover span{background:var(--dim);width:64px;}
+.hv-keo:active span{background:var(--teal);}
 @media (max-width:560px){
   .hv-dk{gap:9px;padding:7px 8px;}
   .hv-dk-n{min-width:46px;height:42px;padding:0 7px;}
@@ -6186,7 +6191,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v330';
+const APP_VERSION = 'v331';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33054,6 +33059,7 @@ function hvVaoChe(che){
   s.che = che;
   if(che !== 'chon') s.tab = che;
   hvDoiTab(che === 'chon' ? s.tab : che);
+  try{ hvCauBatBam(); }catch(e){}
 }
 function hvVeManChon(){
   const s = STATE.hvPhien; if(!s) return;
@@ -33062,6 +33068,7 @@ function hvVeManChon(){
   try{ dvXoaHenGio(); }catch(e){}
   try{ hvNgungDoc(); }catch(e){}
   s.che = 'chon';
+  try{ hvCauNgungBam(); }catch(e){}
   try{ const p = hvLayPlayer(true); if(p && p.pauseVideo) p.pauseVideo(); }catch(e){}
   renderContent(); window.scrollTo(0,0);
 }
@@ -33162,6 +33169,34 @@ function hvDkBatNhip(){
     }catch(e){ hvDkNgung(); }
   }, 120);
 }
+// ══ v331 · KHUNG CÂU BÁM THEO VIDEO ═══════════════════════════════════════════════════
+// LỖI v330: s.cau chỉ đổi khi BẤM nút trên thanh điều khiển. Cứ để video chạy thì khung câu
+// đứng im ở "Câu 1/103" trong khi video đã nói tới câu 20 — đúng như bạn thấy. Nguyên nhân là
+// tôi dựng thanh điều khiển như một thứ ĐIỀU KHIỂN video mà quên chiều ngược lại: video chạy
+// thì màn hình phải đi theo.
+//
+// Nhịp riêng 300ms, nhẹ hơn nhịp 120ms của phụ đề vì đây chỉ đổi khi SANG CÂU KHÁC, không phải
+// mỗi chữ. Chạy ở MỌI phòng, nên sang Shadowing hay Dictation thì khung câu vẫn bám đúng.
+let hvCauNhip = null;
+function hvCauNgungBam(){ if(hvCauNhip){ clearInterval(hvCauNhip); hvCauNhip = null; } }
+function hvCauBatBam(){
+  hvCauNgungBam();
+  hvCauNhip = setInterval(()=>{
+    try{
+      const st = STATE.hvPhien;
+      if(!st || hvChePhien() === 'chon'){ hvCauNgungBam(); return; }
+      const p = hvLayPlayer(true);
+      if(!p || !p.getCurrentTime || !p.getPlayerState) return;
+      if(p.getPlayerState() !== 1) return;            // đang dừng thì đừng kéo khung câu đi đâu
+      const rec = hvTim(st.vidId); if(!rec || !rec.lines || !rec.lines.length) return;
+      const i = hvDongTaiGiay(rec.lines, p.getCurrentTime());
+      if(i < 0 || i === st.cau) return;
+      st.cau = i;
+      sdVeCau();
+      hvDkVeThanh();
+    }catch(_){ }
+  }, 300);
+}
 function hvDkCauTruoc(){ hvDkToiCau(hvDkCau() - 1); }
 function hvDkCauSau(){   hvDkToiCau(hvDkCau() + 1); }
 function hvDkLapLai(){   hvDkToiCau(hvDkCau()); }
@@ -33207,6 +33242,8 @@ function hvDkHtml(){
 function hvDongPhien(){
   try{ hvThoatToanMan(); }catch(_){}
   try{ hvCapNgung(); }catch(_){}
+  try{ hvCauNgungBam(); }catch(_){}
+  try{ hvDkNgung(); }catch(_){}
   // MỌI bước dọn dẹp đều bọc lỗi riêng. Trước đây vài bước để trần: chỉ cần một bước ném lỗi là
   // hàm chết giữa chừng, phiên không được xoá, màn hình không vẽ lại — nhìn ra ngoài đúng y như
   // "bấm back không có tác dụng gì".
@@ -36570,8 +36607,8 @@ function renderHocVideoPhien(item){
             <b id="hvDamNhan">${hvCheDam()}%</b></label>
         </div>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
-        <span class="hv-keo" data-action="hv-keo" title="Kéo để chỉnh cỡ khung video">⤡</span>
       </div>
+      <div class="hv-keo" data-action="hv-keo" title="Kéo lên xuống để chỉnh cỡ khung video"><span></span></div>
       ${hvChePhien() === 'chon' ? '' : `<div id="hvDkWrap">${hvDkHtml()}</div>`}
     </div>
     <div class="hv-cot-p">
@@ -36589,6 +36626,7 @@ function renderHocVideoPhien(item){
   // Chuẩn hoá mốc TRƯỚC khi vẽ phần còn lại, để dải báo "còn đoạn chưa có lời" hiện đúng ngay.
   try{ hvChuanMoc(rec); }catch(e){}
   try{ hvApCaoTuy(); }catch(e){}
+  try{ if(hvChePhien() !== 'chon') hvCauBatBam(); else hvCauNgungBam(); }catch(e){}
   if(!hvHoanPanel(rec)) hvSauVeTam(rec, s);
   hvDoHinh(rec);
   // v195: BỎ HẲN việc tự động vá. Mỗi đoạn vá là một lượt "nghe video" — thứ tốn hạn mức nhất
@@ -37358,8 +37396,14 @@ function dvXepXoa(){
 function dvDatKieu(k, v){
   if(k === 'kieu') SETTINGS.dvKieu = v; else SETTINGS.dvMuc = v;
   saveSettings();
-  const s = STATE.dvPhien; if(s){ s.go = ''; s.ketQua = null; }
-  renderContentPreserveScroll();
+  // Đổi kiểu hay mức là đổi hẳn đề bài, nên chữ đã gõ và điểm đã chấm của câu đang mở không
+  // còn nghĩa gì — xoá đi. Nhưng GIỮ nguyên câu đang mở: bạn đang làm câu nào thì vẫn câu ấy.
+  const s = STATE.dvPhien; if(s){ s.go = ''; s.ketQua = null; s.thuHien = false; s.thuLan = 0; }
+  // v331 — SỬA LỖI "bấm Dễ/Khó thì câu đang mở đóng lại và hiện nút Chép lại": bản v330 gọi
+  // renderContentPreserveScroll(), tức là ghi đè innerHTML của CẢ #content. Làm thế là xoá luôn
+  // thẻ iframe YouTube rồi dựng lại từ đầu — đúng cái lỗi đã mắc ở v167/v168 và đã ghi lại ngay
+  // trong file này. Nay chỉ vẽ lại ĐÚNG vùng danh sách; khung video không bị đụng tới.
+  if(!dvVe('dvListWrap')) renderContentPreserveScroll();
 }
 // Ô xem trước: cho thấy ĐÚNG cái sắp phải làm, dựng từ chính câu đầu tiên của video chứ không
 // phải một câu bịa — xem trước mà không giống lúc làm thì chỉ gây hiểu nhầm.
