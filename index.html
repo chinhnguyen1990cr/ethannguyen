@@ -46,41 +46,41 @@
      nền tối. Lớp này do renderContentInner bật/tắt, tính lại ở MỌI lần dựng màn nên không
      có đường nào thoát ra mà quên gỡ.
      Chỉ lật BIẾN, không lật từng luật: 363 luật .tc- tự đi theo. */
-  /* ══ v325 · NỀN TRẮNG, KHUNG ĐẬM HƠN NỀN ═══════════════════════════════════════════
-     Đảo lại cách làm: trước đây nền xám và khung trắng, nay NỀN TRẮNG và KHUNG ĐẬM HƠN.
-     Hợp hơn với tài liệu kỹ thuật — trang là tờ giấy, mỗi khối nội dung là một ô được tô
-     nền để tách ra, giống khối chú giải trong tiêu chuẩn in.
+  /* ══ v326 · NỀN TRẦM + SIẾT MÀU TÍN HIỆU ═══════════════════════════════════════════
+     LỖI CHÍNH ĐÃ TÌM RA: chữ khó đọc KHÔNG phải tại nền. Mỗi bộ tiêu chuẩn mang một màu
+     nhận dạng riêng (--tcm) gắn thẳng trên thẻ — xanh #4FA8FF, vàng #FFC94A… — và những
+     màu ấy được chọn cho NỀN TỐI. Trên nền sáng chúng nhạt tới mức gần như mất: mã bộ
+     "EN 1728 · Figure 2" đo ra 2,3:1, dưới xa mức tối thiểu 4,5:1. Số điều 5.1/5.4/5.6,
+     nhãn HOW TO READ, liên kết EN 581 và các số 1 2 3 A B C trong bảng KEY đều cùng cảnh.
 
-     HAI MỨC NỀN RIÊNG CHO SONG NGỮ — chỗ được yêu cầu nói rõ:
-       --en-nen  #D3DFEC  nguyên văn tiếng Anh: ĐẬM, vì đây là bản có hiệu lực
-       --vi-nen  #F5F8FC  bản dịch: NHẠT hẳn
-     Hai nền chênh nhau 1,34:1 nên liếc qua là biết đâu gốc đâu dịch. Trước đây chúng chỉ
-     chênh một lớp phủ 5%, trên nền sáng gần như không phân biệt được.
-
-     Kiểu chữ: IBM Plex Sans — pha riêng cho tài liệu kỹ thuật, bộ dấu tiếng Việt đầy đủ,
-     chữ số phân biệt rõ. Kèm IBM Plex Mono cho mã tiêu chuẩn và số điều. Có ngăn xếp dự
-     phòng nên mất mạng thì rơi về font hệ thống chứ không vỡ chữ. */
+     Ở v318 tôi ĐÃ có luật trộn màu ấy đậm lại cho tông sáng. Khi gom mười bảy tông về một
+     ở v324, tôi xoá cả khối tông và XOÁ NHẦM LUÔN luật ấy. Nay dựng lại, trộn mạnh hơn
+     (75% màu mực) và phủ cả màu viền, kèm phép kiểm giữ để không mất lần nữa. */
   body.tc-doc{
-    --bg:#FFFFFF; --panel:#E7EDF4; --panel2:#D9E2EC; --border:#A4B3C5;
-    --text:#0E1621; --dim:#3F4C5C; --dim2:#5B6877; --manh:#060C14;
-    --en-nen:#D3DFEC; --vi-nen:#F5F8FC;
-    --nhan1:rgba(14,22,33,.05); --nhan2:rgba(14,22,33,.09); --nhan3:rgba(14,22,33,.16);
-    --blue:#0F4FD8; --orange:#9A4A0B; --teal:#0D6A60; --red:#B42318; --gold:#8A6410;
+    --bg:#EDF1F6; --panel:#D6DFEA; --panel2:#C7D2E0; --border:#8395AC;
+    --text:#080F17; --dim:#333F4D; --dim2:#4C5968; --manh:#04080D;
+    --en-nen:#C3D1E2; --vi-nen:#E8EEF5;
+    --nhan1:rgba(8,15,23,.06); --nhan2:rgba(8,15,23,.11); --nhan3:rgba(8,15,23,.18);
+    --blue:#093D9F; --orange:#7E3A07; --teal:#0A5A52; --red:#9F1D14; --gold:#6E5008;
     --doc:"IBM Plex Sans","Be Vietnam Pro","Segoe UI",system-ui,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     background-image:none !important;
-    background-color:#FFFFFF !important;
+    background-color:#EDF1F6 !important;
   }
-  body.tc-doc #hud{background:#E7EDF4; border-bottom:1px solid var(--border);}
+  body.tc-doc #hud{background:#D6DFEA; border-bottom:1px solid var(--border);}
   body.tc-doc .kh-backrow .title{color:var(--text);}
   body.tc-doc .title-icon-badge{box-shadow:none;}
-  /* Nguyên văn tiếng Anh: nền đậm, vạch màu bên trái. Bản dịch: nền nhạt, cách nhau bằng
-     một đường kẻ rõ. Cả cặp nằm trong MỘT khung viền trọn, để thấy chúng là một đơn vị. */
+  /* Nguyên văn tiếng Anh nền đậm, bản dịch nền nhạt, cả cặp trong một khung viền trọn. */
   body.tc-doc :is(.tc-song .en, .tc-s-en){background:var(--en-nen); color:var(--manh);}
   body.tc-doc :is(.tc-song .vi, .tc-s-vi){background:var(--vi-nen);
     border-top:1px solid var(--border);}
   body.tc-doc :is(.tc-song, .tc-s-kh){border:1px solid var(--border); border-radius:10px;
     overflow:hidden;}
+  /* ── Ô nhỏ mang màu nhận dạng: nền là chính màu ấy pha 14% — đủ thấy là một ô, mà chữ
+     màu đầy đặt lên vẫn còn 4,5:1. Trên 14% thì chữ bắt đầu chìm vào nền ô. */
+  body.tc-doc :is(.tc-dhead-bo, .tc-h1 .ma, .tc-lk .ma, .tc-tb-o .ma, .tc-tt-mt .ma,
+    .tc-dnut .so, .tc-con-d .so, .tc-s-so, .tc-f-so, .tc-buoc .stt){
+    background:color-mix(in srgb, var(--tcm, var(--blue)) 14%, transparent);}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
   body{display:flex; justify-content:center; min-height:100vh;
@@ -6074,7 +6074,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v325';
+const APP_VERSION = 'v326';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6370,14 +6370,14 @@ let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', sha
 const KH_CATEGORIES = [
   // v286 — EN 581 là tiêu chuẩn cho đồ ngoài trời, nên dòng hàng này đứng đầu: mở ra là
   // vào thẳng bộ tra cứu, không phải lục qua ghi chú.
-  {id:'outdoor', label:'Outdoor Furniture', icon:'outdoor', hex:'#4FA8FF'},
-  {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
-  {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
-  {id:'nhua', label:'Nhựa', icon:'plastic', hex:'#0891B2'},
-  {id:'lighting', label:'Lighting', icon:'bulb', hex:'#FFC94A'},
-  {id:'handicraft', label:'Handicraft', icon:'palette', hex:'#FF8A3D'},
-  {id:'bamboo', label:'Bamboo', icon:'bamboo', hex:'#2CDBA8'},
-  {id:'khac', label:'Khác', icon:'grid', hex:'#8B96A8'}
+  {id:'outdoor', label:'Outdoor Furniture', icon:'outdoor', hex:'#0B4FA8'},
+  {id:'go', label:'Gỗ', icon:'wood', hex:'#7A4A12'},
+  {id:'ximang', label:'Xi măng', icon:'cement', hex:'#495768'},
+  {id:'nhua', label:'Nhựa', icon:'plastic', hex:'#0A5A72'},
+  {id:'lighting', label:'Lighting', icon:'bulb', hex:'#6E5008'},
+  {id:'handicraft', label:'Handicraft', icon:'palette', hex:'#8A3C06'},
+  {id:'bamboo', label:'Bamboo', icon:'bamboo', hex:'#085741'},
+  {id:'khac', label:'Khác', icon:'grid', hex:'#3E4A5C'}
 ];
 // ══════════════════════════════════════════════════════════════════════════════════════
 //  v286 · BỘ TRA CỨU EN 581 — ĐỒ GỖ / NỘI THẤT NGOÀI TRỜI
@@ -6399,11 +6399,11 @@ const KH_CATEGORIES = [
 // ══════════════════════════════════════════════════════════════════════════════════════
 const TC_DRIVE = 'https://drive.google.com/drive/folders/1ibpvgIdNsHPR5RUKOgdqcUhlRfzv8NBh';
 const TC_NHOM = [
-  {id:'tq', ten:'Tổng quan',        hex:'#4FA8FF'},
-  {id:'p1', ten:'EN 581-1 · An toàn chung', hex:'#2CDBA8'},
-  {id:'p2', ten:'EN 581-2 · Ghế',   hex:'#FFC94A'},
-  {id:'p3', ten:'EN 581-3 · Bàn',   hex:'#FF8A3D'},
-  {id:'tc', ten:'Thực chiến',       hex:'#C77DFF'}
+  {id:'tq', ten:'Tổng quan',        hex:'#0B4FA8'},
+  {id:'p1', ten:'EN 581-1 · An toàn chung', hex:'#085741'},
+  {id:'p2', ten:'EN 581-2 · Ghế',   hex:'#6E5008'},
+  {id:'p3', ten:'EN 581-3 · Bàn',   hex:'#8A3C06'},
+  {id:'tc', ten:'Thực chiến',       hex:'#6A2EA8'}
 ];
 // Mỗi mục: {id, nhom, ten, tenEn, tom, khoi:[...]}
 //   khoi: {k:'y', t} đoạn văn · {k:'ds', ts:[]} gạch đầu dòng · {k:'song', en, vi} cặp
@@ -9321,41 +9321,41 @@ const TC_BO = [
  // v291 — ba phần của EN 581 thành ba BỘ CON. Chúng phải có mặt trong TC_BO vì trang
  // điều khoản lấy mã, màu và tên bộ từ đây; nhưng gắn phu:true để màn dòng hàng vẫn chỉ
  // hiện ba thẻ lớn (EN 581 / EN 1728 / EN 1730), không thành sáu thẻ rối mắt.
- {id:'en581-1', ma:'EN 581-1', nam:'2017', hex:'#4FA8FF', vai:'Yêu cầu an toàn chung', phu:true,
+ {id:'en581-1', ma:'EN 581-1', nam:'2017', hex:'#0B4FA8', vai:'Yêu cầu an toàn chung', phu:true,
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
   vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại — Phần 1: Yêu cầu an toàn chung',
   mo:'Áp cho <b>cả ghế lẫn bàn</b>: cạnh sắc, góc nhọn, đầu ống hở, điểm cắt và kẹp tay.'},
- {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#4FA8FF', vai:'An toàn cơ học — GHẾ', phu:true,
+ {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#0B4FA8', vai:'An toàn cơ học — GHẾ', phu:true,
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 2: Mechanical safety requirements and test methods for seating',
   vi:'Đồ ngoài trời — Phần 2: Yêu cầu an toàn cơ học và phương pháp thử cho ghế',
   mo:'Nêu ghế phải chịu <b>lực nào, bao nhiêu chu kỳ</b> theo ba cấp. Hai bảng riêng: ghế nằm và ghế loại khác.'},
- {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#4FA8FF', vai:'An toàn cơ học — BÀN', phu:true,
+ {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#0B4FA8', vai:'An toàn cơ học — BÀN', phu:true,
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 3: Mechanical safety requirements for tables',
   vi:'Đồ ngoài trời — Phần 3: Yêu cầu an toàn cơ học cho bàn',
   mo:'Tải mặt bàn, độ bền ngang, độ ổn định, mặt bàn kính, lỗ cắm dù.'},
- {id:'en581', ma:'EN 581', nam:'2015 / 2017', hex:'#4FA8FF', vai:'Yêu cầu sản phẩm',
+ {id:'en581', ma:'EN 581', nam:'2015 / 2017', hex:'#0B4FA8', vai:'Yêu cầu sản phẩm',
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use',
   vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại',
   mo:'Nêu sản phẩm phải chịu được lực nào, bao nhiêu chu kỳ, theo ba cấp sử dụng. Bản thân nó <b>không mô tả cách thử</b> — mọi phương pháp đều viện dẫn sang EN 1728 (ghế) và EN 1730 (bàn).',
   phan:[['EN 581-1:2017','General safety requirements','Yêu cầu an toàn chung — cạnh sắc, điểm kẹp, chi tiết ống'],
         ['EN 581-2:2015','Mechanical safety requirements and test methods for seating','An toàn cơ học cho ghế'],
         ['EN 581-3:2017','Mechanical safety requirements for tables','An toàn cơ học cho bàn']]},
- {id:'en1728', ma:'EN 1728', nam:'2012 (+AC:2013)', hex:'#FFC94A', vai:'Phương pháp thử — GHẾ',
+ {id:'en1728', ma:'EN 1728', nam:'2012 (+AC:2013)', hex:'#6E5008', vai:'Phương pháp thử — GHẾ',
   en:'Furniture — Seating — Test methods for the determination of strength and durability',
   vi:'Nội thất — Ghế — Phương pháp thử xác định độ bền và độ bền mỏi',
   mo:'Mô tả thiết bị và trình tự thử cho mọi loại ghế. EN 581-2 lấy toàn bộ cách thử từ đây. Có <b>bản đính chính AC:2013</b> thay hai bảng tính lực theo góc tựa lưng — chi tiết quyết định con số thực dùng.',
   phan:[]},
- {id:'en1730', ma:'EN 1730', nam:'2012', hex:'#4FD1A5', vai:'Phương pháp thử — BÀN',
+ {id:'en1730', ma:'EN 1730', nam:'2012', hex:'#0A5E6B', vai:'Phương pháp thử — BÀN',
   en:'Furniture — Tables — Test methods for the determination of stability, strength and durability',
   vi:'Nội thất — Bàn — Phương pháp thử xác định độ ổn định, độ bền và độ bền mỏi',
   mo:'Mô tả thiết bị và trình tự thử cho bàn. EN 581-3 lấy toàn bộ cách thử từ đây, kể cả <b>Bảng 2</b> tính tải thẳng đứng V theo chiều dài mặt bàn — thứ mà bảng EN 581-3 chỉ viện dẫn chứ không in ra.',
   phan:[]},
- {id:'en1022', ma:'EN 1022', nam:'2023', hex:'#C792EA', vai:'Phương pháp thử — ỔN ĐỊNH GHẾ',
+ {id:'en1022', ma:'EN 1022', nam:'2023', hex:'#6D3A9E', vai:'Phương pháp thử — ỔN ĐỊNH GHẾ',
   en:'Furniture — Seating — Determination of stability',
   vi:'Nội thất — Ghế — Xác định độ ổn định',
   mo:'Mọi dòng "stability" của EN 581-2 đều viện dẫn sang đây. Bản <b>2023 thay bản 2018</b>: đổi định nghĩa <b>tay vịn</b> (thêm trần 400 mm và điều kiện vươn trước 175 mm), đổi <b>dưỡng đặt tải</b>, thêm khái niệm <b>mép hông nâng cao</b> và phép <b>thử ổn định góc</b>.',
   phan:[]},
- {id:'ul4041', ma:'UL 4041', nam:'2019 (Issue 2)', hex:'#FF8A65', vai:'Thị trường MỸ — yêu cầu + cách thử',
+ {id:'ul4041', ma:'UL 4041', nam:'2019 (Issue 2)', hex:'#8F3319', vai:'Thị trường MỸ — yêu cầu + cách thử',
   en:'UL 4041 — Outline of Investigation for Outdoor Furniture',
   vi:'UL 4041 — Đề cương khảo nghiệm cho đồ ngoài trời',
   mo:'Tiêu chuẩn <b>thị trường Mỹ</b>. Khác hẳn bộ EN: nó <b>gộp cả yêu cầu lẫn phương pháp thử vào một tài liệu</b>, không viện dẫn đi đâu. Có Bảng 7.1 tra nhanh <b>phép thử nào áp cho loại hàng nào</b>, và chương riêng cho ghế nằm.',
@@ -13354,9 +13354,9 @@ function tcHinhCua(id){ return TC_HINH.find(h=>h.id===id); }
 function tcBoCua(id){ return TC_BO.find(b=>b.id===id); }
 
 const TC_BANG = [
-  {id:'b1', ten:'EN 581-2 · Bảng 1', enTen:'Loungers', mo:'Ghế nằm / ghế tắm nắng', hex:'#FFC94A'},
-  {id:'b2', ten:'EN 581-2 · Bảng 2', enTen:'Other seating', mo:'Ghế ăn, ghế bành, ghế xếp, ghế đẩu', hex:'#FF8A3D'},
-  {id:'b3', ten:'EN 581-3 · Bảng 1', enTen:'Tables', mo:'Mọi loại bàn ngoài trời', hex:'#4FA8FF'}
+  {id:'b1', ten:'EN 581-2 · Bảng 1', enTen:'Loungers', mo:'Ghế nằm / ghế tắm nắng', hex:'#6E5008'},
+  {id:'b2', ten:'EN 581-2 · Bảng 2', enTen:'Other seating', mo:'Ghế ăn, ghế bành, ghế xếp, ghế đẩu', hex:'#8A3C06'},
+  {id:'b3', ten:'EN 581-3 · Bảng 1', enTen:'Tables', mo:'Mọi loại bàn ngoài trời', hex:'#0B4FA8'}
 ];
 // Thiết bị thử dùng chung — EN 1728 Điều 5, EN 1730 Điều 5. Tra một lần, dùng cho mọi phép thử.
 const TC_THIETBI = {
@@ -15792,7 +15792,7 @@ function renderTcList(){
       <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} Tiêu chuẩn Outdoor</div>
     </div>
-    ${tcDauTrangHtml({hex:'#4FA8FF', nhan:'OUTDOOR · EN 581',
+    ${tcDauTrangHtml({hex:'#0B4FA8', nhan:'OUTDOOR · EN 581',
       en:'Outdoor furniture — Seating and tables',
       vi:'Ghế và bàn ngoài trời · camping · domestic · contract · '
          + ds.length + ' tiêu chuẩn · ' + TC_DIEU_HET.length + ' điều khoản'})}
