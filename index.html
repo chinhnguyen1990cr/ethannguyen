@@ -6080,7 +6080,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v327';
+const APP_VERSION = 'v328';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8841,7 +8841,7 @@ function renderKhCatList(){
     const tongEu = conEn581.concat(eu).reduce((n,b)=>n + tcDieuTheoBo(b.id).length, 0);
     refCard = `
     <div class="tc-tt">
-      <section class="tc-tt-k" style="--tcm:#4FA8FF">
+      <section class="tc-tt-k" style="--tcm:#0B4FA8">
         <header class="tc-tt-d"><span class="co">EU</span>
           <span class="t">EU Market<i>Hàng đi châu Âu · ${conEn581.length + eu.length} tiêu chuẩn · ${tongEu} điều khoản</i></span></header>
         <div class="tc-tt-me">
@@ -8853,7 +8853,7 @@ function renderKhCatList(){
           <span class="t">Phương pháp thử<i>EN 581 viện dẫn sang ba bộ này để biết THỬ NHƯ THẾ NÀO</i></span></div>
         <div class="tc-ba">${eu.map(the).join('')}</div>
       </section>
-      <section class="tc-tt-k" style="--tcm:#FF8A65">
+      <section class="tc-tt-k" style="--tcm:#8F3319">
         <header class="tc-tt-d"><span class="co">US</span>
           <span class="t">US Market<i>Hàng đi Mỹ · ${us.length} tiêu chuẩn · ${us.reduce((n,b)=>n + tcDieuTheoBo(b.id).length, 0)} điều khoản</i></span></header>
         <div class="tc-ba">${us.map(the).join('')}</div>
@@ -14890,7 +14890,9 @@ function tcThanhCongCu(bo, mucluc){
 //  biến màu --tcm của bộ, vì chính biến ấy là thứ làm mỗi tiêu chuẩn một màu.
 // v309 · Mục 3 — BẢNG MÀU CHO ĐỀ MỤC. Trước đây mọi ô đề mục đều mang đúng một màu của
 // bộ tiêu chuẩn, nên tám đề mục nhìn như nhau. Nay mỗi ô một màu để phân biệt bằng mắt.
-const TC_MAU_DEMUC = ['#4FA8FF','#FF8A3D','#38D39F','#C792FF','#FFC94A','#FF6B9D','#4ED8E6','#9CCB5A'];
+// v327 — tám màu đề mục: ĐÃ ĐỔI sang tông trầm. Bản cũ chọn cho nền tối; trên nền sáng
+// mỗi mục lục chỉ còn 1,6–2,4:1, đúng chỗ bạn kêu 'mục lục không hiện rõ'.
+const TC_MAU_DEMUC = ['#0B4FA8','#8A3C06','#07604A','#6A2EA8','#6E5008','#9B1348','#0A5A72','#3F5A0E'];
 function tcDauTrangHtml(o){
   const mau = o.hex || 'var(--blue)';
   return `<header class="tc-dhead" style="--tcm:${mau}">
@@ -15745,7 +15747,7 @@ function renderTcDieu(){
           </section>`; })()}
       ${thu.length ? `<div class="tc-h3">Used by these EN 581 tests<i>Các phép thử của EN 581 dùng điều này</i></div>
         <div class="tc-lkg">${thu.map(t=>`<button class="tc-lk" data-action="tc-thu" data-id="${t.id}"
-          style="--tcm:#FF8A3D"><span class="ma">${escapeHtml(tcBangCua(t.bang).ten)} · Thử ${t.so}</span>
+          style="--tcm:#8A3C06"><span class="ma">${escapeHtml(tcBangCua(t.bang).ten)} · Thử ${t.so}</span>
           <span class="t">${escapeHtml(t.en)}</span></button>`).join('')}</div>` : ''}
     </article>
     <div class="tc-dieuhuong">
@@ -15796,7 +15798,7 @@ function renderTcList(){
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>${tcNutNhaHtml()}
-      <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} Tiêu chuẩn Outdoor</div>
+      <div class="title">${titleBadge('outdoor','#0B4FA8','#0B4FA8')} Tiêu chuẩn Outdoor</div>
     </div>
     ${tcDauTrangHtml({hex:'#0B4FA8', nhan:'OUTDOOR · EN 581',
       en:'Outdoor furniture — Seating and tables',
@@ -15864,7 +15866,7 @@ function renderNhuaEmbed(){
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="nhua-back">${svgIcon('back')}</div>
-      <div class="title">${titleBadge('plastic','#0891B2','#0EA5C4')} Bách Khoa Nhựa</div>
+      <div class="title">${titleBadge('plastic','#0A5A72','#09465A')} Bách Khoa Nhựa</div>
     </div>
     <div style="margin:-4px -16px 0; height:calc(100vh - 90px); border-radius:0; overflow:hidden;">
       <iframe src="nhua.html" title="Bách Khoa Nhựa" style="width:100%; height:100%; border:none; display:block; background:#fff;"></iframe>
