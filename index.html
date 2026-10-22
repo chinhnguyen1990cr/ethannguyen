@@ -4750,6 +4750,14 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 /* ══ v330 · THANH ĐIỀU KHIỂN DƯỚI VIDEO ═══════════════════════════════════════════
    Bốn nút to ở giữa — đó là thứ bấm liên tục. Ba ô chọn nhỏ bên phải — chỉnh một lần rồi
    thôi. Nhãn phím tắt in ngay dưới mỗi nút, vì phím tắt mà phải nhớ thì không ai dùng. */
+/* v332 — hàng đổi phòng: ba chip nhỏ ngay trên thanh điều khiển, luôn thấy được. */
+.hv-dk-phong{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:8px 0 0;}
+.hv-dk-p{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;
+  cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:var(--dim);
+  background:var(--panel2);border:1px solid var(--border);}
+.hv-dk-p i{font-style:normal;font-size:12px;}
+.hv-dk-p:hover{background:var(--nhan2);color:var(--text);}
+.hv-dk-p.on{color:var(--manh);background:var(--nhan3);border-color:var(--teal);}
 .hv-dk{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
   margin:8px 0 2px;padding:8px 10px;border-radius:14px;
   background:var(--panel);border:1px solid var(--border);}
@@ -6191,7 +6199,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v331';
+const APP_VERSION = 'v332';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33054,12 +33062,48 @@ const HV_CHE = [
   {id:'chinhta',   ten:'Chép chính tả', en:'Dictation', ic:'✍️', mo:'Nghe rồi gõ lại câu vừa nghe'}
 ];
 function hvChePhien(){ const s = STATE.hvPhien; return (s && s.che) || 'chon'; }
+// v332 — VÀO PHÒNG KHÔNG ĐƯỢC NẠP LẠI VIDEO. hvDoiTab() gọi hvNapLaiVideo(), tức là dựng
+// lại trình phát TỪ ĐẦU — đúng thứ bạn thấy: đang xem tới phút 0:39, bấm vào Shadowing thì
+// video trở về ảnh bìa với nút play đỏ. Hồi còn ba thẻ, nạp lại là cố ý (mỗi thẻ một tốc độ).
+// Nay ba phòng dùng CHUNG một thanh điều khiển và một tốc độ, nên nạp lại chỉ còn là mất chỗ
+// đang nghe dở. Ở đây làm đúng phần cần làm của hvDoiTab và BỎ bước nạp lại.
 function hvVaoChe(che){
-  const s = STATE.hvPhien; if(!s) return;
-  s.che = che;
-  if(che !== 'chon') s.tab = che;
-  hvDoiTab(che === 'chon' ? s.tab : che);
+  const st = STATE.hvPhien; if(!st) return;
+  const rec = hvTim(st.vidId); if(!rec) return;
+  if(st.tab === 'chinhta'){ try{ dvLuuGo(); }catch(e){} }
+  STATE.hvLoi = null;
+  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  if(che === 'chinhta' && !STATE.dvPhien){
+    const kt = dvCauKeTiep(rec);
+    STATE.dvPhien = {vidId:rec.id, idx:(kt>=0?kt:null), go:'', thuHien:false, thuLan:0, ketQua:null, xongHet:false};
+  }
+  if(che === 'shadowing' && !STATE.sdPhien){
+    STATE.sdPhien = {vidId:rec.id, dangGhi:false, giay:0, ban:[], loi:null, lapIdx:null, doi:false, doiIdx:null};
+    STATE.sdSuaLoi = false; STATE.sdLoi = null; STATE.sdDangLay = false;
+  }
+  st.che = che;
+  if(che !== 'chon') st.tab = che;
+  try{ hvApBoCuc(); }catch(e){}
+  hvVeKhungPhong();
+  try{ hvVeTam(); }catch(e){}
   try{ hvCauBatBam(); }catch(e){}
+}
+// Cập nhật TẠI CHỖ ba thứ đổi theo phòng: nhãn ở đầu màn, nút back, và thanh điều khiển.
+// Cố ý không đụng tới #hvVidWrap — chạm vào đó là trình phát dựng lại và video chạy lại từ đầu.
+function hvVeKhungPhong(){
+  try{
+    const che = hvChePhien();
+    const ten = (HV_CHE.find(c=>c.id===che) || {}).ten;
+    const nhan = document.querySelector('.hv-dau-nhan');
+    if(nhan) nhan.textContent = che === 'chon' ? 'ĐANG HỌC' : String(ten||'').toUpperCase();
+    const ve = document.querySelector('.hv-dau-ve');
+    if(ve){
+      ve.setAttribute('data-action', che === 'chon' ? 'hv-dong' : 'hv-ve-chon');
+      ve.setAttribute('title', che === 'chon' ? 'Quay lại danh sách video' : 'Quay lại màn chọn chức năng');
+    }
+    const dk = document.getElementById('hvDkWrap');
+    if(dk) dk.innerHTML = che === 'chon' ? '' : hvDkHtml();
+  }catch(_){ }
 }
 function hvVeManChon(){
   const s = STATE.hvPhien; if(!s) return;
@@ -33069,8 +33113,14 @@ function hvVeManChon(){
   try{ hvNgungDoc(); }catch(e){}
   s.che = 'chon';
   try{ hvCauNgungBam(); }catch(e){}
+  try{ hvDkNgung(); }catch(e){}
   try{ const p = hvLayPlayer(true); if(p && p.pauseVideo) p.pauseVideo(); }catch(e){}
-  renderContent(); window.scrollTo(0,0);
+  // v332 — vẽ TẠI CHỖ, không renderContent(): renderContent ghi đè cả #content nên trình phát
+  // bị dựng lại và video mất chỗ đang nghe. Ra màn chọn rồi vào phòng khác phải liền mạch.
+  try{ hvApBoCuc(); }catch(e){}
+  hvVeKhungPhong();
+  try{ hvVeTam(); }catch(e){}
+  window.scrollTo(0,0);
 }
 function hvCheDsHtml(rec){
   const n = (rec && rec.lines && rec.lines.length) || 0;
@@ -33225,7 +33275,14 @@ function hvDkHtml(){
   const ds = hvDkDs(), i = hvDkCau();
   const chon = (khoa, ds2, dang, nhan)=>`<select class="hv-dk-chon" data-chon="hv-dk-${khoa}">${
     ds2.map(v=>`<option value="${v}"${String(v)===String(dang)?' selected':''}>${nhan(v)}</option>`).join('')}</select>`;
-  return `<div class="hv-dk">
+  // v332 — BA CHIP ĐỔI PHÒNG NGAY TẠI ĐÂY. Trước đây muốn sang phòng khác phải bấm back ra
+  // màn chọn rồi bấm vào — hai thao tác cho một việc làm liên tục. Nay đổi thẳng, và vì vào
+  // phòng không còn nạp lại video nên đổi qua đổi lại vẫn giữ nguyên chỗ đang nghe.
+  const che = hvChePhien();
+  const doiPhong = `<div class="hv-dk-phong">${HV_CHE.map(c=>
+    `<button class="hv-dk-p ${c.id===che?'on':''}" data-action="hv-vao-che" data-c="${c.id}"
+      title="${escapeHtml(c.mo)}"><i>${c.ic}</i>${c.ten}</button>`).join('')}</div>`;
+  return `${doiPhong}<div class="hv-dk">
     <div class="hv-dk-nut">
       <button class="hv-dk-n" data-action="hv-dk-truoc" ${i<=0?'disabled':''} title="Câu trước (phím ←)">⏮<i>←</i></button>
       <button class="hv-dk-n" data-action="hv-dk-lap-lai" title="Nghe lại câu này (phím R)">↺<i>R</i></button>
@@ -33390,7 +33447,13 @@ function hvVeTam(tuyChon){
   const neoId = (o.giuCuon && STATE.hvChonDau) ? ('hvL' + STATE.hvChonDau.i) : null;
   const neoTruoc = hvDoNeo(neoId);
   // v330 — thanh ba thẻ đã bỏ, thay bằng màn chọn phòng. Không còn gì để cập nhật ở đây.
-  tam.innerHTML = hvPanelHtml(rec, s);
+  tam.innerHTML = (hvChePhien() === 'chon')
+    ? `<div class="hv-che-khung">
+         <h4 class="hv-che-h4">Chọn kiểu luyện</h4>
+         <p class="hv-che-p">Mỗi kiểu mở ra một màn riêng, chiếm trọn chỗ.</p>
+         <div class="hv-che-ds">${hvCheDsHtml(rec)}</div>
+       </div>`
+    : hvPanelHtml(rec, s);
   tam.className = o.khongLat ? 'hv-panel' : 'hv-panel hv-lat';
   // bỏ rồi gắn lại lớp hiệu ứng để lần bấm sau vẫn chạy (cùng một lớp thì trình duyệt không chạy lại)
   if(tam.getBoundingClientRect) tam.getBoundingClientRect();
@@ -37068,6 +37131,11 @@ function dvVeNutNghe(){
 }
 function dvPhatCau(i){
   const s = STATE.dvPhien; if(!s) return;
+  // v332 — SỬA LỖI "bấm nghe câu này nhưng video nhảy sang câu khác". Thanh điều khiển có
+  // nhịp tự canh cuối câu rồi tự sang câu kế; nhịp ấy còn chạy từ lần bấm ▶ trước đó, nên khi
+  // Chép chính tả tua tới câu bạn chọn thì nhịp kia lại kéo đi chỗ khác. Ai tua thì người ấy
+  // cầm lái: dừng nhịp của thanh điều khiển trước đã.
+  try{ hvDkNgung(); }catch(e){}
   dvLuuGo();     // GIỮ CHỮ ĐANG GÕ trước mọi thứ khác — xem giải thích dài ở đầu mục 5 (v221)
   // Bấm nghe một câu = chủ động muốn cắt câu → thoát chế độ nghe liền mạch
   if(s.lienTuc){ s.lienTuc = false; dvVe('dvBarWrap'); }
@@ -40410,6 +40478,7 @@ function sdTuaChinh(p, giay){
 // dung=false → về đầu dòng rồi CHẠY (bấm thẳng vào một dòng để nghe câu đó).
 function sdTuaToiDong(i, dung){
   const s = STATE.sdPhien; if(!s) return;
+  try{ hvDkNgung(); }catch(e){}   // cùng lý do như dvPhatCau: ai tua thì người ấy cầm lái
   const rec = sdTimVideo(s.vidId); if(!rec) return;
   if(STATE.hvPhien && typeof hvLayPlayer==='function'){ if(!hvLayPlayer()) return; }
   const ds = sdDongLoi(rec); const d = ds[i];
