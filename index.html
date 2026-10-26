@@ -6286,7 +6286,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v338';
+const APP_VERSION = 'v339';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33319,10 +33319,25 @@ function hvDkBatNhip(){
       }
       hvDkNgung();
       const cho = hvDkCho();
+      // v339 — HAI NÚT, HAI VIỆC KHÁC NHAU. Bản trước gộp cả hai vào một phép kiểm, nên nấc
+      // chờ "Tắt" cũng chặn luôn việc sang câu: bật "Tự sang câu" rồi mà hết câu vẫn đứng im,
+      // đúng như bạn gặp. Nay phân vai rạch ròi:
+      //   · công tắc ⏭ "Câu sau"  = CÓ sang câu kế hay không — đây mới là công tắc chính;
+      //   · ô ⏱ "Chờ"            = sang thì chờ BAO LÂU (Không chờ / Tự bấm / % độ dài câu).
+      // Chỉ khi ⏭ tắt, hoặc bạn chọn "Tự bấm", thì mới dừng hẳn ở cuối câu.
+      if(!hvDkTuQua() || cho === 'tay'){
+        try{ p.pauseVideo(); }catch(e){}
+        try{ hvVeNutPlay(); }catch(e){}
+        return;
+      }
+      // "Không chờ" — chạy thẳng sang câu kế, KHÔNG dừng video giữa chừng. Dừng rồi phát lại
+      // ngay chỉ tạo một cú khựng và một tiếng bụp, chẳng để làm gì.
+      if(cho === 'tat'){
+        hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, 60);
+        return;
+      }
       try{ p.pauseVideo(); }catch(e){}
       try{ hvVeNutPlay(); }catch(e){}
-      // Công tắc "câu sau" TẮT, hoặc nấc chờ là Tắt/Tự bấm → dừng hẳn ở cuối câu.
-      if(!hvDkTuQua() || cho === 'tat' || cho === 'tay') return;
       // Chờ bao nhiêu thì tính theo CHÍNH độ dài câu vừa nghe, không phải một con số cố định:
       // câu dài cần nghĩ lâu hơn câu ngắn, mà câu dài ngắn thì mỗi video một khác.
       // v336 — MỘT CON SỐ DUY NHẤT cho cả đếm ngược lẫn hẹn giờ. Trước đây đồng hồ hiện số
@@ -33407,8 +33422,10 @@ function hvCheChipHtml(){
     `<button class="hv-dau-p ${c.id===che?'on':''}" data-action="hv-vao-che" data-c="${c.id}"
       title="${escapeHtml(c.mo)}"><i>${c.ic}</i><b>${c.ten}</b></button>`).join('')}</div>`;
 }
+// v339 — "Tắt" là tên gây hiểu nhầm: người đọc tưởng nó tắt luôn việc sang câu, trong khi nó
+// chỉ có nghĩa là KHÔNG CHỜ. Việc tắt/bật sang câu nằm ở công tắc ⏭ bên trái.
 function hvDkNhanCho(v){
-  if(v === 'tat') return 'Tắt';
+  if(v === 'tat') return 'Không chờ';
   if(v === 'tay') return 'Tự bấm';
   return '+' + v + '%';
 }
@@ -33425,13 +33442,13 @@ function hvDkHtml(){
       <button class="hv-dk-n" data-action="hv-dk-lap-lai" title="Nghe lại câu này (phím R)">↺<i>R</i></button>
       <button class="hv-dk-n to" data-action="hv-dk-play" id="hvDkPlayBtn" title="Chạy / Dừng (phím cách)">▶<i>Space</i></button>
       <button class="hv-dk-n ${hvDkTuQua()?'bat':''}" data-action="hv-dk-sau"
-        title="${hvDkTuQua() ? 'ĐANG BẬT: hết thời gian chờ là tự sang câu kế. Chạm để tắt.'
+        title="${hvDkTuQua() ? 'ĐANG BẬT: hết câu là tự sang câu kế, chờ lâu bao nhiêu thì xem ô ⏱. Chạm để tắt.'
                              : 'ĐANG TẮT: phát xong câu là dừng lại. Chạm để bật tự sang câu kế.'}">⏭<i>→</i></button>
     </div>
     <div class="hv-dk-dat">
       <label title="Tốc độ nói của video">⏩${chon('toc', HV_DK_TOC, hvDkToc(), v=>v+'×')}</label>
       <label title="Mỗi câu nghe lại mấy lần">🔁${chon('lap', HV_DK_LAP, hvDkLap(), v=>'×'+v)}</label>
-      <label title="Nghe xong một câu thì chờ bao lâu rồi sang câu kế">⏱${chon('cho', HV_DK_CHO, hvDkCho(), hvDkNhanCho)}</label>
+      <label title="Chờ bao lâu rồi sang câu kế — chỉ có tác dụng khi công tắc ⏭ đang bật">⏱${chon('cho', HV_DK_CHO, hvDkCho(), hvDkNhanCho)}</label>
     </div>
   </div>`;
 }
@@ -37311,7 +37328,16 @@ Chỉ trả về JSON.`;
 const DV_HOLDER = 'dv-yt-holder';
 // v247 — bạn xin 2–3 giây im lặng để kịp đặt tay lên phím trước khi câu bắt đầu.
 const DV_IM_TRUOC = 2500;   // im lặng để kịp chuẩn bị trước khi câu bắt đầu
-const DV_IM_SAU   = 1500;   // im lặng sau khi câu vừa dứt, không cắt cụt ngang tai
+const DV_IM_SAU   = 2000;   // im lặng sau khi câu vừa dứt, không cắt cụt ngang tai
+// v339 — ĐỆM HAI ĐẦU, NHƯNG CHỈ LẤN VÀO KHOẢNG LẶNG. Mốc câu của YouTube hiếm khi trùng đúng
+// hơi thở: chữ đầu thường bắt đầu sớm hơn mốc một chút, chữ cuối còn ngân sau mốc một chút.
+// Cắt khít mốc là mất chữ; nới đều một con số cứng là lọt chữ của câu bên cạnh. Nên đo CHÍNH
+// khoảng trống giữa câu này với câu bên cạnh rồi chỉ lấn vào phần trống ấy.
+const DV_DEM_TOI_DA = 0.45;  // nới tối đa mỗi đầu, dù khoảng trống có rộng bao nhiêu
+const DV_TRONG_TOI_THIEU = 0.08;  // dưới mức này coi như hai câu dính liền, không có chỗ nới
+// Khi hai câu dính liền mà vẫn phải lùi để bù độ trễ của lệnh tua: lùi rồi PHÁT CÂM phần lấn
+// ấy, tới đúng mốc câu mới mở tiếng. Vừa không hụt chữ đầu, vừa không nghe chữ của câu trước.
+const DV_BU_TUA = 0.30;
 // Chừa trước mốc câu KẾ chừng này giây. Vòng soi chạy mỗi 30ms và YouTube còn mất thêm một
 // nhịp nữa mới dừng hẳn, nên cắt đúng ngay mốc là vẫn lọt được chữ đầu của câu sau vào tai.
 const DV_HO_CUOI = 0.14;
@@ -37423,8 +37449,32 @@ function dvPhatCau(i){
   // Cộng thêm độ trễ của lệnh dừng, tai vẫn nghe được một hai chữ đầu của câu sau. Nay chặn
   // cứng: dừng TRƯỚC mốc câu kế một khoảng, và tắt tiếng ngay tại chỗ cắt.
   const keT = rec.lines[i+1] && rec.lines[i+1].t != null ? +rec.lines[i+1].t : null;
+  const truoc = rec.lines[i-1];
+  const hetTruoc = truoc ? ((+truoc.e > +truoc.t) ? +truoc.e : +truoc.t) : null;
+
+  // ĐẦU CÂU. Khoảng trống trước câu này rộng bao nhiêu thì lùi vào đó được bấy nhiêu (lấy 70%
+  // cho chắc), tối đa DV_DEM_TOI_DA. Không có khoảng trống thì vẫn lùi DV_BU_TUA nhưng phát câm
+  // tới đúng mốc câu — xem dvImToi bên dưới.
+  let batDau = Math.max(0, +d.t);
+  let imToi  = null;
+  const trongTruoc = (hetTruoc != null) ? (+d.t - hetTruoc) : +d.t;
+  if(trongTruoc > DV_TRONG_TOI_THIEU){
+    batDau = Math.max(0, +d.t - Math.min(DV_DEM_TOI_DA, trongTruoc * 0.7));
+  }else{
+    batDau = Math.max(0, +d.t - DV_BU_TUA);
+    imToi  = Math.max(0, +d.t - 0.05);
+  }
+
+  // CUỐI CÂU. Cùng một lối: còn trống thì nới ra cho hết chữ cuối, hết trống thì chừa
+  // DV_HO_CUOI như cũ để chữ đầu câu sau không lọt vào tai.
   let ketThuc = (+d.e > d.t) ? +d.e : (keT != null ? keT : (d.t + 25));
-  if(keT != null && ketThuc > keT - DV_HO_CUOI) ketThuc = Math.max(d.t + 0.4, keT - DV_HO_CUOI);
+  const trongSau = (keT != null) ? (keT - ketThuc) : (DV_DEM_TOI_DA + 1);
+  if(trongSau > DV_TRONG_TOI_THIEU){
+    ketThuc = ketThuc + Math.min(DV_DEM_TOI_DA, trongSau * 0.7);
+    if(keT != null) ketThuc = Math.min(ketThuc, keT - DV_HO_CUOI);
+  }else if(keT != null && ketThuc > keT - DV_HO_CUOI){
+    ketThuc = Math.max(d.t + 0.4, keT - DV_HO_CUOI);
+  }
   dvXoaHenGio();
   // Đang ở trong màn "Học theo video" thì bảo đảm còn nắm trình phát (cử chỉ vuốt-lùi có thể đã
   // nhả nó ra). Không có dòng này thì bấm "Nghe câu" chẳng có gì xảy ra và cũng chẳng báo gì.
@@ -37452,7 +37502,10 @@ function dvPhatCau(i){
     const s2 = STATE.dvPhien; if(!s2) return;
     // NHỊP 2 — phát đúng khoảng của câu này
     try{
-      dvPlayer.seekTo(Math.max(0, d.t), true);
+      // Lùi vào phần lấn của câu trước thì phải CÂM phần ấy, chứ không thì đệm lại thành tạp.
+      if(imToi != null){ try{ dvPlayer.mute(); }catch(_){} }
+      else { try{ dvPlayer.unMute(); }catch(_){} }
+      dvPlayer.seekTo(batDau, true);
       dvPlayer.setPlaybackRate(dvTocDo());
       dvPlayer.playVideo();
     }catch(_){ s2.phat = null; dvVeNutNghe(); return; }
@@ -37462,6 +37515,11 @@ function dvPhatCau(i){
       if(!STATE.dvPhien || STATE.dvPhien.lienTuc || !dvPlayer){ dvXoaHenGio(); return; }
       let gy = 0;
       try{ gy = dvPlayer.getCurrentTime() || 0; }catch(_){ return; }
+      // Tới đúng mốc câu thì mới mở tiếng — phần lùi để bù độ trễ tua chạy trong im lặng.
+      if(imToi != null && gy >= imToi){
+        try{ dvPlayer.unMute(); }catch(_){}
+        imToi = null;
+      }
       if(gy >= ketThuc){
         // Tắt tiếng TRƯỚC rồi mới dừng: lệnh dừng của YouTube mất một nhịp mới ăn, trong nhịp
         // ấy tiếng vẫn ra. Tắt trước là không chữ nào của câu sau lọt vào tai.
