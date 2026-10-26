@@ -4529,6 +4529,12 @@ body.hv-khoa-cuon{overflow:hidden;}
   background:color-mix(in srgb, var(--gold) 16%, transparent);
   border:1px solid color-mix(in srgb, var(--gold) 42%, transparent);}
 .sd-luot.hien{display:flex;}
+/* v340 — đồng hồ đếm ngược trên thanh điều khiển */
+.hv-dk-dem{display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px;
+  font-family:var(--mono, monospace); font-size:12px; font-weight:800; color:var(--gold);
+  background:color-mix(in srgb, var(--gold) 16%, transparent);
+  border:1px solid color-mix(in srgb, var(--gold) 42%, transparent);}
+.hv-dk-dem[hidden]{display:none;}
 .sd-luot b{font-family:var(--mono); font-size:12.5px;}
 /* v338 — dấu ngắt nhịp xen giữa các từ, cùng hàng với chữ. */
 .sd-cau-ngat{display:inline-flex; align-items:center; font-weight:900; font-size:17px;
@@ -6286,7 +6292,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v339';
+const APP_VERSION = 'v340';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33179,9 +33185,17 @@ function hvVaoChe(che){
   try{ dvXoaHenGio(); }catch(e){}
   try{ hvNgungDoc(); }catch(e){}
   try{ hvDkNgung(); }catch(e){}
+  // v340 — THỨ TỰ NGƯỢC LÀ VIDEO TỰ PHÁT. Lệnh pauseVideo của YouTube là lệnh gửi đi, chưa
+  // ăn ngay; gọi seekTo ngay sau đó thì trình phát vẫn còn tự coi mình "đang chạy", mà seekTo
+  // thì GIỮ NGUYÊN trạng thái chạy/dừng lúc tua — nên nó phát tiếp. Nay tua trước, dừng sau,
+  // và dừng thêm một nhát ở nhịp kế cho chắc.
   try{
     const p = hvLayPlayer(true);
-    if(p){ if(p.pauseVideo) p.pauseVideo(); if(p.seekTo) p.seekTo(0, true); }
+    if(p){
+      if(p.seekTo) p.seekTo(0, true);
+      if(p.pauseVideo) p.pauseVideo();
+      setTimeout(()=>{ try{ const q = hvLayPlayer(true); if(q && q.pauseVideo) q.pauseVideo(); }catch(_){ } }, 160);
+    }
   }catch(e){}
   st.cau = 0;
   try{ hvVeNutPlay(); }catch(e){}
@@ -33254,9 +33268,21 @@ const HV_DK_LAP = [1, 2, 3, 5];
 const HV_DK_CHO = ['tat', 'tay', 30, 50, 80, 100, 120];
 function hvDkToc(){ const v = +SETTINGS.hvDkToc; return HV_DK_TOC.indexOf(v) >= 0 ? v : 1; }
 function hvDkLap(){ const v = +SETTINGS.hvDkLap; return HV_DK_LAP.indexOf(v) >= 0 ? v : 1; }
+// v340 — MẶC ĐỊNH PHẢI LÀ MỘT KHOẢNG CHỜ THẬT. Trước v339, nấc 'tat' có nghĩa "hết câu thì
+// dừng", nên để mặc định ở đó cũng không sao. Sang v339 nó đổi nghĩa thành "không chờ, chạy
+// liền" — và mọi máy chưa từng đụng vào ô ấy vẫn đang lưu đúng chữ 'tat', nên video chạy một
+// mạch không dừng, đúng như bạn báo. Nay mặc định là 100% độ dài câu, và giá trị 'tat' cũ
+// được dời sang 100 ĐÚNG MỘT LẦN (có cờ đánh dấu), chứ không đè lên lựa chọn bạn đặt sau này.
+function hvDkDoiNghiaCho(){
+  if(SETTINGS.hvDkChoV340) return;
+  SETTINGS.hvDkChoV340 = 1;
+  if(SETTINGS.hvDkCho === 'tat' || SETTINGS.hvDkCho == null) SETTINGS.hvDkCho = 100;
+  try{ saveSettings(); }catch(_){ }
+}
 function hvDkCho(){
+  try{ hvDkDoiNghiaCho(); }catch(_){ }
   const v = SETTINGS.hvDkCho;
-  return HV_DK_CHO.indexOf(v) >= 0 ? v : (HV_DK_CHO.indexOf(+v) >= 0 ? +v : 'tat');
+  return HV_DK_CHO.indexOf(v) >= 0 ? v : (HV_DK_CHO.indexOf(+v) >= 0 ? +v : 100);
 }
 // Danh sách câu dùng chung. Mỗi dòng cần mốc bắt đầu; dòng không có mốc thì không nhảy tới
 // được, và thanh nói thẳng thế thay vì im lặng không phản ứng.
@@ -33273,10 +33299,32 @@ function hvDkHet(ds, i){
   const soTu = String(d.en||'').trim().split(/\s+/).filter(Boolean).length;
   return (d.t||0) + Math.max(1.2, soTu * 0.38);
 }
-let hvDkNhip = null, hvDkConLap = 1, hvDkDoi = null;
+let hvDkNhip = null, hvDkConLap = 1, hvDkDoi = null, hvDkDemNhip = null;
+// v340 — đồng hồ đếm ngược của khoảng chờ, hiện ngay trên thanh điều khiển ở MỌI phòng.
+function hvDkDemNgung(){
+  if(hvDkDemNhip){ clearInterval(hvDkDemNhip); hvDkDemNhip = null; }
+  try{ const el = document.getElementById('hvDkDem'); if(el){ el.hidden = true; el.textContent = ''; } }catch(_){ }
+}
+function hvDkDemBatDau(giay){
+  hvDkDemNgung();
+  let con = Math.max(1, Math.round(giay));
+  const ve = ()=>{ try{
+    const el = document.getElementById('hvDkDem');
+    if(!el) return;
+    el.hidden = false;
+    el.textContent = '⏳ ' + con + 's';
+  }catch(_){ } };
+  ve();
+  hvDkDemNhip = setInterval(()=>{
+    con--;
+    if(con <= 0){ hvDkDemNgung(); return; }
+    ve();
+  }, 1000);
+}
 function hvDkNgung(){
   if(hvDkNhip){ clearInterval(hvDkNhip); hvDkNhip = null; }
   if(hvDkDoi){ clearTimeout(hvDkDoi); hvDkDoi = null; }
+  hvDkDemNgung();
 }
 // Nhảy tới câu i, phát, và canh để dừng đúng cuối câu.
 function hvDkToiCau(i, tuPhat){
@@ -33347,6 +33395,7 @@ function hvDkBatNhip(){
       const dai  = Math.max(0.6, het - (ds[i].t||0));
       const giay = Math.max(1, Math.ceil(dai * cho / 100));
       try{ if(hvChePhien() === 'shadowing') sdLuotBatDau(giay); }catch(e){}
+      try{ hvDkDemBatDau(giay); }catch(e){}
       hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, Math.round(giay * 1000 + 250));
     }catch(e){ hvDkNgung(); }
   }, 120);
@@ -33425,7 +33474,7 @@ function hvCheChipHtml(){
 // v339 — "Tắt" là tên gây hiểu nhầm: người đọc tưởng nó tắt luôn việc sang câu, trong khi nó
 // chỉ có nghĩa là KHÔNG CHỜ. Việc tắt/bật sang câu nằm ở công tắc ⏭ bên trái.
 function hvDkNhanCho(v){
-  if(v === 'tat') return 'Không chờ';
+  if(v === 'tat') return 'Chạy liền';
   if(v === 'tay') return 'Tự bấm';
   return '+' + v + '%';
 }
@@ -33449,6 +33498,10 @@ function hvDkHtml(){
       <label title="Tốc độ nói của video">⏩${chon('toc', HV_DK_TOC, hvDkToc(), v=>v+'×')}</label>
       <label title="Mỗi câu nghe lại mấy lần">🔁${chon('lap', HV_DK_LAP, hvDkLap(), v=>'×'+v)}</label>
       <label title="Chờ bao lâu rồi sang câu kế — chỉ có tác dụng khi công tắc ⏭ đang bật">⏱${chon('cho', HV_DK_CHO, hvDkCho(), hvDkNhanCho)}</label>
+      ${/* v340 — ĐỒNG HỒ ĐẾM NGƯỢC NGAY TRÊN THANH. Trước đây chỉ Shadowing mới có dải "tới
+            lượt bạn", nên ở Dictation và Watch & Read thì khoảng chờ trôi qua trong im lặng —
+            nhìn ra ngoài đúng y như "ô chờ không có tác dụng". */''}
+      <span class="hv-dk-dem" id="hvDkDem" hidden></span>
     </div>
   </div>`;
 }
