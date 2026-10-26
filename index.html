@@ -4433,7 +4433,11 @@
 /* v246 — dãy nút nay ẩn/hiện CÙNG NHỊP với thanh điều khiển của YouTube: xem thì biến mất
    cho trống khung hình, đưa chuột tới hoặc dừng video thì hiện lại. Thuộc tính mờ/rõ vẫn nằm
    TRONG luật gốc ở dưới, đúng lời dặn ngay trên: không đẻ ra luật .hv-nutbar thứ hai. */
-.hv-nutbar.hien{opacity:.62;}
+/* v338 — GỐC CỦA "BẤM VÀO LÀ PAUSE VIDEO": luật gốc đặt pointer-events:none để hàng nút
+   không cướp cú bấm khi đang ẩn, nhưng lớp .hien chỉ trả lại ĐỘ MỜ mà quên trả lại khả năng
+   bắt chuột. Nút hiện ra, nhìn thấy, bấm vào — cú bấm xuyên thẳng qua xuống iframe YouTube
+   nên video dừng. Hiện ra thì phải bấm được: hai thứ ấy đi cùng nhau. */
+.hv-nutbar.hien{opacity:.62; pointer-events:auto;}
 /* ══ v248 · VÌ SAO HAI LẦN SỬA TRƯỚC VẪN KHÔNG ẨN ══════════════════════════════════════
    Luật cũ có :focus-within KHÔNG kèm .hien. Bạn vừa bấm một nút bất kỳ trong dãy (CC, ¶,
    VN…) là nút ấy GIỮ tiêu điểm bàn phím — và :focus-within cứ thế đúng mãi, độ mờ bị ghim
@@ -4499,9 +4503,16 @@ body.hv-khoa-cuon{overflow:hidden;}
 /* v334 — chip đổi phòng nằm NGANG HÀNG TIÊU ĐỀ; tiêu đề rút về một bên, cắt bằng dấu … */
 /* v337 — khi bật Transcript thì cột trái hẹp lại; tiêu đề phải CO ĐƯỢC và hàng chip phải
    xuống dòng, nếu không cả ba đè lên nhau như ảnh bạn gửi. */
+/* v338 — VÌ SAO BẢN TRƯỚC VẪN DỒN CỤC. .hv-dau-tx là flex CỘT có align-items:center, nên
+   con của nó co theo NỘI DUNG chứ không theo bề ngang của cột. Tiêu đề một dòng dài hơn cột
+   thì chính thẻ <h3> rộng ra, rồi vì canh giữa nên tràn đều sang hai bên — overflow:hidden
+   đặt trên chính nó chẳng cắt được gì, vì nó đang cắt theo bề ngang của chính nó.
+   Phải ép bề ngang bằng đúng cột (width:100%) VÀ cắt ở lớp cha. */
 .hv-dau{flex-wrap:wrap;}
-.hv-dau-tx{flex:1 1 180px; min-width:0;}
-.hv-dau-ten{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.hv-dau-tx{flex:1 1 180px; min-width:0; max-width:100%; overflow:hidden;}
+.hv-dau-ten{display:block; width:100%; max-width:100%;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.hv-dau-nhan{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .hv-dau-phong{flex-wrap:wrap;}
 .hv-dau-phong{display:flex; gap:5px; flex:none;}
 .hv-dau-p{display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px;
@@ -4519,6 +4530,12 @@ body.hv-khoa-cuon{overflow:hidden;}
   border:1px solid color-mix(in srgb, var(--gold) 42%, transparent);}
 .sd-luot.hien{display:flex;}
 .sd-luot b{font-family:var(--mono); font-size:12.5px;}
+/* v338 — dấu ngắt nhịp xen giữa các từ, cùng hàng với chữ. */
+.sd-cau-ngat{display:inline-flex; align-items:center; font-weight:900; font-size:17px;
+  line-height:1; color:var(--gold); opacity:.85; padding:0 1px;}
+.sd-cau-ngat.dai{color:#FF8FA3; font-size:19px;}
+.sd-cau-chu-giai{margin-top:8px; font-size:11px; color:var(--dim2); line-height:1.7;}
+.sd-cau-chu-giai b{color:var(--dim);}
 /* Trọng âm: từ NHẤN gạch liền đậm, từ LƯỚT gạch chấm mờ */
 .sd-cau-w.luot b{text-decoration:underline dotted; text-decoration-thickness:1.5px;
   text-underline-offset:3px; text-decoration-color:var(--dim2); opacity:.78;}
@@ -6269,7 +6286,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v337';
+const APP_VERSION = 'v338';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33153,6 +33170,21 @@ function hvVaoChe(che){
     STATE.sdPhien = {vidId:rec.id, dangGhi:false, giay:0, ban:[], loi:null, lapIdx:null, doi:false, doiIdx:null};
     STATE.sdSuaLoi = false; STATE.sdLoi = null; STATE.sdDangLay = false;
   }
+  // v338 — ĐỔI PHÒNG LÀ VỀ VẠCH XUẤT PHÁT. Mỗi phòng là một cách học khác hẳn: Shadowing
+  // bắt đầu bằng nghe câu 1 rồi nói lại, Dictation bắt đầu bằng câu đầu tiên chưa chép.
+  // Bản trước để video chạy tiếp từ chỗ đang xem ở phòng cũ, nên vừa vào phòng mới đã nghe
+  // giữa chừng một câu không liên quan. Nay dừng hẳn, tua về đầu, và tắt mọi nhịp đang chạy
+  // của phòng vừa rời — micro, hẹn giờ, vòng lặp câu.
+  try{ if(STATE.sdPhien && STATE.sdPhien.dangGhi) sdDungGhi(); }catch(e){}
+  try{ dvXoaHenGio(); }catch(e){}
+  try{ hvNgungDoc(); }catch(e){}
+  try{ hvDkNgung(); }catch(e){}
+  try{
+    const p = hvLayPlayer(true);
+    if(p){ if(p.pauseVideo) p.pauseVideo(); if(p.seekTo) p.seekTo(0, true); }
+  }catch(e){}
+  st.cau = 0;
+  try{ hvVeNutPlay(); }catch(e){}
   st.che = che;
   if(che !== 'chon') st.tab = che;
   try{ hvApBoCuc(); }catch(e){}
@@ -33177,6 +33209,7 @@ function hvVeKhungPhong(){
     if(dk) dk.innerHTML = hvDkCoThanh() ? hvDkHtml() : '';
     const cp = document.getElementById('hvCheChip');
     if(cp) cp.innerHTML = che === 'chon' ? '' : hvCheChipHtml();
+    try{ dvVeChonKhoi(); }catch(_){ }
   }catch(_){ }
 }
 function hvVeManChon(){
@@ -36911,6 +36944,9 @@ function renderHocVideoPhien(item){
             gì, và thanh điều khiển (chứa cả hàng chip đổi phòng) chẳng bao giờ hiện ra.
             Nay LUÔN dựng thẻ, chỉ để RỖNG ở màn chọn — chỗ chèn phải có sẵn thì mới chèn được. */''}
       <div id="hvDkWrap">${hvDkCoThanh() ? hvDkHtml() : ''}</div>
+      ${/* v338 — chỗ chèn cho hai khối chọn của Dictation. LUÔN có mặt, chỉ để rỗng ở phòng
+            khác — đúng bài học v333: muốn chèn tại chỗ thì chỗ ấy phải luôn tồn tại. */''}
+      <div id="hvDvChonWrap">${hvChePhien() === 'chinhta' ? dvChonKhoiHtml(rec) : ''}</div>
     </div>
     <div class="hv-cot-p">
       <div id="hvErrWrap">${hvErrHtml()}</div>
@@ -37567,14 +37603,6 @@ function dvDsHtml(rec, s){
   const het = dvCauKeTiep(rec) < 0;
   const chon = dvDsChon(rec);
   const nSo = dvSoCau();
-  const chip = DV_SO_CAU.map(v=>`<button class="dv-so ${v===nSo?'on':''}" data-action="dv-socau" data-v="${v}">${v?v+' câu':'Tất cả'}</button>`).join('');
-  // v337 — HAI KHỐI CHỌN XUỐNG DƯỚI. "Luyện bao nhiêu câu" và "Kiểu bài" là thứ đặt một lần
-  // rồi thôi; để trên đầu thì mỗi lần vào phòng phải cuộn qua chúng mới tới chỗ làm bài.
-  const khoiChon = `<div class="dv-chon">
-      <div class="dv-chon-h">🎯 Luyện bao nhiêu câu</div>
-      <div class="dv-chon-p">Chọn sẵn <b>${chon.length}</b> câu đáng chép nhất trong ${rec.lines.length} câu của video — câu đủ dài, đúng lối nói hằng ngày, rải đều từ đầu đến cuối. Câu quá ngắn hoặc câu mời đăng ký kênh thì bỏ qua.</div>
-      <div class="dv-chon-r">${chip}</div>
-    </div>${dvKieuHtml(rec)}`;
   return `${het ? dvXongHetHtml(rec) : ''}
     <div class="dv-ds-h">📋 ${chon.length} câu — bấm một câu để mở ra chép, bấm lần nữa để thu lại</div>
     <div class="dv-rows">${chon.map(i=>{
@@ -37590,15 +37618,43 @@ function dvDsHtml(rec, s){
         </div>
         ${mo?`<div class="dv-row-body">${dvThanHtml(rec, s)}</div>`:''}
       </div>`;
-    }).join('')}</div>
-    ${khoiChon}`;
+    }).join('')}</div>`;
+}
+// v338 — HAI KHỐI CHỌN SANG CỘT TRÁI, NGAY DƯỚI THANH ĐIỀU KHIỂN. v337 mới chỉ đẩy chúng
+// xuống cuối cột phải, tức là vẫn nằm sau cả danh sách câu — phải cuộn hết transcript mới
+// thấy. Đúng chỗ bạn khoanh là khoảng trống dưới thanh điều khiển của video, nơi mắt đang
+// nhìn sẵn. Dựng riêng thành một hàm để cả lúc vẽ lần đầu lẫn lúc đổi phòng đều dùng chung.
+function dvChonKhoiHtml(rec){
+  if(!rec || !Array.isArray(rec.lines) || !rec.lines.length) return '';
+  const chon = dvDsChon(rec);
+  const nSo = dvSoCau();
+  const chip = DV_SO_CAU.map(v=>`<button class="dv-so ${v===nSo?'on':''}" data-action="dv-socau" data-v="${v}">${v?v+' câu':'Tất cả'}</button>`).join('');
+  return `<div class="dv-chon">
+      <div class="dv-chon-h">🎯 Luyện bao nhiêu câu</div>
+      <div class="dv-chon-p">Chọn sẵn <b>${chon.length}</b> câu đáng chép nhất trong ${rec.lines.length} câu của video — câu đủ dài, đúng lối nói hằng ngày, rải đều từ đầu đến cuối. Câu quá ngắn hoặc câu mời đăng ký kênh thì bỏ qua.</div>
+      <div class="dv-chon-r">${chip}</div>
+    </div>${dvKieuHtml(rec)}`;
+}
+// Vẽ lại riêng ô ấy, không đụng tới #content — chạm vào #content là trình phát dựng lại.
+function dvVeChonKhoi(){
+  try{
+    const el = document.getElementById('hvDvChonWrap');
+    if(!el) return;
+    const s = STATE.hvPhien;
+    const rec = s ? hvTim(s.vidId) : null;
+    el.innerHTML = (rec && hvChePhien() === 'chinhta') ? dvChonKhoiHtml(rec) : '';
+  }catch(_){ }
 }
 function dvDatSoCau(v){
   SETTINGS.dvSoCau = (DV_SO_CAU.indexOf(v) >= 0) ? v : 15;
   (SETTINGS.dictVideos||[]).forEach(r=>{ if(r) r.dvChonKhoa = null; });
   saveSettings(); pushToDrive();
   STATE.dvPhien = STATE.dvPhien ? Object.assign({}, STATE.dvPhien, {idx:null}) : null;
-  renderContentPreserveScroll();
+  // v338 — ĐÚNG BÀI HỌC v167/v168/v331: renderContentPreserveScroll() ghi đè cả #content,
+  // tức là xoá luôn iframe YouTube rồi dựng lại — video chạy lại từ đầu chỉ vì đổi số câu.
+  // Vẽ lại đúng hai vùng cần đổi thôi.
+  try{ dvVeChonKhoi(); }catch(_){ }
+  if(!dvVe('dvListWrap')) renderContentPreserveScroll();
 }
 function dvXongHetHtml(rec){
   return `<div class="card" style="padding:18px 16px; text-align:center; border:1.5px solid rgba(44,219,168,.5);">
@@ -37641,7 +37697,7 @@ function dvAnChon(en){
   const diem = tu.map((w, j)=>{
     const sach = w.replace(/[^A-Za-z''-]/g,'');
     let noiDung = sach.length >= 4;
-    try{ if(typeof drpNhanTu === 'function') noiDung = drpNhanTu(sach, null) === 'manh'; }catch(_){ }
+    try{ if(typeof drpNhanTu === 'function') noiDung = !!drpNhanTu(sach, null); }catch(_){ }
     // điểm càng cao càng đáng giấu: từ nội dung trước, từ dài trước, và rải đều bằng chỉ số
     return {j, d: (noiDung ? 100 : 0) + Math.min(sach.length, 12) - (j % 3)};
   });
@@ -37669,7 +37725,7 @@ function dvXepHtml(d){
     tu.forEach((w,j)=>{
       const sach = w.replace(/[^A-Za-z''-]/g,'');
       let noiDung = sach.length >= 4;
-      try{ if(typeof drpNhanTu === 'function') noiDung = drpNhanTu(sach, null) === 'manh'; }catch(_){ }
+      try{ if(typeof drpNhanTu === 'function') noiDung = !!drpNhanTu(sach, null); }catch(_){ }
       if(noiDung) an.add(j);
     });
     if(!an.size) an = dvAnChon(d.en);
@@ -37742,6 +37798,9 @@ function dvDatKieu(k, v){
   // renderContentPreserveScroll(), tức là ghi đè innerHTML của CẢ #content. Làm thế là xoá luôn
   // thẻ iframe YouTube rồi dựng lại từ đầu — đúng cái lỗi đã mắc ở v167/v168 và đã ghi lại ngay
   // trong file này. Nay chỉ vẽ lại ĐÚNG vùng danh sách; khung video không bị đụng tới.
+  // v338 — hai khối chọn nay ở CỘT TRÁI, ngoài vùng dvListWrap, nên phải vẽ lại riêng:
+  // không thì bấm Dễ/Vừa/Khó xong nút vẫn sáng ở ô cũ và ô "Xem trước" không đổi theo.
+  try{ dvVeChonKhoi(); }catch(_){ }
   if(!dvVe('dvListWrap')) renderContentPreserveScroll();
 }
 // Ô xem trước: cho thấy ĐÚNG cái sắp phải làm, dựng từ chính câu đầu tiên của video chứ không
@@ -37768,7 +37827,7 @@ function dvXemTruocHtml(rec){
     tu.forEach((w,j)=>{
       const sach = w.replace(/[^A-Za-z''-]/g,'');
       let nd = sach.length >= 4;
-      try{ if(typeof drpNhanTu === 'function') nd = drpNhanTu(sach, null) === 'manh'; }catch(_){ }
+      try{ if(typeof drpNhanTu === 'function') nd = !!drpNhanTu(sach, null); }catch(_){ }
       if(nd) an.add(j);
     });
     if(!an.size) an = dvAnChon(d.en);
@@ -40949,19 +41008,46 @@ function sdCauHtml(rec){
     // nhau, mà tiếng Anh có hai loại: từ NỘI DUNG phải nhấn, từ CHỨC NĂNG phải nuốt gọn.
     // Nhấn = gạch liền đậm; lướt = gạch chấm mờ. Người Việt đọc đều đều từng chữ chính là vì
     // không thấy được sự khác nhau ấy.
+    // v338 — GỐC LỖI "Intonation bật mà không thấy gì": drpNhanTu trả về true/false, còn chỗ
+    // này so với chuỗi 'manh'. Phép so sánh không bao giờ đúng, nên MỌI từ đều rơi vào nhánh
+    // ' luot' — cả câu gạch chấm đều nhau, nhìn hệt như lúc tắt. Nay đọc đúng kiểu boolean.
     let lop = '';
     if(hienNhan && typeof drpNhanTu === 'function'){
-      try{ lop = (drpNhanTu(sach, null) === 'manh') ? ' nhan' : ' luot'; }catch(_){ }
+      try{ lop = drpNhanTu(sach, null) ? ' nhan' : ' luot'; }catch(_){ }
     }
     return `<span class="sd-cau-w${lop}">
       <b>${escapeHtml(w)}</b>${ipa ? `<i>${escapeHtml(ipa)}</i>` : '<i class="trong"></i>'}</span>`;
   }).join('');
+  // v338 — và thêm NHỊP NGẮT NGHỈ, thứ bạn hỏi cùng lúc. drpNgatCau đã biết chỗ nào lấy hơi
+  // (sau dấu câu, trước liên từ nối mệnh đề khi vế trước đã đủ dài); chỉ việc vẽ nó ra.
+  // | là nghỉ ngắn trong câu, ‖ là nghỉ dài hết mệnh đề. Chỉ hiện khi bật Intonation.
+  let chuNgat = '';
+  if(hienNhan && typeof drpNgatCau === 'function'){
+    try{
+      const phan = drpNgatCau(String(d.en||''));
+      if(phan.some(x=>x.loai === 'ngat')){
+        chuNgat = phan.map(x=>{
+          if(x.loai === 'cach') return '';
+          if(x.loai === 'ngat') return `<span class="sd-cau-ngat${x.dai?' dai':''}" title="${
+            x.dai ? 'Nghỉ dài — hết mệnh đề, lấy hơi' : 'Nghỉ ngắn — ngắt nhịp trong câu'
+          }">${x.dai ? '‖' : '|'}</span>`;
+          const sach2 = String(x.chu||'').replace(/[^A-Za-z''-]/g,'');
+          const ipa2 = hienIpa ? (ipaOfWord(sach2).ipa || '') : '';
+          return `<span class="sd-cau-w${x.nhan ? ' nhan' : ' luot'}">
+            <b>${escapeHtml(x.chu)}</b>${ipa2 ? `<i>${escapeHtml(ipa2)}</i>` : '<i class="trong"></i>'}</span>`;
+        }).join('');
+      }
+    }catch(_){ chuNgat = ''; }
+  }
   const i = hvDkCau();
   return `<div class="sd-cau-o">
     <div class="sd-cau-so">Câu ${i+1}/${(rec.lines||[]).length}</div>
     <div class="sd-luot${STATE.sdLuot ? ' hien' : ''}" id="sdLuot">🎤 Tới lượt bạn — đọc lại câu!
       <b id="sdLuotGiay">${STATE.sdLuot || ''}</b></div>
-    <div class="sd-cau-chu${hienIpa?' coipa':''}">${chu}</div>
+    <div class="sd-cau-chu${hienIpa?' coipa':''}">${chuNgat || chu}</div>
+    ${hienNhan ? `<div class="sd-cau-chu-giai">Gạch liền = từ phải <b>nhấn</b> · gạch chấm = từ
+      <b>lướt</b> · <span class="sd-cau-ngat">|</span> nghỉ ngắn ·
+      <span class="sd-cau-ngat dai">‖</span> nghỉ dài</div>` : ''}
     ${hienDich && d.vi ? `<div class="sd-cau-vi" id="sdCauVi">${escapeHtml(d.vi)}</div>`
                         : '<div class="sd-cau-vi" id="sdCauVi"></div>'}
     <div class="sd-cau-nut">
@@ -48349,9 +48435,16 @@ async function kiemTraBanMoi(tuTai){
 // tải lại vô tận nếu vì lý do nào đó bản mới vẫn chưa về được.
 async function napBanMoi(tren){
   try{
+    // v338 — GỐC CỦA "lâu lâu vào lại thấy màn hình bản cũ". Service worker ưu tiên mạng,
+    // nhưng quá 3,5 giây không phản hồi thì trả bản index.html trong cache — tức là MÃ CŨ.
+    // Chốt ở đây trước nay là một lần duy nhất cho mỗi số bản trong mỗi phiên: đã tải lại một
+    // lần rồi thì lần sau bị phát bản cũ nữa, app biết mình cũ mà KHÔNG được phép tự sửa, cứ
+    // thế chạy mã cũ tới khi đóng hẳn tab. Nay cho tối đa ba lượt — đủ để vượt một lần mạng
+    // chậm, vẫn chặn được vòng lặp tải lại vô tận nếu bản mới thật sự không về được.
     const khoa = 'daNapLai_' + tren;
-    if(sessionStorage.getItem(khoa)) return false;
-    sessionStorage.setItem(khoa, '1');
+    const lan = +(sessionStorage.getItem(khoa) || 0);
+    if(lan >= 3) return false;
+    sessionStorage.setItem(khoa, String(lan + 1));
     try{
       const ks = await caches.keys();
       await Promise.all(ks.map(k=>caches.delete(k)));
