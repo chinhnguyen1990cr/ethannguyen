@@ -4493,15 +4493,6 @@ body.hv-khoa-cuon{overflow:hidden;}
      y như cách bạn rê xuống đáy khung để gọi thanh điều khiển YouTube. */
   opacity:0; pointer-events:none; transition:opacity .22s;
   display:flex; align-items:center; gap:6px;}
-.hv-nutbar.hien{opacity:1; pointer-events:auto;}
-/* Nút gọi hàng nút phụ: ngay cạnh nút play, chỗ tay đang ở sẵn. */
-.hv-nb-goi{position:absolute; left:10px; top:50%; transform:translateY(-50%); z-index:6;
-  width:28px; height:28px; display:flex; align-items:center; justify-content:center;
-  border-radius:50%; cursor:pointer; font-size:15px; line-height:1;
-  color:var(--text); background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.16);
-  opacity:0; transition:opacity .22s;}
-.hv-vidwrap:hover .hv-nb-goi{opacity:1;}
-.hv-nutbar.hien ~ .hv-nb-goi{opacity:0; pointer-events:none;}
 /* v334 — chip đổi phòng nằm NGANG HÀNG TIÊU ĐỀ; tiêu đề rút về một bên, cắt bằng dấu … */
 .hv-dau-ten{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .hv-dau-phong{display:flex; gap:5px; flex:none;}
@@ -6244,7 +6235,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v334';
+const APP_VERSION = 'v335';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -35119,8 +35110,16 @@ function hvXoayKhung(){
 // vẫn có người thấy cỡ nào cũng không vừa. Nay kéo được tuỳ ý, và cỡ ấy được NHỚ lại.
 // Cao tối thiểu 150px để không kéo mất hẳn khung; tối đa 88% chiều cao màn để còn thấy
 // thanh điều khiển ngay dưới — kéo video cao hơn màn thì mỗi lần bấm nút phải cuộn.
-function hvCaoTuy(){ const v = +SETTINGS.hvCaoTuy; return (v >= 150 && v <= 4000) ? v : 0; }
-function hvRongTuy(){ const v = +SETTINGS.hvRongTuy; return (v >= 240 && v <= 4000) ? v : 0; }
+// ══ v335 · BỎ HẲN VIỆC NHỚ CỠ KHUNG ══════════════════════════════════════════════════
+// Ba lỗi bạn báo đều chung một gốc: v334 lưu cỡ vừa kéo vào SETTINGS rồi áp lại ở MỌI lần mở
+// video. Hậu quả dây chuyền:
+//   · Mở video nào cũng bị bó theo cỡ của lần kéo trước → khung lệch hẳn sang trái, hết canh giữa.
+//   · Trần bề rộng lúc kéo lại tính theo chính cột ĐÃ BỊ BÓ, nên kéo nhỏ xong thì trần cũng nhỏ
+//     theo — kéo mãi không to lại được. Một vòng tự thắt.
+//   · Cột hẹp làm tiêu đề, chip đổi phòng và hàng nút chen nhau → chồng chéo.
+// Nay cỡ chỉ sống trong PHIÊN đang xem: thoát ra vào lại là về mặc định.
+function hvCaoTuy(){ return 0; }
+function hvRongTuy(){ return 0; }
 function hvApCaoTuy(){
   try{
     const w = document.getElementById('hvVidWrap'); if(!w) return;
@@ -35129,7 +35128,10 @@ function hvApCaoTuy(){
     // rộng nguyên, để lại một mảng trống to tướng bên cạnh — đúng chỗ bạn khoanh trong hình.
     // Nay đặt bề rộng lên CẢ cột ghim, nên cột hẹp theo và phần bên phải lấn sang được.
     const cot = w.closest ? w.closest('.hv-ghim') : null;
-    if(cot){ if(r) cot.style.maxWidth = r + 'px'; else cot.style.removeProperty('max-width'); }
+    if(cot){
+      if(r){ cot.style.maxWidth = r + 'px'; cot.style.marginLeft = 'auto'; cot.style.marginRight = 'auto'; }
+      else { cot.style.removeProperty('max-width'); cot.style.removeProperty('margin-left'); cot.style.removeProperty('margin-right'); }
+    }
     if(c) w.style.height = c + 'px'; else w.style.removeProperty('height');
     // Bề rộng đặt bằng width + max-width: chỉ width thôi thì luật cũ "rộng 100% cột" vẫn thắng
     // ở vài bố cục, còn chỉ max-width thì khung không co lại được.
@@ -35166,14 +35168,20 @@ function hvKeoChay(e){
   const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
   const tranCao  = Math.round((window.innerHeight || 800) * 0.88);
   const cha = document.getElementById('hvVidWrap');
-  const tranRong = Math.round(((cha && cha.parentElement)
-    ? cha.parentElement.getBoundingClientRect().width : (window.innerWidth || 1000)) || 1000);
+  // Trần phải đo ở KHUNG NGOÀI CÙNG. Đo ở cột cha là sai, vì chính cột ấy đang bị bó theo cỡ
+  // vừa kéo: kéo nhỏ một lần là trần tụt theo, và không bao giờ kéo to lại được nữa.
+  let tranRong = window.innerWidth || 1000;
+  try{
+    const ngoai = (cha && cha.closest) ? (cha.closest('.hv-2cot') || document.getElementById('content')) : null;
+    if(ngoai) tranRong = ngoai.getBoundingClientRect().width || tranRong;
+  }catch(_){ }
+  tranRong = Math.round(tranRong);
   const cao  = Math.max(150, Math.min(tranCao,  Math.round(hvKeoDang.cao0  + (t.clientY - hvKeoDang.y0))));
   const rong = Math.max(240, Math.min(tranRong, Math.round(hvKeoDang.rong0 + (t.clientX - hvKeoDang.x0))));
   if(cha){
     cha.style.height = cao + 'px'; cha.style.width = rong + 'px'; cha.style.maxWidth = '100%';
     const cot = cha.closest ? cha.closest('.hv-ghim') : null;
-    if(cot) cot.style.maxWidth = rong + 'px';
+    if(cot){ cot.style.maxWidth = rong + 'px'; cot.style.marginLeft = 'auto'; cot.style.marginRight = 'auto'; }
   }
   hvKeoDang.cao = cao; hvKeoDang.rong = rong;
   e.preventDefault();
@@ -35189,29 +35197,14 @@ function hvKeoXong(){
   document.removeEventListener('touchmove', hvKeoChay);
   document.removeEventListener('mouseup', hvKeoXong, true);
   document.removeEventListener('touchend', hvKeoXong, true);
-  if(hvKeoDang && hvKeoDang.cao){
-    SETTINGS.hvCaoTuy  = hvKeoDang.cao;
-    SETTINGS.hvRongTuy = hvKeoDang.rong;
-    saveSettings();
-  }
+  // Cố ý KHÔNG lưu lại: cỡ chỉ có nghĩa cho lần xem này — xem giải thích ở hvCaoTuy().
+  try{ SETTINGS.hvCaoTuy = 0; SETTINGS.hvRongTuy = 0; saveSettings(); }catch(_){ }
   hvKeoDang = null;
 }
-// ══ v334 · HÀNG NÚT PHỤ: GỌI RA RỒI TỰ ẨN ════════════════════════════════════════════
-// Trước đây hàng nút ⤢ A+ ▤ 🇻🇳 ¶ CC ⛶ nằm ngang ở đáy khung — đúng chỗ thanh tua của
-// YouTube, nên rất dễ bấm nhầm. Nay nó xếp DỌC cạnh nút play, chỉ hiện khi bạn gọi, và ba
-// giây không chạm tới thì tự lui.
-let hvNbHen = null;
-function hvNbAn(){
-  if(hvNbHen){ clearTimeout(hvNbHen); hvNbHen = null; }
-  const el = document.querySelector('.hv-nutbar');
-  if(el && el.classList) el.classList.remove('hien');
-}
-function hvNbHienTam(){
-  const el = document.querySelector('.hv-nutbar'); if(!el) return;
-  if(el.classList) el.classList.add('hien');
-  if(hvNbHen) clearTimeout(hvNbHen);
-  hvNbHen = setTimeout(hvNbAn, 3000);
-}
+// v335 — GỠ CƠ CHẾ GỌI/ẨN THỨ HAI. v334 thêm nút ⋮ và một bộ hẹn giờ riêng, trong khi
+// v246/v247 đã có sẵn bộ hvSoatNut tự gắn/gỡ lớp .hien theo cử động chuột. Hai bộ cùng ghi
+// vào một lớp trên cùng một phần tử thì bộ nào chạy sau thắng — kết quả là hàng nút hiện lì,
+// đè lên khung hình. Giữ bộ cũ, bỏ bộ mới.
 function hvDoHinh(rec){
   if(!rec || !rec.videoId || rec.dungHinh !== undefined) return;
   try{
@@ -36801,7 +36794,6 @@ function renderHocVideoPhien(item){
         </div>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
         <span class="hv-keo" data-action="hv-keo" title="Kéo để phóng to / thu nhỏ khung video">⤡</span>
-        <span class="hv-nb-goi" data-action="hv-nb-goi" title="Hiện các nút phụ">⋮</span>
       </div>
 
       ${/* v333 — LỖI GỐC CỦA "không có nút đổi phòng" VÀ "không có thanh điều khiển": bản v332
@@ -46818,12 +46810,6 @@ function hvPhimTat(e){
   }catch(_){ }
 }
 document.addEventListener('keydown', hvPhimTat, true);
-['mousemove','click','touchstart'].forEach(ev=>document.addEventListener(ev, function(e){
-  try{
-    const el = e.target && e.target.closest ? e.target.closest('.hv-nutbar') : null;
-    if(el) hvNbHienTam();     // còn đụng tới thì còn giữ, mỗi lần chạm là thêm 3 giây nữa
-  }catch(_){ }
-}, {passive:true}));
 ['mousedown','touchstart'].forEach(ev=>document.addEventListener(ev, function(e){
   try{
     const el = e.target && e.target.closest ? e.target.closest('[data-action="hv-keo"]') : null;
@@ -47533,8 +47519,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
     else if(a === 'sd-cau-nhan'){ SETTINGS.sdHienNhan = !sdHienNhan(); saveSettings(); sdVeCau(); }
     return;
   }
-  const hvNbGoiEl = e.target.closest('[data-action="hv-nb-goi"]');
-  if(hvNbGoiEl){ e.stopPropagation(); hvNbHienTam(); return; }
   const hvKeoEl = e.target.closest('[data-action="hv-keo"]');
   if(hvKeoEl){ e.stopPropagation(); return; }   // mousedown mới là lúc bắt đầu kéo, click thì bỏ qua
   const hvDkEl = e.target.closest('[data-action^="hv-dk-"]');
