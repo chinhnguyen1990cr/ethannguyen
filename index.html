@@ -4806,6 +4806,10 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-dk-n:active:not(:disabled){transform:scale(.93);}
 .hv-dk-n:disabled{opacity:.38;cursor:default;}
 .hv-dk-n.to{min-width:70px;background:var(--blue);color:#fff;border-color:transparent;}
+/* v336 — công tắc "câu sau": bật thì sáng lên như nút Play, nhìn là biết video có tự chạy
+   tiếp hay không, khỏi phải thử mới biết. */
+.hv-dk-n.bat{background:var(--teal);color:#04211a;border-color:transparent;}
+.hv-dk-n.bat i{color:rgba(4,33,26,.66);}
 .hv-dk-n.to i{color:rgba(255,255,255,.72);}
 .hv-dk-dat{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .hv-dk-dat label{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--dim);}
@@ -6235,7 +6239,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v335';
+const APP_VERSION = 'v336';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33250,17 +33254,20 @@ function hvDkBatNhip(){
       }
       hvDkNgung();
       const cho = hvDkCho();
-      // Bấm "câu sau" khi đang chạy: nghe nốt câu này rồi sang, bất kể ô chờ đang đặt gì.
-      if(hvDkQuaMotLan){ hvDkQuaMotLan = false; hvDkToiCau(i + 1); return; }
-      if(cho === 'tat' || cho === 'tay'){
-        try{ p.pauseVideo(); }catch(e){} try{ hvVeNutPlay(); }catch(e){} return;
-      }
+      try{ p.pauseVideo(); }catch(e){}
+      try{ hvVeNutPlay(); }catch(e){}
+      // Công tắc "câu sau" TẮT, hoặc nấc chờ là Tắt/Tự bấm → dừng hẳn ở cuối câu.
+      if(!hvDkTuQua() || cho === 'tat' || cho === 'tay') return;
       // Chờ bao nhiêu thì tính theo CHÍNH độ dài câu vừa nghe, không phải một con số cố định:
       // câu dài cần nghĩ lâu hơn câu ngắn, mà câu dài ngắn thì mỗi video một khác.
-      const dai = Math.max(0.6, het - (ds[i].t||0));
-      try{ p.pauseVideo(); }catch(e){}
-      try{ if(hvChePhien() === 'shadowing') sdLuotBatDau(dai * cho / 100); }catch(e){}
-      hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, Math.round(dai * cho * 10));
+      // v336 — MỘT CON SỐ DUY NHẤT cho cả đếm ngược lẫn hẹn giờ. Trước đây đồng hồ hiện số
+      // làm tròn LÊN còn hẹn giờ dùng số lẻ chưa tròn, nên màn hình còn "2s" mà video đã sang
+      // câu khác. Nay chốt số giây trước, hiện đúng số ấy, và chờ đúng ngần ấy — cộng thêm
+      // 0,25 giây đệm để nhịp vẽ của đồng hồ kịp chạm 0 trước khi chuyển.
+      const dai  = Math.max(0.6, het - (ds[i].t||0));
+      const giay = Math.max(1, Math.ceil(dai * cho / 100));
+      try{ if(hvChePhien() === 'shadowing') sdLuotBatDau(giay); }catch(e){}
+      hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, Math.round(giay * 1000 + 250));
     }catch(e){ hvDkNgung(); }
   }, 120);
 }
@@ -33293,15 +33300,15 @@ function hvCauBatBam(){
   }, 300);
 }
 function hvDkCauTruoc(){ hvDkToiCau(hvDkCau() - 1); }
-// v334 — ĐỔI NGHĨA NÚT "CÂU SAU" theo đúng cách bạn mô tả: bấm nó KHÔNG nhảy ngay sang câu
-// kế, mà cho video chạy NỐT câu đang nghe rồi mới sang. Không bấm thì hết câu là dừng.
-// Dùng một cờ dùng-một-lần thay vì bật chế độ tự chạy: tự chạy là việc của ô "thời gian chờ".
-let hvDkQuaMotLan = false;
+// ══ v336 · "CÂU SAU" LÀ CÔNG TẮC, KHÔNG PHẢI CÚ BẤM MỘT LẦN ═══════════════════════════
+// v334 làm nó thành cờ dùng-một-lần, nên nhìn vào thanh điều khiển không biết video sắp tự
+// chạy tiếp hay sắp dừng — và nó cứ tự nhảy câu dù bạn không bảo. Nay là công tắc có sáng/tắt
+// như nút Play: BẬT thì hết thời gian chờ mới sang câu kế, TẮT thì phát xong câu là đứng im.
+// Trạng thái được nhớ lại, vì đây là thói quen luyện chứ không phải thao tác từng lần.
+function hvDkTuQua(){ return !!SETTINGS.hvDkTuQua; }
 function hvDkCauSau(){
-  const p = hvLayPlayer();
-  if(!p || !hvDangChay()){ hvDkToiCau(hvDkCau() + 1); return; }  // đang dừng thì sang luôn
-  hvDkQuaMotLan = true;
-  hvDkBatNhip();
+  SETTINGS.hvDkTuQua = !hvDkTuQua();
+  saveSettings();
   hvDkVeThanh();
 }
 function hvDkLapLai(){   hvDkToiCau(hvDkCau()); }
@@ -33352,7 +33359,9 @@ function hvDkHtml(){
       <button class="hv-dk-n" data-action="hv-dk-truoc" ${i<=0?'disabled':''} title="Câu trước (phím ←)">⏮<i>←</i></button>
       <button class="hv-dk-n" data-action="hv-dk-lap-lai" title="Nghe lại câu này (phím R)">↺<i>R</i></button>
       <button class="hv-dk-n to" data-action="hv-dk-play" id="hvDkPlayBtn" title="Chạy / Dừng (phím cách)">▶<i>Space</i></button>
-      <button class="hv-dk-n" data-action="hv-dk-sau" ${i>=ds.length-1?'disabled':''} title="Câu sau (phím →)">⏭<i>→</i></button>
+      <button class="hv-dk-n ${hvDkTuQua()?'bat':''}" data-action="hv-dk-sau"
+        title="${hvDkTuQua() ? 'ĐANG BẬT: hết thời gian chờ là tự sang câu kế. Chạm để tắt.'
+                             : 'ĐANG TẮT: phát xong câu là dừng lại. Chạm để bật tự sang câu kế.'}">⏭<i>→</i></button>
     </div>
     <div class="hv-dk-dat">
       <label title="Tốc độ nói của video">⏩${chon('toc', HV_DK_TOC, hvDkToc(), v=>v+'×')}</label>
@@ -35120,91 +35129,76 @@ function hvXoayKhung(){
 // Nay cỡ chỉ sống trong PHIÊN đang xem: thoát ra vào lại là về mặc định.
 function hvCaoTuy(){ return 0; }
 function hvRongTuy(){ return 0; }
-function hvApCaoTuy(){
-  try{
-    const w = document.getElementById('hvVidWrap'); if(!w) return;
-    const c = hvCaoTuy(), r = hvRongTuy();
-    // v334 — BỐ CỤC PHẢI CO THEO. Trước đây chỉ khung video hẹp lại, còn cột chứa nó vẫn
-    // rộng nguyên, để lại một mảng trống to tướng bên cạnh — đúng chỗ bạn khoanh trong hình.
-    // Nay đặt bề rộng lên CẢ cột ghim, nên cột hẹp theo và phần bên phải lấn sang được.
-    const cot = w.closest ? w.closest('.hv-ghim') : null;
-    if(cot){
-      if(r){ cot.style.maxWidth = r + 'px'; cot.style.marginLeft = 'auto'; cot.style.marginRight = 'auto'; }
-      else { cot.style.removeProperty('max-width'); cot.style.removeProperty('margin-left'); cot.style.removeProperty('margin-right'); }
-    }
-    if(c) w.style.height = c + 'px'; else w.style.removeProperty('height');
-    // Bề rộng đặt bằng width + max-width: chỉ width thôi thì luật cũ "rộng 100% cột" vẫn thắng
-    // ở vài bố cục, còn chỉ max-width thì khung không co lại được.
-    if(r){ w.style.width = r + 'px'; w.style.maxWidth = '100%'; }
-    else { w.style.removeProperty('width'); w.style.removeProperty('max-width'); }
-  }catch(_){ }
-}
+// ══ v336 · KÉO CỠ VIDEO — LÀM LẠI CHO ĐÚNG ═══════════════════════════════════════════
+// Ba điều bạn báo đều do hai quyết định sai ở v334/v335:
+//  (1) Tôi đặt CẢ chiều cao lẫn bề rộng. Nhưng khung video có tỉ lệ 16:9 do lớp con giữ, nên
+//      ép chiều cao riêng chỉ tạo ra một dải trống dưới iframe — đúng "khoảng trống không co
+//      lại" khiến khung lời thoại bị đẩy xa. Nay CHỈ đổi bề rộng, chiều cao tự tính theo tỉ lệ:
+//      không bao giờ còn chỗ thừa, và lời thoại tự dâng lên.
+//  (2) Tôi bó bề rộng lên CẢ cột .hv-ghim, nên tiêu đề và ba chip đổi phòng co theo rồi chồng
+//      lên nhau. Nay chỉ bó đúng khung video; tiêu đề và hàng chip giữ nguyên bề ngang.
+//  (3) Tôi trộn mousedown/touchstart với mouseup. Chuỗi sự kiện gãy giữa chừng là chuột "dính":
+//      thả tay rồi khung vẫn chạy theo con trỏ. Nay dùng MỘT họ pointer events từ đầu đến cuối,
+//      kèm setPointerCapture để mọi chuyển động đều về đúng phần tử đang kéo, và bắt cả
+//      pointercancel — trình duyệt huỷ ngang (cuộn, mất tiêu điểm) cũng phải kết thúc sạch.
 let hvKeoDang = null;
 function hvKeoBatDau(e){
   const w = document.getElementById('hvVidWrap'); if(!w) return;
-  const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
-  const o = w.getBoundingClientRect();
-  hvKeoDang = {x0:t.clientX, y0:t.clientY, cao0:o.height, rong0:o.width};
-  // v334 — CHỐNG "DÍNH CHUỘT". Ba thứ gây dính: (1) trình duyệt bôi đen chữ khi rê,
-  // (2) khung video có transition nên chạy đuổi theo con trỏ chứ không bám sát,
-  // (3) con trỏ ra khỏi tay kéo là mất chuỗi sự kiện. Chặn cả ba.
+  // Lấy chính tay kéo từ e.target: KHÔNG bọc lại sự kiện. Bọc PointerEvent bằng Object.create
+  // trông thì tiện nhưng các getter của nó đòi "this" phải là PointerEvent thật, nên đọc
+  // e.clientX trên bản sao là ném lỗi ngay.
+  const tay = (e.target && e.target.closest) ? e.target.closest('[data-action="hv-keo"]') : null;
+  hvKeoDang = {x0:e.clientX, rong0: w.getBoundingClientRect().width, el: tay || e.target};
   try{
+    if(hvKeoDang.el && hvKeoDang.el.setPointerCapture && e.pointerId != null)
+      hvKeoDang.el.setPointerCapture(e.pointerId);
+    hvKeoDang.pid = e.pointerId;
     document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'nwse-resize';
+    document.body.style.cursor = 'ew-resize';
     w.style.transition = 'none';
-    if(e.pointerId != null && e.target && e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
   }catch(_){ }
+  document.addEventListener('pointermove', hvKeoChay, {passive:false});
+  document.addEventListener('pointerup', hvKeoXong, true);
+  document.addEventListener('pointercancel', hvKeoXong, true);
   e.preventDefault();
-  document.addEventListener('mousemove', hvKeoChay, {passive:false});
-  document.addEventListener('touchmove', hvKeoChay, {passive:false});
-  document.addEventListener('mouseup', hvKeoXong, true);
-  document.addEventListener('touchend', hvKeoXong, true);
 }
-// v333 — KÉO CẢ HAI CHIỀU. Bản v331 chỉ đọc trục Y nên khung chỉ cao lên thấp xuống, bề ngang
-// vẫn dính 100% bề cột. Nay tay kéo ở góc nên dx đổi bề rộng, dy đổi chiều cao — đúng kiểu
-// phóng to / thu nhỏ mà bạn muốn.
 function hvKeoChay(e){
   if(!hvKeoDang) return;
-  const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
-  const tranCao  = Math.round((window.innerHeight || 800) * 0.88);
-  const cha = document.getElementById('hvVidWrap');
-  // Trần phải đo ở KHUNG NGOÀI CÙNG. Đo ở cột cha là sai, vì chính cột ấy đang bị bó theo cỡ
-  // vừa kéo: kéo nhỏ một lần là trần tụt theo, và không bao giờ kéo to lại được nữa.
+  const w = document.getElementById('hvVidWrap'); if(!w) return;
+  // Trần đo ở KHUNG NGOÀI CÙNG. Đo ở cột cha là sai: cột ấy đang bị bó theo cỡ vừa kéo, nên
+  // kéo nhỏ một lần là trần tụt theo và không bao giờ kéo to lại được.
   let tranRong = window.innerWidth || 1000;
   try{
-    const ngoai = (cha && cha.closest) ? (cha.closest('.hv-2cot') || document.getElementById('content')) : null;
+    const ngoai = w.closest ? (w.closest('.hv-2cot') || document.getElementById('content')) : null;
     if(ngoai) tranRong = ngoai.getBoundingClientRect().width || tranRong;
   }catch(_){ }
   tranRong = Math.round(tranRong);
-  const cao  = Math.max(150, Math.min(tranCao,  Math.round(hvKeoDang.cao0  + (t.clientY - hvKeoDang.y0))));
-  const rong = Math.max(240, Math.min(tranRong, Math.round(hvKeoDang.rong0 + (t.clientX - hvKeoDang.x0))));
-  if(cha){
-    cha.style.height = cao + 'px'; cha.style.width = rong + 'px'; cha.style.maxWidth = '100%';
-    const cot = cha.closest ? cha.closest('.hv-ghim') : null;
-    if(cot){ cot.style.maxWidth = rong + 'px'; cot.style.marginLeft = 'auto'; cot.style.marginRight = 'auto'; }
-  }
-  hvKeoDang.cao = cao; hvKeoDang.rong = rong;
+  const rong = Math.max(240, Math.min(tranRong, Math.round(hvKeoDang.rong0 + (e.clientX - hvKeoDang.x0))));
+  w.style.width = rong + 'px';
+  w.style.maxWidth = '100%';
+  w.style.removeProperty('height');     // chiều cao để tỉ lệ 16:9 tự lo
+  hvKeoDang.rong = rong;
   e.preventDefault();
 }
-function hvKeoXong(){
+function hvKeoXong(e){
+  try{
+    if(hvKeoDang && hvKeoDang.el && hvKeoDang.el.releasePointerCapture && hvKeoDang.pid != null)
+      hvKeoDang.el.releasePointerCapture(hvKeoDang.pid);
+  }catch(_){ }
   try{
     document.body.style.removeProperty('user-select');
     document.body.style.removeProperty('cursor');
     const w = document.getElementById('hvVidWrap');
     if(w) w.style.removeProperty('transition');
   }catch(_){ }
-  document.removeEventListener('mousemove', hvKeoChay);
-  document.removeEventListener('touchmove', hvKeoChay);
-  document.removeEventListener('mouseup', hvKeoXong, true);
-  document.removeEventListener('touchend', hvKeoXong, true);
-  // Cố ý KHÔNG lưu lại: cỡ chỉ có nghĩa cho lần xem này — xem giải thích ở hvCaoTuy().
-  try{ SETTINGS.hvCaoTuy = 0; SETTINGS.hvRongTuy = 0; saveSettings(); }catch(_){ }
+  document.removeEventListener('pointermove', hvKeoChay);
+  document.removeEventListener('pointerup', hvKeoXong, true);
+  document.removeEventListener('pointercancel', hvKeoXong, true);
   hvKeoDang = null;
 }
-// v335 — GỠ CƠ CHẾ GỌI/ẨN THỨ HAI. v334 thêm nút ⋮ và một bộ hẹn giờ riêng, trong khi
-// v246/v247 đã có sẵn bộ hvSoatNut tự gắn/gỡ lớp .hien theo cử động chuột. Hai bộ cùng ghi
-// vào một lớp trên cùng một phần tử thì bộ nào chạy sau thắng — kết quả là hàng nút hiện lì,
-// đè lên khung hình. Giữ bộ cũ, bỏ bộ mới.
+function hvApCaoTuy(){
+  // Cỡ chỉ sống trong phiên đang xem nên không có gì để áp lại; giữ hàm cho những chỗ đang gọi.
+}
 function hvDoHinh(rec){
   if(!rec || !rec.videoId || rec.dungHinh !== undefined) return;
   try{
@@ -46810,12 +46804,12 @@ function hvPhimTat(e){
   }catch(_){ }
 }
 document.addEventListener('keydown', hvPhimTat, true);
-['mousedown','touchstart'].forEach(ev=>document.addEventListener(ev, function(e){
+document.addEventListener('pointerdown', function(e){
   try{
     const el = e.target && e.target.closest ? e.target.closest('[data-action="hv-keo"]') : null;
     if(el) hvKeoBatDau(e);
   }catch(_){ }
-}, {passive:false}));
+}, {passive:false});
 // Ô chọn trong thanh điều khiển: tốc độ, số lần lặp, thời gian chờ.
 document.addEventListener('change', function(e){
   try{
