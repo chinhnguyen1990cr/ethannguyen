@@ -4540,6 +4540,15 @@ body.hv-khoa-cuon{overflow:hidden;}
 .sd-cau-ngat{display:inline-flex; align-items:center; font-weight:900; font-size:17px;
   line-height:1; color:var(--gold); opacity:.85; padding:0 1px;}
 .sd-cau-ngat.dai{color:#FF8FA3; font-size:19px;}
+/* v341 — đang hiện nghĩa thì cả khung câu sáng lên, và dòng tiếng Việt có nền riêng: nhìn
+   một cái là biết câu nào đang được dịch, không phải dò xem chữ Việt thuộc về câu nào. */
+.sd-cau-o.codich{border-color:color-mix(in srgb, var(--gold) 46%, transparent);
+  background:color-mix(in srgb, var(--gold) 7%, transparent);}
+.sd-cau-o.codich .sd-cau-vi{margin-top:9px; padding:7px 12px; border-radius:11px;
+  font-size:13.5px; font-weight:700; color:#FFE2A8; line-height:1.5;
+  background:color-mix(in srgb, var(--gold) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--gold) 34%, transparent);}
+.sd-cau-o.codich .sd-cau-vi:empty{display:none;}
 .sd-cau-chu-giai{margin-top:8px; font-size:11px; color:var(--dim2); line-height:1.7;}
 .sd-cau-chu-giai b{color:var(--dim);}
 /* Trọng âm: từ NHẤN gạch liền đậm, từ LƯỚT gạch chấm mờ */
@@ -4572,7 +4581,14 @@ body.hv-khoa-cuon{overflow:hidden;}
   box-shadow:0 0 0 2px rgba(255,216,77,.40);}
 .hv-nb.vn.on{background:#2CDBA8; color:#04211a; border-color:transparent;}
 .hv-nb.mo.on{background:#4FA8FF; color:#04121f; border-color:transparent;}
-.hv-vidwrap.full .hv-nutbar{right:14px; bottom:14px; gap:8px;}
+/* v341 — GỐC CỦA "phóng to thì nút chạy vào giữa, bấm không pause được, 3s không ẩn".
+   Luật gốc (v337) đặt left:7px; top:48px. Luật toàn-màn-hình này lại đặt right+bottom mà
+   KHÔNG xoá left+top, nên cả bốn cạnh cùng có giá trị: khối bị căng từ trái sang phải và từ
+   trên xuống dưới, phủ gần kín màn. Phủ kín thì (a) nó nuốt mọi cú bấm đáng lẽ rơi vào video
+   — nên không pause được; (b) chuột ở đâu cũng là "đang rê trên dãy nút", mà luật :hover giữ
+   nó sáng, nên không bao giờ tự ẩn. Hai triệu chứng, một nguyên nhân.
+   Nay nói rõ cả bốn cạnh: vẫn góc trên-trái, chỉ dịch xuống cho khỏi đụng nút ▶ cỡ lớn. */
+.hv-vidwrap.full .hv-nutbar{left:14px; top:64px; right:auto; bottom:auto; gap:8px;}
 .hv-vidwrap.full .hv-nb{min-width:42px; height:42px; font-size:17px;}
 .hv-vidwrap.full .hv-nb.cc{font-size:13px;}
 /* Trên điện thoại video luôn kín bề ngang nên ba nấc cỡ khung không khác gì nhau. */
@@ -6292,7 +6308,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v340';
+const APP_VERSION = 'v341';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33266,6 +33282,8 @@ const HV_DK_LAP = [1, 2, 3, 5];
 // v334 — ĐỦ BẢY NẤC CHỜ như bạn liệt kê. 'tat' = hết câu thì DỪNG hẳn, không tự sang câu kế;
 // 'tay' = dừng và chờ bạn bấm; còn lại là % độ dài chính câu vừa nghe.
 const HV_DK_CHO = ['tat', 'tay', 30, 50, 80, 100, 120];
+// Sàn thời gian chờ, tính bằng giây. Dưới mức này thì chưa kịp lấy hơi đã sang câu khác.
+const HV_DK_CHO_SAN = 2;
 function hvDkToc(){ const v = +SETTINGS.hvDkToc; return HV_DK_TOC.indexOf(v) >= 0 ? v : 1; }
 function hvDkLap(){ const v = +SETTINGS.hvDkLap; return HV_DK_LAP.indexOf(v) >= 0 ? v : 1; }
 // v340 — MẶC ĐỊNH PHẢI LÀ MỘT KHOẢNG CHỜ THẬT. Trước v339, nấc 'tat' có nghĩa "hết câu thì
@@ -33299,7 +33317,7 @@ function hvDkHet(ds, i){
   const soTu = String(d.en||'').trim().split(/\s+/).filter(Boolean).length;
   return (d.t||0) + Math.max(1.2, soTu * 0.38);
 }
-let hvDkNhip = null, hvDkConLap = 1, hvDkDoi = null, hvDkDemNhip = null;
+let hvDkNhip = null, hvDkConLap = 1, hvDkDoi = null, hvDkDemNhip = null, hvDkChoTua = null;
 // v340 — đồng hồ đếm ngược của khoảng chờ, hiện ngay trên thanh điều khiển ở MỌI phòng.
 function hvDkDemNgung(){
   if(hvDkDemNhip){ clearInterval(hvDkDemNhip); hvDkDemNhip = null; }
@@ -33345,6 +33363,11 @@ function hvDkToiCau(i, tuPhat){
     if(p.setPlaybackRate) p.setPlaybackRate(hvDkToc());
     if(tuPhat === false) p.pauseVideo(); else p.playVideo();
   }catch(e){}
+  // v341 — CHẶN "CÂU BỊ BỎ QUA NGAY KHI VỪA NHẢY TỚI". Lệnh seekTo mất một nhịp mới ăn; trong
+  // nhịp ấy getCurrentTime() vẫn trả về chỗ CŨ, mà chỗ cũ thường đã quá mốc cuối của câu mới.
+  // Nhịp canh thấy thế là tưởng câu đã nói xong và sang luôn câu kế. Nay ghi lại mốc đích và
+  // bắt nhịp canh bỏ qua mọi lần soi cho tới khi trình phát thật sự đã tới gần mốc ấy.
+  hvDkChoTua = Math.max(0, (d.t || 0) - 0.6);
   if(tuPhat !== false) hvDkBatNhip();
   hvDkVeThanh();
   try{ sdVeCau(); }catch(e){}      // khung câu đang luyện bám theo câu vừa nhảy tới
@@ -33359,7 +33382,13 @@ function hvDkBatNhip(){
       const p = hvLayPlayer(true); if(!p || !p.getCurrentTime){ return; }
       const ds = hvDkDs(); const i = hvDkCau();
       const het = hvDkHet(ds, i); if(het == null) return;
-      if(p.getCurrentTime() < het) return;
+      const gio = p.getCurrentTime();
+      // Lệnh tua chưa ăn thì đồng hồ còn ở chỗ cũ — chưa được tính là "đã nói xong câu này".
+      if(hvDkChoTua != null){
+        if(gio < hvDkChoTua) return;
+        hvDkChoTua = null;
+      }
+      if(gio < het) return;
       if(hvDkConLap > 1){
         hvDkConLap--;
         p.seekTo(Math.max(0, (ds[i].t||0) - 0.08), true);
@@ -33392,8 +33421,11 @@ function hvDkBatNhip(){
       // làm tròn LÊN còn hẹn giờ dùng số lẻ chưa tròn, nên màn hình còn "2s" mà video đã sang
       // câu khác. Nay chốt số giây trước, hiện đúng số ấy, và chờ đúng ngần ấy — cộng thêm
       // 0,25 giây đệm để nhịp vẽ của đồng hồ kịp chạm 0 trước khi chuyển.
+      // v341 — SÀN CHỜ PHẢI ĐỦ ĐỂ NÓI LẠI. Sàn cũ là 1 giây, mà câu ngắn ("Don't stop.") chỉ
+      // dài hơn 1 giây nên chờ đúng 1 giây rồi sang — nhìn ra ngoài y như BỊ BỎ QUA, đúng chỗ
+      // bạn thấy. Nay sàn là HV_DK_CHO_SAN giây: câu ngắn mấy cũng đủ thở để nói lại một lượt.
       const dai  = Math.max(0.6, het - (ds[i].t||0));
-      const giay = Math.max(1, Math.ceil(dai * cho / 100));
+      const giay = Math.max(HV_DK_CHO_SAN, Math.ceil(dai * cho / 100));
       try{ if(hvChePhien() === 'shadowing') sdLuotBatDau(giay); }catch(e){}
       try{ hvDkDemBatDau(giay); }catch(e){}
       hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, Math.round(giay * 1000 + 250));
@@ -33440,6 +33472,11 @@ function hvDkCauSau(){
   saveSettings();
   hvDkVeThanh();
 }
+// v341 — PHÍM → ĐANG LÀM SAI VIỆC. Nó gọi hvDkCauSau(), tức BẬT/TẮT công tắc tự sang câu,
+// trong khi phím ← nhảy về câu trước. Hai phím mũi tên cạnh nhau mà một cái đi câu, một cái
+// gạt công tắc — bấm nhầm là đổi cả chế độ luyện mà không biết. Nay → đi tới câu kế cho đối
+// xứng với ←, còn công tắc chuyển sang phím A (auto).
+function hvDkCauKe(){ hvDkToiCau(hvDkCau() + 1); }
 function hvDkLapLai(){   hvDkToiCau(hvDkCau()); }
 function hvDkPlay(){
   const p = hvLayPlayer(); if(!p) return;
@@ -33453,7 +33490,10 @@ function hvDkDat(khoa, v){
   if(khoa === 'toc'){ SETTINGS.hvDkToc = +v;
     try{ const p = hvLayPlayer(true); if(p && p.setPlaybackRate) p.setPlaybackRate(hvDkToc()); }catch(e){} }
   if(khoa === 'lap'){ SETTINGS.hvDkLap = +v; hvDkConLap = +v; }
-  if(khoa === 'cho'){ SETTINGS.hvDkCho = (v === 'tay') ? 'tay' : +v; }
+  // v341 — GỐC CỦA "bấm Chạy liền thì tự nhảy về +100%": dòng này chỉ chừa riêng 'tay', còn
+  // mọi giá trị khác đều ép thành số. 'tat' qua +v thành NaN, hvDkCho() không nhận ra NaN nên
+  // rơi về mặc định 100. Nấc ấy chưa bao giờ lưu được. Nay chừa CẢ HAI nấc chữ.
+  if(khoa === 'cho'){ SETTINGS.hvDkCho = (v === 'tay' || v === 'tat') ? v : +v; }
   saveSettings();
   hvDkVeThanh();
 }
@@ -33492,7 +33532,8 @@ function hvDkHtml(){
       <button class="hv-dk-n to" data-action="hv-dk-play" id="hvDkPlayBtn" title="Chạy / Dừng (phím cách)">▶<i>Space</i></button>
       <button class="hv-dk-n ${hvDkTuQua()?'bat':''}" data-action="hv-dk-sau"
         title="${hvDkTuQua() ? 'ĐANG BẬT: hết câu là tự sang câu kế, chờ lâu bao nhiêu thì xem ô ⏱. Chạm để tắt.'
-                             : 'ĐANG TẮT: phát xong câu là dừng lại. Chạm để bật tự sang câu kế.'}">⏭<i>→</i></button>
+                             : 'ĐANG TẮT: phát xong câu là dừng lại. Chạm để bật tự sang câu kế.'}">⏭<i>A</i></button>
+      <button class="hv-dk-n" data-action="hv-dk-ke" title="Câu kế (phím →)">⏩<i>→</i></button>
     </div>
     <div class="hv-dk-dat">
       <label title="Tốc độ nói của video">⏩${chon('toc', HV_DK_TOC, hvDkToc(), v=>v+'×')}</label>
@@ -41076,7 +41117,10 @@ function sdDatTocDo(v){
 function sdHienIpa(){ return SETTINGS.sdHienIpa !== false; }
 // v334 — nghĩa tiếng Việt MẶC ĐỊNH ẨN. Đang luyện nói mà nghĩa bày sẵn thì mắt đọc tiếng Việt
 // trước, tai bỏ qua tiếng Anh. Cần thì bấm 🇻🇳 Dịch.
-function sdHienDich(){ return !!SETTINGS.sdHienDich; }
+// v341 — MỘT CÔNG TẮC DỊCH CHO CẢ PHÒNG. Khung câu Shadowing vốn giữ cờ riêng sdHienDich,
+// trong khi lời thoại và khung hình đã dùng chung sdHienNghia từ v235. Nên bật Translate ở
+// ngoài thì câu đang luyện vẫn trắng trơn, và ngược lại — đúng chỗ bạn báo.
+function sdHienDich(){ return !!SETTINGS.sdHienNghia; }
 // Đếm ngược "tới lượt bạn": chạy sau khi nghe hết một câu, dài đúng bằng thời gian chờ đã đặt.
 let sdLuotNhip = null;
 function sdLuotNgung(){
@@ -41151,7 +41195,7 @@ function sdCauHtml(rec){
     }catch(_){ chuNgat = ''; }
   }
   const i = hvDkCau();
-  return `<div class="sd-cau-o">
+  return `<div class="sd-cau-o${hienDich ? ' codich' : ''}">
     <div class="sd-cau-so">Câu ${i+1}/${(rec.lines||[]).length}</div>
     <div class="sd-luot${STATE.sdLuot ? ' hien' : ''}" id="sdLuot">🎤 Tới lượt bạn — đọc lại câu!
       <b id="sdLuotGiay">${STATE.sdLuot || ''}</b></div>
@@ -41188,7 +41232,11 @@ async function sdCauDich(){
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
   const d = sdCauDang(rec); if(!d) return;
-  SETTINGS.sdHienDich = !sdHienDich(); saveSettings();
+  SETTINGS.sdHienNghia = !sdHienDich();
+  SETTINGS.hvHienNghia = SETTINGS.sdHienNghia;
+  saveSettings();
+  try{ hvVeNutDich(); }catch(_){ }
+  try{ hvVeTam({giuCuon:true}); }catch(_){ }
   if(!sdHienDich() || d.vi){ sdVeCau(); return; }
   const o = document.getElementById('sdCauVi');
   if(o) o.textContent = 'Đang dịch…';
@@ -47116,8 +47164,9 @@ function hvPhimTat(e){
     const k = e.key;
     if(k === ' ' || k === 'Spacebar'){ e.preventDefault(); hvDkPlay(); return; }
     if(k === 'ArrowLeft'){  e.preventDefault(); hvDkCauTruoc(); return; }
-    if(k === 'ArrowRight'){ e.preventDefault(); hvDkCauSau();   return; }
+    if(k === 'ArrowRight'){ e.preventDefault(); hvDkCauKe();    return; }
     if(k === 'r' || k === 'R'){ e.preventDefault(); hvDkLapLai(); return; }
+    if(k === 'a' || k === 'A'){ e.preventDefault(); hvDkCauSau(); return; }
   }catch(_){ }
 }
 document.addEventListener('keydown', hvPhimTat, true);
@@ -47836,6 +47885,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
     const a = hvDkEl.getAttribute('data-action');
     if(a === 'hv-dk-truoc')    hvDkCauTruoc();
     else if(a === 'hv-dk-sau') hvDkCauSau();
+    else if(a === 'hv-dk-ke')  hvDkCauKe();
     else if(a === 'hv-dk-lap-lai') hvDkLapLai();
     else if(a === 'hv-dk-play')    hvDkPlay();
     return;
