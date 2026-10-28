@@ -2540,7 +2540,16 @@
   .tc-dnut.con .en{font-size:12.5px;}
   .tc-dnut.con.b2{padding-left:30px;} .tc-dnut.con.b3{padding-left:46px;}
   .tc-dnut.con.b4{padding-left:62px;}
-  .tc-dnut.trong{cursor:default; opacity:.75;}
+  /* v343 — ĐÁNH DẤU ĐIỀU THEN CHỐT. Bảy điều này là xương sống của cả bộ Outdoor: một điều
+   yêu cầu an toàn (EN 581-1 §5), ba bảng trình tự thử (EN 581-2 §6.2.1 và §7.2.1, EN 581-3
+   §5.2.1) và ba bộ phương pháp thử của EN 1728 (§6 ghế thường, §7 ghế làm việc, §8 ghế nằm).
+   Mở bộ nào cũng thấy ngay chúng, khỏi phải nhớ số điều. */
+.tc-qt{display:inline-flex; align-items:center; gap:3px; vertical-align:middle;
+  margin-right:6px; padding:1px 7px 2px; border-radius:999px;
+  font-style:normal; font-size:9px; font-weight:900; letter-spacing:.09em;
+  color:#121008; background:linear-gradient(135deg,#FFD166,#FFB020);
+  box-shadow:0 1px 5px rgba(255,180,32,.35);}
+.tc-dnut.trong{cursor:default; opacity:.75;}
   /* Dấu hiệu nội dung: nhìn danh sách là biết điều nào có hình, điều nào có ghi chú. */
   .tc-dnut .dau{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px;}
   .tc-dnut .dau .d{font-size:9.5px; font-weight:800; letter-spacing:.3px; padding:2px 7px;
@@ -2604,7 +2613,19 @@
   .tc-ts-h .gt.trong{color:var(--dim2); font-weight:400;}
 
   .tc-dat li{color:var(--text);}
-  .tc-khonghinh{margin:0 0 13px; padding:11px 13px; border-radius:12px; font-size:12px;
+  /* v343 · Mục 4 — khối chú thích của bảng, gắn theo từng phép thử */
+.tc-cth{display:flex; flex-direction:column; gap:9px; margin:4px 0 2px;}
+.tc-cth-d{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px;
+  background:color-mix(in srgb, var(--tcm, #FFD166) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--tcm, #FFD166) 34%, transparent);}
+.tc-cth-d .k{flex:none; width:24px; height:24px; border-radius:8px; display:flex;
+  align-items:center; justify-content:center; font-family:var(--mono, monospace);
+  font-size:12.5px; font-weight:900; color:#121008;
+  background:var(--tcm, #FFD166);}
+.tc-cth-d .n{min-width:0; display:flex; flex-direction:column; gap:3px;}
+.tc-cth-d .n .en{font-size:12.5px; line-height:1.55; color:var(--text);}
+.tc-cth-d .n .vi{font-size:12px; line-height:1.6; color:var(--dim);}
+.tc-khonghinh{margin:0 0 13px; padding:11px 13px; border-radius:12px; font-size:12px;
     line-height:1.7; color:var(--dim); background:var(--panel2); border:1px solid var(--border);}
   .tc-khonghinh b{color:var(--text);}
 
@@ -6308,7 +6329,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v342';
+const APP_VERSION = 'v343';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9217,15 +9238,26 @@ const TC_HINH = [
  doc:'Thiết bị phải đặt được lực chu kỳ <b>đồng thời lên cả hai tay vịn</b>, đặt lực ở nhiều góc khác nhau so với phương thẳng đứng, chỉnh được cả theo phương đứng lẫn phương ngang, và <b>tự đi theo biến dạng của tay vịn</b> trong lúc thử. Đệm đặt tải dài <b>100 mm</b>, lực đi qua <b>giữa chiều dài đệm</b>.'},
 
 // ── EN 1728:2012 · Điều 6 — Phương pháp thử chung ───────────────────────────────────
-{id:'f1728-9', bo:'en1728', so:9, dieu:['6.2'],
- tep:'EN1728-Figure-09-determination-of-seat-and-back-loading-point.png',
- ten:'Determination of seat and back loading point',
- vi:'Xác định điểm đặt tải mặt ngồi và tựa lưng', kichThuoc:'',
- phu:['a) Upholstered and flexible seating','b) Rigid seating','c) Seating without a back/stools'],
- giai:[['A','Seat loading point – seating with backs','Điểm đặt tải mặt ngồi — ghế có tựa lưng'],
-       ['B','Back loading point','Điểm đặt tải tựa lưng'],
-       ['C','Seat loading point – seating without backs','Điểm đặt tải mặt ngồi — ghế không có tựa lưng']],
- doc:''},
+{id:'f1728-9a', bo:'en1728', so:'9 a)', dieu:['6.2.1','6.2.2'],
+ tep:'EN1728-Figure-09a-loading-point-upholstered-flexible-seating-with-back.png',
+ ten:'Determination of seat and back loading point — a) Upholstered/flexible seating with a back',
+ vi:'Xác định điểm đặt tải mặt ngồi và lưng — a) Ghế bọc đệm / mặt mềm có lưng tựa', kichThuoc:'',
+ phu:[], giai:[['A','Seat loading point – seating with backs','Điểm đặt tải mặt ngồi — ghế có lưng tựa'],['B','Back loading point','Điểm đặt tải tựa lưng']],
+ doc:'Ghế <b>bọc đệm hoặc mặt mềm</b>: đẩy phần lưng của dưỡng vào tựa lưng cho <b>áp sát hoàn toàn</b>, rồi để phần mặt ngồi của dưỡng <b>lún theo đúng hình dạng mặt ngồi</b>. Điểm <b>A</b> là điểm đặt tải mặt ngồi, <b>B</b> là điểm đặt tải lưng. Góc giữa hai phần dưỡng đặt sẵn 90°; nếu dưỡng đứng được ở nhiều vị trí thì <b>lấy vị trí có góc nhỏ nhất</b>, và góc <b>không bao giờ được nhỏ hơn 90°</b>.'},
+
+{id:'f1728-9b', bo:'en1728', so:'9 b)', dieu:['6.2.1','6.2.2'],
+ tep:'EN1728-Figure-09b-loading-point-rigid-seating-with-back.png',
+ ten:'Determination of seat and back loading point — b) Rigid seating with a back',
+ vi:'Xác định điểm đặt tải mặt ngồi và lưng — b) Ghế cứng có lưng tựa', kichThuoc:'',
+ phu:[], giai:[['A','Seat loading point – seating with backs','Điểm đặt tải mặt ngồi — ghế có lưng tựa'],['B','Back loading point','Điểm đặt tải tựa lưng']],
+ doc:'Ghế <b>mặt cứng</b>: cũng đẩy phần lưng của dưỡng áp sát tựa lưng, nhưng khác ở chỗ phải <b>giữ cho điểm A trên dưỡng chạm vào mặt ngồi</b> — mặt cứng không lún nên dưỡng không tự tìm được vị trí, phải canh bằng điểm A.'},
+
+{id:'f1728-9c', bo:'en1728', so:'9 c)', dieu:['6.2.3'],
+ tep:'EN1728-Figure-09c-loading-point-seating-without-back-stools.png',
+ ten:'Determination of seat and back loading point — c) Seating without a back/stools',
+ vi:'Xác định điểm đặt tải — c) Ghế không lưng tựa / ghế đẩu', kichThuoc:'',
+ phu:[], giai:[['C','Seat loading point – seating without backs','Điểm đặt tải mặt ngồi — ghế không lưng tựa']],
+ doc:'Ghế <b>không có lưng tựa</b> (ghế đẩu): dựng dưỡng ở <b>90°</b> nhờ vạch <b>C</b> trên dưỡng (xem Hình 2), đặt lên từng vị trí ngồi rồi đánh dấu. Ở đây chỉ có <b>một</b> điểm đặt tải — ký hiệu <b>C</b>, không phải A.'},
 
 {id:'f1728-10', bo:'en1728', so:10, dieu:['6.3'],
  tep:'EN1728-Figure-10-determination-of-back-angle.png',
@@ -9238,7 +9270,7 @@ const TC_HINH = [
  phu:['a) Example for chairs','b) Example for stools'], giai:[],
  doc:'<b>a) Ghế có lưng:</b> mũi tên <b>F₁</b> hướng thẳng đứng xuống mặt ngồi, mũi tên <b>F₂</b> đẩy tựa lưng ra sau theo hướng <b>vuông góc với mặt phẳng lưng</b> (không phải phương ngang). Các khối nhỏ dưới chân sau là <b>cữ chặn</b> — chúng chỉ ngăn ghế trượt lùi, không ngăn ghế nghiêng. <b>b) Ghế đẩu:</b> chỉ có F₁ thẳng đứng, cữ chặn đặt quanh chân.'},
 
-{id:'f1728-12', bo:'en1728', so:12, dieu:['6.6'],
+{id:'f1728-12', bo:'en1728', so:12, dieu:['6.7'],
  tep:'EN1728-Figure-12-horizontal-forward-static-load-test-on-back-rests.png',
  ten:'Horizontal forward static load test on back rests',
  vi:'Thử tải tĩnh ngang hướng trước trên tựa lưng', kichThuoc:'', phu:[], giai:[], doc:''},
@@ -9273,7 +9305,7 @@ const TC_HINH = [
  phu:['a) Example for chairs','b) Example for stools'], giai:[],
  doc:'Bố trí giống Hình 11 nhưng lực mang ký hiệu <b>F₃</b> (mặt ngồi) và <b>F₄</b> (lưng) để phân biệt với phép thử tĩnh. Trên cùng trang in sẵn <b>Bảng 2 — Determination of seat and back force</b>, là bảng tính F₃/F₄ theo góc Ø.'},
 
-{id:'f1728-18', bo:'en1728', so:18, dieu:['6.17'],
+{id:'f1728-18', bo:'en1728', so:18, dieu:['6.18'],
  tep:'EN1728-Figure-18-example-of-seating-where-a-single-force-is-required.png',
  ten:'Example of seating where a single force is required',
  vi:'Ví dụ ghế chỉ cần một lực duy nhất', kichThuoc:'', phu:[], giai:[], doc:''},
@@ -9299,17 +9331,17 @@ const TC_HINH = [
  giai:[['1','Height of fall','Chiều cao rơi'],['2','Angle of fall','Góc rơi'],['3','Stops','Cữ chặn']],
  doc:''},
 
-{id:'f1728-22', bo:'en1728', so:22, dieu:['6.27'],
+{id:'f1728-22', bo:'en1728', so:22, dieu:['6.27.1'],
  tep:'EN1728-Figure-22-drop-test-for-multiple-seat-units.png',
  ten:'Drop test for multiple seat units', vi:'Thử thả rơi cho ghế nhiều chỗ', kichThuoc:'', phu:[],
  giai:[['1','Drop height','Chiều cao thả']], doc:''},
 
-{id:'f1728-23', bo:'en1728', so:23, dieu:['6.27'],
+{id:'f1728-23', bo:'en1728', so:23, dieu:['6.27.2'],
  tep:'EN1728-Figure-23-drop-test-for-stacking-seating.png',
  ten:'Drop test for stacking seating', vi:'Thử thả rơi cho ghế xếp chồng', kichThuoc:'', phu:[],
  giai:[['1','Drop height','Chiều cao thả']], doc:''},
 
-{id:'f1728-24', bo:'en1728', so:24, dieu:['6.27'],
+{id:'f1728-24', bo:'en1728', so:24, dieu:['6.27.3'],
  tep:'EN1728-Figure-24-drop-test-from-the-height-of-a-table.png',
  ten:'Drop test from the height of a table', vi:'Thử thả rơi từ độ cao mặt bàn', kichThuoc:'', phu:[],
  giai:[['1','Drop height','Chiều cao thả']],
@@ -9320,12 +9352,12 @@ const TC_HINH = [
  ten:'Backward fall test', vi:'Thử ngã ngửa ra sau', kichThuoc:'', phu:[], giai:[],
  doc:'Theo điều 6.28: đặt ghế <b>không chất tải</b> trên sàn thử ở tư thế dùng bình thường; đặt lực ngang hướng ra sau tại điểm <b>cách đỉnh tựa lưng 50 mm xuống dưới, ở giữa bề ngang lưng</b>; đo lực cần để nhấc chân trước khỏi sàn. Nếu lực đo được <b>nhỏ hơn 30 N</b> thì đẩy đỉnh lưng ra sau tới <b>điểm cân bằng</b> rồi thả cho ghế <b>rơi tự do ngửa ra sau</b> xuống sàn bọc cao su, không thêm lực hay vận tốc ban đầu.'},
 
-{id:'f1728-26', bo:'en1728', so:26, dieu:['7.2'],
+{id:'f1728-26', bo:'en1728', so:26, dieu:['7.2.7','7.2.10'],
  tep:'EN1728-Figure-26-determination-of-loading-points-f-j.png',
  ten:'Determination of loading points F & J', vi:'Xác định điểm đặt tải F và J', kichThuoc:'',
  phu:['a) Example of loading points F & J','b) Example of loading points F & J'], giai:[], doc:''},
 
-{id:'f1728-27', bo:'en1728', so:27, dieu:['7.2'],
+{id:'f1728-27', bo:'en1728', so:27, dieu:['7.2.1'],
  tep:'EN1728-Figure-27-loading-points.png',
  ten:'Loading points', vi:'Các điểm đặt tải', kichThuoc:'', phu:[],
  giai:[['A–J','loading point A … loading point J','điểm đặt tải A … điểm đặt tải J']], doc:''},
@@ -9345,13 +9377,13 @@ const TC_HINH = [
  vi:'Thử tải tĩnh tay vịn hướng xuống — vị trí giữa', kichThuoc:'', phu:[],
  giai:[['F','Vertical force','Lực thẳng đứng']], doc:''},
 
-{id:'f1728-30', bo:'en1728', so:30, dieu:['7.5'],
+{id:'f1728-30', bo:'en1728', so:30, dieu:['7.6'],
  tep:'EN1728-Figure-30-arm-rest-downward-static-load-test-front.png',
  ten:'Arm rest downward static load test – front',
  vi:'Thử tải tĩnh tay vịn hướng xuống — vị trí phía trước', kichThuoc:'', phu:[],
  giai:[['F','Vertical force','Lực thẳng đứng']], doc:''},
 
-{id:'f1728-31', bo:'en1728', so:31, dieu:['6.19'],
+{id:'f1728-31', bo:'en1728', so:31, dieu:['7.9'],
  tep:'EN1728-Figure-31-back-rest-force-application-principle.png',
  ten:'Back rest force application – principle', vi:'Nguyên lý đặt lực lên tựa lưng',
  kichThuoc:'', phu:[],
@@ -9510,13 +9542,13 @@ const TC_HINH = [
  tep:'EN581-2-Table-01-test-sequence-loungers.png',
  ten:'Table 1 — Test sequence and test parameters for loungers',
  vi:'Bảng 1 — Trình tự và thông số thử cho ghế nằm', kichThuoc:'', phu:[], giai:[],
- doc:'Toàn bộ 12 phép thử của ghế nằm, theo đúng thứ tự phải làm, kèm ba cột Camping / Domestic / Contract và bốn chú giải a–d. Thử 10, 11, 12 là ba phép thử ổn định, viện dẫn Phụ lục A và EN 1022.'},
+ doc:'<b>Đọc bảng này thế nào.</b> Mỗi dòng là MỘT phép thử, và thứ tự dòng chính là <b>thứ tự bắt buộc phải thử</b> — đảo thứ tự thì kết quả không so sánh được với phòng thử khác.<br><b>Cột 1 — Test:</b> tên phép thử, kèm chữ nhỏ a, b, c, d là ký hiệu chú thích ở chân bảng.<br><b>Cột 2 — References:</b> điều của EN 1728 chứa <i>cách thử</i>. EN 581 không viết trình tự; bấm vào mã là sang thẳng nguyên văn.<br><b>Cột 3 — Test parameters:</b> tên thông số (lực N, số chu kỳ, chiều cao rơi mm…).<br><b>Ba cột cuối — Camping / Domestic / Contract:</b> ba <b>cấp sử dụng</b>, con số tăng dần theo mức khắc nghiệt. Chọn sai cấp là sai toàn bộ con số.<br><br><b>Bốn chú thích:</b> <b>a</b> → Thử 1 (mặt ngồi + lưng liền một tấm mềm thì chỉ thử mặt ngồi). <b>b</b> → Thử 6 (tay vịn hẹp dưới 15 mm thì dùng 700 N). <b>c</b> → Thử 10, 11, 12 (được phép thử ổn định trước trình tự). <b>d</b> → Thử 10 và 12 (không áp dụng cho ghế thấp dưới 200 mm và nhẹ dưới 5 kg).<br><br>Ba dòng cuối (10, 11, 12) là ổn định: hai dòng viện dẫn Phụ lục A của chính EN 581-2, một dòng viện dẫn EN 1022.'},
 
 {id:'b581-2-t2', bo:'en581-2', so:'Table 2', dieu:['7.2.1'], loai:'bang',
  tep:'EN581-2-Table-02-test-sequence-other-seating.png',
  ten:'Table 2 — Test sequence and test parameters for other seating',
  vi:'Bảng 2 — Trình tự và thông số thử cho ghế loại khác', kichThuoc:'', phu:[], giai:[],
- doc:'Dùng cho mọi ghế KHÔNG phải ghế nằm. Bảng này có sáu chú giải a–f, nhiều hơn Bảng 1 hai mục, trong đó có điều kiện chiều cao mặt ngồi quyết định phép thử nào áp dụng.'},
+ doc:'<b>Đọc bảng này thế nào.</b> Dùng cho <b>mọi ghế KHÔNG phải ghế nằm</b>. Bảng có <b>13 phép thử</b>, đánh số 1–13, và thứ tự dòng là <b>thứ tự bắt buộc</b>.<br><b>Cột 1 — Test:</b> tên phép thử; chữ nhỏ a–f cạnh tên là ký hiệu chú thích ở chân bảng.<br><b>Cột 2 — Reference:</b> điều của EN 1728 chứa <i>cách thử</i> — từ 6.4 tới 6.24, và ba dòng ổn định viện dẫn EN 1022.<br><b>Cột 3 — Test parameters:</b> tên thông số. Chú ý hai dòng riêng hay bị đọc lướt: <i>Load applied on seat not being tested</i> (tải giữ trên các chỗ ngồi KHÔNG thử) và <i>Minimum specified force</i> (sàn lực không được tụt qua khi ghế có xu hướng lật).<br><b>Ba cột cuối — Camping / Domestic / Contract:</b> ba cấp sử dụng.<br><br><b>Sáu chú thích:</b> <b>a</b> → Thử 1 và Thử 3. <b>b</b> → Thử 5. <b>c</b> → Thử 9. <b>d</b> → Thử 10. <b>e</b> → Thử 11 và 13. <b>f</b> → Thử 11, 12 và 13.<br><br>Bảng in tràn sang trang sau nên phần chú thích a–f nằm ở trang kế; ảnh này đã <b>ghép đủ cả hai trang</b> — 13 dòng và sáu chú thích trong cùng một hình.'},
 
 {id:'b581-2-tA1', bo:'en581-2', so:'Table A.1', dieu:['A.1.2'], loai:'bang',
  tep:'EN581-2-Table-A1-forces-value.png',
@@ -9815,7 +9847,7 @@ const TC_DIEU = [
   vi:'Nếu hình học ghế không cho đặt lực tựa lưng đúng điểm đã tính, thì đặt ở <b>điểm gần nhất</b> (dịch lên hoặc xuống dọc lưng). <b>MÔ MEN UỐN phải giữ nguyên</b>: lực lưng (N) × khoảng cách từ mặt ngồi tới điểm đặt tải lưng (m) = hằng số.'},
  {en:'If the number of seats in the item is not obvious, divide the total seat length (in mm) by 600 mm and round to the nearest whole number to determine the number of seats. Divide the total seat length into seats of equal length.',
   vi:'Không rõ sản phẩm có mấy chỗ ngồi: lấy <b>tổng chiều dài mặt ngồi (mm) chia cho 600 mm</b>, làm tròn về số nguyên gần nhất. Rồi chia tổng chiều dài thành các chỗ <b>bằng nhau</b>.'}],
- hinh:['f1728-9'],
+ hinh:[],
  luu:['Quy tắc <b>mô men không đổi</b> hay bị bỏ qua nhất. Dịch điểm đặt lực lên cao mà giữ nguyên lực là ghế bị thử nặng hơn quy định và <b>trượt oan</b>; dịch xuống thấp mà giữ lực là ghế được thử nhẹ hơn và <b>đạt oan</b>.',
       'Quy tắc <b>chia 600 mm</b>: băng dài 1 750 mm → 1 750 ÷ 600 = 2,92 → <b>3 chỗ</b>, mỗi chỗ 583 mm. Nhà máy khai "ghế 2 chỗ" để né phép thử hai chỗ liền kề là chỗ cần soi.']},
 
@@ -9829,21 +9861,21 @@ const TC_DIEU = [
   vi:'Ghế <b>cứng</b> (gỗ, nhựa đúc, nhôm): đẩy phần lưng ép vào tựa lưng cho tiếp xúc hoàn toàn, <b>đồng thời bảo đảm điểm A trên dưỡng chạm vào mặt ngồi</b>.'},
  {en:'In cases where the template can be settled in more than one position, the position having the smallest angle between the seat and back portions of the template shall be used. The angle shall in no cases be less than 90°. Mark the required loading positions from the template. If relevant, repeat the procedures on the other seat(s).',
   vi:'Nếu dưỡng đặt được ở <b>nhiều vị trí</b>: lấy vị trí có <b>góc NHỎ NHẤT</b> giữa phần mặt ngồi và phần lưng, nhưng <b>không bao giờ nhỏ hơn 90°</b>. Đánh dấu các vị trí đặt tải theo dưỡng. Nếu có nhiều chỗ ngồi thì lặp lại cho các chỗ còn lại.'}],
- hinh:['f1728-9'],
+ hinh:[],
  luu:['Điểm đặt tải xác định ở <b>tư thế dựng đứng nhất</b>, trong khi nhiều phép thử lại <b>chạy</b> ở tư thế ngả bất lợi nhất. Hai tư thế cho hai mục đích khác nhau — đừng gộp làm một.']},
 
 {bo:'en1728', so:'6.2.3', en:'Seating without a back rest', vi:'Ghế không có tựa lưng', nhom:'pp',
  than:[
  {en:'Set up the template (5.1) at 90° with the aid of the mark C as shown in Figure 2. Place it on each seating position as shown in Figure 9 c). Mark the required loading point from the template.',
   vi:'Dựng dưỡng ở <b>90°</b> nhờ <b>vạch dấu C</b> trên dưỡng (Hình 2). Đặt dưỡng lên <b>từng chỗ ngồi</b> như Hình 9 c). Đánh dấu điểm đặt tải theo dưỡng.'}],
- hinh:['f1728-2','f1728-9'],
+ hinh:['f1728-2'],
  luu:['Ghế đẩu dùng <b>mốc C</b> trên dưỡng, khác mốc A/B của ghế có lưng. Dùng nhầm mốc là lệch điểm đặt tải.']},
 
 {bo:'en1728', so:'6.3', en:'Determination of Back Angle', vi:'Xác định góc tựa lưng', nhom:'pp',
  than:[
  {en:'The angle of inclination of the back from the horizontal (Ø) shall be measured by determining the slope of the straight edge of the relevant portion of the seat loading point template when it is correctly positioned (see Figure 10).',
   vi:'Góc nghiêng của tựa lưng so với <b>phương NẰM NGANG</b> (Ø) được đo bằng <b>độ dốc của cạnh thẳng</b> trên phần tương ứng của dưỡng xác định điểm đặt tải, khi dưỡng đã đặt đúng vị trí (Hình 10).'}],
- hinh:['f1728-10','f1728-2'],
+ hinh:['f1728-10'],
  luu:['Đo so với <b>phương ngang</b>, không phải phương thẳng đứng: lưng dựng thẳng cho Ø lớn (gần 90°), lưng ngả nhiều cho Ø nhỏ dần. Nhầm chiều đo là tính sai toàn bộ lực thử.',
       'Góc Ø đi thẳng vào bảng tính lực của 6.4 và 6.17. <b>Báo cáo lab không ghi Ø là báo cáo thiếu căn cứ</b> với mọi ghế có lưng ngả dưới 70°.']}
 ];
@@ -9865,10 +9897,23 @@ const TC_DIEU_2 = [
   vi:'Ghế có <b>đế bập bênh lò xo</b> hoặc cơ cấu nghiêng <b>chỉnh được độ căng</b>: thử ở mức căng <b>lớn nhất</b>.'},
  {en:'Seating with reclining mechanisms that can be set or locked in a number of positions shall be tested for half the number of cycles specified in the most upright position, and half the number of cycles specified in the most adverse reclined position.',
   vi:'Ghế có cơ cấu ngả <b>khoá được nhiều nấc</b>: <b>nửa số chu kỳ</b> ở tư thế dựng đứng nhất, <b>nửa còn lại</b> ở tư thế ngả bất lợi nhất.'},
+ {en:'NOTE The most adverse position is normally considered to be 10° above the fully reclined position for fully adjustable mechanisms, or one position up from fully reclined position for seating with multi-position back rests.',
+  vi:'<b>CHÚ THÍCH</b> — Tư thế bất lợi nhất thường được coi là <b>10° trên tư thế ngả hết cỡ</b> với cơ cấu chỉnh vô cấp, hoặc <b>lùi một nấc</b> từ tư thế ngả hết với lưng nhiều nấc.'},
+ {en:'Prevent the item from moving rearwards by placing stops (5.3) behind the rear legs, feet or castors (see Figure 11).',
+  vi:'Chặn ghế không lùi được bằng <b>cữ chặn (5.3) đặt sau chân, đế hoặc bánh xe phía sau</b> (xem Hình 11).'},
+ {en:'If the item has a back, position the centres of the back loading pad(s) (5.6), either at the back loading position as determined by the loading point template or at 100 mm below the top of the back, whichever is the lower.',
+  vi:'Ghế có lưng: đặt <b>tâm đệm tải lưng (5.6)</b> vào điểm đặt tải lưng do dưỡng xác định, <b>hoặc</b> thấp hơn đỉnh lưng <b>100 mm</b> — lấy điểm nào <b>thấp hơn</b>.'},
+ {en:'All adjustable backs shall be set in the most adverse position.',
+  vi:'<b>Mọi lưng chỉnh được phải đặt ở tư thế bất lợi nhất.</b>'},
+ {en:'The angle of back rest inclination Ø (6.3), in degrees shall be measured.',
+  vi:'Phải <b>đo góc nghiêng tựa lưng Ø</b> (theo 6.3), tính bằng độ.'},
+ {en:'Replace the existing Table 1 by the following:',
+  vi:'Bảng 1 cũ bị <b>thay bằng bảng mới</b> — xem Bảng 1 đính kèm điều này.'},
  {en:'Position the seat loading pad(s) (5.4) at the seat loading position(s) determined by the loading point template (5.1). If the item has a back, position the centres of the back loading pad(s) (5.6), either at the back loading position as determined by the loading point template or at 100 mm below the top of the back, whichever is the lower.',
   vi:'Đặt đệm tải mặt ngồi (5.4) vào điểm đặt tải xác định bằng dưỡng (5.1). Ghế có lưng: đặt <b>tâm</b> đệm tải lưng (5.6) tại điểm đặt tải lưng theo dưỡng, <b>hoặc</b> tại điểm <b>cách đỉnh tựa lưng 100 mm xuống dưới</b> — lấy điểm nào <b>thấp hơn</b>.'}],
- hinh:['f1728-11','f1728-9','f1728-10'], ac:true,
- luu:['Đây là phép thử <b>gốc</b> của cả chuỗi: vị trí đặt tải xác định ở đây được dùng lại cho 6.5 (mép trước) và 6.17 (bền mỏi). Sai ở đây là sai cả chuỗi.',
+ hinh:['f1728-11'], ac:true,
+ luu:['<b>Ba dòng trên đến từ bản đính chính EN 1728:2012/AC:2013</b>, sửa chính điều 6.4. Bảng 1 mới cho lực <b>phụ thuộc góc Ø</b>: Ø ≥ 70° dùng đúng lực ghi trong EN 581; Ø từ 55° đến dưới 70° thì F₁ = lực × Sin Ø và F₂ = ((Ø/60°) − 0,1666) × lực × Cos Ø; Ø &lt; 55° thì F₁ = 0,75 × lực và F₂ = 0,75 × lực × Cos Ø. Đây là chỗ giải thích vì sao bảng EN 581-2 vừa ghi "tải lưng 410 N" vừa ghi "lực tối thiểu F2 360 N": con số sau là <b>sàn</b> không được tụt qua.',
+      'Đây là phép thử <b>gốc</b> của cả chuỗi: vị trí đặt tải xác định ở đây được dùng lại cho 6.5 (mép trước) và 6.17 (bền mỏi). Sai ở đây là sai cả chuỗi.',
       'Quy tắc <b>“100 mm dưới đỉnh lưng, lấy điểm thấp hơn”</b> hay bị làm sai với ghế lưng cao: đặt theo dưỡng thì cao quá, mô men uốn lớn hơn thực tế.']},
 
 {bo:'en1728', so:'6.5', en:'Seat Front Edge Static Load', vi:'Tải tĩnh mép trước mặt ngồi',
@@ -9958,6 +10003,14 @@ const TC_DIEU_2 = [
   vi:'Không có tựa lưng: chỉ đặt lực bền mỏi thẳng đứng lên mặt ngồi.'},
  {en:'The test shall be carried out on the same positions as used for the seat static load test (6.4).',
   vi:'Thử tại <b>đúng những vị trí</b> đã dùng ở phép thử tải tĩnh 6.4.'},
+ {en:'During the test, load the seat(s) that are not being tested with the specified seat load for parts not undergoing test; the load shall be applied at the seat loading position.',
+  vi:'Trong lúc thử, các <b>mặt ngồi KHÔNG được thử</b> vẫn phải chất tải theo mức quy định cho "phần không chịu thử", đặt tại đúng điểm đặt tải mặt ngồi.'},
+ {en:'Seating with a fixed back position, and seating with reclining mechanisms that cannot be locked into a fixed position, shall be tested for the number of cycles specified.',
+  vi:'Ghế <b>lưng cố định</b>, và ghế có cơ cấu ngả <b>không khoá được</b>: thử <b>đủ số chu kỳ</b> quy định, ở một tư thế.'},
+ {en:'Seating fitted with a spring rocking action base or tilting mechanism that has a tension adjustment, shall be tested with the tension adjusted to its maximum value.',
+  vi:'Ghế có <b>đế bập bênh lò xo</b> hoặc cơ cấu ngả <b>chỉnh được độ căng</b>: vặn độ căng lên <b>mức lớn nhất</b> rồi mới thử.'},
+ {en:'Seating with reclining mechanisms that can be set or locked in a number of positions shall be tested for half the number of cycles specified in the most upright position, and half the number of cycles specified in the most adverse reclined position.',
+  vi:'Ghế ngả <b>khoá được ở nhiều nấc</b>: chia đôi số chu kỳ — <b>một nửa ở tư thế dựng đứng nhất</b>, <b>một nửa ở tư thế ngả bất lợi nhất</b>. Đây là chỗ hay bị làm tắt: chạy hết chu kỳ ở một tư thế là <b>sai quy trình</b>.'},
  {en:'NOTE The most adverse position is normally considered to be 10° above the fully reclined position for fully adjustable mechanisms, or one position up from fully reclined position for seating with multi-position back rests.',
   vi:'<b>CHÚ THÍCH</b> — Tư thế bất lợi nhất thường được coi là <b>10° trên tư thế ngả hết cỡ</b> với cơ cấu chỉnh vô cấp, hoặc <b>lùi một nấc</b> từ tư thế ngả hết với lưng nhiều nấc.'},
  {en:'Prevent the item from moving rearwards by placing stops (5.3) behind the rear legs, feet or castors.',
@@ -10014,15 +10067,25 @@ const TC_DIEU_2 = [
   vi:'Đặt ghế ở tư thế dùng bình thường, lưng ở <b>nấc bất lợi nhất</b>. Không xác định được thì thử ở <b>nấc giữa</b>.'},
  {en:'Prevent the item of seating from moving rearwards by placing stops behind the rear feet, legs or castors. Apply the specified load to the seat loading point.',
   vi:'Chặn ghế không lùi bằng cữ sau chân/đế/bánh xe. Đặt tải quy định lên điểm đặt tải mặt ngồi.'},
+ {en:'Apply the specified load to the seat loading point.',
+  vi:'Đặt <b>tải mặt ngồi</b> quy định vào điểm đặt tải mặt ngồi, và <b>giữ nguyên</b> suốt phép thử.'},
  {en:'The height of the back rest loading points shall be 100 mm above the back loading point (6.2). They shall be 50 mm from the right and left outer edges of the back rest.',
   vi:'Điểm đặt lực trên lưng: <b>cao hơn điểm đặt tải lưng 100 mm</b>, và <b>cách mép ngoài trái/phải 50 mm</b>.'},
  {en:'Apply rearwards alternating forces perpendicularly to the back rest, as specified. Carry out the test for the number of cycles specified. 1 cycle = 1 application of force on the right side and 1 application of force on the left side.',
   vi:'Đặt lực <b>luân phiên hướng ra sau, VUÔNG GÓC với mặt tựa lưng</b>, đủ số chu kỳ quy định. <b>Một chu kỳ = một lần đẩy bên phải + một lần đẩy bên trái.</b>'},
+ {en:'1 cycle = 1 application of force on the right side and 1 application of force on the left side.',
+  vi:'<b>Một chu kỳ = một lần đẩy bên PHẢI + một lần đẩy bên TRÁI.</b> Đếm nhầm thành hai chu kỳ là rút ngắn phép thử đúng một nửa — chỗ sai hay gặp nhất ở điều này.'},
  {en:'NOTE This test is often used for testing outdoor reclining seating.',
   vi:'<b>CHÚ THÍCH</b> — Phép thử này thường dùng để thử <b>ghế ngả ngoài trời</b>.'}],
- hinh:['f1728-31'],
+ hinh:[],
  luu:['Đếm nấc trước khi quyết định chạy. Ghế ngả <b>hai nấc</b> thì bỏ — tính tiền thử là tính thừa.',
       'Một chu kỳ là <b>hai</b> lần đẩy. Báo cáo ghi “20 000 lần đặt lực” khác hẳn “20 000 chu kỳ” — chênh đúng một nửa.']},
+
+{bo:'en1728', so:'3.6', en:'arm rest length', vi:'chiều dài tay vịn', nhom:'nen',
+ than:[{en:'distance between vertical lines through the front and rear edges of the arm rest',
+  vi:'khoảng cách giữa <b>hai đường thẳng đứng</b> kẻ qua <b>mép trước</b> và <b>mép sau</b> của tay vịn'}],
+ hinh:[],
+ luu:['Điều 6.20 (độ bền mỏi tay vịn) đòi đặt lực "không gần hơn 100 mm tính từ mép trước hoặc mép sau của <b>chiều dài tay vịn</b>" — và chiều dài ấy đo theo đúng định nghĩa này, không phải theo đường cong của tay vịn.']},
 
 {bo:'en1728', so:'6.20', en:'Arm rest durability test', vi:'Thử độ bền mỏi tay vịn',
  nhom:'pp', thu:['b1-7','b2-6'],
@@ -10349,7 +10412,7 @@ const TC_DIEU_4 = [
  'Ngược lại, vị trí đệm sai quá 5 mm là sai thật — lệch điểm đặt tải làm đổi hẳn mô men lên khung ghế.']},
 
 // ── Chương 6: ghế thường — các điều còn thiếu ─────────────────────────────────────
-{bo:'en1728', so:'6', en:'Test procedures — Chairs other than Work Chairs', vi:'Trình tự thử — Ghế không phải ghế làm việc', nhom:'pp',
+{qt:1, bo:'en1728', so:'6', en:'Test procedures — Chairs other than Work Chairs', vi:'Trình tự thử — Ghế không phải ghế làm việc', nhom:'pp',
  than:[{en:'This clause specifies the test procedures for all seating other than work chairs, from 6.1 to 6.30.',
   vi:'Điều này quy định trình tự thử cho <b>mọi loại ghế trừ ghế làm việc</b>, gồm các mục 6.1 đến 6.30. Đây là chương mà EN 581-2 viện dẫn tới cho ghế ngoài trời.'}]},
 
@@ -10632,7 +10695,7 @@ const TC_DIEU_4 = [
 //  viện dẫn điều nào của chương này, nên khi kiểm hàng ngoài trời thì không phải đọc.
 //  Để trống thì app nhảy cóc 6.30 → 8, nhìn vào tưởng mất dữ liệu.
 // ══════════════════════════════════════════════════════════════════════════════════
-{bo:'en1728', so:'7', en:'Test procedures — Work Chairs', vi:'Trình tự thử — Ghế làm việc', nhom:'lv', ngoai:true,
+{qt:1, bo:'en1728', so:'7', en:'Test procedures — Work Chairs', vi:'Trình tự thử — Ghế làm việc', nhom:'lv', ngoai:true,
  than:[{en:'This clause specifies the test procedures for work chairs, from 7.1 to 7.14.',
   vi:'Điều này quy định trình tự thử cho <b>ghế làm việc</b> (ghế văn phòng), gồm 7.1 đến 7.14.'}]},
 
@@ -10751,8 +10814,15 @@ const TC_DIEU_4 = [
  {en:'All chairs shall be tested to steps 1 to 5 (see Table 4).',
   vi:'<b>Mọi ghế đều phải thử đủ bước 1 đến bước 5</b> theo <b>Bảng 4</b>.'},
  {en:'Chairs with a locking device(s) for seat and/or back rest angle movements shall be tested in step 2, first with the device(s) locked for half of the cycles and then with the device(s) unlocked for the other half of the cycles.',
-  vi:'Ghế có <b>cơ cấu khoá góc</b>: ở <b>bước 2</b>, thử <b>nửa chu kỳ đầu khi khoá</b>, <b>nửa sau khi mở khoá</b>.'}]},
-
+  vi:'Ghế có <b>cơ cấu khoá góc</b>: ở <b>bước 2</b>, thử <b>nửa chu kỳ đầu khi khoá</b>, <b>nửa sau khi mở khoá</b>.'},
+ {en:'One cycle shall consist of the application and removal of the force(s) at the respective loading point(s).',
+  vi:'<b>Một chu kỳ</b> = <b>đặt lực rồi nhả lực</b> tại (các) điểm đặt tải của bước ấy.'},
+ {en:'Each step shall be completed before going to the next.',
+  vi:'<b>Làm xong hẳn một bước mới sang bước kế</b> — không chạy xen kẽ các bước.'},
+ {en:'First the seat force shall be applied and maintained while the back rest force is applied.',
+  vi:'<b>Thứ tự bắt buộc</b>: đặt lực mặt ngồi <b>trước</b> và <b>giữ nguyên</b>, rồi mới đặt lực lưng.'},
+ {en:'If the back rest pad is pivoting around a horizontal axis above the height of the seat and is free to move, the horizontal force shall be applied on the axis. If height adjustable, the axis shall be set as close as possible to 300 mm above point A (7.2.2). If the axis cannot be adjusted to 300 mm, adjust the force to produce the same bending moment.',
+  vi:'Nếu đệm tải lưng <b>xoay quanh một trục ngang</b> nằm trên mặt ngồi và tự do quay: đặt lực ngang <b>đúng trên trục ấy</b>. Trục chỉnh được chiều cao thì đưa về <b>càng gần 300 mm trên điểm A</b> (7.2.2) càng tốt; không đưa về 300 mm được thì <b>chỉnh lực sao cho mô men uốn không đổi</b>.'}]},
 {bo:'en1728', so:'7.10', en:'Arm rest durability', vi:'Thử độ bền mỏi tay vịn', nhom:'lv', ngoai:true,
  than:[{en:'The test shall be carried out as described in 6.20.',
   vi:'Thử <b>đúng như mô tả ở điều 6.20</b>.'}], dan:'6.20'},
@@ -10778,20 +10848,27 @@ const TC_DIEU_4 = [
   vi:'<b>Không</b> áp dụng cho ghế có <b>bánh xe tự hãm khi ghế chịu tải</b>.'},
  {en:'The chair shall be placed on a rotating table with a test surface (see 5.12) so that the rotating axis of the chair coincides with the rotating axis of the table. Load the seat at point A with the specified load.',
   vi:'Đặt ghế lên <b>bàn xoay có mặt thử (5.12)</b>, <b>trục xoay ghế trùng trục xoay bàn</b>. Chất <b>tải quy định tại điểm A</b>.'},
+ {en:'Load the seat at point A with the specified load.',
+  vi:'Chất <b>tải quy định</b> lên mặt ngồi tại <b>điểm A</b> (7.2.2).'},
  {en:'The base shall be loosely fixed in such a way that there is no rotation of the base but that the natural movements of the castors during testing are not prevented.',
   vi:'Cố định chân đế <b>lỏng</b>: <b>đế không xoay</b>, nhưng <b>bánh xe vẫn chuyển động tự nhiên</b>.'},
  {en:'The castors shall be left free to swivel and the table shall be rotated with a rate of six cycles per minute. The angle of rotation shall be from 0° to 180° and back. One rotation forward and one rotation backward constitutes one cycle.',
   vi:'Bánh xe <b>xoay tự do</b>; bàn quay <b>6 chu kỳ/phút</b>, <b>0° → 180° rồi về</b>. <b>Một vòng đi + một vòng về = một chu kỳ.</b>'},
+ {en:'The angle of rotation shall be from 0° to 180° and back. One rotation forward and one rotation backward constitutes one cycle.',
+  vi:'Góc quay <b>0° → 180° rồi quay về</b>. <b>Một vòng đi + một vòng về = một chu kỳ.</b>'},
  {en:'Alternatively attach the chair to a device that provides a linear movement of (1 000 ± 250) mm and a test surface (see 5.12).',
-  vi:'<b>Cách khác</b>: gắn ghế vào thiết bị chuyển động <b>thẳng, hành trình (1 000 ± 250) mm</b> trên mặt thử (5.12).'}],
+  vi:'<b>Cách khác</b>: gắn ghế vào thiết bị chuyển động <b>thẳng, hành trình (1 000 ± 250) mm</b> trên mặt thử (5.12).'},
+ {en:'Load the seat at point A with the specified load. The base shall be loosely fixed in such a way that there is no rotation of the base but that the natural movements of the castors during testing are not prevented. The castors shall be left free to swivel and the device shall move with a rate of six cycles per minute. One movement forward and one movement backward constitutes one cycle.',
+  vi:'<b>Lối thay thế</b> — chạy thẳng: chất tải tại điểm A như trên; đế <b>kẹp lỏng</b> sao cho đế không xoay nhưng bánh xe vẫn chuyển động tự nhiên; bánh xe <b>để xoay tự do</b>; thiết bị chạy <b>6 chu kỳ/phút</b>. <b>Một lượt đi + một lượt về = một chu kỳ.</b>'},
+ {en:'For both alternatives it is recommended to perform the test with a speed as slow as possible with a short break when the device changes direction.',
+  vi:'<b>Khuyến nghị cho cả hai lối</b>: chạy <b>càng chậm càng tốt</b> và <b>dừng một nhịp ngắn mỗi lần đổi chiều</b> — chạy nhanh làm bánh xe chịu lực quán tính thay vì lực thật, kết quả không còn so sánh được.'}],
  luu:['Chú ý khác biệt với 6.29: ở đây hành trình thẳng là (1 000 ± 250) mm, còn 6.29 là (1 000 ± 25) mm. Không phải lỗi gõ — hai điều dung sai khác nhau thật.']},
-
 {bo:'en1728', so:'7.14', en:'Rolling resistance of the unloaded chair', vi:'Lực cản lăn của ghế không tải', nhom:'lv', ngoai:true,
  than:[{en:'This test shall be carried out as described in 6.30.',
   vi:'Thử <b>đúng như mô tả ở điều 6.30</b>.'}], dan:'6.30'},
 
 // ── Hai đề mục của chương 8 (ghế nằm) mà v289 còn để trống ───────────────────────
-{bo:'en1728', so:'8', en:'Test procedures – Loungers', vi:'Trình tự thử — Ghế nằm', nhom:'gn',
+{qt:1, bo:'en1728', so:'8', en:'Test procedures – Loungers', vi:'Trình tự thử — Ghế nằm', nhom:'gn',
  than:[{en:'This clause specifies the test procedures for loungers, from 8.1 to 8.9.',
   vi:'Điều này quy định trình tự thử cho <b>ghế nằm</b>, gồm 8.1 đến 8.9. <b>Đây là chương EN 581-2 Bảng 1 viện dẫn tới cho ghế nằm ngoài trời.</b>'}]},
 
@@ -10904,7 +10981,7 @@ const TC_DIEU_5 = [
   vi:'Phải có <b>ba đầu dò hình trụ, đầu bán cầu</b>, đường kính <b>7 mm (+0 / −0,1)</b>, <b>12 mm (+0,1 / −0)</b> và <b>18 mm (+0,1 / −0)</b> — xem <b>Hình 1</b>.'}],
  luu:['Không có bộ đầu dò chuẩn ở xưởng thì dùng thước cặp đo khe, nhưng báo cáo phải ghi rõ "đo bằng thước cặp, không phải đầu dò theo Điều 4".']},
 
-{bo:'en581-1', so:'5', en:'Safety requirements', vi:'Yêu cầu an toàn', nhom:'yc',
+{qt:1, bo:'en581-1', so:'5', en:'Safety requirements', vi:'Yêu cầu an toàn', nhom:'yc',
  than:[{en:'This clause covers general requirements (5.1), tubular components (5.2) and shear and squeeze points (5.3).',
   vi:'Điều này gồm: <b>yêu cầu chung (5.1)</b>, <b>chi tiết dạng ống (5.2)</b> và <b>điểm cắt, kẹp (5.3)</b>.'}],
  muc:['5.1','5.2','5.3']},
@@ -11105,7 +11182,7 @@ const TC_DIEU_5 = [
   vi:'Mục này gồm <b>trình tự và thông số thử (6.2.1)</b> và <b>tiêu chí đạt (6.2.2)</b>.'}],
  muc:['6.2.1','6.2.2']},
 
-{bo:'en581-2', so:'6.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+{qt:1, bo:'en581-2', so:'6.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
  bang:'b581-2-t1',
  than:[{en:'The lounger shall be tested following the order listed in Table 1.',
   vi:'<b>Ghế nằm phải được thử theo đúng thứ tự liệt kê trong Bảng 1.</b>'}],
@@ -11140,7 +11217,7 @@ const TC_DIEU_5 = [
   vi:'Mục này gồm <b>trình tự và thông số thử (7.2.1)</b> và <b>tiêu chí đạt (7.2.2)</b>.'}],
  muc:['7.2.1','7.2.2']},
 
-{bo:'en581-2', so:'7.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+{qt:1, bo:'en581-2', so:'7.2.1', en:'Test sequence and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
  bang:'b581-2-t2',
  than:[{en:'The seating shall be tested following the order listed in Table 2.',
   vi:'<b>Ghế phải được thử theo đúng thứ tự liệt kê trong Bảng 2.</b>'}]},
@@ -11304,7 +11381,7 @@ const TC_DIEU_5 = [
   vi:'Mục này gồm <b>trình tự và thông số thử (5.2.1)</b> và <b>tiêu chí đạt (5.2.2)</b>.'}],
  muc:['5.2.1','5.2.2']},
 
-{bo:'en581-3', so:'5.2.1', en:'Test sequences and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
+{qt:1, bo:'en581-3', so:'5.2.1', en:'Test sequences and parameters', vi:'Trình tự và thông số thử', nhom:'yc',
  bang:'b581-3-t1',
  than:[{en:'The table shall be tested following the order listed in Table 1.',
   vi:'<b>Bàn phải được thử theo đúng thứ tự liệt kê trong Bảng 1.</b>'}],
@@ -13627,11 +13704,12 @@ const TC_THIETBI = {
 const TC_THU_B1 = [
 
 // ══ EN 581-2 · BẢNG 1 — GHẾ NẰM ══════════════════════════════════════════════════════
-{id:'b1-1', bang:'b1', so:1,
+{cth:[{k:'a', en:'If seat and back are of one piece of flexible material (e.g. textile), only the tests on seat shall be carried out.', vi:'Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền</b> (ví dụ vải căng) thì <b>chỉ thử phần mặt ngồi</b>.'}], id:'b1-1', bang:'b1', so:1,
  en:'Seat and back static load test', vi:'Thử tải tĩnh mặt ngồi và tựa lưng',
  vien:'EN 581-2:2015 Bảng 1 → EN 1728:2012, 8.2 → 6.4',
  hinh:['EN1728-Figure-11-seat-and-back-static-load-test.png',
-       'EN1728-Figure-09-determination-of-seat-and-back-loading-point.png'],
+       'EN1728-Figure-09a-loading-point-upholstered-flexible-seating-with-back.png',
+       'EN1728-Figure-09b-loading-point-rigid-seating-with-back.png'],
  do:'Sức chịu tức thời của khung ghế khi một người nặng ngồi xuống và tì lưng — mô phỏng lúc chịu tải nặng nhất, không phải lúc dùng lâu dài.',
  tb:['1728-5.1','1728-5.4','1728-5.6'],
  buoc:[
@@ -13742,7 +13820,7 @@ const TC_THU_B1 = [
  luu:['Đếm nấc trước khi quyết định chạy phép thử này. Ghế ngả hai nấc thì bỏ — tính tiền thử là tính thừa.',
       'Một chu kỳ là <b>hai</b> lần đẩy. Báo cáo ghi "20 000 lần đặt lực" khác hẳn "20 000 chu kỳ" — chênh đúng một nửa.']},
 
-{id:'b1-6', bang:'b1', so:6,
+{cth:[{k:'b', en:'If armrest is less than 15 mm wide, carry out test with 700 N.', vi:'Tay vịn <b>rộng dưới 15 mm</b> thì thử với <b>700 N</b> thay vì mức ghi trong bảng.'}], id:'b1-6', bang:'b1', so:6,
  en:'Arm rest static load test', vi:'Thử tải tĩnh tay vịn',
  vien:'EN 581-2:2015 Bảng 1 → EN 1728:2012, 8.6 → 6.11',
  hinh:['EN1728-Figure-14-arm-rest-downward-static-load-test.png'],
@@ -13830,7 +13908,7 @@ const TC_THU_B1 = [
       'Thao tác đúng là nhấc <b>đầu chân</b> cho tới khi <b>chỉ còn bánh xe chạm sàn</b> — không phải nhấc tuỳ ý một đầu. Nhấc sai đầu hoặc nhấc chưa tới mức ấy là tải lên khung khác hẳn.',
       'Tải 1 000 N giống nhau cả ba cấp; chỉ chu kỳ thay đổi 500 / 1 000 / 2 000.']},
 
-{id:'b1-10', bang:'b1', so:10,
+{cth:[{k:'c', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> khi chạy trình tự trong bảng.'}, {k:'d', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unloaded seat.', vi:'<b>Không áp dụng</b> cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> khối lượng <b>&lt; 5 kg</b>. Chiều cao đo từ sàn tới mặt trên chỗ ngồi, tại <b>tâm hình học</b> của mặt ngồi <b>chưa chất tải</b>.'}], id:'b1-10', bang:'b1', so:10,
  en:'Forward stability', vi:'Ổn định về phía trước',
  vien:'EN 581-2:2015 Bảng 1 → EN 1728:2012, A.1.2',
  hinh:[],
@@ -13846,7 +13924,7 @@ const TC_THU_B1 = [
  luu:['Chú thích d đòi cả hai điều kiện cùng lúc. Ghế bệt cao 180 mm nhưng nặng 6 kg thì <b>vẫn phải thử</b>.',
       'Nếu ghế trượt ổn định, làm phép thử này trước là tiết kiệm được 50 000 chu kỳ bền mỏi vô ích.']},
 
-{id:'b1-11', bang:'b1', so:11,
+{cth:[{k:'c', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> khi chạy trình tự trong bảng.'}], id:'b1-11', bang:'b1', so:11,
  en:'Rearward stability', vi:'Ổn định về phía sau',
  vien:'EN 581-2:2015 Bảng 1 → EN 1022:2005, 6.6 (tư thế dựng) và 7.5 (tư thế ngả nhất)',
  hinh:[],
@@ -13861,7 +13939,7 @@ const TC_THU_B1 = [
  luu:['Ghế nằm ngả hết cỡ là tư thế dễ lật ngửa nhất, và cũng là tư thế người dùng nằm lâu nhất. Đây là phép thử tôi khuyên đừng bao giờ bỏ qua khi duyệt báo cáo.',
       'Chú ý viện dẫn ở đây là <b>EN 1022</b>, không phải EN 1728 — một tiêu chuẩn khác nữa.']},
 
-{id:'b1-12', bang:'b1', so:12,
+{cth:[{k:'c', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> khi chạy trình tự trong bảng.'}, {k:'d', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unloaded seat.', vi:'<b>Không áp dụng</b> cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> khối lượng <b>&lt; 5 kg</b>. Chiều cao đo từ sàn tới mặt trên chỗ ngồi, tại <b>tâm hình học</b> của mặt ngồi <b>chưa chất tải</b>.'}], id:'b1-12', bang:'b1', so:12,
  en:'Sideways stability', vi:'Ổn định sang ngang',
  vien:'EN 581-2:2015 Bảng 1 → EN 1728:2012, A.1.1',
  hinh:[],
@@ -13878,11 +13956,12 @@ const TC_THU_B1 = [
 
 // ══ EN 581-2 · BẢNG 2 — CÁC LOẠI GHẾ KHÁC ════════════════════════════════════════════
 const TC_THU_B2 = [
-{id:'b2-1', bang:'b2', so:1,
+{cth:[{k:'a', en:'If seat and back are of one piece of flexible material (e.g. textile), only the tests on seat shall be carried out.', vi:'Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền</b> (ví dụ vải căng) thì <b>chỉ thử phần mặt ngồi</b>.'}], id:'b2-1', bang:'b2', so:1,
  en:'Seat static load and back static load', vi:'Tải tĩnh mặt ngồi và tải tĩnh tựa lưng',
  vien:'EN 581-2:2015 Bảng 2 → EN 1728:2012, 6.4 (sửa đổi bởi EN 1728:2012/AC:2013)',
  hinh:['EN1728-Figure-11-seat-and-back-static-load-test.png',
-       'EN1728-Figure-09-determination-of-seat-and-back-loading-point.png',
+       'EN1728-Figure-09a-loading-point-upholstered-flexible-seating-with-back.png',
+       'EN1728-Figure-09b-loading-point-rigid-seating-with-back.png',
        'EN1728-Figure-10-determination-of-back-angle.png'],
  do:'Sức chịu tức thời của ghế khi người nặng ngồi xuống và tì lưng. Đây là phép thử <b>đầu tiên</b> và là gốc của mọi phép thử sau — vị trí điểm đặt tải xác định ở đây được dùng lại cho 6.5 và 6.17.',
  tb:['1728-5.1','1728-5.3','1728-5.4','1728-5.6'],
@@ -13938,7 +14017,7 @@ const TC_THU_B2 = [
  luu:['"Cách mép trước của <b>kết cấu</b> 100 mm" — không phải mép đệm hay mép vải. Ghế bọc đệm dày thì mép kết cấu nằm sâu hơn mép ngoài; đo sai chỗ này là lệch cả phép thử.',
       'Domestic và Contract bằng nhau (1 300 N). Phép thử này chủ yếu bắt lỗi <b>mối nối thanh ngang trước với chân trước</b>.']},
 
-{id:'b2-3', bang:'b2', so:3,
+{cth:[{k:'a', en:'If seat and back are of one piece of flexible material (e.g. textile), only the tests on seat shall be carried out.', vi:'Mặt ngồi và lưng là <b>một tấm vật liệu mềm liền</b> (ví dụ vải căng) thì <b>chỉ thử phần mặt ngồi</b>.'}], id:'b2-3', bang:'b2', so:3,
  en:'Combined seat and back durability test', vi:'Thử độ bền mỏi kết hợp mặt ngồi và tựa lưng',
  vien:'EN 581-2:2015 Bảng 2 → EN 1728:2012, 6.17 (sửa đổi bởi EN 1728:2012/AC:2013)',
  hinh:['EN1728-Figure-17-seat-and-back-durability-test.png',
@@ -14004,7 +14083,7 @@ const TC_THU_B2 = [
  luu:['Tải mặt ngồi ở đây là <b>750 N cho cả ba cấp</b> — khác bảng ghế nằm (1 000 N). Đừng lẫn hai bảng.',
       'Đếm nấc trước khi quyết định chạy. Ghế xếp ngoài trời loại hai nấc thì bỏ phép thử này.']},
 
-{id:'b2-5', bang:'b2', so:5,
+{cth:[{k:'b', en:'If armrest is less than 15 mm wide, carry out test with 700 N for contract use.', vi:'Tay vịn <b>rộng dưới 15 mm</b>: cấp <b>Contract</b> thử với <b>700 N</b> thay vì 900 N.'}], id:'b2-5', bang:'b2', so:5,
  en:'Arm rest static load test', vi:'Thử tải tĩnh tay vịn',
  vien:'EN 581-2:2015 Bảng 2 → EN 1728:2012, 6.11',
  hinh:['EN1728-Figure-14-arm-rest-downward-static-load-test.png',
@@ -14103,7 +14182,7 @@ const TC_THU_B2 = [
  luu:['Domestic và Contract cùng lực ngang 300 N, chỉ khác <b>lực tối thiểu</b> (175 so với 200 N). Khác biệt nhỏ nhưng là khác biệt thật.',
       'Quy tắc "cách mép không chất tải ≤ 150 mm" đặt tải lệch hẳn sang một bên để tạo mô men xoắn. Đây là phép thử hay làm bung <b>mối nối thanh giằng ngang với chân</b> ở ghế nhôm và ghế nhựa đan.']},
 
-{id:'b2-9', bang:'b2', so:9,
+{cth:[{k:'c', en:'The application point shall be at least 100 mm from the front edge. This test shall not be carried out on seating with a seat height > 600 mm.', vi:'Điểm va đập cách <b>mép trước ít nhất 100 mm</b>. <b>Không thử</b> với ghế có chiều cao mặt ngồi <b>&gt; 600 mm</b>.'}], id:'b2-9', bang:'b2', so:9,
  en:'Seat impact test', vi:'Thử va đập mặt ngồi',
  vien:'EN 581-2:2015 Bảng 2 → EN 1728:2012, 6.24',
  hinh:['EN1728-Figure-19-seat-impact-test.png','EN1728-Figure-06-seat-impactor.png'],
@@ -14127,7 +14206,7 @@ const TC_THU_B2 = [
  luu:['<b>Hai lớp mút, không phải một.</b> Lớp đầu chỉ để lấy mốc đo chiều cao, lớp thứ hai nằm lại trong phép thử. Lab làm một lớp là năng lượng va đập sai.',
       'Phải thử <b>hai vị trí</b>: điểm theo dưỡng và một điểm dễ hỏng khác. Lab chỉ thử một điểm là làm thiếu.']},
 
-{id:'b2-10', bang:'b2', so:10,
+{cth:[{k:'d', en:'This test is carried out only on seating with a seat height > 700 mm.', vi:'<b>Chỉ thử</b> với ghế có chiều cao mặt ngồi <b>&gt; 700 mm</b> — ghế cao mới có chỗ để chân.'}], id:'b2-10', bang:'b2', so:10,
  en:'Foot rest static load test', vi:'Thử tải tĩnh gác chân',
  vien:'EN 581-2:2015 Bảng 2 → EN 1728:2012, 6.8',
  hinh:[],
@@ -14151,7 +14230,7 @@ const TC_THU_B2 = [
       'Ngưỡng 700 mm: ghế bar ngoài trời gần như luôn vượt; ghế ăn thường không. Đo chiều cao mặt ngồi trước khi quyết định.',
       'EN 1728 không có hình riêng cho điều 6.8 — đó là lý do mục này để trống ô ảnh, chứ không phải tôi bỏ sót.']},
 
-{id:'b2-11', bang:'b2', so:11,
+{cth:[{k:'e', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unload seat.', vi:'<b>Không áp dụng</b> cho ghế cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> nặng <b>&lt; 5 kg</b>.'}, {k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-11', bang:'b2', so:11,
  en:'Forward stability', vi:'Ổn định về phía trước',
  vien:'EN 581-2:2015 Bảng 2 → EN 1022',
  hinh:[],
@@ -14165,7 +14244,7 @@ const TC_THU_B2 = [
  dat:['Sản phẩm không được lật'],
  luu:['Ghế xếp ngoài trời nhẹ dưới 5 kg nhưng mặt ngồi cao 350 mm thì <b>vẫn phải thử</b> — chỉ một điều kiện là chưa đủ miễn.']},
 
-{id:'b2-12', bang:'b2', so:12,
+{cth:[{k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-12', bang:'b2', so:12,
  en:'Rearward stability', vi:'Ổn định về phía sau',
  vien:'EN 581-2:2015 Bảng 2 → EN 1022',
  hinh:[],
@@ -14177,7 +14256,7 @@ const TC_THU_B2 = [
  dat:['Sản phẩm không được lật'],
  luu:['Là phép thử ổn định quan trọng nhất về an toàn: lật ngửa gây thương tích đầu và cổ. Đừng bao giờ bỏ qua khi duyệt báo cáo.']},
 
-{id:'b2-13', bang:'b2', so:13,
+{cth:[{k:'e', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unload seat.', vi:'<b>Không áp dụng</b> cho ghế cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> nặng <b>&lt; 5 kg</b>.'}, {k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-13', bang:'b2', so:13,
  en:'Sideways stability', vi:'Ổn định sang ngang',
  vien:'EN 581-2:2015 Bảng 2 → EN 1022',
  hinh:[],
@@ -14193,7 +14272,7 @@ const TC_THU_B2 = [
 
 // ══ EN 581-3 · BẢNG 1 — BÀN ══════════════════════════════════════════════════════════
 const TC_THU_B3 = [
-{id:'b3-1', bang:'b3', so:1,
+{cth:[{k:'b', en:'Tables with extension pieces shall be tested both in the extended and unextended configurations. A table extension added in the centre of the table shall be tested as the main surface. A part of the main surface in the unextended configuration can become an ancillary surface in the extended configuration.', vi:'Bàn có <b>tấm nối</b>: phải thử <b>cả hai trạng thái</b> — mở rộng và chưa mở rộng. Tấm nối thêm ở <b>giữa</b> bàn được coi là <b>mặt chính</b>. Một phần mặt chính lúc chưa mở rộng có thể trở thành <b>mặt phụ</b> khi đã mở rộng.'}], id:'b3-1', bang:'b3', so:1,
  en:'Vertical static load on main surface — table top > 0,25 m²', vi:'Tải tĩnh thẳng đứng trên mặt chính — mặt bàn > 0,25 m²',
  vien:'EN 581-3:2017 Bảng 1 → EN 1730:2012, 6.3.1',
  hinh:['EN1730-Figure-03-vertical-static-load-test-main-surface.png'],
@@ -14220,7 +14299,7 @@ const TC_THU_B3 = [
       '0,25 m² là <b>mặt bàn 500 × 500 mm</b>. Bàn phụ tròn Ø 560 mm đã vượt ngưỡng; bàn Ø 500 mm thì chưa. Tính diện tích trước khi chọn phép thử.',
       'Phải thử <b>tới bốn vị trí</b>. Báo cáo chỉ thử giữa bàn là báo cáo chưa làm đúng — mục đích của điều này là tìm chỗ yếu nhất.']},
 
-{id:'b3-2', bang:'b3', so:2,
+{cth:[{k:'b', en:'Tables with extension pieces shall be tested both in the extended and unextended configurations. A table extension added in the centre of the table shall be tested as the main surface. A part of the main surface in the unextended configuration can become an ancillary surface in the extended configuration.', vi:'Bàn có <b>tấm nối</b>: phải thử <b>cả hai trạng thái</b> — mở rộng và chưa mở rộng.'}], id:'b3-2', bang:'b3', so:2,
  en:'Vertical static load on main surface — table top ≤ 0,25 m²', vi:'Tải tĩnh thẳng đứng trên mặt chính — mặt bàn ≤ 0,25 m²',
  vien:'EN 581-3:2017 Bảng 1 → EN 1730:2012, 6.3.1',
  hinh:['EN1730-Figure-03-vertical-static-load-test-main-surface.png'],
@@ -14321,7 +14400,7 @@ const TC_THU_B3 = [
       'Khối lượng <b>50 kg giống nhau cả ba cấp</b>; chỉ lực ngang và chu kỳ thay đổi. Contract gấp đôi chu kỳ Domestic và gấp đôi lực.',
       'Mặt bàn <b>không bắt vít</b> vào khung (mặt kính, mặt đá đặt rời) sẽ phải giảm lực — và khi đó báo cáo <b>phải</b> ghi lực thực dùng. Đây là chỗ hay bị che: lab giảm lực mà không ghi, nhìn vào tưởng đạt ở lực đầy đủ.']},
 
-{id:'b3-6', bang:'b3', so:6,
+{cth:[{k:'a', en:'For tables that might not fulfil the stability requirements before carrying out any tests, the applicable stability tests can be carried out additionally before starting the sequence of tests specified in this table.', vi:'Bàn <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}, {k:'b', en:'Tables with extension pieces shall be tested both in the extended and unextended configurations.', vi:'Bàn có <b>tấm nối</b>: phải thử <b>cả hai trạng thái</b> — mở rộng và chưa mở rộng.'}], id:'b3-6', bang:'b3', so:6,
  en:'Stability under vertical load', vi:'Ổn định dưới tải thẳng đứng',
  vien:'EN 581-3:2017 Bảng 1 → EN 1730:2012, 7.2 (7.2.1 chung · 7.2.2 bàn ≤ 950 mm · 7.2.3 bàn > 950 mm)',
  hinh:['EN1730-Figure-08-determination-of-vertical-stability-load.png',
@@ -14354,7 +14433,7 @@ const TC_THU_B3 = [
       'Camping có V₁ = V₂ = 200 N nên không cần nội suy — luôn là 200 N bất kể bàn dài bao nhiêu.',
       'Bàn bar cao hơn 950 mm chỉ chịu <b>50 %</b> tải — nhưng ở chiều cao ấy đòn lật dài hơn nhiều, nên thực tế vẫn hay không đạt.']},
 
-{id:'b3-7', bang:'b3', so:7,
+{cth:[{k:'a', en:'For tables that might not fulfil the stability requirements before carrying out any tests, the applicable stability tests can be carried out additionally before starting the sequence of tests specified in this table.', vi:'Bàn <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b3-7', bang:'b3', so:7,
  en:'Stability for tables with extension elements', vi:'Ổn định của bàn có tấm nối dài',
  vien:'EN 581-3:2017 Bảng 1 → EN 1730:2012, 7.3',
  hinh:['EN1730-Figure-09-vertical-stability-test.png'],
@@ -14383,7 +14462,7 @@ const TC_THU_B3 = [
       'Có hay không <b>interlock</b> đổi hoàn toàn cách thử: không có thì mở hết, có thì chỉ mở hai tấm. Kiểm tra cơ cấu liên động trước khi bố trí phép thử.',
       'Đây là phép thử ổn định <b>duy nhất</b> mà khoang chứa đồ phải được chất tải. Ba phép thử ổn định còn lại thì để trống.']},
 
-{id:'b3-8', bang:'b3', so:8,
+{cth:[{k:'a', en:'For tables that might not fulfil the stability requirements before carrying out any tests, the applicable stability tests can be carried out additionally before starting the sequence of tests specified in this table.', vi:'Bàn <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b3-8', bang:'b3', so:8,
  en:'Stability of tables designed to support a parasol', vi:'Ổn định của bàn thiết kế để đỡ dù',
  vien:'EN 581-3:2017 Bảng 1 → EN 1730:2012, 7.4',
  hinh:['EN1730-Figure-10-stability-of-tables-structure-supports-parasol.png'],
@@ -14863,28 +14942,35 @@ function renderTcThu(){
       <div class="tc-thu-vien"><span>Viện dẫn</span>${escapeHtml(t.vien)}</div>
       ${tcVienDanHtml(t.vien)}
 
-      <div class="tc-de">Figures from the standard<i>Hình chụp trong file tiêu chuẩn</i></div>
-      ${moiHinh.length
-        ? moiHinh.map(t=>{ const id = tcHinhTheoTep(t); return id ? tcHinhHtml(id) : tcAnhHtml(t); }).join('')
-        : `<div class="tc-khonghinh">Hai bộ EN 1728 và EN 1730 <b>không có hình riêng</b> cho
-             phép thử này — không phải tôi bỏ sót. Phần ổn định viện dẫn sang EN 1022, là
-             tiêu chuẩn khác và bạn chưa gửi file ấy.</div>`}
-
+      ${/* v343 · Mục 27 — CHỮ TRƯỚC, HÌNH SAU. Trước đây trang mở ra là một loạt bản vẽ kỹ
+            thuật, phải cuộn qua hết mới biết phép thử này đo cái gì. Nay đọc theo đúng thứ tự
+            làm việc thật: đo cái gì → thông số ba cấp → trình tự thử → thiết bị → phạm vi và
+            ngoại lệ → tiêu chí đạt, rồi mới tới hình để đối chiếu. */''}
       <div class="tc-de">What it measures<i>Phép thử này đo cái gì</i></div>
       <p class="tc-y">${t.do}</p>
 
-      ${t.tb.length ? `<div class="tc-de">Apparatus<i>Thiết bị thử</i></div>${tcThietBiHtml(t)}` : ''}
+      ${t.ts.length ? `<div class="tc-de">Parameters by use category<i>Thông số theo ba cấp sử dụng</i></div>${tcTsHtml(t)}` : ''}
+
+      ${/* v343 · Mục 4 — CHÚ THÍCH CỦA BẢNG, GẮN ĐÚNG PHÉP THỬ. Trong bản in, các ký hiệu
+            a, b, c… nằm lạc ở chân bảng; đọc một dòng trong bảng thì không biết chữ nhỏ cạnh
+            tên phép thử trỏ vào điều kiện nào. Nay mỗi phép thử mang theo đúng chú thích của
+            chính nó. */''}
+      ${(t.cth && t.cth.length) ? `<div class="tc-de">Table footnotes<i>Chú thích của bảng — áp cho đúng phép thử này</i></div>
+        <div class="tc-cth">${t.cth.map(c=>`<div class="tc-cth-d">
+          <span class="k">${escapeHtml(c.k)}</span>
+          <span class="n"><span class="en">${escapeHtml(c.en)}</span><span class="vi">${c.vi}</span></span>
+        </div>`).join('')}</div>` : ''}
 
       <div class="tc-de">Test procedure<i>Trình tự thử — nằm ở bộ phương pháp thử</i></div>
       <div class="tc-chuyen">
         <b>EN 581 không viết trình tự thử.</b> Phần EN 581 quy định là <b>phải chịu lực bao
-        nhiêu, bao nhiêu chu kỳ, đạt thế nào</b> — tức là các khối bên dưới. Còn <b>làm thế
-        nào để thử</b> thì nằm trọn ở EN 1728 (ghế) và EN 1730 (bàn), đúng những điều viện
-        dẫn ở đầu trang này. Bấm vào viện dẫn là sang thẳng nguyên văn trình tự.
+        nhiêu, bao nhiêu chu kỳ, đạt thế nào</b>. Còn <b>làm thế nào để thử</b> thì nằm trọn ở
+        EN 1728 (ghế) và EN 1730 (bàn), đúng những điều viện dẫn ngay dưới đây. Bấm vào viện
+        dẫn là sang thẳng nguyên văn trình tự.
       </div>
       ${tcVienDanHtml(t.vien)}
 
-      ${t.ts.length ? `<div class="tc-de">Parameters by use category<i>Thông số theo ba cấp sử dụng</i></div>${tcTsHtml(t)}` : ''}
+      ${t.tb.length ? `<div class="tc-de">Apparatus<i>Thiết bị thử</i></div>${tcThietBiHtml(t)}` : ''}
 
       ${t.ngoai.length ? `<div class="tc-de">Scope and exceptions<i>Điều kiện áp dụng và ngoại lệ</i></div>
         <ul class="tc-ds">${t.ngoai.map(x=>`<li>${x}</li>`).join('')}</ul>` : ''}
@@ -14893,6 +14979,13 @@ function renderTcThu(){
       <ul class="tc-ds tc-dat">${t.dat.map(x=>`<li>${x}</li>`).join('')}</ul>
 
       ${t.luu.map(tcLuuHtml).join('')}
+
+      <div class="tc-de">Figures from the standard<i>Hình chụp trong file tiêu chuẩn</i></div>
+      ${moiHinh.length
+        ? moiHinh.map(t=>{ const id = tcHinhTheoTep(t); return id ? tcHinhHtml(id) : tcAnhHtml(t); }).join('')
+        : `<div class="tc-khonghinh">Hai bộ EN 1728 và EN 1730 <b>không có hình riêng</b> cho
+             phép thử này — không phải tôi bỏ sót. Phần ổn định viện dẫn sang EN 1022, là một
+             tiêu chuẩn khác.</div>`}
     </div>
     <div class="tc-dieuhuong">
       ${tr ? `<button class="tc-dh" data-action="tc-thu" data-id="${tr.id}">← ${t.so-1}. ${escapeHtml(tr.en)}</button>` : '<span></span>'}
@@ -15228,16 +15321,31 @@ function tcNoiVienDan(html, boHienTai){
     // v315 · Mục 4 — bản dịch viết "Bảng 2 CỦA EN 581-2:2015". Luật cũ chỉ bắt chữ "of",
     // nên vế tiếng Việt trượt khỏi nhánh BẢNG rồi rơi xuống nhánh mã EN và nhảy sang điều 1
     // — tức là cùng một câu mà hai ngôn ngữ dẫn đi hai nơi khác nhau.
+    // v343 · Mục 28 — BẢNG KHÔNG GHI RÕ THUỘC BỘ NÀO THÌ TRA THEO BỘ VỪA ĐƯỢC NHẮC.
+    // Điều 5.3.3 của EN 581-1 viết "…in Table 1 of EN 581-2:2015: … — Test 2 … Table 2 …":
+    // lần nhắc đầu ghi rõ bộ nên bấm được, những lần sau viết trống nên tra vào chính
+    // EN 581-1 — nơi không có bảng nào — rồi rơi ra ngoài. Nay nhớ bộ vừa nêu trong CÙNG
+    // một đoạn và dùng lại cho các lần nhắc trống phía sau.
+    const mBo = /EN\s*581-([123])/.exec(t);
+    const boNeu = mBo ? 'en581-' + mBo[1] : null;
     t = t.replace(/\b(Bảng|Table)\s+([A-Z]?\.?\d+)(\s+(?:of|của)\s+EN\s*581-([123])(?::\d{4})?)?/g,
       (tron, tu, so, _du, ph)=>{
-        const bo = ph ? 'en581-' + ph : boHienTai;
+        let bo = ph ? 'en581-' + ph : boHienTai;
+        const coBang = (b, n) => TC_HINH.find(x=>x.loai === 'bang' && x.bo === b
+          && String(x.so).replace(/^(Table|Bảng)\s+/, '') === String(n));
+        if(!ph && !coBang(bo, so) && boNeu && coBang(boNeu, so)) bo = boNeu;
         const b = TC_HINH.find(x=>x.loai === 'bang' && x.bo === bo
           && String(x.so).replace(/^(Table|Bảng)\s+/, '') === String(so));
         return b ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-xem-hinh" data-id="${b.id}">${tron}</span>`) : tron;
       });
     // "Figure 12" / "Hình A.1" → ảnh hình
+    // v343 — Hình 9 của EN 1728 in thành BA tấm 9 a) / 9 b) / 9 c), nên trong sổ không còn
+    // mục nào mang đúng số "9". Câu "see Figure 9" vì thế mất liên kết. Nay tra khớp đúng
+    // trước; không có thì nhận tấm đầu tiên mang số ấy kèm chữ cái tấm (9 a)).
     t = t.replace(/\b(Figure|Hình)\s+([A-Z]?\.?\d+)/g, (tron, tu, so)=>{
-      const h = TC_HINH.find(x=>x.loai !== 'bang' && x.bo === boHienTai && String(x.so) === String(so));
+      const h = TC_HINH.find(x=>x.loai !== 'bang' && x.bo === boHienTai && String(x.so) === String(so))
+             || TC_HINH.find(x=>x.loai !== 'bang' && x.bo === boHienTai
+                  && String(x.so).replace(/\s.*$/, '') === String(so));
       return h ? cat(`<span class="tc-nd" role="button" tabindex="0" data-action="tc-xem-hinh" data-id="${h.id}">${tron}</span>`) : tron;
     });
     // "EN 1728:2012, 8.2" / "EN 1730, 6.3.1" / "EN 581-2:2015" → sang bộ khác
@@ -15568,11 +15676,11 @@ TC_HINH.push(...TC_HINH_1022);
 // v304 · Mục 8 — BỐN BẢNG CỦA EN 1728 mà thân văn bản vẫn nhắc tới nhưng chưa có hình.
 // Cắt thẳng từ bản in, đặt cạnh đúng điều khoản viện dẫn chúng.
 const TC_HINH_1728B = [
- {id:'f1728-t1', bo:'en1728', so:'1', loai:'bang', dieu:['6.17','7.1'],
+ {id:'f1728-t1', bo:'en1728', so:'1', loai:'bang', dieu:['6.4'],
   tep:'EN1728-Table-1.png',
   ten:'Determination of seat and back force — Chairs with an angle α ≤ 15°',
   vi:'Xác định lực mặt ngồi và lưng tựa — ghế có góc tựa lưng α ≤ 15°', phu:[], giai:[]},
- {id:'f1728-t2', bo:'en1728', so:'2', loai:'bang', dieu:['6.17','7.1'],
+ {id:'f1728-t2', bo:'en1728', so:'2', loai:'bang', dieu:['6.17'],
   tep:'EN1728-Table-2.png',
   ten:'Determination of seat and back force — Chairs with an angle α > 15°',
   vi:'Xác định lực mặt ngồi và lưng tựa — ghế có góc tựa lưng α > 15°', phu:[], giai:[]},
@@ -15580,7 +15688,28 @@ const TC_HINH_1728B = [
   tep:'EN1728-Table-3.png',
   ten:'Positioning of chair components',
   vi:'Cách đặt các bộ phận của ghế khi thử', phu:[], giai:[]},
- {id:'f1728-t4', bo:'en1728', so:'4', loai:'bang', dieu:['7.9'],
+ {id:'f1728-A1', bo:'en1728', so:'A.1', dieu:['A'],
+ tep:'EN1728-Figure-A1-seat-loading-pad-geometry-machined-construction.png',
+ ten:'Seat loading pad geometry — Machined construction',
+ vi:'Hình học đệm tải mặt ngồi — chế tạo bằng gia công cơ', kichThuoc:'mm, dung sai ±5 mm',
+ phu:[], giai:[['1','Centre section cross hatched','Mặt cắt giữa gạch chéo'],['2','R105 (section A-A, see the top view)','R105 — mặt cắt A-A, xem hình chiếu bằng'],['3','R183 (section B-B, see the top view)','R183 — mặt cắt B-B, xem hình chiếu bằng'],['4','Axis of the cone','Trục của mặt côn']],
+ doc:'Bản vẽ <b>bắt buộc</b> (normative) của đệm tải mặt ngồi khi làm bằng <b>gia công cơ</b>. Mặt cong của đệm dựng từ hai bán kính <b>R105</b> và <b>R183</b> quanh một trục côn — đây là lý do đệm ép đều lên mặt ngồi thay vì tì một điểm. Sai hình đệm là sai toàn bộ phân bố lực của mọi phép thử dùng nó (5.4).'},
+
+{id:'f1728-A2', bo:'en1728', so:'A.2', dieu:['A'],
+ tep:'EN1728-Figure-A2-seat-loading-pad-geometry-moulded-construction.png',
+ ten:'Seat loading pad geometry — Moulded construction',
+ vi:'Hình học đệm tải mặt ngồi — chế tạo bằng đúc khuôn', kichThuoc:'mm, dung sai ±5 mm',
+ phu:[], giai:[['y','Centre section cross hatched','Mặt cắt giữa gạch chéo']],
+ doc:'Cùng một đệm tải, nhưng cho lối chế tạo <b>đúc khuôn</b>: bảng toạ độ các mặt cắt A–H kèm kích thước bao <b>381 × 500 mm</b>. Hai hình A.1 và A.2 mô tả <b>cùng một vật</b> theo hai cách gia công — chọn hình nào là tuỳ xưởng làm đệm, kích thước cuối cùng phải như nhau.'},
+
+{id:'f1728-B1', bo:'en1728', so:'B.1', dieu:['B'],
+ tep:'EN1728-Figure-B1-arm-rest-loading-pad-details.png',
+ ten:'Example of arm rest loading pad',
+ vi:'Ví dụ đệm tải tay vịn', kichThuoc:'mm',
+ phu:[], giai:[['1','Nylon facing material','Lớp nylon bọc mặt tiếp xúc']],
+ doc:'Phụ lục B là <b>tham khảo</b> (informative), không bắt buộc: một mẫu đệm tải tay vịn dùng được cho <b>phần lớn</b> kiểu tay vịn trên thị trường. Mặt tiếp xúc bọc <b>nylon</b>, bề rộng <b>≤ 100 mm</b>, cần <b>200 mm</b>, nghiêng được trong khoảng <b>0°–15°</b> để bám theo tay vịn cong hoặc dốc.'},
+
+{id:'f1728-t4', bo:'en1728', so:'4', loai:'bang', dieu:['7.9'],
   tep:'EN1728-Table-4.png',
   ten:'Seat and back durability test',
   vi:'Thử độ bền mỏi mặt ngồi và lưng tựa', phu:[], giai:[]},
@@ -15824,7 +15953,7 @@ function tcDieuNutHtml(bo, d){
   return `<button class="tc-dnut${sau > 1 ? ' con b' + Math.min(sau, 4) : ''}"
       data-action="tc-dieu" data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
       <span class="so">${escapeHtml(d.so)}</span>
-      <span class="noi"><span class="en">${escapeHtml(d.en)}${
+      <span class="noi"><span class="en">${d.qt ? '<i class="tc-qt" title="Điều then chốt — đọc kỹ trước khi lập kế hoạch thử">★ TRỌNG TÂM</i> ' : ''}${escapeHtml(d.en)}${
         ''}</span>
         <span class="vi">${escapeHtml(d.vi)}</span>
         ${(coHinh || muc.length || d.ngoai) ? `<span class="dau">
@@ -15878,7 +16007,7 @@ function renderTcDieuList(){
           return `<button class="tc-con-d c${cap}" data-action="tc-dieu"
             data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
           <span class="so">${escapeHtml(d.so)}</span>
-          <span class="noi"><span class="en">${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
+          <span class="noi"><span class="en">${d.qt ? '<i class="tc-qt" title="Điều then chốt — đọc kỹ trước khi lập kế hoạch thử">★ TRỌNG TÂM</i> ' : ''}${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
           ${/* v310 · Mục 4 — tắt nhãn "có hình" theo yêu cầu */ ''}
           ${''}
           <span class="mui">›</span>
