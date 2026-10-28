@@ -6308,7 +6308,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v341';
+const APP_VERSION = 'v342';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -20593,6 +20593,8 @@ async function drpSinhBangAppGemini(soCau, level, chuDe, tu, mau){
                         .test(cau.join(' ')); }catch(_){ return false; }
           })};
 }
+// Worker chờ tối đa chừng này mili-giây rồi bỏ, chuyển sang đường app tự soạn.
+const DRP_WORKER_CHO = 22000;
 async function drpSinhVanBan(){
   const s = STATE.drpPhien || (STATE.drpPhien = {});
   const w = drpDocOWorker();
@@ -20621,15 +20623,29 @@ async function drpSinhVanBan(){
     let j = null, duong = 'worker';
     if(w){
       try{
-        const res = await fetch(w + '/generate', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({count: c.soCau, level: c.level, words: tuDung,
-                                topic: chuDe, patterns: mauDung})
-        });
+        // v342 — HẠN GIỜ CHO WORKER. Trước đây lời gọi này không có điểm dừng: worker kẹt
+        // (Google chặn IP Cloudflare, Gemini trả chậm, mạng treo) thì vòng quay cứ xoay mãi,
+        // đường dự phòng "app tự soạn" không bao giờ tới lượt — đúng cái "tạo khá lâu" rồi
+        // cuối cùng vẫn báo hết hạn mức. Quá DRP_WORKER_CHO giây là bỏ, sang đường kia ngay.
+        const huy = (typeof AbortController === 'function') ? new AbortController() : null;
+        const hen = setTimeout(()=>{ try{ huy && huy.abort(); }catch(_){ } }, DRP_WORKER_CHO);
+        let res;
+        try{
+          res = await fetch(w + '/generate', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            signal: huy ? huy.signal : undefined,
+            body: JSON.stringify({count: c.soCau, level: c.level, words: tuDung,
+                                  topic: chuDe, patterns: mauDung})
+          });
+        } finally { clearTimeout(hen); }
         const k = await res.json().catch(()=>null);
         if(res.ok && k && k.ok) j = k;
         else s.loiWorker = (k && k.error) ? k.error : ('Worker trả lỗi ' + res.status + '.');
-      }catch(e){ s.loiWorker = 'Không gọi được worker: ' + ((e && e.message) || e); }
+      }catch(e){
+        s.loiWorker = (e && e.name === 'AbortError')
+          ? ('Worker không trả lời trong ' + Math.round(DRP_WORKER_CHO/1000) + ' giây — đã bỏ qua để app tự soạn.')
+          : ('Không gọi được worker: ' + ((e && e.message) || e));
+      }
     }
     // Worker không ra bài (bị Google chặn IP, hết hạn mức, mạng hỏng…) thì app tự soạn
     // bằng khoá Gemini của chính nó — đường này chạy từ máy bạn nên không dính chuyện IP.
@@ -29349,19 +29365,31 @@ function speakLine(text, rate, pitch){
 // (lỗi 403 API_KEY_HTTP_REFERRER_BLOCKED — hay gặp sau khi đổi tên miền app), trước đây app cứ gọi lại
 // hàng chục lần rồi im lặng không đọc/không nghe gì, người dùng không biết vì sao. Giờ chặn ngay từ lần
 // đầu, báo đúng việc cần làm, và tự rơi xuống giọng đọc sẵn có của máy để vẫn học được.
-let cloudKeyBlocked = false, cloudKeyBlockedWarned = false;
+// v342 — NHỚ LẠI GIỮA CÁC PHIÊN. Đây KHÔNG phải lỗi của app: key Google Cloud là của bạn và
+// đang đặt Website restrictions cho tên miền cũ, nên Google từ chối mọi lời gọi từ tên miền
+// hiện tại. App không sửa được cài đặt ấy. Việc app làm được là: nhớ đúng CÁI KEY nào đã bị
+// chặn, thôi gọi nó (đỡ chờ một vòng mạng hỏng mỗi lần bấm loa), và chỉ báo MỘT LẦN thay vì
+// mỗi phiên lại đập một dải chữ lên giữa video. Đổi key mới thì app tự thử lại.
+let cloudKeyBlocked = false;
+function cloudKeyVanTay(){ return String(SETTINGS.cloudTtsApiKey || '').slice(-8); }
+function cloudKeyDaChan(){
+  const k = cloudKeyVanTay();
+  return !!k && SETTINGS.cloudKeyChan === k;
+}
 function noteCloudKeyBlocked(bodyText){
   if(!/API_KEY_HTTP_REFERRER_BLOCKED|are blocked|PERMISSION_DENIED/i.test(String(bodyText||''))) return false;
   cloudKeyBlocked = true;
-  if(!cloudKeyBlockedWarned){
-    cloudKeyBlockedWarned = true;
-    showToast('🔑','API key đang bị Google chặn', 'Key Google Cloud của bạn chỉ cho phép tên miền cũ. Vào Google Cloud Console → Credentials → API key → Website restrictions, thêm tên miền hiện tại của app. Tạm thời app dùng giọng đọc sẵn có của máy.');
+  const k = cloudKeyVanTay();
+  if(k && SETTINGS.cloudKeyChan !== k){
+    SETTINGS.cloudKeyChan = k;
+    try{ saveSettings(); }catch(_){ }
+    showToast('🔑','Google chặn key của bạn theo tên miền', 'Vào Google Cloud Console → Credentials → API key → Website restrictions, thêm tên miền hiện tại của app. Từ giờ app dùng giọng đọc sẵn của máy, không gọi key ấy nữa.');
   }
   return true;
 }
 async function fetchCloudTtsAudioUrl(text, voiceName, speedMul, isSsml){
   const apiKey = SETTINGS.cloudTtsApiKey;
-  if(!apiKey || cloudKeyBlocked) return null;
+  if(!apiKey || cloudKeyBlocked || cloudKeyDaChan()) return null;
   speedMul = speedMul || 1;
   const cacheKey = 'https://cloud-tts.local/'+encodeURIComponent((isSsml?'ssml':'text')+'|'+voiceName+'|'+speedMul+'|'+text);
   if('caches' in window){
@@ -33409,10 +33437,11 @@ function hvDkBatNhip(){
       }
       // "Không chờ" — chạy thẳng sang câu kế, KHÔNG dừng video giữa chừng. Dừng rồi phát lại
       // ngay chỉ tạo một cú khựng và một tiếng bụp, chẳng để làm gì.
-      if(cho === 'tat'){
-        hvDkDoi = setTimeout(()=>{ hvDkDoi = null; hvDkToiCau(i + 1); }, 60);
-        return;
-      }
+      // v342 — GỐC CỦA "nghe lặp lại đầu câu hai lần". hvDkToiCau TUA về (d.t - 0.08). Ở nấc
+      // "Chạy liền" video chưa hề dừng, nó đã chạy sẵn qua mốc ấy rồi — tua là LÙI LẠI, nên
+      // tai nghe đúng đầu câu kế hai lượt. Chạy liền thì đừng đụng vào trình phát chút nào:
+      // chỉ dời con trỏ câu rồi bắt lại nhịp canh, để video chảy liên tục như xem bình thường.
+      if(cho === 'tat'){ hvDkSangLien(i + 1); return; }
       try{ p.pauseVideo(); }catch(e){}
       try{ hvVeNutPlay(); }catch(e){}
       // Chờ bao nhiêu thì tính theo CHÍNH độ dài câu vừa nghe, không phải một con số cố định:
@@ -33477,6 +33506,20 @@ function hvDkCauSau(){
 // gạt công tắc — bấm nhầm là đổi cả chế độ luyện mà không biết. Nay → đi tới câu kế cho đối
 // xứng với ←, còn công tắc chuyển sang phím A (auto).
 function hvDkCauKe(){ hvDkToiCau(hvDkCau() + 1); }
+// Sang câu kế mà KHÔNG tua, không dừng — dùng cho nấc "Chạy liền". Video đang chảy tới đâu
+// thì để nguyên tới đó; việc duy nhất cần làm là dời con trỏ câu và canh lại cuối câu mới.
+function hvDkSangLien(i){
+  const s = STATE.hvPhien; if(!s) return;
+  const ds = hvDkDs();
+  if(i < 0 || i >= ds.length){ hvDkNgung(); return; }
+  s.cau = i;
+  hvDkConLap = hvDkLap();
+  hvDkChoTua = null;           // không tua thì không phải chờ lệnh tua ăn
+  hvDkBatNhip();
+  hvDkVeThanh();
+  try{ sdVeCau(); }catch(e){}
+  try{ hvVeNutPlay(); }catch(e){}
+}
 function hvDkLapLai(){   hvDkToiCau(hvDkCau()); }
 function hvDkPlay(){
   const p = hvLayPlayer(); if(!p) return;
@@ -38344,9 +38387,36 @@ function geminiKho(){
   q.dem = q.dem || {}; q.het = q.het || {}; q.tran = q.tran || {};
   return q;
 }
+// v342 — DANH SÁCH "MODEL HỎNG" PHẢI BIẾT QUÊN. Một lần trả 404 / "is not supported" là tên
+// model bị gạch VĨNH VIỄN. Nhưng 404 hay đến từ thứ tạm thời: key vừa đổi, model vừa bật ở
+// Google Cloud, proxy chập chờn. Gạch vĩnh viễn thì mỗi lần như thế kho model lại hụt một
+// tên, tới lúc hụt hết thì mọi lời gọi đều báo "hết hạn mức AI" mà chưa hề gọi đi đâu — đúng
+// cái "lúc nào cũng hết hạn mức" bạn gặp. Nay mỗi tên gạch kèm ngày, quá GEMINI_HONG_NGAY
+// ngày thì được thử lại một lần nữa.
+const GEMINI_HONG_NGAY = 2;
 function geminiModelHong(){
-  if(!Array.isArray(SETTINGS.geminiModelHong)) SETTINGS.geminiModelHong = [];
-  return SETTINGS.geminiModelHong;
+  // Dạng cũ là mảng tên trần; chuyển sang dạng {ten: ngayGach} một lần, không mất dữ liệu.
+  let h = SETTINGS.geminiModelHong;
+  if(Array.isArray(h)){
+    const moi = {}; const hnay = todayKey();
+    h.forEach(m=>{ if(m) moi[m] = hnay; });
+    h = SETTINGS.geminiModelHong = moi;
+  }
+  if(!h || typeof h !== 'object') h = SETTINGS.geminiModelHong = {};
+  // Dọn những tên đã gạch quá hạn — cho chúng một cơ hội nữa.
+  const gioi = Date.now() - GEMINI_HONG_NGAY * 86400000;
+  let doi = false;
+  Object.keys(h).forEach(m=>{
+    const t = Date.parse(String(h[m] || '') + 'T00:00:00');
+    if(!isFinite(t) || t < gioi){ delete h[m]; doi = true; }
+  });
+  if(doi){ try{ saveSettings(); }catch(_){ } }
+  return h;
+}
+function geminiGachModel(m){
+  const h = geminiModelHong();
+  h[m] = todayKey();
+  try{ saveSettings(); }catch(_){ }
 }
 function geminiTran(m){ return geminiKho().tran[m] || GEMINI_NGAY_MAC_DINH; }
 function geminiDaDung(m){ return geminiKho().dem[m] || 0; }
@@ -38354,7 +38424,7 @@ function geminiModelDung(){
   const q = geminiKho(), hong = geminiModelHong();
   for(let i=0;i<GEMINI_MODELS.length;i++){
     const m = GEMINI_MODELS[i];
-    if(!q.het[m] && hong.indexOf(m) < 0) return m;
+    if(!q.het[m] && !hong[m]) return m;
   }
   return null;
 }
@@ -38362,7 +38432,7 @@ function geminiConLai(){
   const q = geminiKho(), hong = geminiModelHong();
   let con = 0;
   GEMINI_MODELS.forEach(m=>{
-    if(hong.indexOf(m) >= 0) return;
+    if(hong[m]) return;
     if(q.het[m]) return;
     con += Math.max(0, geminiTran(m) - geminiDaDung(m));
   });
@@ -38474,7 +38544,7 @@ async function geminiFetch(url, init){
     const m = geminiModelDung();
     if(!m) return cuoi || geminiResponseHet();
     const r = await geminiGoiMotModel(url, init, m);
-    if(r.hong){ const h = geminiModelHong(); if(h.indexOf(m) < 0){ h.push(m); try{ saveSettings(); }catch(_){} } cuoi = r.res; continue; }
+    if(r.hong){ geminiGachModel(m); cuoi = r.res; continue; }
     if(r.hetNgay){ geminiDanhDauHetNgay(m, r.raw); geminiHienDaiCho(); cuoi = r.res; continue; }
     return r.res;
   }
@@ -40503,7 +40573,7 @@ are going to talk about...</pre>
 function geminiHanMucHtml(){
   const q = geminiKho(), hong = geminiModelHong();
   const the = GEMINI_MODELS.map(m=>{
-    if(hong.indexOf(m) >= 0) return `<div class="hm-model tat"><b>${escapeHtml(m)}</b><span>không dùng được</span></div>`;
+    if(hong[m]) return `<div class="hm-model tat"><b>${escapeHtml(m)}</b><span>không dùng được</span></div>`;
     const dung = geminiDaDung(m), tran = geminiTran(m);
     const het = !!q.het[m] || dung >= tran;
     const pct = Math.min(100, Math.round(dung/Math.max(1,tran)*100));
@@ -40519,7 +40589,7 @@ function geminiHanMucHtml(){
   // theo hai gốc khác nhau thì đọc vào chỉ thấy mâu thuẫn. Nay cả hai đều tính trên TỔNG.
   let dung = 0, tran = 0;
   GEMINI_MODELS.forEach(m=>{
-    if(hong.indexOf(m) >= 0) return;
+    if(hong[m]) return;
     tran += geminiTran(m);
     dung += Math.min(geminiTran(m), geminiDaDung(m));
   });
@@ -41643,8 +41713,10 @@ function sdBanHtml(s){
         const gd = (b.giayD && isFinite(b.giayD)) ? Number(b.giayD).toFixed(2) : (b.giay||0);
         const tr = (b.tre && isFinite(b.tre)) ? Number(b.tre).toFixed(2) : 0;
         return `<div class="sd-ban-row ${i===0?'moi':''}" data-idx="${ix}">
-          <div class="sd-ban-lb"><span>${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}${
-            tu.length ? ' · <b style="color:#FFC94A;">chữ chạy theo ở khung lời thoại phía trên</b>' : ''}</span><button class="sd-ban-xoa" data-action="sd-ban-xoa" data-k="${i}" title="Xoá đoạn ghi âm này">✕</button></div>
+          ${/* v342 — BỎ nhãn quảng cáo vệt chữ bám theo giọng ở khung lời thoại bên trên. Nghe lại
+                bản ghi là để so giọng mình với giọng gốc; chữ nhảy theo ở một khung khác
+                chỉ kéo mắt đi chỗ khác, mà nhãn này lại chiếm gần hết hàng. */''}
+          <div class="sd-ban-lb"><span>${i===0?'Mới nhất':'Lần trước'} · ${escapeHtml(b.luc)} · ${sdFmt(b.giay)}</span><button class="sd-ban-xoa" data-action="sd-ban-xoa" data-k="${i}" title="Xoá đoạn ghi âm này">✕</button></div>
           <audio class="sd-audio" id="sdBanAu${i}" controls preload="metadata" src="${escapeHtml(b.url)}"
                  data-idx="${ix}" data-dai="${gd}" data-tre="${tr}"
                  data-dong="${sdMocDongChuoi(b.dong)}"></audio>
