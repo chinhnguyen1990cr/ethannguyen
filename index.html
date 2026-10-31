@@ -1691,6 +1691,25 @@
     box-shadow:0 4px 12px rgba(0,0,0,0.18);
     max-width:78%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center;
     justify-content:center; gap:9px;}
+  /* v345 · Mục 4 — TIÊU ĐỀ DÀI TRÊN ĐIỆN THOẠI PHẢI ĐỌC ĐƯỢC HẾT.
+     Luật gốc đóng cứng white-space:nowrap + ellipsis, nên trên màn hẹp một tiêu đề như
+     "EN 1728 · 6.2.1 – Determination of seat and back loading points — General" bị cắt
+     còn mấy chữ đầu: đang mở đúng điều nào cũng không biết. Trên màn hẹp, tiêu đề xuống
+     dòng (tối đa ba dòng) và dùng gần trọn bề ngang — hàng back vì thế xếp lại thành
+     hai tầng: hàng nút ở trên, tiêu đề nằm nguyên một hàng dưới. */
+  @media (max-width:560px){
+    .kh-backrow{flex-wrap:wrap; justify-content:flex-start; gap:8px; min-height:0;
+      padding-top:40px; margin-bottom:12px;}
+    .kh-backrow .title{max-width:100%; flex:1 1 100%; order:2;
+      white-space:normal; text-overflow:clip; overflow:hidden;
+      display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+      text-align:left; justify-content:flex-start; font-size:15px; line-height:1.35;
+      padding:8px 12px;}
+    .kh-backrow .kh-backbtn{position:absolute; left:0; top:0;}
+    .kh-backrow .kh-homebtn{top:0; transform:none;}
+    .kh-backrow .kh-homebtn:active{transform:scale(.92);}
+    .kh-backrow .kh-tcnha{left:44px; top:0; transform:none;}
+  }
   .title-icon-badge{display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:9px;
     flex-shrink:0; color:#fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);}
   .title-icon-badge svg{width:15px; height:15px; display:block;}
@@ -2284,6 +2303,24 @@
     .tc-ml-n i{font-size:11px; white-space:normal;}
     .tc-tt-d .t{font-size:18px;}
     .tc-tt-mt .t{font-size:14px;} .tc-tt-mt .ma{font-size:13px;}
+
+    /* v345 · Mục 4 — VỪA KHÍT MÀN ĐIỆN THOẠI.
+       Trên màn hẹp, chữ đang bị ép vào giữa bởi BA lớp viền chồng nhau: #content 16px,
+       rồi khung .tc-doc 16px, rồi từng ô bên trong 13–14px nữa. Cộng lại gần 90px của
+       khoảng 390px bề ngang — gần một phần tư màn hình là khoảng trắng, nên câu tiếng
+       Anh nào cũng vỡ thành năm sáu dòng. Dưới đây thu lớp ngoài và lớp giữa lại; lớp
+       trong (ô chữ) giữ nguyên vì đó mới là chỗ chữ cần thở. */
+    /* Chỉ thu viền ở CÁC MÀN TIÊU CHUẨN, nhận ra bằng chính khối mà các màn ấy dựng ra —
+       không đụng tới những màn khác của app, nơi viền 16px vẫn đang vừa mắt. */
+    #content:has(.tc-doc), #content:has(.tc-cay), #content:has(.tc-cc){padding:12px 10px 20px;}
+    .tc-doc{padding:12px 11px 14px; border-radius:15px;}
+    .tc-cay{margin-left:0; margin-right:0;}
+    .tc-dnut{padding:10px 9px 10px 10px; gap:9px;}
+    .tc-nv{padding:4px 10px;}
+    .tc-sum{padding:12px 11px;}
+    .tc-cth-d, .tc-cts-m{padding:9px 10px;}
+    .tc-f-doc{padding:11px 12px;}
+    .tc-ds{padding-left:19px;}
   }
   /* v306 — MÀN TRUNG BÌNH (máy tính bảng, cửa sổ hẹp): hai cột cho đề mục là vừa mắt,
      ba cột thì chữ bị cắt cụt. */
@@ -6351,7 +6388,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v344';
+const APP_VERSION = 'v345';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -13970,12 +14007,12 @@ const TC_THU_B1 = [
 
 {cth:[{k:'c', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> khi chạy trình tự trong bảng.'}], id:'b1-11', bang:'b1', so:11,
  en:'Rearward stability', vi:'Ổn định về phía sau',
- vien:'EN 581-2:2015 Bảng 1 → EN 1022:2005, 6.6 (tư thế dựng) và 7.5 (tư thế ngả nhất)',
+ vien:'EN 581-2:2015 Bảng 1 → EN 1022:2023, 8.3.3 (tư thế dựng) và 8.3.4 (tư thế ngả nhất)',
  hinh:[],
  do:'Ghế có lật ngửa ra sau khi người tì lưng không — nguy hiểm nhất trong ba hướng ổn định.',
  tb:[],
- buoc:[{en:'Carried out in accordance with EN 1022:2005, 6.6 for upright position and 7.5 for most reclined position.',
-        vi:'Thực hiện theo <b>EN 1022:2005</b>: điều <b>6.6</b> cho tư thế dựng đứng, điều <b>7.5</b> cho tư thế <b>ngả nhất</b>.'}],
+ buoc:[{en:'Carried out in accordance with EN 1022, 8.3.3 for upright position and 8.3.4 for most reclined position.',
+        vi:'Thực hiện theo <b>EN 1022</b>: điều <b>8.3.3</b> cho tư thế dựng đứng, điều <b>8.3.4</b> cho tư thế <b>ngả nhất</b>. (EN 581-2:2015 còn in số điều của bản <b>EN 1022:2005</b> — bản đang hiệu lực là <b>2023</b>, ghế nằm chuyển sang điều 8.)'}],
  ts:[],
  ngoai:['Đây là phép thử ổn định <b>duy nhất KHÔNG</b> có ngoại lệ theo chiều cao/khối lượng — ghế nào cũng phải thử.',
         'Phải thử ở <b>cả hai</b> tư thế: dựng đứng và ngả hết cỡ.'],
@@ -14276,11 +14313,11 @@ const TC_THU_B2 = [
 
 {cth:[{k:'e', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unload seat.', vi:'<b>Không áp dụng</b> cho ghế cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> nặng <b>&lt; 5 kg</b>.'}, {k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-11', bang:'b2', so:11,
  en:'Forward stability', vi:'Ổn định về phía trước',
- vien:'EN 581-2:2015 Bảng 2 → EN 1022',
+ vien:'EN 581-2:2015 Bảng 2 → EN 1022:2023, 7.3.1 (ghế thường) và 7.3.2 (ghế có gác chân)',
  hinh:[],
  do:'Ghế có lật về trước khi người dồn trọng tâm ra mép trước không.',
  tb:[],
- buoc:[{en:'Carried out in accordance with EN 1022.', vi:'Thực hiện theo <b>EN 1022</b>.'}],
+ buoc:[{en:'Carried out in accordance with EN 1022, 7.3.1. For seating with a foot rest, 7.3.2 applies.', vi:'Thực hiện theo <b>EN 1022, 7.3.1</b>. Ghế <b>có gác chân</b> thì theo <b>7.3.2</b>.'}],
  ts:[],
  ngoai:['<b>Không áp dụng</b> cho ghế có chiều cao mặt ngồi <b>&lt; 200 mm VÀ</b> khối lượng <b>&lt; 5 kg</b> — phải thoả <b>cả hai</b>.',
         'Chiều cao đo từ sàn tới vùng ngồi phía trên, tại <b>tâm hình học của mặt ngồi khi chưa chất tải</b>.',
@@ -14290,11 +14327,11 @@ const TC_THU_B2 = [
 
 {cth:[{k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-12', bang:'b2', so:12,
  en:'Rearward stability', vi:'Ổn định về phía sau',
- vien:'EN 581-2:2015 Bảng 2 → EN 1022',
+ vien:'EN 581-2:2015 Bảng 2 → EN 1022:2023, 7.3.6',
  hinh:[],
  do:'Ghế có lật ngửa ra sau khi người tì lưng không.',
  tb:[],
- buoc:[{en:'Carried out in accordance with EN 1022.', vi:'Thực hiện theo <b>EN 1022</b>.'}],
+ buoc:[{en:'Carried out in accordance with EN 1022, 7.3.6.', vi:'Thực hiện theo <b>EN 1022, 7.3.6</b> — lật ngửa, mọi ghế có tựa lưng.'}],
  ts:[],
  ngoai:['Không có ngoại lệ theo chiều cao hay khối lượng — <b>ghế nào cũng phải thử</b>.'],
  dat:['Sản phẩm không được lật'],
@@ -14302,11 +14339,11 @@ const TC_THU_B2 = [
 
 {cth:[{k:'e', en:'This test is not applicable for seating with a seat height < 200 mm and a mass < 5 kg. The height shall be determined by measuring from the floor to the upper seating area on the geometrical centre of the unload seat.', vi:'<b>Không áp dụng</b> cho ghế cao mặt ngồi <b>&lt; 200 mm</b> <u>và</u> nặng <b>&lt; 5 kg</b>.'}, {k:'f', en:'In the case of seating which might not fulfil the stability requirements before carrying out any tests, the applicable stability tests may be carried out before starting the sequence of tests specified in this table.', vi:'Ghế <b>nghi ngờ không đạt ổn định</b> ngay từ đầu: được phép thử ổn định <b>TRƯỚC</b> trình tự bảng.'}], id:'b2-13', bang:'b2', so:13,
  en:'Sideways stability', vi:'Ổn định sang ngang',
- vien:'EN 581-2:2015 Bảng 2 → EN 1022',
+ vien:'EN 581-2:2015 Bảng 2 → EN 1022:2023, 7.3.4 (ghế không tay vịn) và 7.3.5 (các ghế còn lại)',
  hinh:[],
  do:'Ghế có lật nghiêng khi người dồn trọng tâm sang một bên không.',
  tb:[],
- buoc:[{en:'Carried out in accordance with EN 1022.', vi:'Thực hiện theo <b>EN 1022</b>.'}],
+ buoc:[{en:'Carried out in accordance with EN 1022, 7.3.4 for seating without arm rests and 7.3.5 for all other seating.', vi:'Thực hiện theo <b>EN 1022, 7.3.4</b> với ghế <b>không tay vịn</b>; các ghế còn lại theo <b>7.3.5</b>.'}],
  ts:[],
  ngoai:['<b>Không áp dụng</b> cho ghế mặt ngồi <b>&lt; 200 mm VÀ</b> nặng <b>&lt; 5 kg</b>.',
         'Được phép thử trước chuỗi thử trong bảng.'],
@@ -14895,6 +14932,42 @@ function tcThuTheoBang(b){ return TC_THU.filter(t=>t.bang === b); }
 // v344 · Mục 2 — "Chú thích ky này áp cho những phép thử nào?" Câu trả lời đã nằm sẵn
 // trong dữ liệu: mỗi phép thử mang theo mảng cth của chính nó. Đọc ngược mảng ấy thay vì
 // chép tay một danh sách thứ hai — một nguồn sự thật duy nhất.
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v345 · Mục 2 — CHIỀU NGƯỢC CỦA LIÊN KẾT, SUY RA CHỨ KHÔNG CHÉP TAY
+//
+//  Đo được trước khi sửa: EN 1728 có 19/103 điều khai thu[], EN 1730 có 9/49, còn
+//  EN 1022 có ĐÚNG 0/70 — dù bốn phép thử ổn định của EN 581-2 đều viện dẫn nó. Nghĩa là
+//  mở một điều của EN 1022 ra thì không có đường nào quay lại phép thử đang cần tra;
+//  liên kết chỉ chạy một chiều EN 581 → EN 1022.
+//
+//  Gốc của việc này là thu[] phải GÕ TAY vào từng điều, nên bộ nào thêm sau là bộ ấy
+//  thiếu. Nhưng dữ liệu đã có sẵn ở một chỗ khác: mỗi phép thử mang theo chuỗi `vien`
+//  ghi rõ nó viện dẫn bộ nào, điều nào. Hàm dưới đọc ngược chính chuỗi ấy — sửa một
+//  viện dẫn là chiều ngược tự đổi theo, không có cách nào để hai chỗ lệch nhau.
+const TC_VIEN_BO = {en1728:/EN\s*1728/, en1730:/EN\s*1730/, en1022:/EN\s*1022/};
+function tcThuDungDieu(boId, so){
+  const re = TC_VIEN_BO[boId];
+  if(!re || !so) return [];
+  return TC_THU.filter(t=>{
+    const v = String(t.vien || '');
+    const m = re.exec(v);
+    if(!m) return false;
+    // Chỉ đọc phần đứng SAU tên bộ. Chuỗi viện dẫn hay có dạng "EN 581-2 Bảng 1 →
+    // EN 1728:2012, 8.2 → 6.4": nếu quét số trên cả chuỗi thì "581" và "2015" của vế
+    // đầu cũng lọt vào, gắn nhầm phép thử sang điều khác.
+    let sau = v.slice(m.index + m[0].length).replace(/^:\s*\d{4}/, '');
+    const ke = /EN\s*(?:581|1728|1730|1022)/.exec(sau);
+    if(ke) sau = sau.slice(0, ke.index);
+    const cac = sau.match(/\b\d+(?:\.\d+)*\b/g) || [];
+    return cac.indexOf(String(so)) >= 0;
+  }).map(t=>t.id);
+}
+// Danh sách cuối cùng: thu[] gõ tay (nếu điều ấy có) HỢP với phần suy ra, bỏ trùng.
+function tcThuCuaDieu(boId, so, d){
+  const ra = ((d && d.thu) || []).slice();
+  tcThuDungDieu(boId, so).forEach(id=>{ if(ra.indexOf(id) < 0) ra.push(id); });
+  return ra;
+}
 function tcCthThu(bang, ky){
   if(!bang || !ky) return [];
   return tcThuTheoBang(bang).filter(t=>(t.cth||[]).some(c=>c.k === ky)).map(t=>t.so);
@@ -15235,8 +15308,8 @@ function tcThanhCongCu(bo, mucluc){
         <span class="mui">${mo ? '▾' : '▸'}</span>
       </button>
       <div class="tc-ml${mo ? ' mo' : ''}" id="tc-ml">${
-      mucluc.map((k, i)=>`<button class="tc-ml-n" data-action="tc-nhay" data-goc="${escapeHtml(k.goc)}"
-        style="--mlc:${TC_MAU_DEMUC[i % TC_MAU_DEMUC.length]}"
+      mucluc.map(k=>`<button class="tc-ml-n" data-action="tc-nhay" data-goc="${escapeHtml(k.goc)}"
+        style="--mlc:${tcMauDeMuc(k.nhom)}"
         ><span class="s">${escapeHtml(k.goc)}</span><span class="t">${escapeHtml(k.ten)}</span
         >${k.vi ? `<i>${escapeHtml(k.vi)}</i>` : ''}</button>`).join('')}</div>` : ''}
   </div>`;
@@ -15279,7 +15352,29 @@ function tcThanhCongCu(bo, mucluc){
 // bộ tiêu chuẩn, nên tám đề mục nhìn như nhau. Nay mỗi ô một màu để phân biệt bằng mắt.
 // v327 — tám màu đề mục: ĐÃ ĐỔI sang tông trầm. Bản cũ chọn cho nền tối; trên nền sáng
 // mỗi mục lục chỉ còn 1,6–2,4:1, đúng chỗ bạn kêu 'mục lục không hiện rõ'.
-const TC_MAU_DEMUC = ['#4FA8FF','#FF8A3D','#38D39F','#C792FF','#FFC94A','#FF6B9D','#4ED8E6','#9CCB5A'];
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v345 · Mục 3 — MÀU ĐỀ MỤC NÓI LÊN MỘT ĐIỀU GÌ ĐÓ, KHÔNG CÒN TÔ CẦU VỒNG
+//
+//  Bản cũ: TC_MAU_DEMUC là một dải TÁM màu và mỗi đề mục nhận màu theo VỊ TRÍ của nó
+//  trong danh sách (i % 8). Nghĩa là màu không mang thông tin gì — điều 5 của EN 581-1
+//  xanh lá chỉ vì nó đứng thứ ba, còn điều 5 của EN 1022 lại màu khác vì đứng chỗ khác.
+//  Tám màu chạy vòng trên một màn hình làm trang trông rối mà không giúp tra cứu.
+//
+//  Nay chỉ còn BỐN màu, và màu quyết định bởi điều ấy THUỘC LOẠI GÌ — cùng một quy tắc
+//  cho cả bảy bộ, nên nhìn màu là biết đang đọc yêu cầu hay đọc cách thử:
+//      · xanh lam  — nền: phạm vi, thuật ngữ, điều kiện thử chung
+//      · hổ phách  — yêu cầu phải đạt (an toàn, độ bền, kết cấu)
+//      · xanh ngọc — cách thử: thiết bị, trình tự, điểm đặt tải, ổn định
+//      · tím nhạt  — tra cứu kèm theo: báo cáo, phụ lục, bảng áp dụng
+const TC_MAU_NHOM = {
+  nen:'#4FA8FF', pv:'#4FA8FF', tn:'#4FA8FF', dk:'#4FA8FF',
+  yc:'#FFB020', kc:'#FFB020',
+  tb:'#2CDBA8', pp:'#2CDBA8', lv:'#2CDBA8', gn:'#2CDBA8',
+  od:'#2CDBA8', dt:'#2CDBA8', bb:'#2CDBA8', gh:'#2CDBA8',
+  bc:'#A98BFF', pl:'#A98BFF', tq:'#A98BFF'
+};
+const TC_MAU_DEMUC_MAC = '#4FA8FF';   // điều không khai nhóm thì về màu nền
+function tcMauDeMuc(nhom){ return TC_MAU_NHOM[nhom] || TC_MAU_DEMUC_MAC; }
 function tcDauTrangHtml(o){
   const mau = o.hex || 'var(--blue)';
   return `<header class="tc-dhead" style="--tcm:${mau}">
@@ -16091,7 +16186,10 @@ function renderTcDieuList(){
   }).join('');
   // v304 — Ô mục lục ghi ĐÚNG tên tiếng Anh của bản in; tiếng Việt nằm dưới, chỉ hiện
   // khi bật nút dịch (cùng một quy tắc với thân văn bản).
-  const mucluc = khoi.map(k=>({goc:k.goc, ten:(k.cha ? k.cha.en : ''), vi:(k.cha ? k.cha.vi : '')}));
+  // v345 · Mục 3 — mục lục mang theo NHÓM của điều, để màu đi theo loại điều chứ không
+  // theo thứ tự. Điều cấp một không có tiêu đề riêng thì mượn nhóm của mục con đầu tiên.
+  const mucluc = khoi.map(k=>({goc:k.goc, ten:(k.cha ? k.cha.en : ''), vi:(k.cha ? k.cha.vi : ''),
+    nhom:(k.cha && k.cha.nhom) || (k.con[0] && k.con[0].nhom) || null}));
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-bo">${svgIcon('back')}</div>${tcNutNhaHtml()}
@@ -16115,7 +16213,7 @@ function renderTcDieu(){
   if(!bo || !d){ KH_STATE.view = 'tcbo'; return renderTcBoList(); }
   const ds = tcDieuTheoBo(bo.id), i = ds.indexOf(d);
   const tr = ds[i-1], sa = ds[i+1];
-  const thu = (d.thu||[]).map(id=>tcThuCua(id)).filter(Boolean);
+  const thu = tcThuCuaDieu(bo.id, d.so, d).map(id=>tcThuCua(id)).filter(Boolean);
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-dieulist">${svgIcon('back')}</div>${tcNutNhaHtml()}
