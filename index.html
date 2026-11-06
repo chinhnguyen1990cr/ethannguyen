@@ -4527,6 +4527,13 @@
    bắt chuột. Nút hiện ra, nhìn thấy, bấm vào — cú bấm xuyên thẳng qua xuống iframe YouTube
    nên video dừng. Hiện ra thì phải bấm được: hai thứ ấy đi cùng nhau. */
 .hv-nutbar.hien{opacity:.62; pointer-events:auto;}
+/* v350 · Mục 2a — ĐẢO CHIỀU LUẬT ẨN/HIỆN.
+   Trước: mặc định ẩn, phải có lớp .hien mới hiện → lúc vòng nhịp chưa chạy thì không
+   bao giờ hiện. Nay: mặc định HIỆN, và chỉ lớp .an mới giấu đi — tức là muốn giấu phải
+   có ai đó chủ động giấu, còn không làm gì cả thì nút vẫn ở đó. Hỏng theo hướng an toàn. */
+.hv-nutbar.an{opacity:0; pointer-events:none;}
+.hv-vidwrap:hover .hv-nutbar, .hv-nutbar:hover, .hv-nutbar:focus-within{opacity:1;}
+.hv-vidwrap:hover .hv-nutbar.an{opacity:.62; pointer-events:auto;}
 /* ══ v248 · VÌ SAO HAI LẦN SỬA TRƯỚC VẪN KHÔNG ẨN ══════════════════════════════════════
    Luật cũ có :focus-within KHÔNG kèm .hien. Bạn vừa bấm một nút bất kỳ trong dãy (CC, ¶,
    VN…) là nút ấy GIỮ tiêu điểm bàn phím — và :focus-within cứ thế đúng mãi, độ mờ bị ghim
@@ -4587,7 +4594,11 @@ body.hv-khoa-cuon{overflow:hidden;}
   flex-direction:column !important;
   /* v246 — ẩn hẳn theo mặc định, nhưng VẪN bắt chuột: rê tới đúng góc ấy là nó hiện ra,
      y như cách bạn rê xuống đáy khung để gọi thanh điều khiển YouTube. */
-  opacity:0; pointer-events:none; transition:opacity .22s;
+  /* v350 · Mục 2a — HIỆN SẴN, KHÔNG CHỜ AI CẢ. Mặc định cũ là opacity:0 và việc bật lên
+     giao hết cho vòng nhịp hvSoatNut, nên lúc video chưa chạy lần nào thì không gì hiện ra.
+     Nay mặc định đã nhìn thấy và bấm được; vòng nhịp vẫn giữ nguyên việc của nó là GIẤU
+     bớt đi khi video đang chạy, đúng cách YouTube giấu thanh của họ. */
+  opacity:.62; pointer-events:auto; transition:opacity .22s;
   display:flex; align-items:center; gap:6px;}
 /* v334 — chip đổi phòng nằm NGANG HÀNG TIÊU ĐỀ; tiêu đề rút về một bên, cắt bằng dấu … */
 /* v337 — khi bật Transcript thì cột trái hẹp lại; tiêu đề phải CO ĐƯỢC và hàng chip phải
@@ -4631,8 +4642,11 @@ body.hv-khoa-cuon{overflow:hidden;}
 .sd-cau-ngat.dai{color:#FF8FA3; font-size:19px;}
 /* v341 — đang hiện nghĩa thì cả khung câu sáng lên, và dòng tiếng Việt có nền riêng: nhìn
    một cái là biết câu nào đang được dịch, không phải dò xem chữ Việt thuộc về câu nào. */
-.sd-cau-o.codich{border-color:color-mix(in srgb, var(--gold) 46%, transparent);
-  background:color-mix(in srgb, var(--gold) 7%, transparent);}
+/* v350 · Mục 2d — BẤM TRANSLATE THÌ CHỈ PHẦN NGHĨA SÁNG LÊN.
+   Luật cũ đổi cả viền lẫn nền của .sd-cau-o, nên bật dịch là cả khung câu đổi màu vàng —
+   mắt không còn biết đâu là chỗ vừa thêm vào. Khối .sd-cau-vi ngay dưới đã có nền và viền
+   riêng rồi; để mỗi nó sáng là đủ, và đúng thứ bạn vừa bấm để xem. */
+.sd-cau-o.codich{}
 .sd-cau-o.codich .sd-cau-vi{margin-top:9px; padding:7px 12px; border-radius:11px;
   font-size:13.5px; font-weight:700; color:#FFE2A8; line-height:1.5;
   background:color-mix(in srgb, var(--gold) 13%, transparent);
@@ -5832,13 +5846,67 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .hv-kenh-so{flex:0 0 auto; font-size:9.5px; font-weight:800; color:#FF9A6B;
   padding:3px 9px; border-radius:999px; border:1px solid rgba(255,122,69,.32);
   background:rgba(255,122,69,.10);}
+/* ══ v350 · Mục 2c · THIẾT KẾ LẠI MÀN CHỌN VIDEO ═════════════════════════════════════
+   Ba thứ thêm vào, đều nhắm đúng việc "chọn cho nhanh một video":
+     · dải TIẾP TỤC XEM — mở app là học tiếp bài đang dở, không phải nhớ;
+     · ô TÌM — kho nhiều bài thì cuộn tay là cách tệ nhất;
+     · thẻ video đổi về đúng tông CAM của mục này (trước đây rê chuột vào thì viền sáng
+       màu xanh ngọc của mục Từ vựng — hai mục khác nhau mà cùng một màu nhấn thì người
+       dùng mất luôn cái mốc "mình đang ở đâu"). */
+.hv-tiep{display:flex; align-items:center; gap:12px; width:100%; margin-bottom:11px;
+  padding:9px 12px 9px 9px; border-radius:15px; cursor:pointer; text-align:left;
+  font-family:inherit; border:1px solid rgba(255,122,69,.34);
+  background:linear-gradient(100deg, rgba(255,122,69,.17), rgba(224,69,107,.07) 62%, transparent);
+  transition:transform .14s, border-color .16s, box-shadow .18s;}
+.hv-tiep:hover{transform:translateY(-1px); border-color:rgba(255,122,69,.62);
+  box-shadow:0 10px 24px -12px rgba(255,122,69,.9);}
+.hv-tiep:active{transform:scale(.995);}
+.hv-tiep-a{flex:0 0 auto; width:84px; height:48px; border-radius:10px; object-fit:cover;
+  background:#000; display:block;}
+.hv-tiep-tx{flex:1 1 auto; min-width:0;}
+.hv-tiep-tx i{display:block; font-style:normal; font-size:9px; font-weight:900;
+  letter-spacing:.11em; color:#FF9A6B;}
+.hv-tiep-tx b{display:block; margin-top:3px; font-size:13px; font-weight:800; color:var(--text);
+  line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.hv-tiep-tx u{display:block; margin-top:2px; text-decoration:none; font-size:10.5px; color:var(--dim2);}
+.hv-tiep-mui{flex:0 0 auto; width:30px; height:30px; border-radius:50%; font-size:11px;
+  display:flex; align-items:center; justify-content:center; color:#1b0a04;
+  background:linear-gradient(135deg,#FF7A45,#E0456B);
+  box-shadow:0 4px 12px -4px rgba(255,122,69,.95);}
+/* v350 · Mục 3 — dải nhắc dán khoá giọng đọc, chỉ hiện khi CHƯA có khoá. */
+.hv-ttskey{display:flex; align-items:center; gap:11px; width:100%; margin-bottom:11px;
+  padding:10px 12px; border-radius:13px; cursor:pointer; text-align:left; font-family:inherit;
+  border:1px solid rgba(255,176,32,.38); background:rgba(255,176,32,.10);
+  transition:border-color .16s, transform .12s;}
+.hv-ttskey:hover{border-color:rgba(255,176,32,.7); transform:translateY(-1px);}
+.hv-ttskey:active{transform:scale(.995);}
+.hv-ttskey-ic{flex:0 0 auto; font-size:17px;}
+.hv-ttskey-tx{flex:1 1 auto; min-width:0;}
+.hv-ttskey-tx b{display:block; font-size:12.5px; font-weight:800; color:#FFB020; line-height:1.4;}
+.hv-ttskey-tx i{display:block; font-style:normal; margin-top:3px; font-size:11px;
+  color:var(--dim); line-height:1.5;}
+.hv-ttskey-mui{flex:0 0 auto; color:var(--dim); font-size:16px;}
+.hv-timo{display:flex; align-items:center; gap:9px; margin-bottom:11px; padding:0 12px;
+  border-radius:12px; border:1px solid var(--border); background:rgba(0,0,0,.24);
+  transition:border-color .16s;}
+.hv-timo:focus-within{border-color:rgba(255,122,69,.6);}
+.hv-timo-ic{flex:0 0 auto; font-size:13px; opacity:.65;}
+.hv-timo-in{flex:1 1 auto; min-width:0; border:none; background:transparent; outline:none;
+  padding:11px 0; font-family:inherit; font-size:12.5px; color:var(--text);}
+.hv-timo-in::placeholder{color:var(--dim2);}
+.hv-timo-x{flex:0 0 auto; width:22px; height:22px; border-radius:50%; cursor:pointer;
+  border:1px solid var(--border); background:rgba(255,255,255,.06); color:var(--dim);
+  font-size:10px; line-height:1; padding:0;}
+.hv-timo-x:active{transform:scale(.92);}
+.hv-timo-kq{margin:-4px 0 11px; font-size:11px; color:var(--dim); line-height:1.5;}
+.hv-timo-kq b{color:#FF9A6B;}
 .hv-ds{display:grid; grid-template-columns:repeat(auto-fill, minmax(232px, 1fr)); gap:14px;}
 .hv-the{position:relative; display:flex; flex-direction:column; background:var(--card);
   border:1px solid var(--border); border-radius:16px; padding:0; overflow:hidden; cursor:pointer;
   transition:border-color .18s, transform .14s, box-shadow .18s;}
-.hv-the:hover{transform:translateY(-2px); border-color:rgba(44,219,168,.45);
+.hv-the:hover{transform:translateY(-2px); border-color:rgba(255,122,69,.5);
   box-shadow:0 12px 28px rgba(0,0,0,.34);}
-.hv-the:active{transform:scale(.99); border-color:rgba(44,219,168,.5);}
+.hv-the:active{transform:scale(.99); border-color:rgba(255,122,69,.6);}
 .hv-the-anh{position:relative; width:100%; flex:0 0 auto; background:#000; aspect-ratio:16/9;}
 .hv-the-anh img{width:100%; height:100%; object-fit:cover; display:block;}
 .hv-the-anh::after{content:''; position:absolute; inset:auto 0 0 0; height:52%; pointer-events:none;
@@ -6397,7 +6465,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v349';
+const APP_VERSION = 'v350';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -30780,12 +30848,64 @@ function replayListenQuiz(){
   const item = currentListenItem(); if(!item) return;
   playListenDialogue(item[0]);
 }
-function setCloudTtsApiKey(){
+// v350 · Mục 3 — DÁN KHOÁ XONG LÀ THỬ LUÔN, BÁO ĐÚNG LỖI.
+// Hai chỗ hỏng của bản cũ, và cả hai đều im lặng nên không ai biết:
+//   · Khi Google từng chặn một khoá vì tên miền, app ghi vân tay khoá ấy vào
+//     SETTINGS.cloudKeyChan và từ đó KHÔNG GỌI NỮA. Dán khoá mới mà quên xoá vân tay cũ
+//     thì nếu tám ký tự cuối trùng nhau, khoá mới cũng bị chặn oan ngay từ đầu.
+//   · Dán xong thì màn hình chỉ vẽ lại, không nói khoá chạy được hay không. Phải đi bấm
+//     nút loa ở đâu đó mới biết, mà lúc ấy app lại âm thầm rơi về giọng máy nên vẫn có
+//     tiếng — nghe thì tưởng xong, thực ra khoá đang hỏng.
+// Nay: xoá sạch mọi dấu chặn cũ, rồi gọi thật một câu ngắn và báo đúng mã lỗi nhận được.
+async function setCloudTtsApiKey(){
   const cur = SETTINGS.cloudTtsApiKey || '';
   const key = (window.prompt('Dán Google Cloud API key (để trống để dùng tạm giọng đọc + nhận diện giọng nói mặc định của trình duyệt).\n\nLưu ý: cần bật CẢ 2 API cho key này trong Google Cloud Console → "Cloud Text-to-Speech API" (đọc mẫu) và "Cloud Speech-to-Text API" (chấm điểm Luyện nói ổn định trên điện thoại).', cur) || '').trim();
   SETTINGS.cloudTtsApiKey = key;
+  // Khoá mới thì mọi dấu chặn cũ đều vô nghĩa — xoá đi, nếu không khoá mới bị chặn oan.
+  SETTINGS.cloudKeyChan = '';
+  cloudKeyBlocked = false;
   saveSettings(); pushToDrive();
   renderContent();
+  if(!key){
+    showToast('🔈','Đã bỏ khoá','Từ giờ app dùng giọng đọc sẵn của máy.');
+    return;
+  }
+  showToast('⏳','Đang thử khoá…','Gọi thật một câu ngắn tới Google để biết khoá chạy hay không.');
+  try{
+    const kq = await thuKhoaTts(key);
+    if(kq.ok){
+      showToast('✅','Khoá chạy được','Giọng đọc tự nhiên của Google đã bật. Bấm nút 🔊 bất kỳ để nghe thử.');
+    }else{
+      showToast('❌','Khoá chưa dùng được', kq.loi);
+    }
+  }catch(e){
+    showToast('❌','Không gọi được tới Google','Kiểm tra mạng rồi thử lại. Chi tiết: ' + (e && e.message || e));
+  }
+}
+// Gọi thật một câu ngắn và DỊCH mã lỗi của Google sang việc phải làm. Trả về {ok, loi}.
+async function thuKhoaTts(key){
+  let res;
+  try{
+    res = await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key=' + encodeURIComponent(key), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ input:{text:'Hello'},
+        voice:{languageCode:'en-US', name:'en-US-Neural2-F'},
+        audioConfig:{audioEncoding:'MP3'} })
+    });
+  }catch(e){ return {ok:false, loi:'Không kết nối được tới Google (mạng hoặc tường lửa).'}; }
+  if(res.ok) return {ok:true, loi:''};
+  const body = await res.text().catch(()=>'' );
+  if(/SERVICE_DISABLED|has not been used in project|is disabled/i.test(body))
+    return {ok:false, loi:'Khoá đúng nhưng CHƯA BẬT dịch vụ. Vào Google Cloud Console → APIs & Services → Library → tìm "Cloud Text-to-Speech API" → Enable.'};
+  if(/API_KEY_HTTP_REFERRER_BLOCKED|are blocked/i.test(body))
+    return {ok:false, loi:'Google chặn khoá theo tên miền. Vào Credentials → mở khoá → Application restrictions → thêm tên miền của app vào Website restrictions.'};
+  if(/API_KEY_INVALID|API key not valid/i.test(body))
+    return {ok:false, loi:'Khoá không hợp lệ — có thể dán thiếu ký tự, hoặc khoá đã bị xoá bên Google.'};
+  if(res.status === 403)
+    return {ok:false, loi:'Google từ chối (403). Thường là chưa bật Text-to-Speech API, hoặc chưa bật thanh toán cho dự án.'};
+  if(res.status === 429)
+    return {ok:false, loi:'Vượt hạn mức (429). Chờ sang tháng, hoặc bật thanh toán cho dự án.'};
+  return {ok:false, loi:'Google trả mã ' + res.status + '. ' + String(body).slice(0, 160)};
 }
 function currentListenItem(){
   const q = STATE.listenQuiz; if(!q) return null;
@@ -32793,6 +32913,18 @@ function hvChonNhom(ma){
 function hvDemNhom(ma){ return hvVideos().filter(v=>hvNhomCua(v) === ma).length; }
 // Nhóm chọn lúc THÊM video. Nhớ lại lựa chọn lần trước: người ta hay thêm một loạt video cùng
 // một lối học chứ ít khi mỗi lần một kiểu.
+// v350 · Mục 2c — Ô TÌM VIDEO.
+// Vẽ lại cả màn rồi TRẢ TIÊU ĐIỂM về ô nhập. Không trả lại thì gõ được đúng một chữ là
+// con trỏ văng ra, phải bấm vào ô lần nữa — lỗi kinh điển của ô tìm vẽ lại theo từng phím.
+function hvDatLoc(v){
+  STATE.hvLoc = String(v || '');
+  try{ renderContent(); }catch(_){ }
+  try{
+    const el = document.getElementById('hvTimO');
+    if(el){ el.focus(); const n = el.value.length; el.setSelectionRange(n, n); }
+  }catch(_){ }
+}
+function hvXoaLoc(){ STATE.hvLoc = ''; try{ renderContent(); }catch(_){ } }
 function hvNhomThem(){
   const m = SETTINGS.hvNhomThem;
   return HV_NHOM.some(x=>x.ma === m) ? m : hvNhomDang();
@@ -33769,7 +33901,13 @@ function hvGanPlayer(videoId){
         // bên dưới; chữ đè lên hình chỉ che mất khẩu hình người nói.
         // cc_load_policy theo lựa chọn của bạn (nút "CC"). Mặc định vẫn TẮT vì lời thoại đã nằm
         // đủ ở danh sách bên dưới, chữ đè lên hình che mất khẩu hình người nói.
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, cc_load_policy: (SETTINGS.hvCcGoc ? 1 : 0) },
+        // v350 · Mục 2b — fs:0 TẮT NÚT PHÓNG TO CỦA CHÍNH YOUTUBE.
+        // Bấm nút ấy thì trình duyệt đưa <iframe> lên toàn màn hình, và mọi thứ NẰM NGOÀI
+        // iframe — tức là toàn bộ nút chức năng của app — không còn được vẽ nữa. Không có
+        // cách nào nhét nút của mình vào trong iframe khác miền, nên chỉ còn một đường
+        // đúng: bỏ hẳn nút của YouTube, để nút ⛶ của app làm việc ấy. Nút ⛶ phóng to CẢ
+        // khung .hv-vidwrap, nên phụ đề, dãy nút và thanh điều khiển đi theo.
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, fs:0, cc_load_policy: (SETTINGS.hvCcGoc ? 1 : 0) },
         events:{
           // Trình phát đổi trạng thái (chạy/dừng/hết) thì vẽ lại nút ▶/⏸ cho khớp — kể cả khi nó
           // dừng vì lý do khác chứ không phải bạn bấm.
@@ -34371,6 +34509,9 @@ function hvTuaDong(i){
 }
 function hvMoPhien(id){
   const rec = hvTim(id); if(!rec) return;
+  // v350 · Mục 2c — ghi mốc lần mở gần nhất. Không có nó thì không dựng được dải
+  // "Tiếp tục xem", mà đó là lối vào hay dùng nhất: mở app lên là học tiếp bài hôm qua.
+  try{ rec.moLuc = Date.now(); saveSettings(); }catch(_){ }
   navForward();
   // v330 — Mở video là vào MÀN CHỌN trước, không nhảy thẳng vào Phụ đề nữa. Ba phòng luyện
   // khác hẳn nhau về cách dùng: Phụ đề để xem, Shadowing để nói, Dictation để viết. Nhét cả
@@ -34435,6 +34576,7 @@ function hvVaoChe(che){
   }catch(e){}
   st.cau = 0;
   try{ hvVeNutPlay(); }catch(e){}
+  try{ hvGanChanFull(); }catch(e){}
   st.che = che;
   if(che !== 'chon') st.tab = che;
   try{ hvApBoCuc(); }catch(e){}
@@ -34737,7 +34879,15 @@ function hvDkVeThanh(){
   // v334 — Phụ đề KHÔNG có thanh điều khiển: ở đó bạn xem cả bài, không luyện từng câu.
   if(el) el.innerHTML = hvDkCoThanh() ? hvDkHtml() : '';
 }
-function hvDkCoThanh(){ const c = hvChePhien(); return c === 'shadowing' || c === 'chinhta'; }
+// v350 · Mục 2a — GỐC CỦA "màn mặc định không bấm play được, không hiện chức năng gì".
+// Hàm này trả FALSE ở màn chọn chức năng, nên #hvDkWrap được dựng RỖNG: không nút chạy,
+// không thanh tua, không nút tốc độ. Cùng lúc đó dãy nút trong khung hình (.hv-nutbar)
+// mặc định opacity:0, mà việc cho nó hiện lại nằm trong một vòng nhịp chỉ khởi động khi
+// trình phát đổi trạng thái — ở màn chọn thì video đang đứng yên nên vòng ấy chưa chạy.
+// Hai thứ cộng lại thành đúng cái bạn thấy: một khung video trơ, không bấm được gì.
+// Màn chọn chức năng là màn người dùng NHÌN THẤY ĐẦU TIÊN sau khi mở một video — nó phải
+// dùng được ngay, không phải vào một phòng nào đó mới có nút.
+function hvDkCoThanh(){ return true; }
 // Hàng chip đổi phòng — v334 dời lên NGANG HÀNG TIÊU ĐỀ, vì nó thuộc về điều hướng chứ không
 // thuộc về điều khiển video, và ở trên ấy thì phòng nào cũng thấy, kể cả Phụ đề.
 function hvCheChipHtml(){
@@ -35363,9 +35513,15 @@ function renderHocVideo(item){
   };
   // v250 — chia theo kênh, mỗi kênh một dòng tiêu đề. Chỉ có đúng một kênh thì thôi, khỏi bày
   // một cái tiêu đề cho có: nó chẳng phân tách gì cả mà lại chiếm mất một hàng.
-  const nhom = hvNhomTheoKenh(list);
+  // v350 · Mục 2c — Ô TÌM VÀ DẢI TIẾP TỤC XEM.
+  // Kho nhiều video thì việc khó nhất không phải là xem, mà là TÌM lại đúng bài. Trước đây
+  // chỉ có cách cuộn. Nay gõ vài chữ là lọc theo tên bài và tên kênh.
+  const tu = String(STATE.hvLoc || '').trim().toLowerCase();
+  const list2 = !tu ? list : list.filter(v=>
+    (String(v.title||'') + ' ' + String(v.kenh||'')).toLowerCase().indexOf(tu) >= 0);
+  const nhom = hvNhomTheoKenh(list2);
   const the = (nhom.length <= 1)
-    ? `<div class="hv-ds">${list.map(theCua).join('')}</div>`
+    ? `<div class="hv-ds">${list2.map(theCua).join('')}</div>`
     : nhom.map(g=>`
         <div class="hv-kenh">
           <span class="hv-kenh-ic">📺</span>
@@ -35389,6 +35545,45 @@ function renderHocVideo(item){
         <div class="hv-tq-so"><b>${tatCa.length}</b><small>video trong kho</small></div>
         <button class="hv-them" data-action="hv-them-mo"><span>➕</span> Thêm video YouTube</button>
       </div>
+      ${/* v350 · Mục 2c — DẢI TIẾP TỤC XEM. Lối vào dùng nhiều nhất mà trước đây không có:
+            mở app lên là học tiếp đúng bài đang dở, không phải nhớ xem hôm qua bài nào. */''}
+      ${(()=>{
+        const gan = tatCa.filter(v=>v.moLuc).sort((a,b)=>b.moLuc - a.moLuc)[0];
+        if(!gan) return '';
+        const sc = (gan.lines||[]).length;
+        const xg = gan.xong ? Object.keys(gan.xong).filter(k=>gan.xong[k]).length : 0;
+        return `<button class="hv-tiep" data-action="hv-open" data-id="${gan.id}">
+          <img class="hv-tiep-a" src="https://img.youtube.com/vi/${escapeHtml(gan.videoId)}/mqdefault.jpg" alt="" loading="lazy">
+          <span class="hv-tiep-tx">
+            <i>TIẾP TỤC XEM</i>
+            <b>${escapeHtml(gan.title||'')}</b>
+            <u>${sc ? ('đã chép ' + xg + '/' + sc + ' câu') : 'chưa có lời thoại'}</u>
+          </span>
+          <span class="hv-tiep-mui">▶</span>
+        </button>`;
+      })()}
+      ${/* v350 · Mục 2c — ô tìm. Lọc ngay khi gõ, không cần bấm nút nào. */''}
+      <div class="hv-timo">
+        <span class="hv-timo-ic">🔎</span>
+        <input id="hvTimO" class="hv-timo-in" type="search" autocomplete="off"
+          placeholder="Tìm theo tên bài hoặc tên kênh…"
+          value="${escapeHtml(String(STATE.hvLoc || ''))}" data-nhap="hv-loc">
+        ${STATE.hvLoc ? `<button class="hv-timo-x" data-action="hv-loc-xoa" title="Xoá ô tìm">✕</button>` : ''}
+      </div>
+      ${tu ? `<div class="hv-timo-kq">${list2.length
+          ? ('Tìm thấy <b>' + list2.length + '</b> video khớp "' + escapeHtml(STATE.hvLoc) + '"')
+          : ('Không có video nào khớp "' + escapeHtml(STATE.hvLoc) + '" trong nhóm này.')}</div>` : ''}
+      ${/* v350 · Mục 3 — LỐI VÀO KHOÁ GIỌNG ĐỌC ĐẶT NGAY Ở ĐÂY.
+            Trước đây nút cấu hình khoá chỉ nằm trong Listening Practice và Speaking
+            Practice. Nhưng nút 🔊 được bấm nhiều nhất lại ở Shadowing của chính mục này —
+            hỏng giọng thì người dùng đứng ngay đây, mà chỗ sửa thì ở màn khác. */''}
+      ${!SETTINGS.cloudTtsApiKey ? `<button class="hv-ttskey" data-action="set-cloud-tts-key">
+          <span class="hv-ttskey-ic">🔈</span>
+          <span class="hv-ttskey-tx"><b>Chưa có khoá giọng đọc Google</b>
+            <i>Nút 🔊 đang dùng giọng sẵn của máy. Bấm vào đây để dán lại Google Cloud API key —
+               app sẽ thử khoá ngay và báo đúng lỗi nếu chưa dùng được.</i></span>
+          <span class="hv-ttskey-mui">›</span>
+        </button>` : ''}
       <div class="hv-tq-nhom">${HV_NHOM.map(n=>{
         const d = hvDemNhom(n.ma);
         return `<button class="hv-nhom-n lon ${n.ma === nhomDang ? 'on' : ''}" data-action="hv-chon-nhom" data-v="${n.ma}">
@@ -36130,7 +36325,11 @@ function hvSoatNut(){
   // Video DỪNG thì YouTube vẫn để thanh của nó hiện — ta cũng vậy. Chuột còn đậu trên dãy nút
   // thì càng không được giấu.
   const nen = (!chay || dangRe || (Date.now() - hvNutChamCuoi) < HV_AN_NUT);
+  // v350 — giữ .hien cho các luật cũ, nhưng việc GIẤU nay nằm ở lớp .an. Khác nhau ở chỗ:
+  // thiếu .hien thì nút vẫn còn đó, còn thiếu .an cũng vẫn còn đó — không trạng thái nào
+  // làm nút biến mất vì "chưa ai kịp bật lên".
   el.classList.toggle('hien', !!nen);
+  el.classList.toggle('an', !nen);
 }
 function hvGanAnNut(){
   if(hvNutDaGan) return;
@@ -36147,6 +36346,7 @@ function hvGanAnNut(){
 }
 function hvVeNutPlay(){
   try{ hvXoaLoiSanSang(); }catch(_){}
+  try{ hvGanChanFull(); }catch(_){ }
   // Mỗi lần đổi giữa chạy và dừng đều tính lại: dừng thì hiện luôn, chạy thì hẹn giờ giấu.
   try{ hvGanAnNut(); hvHienNut(); }catch(_){ }
   const b = document.getElementById('hvPlayBtn'); if(!b) return;
@@ -36565,6 +36765,33 @@ function hvToanMan(){
   try{ if(screen.orientation && screen.orientation.lock) { const r = screen.orientation.lock('landscape'); if(r && r.catch) r.catch(()=>{}); } }catch(_){}
   try{ hvApCap(); }catch(_){}
   try{ hvVuaKhungHinh(); }catch(_){}
+}
+// v350 · Mục 2b — CHỐT CHẶN THỨ HAI. fs:0 bỏ được cái nút, nhưng người dùng vẫn có thể
+// bấm đúp vào video hoặc gõ phím 'f' và YouTube tự đưa iframe lên toàn màn hình. Khi ấy
+// phần tử đang toàn màn là chính cái iframe, còn nút của app nằm ngoài nên biến mất sạch.
+// Bắt sự kiện fullscreenchange: thấy iframe lên toàn màn thì thoát ra ngay và bật chế độ
+// toàn màn CỦA APP — vẫn to hết cỡ, nhưng nút thì còn nguyên.
+let hvFullDaGan = false;
+function hvGanChanFull(){
+  if(hvFullDaGan) return;
+  hvFullDaGan = true;
+  const xem = ()=>{
+    try{
+      const el = document.fullscreenElement || document.webkitFullscreenElement;
+      if(!el || el.tagName !== 'IFRAME') return;
+      if(!el.closest || !el.closest('#hvVidWrap')) return;
+      const thoat = document.exitFullscreen || document.webkitExitFullscreen;
+      if(thoat){ const r = thoat.call(document); if(r && r.catch) r.catch(()=>{}); }
+      setTimeout(()=>{ try{
+        const w = document.getElementById('hvVidWrap');
+        if(w && w.classList && !w.classList.contains('full')) hvToanMan();
+      }catch(_){ } }, 60);
+    }catch(_){ }
+  };
+  try{
+    document.addEventListener('fullscreenchange', xem);
+    document.addEventListener('webkitfullscreenchange', xem);
+  }catch(_){ }
 }
 function hvThoatToanMan(){
   const w = document.getElementById('hvVidWrap');
@@ -48455,6 +48682,7 @@ document.addEventListener('change', function(e){
 ganONhap('drp-worker',  (v)=>{ drpDatWorker(v); });
 ganONhap('drp-chude',   (v)=>{ drpDatChuDe(v); });
 ganONhap('tv-tim',      (v)=>{ tvDatTim(v); });
+ganONhap('hv-loc',      (v)=>{ hvDatLoc(v); });
 ganONhap('tv-nghia',    (v, el)=>{ /* chỉ lưu khi bấm Enter, xem ganOEnter bên dưới */ });
 ganOEnter('tv-nghia',   (v, el)=>{ tvLuuNghia(el.getAttribute('data-kho'), +el.getAttribute('data-idx'), v); });
 ganONhap('vocab-typed', (v)=>{ vocabTypedInput(v); });
@@ -49106,6 +49334,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvHoanTacEl){ e.stopPropagation(); hvHoanTacXoa(); return; }
   const hvXoaEl = e.target.closest('[data-action="hv-xoa"]');
   if(hvXoaEl){ e.stopPropagation(); hvXoaVideo(hvXoaEl.getAttribute('data-id')); return; }
+  const hvLocXoaEl = e.target.closest('[data-action="hv-loc-xoa"]');
+  if(hvLocXoaEl){ e.stopPropagation(); hvXoaLoc(); return; }
   const hvOpenEl = e.target.closest('[data-action="hv-open"]');
   if(hvOpenEl){ hvMoPhien(hvOpenEl.getAttribute('data-id')); return; }
   const hvCapCoEl = e.target.closest('[data-action="hv-cap-co"]');
