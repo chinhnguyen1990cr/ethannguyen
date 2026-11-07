@@ -6472,7 +6472,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v352';
+const APP_VERSION = 'v353';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15601,13 +15601,50 @@ function tcIdb(){
   });
   return TC_IDB;
 }
+// ── v353 · HÌNH ĐI KÈM BẢN TRIỂN KHAI ───────────────────────────────────────────────
+// Trước v353, hình chỉ vào máy bằng hai đường THỦ CÔNG: bấm "Nhập hình" chọn thư mục, hoặc
+// chờ Drive đồng bộ. Hệ quả: cứ soạn thêm một tiêu chuẩn là lại phải bấm nhập một lần, trên
+// từng máy. Nay cả kho hình nằm ngay trong thư mục `hinh/` cạnh index.html trên GitHub
+// Pages, nên app TỰ tải về lần đầu cần tới rồi cất vào IndexedDB — không phải bấm gì nữa.
+// Hai đường cũ vẫn giữ nguyên làm phương án dự phòng (mạng chặn, dùng ngoại tuyến từ đầu,
+// hoặc bạn muốn thay một tấm hình bằng ảnh chụp của chính mình).
+const TC_ANH_THUMUC = 'hinh/';
+let TC_ANH_DANGTAI = {};          // chống gọi mạng trùng cho cùng một tệp
+let tcAnhMangHong = 0;            // đếm số tệp tải hỏng, để còn nói thật trên màn hình
+
+function tcAnhTuTai(ten){
+  if(ten in TC_ANH_DANGTAI) return TC_ANH_DANGTAI[ten];
+  const hua = fetch(TC_ANH_THUMUC + encodeURIComponent(ten))
+    .then(r=>{ if(!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+    .then(b=>new Promise((ok, hong)=>{
+      const fr = new FileReader();
+      fr.onload  = ()=>ok(fr.result);
+      fr.onerror = ()=>hong(fr.error);
+      fr.readAsDataURL(b);
+    }))
+    .then(url=>{
+      TC_ANH_NHO[ten] = url;
+      // Cất vào IndexedDB để lần sau mở là có ngay, kể cả khi mất mạng. Ghi hỏng (hết dung
+      // lượng chẳng hạn) cũng không sao — hình vẫn hiện được trong phiên này.
+      return tcAnhGhi(ten, url).catch(()=>{}).then(()=>url);
+    })
+    .catch(()=>{ tcAnhMangHong++; delete TC_ANH_DANGTAI[ten]; return null; });
+  TC_ANH_DANGTAI[ten] = hua;
+  return hua;
+}
+
 function tcAnhDoc(ten){
-  if(ten in TC_ANH_NHO) return Promise.resolve(TC_ANH_NHO[ten]);
+  // Chỉ nhận bộ nhớ đệm khi thực sự CÓ ảnh. Trước đây hàm này cache luôn cả giá trị null,
+  // nên một lần đọc hụt là từ đó về sau không bao giờ thử lại — đường tự tải sẽ chết ngay.
+  if(TC_ANH_NHO[ten]) return Promise.resolve(TC_ANH_NHO[ten]);
   return tcIdb().then(db=>new Promise(ok=>{
     const q = db.transaction('anh','readonly').objectStore('anh').get(ten);
-    q.onsuccess = ()=>{ TC_ANH_NHO[ten] = q.result || null; ok(TC_ANH_NHO[ten]); };
+    q.onsuccess = ()=>ok(q.result || null);
     q.onerror   = ()=>ok(null);
-  })).catch(()=>null);
+  })).catch(()=>null).then(co=>{
+    if(co){ TC_ANH_NHO[ten] = co; return co; }
+    return tcAnhTuTai(ten);
+  });
 }
 function tcAnhGhi(ten, dataUrl){
   TC_ANH_NHO[ten] = dataUrl;
@@ -15849,12 +15886,12 @@ function tcAnhHtml(ten){
   return `<figure class="tc-anh" data-ten="${escapeHtml(ten)}">
     <div class="tc-anh-trong">
       <span class="ic">🖼</span>
-      <b>Chưa nhập hình</b>
+      <b>Đang tải hình…</b>
       <i>${escapeHtml(ten)}</i>
-      <span class="gt">Hình nằm trên máy bạn chứ không trong app — giấy phép của bộ PDF
-        cấm phát tán lại. Lần đầu: bấm <b>Nhập hình còn thiếu</b> ở đầu màn hình, chọn hết tệp
-        trong thư mục <b>tieu-chuan-hinh</b>. Sau đó app tự đẩy lên Drive riêng của bạn và
-        máy khác tự kéo về.</span>
+      <span class="gt">Từ <b>v353</b> cả kho hình đi kèm bản cài (thư mục <b>hinh/</b>), app
+        <b>tự tải về lần đầu cần tới</b> rồi cất vào máy — không phải nhập tay nữa. Ô này còn
+        trống nghĩa là đang tải, hoặc máy đang mất mạng mà tấm này chưa kịp về. Nếu chờ mãi
+        không có, dùng nút <b>Nhập tay</b> ở ô kho hình ngoài màn chính.</span>
     </div></figure>`;
 }
 
@@ -16201,6 +16238,32 @@ function tcTuDongKeo(){
 }
 // Đếm số hình THỰC SỰ đang nằm trên máy này. Chỉ dựng lại màn hình khi con số đổi, nên
 // không thể thành vòng lặp dựng vô tận.
+// v353 — mồi cả kho hình về máy, chạy nền. Sáu tệp một lượt: đủ nhanh mà không làm nghẽn
+// đường mạng của những thứ đang cần ngay (phụ đề video, Gemini…).
+let tcMoiDangChay = false, tcMoiXong = 0, tcMoiCan = 0;
+function tcMoiKhoHinh(){
+  if(tcMoiDangChay) return Promise.resolve();
+  tcMoiDangChay = true;
+  return tcAnhDaCo().then(daCo=>{
+    const thieu = [...tcAnhCanCo()].filter(t=>!daCo.has(t));
+    tcMoiCan = thieu.length; tcMoiXong = 0;
+    if(!thieu.length){ tcMoiDangChay = false; return; }
+    let i = 0;
+    const mot = ()=>{
+      if(i >= thieu.length) return Promise.resolve();
+      const ten = thieu[i++];
+      return tcAnhTuTai(ten).then(()=>{
+        tcMoiXong++;
+        // Cứ 10 tấm mới vẽ lại một lần — vẽ từng tấm thì màn hình giật mà chẳng để làm gì.
+        if(tcMoiXong % 10 === 0 || tcMoiXong === thieu.length) tcCapNhatDem();
+        return mot();
+      });
+    };
+    return Promise.all(Array.from({length: Math.min(6, thieu.length)}, mot))
+      .then(()=>{ tcMoiDangChay = false; tcCapNhatDem(); });
+  }).catch(()=>{ tcMoiDangChay = false; });
+}
+
 let tcAnhSo = -1;
 function tcCapNhatDem(){
   tcAnhDaCo().then(s=>{
@@ -16231,9 +16294,7 @@ function tcThanhCongCu(bo, mucluc){
   const can = tcAnhCanCo().size;
   const co = tcAnhSo < 0 ? 0 : tcAnhSo;
   const thieu = Math.max(0, can - co);
-  const tt = tcDriveTin || (tcAnhSo < 0 ? 'Đang kiểm kho hình…'
-    : thieu ? 'Đang có ' + co + '/' + can + ' hình trên máy này'
-            : 'Đủ ' + can + ' hình · Drive tự đồng bộ');
+  const tt = tcKhoTinNhan(can, co, thieu, tcDriveTin, tcAnhSo < 0, tcAnhMangHong);
   const n = mucluc ? mucluc.length : 0;
   // v307 — BA THAY ĐỔI TRONG KHUNG NÀY, theo đúng yêu cầu của bạn:
   //  · BỎ nút EN/VN. Mọi tài liệu mặc định hiện cả nguyên văn tiếng Anh lẫn bản dịch; một
@@ -16340,18 +16401,33 @@ function tcKhungHtml(hex, than){
 function tcH3Html(en, vi){
   return `<div class="tc-h3">${escapeHtml(en)}${vi ? `<i>${escapeHtml(vi)}</i>` : ''}</div>`;
 }
+// v353 — lời của dải kho hình. Trước đây nó luôn giục "Nhập N hình", mà từ v353 hình tự
+// tải về nên giục là sai: việc duy nhất phải làm là chờ vài giây. Chỉ khi mạng thật sự
+// không lấy được tệp nào thì mới nhắc tới đường nhập tay.
+// Viết thành hàm THUẦN — nhận hết trạng thái qua tham số thay vì đọc biến ngoài. Lý do
+// rất thực tế: hàm đọc biến ngoài thì bài kiểm tra không dựng được tình huống "đang tải
+// dở" hay "mạng hỏng" để soi, mà những nhánh ấy mới là chỗ dễ viết sai lời nhắn.
+function tcKhoTinNhan(can, co, thieu, tin, chuaDem, hong){
+  if(tin) return tin;                                   // Drive vừa báo gì thì ưu tiên
+  if(chuaDem) return 'Đang kiểm kho hình…';             // chưa đếm xong, chưa biết gì
+  if(!thieu) return 'Đủ ' + can + ' hình — đã nằm sẵn trên máy này';
+  if(hong) return 'Còn thiếu ' + thieu + '/' + can + ' hình · không tải được từ mạng, bấm để nhập tay';
+  return 'Đang tự tải hình về máy… ' + co + '/' + can;
+}
+// Nút nhập tay chỉ hiện khi việc tự tải ĐÃ HỎNG. Còn đang tải dở thì không bày nút ra,
+// vì bấm vào cũng chỉ làm lại đúng việc app đang làm.
+function tcKhoCanNutTay(thieu, hong){ return thieu > 0 && hong > 0; }
+
 function tcKhoHinhHtml(){
   const can = tcAnhCanCo().size;
   const co = tcAnhSo < 0 ? 0 : tcAnhSo;
   const thieu = Math.max(0, can - co);
-  const tt = tcDriveTin || (tcAnhSo < 0 ? 'Đang kiểm kho hình…'
-    : thieu ? 'Đang có ' + co + '/' + can + ' hình trên máy này'
-            : 'Đủ ' + can + ' hình · Drive tự đồng bộ');
+  const tt = tcKhoTinNhan(can, co, thieu, tcDriveTin, tcAnhSo < 0, tcAnhMangHong);
   return `<div class="tc-kho">
     <span class="ic">🖼️</span>
     <span class="noi"><b>Kho hình kỹ thuật</b>
       <i id="tc-cc-tt">${escapeHtml(tt)}</i></span>
-    ${thieu ? `<button class="tc-kho-n" data-action="tc-anh-nhap">Nhập ${thieu} hình</button>` : ''}
+    ${tcKhoCanNutTay(thieu, tcAnhMangHong) ? `<button class="tc-kho-n" data-action="tc-anh-nhap">Nhập tay ${thieu} hình</button>` : ''}
   </div>`;
 }
 function tcNutNhaHtml(){
@@ -17167,7 +17243,7 @@ function renderTcBoList(){
       <span><b>Thư mục tiêu chuẩn trên Google Drive</b>
         <i>Nơi bạn cất bản PDF có giấy phép của mình</i></span>
       <span class="mui">↗</span></a>`;
-  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem(); tcMoiKhoHinh();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════════════
@@ -17337,7 +17413,7 @@ function renderTcDieuList(){
       mà tài liệu TÜV Rheinland 2024 nêu đích danh đã ghi vào ô <b>Lưu ý</b> của các điều
       <b>3.1</b> (định nghĩa tay vịn), <b>3.9</b> (mép hông nâng cao), <b>5.2</b> (dưỡng đặt
       tải) và <b>7.3.3</b> (thử ổn định góc).</div>` : ''}`;
-  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem(); tcMoiKhoHinh();
 }
 
 function renderTcDieu(){
@@ -17420,7 +17496,7 @@ function renderTcDieu(){
       ${tr ? `<button class="tc-dh" data-action="tc-dieu" data-ngang="1" data-bo="${bo.id}" data-so="${escapeHtml(tr.so)}">← ${escapeHtml(tr.so)} ${escapeHtml(tr.en)}</button>` : '<span></span>'}
       ${sa ? `<button class="tc-dh" data-action="tc-dieu" data-ngang="1" data-bo="${bo.id}" data-so="${escapeHtml(sa.so)}">${escapeHtml(sa.so)} ${escapeHtml(sa.en)} →</button>` : '<span></span>'}
     </div>`;
-  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem(); tcMoiKhoHinh();
 }
 
 // Bảng 2 của EN 1730 — công thức nội suy V. EN 581-3 chỉ viện dẫn chứ không in ra, nên
@@ -17533,7 +17609,7 @@ function renderTcList(){
       Thứ bên dưới là <b>nguyên văn điều khoản</b> kèm bản dịch và ghi chú thực chiến do tôi
       soạn. Khi cần trích dẫn chính thức vẫn phải mở bản gốc.
     </div>`;
-  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem();
+  tcGanAnh(); tcTuDongKeo(); tcCapNhatDem(); tcMoiKhoHinh();
 }
 function renderTcDoc(){
   const m = TC_MUC.find(x=>x.id === KH_STATE.tcId);
