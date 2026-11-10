@@ -3325,6 +3325,9 @@
   .aicall-voice-name{font-size:11.5px; font-weight:800; color:var(--text);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .aicall-voice-label{font-size:9px; color:var(--dim); margin-top:2px; line-height:1.35;}
+  /* v355 — dòng tiếng Việt nói RÕ giọng ấy nghe ra sao, để chọn mà không phải thử hết. */
+  .aicall-voice-vi{font-size:9px; color:var(--dim2); margin-top:4px; line-height:1.4;
+    padding-top:4px; border-top:1px solid var(--vien, rgba(255,255,255,.08));}
   .aicall-voice-thu{position:absolute; right:5px; top:50%; transform:translateY(-50%);
     width:20px; height:20px; border-radius:7px; border:1px solid var(--border);
     background:rgba(255,255,255,.06); color:var(--dim); font-size:8px; cursor:pointer;
@@ -4313,6 +4316,17 @@
 .ai-nho-h{font-size:12px; font-weight:800; color:var(--text); margin-bottom:6px;}
 .ai-nho-d{font-size:11px; line-height:1.65; color:var(--dim); margin-top:3px;}
 .ai-nho-d b{color:var(--text); font-weight:700;}
+/* v355 — ba chip chọn trình độ, và tên nhóm phân cách lưới tình huống. */
+.ai-td-hang{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;}
+.ai-td-chip{flex:1 1 86px; display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  padding:7px 9px; border-radius:9px; cursor:pointer; text-align:left;
+  background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.10);}
+.ai-td-chip .ma{font-family:var(--mono); font-size:11px; font-weight:800; color:var(--dim);}
+.ai-td-chip .mo{font-size:9px; line-height:1.35; color:var(--dim2);}
+.ai-td-chip.active{background:rgba(79,140,255,.14); border-color:rgba(79,140,255,.55);}
+.ai-td-chip.active .ma{color:#4F8CFF;}
+.aichat-nhom-ten{font-size:11px; font-weight:800; letter-spacing:.04em; color:var(--dim);
+  margin:14px 0 7px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,.08);}
 .ai-nho-xoa{margin-top:9px; background:none; border:none; padding:0; cursor:pointer;
   font-family:inherit; font-size:10.5px; color:#e0705f; text-decoration:underline;}
 /* v228 — nút đi tiếp của bộ câu hỏi: đây là nút bấm nhiều nhất trong cả mục, đáng được vẽ cho tử tế. */
@@ -6472,7 +6486,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v354';
+const APP_VERSION = 'v355';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -40445,38 +40459,27 @@ const AICHAT_MAX_HISTORY = 14; // số lượt gần nhất gửi kèm làm ng�
 // đã chuyển về Nữ. Nhưng cách chắc ăn nhất vẫn là TAI BẠN: mỗi giọng nay có nút nghe thử.
 // Nhãn tiếng Việt bám sát đúng tính từ Google ghi, không tự bịa thêm.
 const AI_CALL_VOICES = [
-  {name:'Zephyr',        label:'Trong trẻo (Bright)',        gender:'female'},
-  {name:'Kore',          label:'Chắc chắn (Firm)',           gender:'female'},
-  {name:'Leda',          label:'Trẻ trung (Youthful)',       gender:'female'},
-  {name:'Aoede',         label:'Thoải mái (Breezy)',         gender:'female'},
-  {name:'Callirrhoe',    label:'Dễ chịu (Easy-going)',       gender:'female'},
-  {name:'Autonoe',       label:'Tươi sáng (Bright)',         gender:'female'},
-  {name:'Despina',       label:'Mượt mà (Smooth)',           gender:'female'},
-  {name:'Erinome',       label:'Rõ ràng (Clear)',            gender:'female'},
-  {name:'Laomedeia',     label:'Sôi nổi (Upbeat)',           gender:'female'},
-  {name:'Achernar',      label:'Dịu (Soft)',                 gender:'female'},
-  {name:'Gacrux',        label:'Chững chạc (Mature)',        gender:'female'},
-  {name:'Pulcherrima',   label:'Thẳng thắn (Forward)',       gender:'female'},
-  {name:'Vindemiatrix',  label:'Nhẹ nhàng (Gentle)',         gender:'female'},
-  {name:'Sulafat',       label:'Ấm áp (Warm)',               gender:'female'},
-  {name:'Puck',          label:'Vui tươi (Upbeat)',          gender:'male'},
-  {name:'Charon',        label:'Rành mạch (Informative)',    gender:'male'},
-  {name:'Fenrir',        label:'Hào hứng (Excitable)',       gender:'male'},
-  {name:'Orus',          label:'Chắc chắn (Firm)',           gender:'male'},
-  {name:'Enceladus',     label:'Thì thầm (Breathy)',         gender:'male'},
-  {name:'Iapetus',       label:'Rõ ràng (Clear)',            gender:'male'},
-  {name:'Umbriel',       label:'Dễ chịu (Easy-going)',       gender:'male'},
-  {name:'Algieba',       label:'Mượt mà (Smooth)',           gender:'male'},
-  {name:'Algenib',       label:'Trầm khàn (Gravelly)',       gender:'male'},
-  {name:'Rasalgethi',    label:'Rành mạch (Informative)',    gender:'male'},
-  {name:'Alnilam',       label:'Dứt khoát (Firm)',           gender:'male'},
-  {name:'Schedar',       label:'Đều đặn (Even)',             gender:'male'},
-  {name:'Achird',        label:'Thân thiện (Friendly)',      gender:'male'},
-  {name:'Zubenelgenubi', label:'Đời thường (Casual)',        gender:'male'},
-  {name:'Sadachbia',     label:'Hoạt bát (Lively)',          gender:'male'},
-  {name:'Sadaltager',    label:'Hiểu biết (Knowledgeable)',  gender:'male'}
+  // ══ v355 · TỪ 30 GIỌNG XUỐNG 6 ═══════════════════════════════════════════════════
+  // 30 giọng nghe thì nhiều lựa chọn, thực tế không ai thử hết — và quá nửa trong đó
+  // KHÔNG hợp người mới học: thì thầm (Enceladus), trầm khàn (Algenib), sôi nổi quá
+  // (Fenrir, Sadachbia, Puck, Laomedeia), đời thường nuốt chữ (Zubenelgenubi).
+  // Tiêu chí giữ lại, đúng một thứ: NGHE RÕ TỪNG TỪ Ở TỐC ĐỘ CHẬM. Ba nữ ba nam, mỗi
+  // giọng một chất khác hẳn nhau để còn đổi khi nghe chán, không phải sáu giọng na ná.
+  // Muốn mở lại giọng nào đã bỏ thì nói một câu — danh sách cũ còn nguyên trong lịch sử.
+  {name:'Kore',         label:'Rõ và chắc chắn (Firm)',   gender:'female', vi:'Dễ nghe nhất cho người mới — đều, không lên xuống nhiều'},
+  {name:'Erinome',      label:'Rõ ràng (Clear)',         gender:'female', vi:'Tách bạch từng từ, hợp khi bạn chưa quen nối âm'},
+  {name:'Vindemiatrix', label:'Nhẹ nhàng (Gentle)',      gender:'female', vi:'Chậm và dịu, đỡ căng thẳng khi mới tập nói'},
+  {name:'Charon',       label:'Rành mạch (Informative)', gender:'male',   vi:'Giọng nam dễ nghe nhất — phát âm tròn, nhịp đều'},
+  {name:'Iapetus',      label:'Rõ ràng (Clear)',         gender:'male',   vi:'Sáng và gọn, không trầm quá nên nghe không bị ù'},
+  {name:'Achird',       label:'Thân thiện (Friendly)',   gender:'male',   vi:'Ấm và tự nhiên, hợp mấy tình huống trò chuyện thoải mái'}
 ];
-function aiCallVoiceName(){ return SETTINGS.aiCallVoiceName || 'Kore'; }
+// v355 — PHẢI kiểm tên giọng đang lưu có còn trong danh sách không. Bỏ 24 giọng mà vẫn
+// trả thẳng SETTINGS thì người đang chọn 1 trong 24 giọng ấy sẽ gửi tên giọng không tồn tại
+// lên API và cuộc gọi hỏng mà không hiểu vì sao. Không còn thì rơi về Kore.
+function aiCallVoiceName(){
+  const ten = SETTINGS.aiCallVoiceName;
+  return AI_CALL_VOICES.some(v=>v.name===ten) ? ten : 'Kore';
+}
 function aiCallPickVoice(name){
   if(!AI_CALL_VOICES.some(v=>v.name===name)) return;
   SETTINGS.aiCallVoiceName = name;
@@ -40485,49 +40488,33 @@ function aiCallPickVoice(name){
 }
 // Màu nền thẻ tình huống — CỐ Ý chọn tông TRẦM/xuống độ bão hòa (không dùng màu neon/sặc sỡ như trước)
 // theo yêu cầu người dùng, mỗi thẻ vẫn giữ 1 tông màu riêng để dễ phân biệt nhưng nhẹ nhàng, đỡ chói mắt.
+// ══ v355 · BỎ 3 TÌNH HUỐNG ÍT DÙNG, CHIA NHÓM, THÊM BA TÌNH HUỐNG QC ═════════════
+// Bỏ: 'smalltalk' (làm quen ở tiệc — trùng với Nói chuyện tự do), 'delivery' (gọi đồ
+// ăn — trùng Nhà hàng + Gọi điện), 'complaint' (than phiền dịch vụ — tình huống
+// 'qc_nhamay' nay phủ đúng việc ấy bằng từ vựng nghề của bạn).
+// Ba tình huống QC mới bám đúng việc thật: báo cáo lô hàng cho khách nước ngoài, nêu
+// lỗi với nhà máy, và nói chuyện nghề với sếp/đồng nghiệp QC. Mỗi vai đều dặn AI hỏi
+// MỘT câu một lượt — người A1-A2 nghe hai câu hỏi dính nhau là mất luôn câu đầu.
+const AICHAT_SCENARIO_NHOM = [
+  {"id": "hangngay", "emoji": "🏠", "ten": "Hằng ngày"},
+  {"id": "dilai", "emoji": "✈️", "ten": "Đi lại · Du lịch"},
+  {"id": "congviec", "emoji": "💼", "ten": "Công việc & QC"}
+];
 const AICHAT_SCENARIOS = [
-  {code:'cafe', emoji:'☕', title:'Quán cà phê', sub:'Gọi món, thanh toán', grad:'linear-gradient(135deg,#C9A66E,#8B6F3E)',
-    roleEn:'a friendly barista at a coffee shop', descEn:'The learner just walked up to the counter to order a drink and maybe a snack.',
-    opener:"Hi there! Welcome in — what can I get started for you today?"},
-  {code:'restaurant', emoji:'🍽️', title:'Nhà hàng', sub:'Đặt bàn, gọi món', grad:'linear-gradient(135deg,#C97C4B,#B5924B)',
-    roleEn:'a waiter at a restaurant', descEn:'The learner has just sat down at a table and is ready to order food.',
-    opener:"Good evening! Can I start you off with something to drink while you look at the menu?"},
-  {code:'hotel', emoji:'🏨', title:'Khách sạn', sub:'Nhận phòng, hỏi dịch vụ', grad:'linear-gradient(135deg,#5C7FA8,#6B6FA0)',
-    roleEn:'a hotel front-desk receptionist', descEn:'The learner is checking in at the hotel front desk.',
-    opener:"Welcome to Sunview Hotel! Do you have a reservation with us tonight?"},
-  {code:'airport', emoji:'✈️', title:'Sân bay', sub:'Làm thủ tục, hải quan', grad:'linear-gradient(135deg,#4A9483,#3D7A6E)',
-    roleEn:'an airline check-in agent at the airport', descEn:'The learner is checking in for a flight at the airline counter.',
-    opener:"Hello! Could I see your passport and booking reference, please?"},
-  {code:'directions', emoji:'🗺️', title:'Hỏi đường', sub:'Tìm địa điểm', grad:'linear-gradient(135deg,#8C7BAE,#6E699C)',
-    roleEn:'a friendly local stranger stopped on the street', descEn:'The learner is a tourist who stopped you to ask for directions somewhere in the city.',
-    opener:"Hey, you look a little lost — can I help you find something?"},
-  {code:'shopping', emoji:'🛍️', title:'Mua sắm quần áo', sub:'Hỏi size, giá, đổi trả', grad:'linear-gradient(135deg,#B37490,#8C6FA8)',
-    roleEn:'a sales assistant at a clothing store', descEn:'The learner is browsing clothes in your store and might need help.',
-    opener:"Hi! Let me know if you need a different size or color for anything."},
-  {code:'phone', emoji:'☎️', title:'Gọi điện thoại', sub:'Đặt lịch, hỏi thông tin', grad:'linear-gradient(135deg,#5C7FA0,#4A9483)',
-    roleEn:'a customer service representative answering a phone call', descEn:"The learner has called a company's hotline and you just picked up.",
-    opener:"Thanks for calling, this is Alex speaking — how can I help you today?"},
-  {code:'interview', emoji:'💼', title:'Phỏng vấn xin việc', sub:'Trả lời câu hỏi tuyển dụng', grad:'linear-gradient(135deg,#8891A0,#4F5A6B)',
-    roleEn:'an HR interviewer conducting a job interview', descEn:'The learner is interviewing for a job at your company.',
-    opener:"Thanks for coming in today. Why don't you start by telling me a bit about yourself?"},
-  {code:'coworker', emoji:'🧑‍💻', title:'Đồng nghiệp văn phòng', sub:'Trò chuyện công sở', grad:'linear-gradient(135deg,#B5924B,#C97C4B)',
-    roleEn:'a friendly coworker chatting at the office', descEn:'You and the learner work together and are chatting casually before a meeting.',
-    opener:"Hey! Busy morning so far? Did you catch the email about the meeting?"},
-  {code:'doctor', emoji:'🩺', title:'Khám bệnh', sub:'Mô tả triệu chứng', grad:'linear-gradient(135deg,#4A9483,#5C7FA8)',
-    roleEn:'a doctor doing a check-up', descEn:"The learner has come in for a doctor's appointment and you are asking about their symptoms.",
-    opener:"Hi, come on in. What brings you in today — how have you been feeling?"},
-  {code:'smalltalk', emoji:'👋', title:'Làm quen bạn mới', sub:'Small talk xã giao', grad:'linear-gradient(135deg,#8C6FA8,#B37490)',
-    roleEn:'someone meeting the learner for the first time at a social event', descEn:'You and the learner just met at a party or event and are making small talk.',
-    opener:"Hi, I don't think we've met — I'm Jamie. How do you know the host?"},
-  {code:'complaint', emoji:'😤', title:'Than phiền dịch vụ', sub:'Khiếu nại, yêu cầu xử lý', grad:'linear-gradient(135deg,#B5615C,#C97C4B)',
-    roleEn:'a customer service manager handling a complaint', descEn:'The learner is unhappy about a product or service and has come to you to complain.',
-    opener:"I'm sorry to hear you're having trouble. Can you tell me exactly what happened?"},
-  {code:'taxi', emoji:'🚕', title:'Đi taxi / Grab', sub:'Chỉ đường, trò chuyện', grad:'linear-gradient(135deg,#B5924B,#5C7FA8)',
-    roleEn:'a taxi driver making conversation with a passenger', descEn:'The learner just got in your cab and told you a destination.',
-    opener:"Hop in! Where are you headed today?"},
-  {code:'delivery', emoji:'🛵', title:'Gọi đồ ăn / giao hàng', sub:'Đặt món qua điện thoại', grad:'linear-gradient(135deg,#4A9483,#B5924B)',
-    roleEn:'a restaurant employee taking a phone order for delivery', descEn:'The learner has called your restaurant to place a delivery order.',
-    opener:"Thanks for calling Golden Bowl, what would you like to order today?"}
+  {"code": "cafe", "emoji": "☕", "title": "Quán cà phê", "sub": "Gọi món, thanh toán", "grad": "linear-gradient(135deg,#C9A66E,#8B6F3E)", "nhom": "hangngay", "roleEn": "a friendly barista at a coffee shop", "descEn": "The learner just walked up to the counter to order a drink and maybe a snack.", "opener": "Hi! What can I get for you?"},
+  {"code": "restaurant", "emoji": "🍽️", "title": "Nhà hàng", "sub": "Đặt bàn, gọi món", "grad": "linear-gradient(135deg,#C97C4B,#B5924B)", "nhom": "hangngay", "roleEn": "a waiter at a restaurant", "descEn": "The learner has just sat down at a table and is ready to order food.", "opener": "Good evening! Would you like something to drink first?"},
+  {"code": "shopping", "emoji": "🛍️", "title": "Mua sắm quần áo", "sub": "Hỏi size, giá, đổi trả", "grad": "linear-gradient(135deg,#B37490,#8C6FA8)", "nhom": "hangngay", "roleEn": "a sales assistant at a clothing store", "descEn": "The learner is browsing clothes in your store and might need help.", "opener": "Hi! Do you need help with a size?"},
+  {"code": "doctor", "emoji": "🩺", "title": "Khám bệnh", "sub": "Mô tả triệu chứng", "grad": "linear-gradient(135deg,#4A9483,#5C7FA8)", "nhom": "hangngay", "roleEn": "a doctor doing a check-up", "descEn": "The learner has come in for a doctor's appointment and you are asking about their symptoms.", "opener": "Hi, come in. How are you feeling today?"},
+  {"code": "phone", "emoji": "☎️", "title": "Gọi điện thoại", "sub": "Đặt lịch, hỏi thông tin", "grad": "linear-gradient(135deg,#5C7FA0,#4A9483)", "nhom": "hangngay", "roleEn": "a customer service representative answering a phone call", "descEn": "The learner has called a company's hotline and you just picked up.", "opener": "Hello, this is Alex. How can I help you?"},
+  {"code": "hotel", "emoji": "🏨", "title": "Khách sạn", "sub": "Nhận phòng, hỏi dịch vụ", "grad": "linear-gradient(135deg,#5C7FA8,#6B6FA0)", "nhom": "dilai", "roleEn": "a hotel front-desk receptionist", "descEn": "The learner is checking in at the hotel front desk.", "opener": "Welcome! Do you have a booking tonight?"},
+  {"code": "airport", "emoji": "✈️", "title": "Sân bay", "sub": "Làm thủ tục, hải quan", "grad": "linear-gradient(135deg,#4A9483,#3D7A6E)", "nhom": "dilai", "roleEn": "an airline check-in agent at the airport", "descEn": "The learner is checking in for a flight at the airline counter.", "opener": "Hello! Can I see your passport, please?"},
+  {"code": "directions", "emoji": "🗺️", "title": "Hỏi đường", "sub": "Tìm địa điểm", "grad": "linear-gradient(135deg,#8C7BAE,#6E699C)", "nhom": "dilai", "roleEn": "a friendly local stranger stopped on the street", "descEn": "The learner is a tourist who stopped you to ask for directions somewhere in the city.", "opener": "Hi! Are you looking for something?"},
+  {"code": "taxi", "emoji": "🚕", "title": "Đi taxi / Grab", "sub": "Chỉ đường, trò chuyện", "grad": "linear-gradient(135deg,#B5924B,#5C7FA8)", "nhom": "dilai", "roleEn": "a taxi driver making conversation with a passenger", "descEn": "The learner just got in your cab and told you a destination.", "opener": "Hi! Where are you going today?"},
+  {"code": "interview", "emoji": "💼", "title": "Phỏng vấn xin việc", "sub": "Vị trí QC đồ gỗ", "grad": "linear-gradient(135deg,#8891A0,#4F5A6B)", "nhom": "congviec", "roleEn": "a hiring manager interviewing the learner for a Quality Control Inspector job at a furniture company that exports to the US and Europe", "descEn": "You are interviewing the learner for a QC inspector position. They already work in furniture QC, so ask about their real experience: what products they inspect, what defects they find most often, which standards they use, how they write reports, how they handle a factory that disagrees with them. Ask ONE question at a time and wait for the full answer before the next one. Keep your questions short and plain.", "opener": "Thanks for coming in. Can you tell me about your work now?"},
+  {"code": "coworker", "emoji": "🧑‍💻", "title": "Đồng nghiệp văn phòng", "sub": "Trò chuyện công sở", "grad": "linear-gradient(135deg,#B5924B,#C97C4B)", "nhom": "congviec", "roleEn": "a friendly coworker chatting at the office", "descEn": "You and the learner work together and are chatting casually before a meeting.", "opener": "Hey! Busy morning?"},
+  {"code": "qc_khach", "emoji": "🌍", "title": "Khách hàng nước ngoài", "sub": "Báo cáo lô hàng, lỗi, kết quả thử", "grad": "linear-gradient(135deg,#3D7A6E,#4A9483)", "nhom": "congviec", "roleEn": "a buyer at a large US furniture retailer, on a call with the learner who is the QC inspector at the supplier factory in Vietnam", "descEn": "You are the customer. You want to know whether the shipment is ready and safe to ship. Ask about: the inspection result (pass/fail), how many pieces you checked, what defects you found and how many, whether they are major or minor, the AQL result, test reports (stability, static load, durability), packing and carton marking, and the ship date. Use simple everyday business English — short questions, one at a time. Be polite but firm: if something failed, ask what the factory will do and by when. Do not lecture the learner about standards; you are the buyer asking, they are the one reporting.", "opener": "Hi! How did the inspection go yesterday?"},
+  {"code": "qc_nhamay", "emoji": "🏭", "title": "Nhà máy / nhà cung cấp", "sub": "Nêu lỗi, yêu cầu sửa, chốt ngày", "grad": "linear-gradient(135deg,#B5615C,#C97C4B)", "nhom": "congviec", "roleEn": "a production manager at a furniture factory, talking to the learner who is the QC inspector that just finished checking the line", "descEn": "You run the factory. The learner has just found problems and is telling you about them. React like a real factory manager: ask which pieces, how many, where exactly on the product, whether you can rework it or must remake it, and push back a little on the deadline (\"that is very tight\", \"can we ship part of it first?\"). Make the learner explain the defect clearly and say what they want you to do. Use simple shop-floor English about things like loose joints, wobbly legs, scratches, bad finish, wrong hardware, gaps, and wrong packing. Keep every turn short.", "opener": "Morning! You finished checking the line? What did you find?"},
+  {"code": "qc_sep", "emoji": "🧰", "title": "Đồng nghiệp · Sếp QC", "sub": "Kể chuyện đi kiểm, hỏi ý kiến", "grad": "linear-gradient(135deg,#6B6FA0,#8C7BAE)", "nhom": "congviec", "roleEn": "the learner's QC manager and a fellow inspector, chatting with them about work", "descEn": "You work in furniture QC too, so you can talk shop as an equal. Ask how the factory visit went, what they found, whether the sample passed, which standard applies to a product, and what they would do about a borderline defect. You can also ask for their opinion and share your own short view. This is a relaxed colleague chat, not an interrogation — react to what they say before asking anything new.", "opener": "Hey! How was the factory today?"}
 ];
 function aiChatScenario(code){ return AICHAT_SCENARIOS.find(s=>s.code===code) || null; }
 // Từ quá phổ thông thì không nói lên chủ đề gì — loại ra trước khi rút từ khoá của buổi nói.
@@ -40714,13 +40701,20 @@ function aiChatStopRecord(){
   if(aiChatRecognition){ try{ aiChatRecognition.stop(); }catch(e){} }
   const s = STATE.aiChatSession; if(s) s.recording = false;
 }
+// v355 — dựng theo NHÓM. 14 thẻ đổ thành một đống thì phải đọc hết mới tìm ra cái cần;
+// chia ba nhóm thì mở mục này lúc đi làm là nhảy thẳng xuống "Công việc & QC".
 function aiChatScenarioGridHtml(){
-  const cards = AICHAT_SCENARIOS.map(sc=>`<div class="eng-group-card compact" data-action="aichat-start-scenario" data-code="${sc.code}" style="--gcgrad:${sc.grad};">
-    <div class="gc-icon">${sc.emoji}</div>
-    <div class="gc-name">${escapeHtml(sc.title)}</div>
-    <div class="gc-desc">${escapeHtml(sc.sub)}</div>
-  </div>`).join('');
-  return `<div class="eng-group-grid compact">${cards}</div>`;
+  return AICHAT_SCENARIO_NHOM.map(nh=>{
+    const ds = AICHAT_SCENARIOS.filter(sc=>sc.nhom === nh.id);
+    if(!ds.length) return '';
+    const cards = ds.map(sc=>`<div class="eng-group-card compact" data-action="aichat-start-scenario" data-code="${sc.code}" style="--gcgrad:${sc.grad};">
+      <div class="gc-icon">${sc.emoji}</div>
+      <div class="gc-name">${escapeHtml(sc.title)}</div>
+      <div class="gc-desc">${escapeHtml(sc.sub)}</div>
+    </div>`).join('');
+    return `<div class="aichat-nhom-ten">${nh.emoji} ${escapeHtml(nh.ten)} · ${ds.length} tình huống</div>
+      <div class="eng-group-grid compact">${cards}</div>`;
+  }).join('');
 }
 // Trước đây "Gọi thoại" và "Nhắn tin" là 2 lối vào TÁCH RIÊNG (phải chọn 1 trong 2 trước khi bắt đầu) —
 // Trước đây có 2 lối vào TÁCH RIÊNG (Gọi thoại / Nhắn tin) rồi sau đó hợp nhất thành 1 cuộc trò chuyện
@@ -40730,7 +40724,7 @@ function aiChatScenarioGridHtml(){
 function renderAiChatPicker(item){
   const intro = `<div class="card" style="text-align:center; padding:16px; margin-bottom:14px;">
       <div style="font-size:26px; margin-bottom:6px;">🎙️</div>
-      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Gọi thoại trực tiếp với AI để luyện phản xạ nói tiếng Anh — chọn 1 tình huống hoặc nói chuyện tự do, AI trả lời tự nhiên như người thật và tự sửa cách nói (recast) ngay trong câu trả lời khi bạn nói chưa đúng. Phần đọc/viết luyện ở mục Luyện nghe &amp; Luyện nói.</div>
+      <div style="font-size:13px; color:var(--dim); line-height:1.6;">Gọi thoại trực tiếp với AI để luyện phản xạ nói tiếng Anh. AI nói <b>ngắn — tối đa 2 câu mỗi lượt</b>, dùng từ dễ và nói chậm, để bạn nghe kịp và còn chỗ mà nói. Khi bạn nói chưa đúng, AI không ngắt lời giảng bài mà nói lại cho đúng ngay trong câu trả lời của nó.</div>
     </div>`;
   const td = aiTrinhDo();
   const freeCard = `<div class="ai-hai">
@@ -40761,7 +40755,9 @@ function aiNhoHtml(td){
   const co = n.chuDe.length || n.loi.length;
   return `<div class="ai-nho">
     <div class="ai-nho-h">🧠 AI đang biết gì về bạn</div>
-    <div class="ai-nho-d"><b>Trình độ ước lượng:</b> ${td.ma} — lấy từ tiến độ Ngữ pháp, AI sẽ nói vừa trên mức này một chút.</div>
+    <div class="ai-nho-d"><b>Trình độ của bạn:</b> AI sẽ nói ĐÚNG mức này, không cố nói cao hơn.</div>
+    <div class="ai-td-hang">${AI_TRINHDO_CHON.map(x=>`<button class="ai-td-chip ${x.ma===td.ma?'active':''}" data-action="ai-chon-trinhdo" data-td="${x.ma}">
+      <span class="ma">${x.ma}</span><span class="mo">${escapeHtml(x.mo)}</span></button>`).join('')}</div>
     ${n.chuDe.length ? `<div class="ai-nho-d"><b>Đã nói về:</b> ${escapeHtml(n.chuDe.slice(0,5).join(' · '))}</div>` : ''}
     ${n.loi.length ? `<div class="ai-nho-d"><b>Hay vướng:</b> ${escapeHtml(n.loi.slice(0,3).join(' · '))}</div>` : ''}
     ${co ? `<button class="ai-nho-xoa" data-action="ai-nho-xoa">Xoá trí nhớ, bắt đầu lại từ đầu</button>`
@@ -40770,20 +40766,19 @@ function aiNhoHtml(td){
 }
 function aiCallVoicePickerHtml(){
   const cur = aiCallVoiceName();
-  const nu = AI_CALL_VOICES.filter(v=>v.gender==='female').length;
-  const nam = AI_CALL_VOICES.filter(v=>v.gender==='male').length;
   const chipsFor = (gender) => AI_CALL_VOICES.filter(v=>v.gender===gender).map(v=>`<div class="aicall-voice-chip ${v.name===cur?'active':''}" data-action="aicall-pick-voice" data-voice="${v.name}">
     <div class="aicall-voice-name">${v.name}</div>
     <div class="aicall-voice-label">${escapeHtml(v.label)}</div>
+    ${v.vi ? `<div class="aicall-voice-vi">${escapeHtml(v.vi)}</div>` : ''}
     <button class="aicall-voice-thu" data-action="aicall-thu-giong" data-voice="${v.name}"
             title="Nghe thử giọng này">▶</button>
   </div>`).join('');
-  return `<div class="eng-section-label">🗣️ Giọng đọc AI (${AI_CALL_VOICES.length} giọng)</div>
-    <div class="aicall-voice-ct">Google không công bố giới tính cho từng giọng — nhãn dưới đây là
-      đối chiếu từ người nghe thật. Bấm <b>▶</b> trên mỗi thẻ để tự nghe rồi hãy chọn.</div>
-    <div class="aicall-voice-gender-label">🚺 Giọng nữ · ${nu} giọng</div>
+  return `<div class="eng-section-label">🗣️ Giọng đọc AI</div>
+    <div class="aicall-voice-ct">Đã chọn sẵn <b>6 giọng dễ nghe nhất cho người mới</b> trong số 30 giọng
+      Google có — bỏ các giọng thì thầm, trầm khàn hoặc nói nhanh. Bấm <b>▶</b> để nghe thử.</div>
+    <div class="aicall-voice-gender-label">🚺 Giọng nữ</div>
     <div class="aicall-voice-grid">${chipsFor('female')}</div>
-    <div class="aicall-voice-gender-label">🚹 Giọng nam · ${nam} giọng</div>
+    <div class="aicall-voice-gender-label">🚹 Giọng nam</div>
     <div class="aicall-voice-grid">${chipsFor('male')}</div>`;
 }
 // Nghe thử KHÔNG gọi API: dùng giọng đọc sẵn có của máy, chọn theo đúng giới tính đã gán. Mục
@@ -40876,17 +40871,30 @@ function aiNhoThemLoi(t){
   saveSettings();
 }
 function aiNhoXoa(){ SETTINGS.aiChatNho = {chuDe:[], loi:[]}; saveSettings(); renderContent(); }
-// Trình độ ước lượng — lấy từ chính tiến độ ngữ pháp, không bắt bạn tự khai.
+// ══ v355 · TRÌNH ĐỘ: BẠN TỰ CHỌN, APP KHÔNG ĐOÁN NỮA ══════════════════════════════
+// Bản cũ SUY RA trình độ từ số bài ngữ pháp đã qua: mặc định A2, qua 20% nhảy B1, 45% lên
+// B2, 75% lên C1. Rồi lời nhắc còn dặn AI "nói cao hơn mức ấy một chút". Hai thứ cộng lại
+// ra đúng thứ bạn gặp: CÀNG HỌC AI CÀNG NÓI KHÓ, dù tai chưa nghe kịp. Làm xong một chương
+// ngữ pháp không có nghĩa là nghe nói được ở mức ấy — đó là hai kỹ năng khác nhau.
+// Nay bỏ hẳn lối đoán. Bạn tự chọn, mặc định A2, và chọn xong thì AI nói ĐÚNG mức ấy chứ
+// không cố nhướn lên trên.
+const AI_TRINHDO_CHON = [
+  {ma:'A1', ten:'A1 · Mới bắt đầu',  en:'absolute beginner',
+   mo:'Câu rất ngắn, từ cơ bản nhất, nói chậm'},
+  {ma:'A2', ten:'A2 · Cơ bản',       en:'elementary',
+   mo:'Câu ngắn đời thường, thì hiện tại và quá khứ đơn'},
+  {ma:'B1', ten:'B1 · Trung cấp',    en:'lower-intermediate',
+   mo:'Nói dài hơn một chút, kể được câu chuyện'}
+];
 function aiTrinhDo(){
-  try{
-    ensureEngGame();
-    const qua = GRAMMAR_PATH.filter(t=>ggStatus(t)==='passed').length;
-    const p = qua / Math.max(1, GRAMMAR_PATH.length);
-    if(p >= 0.75) return {ma:'C1', en:'upper-intermediate to advanced'};
-    if(p >= 0.45) return {ma:'B2', en:'intermediate'};
-    if(p >= 0.20) return {ma:'B1', en:'lower-intermediate'};
-  }catch(_){ }
-  return {ma:'A2', en:'elementary'};
+  const ma = SETTINGS.aiTrinhDoChon || 'A2';
+  return AI_TRINHDO_CHON.find(x=>x.ma===ma) || AI_TRINHDO_CHON[1];
+}
+function aiChonTrinhDo(ma){
+  if(!AI_TRINHDO_CHON.some(x=>x.ma===ma)) return;
+  SETTINGS.aiTrinhDoChon = ma;
+  saveSettings(); pushToDrive();
+  renderContent();
 }
 function aiCallSystemPrompt(mode, sc){
   // KHÔNG ép khuôn "1-2 câu ngắn" hay định dạng EN:/TIP: cứng nhắc như bản nhắn tin — chính điều đó
@@ -40898,7 +40906,15 @@ function aiCallSystemPrompt(mode, sc){
   const nho = aiNho();
   // (1) Nói vừa tầm. Đây là thứ quyết định buổi nói có "bắt" hay không: quá khó thì người học câm,
   //     quá dễ thì chán và không học được gì.
-  const tam = `The learner is at roughly CEFR ${td.ma} (${td.en}). Pitch your English just slightly above that level: mostly words they will know, but slip in one or two more useful expressions per exchange and let context carry them. Speak at a natural but unhurried pace. Never dumb it down to robotic textbook English.`;
+  // v355 — BỎ HẲN "nói cao hơn trình độ một chút". Với người A1-A2 thì chính dòng ấy làm
+  // người học không nghe kịp rồi im luôn. Nay: nói ĐÚNG tầm, và tầm là do người học tự chọn.
+  const tam = `THE LEARNER IS A BEGINNER AT CEFR ${td.ma} (${td.en}). This is the single most important rule: speak so they understand you the FIRST time, without asking you to repeat.
+- Use only the most common everyday English words. If a simpler word exists, use the simpler word every time.
+- Keep sentences SHORT and simple. One clause is best. Avoid relative clauses, passive voice, phrasal verbs they may not know, idioms, and slang.
+- Stick mostly to present simple, past simple and "going to". Avoid perfect and conditional tenses unless they use them first.
+- Speak slowly and clearly, with a small pause between sentences. Never rush.
+- Do NOT try to teach new vocabulary by slipping in harder words. Staying inside their level IS the goal.
+- If they do not understand, do not explain with MORE words. Say the same thing again in a shorter, easier way.`;
   // (2) Đẩy bóng về phía người học. Không có dòng này thì AI độc thoại và mình chỉ ngồi nghe.
   // ══ v282 · BẠN BÁO: AI NÓI QUÁ NHIỀU, KHÔNG BÁM MẠCH, KHÔNG CÓ BIỂU CẢM ══════════════
   // Đọc lại lời nhắc cũ thì thấy hai dòng TỰ ĐÁNH NHAU:
@@ -40939,16 +40955,22 @@ function aiCallSystemPrompt(mode, sc){
   // Độ dài: bạn muốn "khi cần thì nói nhiều và diễn đạt đầy đủ, khi thì nói ngắn gọn".
   // Một cái trần phẳng không làm được điều đó — nó chỉ làm mọi lượt dài BẰNG NHAU, mà đều
   // đều chính là thứ nghe ra máy móc. Nên thay bằng luật gắn độ dài vào LOẠI LƯỢT NÓI.
-  const gon = `LENGTH — vary it the way a real person does. There is no fixed turn length.
-- Most turns are SHORT: one or two sentences. Many are just a few words ("Really?" / "Oh nice." / "Same here.").
-- Go LONG — four to six sentences, up to about 90 words — only when the moment actually calls for it: they asked you to explain something, they asked for your story or opinion in depth, or they are stuck and need you to carry the conversation for a moment.
-- The rhythm matters: several short turns in a row, then one longer one, then short again. Never two long turns in a row.
-- Length must follow the content. If you only have one thing to say, say it in one sentence and stop. Padding a thin reply into three sentences is exactly what makes it sound like a machine.
-- Never list options like a menu.`;
-  const base = `This is a live spoken phone-call-style conversation with a Vietnamese learner practicing English. Talk exactly like a real person on a call: contractions everywhere (I'm, you're, gonna, kinda), casual reactions ("oh nice", "hmm", "really?", "no way"), and the occasional false start or "I mean" — that is how natives actually sound. Never say you are an AI and never break character. Never switch to Vietnamese unless they are completely stuck, and even then give the English right after.\n${gon}\n${camXuc}\n${mach}\n${tam}\n${day}\n${sua}${tri}`;
+  // ══ v355 · BẠN BÁO: AI TRẢ LỜI QUÁ DÀI, NGHE KHÔNG KỊP ════════════════════════════
+  // Luật cũ cho phép "four to six sentences, up to about 90 words" khi AI thấy "đáng nói dài".
+  // Với người A1-A2 thì 90 từ một lượt là nghe xong quên đầu quên đuôi, và lượt nào cũng có
+  // cớ để dài. Nay trần cứng: HAI CÂU NGẮN. Muốn nói thêm thì phải nhường lượt cho người học
+  // trước đã — đó mới là trò chuyện, chứ không phải giảng bài.
+  const gon = `KEEP EVERY TURN VERY SHORT. This matters more than sounding clever.
+- Hard limit: at most TWO short sentences per turn, about 25 words total. Never more, no exceptions.
+- Many turns should be even shorter — just a few words ("Really?" / "Oh, nice." / "Me too.").
+- ONE idea per turn. If you have two things to say, say one now and keep the other for later.
+- Never explain at length, never give background, never list options, never use bullet points.
+- If you feel the urge to add one more sentence: don't. Stop and let them talk.
+- The learner should be speaking at least as much as you do. If you are talking more than they are, you are doing it wrong.`;
+  const base = `This is a live spoken phone-call-style conversation with a Vietnamese learner practicing English. Sound like a real, warm person on a call — use normal contractions (I'm, you're, it's) and short natural reactions ("oh nice", "really?", "that's good") — but speak CLEARLY and simply, because they are a beginner. Do not use slang, reduced forms like "gonna"/"kinda", or unfinished false starts: a beginner loses the thread immediately. Never say you are an AI and never break character. Never switch to Vietnamese unless they are completely stuck, and even then give the English right after.\n${gon}\n${tam}\n${camXuc}\n${mach}\n${day}\n${sua}${tri}`;
   if(mode==='phanxa'){
     // Luyện phản xạ: nhịp nhanh, câu ngắn, không cho nghĩ lâu. Đây là bài tập, nên nói rõ là bài tập.
-    return `You are a friendly English speaking coach running a fast-paced REFLEX DRILL with a Vietnamese learner over a live call. Fire a short, concrete everyday question at them (5-12 words), wait for their answer, react in ONE short sentence, then immediately fire the next question. Keep an energetic, encouraging rhythm — this is a drill, not a chat, so do not go off on long tangents. Mix question types: personal ("What did you eat this morning?"), opinion ("Coffee or tea, and why?"), quick situation ("Your train is late — what do you say to your boss?"). If they hesitate more than a few seconds, rephrase it shorter and easier rather than waiting.\n${tam}\n${sua}${tri}`;
+    return `You are a friendly English speaking coach running a fast-paced REFLEX DRILL with a Vietnamese beginner over a live call. Fire ONE short, concrete everyday question (5-10 words), wait for their answer, react in ONE very short sentence (3-6 words), then immediately fire the next question. Never say more than that between questions. Keep an encouraging rhythm — this is a drill, not a chat. Mix question types: personal ("What did you eat this morning?"), choice ("Coffee or tea?"), quick situation ("You are late for work. What do you say?"). If they hesitate more than a few seconds, ask it again shorter and easier instead of waiting.\n${tam}\n${sua}${tri}`;
   }
   if(mode==='scenario' && sc) return `You are role-playing as ${sc.roleEn}. Scenario: ${sc.descEn}\n${base}`;
   return `You are a warm, friendly native English speaker having a real phone-call conversation with the learner about anything.\n${base}`;
@@ -49214,6 +49236,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aiPxEl){ startAiChatPhanXa(); return; }
   const aiNhoXoaEl = e.target.closest('[data-action="ai-nho-xoa"]');
   if(aiNhoXoaEl){ aiNhoXoa(); showToast('🧠','Đã xoá trí nhớ','Buổi tới AI bắt đầu lại như người mới gặp.'); return; }
+  // v355 — chọn trình độ. Thiếu bộ nghe này thì nút bấm xong không có gì xảy ra.
+  const aiTdEl = e.target.closest('[data-action="ai-chon-trinhdo"]');
+  if(aiTdEl){ aiChonTrinhDo(aiTdEl.getAttribute('data-td')); return; }
   const ptChonEl = e.target.closest('[data-action="pt-chon"]');
   if(ptChonEl){ const k = ptChonEl.getAttribute('data-k'); STATE.ptChon = (STATE.ptChon === k) ? null : k; renderContent(); return; }
   const ptBatEl = e.target.closest('[data-action="pt-bat-dau"]');
