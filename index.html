@@ -1667,11 +1667,15 @@
   .kh-tcnha{position:absolute; left:44px; top:50%; transform:translateY(-50%);
     display:flex; align-items:center; gap:6px; height:36px; padding:0 12px;
     border-radius:12px; cursor:pointer; z-index:3; white-space:nowrap;
-    font-size:11.5px; font-weight:800; letter-spacing:.2px; color:#9FD0FF;
-    background:rgba(79,168,255,.12); border:1px solid rgba(79,168,255,.34);
+    font-size:11.5px; font-weight:800; letter-spacing:.2px;
+    /* v356 — màu chip ĐI THEO dòng hàng đang tra (biến --tcnha do tcNutNhaHtml gắn vào),
+       không còn đóng cứng màu xanh của Outdoor. Nhìn màu là biết mình đang ở nhánh nào. */
+    color:color-mix(in srgb, var(--tcnha, #4FA8FF) 72%, #fff);
+    background:color-mix(in srgb, var(--tcnha, #4FA8FF) 13%, transparent);
+    border:1px solid color-mix(in srgb, var(--tcnha, #4FA8FF) 36%, transparent);
     box-shadow:0 4px 10px rgba(0,0,0,.2);
     transition:transform .15s ease, background .15s ease;}
-  .kh-tcnha:hover{background:rgba(79,168,255,.2);}
+  .kh-tcnha:hover{background:color-mix(in srgb, var(--tcnha, #4FA8FF) 22%, transparent);}
   .kh-tcnha:active{transform:translateY(-50%) scale(.94);}
   .kh-tcnha .ic{font-size:13px; line-height:1;}
   /* Màn hẹp: giữ nguyên biểu tượng, giấu chữ để không đè lên tiêu đề giữa hàng. */
@@ -6486,7 +6490,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v355';
+const APP_VERSION = 'v356';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -16549,9 +16553,35 @@ function tcKhoHinhHtml(){
     ${tcKhoCanNutTay(thieu, tcAnhMangHong) ? `<button class="tc-kho-n" data-action="tc-anh-nhap">Nhập tay ${thieu} hình</button>` : ''}
   </div>`;
 }
+// v356 — HÀNG NÚT ĐIỀU HƯỚNG CỦA MÀN TIÊU CHUẨN: ← quay lại · chip dòng hàng · 🏠 màn chính.
+//
+// Lỗi phải sửa: bản cũ đóng cứng chữ "Outdoor" và emoji 🪑, nên đứng trong EN 14749 (tủ
+// bếp TRONG NHÀ) hay Williams-Sonoma vẫn thấy chip "Outdoor" — chỉ sai đường về. Nay chip
+// đọc KH_STATE.cat, lấy tên và màu đúng từ KH_CATEGORIES, nên nó luôn nói thật nó dẫn đi đâu.
+//
+// Và thêm 🏠 về hub của cả app. Hai nút này KHÁC NHAU, giữ cả hai mới đủ:
+//   ← / chip  → lùi một tầng, hoặc về đúng dòng hàng đang tra.
+//   🏠        → nhảy hẳn ra ngoài bộ tiêu chuẩn, về trang chính của app.
+// Trước v356 màn tiêu chuẩn không có 🏠, trong khi các màn khác (Quản gia, English, hub)
+// đã có — nên riêng chỗ đọc lâu nhất lại là chỗ phải bấm back nhiều lần nhất.
+const TC_NHA_ICON = {outdoor:'🪑', indoor:'🛋️', wsi:'🏬', go:'🪵', ximang:'🧱',
+  nhua:'🧴', lighting:'💡', handicraft:'🎨', bamboo:'🎍', benvung:'🌿', khac:'📦'};
+function tcNhaDongHang(){
+  const id = (KH_STATE && KH_STATE.cat) || 'outdoor';
+  const c = KH_CATEGORIES.find(x=>x.id===id);
+  return {
+    id,
+    ten:  c ? c.label.replace(/\s*furniture\s*$/i,'').trim() : 'Màn chính',
+    hex:  (c && c.hex) || '#4FA8FF',
+    icon: TC_NHA_ICON[id] || '🪑'
+  };
+}
 function tcNutNhaHtml(){
-  return `<div class="kh-tcnha" data-action="tc-nha" title="Về màn chính Outdoor furniture"
-    ><span class="ic">🪑</span><span class="ch">Outdoor</span></div>`;
+  const d = tcNhaDongHang();
+  return `<div class="kh-tcnha" data-action="tc-nha" style="--tcnha:${d.hex}"
+    title="Về màn chính ${escapeHtml(d.ten)}"
+    ><span class="ic">${d.icon}</span><span class="ch">${escapeHtml(d.ten)}</span></div
+    ><div class="kh-homebtn" data-action="go-home" title="Về trang chính của app">🏠</div>`;
 }
 // Nhảy thẳng về màn EU/US Market, dù đang ở tầng nào.
 //
@@ -16567,7 +16597,11 @@ function tcVeNhaOutdoor(){
   }
   if(i < 0){
     // Không tìm thấy mốc nào (mở thẳng vào giữa chừng): dựng màn tại chỗ, không đụng lịch sử.
-    KH_STATE.view = 'catlist'; KH_STATE.cat = 'outdoor';
+    // v356 — GIỮ ĐÚNG DÒNG HÀNG ĐANG TRA. Bản cũ đóng cứng 'outdoor', nên ai đang đọc
+    // EN 14749 (Indoor) mà rơi vào nhánh này là bị quăng sang Outdoor — chip ghi một đường,
+    // bấm vào đi một đường khác.
+    KH_STATE.view = 'catlist';
+    if(!KH_STATE.cat || !KH_CATEGORIES.some(x=>x.id===KH_STATE.cat)) KH_STATE.cat = 'outdoor';
     KH_STATE.tcBo = null; KH_STATE.tcSo = null; KH_STATE.tcId = null; KH_STATE.thuId = null;
     renderContent(); window.scrollTo(0,0);
     return 0;
