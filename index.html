@@ -1626,6 +1626,32 @@
   .kh-intro{font-size:11.5px; color:var(--dim); margin:-4px 0 16px; line-height:1.68;
     text-align:center; padding:0 6px;}
   .kh-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+  /* v358 — DẢI BA CON SỐ ở đầu màn Kinh nghiệm kiểm hàng. Ba con số này ĐẾM TỪ DỮ LIỆU
+     THẬT mỗi lần dựng màn, nên soạn thêm một bộ tiêu chuẩn là chúng tự đúng. */
+  .kh-sum{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:-2px 0 14px;}
+  .kh-sum .o{background:linear-gradient(170deg, var(--panel2), var(--panel));
+    border:1px solid var(--border); border-radius:16px; padding:11px 8px 9px; text-align:center;}
+  .kh-sum .o b{display:block; font-size:20px; font-weight:900; letter-spacing:-.4px; color:#fff;
+    line-height:1.1;}
+  .kh-sum .o i{display:block; font-style:normal; font-size:10px; font-weight:700; color:var(--dim);
+    margin-top:3px; letter-spacing:.2px;}
+  /* Thẻ ghi chú theo dòng hàng — hàng ngang thấp, cố ý NHẸ hơn thẻ tiêu chuẩn ở trên,
+     vì đây là phần phụ: nội dung chính của màn này là bảng tra cứu. */
+  .kh-gc{display:flex; flex-direction:column; gap:8px; margin-bottom:18px;}
+  .kh-gc-n{display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+    background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--khm, var(--blue));
+    border-radius:14px; padding:9px 12px; cursor:pointer; color:var(--text);
+    transition:background .15s ease, transform .15s ease;}
+  .kh-gc-n:hover{background:var(--panel2);}
+  .kh-gc-n:active{transform:scale(.985); background:var(--panel2);}
+  .kh-gc-n .ic{width:38px; height:28px; border-radius:9px; overflow:hidden; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;}
+  .kh-gc-n .ic svg, .kh-gc-n .ic .kh-photo{width:100%; height:100%; display:block;}
+  .kh-gc-n .noi{flex:1; min-width:0;}
+  .kh-gc-n .noi b{display:block; font-size:13px; font-weight:800; color:#fff; letter-spacing:.1px;}
+  .kh-gc-n .noi i{display:block; font-style:normal; font-size:10.5px; font-weight:700;
+    color:var(--dim); margin-top:2px;}
+  .kh-gc-n .mui{font-size:15px; color:var(--khm, var(--blue)); flex-shrink:0;}
   .kh-cat-card{position:relative; background:linear-gradient(170deg, var(--panel2), var(--panel));
     border:1px solid var(--border); border-radius:20px; padding:13px 12px 12px; overflow:hidden;
     display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer; text-align:center;
@@ -1806,6 +1832,16 @@
     overflow-wrap:anywhere;}
   .tc-doc-vi{margin-top:4px; font-size:13px; line-height:1.5; color:var(--dim);
     overflow-wrap:anywhere;}
+  /* v358 — Mách nước một dòng dưới mỗi thẻ tiêu chuẩn: thứ phải nhớ TRƯỚC khi gửi mẫu
+     đi thử. Cố ý nhỏ và mờ hơn thẻ, nhưng vẫn đọc được — nó là chú thích, không phải
+     tiêu đề; đặt sát thẻ để không ai phải đoán nó nói về bộ nào. */
+  .tc-mach{font-size:11px; line-height:1.6; color:var(--dim); margin:-4px 0 9px;
+    padding:7px 11px 7px 12px; border-left:2px solid color-mix(in srgb, var(--tcm, var(--blue)) 45%, transparent);
+    background:color-mix(in srgb, var(--tcm, var(--blue)) 6%, transparent);
+    border-radius:0 11px 11px 0;}
+  /* Trong vùng CSS tiêu chuẩn, mọi màu phải đi qua biến — luật đặt từ v317, nhờ nó mà
+     cả quãng thử 17 tông chỉ tốn mỗi tông một khối. */
+  .tc-mach b{color:var(--text); font-weight:800;}
   .tc-de{font-size:12px; font-weight:800; color:var(--tcm, var(--blue)); margin:16px 0 8px;
     letter-spacing:.2px;}
   .tc-de:first-of-type{margin-top:2px;}
@@ -6490,7 +6526,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v357';
+const APP_VERSION = 'v358';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6784,27 +6820,19 @@ function saveProfile(){
 let LOG = {};
 let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
 const KH_CATEGORIES = [
-  // v286 — EN 581 là tiêu chuẩn cho đồ ngoài trời, nên dòng hàng này đứng đầu: mở ra là
-  // vào thẳng bộ tra cứu, không phải lục qua ghi chú.
+  // v358 — TỪ MƯỜI DÒNG HÀNG XUỐNG BA.
+  //
+  // Bảy dòng kia (Gỗ, Xi măng, Nhựa, Lighting, Handicraft, Bamboo, Khác) là thẻ RỖNG: mở
+  // ra không có tiêu chuẩn nào, chỉ có ô ghi chú trống. Mười thẻ dàn đều trên màn chính
+  // làm ba dòng CÓ nội dung chìm lẫn vào bảy dòng không có — người dùng phải nhớ thẻ nào
+  // đáng bấm. Nay chỉ giữ ba dòng thật.
+  //
+  // "Bách Khoa Nhựa" trước đây là liên kết nằm TRONG dòng hàng Nhựa. Bỏ dòng ấy đi thì
+  // trang đó mất lối vào, nên nó được dời lên khối "Tra cứu khác" ở màn chính — không
+  // mất gì, mà còn dễ thấy hơn.
   {id:'outdoor', label:'Outdoor Furniture', icon:'outdoor', hex:'#4FA8FF'},
-  // v349 — Williams-Sonoma là tiêu chuẩn KHÁCH HÀNG, phủ cả đồ trong nhà (giường, tủ,
-  // ghế, bàn, gương, kệ TV, rương). Không nhét được vào EU/US Market của Outdoor vì nó
-  // không chia theo thị trường mà chia theo LOẠI HÀNG, nên đứng thành một dòng riêng.
-  {id:'wsi', label:'Williams-Sonoma', icon:'outdoor', hex:'#E0A458'},
-  // v352 — EN 14749 là tủ và mặt bàn bếp DÙNG TRONG NHÀ, không phải đồ ngoài trời, nên
-  // không nhét được vào Outdoor. Dòng hàng riêng này để dành cho cả các EN đồ trong nhà
-  // soạn sau (EN 12520 ghế, EN 12521 bàn, EN 16121/16122 tủ…).
-  {id:'indoor', label:'Indoor Furniture', icon:'wood', hex:'#6EC1E4'},
-  {id:'go', label:'Gỗ', icon:'wood', hex:'#C68642'},
-  {id:'ximang', label:'Xi măng', icon:'cement', hex:'#9AA5B1'},
-  {id:'nhua', label:'Nhựa', icon:'plastic', hex:'#0EA5C4'},  // v329: sáng hơn v316 một nấc.
-  // Màu cũ #0891B2 đo ra 4,19:1 trên nền khung lớp hai — dưới mức tối thiểu 4,5:1. Đây là
-  // thiếu sót có sẵn từ v316 chứ không phải do đợt quay về gây ra, nhưng đã đo thấy thì sửa.
-  // Vẫn đúng sắc lam ấy, chỉ sáng lên cho đọc được.
-  {id:'lighting', label:'Lighting', icon:'bulb', hex:'#FFC94A'},
-  {id:'handicraft', label:'Handicraft', icon:'palette', hex:'#FF8A3D'},
-  {id:'bamboo', label:'Bamboo', icon:'bamboo', hex:'#2CDBA8'},
-  {id:'khac', label:'Khác', icon:'grid', hex:'#8B96A8'}
+  {id:'indoor',  label:'Indoor Furniture',  icon:'wood',    hex:'#6EC1E4'},
+  {id:'wsi',     label:'Williams-Sonoma',   icon:'outdoor', hex:'#E0A458'}
 ];
 // ══════════════════════════════════════════════════════════════════════════════════════
 //  v286 · BỘ TRA CỨU EN 581 — ĐỒ GỖ / NỘI THẤT NGOÀI TRỜI
@@ -9203,173 +9231,120 @@ function renderKiemHang(){
   else if(KH_STATE.view==='tcdieu') renderTcDieu();
   else renderKhCategories();
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v358 · MÀN CHÍNH KINH NGHIỆM KIỂM HÀNG — XẾP THEO THỊ TRƯỜNG
+//
+//  Bản cũ có MƯỜI thẻ dòng hàng, mà chỉ BA thẻ có tiêu chuẩn; bảy thẻ kia (Gỗ, Xi măng,
+//  Nhựa, Lighting, Handicraft, Bamboo, Khác) mở ra chỉ có ghi chú. Tệ hơn: muốn tra một
+//  tiêu chuẩn thì phải đoán nó nằm trong dòng hàng nào, rồi mới thấy. Hai tầng ấy không
+//  giúp gì — nó chỉ giấu nội dung đi.
+//
+//  Nay màn chính CHÍNH LÀ bảng tra cứu, xếp theo THỊ TRƯỜNG vì đó là thứ biết trước tiên
+//  khi nhận đơn hàng: hàng đi EU hay đi Mỹ, hay theo tiêu chuẩn riêng của khách.
+//
+//  Ba bộ phương pháp thử (EN 1728, EN 1730, EN 1022) tách thành KHỐI RIÊNG. Trước đây
+//  chúng nằm trong "Outdoor", nhưng đó là xếp SAI QUAN HỆ: EN 12520, EN 12521 và EN 16139
+//  (đồ TRONG NHÀ) cũng viện dẫn sang chúng. Số "được N bộ viện dẫn" ở mỗi thẻ được ĐẾM TỪ
+//  DỮ LIỆU THẬT, không gõ tay — soạn thêm bộ mới là con số tự đúng.
+// ══════════════════════════════════════════════════════════════════════════════════════
 function renderKhCategories(){
-  const cards = KH_CATEGORIES.map(c=>{
+  const soDieu = b => tcDieuTheoBo(b).length;
+  const soHinh = b => TC_HINH.filter(h => h.bo === b).length;
+  const the = id => {
+    const b = tcBoCua(id); if(!b) return '';
+    const ds = tcDieuTheoBo(id);
+    const lon = ds.filter(d => String(d.so).indexOf('.') < 0).length;
+    const hs = TC_HINH.filter(h => h.bo === id);
+    const sh = hs.filter(h => h.loai !== 'bang').length;
+    const sb = hs.filter(h => h.loai === 'bang').length;
+    const vd = tcAiVienDan(id);
+    // Số đếm GHI RÕ TỪNG LOẠI thay vì một con số gộp. Khi nhận đơn hàng, biết một bộ có
+    // bao nhiêu BẢNG là biết ngay nó tra nhanh hay phải đọc kỹ — bảng là chỗ có mức lực.
+    const dem = ds.length + ' điều khoản · ' + lon + ' mục lớn · ' + (ds.length - lon) + ' mục con'
+      + (sh ? ' · ' + sh + ' hình' : '') + (sb ? ' · ' + sb + ' bảng' : '')
+      + (vd.length ? ' · <b>' + vd.length + ' bộ viện dẫn tới</b>' : '');
+    return `<button class="tc-ba-n" data-action="tc-bo" data-bo="${id}" style="--tcm:${b.hex}">
+      <span class="hao"></span>
+      <span class="vai">${escapeHtml(b.vai.replace(/^ĐỒ TRONG NHÀ — /, ''))}</span>
+      <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
+      <span class="en">${escapeHtml(b.en)}</span>
+      <span class="dem">${dem}</span>
+      <span class="mui">→</span>
+    </button>${TC_BO_MACH[id] ? `<div class="tc-mach">${TC_BO_MACH[id]}</div>` : ''}`;
+  };
+  const khoi = tt => {
+    const ids = tt.nhom.reduce((a, n) => a.concat(n.bo), []);
+    const tong = ids.reduce((n, id) => n + soDieu(id), 0);
+    return `<section class="tc-tt-k" style="--tcm:${tt.hex}">
+      <header class="tc-tt-d"><span class="co">${tt.ma}</span>
+        <span class="t">${escapeHtml(tt.ten)}<i>${escapeHtml(tt.mo)} · ${ids.length} tiêu chuẩn · ${tong} điều khoản</i></span></header>
+      ${tt.nhom.map(n => `
+        ${n.ten ? `<div class="tc-tt-mt"><span class="ma">${escapeHtml(n.ten)}</span>
+          <span class="t">${escapeHtml(n.enTen)}<i>${n.gc}</i></span></div>` : ''}
+        <div class="tc-ba${n.ten ? ' trong' : ''}">${n.bo.map(the).join('')}</div>`).join('')}
+      ${tt.gc ? `<div class="tc-tt-gc">${tt.gc}</div>` : ''}
+    </section>`;
+  };
+  // Ghi chú thực chiến vẫn theo DÒNG HÀNG, không theo thị trường — một mẹo kiểm ghế gỗ
+  // ngoài trời đúng cho cả hàng đi EU lẫn đi Mỹ, nên xếp nó theo thị trường là sai chỗ.
+  const ghiChu = KH_CATEGORIES.map(c => {
     const n = khNotes(c.id).length;
-    // v286 — màu dòng hàng đi vào CSS qua biến --khm, nhờ vậy vệt sáng mép trên, quầng
-    // sáng sau ảnh và viền lúc chạm đều tự ăn theo màu mà không phải viết tay từng dòng.
-    return `<div class="kh-cat-card" data-action="kh-open-cat" data-cat="${c.id}" style="--khm:${c.hex}">
-      <div class="ic">${khPhoto(c.icon)}</div><div class="lbl">${c.label}</div>
-      <div class="cnt${n ? ' co' : ''}">${n} ghi chú</div>
-    </div>`;
+    return `<button class="kh-gc-n" data-action="kh-open-cat" data-cat="${c.id}" style="--khm:${c.hex}">
+      <span class="ic">${khPhoto(c.icon)}</span>
+      <span class="noi"><b>${escapeHtml(c.label)}</b><i>${n ? n + ' ghi chú' : 'chưa có ghi chú'}</i></span>
+      <span class="mui">→</span>
+    </button>`;
   }).join('');
+  const tongBo = TC_BO_THUTU.length;
+  const tongDieu = TC_BO_THUTU.reduce((n, id) => n + soDieu(id), 0);
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('box','#FF5A6E','#FF8A3D')+' Kinh nghiệm kiểm hàng')}
-    <div class="kh-intro">Ghi lại kinh nghiệm, tiêu chuẩn và lỗi thường gặp cho từng dòng hàng.
-      Dữ liệu tự động đồng bộ qua Google Drive.</div>
-    <div class="kh-grid">${cards}</div>`;
+    <div class="kh-sum">
+      <div class="o"><b>${tongBo}</b><i>bộ tiêu chuẩn</i></div>
+      <div class="o"><b>${tongDieu}</b><i>điều khoản</i></div>
+      <div class="o"><b>${TC_HINH.length}</b><i>hình và bảng</i></div>
+    </div>
+    <div class="kh-intro">Xếp theo <b>thị trường</b> — thứ biết trước tiên khi nhận đơn hàng.
+      Bấm một bộ là vào thẳng cây điều khoản.</div>
+    <div class="tc-tt">${TC_THITRUONG.map(khoi).join('')}</div>
+    <!-- Hai lối vào KHÔNG phải là một bộ tiêu chuẩn, nên không nằm trong bảng trên, nhưng
+         bỏ hẳn thì mất nội dung: EN 581 có ${TC_MUC.length} chủ đề thực chiến tôi soạn riêng, và
+         màn sơ đồ quan hệ giải thích bộ nào viện dẫn sang bộ nào. -->
+    <div class="kh-gc">
+      <button class="kh-gc-n" data-action="tc-bo" data-bo="en581" style="--khm:#4FA8FF">
+        <span class="ic">${khPhoto('outdoor')}</span>
+        <span class="noi"><b>EN 581 · Chủ đề thực chiến</b><i>${TC_MUC.length} chủ đề soạn từ kinh nghiệm kiểm hàng, không phải điều khoản</i></span>
+        <span class="mui">→</span>
+      </button>
+      <button class="kh-gc-n" data-action="tc-mo" style="--khm:#A98BFF">
+        <span class="ic">${khPhoto('grid')}</span>
+        <span class="noi"><b>Sơ đồ quan hệ giữa các bộ</b><i>Bộ nào nêu yêu cầu, bộ nào nêu cách thử, viện dẫn sang nhau ra sao</i></span>
+        <span class="mui">→</span>
+      </button>
+    </div>
+    ${tcKhoHinhHtml()}
+    <div class="tc-h3">Ghi chú thực chiến<i>Theo dòng hàng — mẹo, lỗi hay gặp, kinh nghiệm của riêng bạn</i></div>
+    <div class="kh-gc">${ghiChu}</div>
+    <div class="tc-h3">Tra cứu khác<i>Không phải tiêu chuẩn, nhưng hay cần tới khi kiểm hàng</i></div>
+    <div class="kh-gc">
+      <button class="kh-gc-n" data-action="hub-open" data-target="nhua-embed" style="--khm:#0EA5C4">
+        <span class="ic">${khPhoto('plastic')}</span>
+        <span class="noi"><b>Bách Khoa Nhựa</b><i>Phân biệt và so sánh 12 loại nhựa phổ biến</i></span>
+        <span class="mui">→</span>
+      </button>
+    </div>`;
 }
+// v358 — MÀN DÒNG HÀNG CHỈ CÒN GHI CHÚ.
+//
+// Trước đây mỗi dòng hàng mang theo cả một khối thẻ tiêu chuẩn, nên cùng một bộ hiện ở
+// hai nơi: trong dòng hàng, và trong màn danh sách chung. Hai chỗ ấy dựng bằng hai đoạn
+// mã khác nhau, nên đếm số điều khoản cũng theo hai lối — đúng loại trùng lặp âm thầm
+// sinh ra lệch số. Nay tiêu chuẩn chỉ còn MỘT chỗ duy nhất là màn chính, còn màn dòng
+// hàng làm đúng một việc: giữ ghi chú thực chiến của bạn.
 function renderKhCatList(){
   const cat = KH_CATEGORIES.find(c=>c.id===KH_STATE.cat) || KH_CATEGORIES[0];
   const notes = khNotes(cat.id).slice().sort((a,b)=>b.updatedAt-a.updatedAt);
-  let refCard = '';
-  if(cat.id === 'nhua') refCard = `<div class="kh-refcard" data-action="hub-open" data-target="nhua-embed" style="cursor:pointer;">
-      <div><div class="t1">📖 Mở Bách Khoa Nhựa</div><div class="t2">Tra cứu, phân biệt và so sánh 12 loại nhựa phổ biến</div></div>
-      <div style="font-size:18px;">→</div>
-    </div>`;
-  // v286 — EN 581 là tiêu chuẩn của chính dòng hàng này, nên để ngay trên đầu danh sách
-  // ghi chú: mở dòng hàng ra là thấy, không phải nhớ nó nằm ở đâu.
-  //
-  // v289 — ba bộ ra NGANG HÀNG nhau ngay ở tầng ngoài. v288 chỉ hiện một thẻ “EN 581”, hai
-  // bộ phương pháp thử nằm ẩn một tầng bên trong, nên nhìn vào tưởng app chỉ có một tiêu
-  // chuẩn. Mỗi thẻ vào thẳng bộ của nó; thẻ cuối vẫn giữ lối vào màn quan hệ ba bộ cho
-  // người cần xem bộ nào viện dẫn bộ nào.
-  // v295 — MỖI TIÊU CHUẨN MỘT THẺ, SÁU THẺ NGANG HÀNG.
-  // v289 đã kéo EN 1728/EN 1730 ra ngang hàng, nhưng ba phần của EN 581 vẫn nằm gộp
-  // trong MỘT thẻ "EN 581" — mở ra mới thấy chúng, nên nhìn vào tưởng EN 1728 và EN 1730
-  // là phụ lục của EN 581. Thực tế đây là sáu tiêu chuẩn độc lập, mỗi cái một số hiệu và
-  // một năm ban hành. Nay cả sáu cùng một hàng, và SỐ HIỆU VỚI NĂM nằm cùng một dòng.
-  // v304 — CHIA THEO THỊ TRƯỜNG. Trước đây bảy bộ nằm chung một hàng, nhìn vào không
-  // biết bộ nào áp cho hàng đi châu Âu, bộ nào cho hàng đi Mỹ — mà đó mới là câu hỏi đầu
-  // tiên khi nhận đơn. Nay hai khối rõ ràng: EU Market và US Market. Trong EU, ba phần
-  // của EN 581 là MỤC CON của EN 581 (đúng như bản in: một tiêu chuẩn ba phần), còn
-  // EN 1728 / EN 1730 / EN 1022 đứng riêng vì là tiêu chuẩn độc lập.
-  if(cat.id === 'outdoor'){
-    const dem = b => `${tcDieuTheoBo(b.id).length} điều khoản${
-      TC_HINH.filter(h=>h.bo === b.id).length ? ' · ' + TC_HINH.filter(h=>h.bo === b.id).length + ' hình và bảng' : ''}`;
-    const the = b => `
-        <button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
-          <span class="hao"></span>
-          <span class="vai">${escapeHtml(b.vai)}</span>
-          <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
-          <span class="en">${escapeHtml(b.en)}</span>
-          <span class="dem">${dem(b)}</span>
-          <span class="mui">→</span>
-        </button>`;
-    const conEn581 = TC_BO.filter(b=>/^en581-[123]$/.test(b.id));
-    const eu = TC_BO.filter(b=>['en1728','en1730','en1022'].indexOf(b.id) >= 0);
-    const us = TC_BO.filter(b=>b.id === 'ul4041');
-    const tongEu = conEn581.concat(eu).reduce((n,b)=>n + tcDieuTheoBo(b.id).length, 0);
-    refCard = `
-    <div class="tc-tt">
-      <section class="tc-tt-k" style="--tcm:#4FA8FF">
-        <header class="tc-tt-d"><span class="co">EU</span>
-          <span class="t">EU Market<i>Hàng đi châu Âu · ${conEn581.length + eu.length} tiêu chuẩn · ${tongEu} điều khoản</i></span></header>
-        <div class="tc-tt-me">
-          <div class="tc-tt-mt"><span class="ma">EN 581</span>
-            <span class="t">Outdoor furniture — Seating and tables<i>Một tiêu chuẩn, ba phần — nêu YÊU CẦU sản phẩm</i></span></div>
-          <div class="tc-ba trong">${conEn581.map(the).join('')}</div>
-        </div>
-        <div class="tc-tt-mt lon"><span class="ma">Test methods</span>
-          <span class="t">Phương pháp thử<i>EN 581 viện dẫn sang ba bộ này để biết THỬ NHƯ THẾ NÀO</i></span></div>
-        <div class="tc-ba">${eu.map(the).join('')}</div>
-      </section>
-      <section class="tc-tt-k" style="--tcm:#FF8A65">
-        <header class="tc-tt-d"><span class="co">US</span>
-          <span class="t">US Market<i>Hàng đi Mỹ · ${us.length} tiêu chuẩn · ${us.reduce((n,b)=>n + tcDieuTheoBo(b.id).length, 0)} điều khoản</i></span></header>
-        <div class="tc-ba">${us.map(the).join('')}</div>
-        <div class="tc-tt-gc">UL 4041 <b>gộp cả yêu cầu lẫn phương pháp thử vào một tài liệu</b>,
-          không viện dẫn đi đâu — khác hẳn cách làm của bộ EN.</div>
-      </section>
-    </div>
-    ${tcKhoHinhHtml()}
-    <button class="tc-ba-qh" data-action="tc-mo">Các bộ này liên quan nhau thế nào →</button>`;
-  }
-  // v349 — màn dòng hàng Williams-Sonoma: một thẻ duy nhất vào bộ tra cứu, kèm ba con
-  // số đo được (mục lớn · phép thử · trang) để biết ngay bộ này to cỡ nào.
-  if(cat.id === 'wsi'){
-    const b = tcBoCua('wsi');
-    const ds = tcDieuTheoBo('wsi');
-    const muc = ds.filter(d=>String(d.so).indexOf('.') < 0).length;
-    refCard = `
-    <div class="tc-tt">
-      <section class="tc-tt-k" style="--tcm:${b.hex}">
-        <header class="tc-tt-d"><span class="co">WSI</span>
-          <span class="t">Tiêu chuẩn khách hàng<i>Williams-Sonoma, Inc. Vietnam · ${muc} mục lớn · ${ds.length - muc} phép thử · 112 trang</i></span></header>
-        <div class="tc-ba">
-          <button class="tc-ba-n" data-action="tc-bo" data-bo="wsi" style="--tcm:${b.hex}">
-            <span class="hao"></span>
-            <span class="vai">${escapeHtml(b.vai)}</span>
-            <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
-            <span class="en">${escapeHtml(b.en)}</span>
-            <span class="dem">${ds.length} điều khoản</span>
-            <span class="mui">→</span>
-          </button>
-        </div>
-        <div class="tc-tt-gc">Bản gốc là <b>ảnh chụp 112 trang giấy</b>, không phải PDF —
-          chụp ngược 180°, có watermark chéo đè lên chữ nên không máy nào đọc được.
-          Toàn bộ nội dung trong app được <b>đọc bằng mắt từng trang rồi chép tay</b>.</div>
-      </section>
-    </div>`;
-  }
-  // v352 — màn dòng hàng Indoor Furniture. Hiện một thẻ EN 14749, kèm ba con số ĐẾM ĐƯỢC
-  // từ dữ liệu thật (mục lớn · mục con · hình) chứ không ghi tay, để sau này soạn thêm EN
-  // đồ trong nhà thì con số tự đúng.
-  if(cat.id === 'indoor'){
-    // v354 — dòng hàng Indoor Furniture không còn một bộ nữa mà là BỐN, nên khối này
-    // dựng theo danh sách thay vì viết tay từng thẻ: thêm bộ thứ năm chỉ cần thêm một
-    // dòng vào TC_IN_BO. Số mục lớn / mục con / hình / bảng đều ĐẾM TỪ DỮ LIỆU THẬT,
-    // không gõ tay — gõ tay thì mỗi lần soạn thêm điều là con số lại sai lặng lẽ.
-    const TC_IN_BO = [
-      {id:'en14749', gc:'EN 14749 chỉ nêu <b>yêu cầu</b>; <b>cách thử nằm ở EN 16122:2012</b> '
-        + '— tra một mình EN 14749 thì biết phải đạt bao nhiêu nhưng không biết gá mẫu và '
-        + 'đặt lực ở đâu. Ba phép thử riêng mà EN 16122 không có thì EN 14749 tự viết ở '
-        + '<b>Phụ lục A</b> (bắt buộc).'},
-      {id:'en16121', gc:'Dành cho hàng <b>NGOÀI gia dụng</b> — khách sạn, trường học, doanh trại. '
-        + '<b>Cách thử nằm ở EN 16122:2012</b>. Nhớ chốt <b>mức khắc nghiệt 1 hay 2</b> ngay từ '
-        + 'đơn hàng (Bảng C.1), và hàng đi trường học hoặc mẫu giáo còn phải theo <b>Phụ lục A '
-        + 'bắt buộc</b> — ngưỡng phải thử hạ xuống còn <b>350 mm / 5 kg</b>.'},
-      {id:'en12521', gc:'<b>Cách thử nằm ở EN 1730:2012.</b> Việc đầu tiên là chọn đúng <b>một '
-        + 'trong ba cột</b> của Bảng 2 — chọn sai cột là sai hết mức lực. Khai <b>bàn mảnh</b> '
-        + 'thì được thử nhẹ nhất nhưng <b>bắt buộc dán hai nhãn cảnh báo</b> (Điều 6).'},
-      {id:'en12520', gc:'<b style="color:#FF6B6B">⚠ Bản xem thử — thiếu Điều 6, Điều 7 và Phụ lục '
-        + 'A / B / C / D (A, C, D là BẮT BUỘC).</b> Phần đã dựng là <b>trọn Bảng 1 với 15 phép '
-        + 'thử</b> cùng Điều 1–4 và mục 5.1–5.4. <b>Cách thử nằm ở EN 1728:2012 và EN 1022:2023</b> '
-        + '— hai bộ ấy app đã có đủ, bấm sang dòng hàng Outdoor furniture để tra.'},
-      // v357 — bộ thứ năm của dòng hàng Indoor, và là bộ GHẾ đầu tiên ở đây (bốn bộ trước
-      // là tủ, tủ ngoài gia dụng, bàn, ghế gia dụng). Ghi chú nói thẳng hai việc phải làm
-      // trước khi gửi mẫu đi thử: chốt mức, và biết ghế này có phải visitor chair không.
-      {id:'en16139', gc:'Ghế cho <b>nhà hàng, canteen, hội trường, showroom, ngân hàng, quán bar</b> '
-        + '— và <b>ghế tiếp khách văn phòng</b>. Việc đầu tiên là <b>chốt mức L1 hay L2</b> (Phụ lục B): '
-        + 'cả <b>19 phép thử đều đổi số theo mức</b>, thử nhầm là làm lại từ đầu. <b>Cách thử nằm trọn '
-        + 'ở EN 1728:2012</b> — app đã có đủ 84 điều. Là ghế tiếp khách thì còn phải soi <b>Phụ lục C</b> '
-        + 'về kích thước.'}
-    ];
-    refCard = '<div class="tc-tt">' + TC_IN_BO.map(x=>{
-      const b = tcBoCua(x.id);
-      const ds = tcDieuTheoBo(x.id);
-      const muc = ds.filter(d=>String(d.so).indexOf('.') < 0).length;
-      const hs = TC_HINH.filter(h=>h.bo === x.id);
-      const soHinh = hs.filter(h=>h.loai !== 'bang').length;
-      const soBang = hs.filter(h=>h.loai === 'bang').length;
-      return `
-      <section class="tc-tt-k" style="--tcm:${b.hex}">
-        <header class="tc-tt-d"><span class="co">EU</span>
-          <span class="t">${escapeHtml(b.vai.replace('ĐỒ TRONG NHÀ — ', ''))}<i>${muc} mục lớn · ${ds.length - muc} mục con · ${soHinh} hình · ${soBang} bảng</i></span></header>
-        <div class="tc-ba">
-          <button class="tc-ba-n" data-action="tc-bo" data-bo="${x.id}" style="--tcm:${b.hex}">
-            <span class="hao"></span>
-            <span class="vai">${escapeHtml(b.vai)}</span>
-            <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
-            <span class="en">${escapeHtml(b.en)}</span>
-            <span class="dem">${ds.length} điều khoản</span>
-            <span class="mui">→</span>
-          </button>
-        </div>
-        <div class="tc-tt-gc">${x.gc}</div>
-      </section>`;
-    }).join('') + '</div>';
-  }
+  const refCard = '';
   const list = notes.length ? notes.map(n=>`
     <div class="kh-note-item" data-action="kh-edit-note" data-id="${n.id}" style="--khm:${cat.hex}">
       <div class="kh-note-del" data-action="kh-delete-note" data-id="${n.id}">✕</div>
@@ -14820,6 +14795,86 @@ const TC_DIEU_16139 = [
 ];
 
 const TC_BO_THUTU = ['en581-1','en581-2','en581-3','en1728','en1730','en1022','ul4041','wsi','en14749','en16121','en12521','en12520','en16139'];
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v358 · SỔ XẾP TIÊU CHUẨN THEO THỊ TRƯỜNG
+//
+//  Trục chính là THỊ TRƯỜNG vì đó là thứ biết trước tiên khi nhận đơn hàng. Trong mỗi thị
+//  trường mới chia theo LOẠI HÀNG, vì đó là câu hỏi thứ hai: ghế, bàn hay tủ.
+//
+//  Ba bộ phương pháp thử đứng thành khối THỨ TƯ chứ không nhét vào EU, dù chúng đều là
+//  EN. Lý do: chúng không nói sản phẩm phải đạt gì, chúng nói THỬ NHƯ THẾ NÀO, và được
+//  nhiều bộ yêu cầu ở cả hai nhóm trong nhà / ngoài trời viện dẫn tới.
+// Mách nước một dòng cho từng bộ — thứ phải nhớ TRƯỚC KHI gửi mẫu đi thử. Những câu này
+// trước đây nằm rải trong các nhánh của màn dòng hàng; gom về một sổ để không bộ nào bị
+// bỏ quên, và để thêm bộ mới là biết ngay còn thiếu câu mách nước nào.
+const TC_BO_MACH = {
+ 'en581-1':'Phần 1 nêu <b>an toàn chung</b> — đọc trước hai phần kia, vì phần 2 và 3 đều dựa trên nó.',
+ 'en581-2':'Ghế ngoài trời. <b>Cách thử nằm ở EN 1728 và EN 1022.</b> Nhớ chốt <b>cấp sử dụng</b> (camping / domestic / contract) ngay từ đơn hàng.',
+ 'en581-3':'Bàn ngoài trời. <b>Cách thử nằm ở EN 1730.</b>',
+ 'en12520':'Ghế gia dụng. <b style="color:#FF6B6B">⚠ Bản xem thử — thiếu Điều 6, Điều 7 và Phụ lục A/B/C/D (A, C, D là BẮT BUỘC).</b> Phần đã dựng gồm trọn <b>Bảng 1 với 15 phép thử</b>.',
+ 'en16139':'Ghế cho nhà hàng, hội trường, văn phòng. Việc đầu tiên là <b>chốt mức L1 hay L2</b> — cả 19 phép thử đều đổi số theo mức. <b>Cách thử nằm ở EN 1728:2012.</b>',
+ 'en12521':'<b>Cách thử nằm ở EN 1730:2012.</b> Chọn đúng <b>một trong ba cột</b> của Bảng 2 — chọn sai cột là sai hết mức lực. Khai <b>bàn mảnh</b> thì phải <b>dán hai nhãn cảnh báo</b> (Điều 6).',
+ 'en14749':'Tủ gia dụng và tủ bếp. <b>Cách thử nằm ở EN 16122:2012</b>; ba phép thử riêng mà EN 16122 không có thì bộ này tự viết ở <b>Phụ lục A</b> (bắt buộc).',
+ 'en16121':'Tủ ngoài gia dụng. <b>Cách thử nằm ở EN 16122:2012.</b> Chốt <b>mức khắc nghiệt 1 hay 2</b> (Bảng C.1); hàng đi trường học hoặc mẫu giáo còn theo <b>Phụ lục A bắt buộc</b> — ngưỡng hạ xuống <b>350 mm / 5 kg</b>.',
+ 'ul4041':'<b>Gộp cả yêu cầu lẫn phương pháp thử vào một tài liệu</b> — tra một mình nó là đủ.',
+ 'wsi':'Chia theo <b>LOẠI HÀNG</b>, phủ cả đồ trong nhà lẫn ngoài trời. Đây là yêu cầu <b>CỘNG THÊM</b> chứ không thay thế EN hay UL.',
+ 'en1728':'Phép thử cho <b>GHẾ</b>. Đây là bộ được viện dẫn nhiều nhất — cả đồ ngoài trời lẫn đồ trong nhà.',
+ 'en1730':'Phép thử cho <b>BÀN</b>.',
+ 'en1022':'Phép thử <b>ĐỘ ỔN ĐỊNH</b> của ghế — thường chạy <b>SAU</b> dãy phép thử độ bền, trên mẫu đã bị mỏi.'
+};
+
+const TC_THITRUONG = [
+ {id:'eu', ma:'EU', ten:'Thị trường châu Âu', hex:'#4FA8FF',
+  mo:'Bộ EN — nêu YÊU CẦU sản phẩm',
+  gc:'Đặc điểm chung của bộ EN: <b>tách đôi</b> — tiêu chuẩn yêu cầu nói <b>phải đạt bao nhiêu</b>, '
+   + 'rồi viện dẫn sang một tiêu chuẩn khác để biết <b>thử như thế nào</b>. Nên tra một mình bộ yêu cầu '
+   + 'là chưa đủ, luôn phải mở kèm bộ phương pháp thử ở khối dưới.',
+  nhom:[
+   {ten:'Ngoài trời', enTen:'Outdoor furniture',
+    gc:'EN 581 là <b>một tiêu chuẩn ba phần</b>: phần 1 an toàn chung, phần 2 ghế, phần 3 bàn.',
+    bo:['en581-1','en581-2','en581-3']},
+   {ten:'Ghế', enTen:'Seating',
+    gc:'Ranh giới là <b>nơi dùng</b>: EN 12520 cho <b>trong nhà dân</b>, EN 16139 cho <b>nhà hàng, văn phòng, hội trường</b>.',
+    bo:['en12520','en16139']},
+   {ten:'Bàn', enTen:'Tables',
+    gc:'Việc đầu tiên là chọn đúng <b>một trong ba loại bàn</b> ở Bảng 2 — chọn sai loại là sai hết mức lực.',
+    bo:['en12521']},
+   {ten:'Tủ', enTen:'Storage furniture',
+    gc:'Cùng một cặp: EN 14749 cho <b>tủ gia dụng và tủ bếp</b>, EN 16121 cho <b>tủ ngoài gia dụng</b>. '
+     + 'Cả hai đều lấy cách thử từ <b>EN 16122:2012</b> — bộ app chưa có.',
+    bo:['en14749','en16121']}
+  ]},
+ {id:'us', ma:'US', ten:'Thị trường Mỹ', hex:'#FF8A65',
+  mo:'Yêu cầu và cách thử gộp một tài liệu',
+  gc:'<b>UL 4041 gộp cả yêu cầu lẫn phương pháp thử vào MỘT tài liệu</b>, không viện dẫn đi đâu — '
+   + 'khác hẳn cách làm tách đôi của bộ EN. Tra một mình nó là đủ.',
+  nhom:[{ten:'Ngoài trời', enTen:'Outdoor furniture',
+    gc:'Phủ cả ghế lẫn bàn trong cùng một tài liệu.', bo:['ul4041']}]},
+ {id:'kh', ma:'KH', ten:'Tiêu chuẩn khách hàng', hex:'#E0A458',
+  mo:'Khách tự viết, đứng trên tiêu chuẩn chung',
+  gc:'Tiêu chuẩn khách hàng <b>không thay thế</b> EN hay UL — nó <b>cộng thêm</b>. Chỗ nào khách siết chặt hơn '
+   + 'thì theo khách; chỗ nào khách không nói thì vẫn theo tiêu chuẩn thị trường.',
+  nhom:[{ten:'Williams-Sonoma', enTen:'WSI Furniture Testing Instruction',
+    gc:'Chia theo <b>LOẠI HÀNG</b> chứ không theo thị trường, và phủ cả đồ trong nhà lẫn ngoài trời.',
+    bo:['wsi']}]},
+ {id:'thu', ma:'TEST', ten:'Phương pháp thử dùng chung', hex:'#2CDBA8',
+  mo:'Không nêu yêu cầu — chỉ nêu CÁCH THỬ',
+  gc:'Ba bộ này <b>không nói sản phẩm phải đạt bao nhiêu</b>. Chúng nói <b>gá mẫu ở đâu, đặt lực thế nào, '
+   + 'đo ra sao</b>. Con số “<b>N bộ viện dẫn tới</b>” trên mỗi thẻ được đếm từ chính nội dung các bộ khác '
+   + 'trong app, không gõ tay — nên nó luôn đúng với dữ liệu đang có.',
+  nhom:[{ten:'', enTen:'', gc:'', bo:['en1728','en1730','en1022']}]}
+];
+
+// Đếm xem bộ nào viện dẫn tới một bộ phương pháp thử — ĐẾM TỪ NỘI DUNG THẬT của các điều
+// khoản, không phải từ một bảng gõ tay. Gõ tay thì mỗi lần soạn thêm một bộ lại phải nhớ
+// cập nhật bảng ấy, mà quên thì màn hình nói sai quan hệ giữa các tiêu chuẩn.
+function tcAiVienDan(idThu){
+  const bo = tcBoCua(idThu);
+  if(!bo || ['en1728','en1730','en1022'].indexOf(idThu) < 0) return [];
+  const re = new RegExp(bo.ma.replace(/\s+/g, '\\s*'), 'i');
+  return TC_BO_THUTU.filter(id => id !== idThu && tcDieuTheoBo(id).some(d =>
+    (d.than || []).some(t => re.test(t.en) || re.test(t.vi))));
+}
 // Gộp có KHỬ TRÙNG. Khi soạn thêm, không tránh khỏi có điều đã soạn ở đợt trước (4.2 và
 // 4.3 bị soạn hai lần thật). Bản soạn SAU thường đầy đủ hơn nên lấy làm gốc, nhưng phải
 // mang theo hình / phép thử / ghi chú thực chiến của bản trước — nếu không là âm thầm
@@ -17803,29 +17858,16 @@ function renderTcList(){
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>${tcNutNhaHtml()}
-      <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} Tiêu chuẩn Outdoor</div>
+      <div class="title">${titleBadge('outdoor','#4FA8FF','#4FA8FF')} EN 581 · Chủ đề thực chiến</div>
     </div>
     ${tcDauTrangHtml({hex:'#4FA8FF', nhan:'OUTDOOR · EN 581',
       en:'Outdoor furniture — Seating and tables',
       vi:'Ghế và bàn ngoài trời · camping · domestic · contract · '
-         + ds.length + ' tiêu chuẩn · ' + TC_DIEU_HET.length + ' điều khoản'})}
-    ${tcH3Html('Sáu tiêu chuẩn', 'EN 581 nêu YÊU CẦU · EN 1728, EN 1730, EN 1022 nêu CÁCH THỬ')}
-    <div class="tc-ba">
-      ${ds.map(b=>{
-        const dsd = tcDieuTheoBo(b.id);
-        const soHinh = TC_HINH.filter(h=>h.bo === b.id).length;
-        const soMuc = TC_MUC.filter(m=>(TC_MUC_DIEU[m.id]||[])[0] === b.id).length;
-        return `<button class="tc-ba-n" data-action="tc-bo" data-bo="${b.id}" style="--tcm:${b.hex}">
-          <span class="hao"></span>
-          <span class="vai">${escapeHtml(b.vai)}</span>
-          <span class="dong"><span class="ma">${escapeHtml(b.ma)}</span><span class="nam">${escapeHtml(b.nam)}</span></span>
-          <span class="en">${escapeHtml(b.en)}</span>
-          <span class="dem">${dsd.length} điều khoản${soHinh ? ' · ' + soHinh + ' hình và bảng' : ''}${
-            ''}</span>
-          <span class="mui">→</span>
-        </button>`;
-      }).join('')}
-    </div>
+         + TC_MUC.length + ' chủ đề soạn từ kinh nghiệm kiểm hàng'})}
+    <!-- v358 — BỎ danh sách 13 bộ ở đây. Nó trùng y hệt bảng tra cứu ở màn chính, mà
+         hai nơi dựng bằng hai đoạn mã khác nhau nên đếm số điều khoản theo hai lối —
+         đúng loại trùng lặp âm thầm sinh ra lệch số. Màn này nay làm đúng một việc:
+         mười chín CHỦ ĐỀ THỰC CHIẾN của EN 581, thứ không bộ nào khác có. -->
     ${tcH3Html('Không thuộc riêng điều nào', 'Bốn mục bắc ngang cả bộ — để riêng vì không gắn được vào một điều cụ thể')}
     <div class="tc-nut-g">${chung.map(m=>`
       <button class="tc-nut" data-action="tc-open" data-id="${m.id}" style="--tcm:var(--gold)">
