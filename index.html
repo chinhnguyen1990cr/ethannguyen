@@ -1434,15 +1434,14 @@
     align-items:center; justify-content:center; color:#fff; cursor:pointer; transition:transform .12s ease;}
   .cat-card-iconbtn:active{transform:scale(0.88);}
   .cat-card-iconbtn svg{width:11px; height:11px;}
-  .cat-card-add{border:1.5px dashed var(--border); background:var(--panel); box-shadow:none; align-items:center;
-    justify-content:center; flex-direction:row; gap:8px;}
-  .cat-card-add .plus{font-size:22px; font-weight:700; color:var(--gold);}
+  /* v365 — đã gỡ lớp thẻ "Thêm mục" kiểu viền nét đứt ở đây: lớp ấy chỉ dùng cho đúng một ô
+     chết trong Giải trí, nay đã gỡ cùng ba ô kia. Nút thêm danh mục THẬT ở màn chính dùng
+     add-cat-pill ngay bên dưới, không liên quan. */
   .add-cat-pill{display:flex; align-items:center; justify-content:center; gap:6px; width:max-content; margin:14px auto 0;
     padding:9px 18px; border-radius:999px; background:var(--panel); border:1px dashed var(--border); color:var(--dim);
     font-size:12px; font-weight:700; cursor:pointer;}
   .add-cat-pill:active{background:var(--panel2);}
   .add-cat-pill .plus{color:var(--gold); font-size:14px; font-weight:800;}
-  .cat-card-add .name{color:var(--dim); margin-top:0; font-size:12.5px;}
   .top-banner{width:calc(100% + 32px); margin:-16px -16px 16px; background:var(--panel); overflow:hidden;
     border-radius:0 0 22px 22px; box-shadow:0 6px 18px rgba(0,0,0,0.22);}
   .banner-wrap{position:relative; width:100%; height:140px; background-size:cover; background-position:center;
@@ -6542,7 +6541,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v364';
+const APP_VERSION = 'v365';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -20302,6 +20301,8 @@ function renderHub(){
   const {done:schedDone, total:schedTotal} = dayPlanInfo(key);
   const eng = catInfo(key,'tieng_anh');
   const khCount = KH_CATEGORIES.reduce((s,c)=>s+khNotes(c.id).length,0);
+  // v365 — Giải trí chỉ còn Playlist nhạc, nên đếm bài hát thật thay vì ghi một dòng chữ cố định.
+  const nhacCount = (SETTINGS.musicPlaylist||[]).length;
   const p = SETTINGS.profile || {};
   const connected = !!driveAccessToken;
   const dotClass = driveSyncing ? 'dot syncing' : 'dot';
@@ -20405,11 +20406,17 @@ function renderHub(){
           </div>
           ${catDeco('kiemhang','📦')}
         </div>
-        <div class="cat-card" data-action="hub-open" data-target="entertainment" style="${catImageStyle('entertainment','linear-gradient(135deg,#FF6EA8,#B06CF0)')}">
+        <!-- v365 — Thẻ này trước đây vào một màn trung gian có bốn ô, nhưng ba ô (Tử vi, Video
+             ngắn, Trò chơi) chỉ bật lên một lời nhắn "sắp ra mắt" chứ không dẫn tới đâu, và ô
+             "Thêm mục" cũng vậy. Ba ô ấy đã gỡ, nên màn trung gian chỉ còn đúng một ô — bấm
+             hai lần để tới một chỗ. Vì vậy thẻ vào thẳng Playlist nhạc. Giữ data-target là
+             'ent-music' cũng khớp với nút back vốn đã nhảy thẳng về màn chính (xem hub-back),
+             chứ không lùi về màn trung gian. -->
+        <div class="cat-card" data-action="hub-open" data-target="ent-music" style="${catImageStyle('entertainment','linear-gradient(135deg,#FF6EA8,#B06CF0)')}">
           ${catScrim('entertainment')}${catImageActions('entertainment')}
           <div class="cat-card-fg">
             <div class="ic">${svgIcon('sparkle','color:#fff;')}</div>
-            <div><div class="name">Giải trí</div><div class="stat">Nhạc · Tử vi · Video</div></div>
+            <div><div class="name">Giải trí</div><div class="stat">${nhacCount} bài hát</div></div>
           </div>
           ${catDeco('entertainment','🎉')}
         </div>
@@ -20841,44 +20848,16 @@ function renderCustomCat(){
     </div>
   `;
 }
-function renderEntertainment(){
-  const tiles = [
-    {key:'ent_music', icon:'music', label:'Playlist nhạc', c1:'#B06CF0', c2:'#6C6CF0', emoji:'🎵'},
-    {key:'ent_tuvi', icon:'tuvi', label:'Tử vi & Bói toán', c1:'#7C6CF0', c2:'#B06CF0', emoji:'🔮'},
-    {key:'ent_video', icon:'video', label:'Video ngắn', c1:'#2CDBA8', c2:'#1FA88A', emoji:'🎬'},
-    {key:'ent_game', icon:'game', label:'Trò chơi', c1:'#4FA8FF', c2:'#2CDBA8', emoji:'🎮'},
-  ].map(t=>{
-    const action = t.key==='ent_music' ? `data-action="hub-open" data-target="ent-music"` : `data-action="coming-soon" data-label="${escapeHtml(t.label)}"`;
-    return `
-    <div class="cat-card" ${action} style="${catImageStyle(t.key,`linear-gradient(135deg,${t.c1},${t.c2})`)}">
-      ${catScrim(t.key)}${catImageActions(t.key)}
-      <div class="cat-card-fg">
-        <div class="ic">${HUB_PHOTOS[t.icon]}</div>
-        <div><div class="name">${escapeHtml(t.label)}</div></div>
-      </div>
-      ${catDeco(t.key, t.emoji)}
-    </div>`;}).join('');
-  document.getElementById('content').innerHTML = `
-    ${renderSectionBack(titleBadge('sparkle','#FF6EA8','#B06CF0')+' Giải trí')}
-    <div class="cat-grid">
-      ${tiles}
-      <div class="cat-card cat-card-add" data-action="coming-soon" data-label="Thêm mục mới">
-        <div class="plus">+</div>
-        <div class="name">Thêm mục</div>
-      </div>
-    </div>
-  `;
-}
+// v365 — ĐÃ GỠ renderEntertainment().
+// Màn "Giải trí" có bốn ô: Playlist nhạc chạy thật, còn Tử vi & Bói toán, Video ngắn, Trò chơi
+// và ô "Thêm mục" đều chỉ gắn hành động "sắp ra mắt" — bấm vào chỉ hiện một lời nhắn "đang
+// xây dựng". Ba ô ấy nằm đó từ lâu mà không có gì phía sau, nên gỡ bỏ theo yêu cầu. Khi chỉ còn
+// một ô thì cả màn này thành một nấc bấm vô nghĩa, vì vậy thẻ Giải trí ở màn chính vào thẳng
+// 'ent-music' và hàm này không còn ai gọi nữa — xoá hẳn thay vì để lại mã chết.
+// Cũng gỡ luôn renderEnglishBlankCard() (thẻ "Đang xây dựng lại" của mục Học tiếng Anh): mục ấy
+// đã được dựng lại từ v227, không màn nào còn gọi tới thẻ này.
 
 // ================= RENDER: ENGLISH =================
-// Mục Học tiếng Anh tạm để trắng theo yêu cầu — sẽ được xây dựng lại sau.
-function renderEnglishBlankCard(){
-  return `<div class="card" style="text-align:center; padding:40px 20px;">
-    <div style="font-size:38px; margin-bottom:10px;">🚧</div>
-    <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Đang xây dựng lại</div>
-    <div style="font-size:12px; color:var(--dim); line-height:1.6; max-width:280px; margin:0 auto;">Mục Học tiếng Anh sẽ được thiết kế lại từ đầu. Nội dung sẽ được cập nhật sau.</div>
-  </div>`;
-}
 // ---- Các mục con trong "Học tiếng Anh" (Ngữ pháp / Luyện ngữ pháp / Luyện nghe / Luyện nói...) ----
 // Danh sách lưu trong SETTINGS.englishItems để đồng bộ qua Drive như mọi cài đặt khác, và có thể
 // đổi tên / thêm mục mới ngay trong app (kind mặc định cho mục tự thêm là 'notes' — ghi chú tự do).
@@ -49463,7 +49442,10 @@ function renderContentInner(){
   else if(STATE.tab==='profile') renderProfile();
   else if(STATE.tab==='kiemhang') renderKiemHang();
   else if(STATE.tab==='nhua-embed') renderNhuaEmbed();
-  else if(STATE.tab==='entertainment') renderEntertainment();
+  // v365 — 'entertainment' không còn là một màn nữa (xem chú thích chỗ gỡ renderEntertainment).
+  // Vẫn nhận chỉ số cũ ấy và lái về nhạc, vì NAV_STACK của một phiên đang mở có thể còn giữ mốc
+  // cũ; nếu bỏ hẳn nhánh này thì vuốt back về mốc đó sẽ ra màn trắng.
+  else if(STATE.tab==='entertainment'){ STATE.tab='ent-music'; renderMusicPlaylist(); }
   else if(STATE.tab==='ent-music') renderMusicPlaylist();
   else if(STATE.tab==='customcat') renderCustomCat();
   else if(STATE.tab==='divination') renderQuanGia();
@@ -49574,7 +49556,7 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(acctToggleEl){ STATE.acctMenuOpen = !STATE.acctMenuOpen; renderContent(); return; }
   const bannerPickEl = e.target.closest('[data-action="banner-pick-photo"]');
   if(bannerPickEl){ document.getElementById('banner-file-input').click(); return; }
-  // Các nút sửa/xóa ảnh danh mục nằm lồng bên trong thẻ có data-action="hub-open"/"open-category"/"coming-soon"
+  // Các nút sửa/xóa ảnh danh mục nằm lồng bên trong thẻ có data-action="hub-open"/"open-category"
   // nên phải kiểm tra TRƯỚC các action của thẻ cha, tránh bị điều hướng nhầm khi bấm icon máy ảnh/xóa.
   const editCatImgEl = e.target.closest('[data-action="edit-cat-image"]');
   if(editCatImgEl){ STATE.editingCatImageKey = editCatImgEl.getAttribute('data-catkey'); document.getElementById('cat-image-file-input').click(); return; }
@@ -50552,8 +50534,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(speakParaTransEl){ speakToggleParaTranslate(parseInt(speakParaTransEl.getAttribute('data-pidx'),10)); return; }
   const speakNextEl = e.target.closest('[data-action="speak-next"]');
   if(speakNextEl){ nextSpeakPractice(); return; }
-  const comingSoonEl = e.target.closest('[data-action="coming-soon"]');
-  if(comingSoonEl){ showToast('🔧', comingSoonEl.getAttribute('data-label')||'Sắp ra mắt', 'Tính năng đang được xây dựng, sẽ có sớm.'); return; }
+  // v365 — đã gỡ nhánh nghe hành động "sắp ra mắt". Sau khi bốn ô chết ở Giải trí bị gỡ thì không
+  // còn thẻ nào mang action ấy, nên lời nhắn "Tính năng đang được xây dựng" cũng không còn chỗ gọi.
   const musicCatEl = e.target.closest('[data-action="music-cat"]');
   if(musicCatEl){ setMusicCat(musicCatEl.getAttribute('data-cat')); return; }
   const setMusicFolderEl = e.target.closest('[data-action="set-music-folder"]');
