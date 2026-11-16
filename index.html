@@ -6572,7 +6572,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v371';
+const APP_VERSION = 'v372';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -35515,12 +35515,23 @@ function hvVaoChe(che){
   // ăn ngay; gọi seekTo ngay sau đó thì trình phát vẫn còn tự coi mình "đang chạy", mà seekTo
   // thì GIỮ NGUYÊN trạng thái chạy/dừng lúc tua — nên nó phát tiếp. Nay tua trước, dừng sau,
   // và dừng thêm một nhát ở nhịp kế cho chắc.
+  // v372 — CHỐT "CHƯA TỪNG CHẠY" CỦA v251, NAY ĐẶT ĐÚNG CHỖ. Trình phát YouTube chưa chạy lần
+  // nào thì đang hiện ảnh bìa; tua tới một khung hình chưa tải rồi dừng là ảnh bìa biến mất,
+  // còn lại MẢNG ĐEN — đúng lỗi v251. Bản sửa ấy nằm trong hvNapLaiVideo, mà hvNapLaiVideo chỉ
+  // được gọi từ hvDoiTab, và hvDoiTab thì chết từ v338. Đo thật trên đường dùng: vào phòng với
+  // trình phát trạng thái -1 vẫn gửi seek + pause. Mà chưa chạy thì nó đã ở giây 0 sẵn rồi —
+  // không có gì để tua, không có gì để dừng.
   try{
     const p = hvLayPlayer(true);
     if(p){
-      if(p.seekTo) p.seekTo(0, true);
-      if(p.pauseVideo) p.pauseVideo();
-      setTimeout(()=>{ try{ const q = hvLayPlayer(true); if(q && q.pauseVideo) q.pauseVideo(); }catch(_){ } }, 160);
+      let tt = -1;
+      try{ tt = p.getPlayerState ? p.getPlayerState() : -1; }catch(_){ }
+      const chuaChay = (tt === -1 || tt === 5);     // -1 chưa bắt đầu · 5 đã xếp hàng, chưa phát
+      if(!chuaChay){
+        if(p.seekTo) p.seekTo(0, true);
+        if(p.pauseVideo) p.pauseVideo();
+        setTimeout(()=>{ try{ const q = hvLayPlayer(true); if(q && q.pauseVideo) q.pauseVideo(); }catch(_){ } }, 160);
+      }
     }
   }catch(e){}
   st.cau = 0;
@@ -35528,6 +35539,13 @@ function hvVaoChe(che){
   try{ hvGanChanFull(); }catch(e){}
   st.che = che;
   if(che !== 'chon') st.tab = che;
+  // v372 — ĐẶT LẠI TỐC ĐỘ CHO PHÒNG VỪA VÀO. Trình phát dùng CHUNG cho cả ba phòng, nên chỉnh
+  // chậm 0,5× bên Chép chính tả rồi sang Phụ đề là vẫn chậm y vậy. Bản v210 đã sửa đúng chỗ này
+  // — nhưng sửa trong hvDoiTab, mà từ v338 app đổi phòng bằng hvVaoChe, nên bản sửa ấy chưa bao
+  // giờ chạy trên đường dùng thật. Đây là lỗi thứ BA cùng một họ với v368 và v371.
+  // Phải đặt SAU dòng st.tab ở trên: hvApTocTab đọc s.tab để biết phòng nào.
+  try{ hvApTocTab(); }catch(e){}                        // đặt lại ngay
+  try{ setTimeout(hvApTocTab, 400); }catch(e){}         // và lần nữa sau khi trình phát nạp xong
   try{ hvApBoCuc(); }catch(e){}
   hvVeKhungPhong();
   try{ hvVeTam(); }catch(e){}
@@ -35961,67 +35979,17 @@ function hvThieuLoiThoai(rec, che){
   try{ hvVeVung('hvErrWrap'); }catch(_){ }
   return true;
 }
-function hvDoiTab(tab){
-  // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
-  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
-  hvDongKhungNghia();
-  const s = STATE.hvPhien; if(!s) return;
-  const rec = hvTim(s.vidId); if(!rec) return;
-  if(hvThieuLoiThoai(rec, tab)) return;
-  STATE.hvLoi = null;
-  // Tạo phiên cho thẻ nếu chưa có. Tạo MỘT LẦN rồi giữ nguyên: nhờ vậy chép dở nửa câu, chuyển sang
-  // Phụ đề nghe lại, quay về là câu đó vẫn còn nguyên chữ đang gõ.
-  if(tab === 'chinhta' && !STATE.dvPhien){
-    const kt = dvCauKeTiep(rec);
-    STATE.dvPhien = {vidId:rec.id, idx:(kt>=0?kt:null), go:'', thuHien:false, thuLan:0, ketQua:null, xongHet:false};
-  }
-  if(tab === 'shadowing' && !STATE.sdPhien){
-    STATE.sdPhien = {vidId:rec.id, dangGhi:false, giay:0, ban:[], loi:null, lapIdx:null, doi:false, doiIdx:null};
-    STATE.sdSuaLoi = false; STATE.sdLoi = null; STATE.sdDangLay = false;
-  }
-  // Cất chữ đang gõ lại khi RỜI thẻ Chép chính tả — phải đọc ô nhập lúc nó CÒN trên màn hình.
-  // Đặt nhầm thành "khi vào thẻ đó" là đọc một ô chưa tồn tại, và chữ vừa gõ bay mất.
-  if(s.tab === 'chinhta') dvLuuGo();
-  s.tab = tab;
-  // v233: xếp lại cột NGAY khi đổi thẻ. Thiếu dòng này thì mở vào thẻ Phụ đề (một cột) rồi sang
-  // Chép chính tả / Shadowing, hai thẻ đó vẫn dính lớp một cột của thẻ trước — đúng chỗ bạn nói
-  // là "hai mục kia phải giữ nguyên như cũ".
-  try{ hvApBoCuc(); }catch(_){ }
-  hvVeTam();
-  hvNapLaiVideo();
-  hvApTocTab();                       // đặt lại ngay
-  setTimeout(hvApTocTab, 400);        // và một lần nữa sau khi trình phát nạp xong
-}
-// Nạp lại video TỪ ĐẦU cho thẻ vừa chọn.
-// v187 làm việc này bằng cách HUỶ trình phát rồi dựng lại — và đó là lý do màn hình video đen:
-// destroy() xoá luôn ô đích khỏi trang, lần dựng sau tìm không thấy chỗ nên bỏ cuộc.
-// Nay chỉ tua về giây 0 rồi chạy. Vẫn đúng yêu cầu "bắt đầu lại từ đầu cho thẻ đang chọn", mà
-// không đụng gì tới iframe nên không có gì để hỏng.
-function hvNapLaiVideo(){
-  const s = STATE.hvPhien; if(!s) return;
-  const rec = hvTim(s.vidId); if(!rec || !rec.videoId) return;
-  dvXoaHenGio(); sdNgungBam(); hvDungNhip();
-  if(hvPlayer && typeof hvPlayer.seekTo === 'function'){
-    // ══ v251 · VÌ SAO ĐỔI THẺ XONG LÀ MÀN ĐEN ═════════════════════════════════════════════
-    // Trình phát YouTube CHƯA từng chạy lần nào thì nó đang hiện ảnh bìa. Gọi seekTo(0) rồi
-    // pause vào đúng lúc ấy là bắt nó nhảy tới một khung hình chưa tải — ảnh bìa biến mất,
-    // còn lại một mảng ĐEN, đúng cái bạn chụp lại ở thẻ Chép chính tả và Shadowing. Nay chỉ
-    // tua-và-dừng khi video THẬT SỰ đã chạy; chưa chạy thì để yên, ảnh bìa còn nguyên.
-    let tt = -1;
-    try{ tt = hvPlayer.getPlayerState ? hvPlayer.getPlayerState() : -1; }catch(_){ }
-    const chuaChay = (tt === -1 || tt === 5);       // -1 chưa bắt đầu · 5 đã xếp hàng, chưa phát
-    // Về đầu rồi ĐỨNG YÊN. Bạn bấm ▶ khi đã sẵn sàng — đổi thẻ xong mà tiếng chạy ngay thì
-    // vừa giật mình vừa mất câu đầu.
-    if(!chuaChay){ try{ hvPlayer.seekTo(0, true); hvPlayer.pauseVideo(); }catch(e){} }
-    hvChiaSePlayer(); hvNhipTheoTab();
-    try{ setTimeout(hvVeNutPlay, 150); }catch(e){}
-    return;
-  }
-  // Chỉ khi thật sự chưa có trình phát (mới mở màn, hoặc vừa mất tay cầm) mới dựng — và dựng xong
-  // thì tự chạy từ đầu.
-  STATE.hvTuChay = true;
-  hvGanPlayer(rec.videoId);
-}
+// v372 — HAI HÀM ĐÃ GỠ Ở ĐÂY: hvDoiTab() VÀ hvNapLaiVideo().
+//
+// hvDoiTab là lối đổi thẻ của bản cũ. Từ v338 app đổi phòng bằng hvVaoChe(), và từ lúc ấy không
+// một dòng mã nào trong app còn gọi hvDoiTab — nó chỉ còn sống nhờ MƯỜI BẢY bộ kiểm tra gọi
+// thẳng vào nó. Đó chính là cái bẫy đã sinh ra lỗi v368 và lỗi v371: hai bản sửa nằm trong
+// hvDoiTab, người dùng không bao giờ chạm tới chúng, mà bộ kiểm tra thì xanh suốt vì nó gọi
+// cái hàm chứ không đi con đường. Nay mười bảy bộ ấy đã được nối vào hvVaoChe — đường app thật
+// đi — rồi mới gỡ hàm. Gỡ trước, nối sau là mất luôn phép kiểm.
+//
+// hvNapLaiVideo chỉ được gọi từ trong hvDoiTab, nên gỡ theo. Nó dựng lại trình phát, mà từ v332
+// vào phòng cố ý KHÔNG dựng lại trình phát nữa (xem chú thích ở hvVaoChe).
 // Vẽ lại ĐÚNG tấm nội dung + thanh thẻ. Không đụng tới khung video → video chạy liền mạch, và đây
 // chính là điều làm nó giống lật trang chứ không giống mở màn hình mới.
 // tuyChon.giuCuon = giữ nguyên chỗ đang đọc; tuyChon.khongLat = không chạy hiệu ứng lật trang.
