@@ -100,17 +100,11 @@
     font-size:12px; font-weight:700; padding:8px 2px; border-radius:9px; cursor:pointer;}
   .seg button.active{background:linear-gradient(135deg,var(--gold),#FF8A3D); color:#171208; box-shadow:0 3px 10px rgba(255,201,74,0.35);}
 
-  .ringcard{background:radial-gradient(120% 140% at 50% -20%, #1B2434 0%, var(--panel) 60%);
-    border:1px solid var(--border); border-radius:20px; padding:22px 18px 18px;
-    display:flex; flex-direction:column; align-items:center; margin-bottom:14px;}
-  .ringcard.pulse{ animation: pulseGlow 900ms ease; }
-  @keyframes pulseGlow{0%{box-shadow:0 0 0 0 rgba(255,201,74,0);}30%{box-shadow:0 0 40px 6px rgba(255,201,74,.35);}100%{box-shadow:0 0 0 0 rgba(255,201,74,0);}}
-  #rings-svg{width:180px; height:180px;}
-  .ring-bg{fill:none; stroke:var(--panel2); stroke-width:11;}
-  .ring-fg{fill:none; stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset .7s cubic-bezier(.2,.9,.3,1);}
-  .ring-center{font-family:var(--mono);}
-  .ring-center .big{font-size:24px; font-weight:800; fill:var(--text);}
-  .ring-center .small{font-size:9px; fill:var(--dim); letter-spacing:.05em;}
+  /* v366 — ĐÃ GỠ cả bộ kiểu dáng của vòng tròn 24h: thẻ bọc, khung svg, ba lớp vành và phần chữ
+     giữa vòng, cùng hiệu ứng nhấp nháy khi đủ 100%. Từ "Item 8" vòng tròn đã bị bỏ khỏi màn Hôm
+     nay và thay bằng thanh tiến độ có số done/total/% đọc được chính xác; từ đó hai hàm vẽ vòng
+     không còn ai gọi và không phần tử nào mang id ấy, nên toàn bộ khối này chỉ còn là kiểu dáng
+     cho một thứ không bao giờ xuất hiện trên màn hình. */
   .legend{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;}
   .leg-item{display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; padding:6px 12px; border-radius:20px;}
   .leg-dot{width:8px;height:8px;border-radius:50%;}
@@ -228,6 +222,17 @@
   .task-wrap.failed .lbl{color:#C97575;}
   .fail-tag{font-size:9.5px; font-weight:700; color:#FF6B6B; background:rgba(255,107,107,0.14); border:1px solid rgba(255,107,107,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px;}
   .ai-tag{font-size:9px; font-weight:700; color:#7C6CF0; background:rgba(124,108,240,0.14); border:1px solid rgba(124,108,240,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px; flex-shrink:0;}
+  /* v366 — nhãn 💼 cho việc rơi vào giờ làm, và ô đặt giờ làm. */
+  .work-tag{font-size:9px; font-weight:700; color:#4FA8FF; background:rgba(79,168,255,0.14); border:1px solid rgba(79,168,255,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px; flex-shrink:0;}
+  .wh-row{display:flex; align-items:center; gap:8px; padding:11px 14px; margin-bottom:12px; cursor:pointer;
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; font-size:12px; color:var(--dim);}
+  .wh-row .wh-sum{flex:1;} .wh-row .wh-sum b{color:var(--text);}
+  .wh-edit{font-size:11.5px; font-weight:700; color:var(--teal); cursor:pointer; flex-shrink:0;}
+  .wh-card{margin-bottom:12px;}
+  .wh-days{display:flex; gap:6px;}
+  .wh-day{flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:11.5px; font-weight:700;
+    background:var(--panel2); border:1px solid var(--border); color:var(--dim); cursor:pointer;}
+  .wh-day.on{background:rgba(79,168,255,0.16); border-color:rgba(79,168,255,0.5); color:#4FA8FF;}
   .ai-tomorrow-card{background:radial-gradient(120% 140% at 50% -20%, #221B36 0%, var(--panel) 60%); border:1px solid rgba(124,108,240,0.35); margin-top:12px;}
   .task{display:flex; align-items:center; gap:11px; padding:12px 12px; cursor:pointer; user-select:none;}
   .task .time{font-family:var(--mono); font-size:10.5px; color:var(--dim); width:52px; flex-shrink:0; line-height:1.3;}
@@ -6541,7 +6546,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v365';
+const APP_VERSION = 'v366';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7619,6 +7624,42 @@ function programWeekFor(dateObj){
 // Các khối dưới đây được vẽ XEN GIỮA các việc để nhìn phát biết ngay quỹ thời gian thật, nhưng CỐ Ý
 // KHÔNG nằm trong getPlanForDate() — nghĩa là không có nút hoàn thành, không tính vào tỷ lệ %, không
 // cộng/trừ điểm, không đụng gì tới thống kê. Chúng chỉ là mốc neo để đọc lịch cho đúng.
+// ================= GIỜ LÀM (v366) =================
+// Trước v366 giờ làm 7:00–19:00 nằm CỨNG trong mã: dải thông báo ghi thẳng con số ấy, còn khối
+// sinh hoạt thì đóng cứng các mốc 07:40 / 15:35. Đổi việc, đổi ca, hay một hôm về sớm là lịch nói
+// sai mà không có chỗ nào sửa được trong app.
+//
+// Đo trước khi sửa còn lộ ra một chỗ sai nặng hơn con số cứng: dải thông báo hứa "giữa trưa có 1
+// việc rất nhẹ", nhưng bộ sinh lịch thật đặt BỐN việc trong giờ làm — 12:15 (30′), 12:50 (15′),
+// 14:30 (25′), 15:10 (25′), tổng 95 phút — cộng thêm "Câu thông dụng" 07:20 cũng đã sau giờ vào
+// làm. Bạn xác nhận trong giờ làm vẫn tranh thủ học được, nên việc phải sửa là LỜI NÓI của app,
+// không phải cái lịch: nói đúng rằng có 5 việc nằm trong giờ làm và làm được bằng tai nghe.
+const GIO_LAM_MAC_DINH = { batDau:'07:00', ketThuc:'19:00', ngay:[1,2,3,4,5] };
+function gioLam(){
+  const g = SETTINGS.workHours;
+  if(!g || typeof g!=='object') return Object.assign({}, GIO_LAM_MAC_DINH);
+  return {
+    batDau:  /^\d{2}:\d{2}$/.test(g.batDau||'')  ? g.batDau  : GIO_LAM_MAC_DINH.batDau,
+    ketThuc: /^\d{2}:\d{2}$/.test(g.ketThuc||'') ? g.ketThuc : GIO_LAM_MAC_DINH.ketThuc,
+    // Mảng rỗng là lựa chọn HỢP LỆ: nghỉ việc, hoặc tuần này không đi làm ngày nào. Chỉ khi thiếu
+    // hẳn trường ấy mới lấy mặc định — nếu coi rỗng là thiếu thì người dùng không bao giờ tắt được.
+    ngay: Array.isArray(g.ngay) ? g.ngay.filter(n=>n>=0 && n<=6) : GIO_LAM_MAC_DINH.ngay.slice()
+  };
+}
+function phut(hhmm){ const [h,m]=String(hhmm).split(':').map(Number); return h*60+m; }
+function gioHhmm(p){ const t=((p%1440)+1440)%1440;
+  return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }
+function laNgayDiLam(dateObj){ return gioLam().ngay.includes(dateObj.getDay()); }
+// Một việc có rơi vào giờ làm của chính ngày nó không. Dùng cả giờ bắt đầu lẫn giờ kết thúc: việc
+// 18:40–19:30 vắt qua giờ tan làm vẫn phải được coi là chạm vào giờ làm, chứ không thì nửa đầu của
+// nó biến mất khỏi lời cảnh báo.
+function trongGioLam(dateObj, time, dur){
+  if(!laNgayDiLam(dateObj)) return false;
+  const g = gioLam(), a = phut(g.batDau), b = phut(g.ketThuc);
+  if(b <= a) return false;                       // ca đêm vắt qua nửa đêm — chưa xử, đừng nói bừa
+  const t = phut(time), het = t + (dur||0);
+  return t < b && het > a;
+}
 function lifeAnchorsForDate(dateObj){
   // Các mốc neo được đặt vào ĐÚNG những khoảng trống có thật giữa các việc, tính theo từng kiểu ngày.
   const wd = dateObj.getDay();
@@ -7629,12 +7670,28 @@ function lifeAnchorsForDate(dateObj){
   if(sun){ out.push(A('06:20',30,'Tắm rửa · ăn sáng sau long run','🍳')); out.push(A('08:30',30,'Nghỉ · chuẩn bị buổi học sâu','🏡')); }
   else if(gym){ out.push(A('05:50',25,'Tắm rửa · ăn sáng','🍳')); }
   else { out.push(A('05:25',50,'Tắm rửa · ăn sáng','🍳')); }
-  if(sat){ out.push(A('07:40',80,'Việc riêng · chuẩn bị','💼')); out.push(A('09:50',145,'Việc riêng · ăn trưa','🍚')); }
-  else if(sun){ out.push(A('09:50',145,'Việc riêng · ăn trưa','🍚')); }
-  else { out.push(A('07:40',275,'Công việc · việc riêng · ăn trưa','💼')); }
-  out.push(A('13:05',85,'Nghỉ trưa · việc riêng','🏡'));
-  if(gym){ out.push(A('15:35',115,'Công việc · thời gian tự do','🏡')); out.push(A('18:20',80,'Tắm · ăn tối','🍜')); }
-  else { out.push(A('15:35',245,'Công việc · ăn tối · thời gian gia đình','🍜')); }
+  // v366 — khối "Công việc" bám theo GIỜ LÀM bạn đặt, không còn đóng cứng 07:40 và 15:35 nữa.
+  // Ngày không đi làm thì vẫn giữ khối "Việc riêng" như cũ, vì khoảng trống ấy có thật dù không
+  // phải giờ làm.
+  const g = gioLam();
+  const diLam = laNgayDiLam(dateObj);
+  if(sat && !diLam){ out.push(A('07:40',80,'Việc riêng · chuẩn bị','💼')); out.push(A('09:50',145,'Việc riêng · ăn trưa','🍚')); }
+  else if(sun && !diLam){ out.push(A('09:50',145,'Việc riêng · ăn trưa','🍚')); }
+  else if(diLam){
+    // Chia ca làm thành hai khối, cắt ở giữa bằng nghỉ trưa, để nhìn ra quỹ thời gian thật.
+    const a = phut(g.batDau), b = phut(g.ketThuc);
+    const truaBatDau = Math.min(Math.max(a + 300, a), b);     // ~5 giờ sau khi vào làm
+    const truaDai = Math.min(85, Math.max(0, b - truaBatDau));
+    if(truaBatDau > a) out.push(A(gioHhmm(a), truaBatDau - a, 'Công việc · ăn trưa','💼'));
+    if(truaDai > 0)    out.push(A(gioHhmm(truaBatDau), truaDai, 'Nghỉ trưa · việc riêng','🏡'));
+    const chieu = truaBatDau + truaDai;
+    if(b > chieu)      out.push(A(gioHhmm(chieu), b - chieu, 'Công việc','💼'));
+    out.push(A(gioHhmm(b), gym ? 80 : 120, gym ? 'Về nhà · tắm · ăn tối' : 'Về nhà · ăn tối · thời gian gia đình', '🍜'));
+  } else {
+    out.push(A('13:05',85,'Nghỉ trưa · việc riêng','🏡'));
+    if(gym){ out.push(A('15:35',115,'Thời gian tự do','🏡')); out.push(A('18:20',80,'Tắm · ăn tối','🍜')); }
+    else { out.push(A('15:35',245,'Ăn tối · thời gian gia đình','🍜')); }
+  }
   return out;
 }
 function getPlanForDate(dateObj){
@@ -8407,7 +8464,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic'}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null}, loaded);
     if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
@@ -18237,93 +18294,11 @@ function renderNav(){
 }
 
 // ================= RENDER: TODAY =================
-function renderRingsSVG(key, size){
-  const {plan} = dayPlanInfo(key);
-  const catsPresent = Object.keys(CATS).filter(c=> plan.some(t=>t.cat===c));
-  const cx=size/2, cy=size/2, gap=15; let radius = size/2 - 10;
-  let svg = `<svg id="rings-svg" viewBox="0 0 ${size} ${size}">`;
-  catsPresent.forEach((cat,i)=>{
-    const r = radius - i*gap; const circ = 2*Math.PI*r;
-    const ci = catInfo(key,cat); const pct = ci.total>0 ? ci.done/ci.total : 0;
-    const offset = circ*(1-pct);
-    svg += `<circle class="ring-bg" cx="${cx}" cy="${cy}" r="${r}"/>`;
-    svg += `<circle class="ring-fg" cx="${cx}" cy="${cy}" r="${r}" stroke="${CATS[cat].hex}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" transform="rotate(-90 ${cx} ${cy})" data-final="${offset}"/>`;
-  });
-  const pctTotal = dayPct(key);
-  svg += `<g class="ring-center" text-anchor="middle"><text x="${cx}" y="${cy-2}" class="big">${pctTotal}%</text><text x="${cx}" y="${cy+16}" class="small">HOÀN THÀNH</text></g></svg>`;
-  return svg;
-}
-// ============ VÒNG TRÒN THỐNG KÊ NGÀY (day wheel) — mỗi múi là 1 việc theo giờ thực tế,
-// tô đậm nếu đã hoàn thành / mờ nếu chưa, có kim chỉ giờ hiện tại. Có thể lọc theo 1 nhóm (vd tiếng_anh).
-function polarPt(cx,cy,r,angleDeg){
-  const rad = (angleDeg-90)*Math.PI/180;
-  return [cx+r*Math.cos(rad), cy+r*Math.sin(rad)];
-}
-function annulusSectorPath(cx,cy,r0,r1,a1,a2){
-  if(a2<=a1) a2 = a1+0.01;
-  const large = (a2-a1)>180 ? 1 : 0;
-  const [x1,y1] = polarPt(cx,cy,r1,a1);
-  const [x2,y2] = polarPt(cx,cy,r1,a2);
-  const [x3,y3] = polarPt(cx,cy,r0,a2);
-  const [x4,y4] = polarPt(cx,cy,r0,a1);
-  return `M${x1.toFixed(1)},${y1.toFixed(1)} A${r1},${r1} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${r0},${r0} 0 ${large} 0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`;
-}
-function timeToAngleDeg(hhmm){
-  const [h,m] = hhmm.split(':').map(Number);
-  return ((h*60+m)/1440)*360;
-}
-function renderDayWheel(key, filterCat, size){
-  const {plan, rec, done: doneAll, total: totalAll} = dayPlanInfo(key);
-  const scoped = filterCat ? plan.filter(t=>t.cat===filterCat) : plan;
-  const tasks = scoped.filter(t=>t.time).slice().sort((a,b)=> timeToAngleDeg(a.time)-timeToAngleDeg(b.time));
-  const done = scoped.filter(t=>rec.tasks[t.id]).length;
-  const total = scoped.length;
-  const cx=size/2, cy=size/2, r1=size/2-15, r0=r1-size*0.2;
-  let wedges = '';
-  if(tasks.length===0){
-    wedges = `<circle cx="${cx}" cy="${cy}" r="${(r0+r1)/2}" fill="none" stroke="var(--border)" stroke-width="${(r1-r0).toFixed(1)}"/>`;
-  } else if(tasks.length===1){
-    const t = tasks[0]; const isDone = !!rec.tasks[t.id];
-    wedges = `<circle cx="${cx}" cy="${cy}" r="${(r0+r1)/2}" fill="none" stroke="${CATS[t.cat].hex}" stroke-opacity="${isDone?1:0.35}" stroke-width="${(r1-r0).toFixed(1)}"/>
-      <text x="${cx}" y="${(cy-r1+(r1-r0)/2+4).toFixed(1)}" text-anchor="middle" font-size="13">${CATS[t.cat].icon}</text>`;
-  } else {
-    tasks.forEach((t,i)=>{
-      const a1 = timeToAngleDeg(t.time);
-      let a2 = i+1<tasks.length ? timeToAngleDeg(tasks[i+1].time) : timeToAngleDeg(tasks[0].time)+360;
-      if(a2<=a1) a2 += 360;
-      const isDone = !!rec.tasks[t.id];
-      wedges += `<path d="${annulusSectorPath(cx,cy,r0,r1,a1,a2)}" fill="${CATS[t.cat].hex}" opacity="${isDone?1:0.35}"/>`;
-      if((a2-a1) > 14){
-        const midA = (a1+a2)/2;
-        const [ix,iy] = polarPt(cx,cy,(r0+r1)/2, midA);
-        wedges += `<text x="${ix.toFixed(1)}" y="${(iy+4).toFixed(1)}" text-anchor="middle" font-size="12">${CATS[t.cat].icon}</text>`;
-      }
-    });
-  }
-  const now = new Date();
-  const isToday = key===todayKey();
-  let pointer = '';
-  if(isToday){
-    const nowAngle = ((now.getHours()*60+now.getMinutes())/1440)*360;
-    const [px,py] = polarPt(cx,cy,r1+9,nowAngle);
-    pointer = `<polygon points="0,-6 -5,4 5,4" fill="var(--gold)" transform="translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${nowAngle.toFixed(1)})"/>`;
-  }
-  const pct = total>0 ? Math.round(done/total*100) : 0;
-  const timeLabel = isToday ? pad(now.getHours())+':'+pad(now.getMinutes()) : '';
-  const gid = 'dwc'+Math.random().toString(36).slice(2,8);
-  return `<div class="daywheel-wrap">
-    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-      <text x="${cx}" y="13" text-anchor="middle" font-size="13">🌙</text>
-      <text x="${cx}" y="${size-3}" text-anchor="middle" font-size="12">☀️</text>
-      ${wedges}
-      ${pointer}
-      <circle cx="${cx}" cy="${cy}" r="${(r0-4).toFixed(1)}" fill="url(#${gid})"/>
-      <text x="${cx}" y="${cy-3}" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="19" fill="#fff">${pct}%</text>
-      <text x="${cx}" y="${cy+16}" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" fill="rgba(255,255,255,0.75)">${done}/${total}${timeLabel?' · '+timeLabel:''}</text>
-      <defs><radialGradient id="${gid}" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#2A3648"/><stop offset="1" stop-color="#12161e"/></radialGradient></defs>
-    </svg>
-  </div>`;
-}
+// v366 — ĐÃ GỠ renderRingsSVG() và renderDayWheel(), cùng polarPt()/arcPath() phục vụ chúng
+// nếu không còn ai dùng. Cả hai vẽ vòng tròn 24h cho màn Hôm nay; từ "Item 8" màn ấy đã thay
+// vòng tròn bằng thanh tiến độ có số done/total/% đọc được chính xác, vì vòng tròn cỡ nhỏ khó
+// đọc và ngày nghỉ luôn hiện 100% dù lịch đã rút gọn. Từ đó tới nay không màn nào gọi hai hàm
+// này, không phần tử nào mang id="ringcard" — nên chúng chỉ còn là mã chết.
 function renderAddTaskForm(){
   return `<div class="card" id="add-task-card">
     <h3 style="margin-bottom:10px;">Thêm việc của riêng bạn</h3>
@@ -48447,6 +48422,66 @@ function renderEnglishStats(){
   renderStatsFor('english');
 }
 
+// v366 — Ô đặt giờ làm. Mặc định ĐÓNG để không làm dài thêm màn Hôm nay vốn đã dài; mở ra bằng
+// chính dòng "Sửa giờ làm" trên dải thông báo, hoặc bấm vào hàng tóm tắt này.
+const THU_NGAN = ['CN','T2','T3','T4','T5','T6','T7'];
+function workHoursCardHtml(){
+  const g = gioLam();
+  const moRong = !!STATE.workHoursOpen;
+  const tomTat = g.ngay.length
+    ? `${g.batDau}–${g.ketThuc} · ${g.ngay.slice().sort().map(n=>THU_NGAN[n]).join(' ')}`
+    : 'Chưa đặt ngày đi làm nào';
+  if(!moRong){
+    return `<div class="wh-row" data-action="open-work-hours">
+      <span class="wh-ic">💼</span>
+      <span class="wh-sum">Giờ làm: <b>${tomTat}</b></span>
+      <span class="wh-edit">Sửa ›</span>
+    </div>`;
+  }
+  return `<div class="card wh-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <h3 style="margin:0;">💼 Giờ làm việc của bạn</h3>
+      <span class="wh-edit" data-action="close-work-hours">Đóng ✕</span>
+    </div>
+    <div style="font-size:11.5px; color:var(--dim); line-height:1.55; margin-bottom:12px;">
+      Lịch dùng giờ này để vẽ khối "Công việc" và để đánh dấu việc nào nằm trong giờ làm. Đổi ở đây
+      là cả lịch đổi theo — không phải sửa tay từng việc.</div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input class="form-input" id="wh-start" type="time" value="${g.batDau}" style="flex:1;">
+      <span style="color:var(--dim); font-size:12px;">đến</span>
+      <input class="form-input" id="wh-end" type="time" value="${g.ketThuc}" style="flex:1;">
+    </div>
+    <div style="font-size:11.5px; color:var(--dim); margin:12px 0 7px;">Những ngày bạn đi làm:</div>
+    <div class="wh-days">
+      ${[1,2,3,4,5,6,0].map(n=>`<div class="wh-day ${g.ngay.includes(n)?'on':''}" data-action="toggle-work-day" data-day="${n}">${THU_NGAN[n]}</div>`).join('')}
+    </div>
+    <button class="form-btn submit" style="width:100%; margin-top:14px;" data-action="save-work-hours">💾 Lưu giờ làm</button>
+  </div>`;
+}
+function toggleWorkDay(n){
+  const g = gioLam();
+  const ngay = g.ngay.includes(n) ? g.ngay.filter(x=>x!==n) : g.ngay.concat([n]);
+  SETTINGS.workHours = { batDau:g.batDau, ketThuc:g.ketThuc, ngay: ngay.sort() };
+  saveSettings(); pushToDrive(); renderContent();
+}
+function saveWorkHours(){
+  const s = (document.getElementById('wh-start')||{}).value || '';
+  const e = (document.getElementById('wh-end')||{}).value || '';
+  if(!/^\d{2}:\d{2}$/.test(s) || !/^\d{2}:\d{2}$/.test(e)){
+    showToast('⚠️','Chưa đủ giờ','Nhập cả giờ vào làm và giờ tan làm.'); return;
+  }
+  // Giờ tan phải sau giờ vào. Ca đêm vắt qua nửa đêm thì cả trongGioLam() lẫn khối sinh hoạt đều
+  // chưa tính được, nên chặn ngay ở đây và NÓI RÕ là chưa làm — thà từ chối còn hơn nhận vào rồi
+  // vẽ ra một cái lịch sai mà người dùng không biết.
+  if(phut(e) <= phut(s)){
+    showToast('⚠️','Chưa hỗ trợ ca đêm','Giờ tan phải sau giờ vào trong cùng một ngày. Ca qua đêm app chưa tính được.');
+    return;
+  }
+  SETTINGS.workHours = { batDau:s, ketThuc:e, ngay: gioLam().ngay };
+  STATE.workHoursOpen = false;
+  saveSettings(); pushToDrive(); renderContent();
+  showToast('✅','Đã lưu giờ làm', s+'–'+e+'. Lịch đã xếp lại theo giờ này.');
+}
 function renderToday(){
   const key = todayKey(); const now = new Date();
   const dayOff = isDayOff(key);
@@ -48480,8 +48515,14 @@ function renderToday(){
   const legend = catsPresent.map(cat=>{ const ci=catInfo(key,cat); return `
     <div class="leg-item" style="background:${CATS[cat].hex}22; border:1px solid ${CATS[cat].hex}55; color:${CATS[cat].hex};"><span class="leg-dot" style="background:${CATS[cat].hex}"></span>${catIconHtml(cat)} ${CATS[cat].label}: <b>${ci.done}/${ci.total}</b></div>`; }).join('');
   const restBanner = isRestDay(now) ? `<div class="rest-banner">💤 Hôm nay là ngày nghỉ chạy/tập tạ theo lịch mặc định để phục hồi. Tập trung Tiếng Anh &amp; Chuyên môn nhé!</div>` : '';
-  const isWorkdayNow = now.getDay()>=1 && now.getDay()<=5;
-  const workBanner = isWorkdayNow ? `<div class="rest-banner" style="background:#4FA8FF14; border-color:#4FA8FF44;">💼 Lịch hôm nay đã sắp xếp quanh giờ làm 7:00-19:00 của bạn — buổi sáng trước 7h &amp; buổi tối sau 19h dành cho Thể lực/Tiếng Anh/Chuyên môn, giữa trưa có 1 việc rất nhẹ. Điều chỉnh vài phút theo giờ di chuyển thực tế của bạn nếu cần.</div>` : '';
+  // v366 — dải này trước đây ghi cứng "7:00-19:00" và hứa "giữa trưa có 1 việc rất nhẹ", trong khi
+  // lịch thật đặt tới 5 việc chạm vào giờ làm. Nay giờ lấy từ cài đặt của bạn và SỐ VIỆC được ĐẾM
+  // từ chính cái lịch đang hiển thị — dải không thể nói lệch với lịch nữa, kể cả sau này lịch đổi.
+  const gl = gioLam();
+  const isWorkdayNow = laNgayDiLam(now);
+  const vcTrongGio = plan.filter(t=>trongGioLam(now, t.time, t.dur));
+  const phutTrongGio = vcTrongGio.reduce((s,t)=>s+(t.dur||0),0);
+  const workBanner = isWorkdayNow ? `<div class="rest-banner" style="background:#4FA8FF14; border-color:#4FA8FF44;">💼 Hôm nay bạn đi làm <b>${gl.batDau}–${gl.ketThuc}</b>. Lịch có <b>${vcTrongGio.length} việc nằm trong giờ làm</b>${phutTrongGio?` (${phutTrongGio} phút)`:''} — đều là loại tranh thủ được bằng tai nghe, đánh dấu 💼 bên dưới. Phần còn lại ở trước giờ vào làm và sau giờ tan. <span data-action="open-work-hours" style="color:var(--teal); font-weight:700; cursor:pointer;">Sửa giờ làm →</span></div>` : '';
 
   // Trộn khối sinh hoạt vào ĐÚNG vị trí theo giờ để đọc lịch cho khớp thực tế. Ngày nghỉ thì bỏ qua
   // (lịch ngày nghỉ vốn đã rất nhẹ, chèn thêm chỉ làm rối).
@@ -48508,7 +48549,7 @@ function renderToday(){
       <div class="task" data-action="row" data-task="${t.id}">
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
-        <div class="lbl">${t.label}${t.aiGenerated?'<span class="ai-tag">🤖 AI đề xuất</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
+        <div class="lbl">${t.label}${t.aiGenerated?'<span class="ai-tag">🤖 AI đề xuất</span>':''}${trongGioLam(now, t.time, t.dur)?'<span class="work-tag" title="Việc này nằm trong giờ làm của bạn">💼 trong giờ làm</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
         <div class="task-toggle ${isDone?'on':''} ${isFailed?'failed':''}" data-action="toggle" data-task="${t.id}">
           <span class="toggle-label">${isDone ? 'Confirmed' : (isFailed ? '🔒' : '')}</span>
           <span class="toggle-knob"></span>
@@ -48530,6 +48571,7 @@ function renderToday(){
     ${dayStamp}
     ${renderTrackHUD('schedule')}
     ${toggleRow}
+    ${workHoursCardHtml()}
     ${restDayIntro}
     ${dayOff ? '' : workBanner}
     ${dayOff ? '' : restBanner}
@@ -48558,9 +48600,9 @@ function renderToday(){
     ${dayOff ? '' : renderAiTomorrowCard(key)}
     <button class="reset-schedule-btn" data-action="reset-schedule">↺ Reset lịch làm việc (bắt đầu lại từ ngày mai)</button>
   `;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    document.querySelectorAll('.ring-fg').forEach(el=>{ el.style.strokeDashoffset = el.getAttribute('data-final'); });
-  }));
+  // v366 — đã gỡ đoạn requestAnimationFrame chạy hiệu ứng vẽ vòng tròn ở đây: màn này không còn
+  // phần tử .ring-fg nào kể từ khi vòng tròn 24h bị thay bằng thanh tiến độ, nên vòng lặp ấy chỉ
+  // quét một danh sách rỗng hai khung hình mỗi lần dựng màn.
 }
 
 // ================= RENDER: GENERAL (methods) =================
@@ -50587,6 +50629,15 @@ document.getElementById('content').addEventListener('click',(e)=>{
 
   const saveProfileEl = e.target.closest('[data-action="save-profile"]');
   if(saveProfileEl){ saveProfile(); return; }
+  // v366 — giờ làm. Bốn nhánh: mở, đóng, bật/tắt một thứ, lưu.
+  const whOpenEl = e.target.closest('[data-action="open-work-hours"]');
+  if(whOpenEl){ STATE.workHoursOpen = true; renderContent(); return; }
+  const whCloseEl = e.target.closest('[data-action="close-work-hours"]');
+  if(whCloseEl){ STATE.workHoursOpen = false; renderContent(); return; }
+  const whDayEl = e.target.closest('[data-action="toggle-work-day"]');
+  if(whDayEl){ toggleWorkDay(parseInt(whDayEl.getAttribute('data-day'),10)); return; }
+  const whSaveEl = e.target.closest('[data-action="save-work-hours"]');
+  if(whSaveEl){ saveWorkHours(); return; }
   const driveSigninEl = e.target.closest('[data-action="drive-signin"]');
   if(driveSigninEl){ STATE.acctMenuOpen = false; driveSignIn(); return; }
   const driveSignoutEl = e.target.closest('[data-action="drive-signout"]');
@@ -50821,13 +50872,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(chkEl){
     e.stopPropagation();
     const key = todayKey(); const taskId = chkEl.getAttribute('data-task');
-    const wasComplete = dayPct(key)===100;
     toggleTask(key, taskId);
-    const nowComplete = dayPct(key)===100;
-    if(!wasComplete && nowComplete){
-      const rc = document.getElementById('ringcard');
-      if(rc){ rc.classList.add('pulse'); setTimeout(()=>rc.classList.remove('pulse'),900); }
-    }
+    // v366 — đã gỡ hiệu ứng "pulse" khi đủ 100%: nó tìm phần tử #ringcard, mà phần tử ấy đã biến
+    // mất cùng vòng tròn 24h, nên nhánh này chưa từng chạy kể từ lúc đó. Hai lần gọi dayPct() để
+    // so trước/sau cũng bỏ theo vì chỉ dùng cho hiệu ứng ấy.
     return;
   }
   const rowEl = e.target.closest('[data-action="row"]');
