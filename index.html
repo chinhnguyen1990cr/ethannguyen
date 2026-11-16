@@ -6572,7 +6572,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v370';
+const APP_VERSION = 'v371';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -35483,6 +35483,11 @@ function hvVaoChe(che){
   const st = STATE.hvPhien; if(!st) return;
   const rec = hvTim(st.vidId); if(!rec) return;
   if(st.tab === 'chinhta'){ try{ dvLuuGo(); }catch(e){} }
+  // v371 — CHỐT CHẶN PHẢI ĐỨNG TRƯỚC MỌI THỨ KHÁC. Chưa có lời thoại mà vào Chép chính tả hay
+  // Shadowing thì chỉ ra một phòng trống; nói thẳng ra và giữ người dùng lại ở thẻ Phụ đề, nơi
+  // có nút lấy lời thoại. Đặt sau các lệnh dừng/tua phía dưới là đã lỡ dừng video và tạo phiên
+  // rỗng rồi mới quay đầu — nửa vời còn khó hiểu hơn.
+  if(hvThieuLoiThoai(hvTim(st.vidId), che)){ renderContent(); return; }
   STATE.hvLoi = null;
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
   // v368 — ĐÂY LÀ CHỖ LỖI v251 QUAY LẠI. Xoá hai cờ chọn ở trên là chưa đủ: khung tra nghĩa là
@@ -35937,16 +35942,32 @@ function hvDongKhungNghia(){
     for(let i = 0; i < bo.length; i++){ try{ bo[i].classList.remove('chon'); }catch(_){ } }
   }catch(_){ }
 }
+// v371 — CHỐT CHẶN "CHƯA CÓ LỜI THOẠI", TÁCH RA DÙNG CHUNG.
+//
+// Chép chính tả và Shadowing đều cần lời thoại mới làm được gì. Chốt này nằm sẵn trong hvDoiTab
+// từ lâu: thiếu lời thoại thì nói rõ một câu và GIỮ NGUYÊN ở thẻ Phụ đề, nơi có nút lấy lời thoại.
+//
+// Nhưng từ v338 app đổi phòng bằng hvVaoChe(), và hvVaoChe KHÔNG có chốt này — đúng kiểu lỗi của
+// v368: lại một bản sửa bị bỏ quên khi lối mới thay lối cũ. Đo thật trên đường dùng cho thấy
+// hvVaoChe('chinhta') với video chưa có lời thoại chạy trót lọt, hvLoi vẫn null, và nó đẩy người
+// dùng vào phòng Chép chính tả với idx:null — một phòng trống không có gì để làm và KHÔNG MỘT
+// LỜI GIẢI THÍCH. Nhìn vào chỉ thấy màn trắng, không biết mình thiếu bước nào.
+//
+// Nay chốt là một hàm, cả hai lối cùng gọi. Trả về true nghĩa là "đã chặn, đừng đi tiếp".
+function hvThieuLoiThoai(rec, che){
+  if(che !== 'chinhta' && che !== 'shadowing') return false;
+  if(rec && Array.isArray(rec.lines) && rec.lines.length) return false;
+  STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" ở thẻ Phụ đề trước đã.';
+  try{ hvVeVung('hvErrWrap'); }catch(_){ }
+  return true;
+}
 function hvDoiTab(tab){
   // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
   hvDongKhungNghia();
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
-  if((tab === 'chinhta' || tab === 'shadowing') && !rec.lines){
-    STATE.hvLoi = 'Chưa có lời thoại. Bấm "🤖 Lấy lời thoại" ở thẻ Phụ đề trước đã.';
-    hvVeVung('hvErrWrap'); return;
-  }
+  if(hvThieuLoiThoai(rec, tab)) return;
   STATE.hvLoi = null;
   // Tạo phiên cho thẻ nếu chưa có. Tạo MỘT LẦN rồi giữ nguyên: nhờ vậy chép dở nửa câu, chuyển sang
   // Phụ đề nghe lại, quay về là câu đó vẫn còn nguyên chữ đang gõ.
