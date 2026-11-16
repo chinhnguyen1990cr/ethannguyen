@@ -2668,6 +2668,21 @@
    yêu cầu an toàn (EN 581-1 §5), ba bảng trình tự thử (EN 581-2 §6.2.1 và §7.2.1, EN 581-3
    §5.2.1) và ba bộ phương pháp thử của EN 1728 (§6 ghế thường, §7 ghế làm việc, §8 ghế nằm).
    Mở bộ nào cũng thấy ngay chúng, khỏi phải nhớ số điều. */
+  /* v369 — nút ★ đánh dấu điều trọng tâm, và dải lọc. Nút để ô chạm rộng 28px cho ngón tay,
+     nhưng ngôi sao vẽ nhỏ để không cạnh tranh với số điều. */
+  .tc-sao{flex-shrink:0; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+    font-size:15px; line-height:1; color:var(--dim2); cursor:pointer; border-radius:8px; user-select:none;}
+  .tc-sao:active{background:rgba(255,201,74,0.16);}
+  .tc-sao.on{color:var(--gold);}
+  .tc-tt-loc{display:flex; align-items:center; gap:9px; margin:0 0 12px; padding:11px 13px; cursor:pointer;
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    font-size:11.5px; color:var(--dim); line-height:1.5;}
+  .tc-tt-loc .s{font-size:14px; color:var(--dim2); flex-shrink:0;}
+  .tc-tt-loc .t b{color:var(--text);}
+  .tc-tt-loc.on{background:rgba(255,201,74,0.10); border-color:rgba(255,201,74,0.45);}
+  .tc-tt-loc.on .s{color:var(--gold);}
+  .tc-tt-goi{margin:0 0 12px; padding:10px 13px; border-radius:12px; background:var(--panel2);
+    border:1px dashed var(--border); font-size:11px; color:var(--dim2); line-height:1.55;}
 .tc-qt{display:inline-flex; align-items:center; gap:3px; vertical-align:middle;
   margin-right:6px; padding:1px 7px 2px; border-radius:999px;
   font-style:normal; font-size:9px; font-weight:900; letter-spacing:.09em;
@@ -6557,7 +6572,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v368';
+const APP_VERSION = 'v369';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -8529,7 +8544,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}, dieuTrongTam:{}}, loaded);
     if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
@@ -18019,6 +18034,64 @@ function tcMucThanHtmlCu(m, bo){
   return (m.khoi || []).map(tcKhoiHtml).join('');
 }
 
+// ================= ĐIỀU TRỌNG TÂM — BẠN TỰ ĐÁNH DẤU (v369) =================
+// Trước v369 nhãn "★ TRỌNG TÂM" chỉ hiện khi dữ liệu của điều có cờ qt, và cờ ấy do tôi đặt
+// sẵn cho ĐÚNG BẢY điều trong cả app (en581-1 §5, en581-2 §6.2.1 và §7.2.1, en581-3 §5.2.1,
+// en1728 §6 và §7, và một điều nữa). Bảy điều cho hơn một nghìn điều — và quan trọng hơn: bảy
+// điều ấy do TÔI chọn, không phải bạn.
+//
+// Điều nào là trọng tâm phụ thuộc vào lô hàng, vào khách, vào việc đang lập kế hoạch thử cho
+// cái gì — chuyện chuyên môn của người kiểm hàng, không phải chuyện đoán bằng mã. Nên nay BẠN
+// bấm: một lần bấm là đánh dấu, bấm lại là bỏ.
+//
+// Lưu vào SETTINGS (không phải vào dữ liệu tiêu chuẩn) vì hai lý do: dữ liệu tiêu chuẩn là
+// bản sao nguyên văn, không nên pha dấu riêng của người dùng vào; và SETTINGS thì đồng bộ qua
+// Drive nên đánh dấu trên laptop là điện thoại thấy ngay.
+//
+// Cờ qt trong dữ liệu vẫn được tôn trọng: nếu sau này có bộ nào mang sẵn cờ ấy thì nó hiện
+// như một dấu mặc định, và bạn vẫn bỏ được.
+function ttKhoa(boId, so){ return String(boId) + '|' + String(so); }
+function ttMap(){
+  if(!SETTINGS.dieuTrongTam || typeof SETTINGS.dieuTrongTam !== 'object') SETTINGS.dieuTrongTam = {};
+  return SETTINGS.dieuTrongTam;
+}
+// Một điều là trọng tâm nếu BẠN đã đánh dấu, hoặc dữ liệu mang sẵn cờ qt. Dấu của bạn thắng:
+// đã bỏ dấu một điều có qt thì nó thôi là trọng tâm, chứ không bị cờ dữ liệu bật lại.
+function tcLaTrongTam(boId, d){
+  const m = ttMap(), k = ttKhoa(boId, d && d.so);
+  if(k in m) return !!m[k];
+  return !!(d && d.qt);
+}
+function tcDoiTrongTam(boId, so){
+  const ds = tcDieuTheoBo(boId) || [];
+  const d = ds.find(x => String(x.so) === String(so)) || {so:so};
+  const dang = tcLaTrongTam(boId, d);
+  const m = ttMap(), k = ttKhoa(boId, so);
+  // Ghi THẲNG giá trị mới chứ không xoá khoá: xoá khoá thì một điều có qt:true sẽ quay về
+  // trạng thái "trọng tâm theo dữ liệu", nên bỏ dấu xong nó lại sáng — bấm mà không ăn.
+  m[k] = !dang;
+  saveSettings(); pushToDrive();
+  renderContent();
+  showToast(dang ? '☆' : '★',
+    dang ? 'Đã bỏ dấu trọng tâm' : 'Đã đánh dấu trọng tâm',
+    'Điều ' + so + ' · ' + (dang ? 'không còn trong danh sách trọng tâm.' : 'sẽ hiện nhãn ★ và lọc được riêng.'));
+}
+function tcDemTrongTam(boId){
+  return (tcDieuTheoBo(boId) || []).filter(d => tcLaTrongTam(boId, d)).length;
+}
+// Nút ★ nằm TRONG hàng điều (hàng là một <button>), nên dùng <span> chứ không lồng button
+// vào button — lồng là HTML không hợp lệ và bấm không ăn chắc. Bộ nghe chặn lan sự kiện để
+// bấm ★ không kéo theo việc mở trang điều.
+function tcSaoHtml(boId, d){
+  const on = tcLaTrongTam(boId, d);
+  return `<span class="tc-sao${on?' on':''}" data-action="tc-sao" data-bo="${boId}" data-so="${escapeHtml(d.so)}"
+    title="${on?'Bỏ dấu trọng tâm':'Đánh dấu điều này là trọng tâm'}" role="button" tabindex="0">${on?'★':'☆'}</span>`;
+}
+function tcNhanTrongTamHtml(boId, d){
+  return tcLaTrongTam(boId, d)
+    ? '<i class="tc-qt" title="Điều then chốt — đọc kỹ trước khi lập kế hoạch thử">★ TRỌNG TÂM</i> '
+    : '';
+}
 function tcDieuNutHtml(bo, d){
   const sau = tcDieuSau(d.so);
   const muc = tcMucCuaDieu(bo.id, d.so);
@@ -18026,7 +18099,8 @@ function tcDieuNutHtml(bo, d){
   return `<button class="tc-dnut${sau > 1 ? ' con b' + Math.min(sau, 4) : ''}"
       data-action="tc-dieu" data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
       <span class="so">${escapeHtml(d.so)}</span>
-      <span class="noi"><span class="en">${d.qt ? '<i class="tc-qt" title="Điều then chốt — đọc kỹ trước khi lập kế hoạch thử">★ TRỌNG TÂM</i> ' : ''}${escapeHtml(d.en)}${
+      ${tcSaoHtml(bo.id, d)}
+      <span class="noi"><span class="en">${tcNhanTrongTamHtml(bo.id, d)}${escapeHtml(d.en)}${
         ''}</span>
         <span class="vi">${escapeHtml(d.vi)}</span>
         ${(coHinh || muc.length || d.ngoai) ? `<span class="dau">
@@ -18039,7 +18113,15 @@ function tcDieuNutHtml(bo, d){
 
 function renderTcDieuList(){
   const bo = tcBoCua(KH_STATE.tcBo) || TC_BO[1];
-  const ds = tcDieuTheoBo(bo.id);
+  // v369 — lọc chỉ xem điều trọng tâm. Đây là lý do thật của việc đánh dấu: lúc lập kế hoạch
+  // thử cho một lô, bạn cần đọc đúng mấy điều mình đã chọn, không phải cuộn qua tám mươi điều.
+  // Lọc KHÔNG lưu vào cài đặt: nó là trạng thái của lần xem này, mở app lại thì xem đủ bộ như
+  // bình thường — một bộ lọc dính dai là loại bẫy làm người dùng tưởng dữ liệu bị mất.
+  const chiTT = !!KH_STATE.tcChiTrongTam;
+  const demTT = tcDemTrongTam(bo.id);
+  if(chiTT && demTT === 0) KH_STATE.tcChiTrongTam = false;
+  const dsDay = tcDieuTheoBo(bo.id);
+  const ds = (chiTT && demTT > 0) ? dsDay.filter(d => tcLaTrongTam(bo.id, d)) : dsDay;
   // Gom theo điều CẤP MỘT, giữ nguyên thứ tự đã sắp.
   const khoi = [];
   ds.forEach(d=>{
@@ -18080,7 +18162,8 @@ function renderTcDieuList(){
           return `<button class="tc-con-d c${cap}" data-action="tc-dieu"
             data-bo="${bo.id}" data-so="${escapeHtml(d.so)}" style="--tcm:${bo.hex}">
           <span class="so">${escapeHtml(d.so)}</span>
-          <span class="noi"><span class="en">${d.qt ? '<i class="tc-qt" title="Điều then chốt — đọc kỹ trước khi lập kế hoạch thử">★ TRỌNG TÂM</i> ' : ''}${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
+          ${tcSaoHtml(bo.id, d)}
+          <span class="noi"><span class="en">${tcNhanTrongTamHtml(bo.id, d)}${escapeHtml(d.en)}</span><span class="vi">${escapeHtml(d.vi)}</span></span>
           ${/* v310 · Mục 4 — tắt nhãn "có hình" theo yêu cầu */ ''}
           ${''}
           <span class="mui">›</span>
@@ -18103,6 +18186,12 @@ function renderTcDieuList(){
     ${tcDauTrangHtml({hex:bo.hex, nhan:bo.ma + ':' + bo.nam, en:bo.en, vi:bo.vi})}
     ${tcCanhHtml(bo)}
     ${tcThanhCongCu(bo.id, mucluc)}
+    ${demTT > 0 ? `<div class="tc-tt-loc${chiTT?' on':''}" data-action="tc-loc-trongtam">
+      <span class="s">★</span>
+      <span class="t">${chiTT ? `Đang xem riêng <b>${demTT} điều trọng tâm</b> — bấm để xem lại cả bộ`
+                               : `Bạn đã đánh dấu <b>${demTT} điều trọng tâm</b> — bấm để chỉ xem chúng`}</span>
+    </div>` : `<div class="tc-tt-goi">☆ Bấm ngôi sao cạnh số điều để đánh dấu điều trọng tâm —
+      sau đó lọc ra xem riêng, và dấu ấy đồng bộ sang điện thoại.</div>`}
     ${than}
     ${bo.id === 'en1730' ? `<div class="tc-bq">Bản EN 1730 bạn gửi là <b>bản scan song ngữ</b>,
       không có lớp chữ, nên phải nhận dạng quang học. App chép các điều mà EN 581-3 viện
@@ -50833,6 +50922,14 @@ document.getElementById('content').addEventListener('click',(e)=>{
     try{ window.scrollTo({top:0, behavior:'instant'}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){ } }
     return;
   }
+  // v369 — ★ đánh dấu điều trọng tâm. PHẢI đứng TRƯỚC nhánh tc-dieu: nút ★ nằm lồng trong hàng
+  // điều, nếu để sau thì bấm ★ sẽ mở luôn trang điều — bấm một cái ra hai việc.
+  const tcSaoEl = e.target.closest('[data-action="tc-sao"]');
+  if(tcSaoEl){ e.stopPropagation(); e.preventDefault();
+    tcDoiTrongTam(tcSaoEl.getAttribute('data-bo'), tcSaoEl.getAttribute('data-so')); return; }
+  const tcLocTTEl = e.target.closest('[data-action="tc-loc-trongtam"]');
+  if(tcLocTTEl){ e.stopPropagation();
+    KH_STATE.tcChiTrongTam = !KH_STATE.tcChiTrongTam; renderContent(); window.scrollTo(0,0); return; }
   const tcDieuEl = e.target.closest('[data-action="tc-dieu"]');
   if(tcDieuEl){
     // v307 — GỐC CỦA "BẤM LIÊN KẾT RỒI BACK LẠI RA MÀN NGOÀI".
