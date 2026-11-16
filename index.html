@@ -212,7 +212,18 @@
 
   .rm{width:20px;height:20px;border-radius:6px; display:flex; align-items:center; justify-content:center;
     color:var(--dim2); font-size:10px; flex-shrink:0; margin-left:2px;}
+  /* v367 — nút sửa việc, cùng cỡ với nút ẩn để hàng việc không bị lệch. */
+  .ed{width:20px;height:20px;border-radius:6px; display:flex; align-items:center; justify-content:center;
+    color:var(--dim2); font-size:11px; flex-shrink:0; margin-left:2px; cursor:pointer;}
+  .ed:active{background:var(--panel2); color:var(--teal);}
+  /* Nhãn cho việc đã bị dời giờ / đổi tên — để nhìn ra ngay cái nào khác mặc định. */
+  .sua-tag{font-size:9px; font-weight:700; color:#FFC94A; background:rgba(255,201,74,0.14);
+    border:1px solid rgba(255,201,74,0.35); border-radius:6px; padding:1px 6px; letter-spacing:.2px; flex-shrink:0;}
   .restore-row{margin-top:10px; display:flex; flex-wrap:wrap; gap:6px;}
+  /* v367 — khối "Thiết lập lịch" gom những thứ chỉ xem thỉnh thoảng xuống cuối màn Hôm nay. */
+  .tl-group{margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);}
+  .tl-title{font-size:11px; font-weight:700; color:var(--dim2); letter-spacing:.06em;
+    text-transform:uppercase; margin-bottom:10px; padding-left:2px;}
 
   .tasklist{display:flex; flex-direction:column; gap:8px;}
   .task-wrap{background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden;}
@@ -6546,7 +6557,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v366';
+const APP_VERSION = 'v367';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7794,7 +7805,10 @@ function getPlanForKey(key){
   const base = getPlanForDate(parseKey(key));
   const rec = LOG[key] || {};
   const removed = rec.removed || {};
-  const filteredBase = base.filter(t=>!removed[t.id]);
+  // v367 — áp bản sửa SAU khi lọc việc đã ẩn, và TRƯỚC khi xếp lại theo giờ. Thứ tự ấy quan trọng:
+  // sửa giờ một việc thì nó phải nhảy về đúng chỗ mới trong danh sách, chứ không nằm nguyên chỗ cũ
+  // với một con giờ khác — nhìn vào là tưởng lịch lộn.
+  const filteredBase = base.filter(t=>!removed[t.id]).map(apSuaViec);
   const custom = (rec.customTasks||[]).map(ct=>({ id:ct.id, time:ct.time, dur:ct.dur, label:ct.label, cat:ct.cat, kind:'custom', sub:[], aiGenerated:!!ct.aiGenerated }));
   return [...filteredBase, ...custom].sort((a,b)=> a.time.localeCompare(b.time));
 }
@@ -7842,6 +7856,57 @@ function submitAddTask(){
   LOG[key].customTasks.push({ id:'custom_'+Date.now(), time, dur, label, cat });
   saveLog();
   STATE.addingTask = false;
+  renderContent();
+}
+// ================= SỬA MỘT VIỆC CÓ SẴN (v367) =================
+// Trước v367 chỉ làm được hai việc với lịch: THÊM việc mới, và ẨN một việc trong hôm nay. Không
+// sửa được tên, không dời được giờ. Nên hôm nào về muộn là phải ẩn việc đi rồi thêm lại một việc
+// y như thế ở giờ khác — mất luôn phần hướng dẫn (t.sub) và phần nối sang mục Học tiếng Anh của
+// việc gốc, vì việc tự thêm không có hai thứ đó.
+//
+// MỘT ĐIỀU PHẢI NÓI RÕ VỀ PHẠM VI, vì nó khác với nút ẩn nằm ngay cạnh:
+//   · Nút ✕ ẩn việc CHỈ TRONG HÔM NAY (lưu vào LOG của ngày), mai lịch trở lại như cũ.
+//   · Nút ✎ sửa việc áp dụng MỌI NGÀY (lưu vào SETTINGS.suaViec).
+// Để khác nhau như vậy là có lý do: lý do người ta ẩn một việc thường là chuyện của riêng hôm nay
+// ("hôm nay họp muộn"), còn lý do người ta dời giờ một việc thường là chuyện lâu dài ("tôi về nhà
+// lúc 20h chứ không phải 19h"). Nếu sửa giờ mà mai lại về giờ cũ thì mỗi ngày phải sửa lại một
+// lần — đúng loại nhọc mà cái nút này sinh ra để bỏ đi. Form sửa NÓI THẲNG phạm vi ấy ra, và có
+// nút trả về mặc định để không ai bị kẹt với một thay đổi mình không còn muốn.
+function suaViecMap(){
+  if(!SETTINGS.suaViec || typeof SETTINGS.suaViec!=='object') SETTINGS.suaViec = {};
+  return SETTINGS.suaViec;
+}
+// Áp bản sửa lên một việc GỐC. Chỉ nhận ba trường, và mỗi trường phải đúng dạng mới được dùng —
+// dữ liệu hỏng (giờ rác, thời lượng âm) thì bỏ qua trường ấy chứ không làm vỡ cả hàng việc.
+function apSuaViec(t){
+  const s = suaViecMap()[t.id];
+  if(!s) return t;
+  const r = Object.assign({}, t);
+  if(typeof s.label === 'string' && s.label.trim()) r.label = s.label.trim();
+  if(/^\d{2}:\d{2}$/.test(s.time||'')) r.time = s.time;
+  if(Number.isFinite(s.dur) && s.dur > 0) r.dur = s.dur;
+  r.daSua = true;
+  return r;
+}
+function viecDaSua(taskId){ return !!suaViecMap()[taskId]; }
+function luuSuaViec(taskId, isCustom, label, time, dur){
+  if(isCustom){
+    // Việc tự thêm thì sửa thẳng vào chính nó, không cần lớp phủ.
+    const key = todayKey();
+    const ds = (LOG[key] && LOG[key].customTasks) || [];
+    const ct = ds.find(x=>x.id===taskId);
+    if(ct){ ct.label = label; ct.time = time; ct.dur = dur; saveLog(); }
+  } else {
+    suaViecMap()[taskId] = { label, time, dur };
+    saveSettings(); pushToDrive();
+  }
+  STATE.editingTask = null;
+  renderContent();
+}
+function traViecVeMacDinh(taskId){
+  delete suaViecMap()[taskId];
+  saveSettings(); pushToDrive();
+  STATE.editingTask = null;
   renderContent();
 }
 function removeTaskForToday(taskId, isCustom){
@@ -8464,7 +8529,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}}, loaded);
     if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
@@ -18322,6 +18387,44 @@ function renderAddTaskForm(){
       <button class="form-btn submit" data-action="submit-add-task">Thêm việc</button>
     </div>
   </div>`;
+}
+// v367 — Form SỬA một việc. Dùng chung dáng với form thêm việc để đỡ phải học hai thứ, nhưng khác
+// ở hai chỗ quan trọng: (1) nói rõ phạm vi áp dụng, (2) có nút trả về mặc định cho việc gốc.
+// KHÔNG cho đổi nhóm (Thể lực / Tiếng Anh / …) của việc gốc: nhóm là thứ mà phần thống kê, thanh
+// màu và cả phần nối sang mục Học tiếng Anh đều dựa vào, đổi nhóm là làm sai số liệu quá khứ.
+function renderEditTaskForm(t){
+  const isCustom = t.kind === 'custom';
+  const daSua = !isCustom && viecDaSua(t.id);
+  return `<div class="card" id="edit-task-card" style="margin:0 0 10px;">
+    <h3 style="margin-bottom:4px;">✎ Sửa việc</h3>
+    <div style="font-size:11px; color:var(--dim); line-height:1.6; margin-bottom:10px;">
+      ${isCustom
+        ? 'Đây là việc bạn tự thêm cho hôm nay — sửa ở đây là sửa chính nó.'
+        : 'Thay đổi áp dụng cho <b style="color:var(--text)">mọi ngày</b>, không chỉ hôm nay. Nhóm việc và phần hướng dẫn bên trong giữ nguyên.'}
+    </div>
+    <input class="form-input" id="edit-task-label" value="${escapeHtml(t.label)}" placeholder="Tên việc">
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <input class="form-input" type="time" id="edit-task-time" value="${t.time}" style="flex:1;">
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <input class="form-input" type="number" id="edit-task-dur" value="${t.dur}" min="5" step="5" style="width:64px;">
+        <span style="font-size:11px; color:var(--dim);">phút</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="form-btn cancel" data-action="cancel-edit-task">Hủy</button>
+      <button class="form-btn submit" data-action="submit-edit-task" data-task="${t.id}" data-custom="${isCustom?'1':'0'}">Lưu</button>
+    </div>
+    ${daSua ? `<button class="form-btn" style="width:100%; margin-top:8px; background:var(--panel2); border:1px solid var(--border); color:var(--dim);" data-action="reset-edit-task" data-task="${t.id}">↺ Trả việc này về mặc định</button>` : ''}
+  </div>`;
+}
+function submitEditTask(taskId, isCustom){
+  const label = ((document.getElementById('edit-task-label')||{}).value || '').trim();
+  const time = (document.getElementById('edit-task-time')||{}).value || '';
+  const dur = parseInt((document.getElementById('edit-task-dur')||{}).value, 10);
+  if(!label){ showToast('⚠️','Chưa có tên việc','Việc không tên thì nhìn vào lịch không biết là việc gì.'); return; }
+  if(!/^\d{2}:\d{2}$/.test(time)){ showToast('⚠️','Chưa có giờ','Nhập giờ bắt đầu cho việc này.'); return; }
+  if(!Number.isFinite(dur) || dur <= 0){ showToast('⚠️','Thời lượng không dùng được','Nhập số phút lớn hơn 0.'); return; }
+  luuSuaViec(taskId, isCustom, label, time, dur);
 }
 // ================= RENDER: HUB (HOME) =================
 // ══ v288 · MÀN CHÀO CHO TÀI KHOẢN CHƯA CÓ DỮ LIỆU ═══════════════════════════════════
@@ -48549,13 +48652,15 @@ function renderToday(){
       <div class="task" data-action="row" data-task="${t.id}">
         <div class="time">${timeRangeLabel(t, now)}</div>
         <div class="catdot" style="background:${CATS[t.cat].hex}"></div>
-        <div class="lbl">${t.label}${t.aiGenerated?'<span class="ai-tag">🤖 AI đề xuất</span>':''}${trongGioLam(now, t.time, t.dur)?'<span class="work-tag" title="Việc này nằm trong giờ làm của bạn">💼 trong giờ làm</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
+        <div class="lbl">${t.label}${t.aiGenerated?'<span class="ai-tag">🤖 AI đề xuất</span>':''}${trongGioLam(now, t.time, t.dur)?'<span class="work-tag" title="Việc này nằm trong giờ làm của bạn">💼 trong giờ làm</span>':''}${t.daSua?'<span class="sua-tag" title="Bạn đã sửa việc này — khác lịch mặc định">✎ đã sửa</span>':''}<span class="chev ${isOpen?'open':''}">▸</span></div>
         <div class="task-toggle ${isDone?'on':''} ${isFailed?'failed':''}" data-action="toggle" data-task="${t.id}">
           <span class="toggle-label">${isDone ? 'Confirmed' : (isFailed ? '🔒' : '')}</span>
           <span class="toggle-knob"></span>
         </div>
+        <div class="ed" data-action="edit-task" data-task="${t.id}" title="Sửa tên hoặc dời giờ việc này">✎</div>
         <div class="rm" data-action="remove-task" data-task="${t.id}" data-custom="${isCustom?'1':'0'}" title="${isCustom?'Xóa việc này':'Ẩn việc này hôm nay'}">✕</div>
       </div>
+      ${STATE.editingTask===t.id ? `<div class="subpanel open"><div class="subinner">${renderEditTaskForm(t)}</div></div>` : ''}
       <div class="subpanel ${isOpen?'open':''}"><div class="subinner">${isOpen ? renderSubpanel(t, now) : ''}</div></div>
     </div>`;
   }).join('');
@@ -48565,13 +48670,31 @@ function renderToday(){
 
   const addTaskSection = STATE.addingTask ? renderAddTaskForm() : `<button class="add-task-btn" data-action="open-add-task">+ Thêm việc của riêng bạn</button>`;
 
+  // v367 — SẮP LẠI THỨ TỰ MÀN HÔM NAY.
+  //
+  // Thứ tự cũ đẩy người dùng qua năm khối trước khi thấy một việc nào: mốc ngày, thanh HUD, hàng
+  // bật ngày nghỉ, hàng giờ làm, rồi hai–ba dải thông báo, rồi mới tới thanh tiến độ và danh sách
+  // việc. Trên điện thoại nghĩa là mở app lên thấy toàn thông báo, phải cuộn mới thấy việc cần làm
+  // — mà việc cần làm mới là thứ người ta mở app để xem.
+  //
+  // Thứ tự mới: tiến độ lên ngay trên cùng (một dòng, biết ngay còn bao nhiêu việc), rồi DANH SÁCH
+  // VIỆC, rồi mới tới các khối phụ. Những thứ chỉ xem thỉnh thoảng — giờ làm, bật ngày nghỉ, hai
+  // nút thiết lập lại — dồn xuống một khối "Thiết lập" ở cuối. Không bỏ gì cả, chỉ đổi chỗ, nên
+  // không mất chức năng nào.
+  //
+  // Riêng ngày nghỉ thì giữ thẻ giới thiệu ở trên cùng: hôm đó không có việc để nhìn, thứ cần nói
+  // là "hôm nay bạn đang nghỉ và nó không làm đứt chuỗi".
+  const khoiThietLap = `
+    <div class="tl-group">
+      <div class="tl-title">Thiết lập lịch</div>
+      ${workHoursCardHtml()}
+      ${toggleRow}
+      ${resetHtml}
+      <button class="reset-schedule-btn" data-action="reset-schedule">↺ Reset lịch làm việc (bắt đầu lại từ ngày mai)</button>
+    </div>`;
   document.getElementById('content').innerHTML = `
     ${renderSectionBack(titleBadge('calendar','#FFC94A','#FF8A3D')+' Lịch làm việc hàng ngày')}
     ${scheduleSubNav()}
-    ${dayStamp}
-    ${renderTrackHUD('schedule')}
-    ${toggleRow}
-    ${workHoursCardHtml()}
     ${restDayIntro}
     ${dayOff ? '' : workBanner}
     ${dayOff ? '' : restBanner}
@@ -48595,10 +48718,11 @@ function renderToday(){
       </div>`;
     })()}
     <div class="tasklist">${tasksHtml}</div>
-    ${resetHtml}
     ${addTaskSection}
+    ${dayStamp}
+    ${renderTrackHUD('schedule')}
     ${dayOff ? '' : renderAiTomorrowCard(key)}
-    <button class="reset-schedule-btn" data-action="reset-schedule">↺ Reset lịch làm việc (bắt đầu lại từ ngày mai)</button>
+    ${khoiThietLap}
   `;
   // v366 — đã gỡ đoạn requestAnimationFrame chạy hiệu ứng vẽ vòng tròn ở đây: màn này không còn
   // phần tử .ring-fg nào kể từ khi vòng tròn 24h bị thay bằng thanh tiến độ, nên vòng lặp ấy chỉ
@@ -50858,6 +50982,21 @@ document.getElementById('content').addEventListener('click',(e)=>{
 
   const rmEl = e.target.closest('[data-action="remove-task"]');
   if(rmEl){ e.stopPropagation(); removeTaskForToday(rmEl.getAttribute('data-task'), rmEl.getAttribute('data-custom')==='1'); return; }
+  // v367 — sửa việc. Mọi nhánh đều phải stopPropagation: nút nằm LỒNG trong hàng việc, mà hàng
+  // việc có data-action="row" để xổ phần hướng dẫn. Thiếu một chỗ là bấm nút nào cũng kèm theo
+  // xổ/đóng panel bên dưới, nhìn như app nhảy loạn.
+  const edEl = e.target.closest('[data-action="edit-task"]');
+  if(edEl){ e.stopPropagation();
+    const id = edEl.getAttribute('data-task');
+    STATE.editingTask = (STATE.editingTask===id) ? null : id;
+    renderContent(); return; }
+  const edCancelEl = e.target.closest('[data-action="cancel-edit-task"]');
+  if(edCancelEl){ e.stopPropagation(); STATE.editingTask = null; renderContent(); return; }
+  const edSaveEl = e.target.closest('[data-action="submit-edit-task"]');
+  if(edSaveEl){ e.stopPropagation();
+    submitEditTask(edSaveEl.getAttribute('data-task'), edSaveEl.getAttribute('data-custom')==='1'); return; }
+  const edResetEl = e.target.closest('[data-action="reset-edit-task"]');
+  if(edResetEl){ e.stopPropagation(); traViecVeMacDinh(edResetEl.getAttribute('data-task')); return; }
 
   const resetEl = e.target.closest('[data-action="reset-today-removed"]');
   if(resetEl){ resetTodayRemoved(); return; }
