@@ -5384,21 +5384,6 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 .dict-w{padding:1px 3px;border-radius:4px;}
 .dict-w.ok{color:#2CDBA8;background:rgba(44,219,168,.11);}
 .dict-w.no{color:#ff5c5c;background:rgba(255,92,92,.11);text-decoration:underline;text-decoration-style:dotted;}
-/* ===== YouGlish trong Luyện IPA (v163) ===== */
-.yg-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:12px;}
-.yg-h{font-size:12.5px;font-weight:800;color:var(--gold);margin-bottom:3px;}
-.yg-d{font-size:10.5px;color:var(--dim2);line-height:1.6;margin-bottom:10px;}
-/* Đặt theo ID, KHÔNG theo class: widget của YouGlish thay hẳn thẻ div và làm mất class,
-   nên quy tắc viết theo .yg-box sẽ biến mất ngay khi video được nạp. */
-#yg-box{width:100%;min-height:260px;border-radius:10px;overflow:hidden;background:#000;}
-#yg-box iframe{width:100%;min-height:250px;border:none;display:block;}
-#yg-box .ygContainer{background:#11161d !important;}
-.yg-err{font-size:11.5px;color:#ff9a9a;line-height:1.6;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);border-radius:9px;padding:9px 11px;margin-bottom:9px;}
-.yg-out{display:block;text-align:center;font-size:11.5px;font-weight:700;color:var(--teal);padding:9px;margin-top:8px;border:1px dashed var(--border);border-radius:9px;text-decoration:none;}
-.yg-bar{display:flex;gap:8px;margin-top:9px;}
-.yg-bar .form-btn{flex:1;margin:0;}
-.yg-credit{font-size:9.5px;color:var(--dim2);text-align:center;margin-top:8px;}
-.yg-credit a{color:var(--dim);}
 /* ══ v203 · GỌN LẠI ══ */
 .hv-hero{display:flex; align-items:center; gap:11px; background:rgba(255,255,255,.04);
   border:1px solid var(--border); border-left:3px solid #2CDBA8; border-radius:12px;
@@ -6514,8 +6499,6 @@ const HUB_PHOTOS = {
     <circle cx="26" cy="72" r="6" fill="#FFF6E8" opacity="0.9"/><circle cx="74" cy="70" r="4.5" fill="#FFF6E8" opacity="0.75"/>
     <defs><linearGradient id="hen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6EA8"/><stop offset="1" stop-color="#B06CF0"/></linearGradient></defs></svg>`,
 };
-function hubPhoto(name){ return `<span class="menu-item-photo-img">${HUB_PHOTOS[name]||''}</span>`; }
-
 // ================= CONFIG =================
 const CATS = {
   the_luc:    {label:'Thể lực',    hex:'#FF8A3D', icon:'🏃'},
@@ -6542,10 +6525,6 @@ function runPhaseForWeek(w){
   const capped = Math.min(w, 12);
   return RUN_PHASES.find(p=>capped>=p.w1 && capped<=p.w2) || RUN_PHASES[RUN_PHASES.length-1];
 }
-function runTargetForWeek(w){
-  if(w>12) return 'Chạy liên tục 30-35 phút, có thể chèn 1 buổi fartlek nhẹ mỗi tuần khi đã sẵn sàng';
-  return runPhaseForWeek(w).desc;
-}
 const TIERS = [
   {min:1,max:4, icon:'🌱', name:'Người mới bắt đầu'}, {min:5,max:9, icon:'🔥', name:'Người kiên trì'},
   {min:10,max:14, icon:'⚔️', name:'Chiến binh'}, {min:15,max:19, icon:'🛡️', name:'Dũng sĩ'},
@@ -6553,7 +6532,6 @@ const TIERS = [
   {min:50,max:Infinity, icon:'🌟', name:'Huyền thoại'},
 ];
 function tierFor(level){ return TIERS.find(t=>level>=t.min && level<=t.max) || TIERS[0]; }
-function tierIdx(tier){ const i = TIERS.indexOf(tier); return i<0?0:i; }
 // Huy hiệu HUD kiểu khiên gia huy (heraldry) châu Âu thời cổ, thay cho emoji phẳng —
 // mỗi bậc (tier) có một biểu tượng vector riêng khắc trong lòng khiên.
 const TIER_SYMBOLS = [
@@ -6565,14 +6543,10 @@ const TIER_SYMBOLS = [
   `<path d="M5.5 15.8l.9-6.4 2.8 2.8 2.8-4.6 2.8 4.6 2.8-2.8.9 6.4H5.5Z" fill="currentColor" stroke="currentColor" stroke-width=".6" stroke-linejoin="round"/>`,
   `<path d="M12 4.6l1.9 5 5.3.3-4.1 3.4 1.4 5.1L12 15.5l-4.5 2.9 1.4-5.1-4.1-3.4 5.3-.3 1.9-5Z" fill="currentColor"/>`
 ];
-function tierEmblemSvg(tier){
-  const sym = TIER_SYMBOLS[tierIdx(tier)] || TIER_SYMBOLS[0];
-  return `<svg viewBox="0 0 24 26" class="tier-shield-svg"><path class="tier-shield-outer" d="M12 1.2l9.2 3.1v7.9c0 6.6-4.6 10.7-9.2 13.1-4.6-2.4-9.2-6.5-9.2-13.1V4.3l9.2-3.1Z"/><path class="tier-shield-inner" d="M12 3.4l7.1 2.4v6.7c0 5.4-3.6 8.7-7.1 10.7-3.5-2-7.1-5.3-7.1-10.7V5.8l7.1-2.4Z"/><circle class="tier-shield-rivet" cx="12" cy="4.6" r=".9"/>${sym}</svg>`;
-}
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v372';
+const APP_VERSION = 'v373';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -7620,7 +7594,6 @@ function parseKey(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
 function addMinutes(baseDate,hh,mm,dur){ const d=new Date(baseDate); d.setHours(hh,mm,0,0); return new Date(d.getTime()+dur*60000); }
 function fmtHM(d){ return pad(d.getHours())+':'+pad(d.getMinutes()); }
-function fmtDateVN(d){ return WD[d.getDay()]+', '+pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 function dayOfYear(d){ const start=new Date(d.getFullYear(),0,0); return Math.floor((d-start)/86400000); }
 
@@ -7932,10 +7905,6 @@ function removeTaskForToday(taskId, isCustom){
   if(LOG[key].tasks) delete LOG[key].tasks[taskId];
   saveLog();
   renderContent();
-}
-function restoreTaskForToday(taskId){
-  const key = todayKey();
-  if(LOG[key] && LOG[key].removed){ delete LOG[key].removed[taskId]; saveLog(); renderContent(); }
 }
 function resetTodayRemoved(){
   const key = todayKey();
@@ -8339,7 +8308,6 @@ function dayXPTrack(key, track){
   const base = done*XP_PER_TASK + (done===total?PERFECT_BONUS:0);
   return Math.max(0, base - failedCountForList(list, rec)*FAIL_XP_PENALTY);
 }
-function dayMaxXPTrack(key, track){ if(isDayOff(key)) return track==='schedule'?REST_DAY_XP:0; const {total} = dayInfoTrack(key,track); return total>0 ? total*XP_PER_TASK+PERFECT_BONUS : 0; }
 function totalXPTrack(track){ return Object.keys(LOG).reduce((s,k)=> s + dayXPTrack(k,track), 0); }
 function levelInfoTrack(track){ const xp = totalXPTrack(track); return {lvl:Math.floor(xp/500)+1, cur:xp%500, next:500, xp}; }
 function computeStreakTrack(track){
@@ -8395,7 +8363,6 @@ function ensurePerk(){
   if(!SETTINGS.perk || typeof SETTINGS.perk !== 'object') SETTINGS.perk = {};
   return SETTINGS.perk;
 }
-function petPerkAllow(){ return PERK_PER_DAY; }
 function petPerkLeft(key){
   const p = ensurePerk(), today = todayKey();
   const used = (p.d === today && p[key]) ? p[key] : 0;
@@ -8904,27 +8871,6 @@ async function driveManualResync(){
   finally{ _suppressDrivePush = false; }
   driveSyncing = false; renderContent();
 }
-function renderCloudSyncCard(){
-  if(driveSyncing){
-    return `<div class="card" style="text-align:center;"><h3>☁️ Đồng bộ đa thiết bị</h3>
-      <div style="font-size:12px; color:var(--dim); margin-top:8px;">Đang đồng bộ với Google Drive...</div></div>`;
-  }
-  if(!driveAccessToken){
-    return `<div class="card" style="text-align:center;">
-      <h3>☁️ Đồng bộ đa thiết bị (Google Drive)</h3>
-      <div style="font-size:12px; color:var(--dim); margin:8px 0 14px; line-height:1.6;">Đăng nhập Google để lưu dữ liệu lên Drive của bạn và dùng chung trên mọi thiết bị.</div>
-      <button class="avatar-upload-btn" style="width:100%;" data-action="drive-signin">🔑 Đăng nhập bằng Google</button>
-    </div>`;
-  }
-  return `<div class="card" style="text-align:center;">
-    <h3>☁️ Đồng bộ đa thiết bị</h3>
-    <div style="font-size:13px; font-weight:700;">${driveUserEmail || 'Đã kết nối Google Drive'}</div>
-    <div style="font-size:11px; color:var(--teal); margin:5px 0 14px; font-weight:600;">✓ Đã kết nối — dữ liệu tự động đồng bộ</div>
-    <button class="avatar-upload-btn" style="width:100%; margin-bottom:8px;" data-action="drive-resync">🔄 Tải lại từ Drive</button>
-    <button class="avatar-reset-btn" style="width:100%;" data-action="drive-signout">Đăng xuất</button>
-  </div>`;
-}
-
 function toggleTask(key, taskId){
   if(!LOG[key]) LOG[key] = {tasks:{}};
   // KHÔNG còn khoá việc trễ. Làm muộn vẫn là đã làm — bấm xác nhận lúc nào cũng được ghi nhận, và cờ
@@ -9019,61 +8965,6 @@ document.getElementById('popup-root').addEventListener('click', (e)=>{
 });
 
 // ================= ADVICE ENGINE =================
-function buildAdvice(dateKeys){
-  const tracked = dateKeys.filter(k=>LOG[k] && dayPlanInfo(k).total>0);
-  if(tracked.length===0) return ["Chưa có dữ liệu trong giai đoạn này. Bắt đầu đánh dấu hoàn thành các mục hôm nay để mình phân tích cho bạn nhé!"];
-  const catRate = {};
-  Object.keys(CATS).forEach(cat=>{
-    let done=0,total=0; tracked.forEach(k=>{ if(isDayOff(k)) return; const ci=catInfo(k,cat); done+=ci.done; total+=ci.total; });
-    catRate[cat] = total>0 ? done/total : -1;
-  });
-  const validCats = Object.keys(catRate).filter(c=>catRate[c]>=0);
-  const sortedCats = validCats.sort((a,b)=>catRate[a]-catRate[b]);
-  const weakest = sortedCats[0]; const strongest = sortedCats[sortedCats.length-1];
-  let trendMsg='';
-  if(tracked.length>=4){
-    const half=Math.floor(tracked.length/2);
-    const avg = arr=>arr.reduce((s,k)=>s+dayPct(k),0)/arr.length;
-    const a1=avg(tracked.slice(0,half)), a2=avg(tracked.slice(half));
-    if(a2-a1>=8) trendMsg = `Xu hướng đang <b>cải thiện rõ rệt</b> — từ ${Math.round(a1)}% lên ${Math.round(a2)}%. Cứ giữ nhịp độ này!`;
-    else if(a1-a2>=8) trendMsg = `Hiệu suất đang <b>giảm nhẹ</b> (${Math.round(a1)}% → ${Math.round(a2)}%). Xem lại giờ giấc hoặc mức tải có đang quá sức không.`;
-    else trendMsg = `Hiệu suất khá <b>ổn định</b> quanh mức ${Math.round(a2)}%.`;
-  }
-  const avgPct = Math.round(tracked.reduce((s,k)=>s+dayPct(k),0)/tracked.length);
-  const streak = computeStreak();
-  const restCount = tracked.filter(k=>isDayOff(k)).length;
-  const msgs = [`Tỷ lệ hoàn thành trung bình: <b>${avgPct}%</b> trên ${tracked.length} ngày có dữ liệu${restCount>0?` (trong đó có <b>${restCount} ngày nghỉ chủ động</b>, được tính là hoàn thành)`:''}. ${trendMsg}`];
-  if(weakest && catRate[weakest] < 0.6){
-    let tip='';
-    if(weakest==='the_luc') tip='thử rút ngắn buổi chạy/tập hoặc đổi khung giờ cho phù hợp năng lượng buổi sáng.';
-    else if(weakest==='tieng_anh') tip='thử gộp bớt 1 buổi luyện nói/shadowing ngắn hơn thay vì bỏ hẳn.';
-    else if(weakest==='chuyen_mon') tip='thử đặt mục tiêu nhỏ hơn (15-20 phút) để dễ duy trì mỗi ngày.';
-    else tip='thử đặt báo thức nhắc giờ ngủ trước 15 phút để tạo thói quen.';
-    msgs.push(`Nhóm <b>${CATS[weakest].label}</b> đang là điểm yếu nhất (${Math.round(catRate[weakest]*100)}%). Gợi ý: ${tip}`);
-  } else if(weakest){
-    msgs.push(`Tất cả các nhóm đều duy trì khá tốt (thấp nhất: <b>${CATS[weakest].label}</b> ${Math.round(catRate[weakest]*100)}%). Mạnh nhất: <b>${CATS[strongest].label}</b> (${Math.round(catRate[strongest]*100)}%).`);
-  }
-  if(streak>=3) msgs.push(`🔥 Đang giữ chuỗi <b>${streak} ngày</b> liên tiếp đạt trên 75%. Đừng để đứt mạch nhé!`);
-  else if(streak===0) msgs.push(`Chưa có chuỗi ngày liên tiếp nào — bắt đầu lại từ hôm nay, chỉ cần đạt 75% mỗi ngày là được tính!`);
-  const p = SETTINGS.profile;
-  if(profileComplete(p)){
-    const bmi = bmiValue(p.weight, p.height); const cat = bmiCategoryAsia(bmi);
-    const theLucRate = catRate['the_luc'];
-    if(theLucRate>=0){
-      if(cat.label.indexOf('Thừa cân')===0 || cat.label==='Béo phì'){
-        if(theLucRate<0.6) msgs.push(`Với BMI ${bmi.toFixed(1)} (${cat.label.toLowerCase()}) và tỷ lệ hoàn thành Thể lực mới ${Math.round(theLucRate*100)}%, ưu tiên tăng đều đặn các buổi chạy nhẹ nhàng (MAF/Run-Walk) sẽ hiệu quả hơn là dồn cường độ cao — bền vững quan trọng hơn nhanh.`);
-        else msgs.push(`Tỷ lệ hoàn thành Thể lực ${Math.round(theLucRate*100)}% đang tốt — với BMI ${bmi.toFixed(1)}, tiếp tục nhịp độ vừa phải này để giảm cân an toàn (khoảng 0.5kg/tuần là hợp lý).`);
-      } else if(cat.label==='Thiếu cân' && theLucRate<0.6){
-        msgs.push(`BMI ${bmi.toFixed(1)} đang ở mức thiếu cân — nên đảm bảo đủ Thể lực (đặc biệt tập tạ) để xây cơ, tránh giảm cân thêm.`);
-      }
-    }
-    if(p.age>=40 && avgPct<70){
-      msgs.push(`Ở độ tuổi ${p.age}, cơ thể cần thời gian phục hồi lâu hơn — nếu thấy khó duy trì ${avgPct}%, thử giảm cường độ thay vì giảm tần suất.`);
-    }
-  }
-  return msgs;
-}
-
 // ================= RENDER: HUD =================
 function renderHUD(){
   // Thanh XP/HUD toàn cục đã bị bỏ khỏi màn hình chính theo yêu cầu — mỗi mục (Lịch làm việc, Học tiếng Anh) có thanh XP riêng.
@@ -16486,15 +16377,6 @@ function tcCthThu(bang, ky){
 }
 // Một dòng tóm tắt để nhìn nút là biết phép thử này nặng tay cỡ nào, lấy từ chính bảng
 // thông số chứ không viết tay — viết tay là có ngày lệch với bảng.
-function tcTomTat(t){
-  if(!t.ts.length) return 'Không có thông số — tiêu chí là không lật';
-  // Chọn hàng PHÂN BIỆT được ba cấp. Lấy bừa hàng chu kỳ thì ra "10 · 10 · 10" ở phần
-  // bàn — đúng nhưng vô dụng, nhìn không biết cấp nào nặng hơn cấp nào. Ưu tiên hàng
-  // nào có ba giá trị khác nhau; không có thì mới lấy hàng đầu.
-  const khac = t.ts.filter(x=>new Set(x.slice(2)).size > 1);
-  const r = khac.find(x=>/^Cycles/.test(x[0])) || khac[0] || t.ts[0];
-  return `${r[1]}: ${r.slice(2).join(' · ')}`;
-}
 function tcThuDsHtml(bangId){
   const b  = tcBangCua(bangId);
   const ds = tcThuTheoBang(bangId);
@@ -18009,12 +17891,6 @@ function tcMucKhongGanDieu(){
 // thật chứ không đoán: điều có bước thử (thu), hoặc tiêu đề mang chữ "test"/"determination
 // of", hoặc nhóm là nhóm phương pháp thử.
 const TC_NHOM_THU = ['pp','lv','gn','od','bb','gh','tq'];
-function tcLaPhepThu(d){
-  if(!d) return false;
-  if((d.thu || []).length) return true;
-  if(/\b(test|testing)\b/i.test(d.en || '') && !/report|probe/i.test(d.en || '')) return true;
-  return TC_NHOM_THU.indexOf(d.nhom) >= 0 && /\d\.\d/.test(d.so || '');
-}
 // v304 · Mục 4 — thân ghi chú thực chiến dựng ngay trong trang điều.
 function tcMucThanHtml(m, bo){
   // v313 · Mục 1 — nội dung trong khung Summary cũng phải NỐI VIỆN DẪN: trước đây chỉ thân
@@ -18576,10 +18452,6 @@ const WORLD_MAP_DOTS = [
   [64,8],[68,7],[72,6],[76,7],[80,8],[84,9],[88,10],[90,12],[86,13],[82,12],[78,11],[74,10],[70,9],[66,10],[62,11],[65,14],[69,15],[73,14],[77,16],[81,17],[85,16],[89,18],[64,18],[68,19],[72,18],[76,20],[80,21],[84,22],[60,15],[63,22],[67,24],[71,23],[75,25],[79,26],[83,25],[60,26],
   [80,40],[83,39],[86,40],[89,42],[85,44],[81,43],[88,45],[83,46]
 ];
-function worldMapSvg(){
-  const dots = WORLD_MAP_DOTS.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="0.55"/>`).join('');
-  return `<svg class="hub-clock-map" viewBox="0 0 100 50" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${dots}</svg>`;
-}
 // Cập nhật giờ:phút mỗi giây khi màn hình Hub đang mở, chỉ đổi text (không render lại toàn bộ) để
 // tránh giật/mất vị trí cuộn — tự thoát sớm nếu người dùng đã rời khỏi Hub (element không còn tồn tại).
 function tickHubClock(){
@@ -19388,125 +19260,6 @@ function cvThuThap(){
 //  QUẢN GIA HÔM NAY  —  cùng số liệu, nhưng nói bằng tiếng người
 // ═══════════════════════════════════════════════════════════════════════════
 const QG_MAX_NEN = 4, QG_MAX_DUNG = 3;
-function qgGioChu(t){ return String((t&&t.time)||'').slice(0,5); }
-function qgGioSo(t){ const p = String((t&&t.time)||'00:00').split(':'); return (+p[0]) + (+p[1])/60; }
-function qgTenNhom(c){ return (CATS[c] && CATS[c].label) ? CATS[c].label : c; }
-
-function qgBanTin(D){
-  // Dùng nguyên tên người dùng tự nhập. Cắt lấy "chữ cuối" là sai với người ghi kiểu
-  // "Chinh Nguyễn" — hoá ra gọi bằng họ. Không có cách nào đoán đúng cho mọi kiểu ghi.
-  const ten = ((SETTINGS.profile||{}).name || '').trim();
-  const g = D.gio;
-  const chao = (g<5 ? 'Khuya rồi' : g<11 ? 'Chào buổi sáng' : g<13 ? 'Trưa rồi'
-              : g<18 ? 'Chào buổi chiều' : 'Chào buổi tối') + (ten ? ', ' + escapeHtml(ten) : '') + '.';
-
-  // Một câu duy nhất về tình hình — không nhồi số
-  let tom;
-  if(D.nghi) tom = 'Hôm nay là ngày nghỉ. Cứ thong thả.';
-  else if(!D.planHnay.length) tom = 'Hôm nay chưa đặt việc nào cả. Rảnh thì thêm một hai việc nhẹ.';
-  else if(!D.conLai.length) tom = 'Xong hết việc hôm nay rồi. Nghỉ được rồi đấy.';
-  else {
-    const kt = D.sapToi[0];
-    tom = `Còn ${D.conLai.length} việc chưa làm.` + (kt ? ` Gần nhất là <b>${escapeHtml(kt.label)}</b> lúc ${qgGioChu(kt)}.` : '');
-  }
-
-  // Việc cần để mắt ngay bây giờ
-  let gap = null;
-  if(!D.nghi){
-    if(D.daQua.length){
-      const t = D.daQua[D.daQua.length-1];
-      gap = {ic:'⏰', chu:`“${escapeHtml(t.label)}” lỡ giờ ${qgGioChu(t)} mất rồi`,
-             phu: D.daQua.length > 1
-               ? `Còn ${D.daQua.length-1} việc nữa cũng đang trễ. Làm một cái thôi, đừng ôm hết.`
-               : 'Làm bù bây giờ vẫn kịp. Không kịp thì bỏ, mai làm đúng giờ là được.'};
-    } else if(D.sapToi.length){
-      const t = D.sapToi[0];
-      const con = Math.max(0, Math.round((qgGioSo(t) - g) * 60));
-      gap = {ic:'🔔',
-             chu: con <= 60 ? `Còn ${con} phút nữa tới “${escapeHtml(t.label)}”`
-                            : `Sắp tới: “${escapeHtml(t.label)}” lúc ${qgGioChu(t)}`,
-             phu: con <= 60 ? 'Chuẩn bị dần đi cho khỏi cập rập.'
-                            : 'Còn thong thả. Làm việc khác trước cũng được.'};
-    }
-  }
-
-  const nen = [], dung = [];
-  const gioYeu  = (D.xepGio.length >= 2 && D.xepGio[0].pct < 60) ? D.xepGio[0] : null;
-  const nhomYeu = (D.xepNhom.length >= 2 && D.xepNhom[0].pct < 60) ? D.xepNhom[0] : null;
-  const p = D.t14.pct;
-
-  // ── NÊN ──
-  if(D.wx && D.wx.rain != null && D.wx.rain >= 60)
-    nen.push({ic:'☔', chu:`Trời dễ mưa (${D.wx.rain}%). Việc ngoài trời làm sớm, hoặc chuyển vào nhà.`});
-  else if(D.wx && D.wx.max >= 35)
-    nen.push({ic:'🥵', chu:`Nắng gắt ${D.wx.max}°. Tập lúc sáng sớm hay chiều muộn, nhớ uống nhiều nước.`});
-  if(gioYeu)
-    nen.push({ic:'⏰', chu:`Việc lúc ${gioYeu.h} giờ hay bị bỏ nhất. Hôm nay thử làm sớm hơn 15 phút.`});
-  if(nhomYeu)
-    nen.push({ic:'🎯', chu:`Mảng ${escapeHtml(qgTenNhom(nhomYeu.cat))} đang đuối nhất. Làm nó trước lúc còn sức.`});
-  if(D.boLau.length)
-    nen.push({ic:'📚', chu:`${escapeHtml(D.boLau[0].name)} bỏ ${D.boLau[0].daysSince} ngày rồi. Mở ra 10 phút thôi cũng được.`});
-  if(p !== null && p < 50)
-    nen.push({ic:'✂️', chu:'Bớt lịch lại. Chọn 2–3 việc dễ nhất, làm cho xong hẳn.'});
-  if(D.chuoi >= 3)
-    nen.push({ic:'🔥', chu:`Đang được ${D.chuoi} ngày liền. Tích thêm một việc nữa là giữ được chuỗi.`});
-  if(!nen.length)
-    nen.push({ic:'🙂', chu:'Cứ theo lịch là ổn. Hôm nay chưa có gì đáng lo.'});
-
-  // ── ĐỪNG ──
-  if(D.daQua.length >= 3)
-    dung.push({ic:'🌙', chu:'Đừng cố làm bù hết trong tối nay. Chọn một việc thôi.'});
-  if(p !== null && p >= 85)
-    dung.push({ic:'➕', chu:'Đừng thêm việc mới. Đang chạy tốt thì cứ để yên.'});
-  else if(p !== null && p < 50)
-    dung.push({ic:'📅', chu:'Đừng giữ nguyên lịch rồi hẹn “mai cố hơn”. Cắt bớt đi đã.'});
-  if(gioYeu)
-    dung.push({ic:'⛔', chu:`Đừng xếp thêm việc vào khung ${gioYeu.h} giờ nữa.`});
-  if(D.wx && D.wx.max >= 35)
-    dung.push({ic:'☀️', chu:'Đừng ra ngoài tập lúc giữa trưa.'});
-  if(D.t14.ngayTrang > 0)
-    dung.push({ic:'🚫', chu:'Đừng để ngày trắng. Tích một việc nhỏ vẫn hơn là không có gì.'});
-  if(!dung.length)
-    dung.push({ic:'😌', chu:'Đừng ép mình quá. Làm được tới đâu tính tới đó.'});
-
-  // ── Số liệu gốc, để trong khối thu gọn ──
-  const so = [];
-  if(p !== null) so.push(`14 ngày qua làm xong <b>${D.t14.xong}/${D.t14.tongViec}</b> việc.`);
-  if(gioYeu) so.push(`Việc đặt lúc ${gioYeu.h} giờ: xong <b>${gioYeu.xong}/${gioYeu.tong}</b> lượt.`);
-  if(nhomYeu) so.push(`Mảng ${escapeHtml(qgTenNhom(nhomYeu.cat))}: xong <b>${nhomYeu.xong}/${nhomYeu.tong}</b> lượt.`);
-  if(D.chuoi > 0) so.push(`Chuỗi ngày hiện tại: <b>${D.chuoi}</b>.`);
-  if(D.wx) so.push(`Hôm nay <b>${D.wx.min}–${D.wx.max}°</b>${D.wx.rain!=null?`, khả năng mưa ${D.wx.rain}%`:''}.`);
-  if(!so.length) so.push('Mới dùng được vài hôm nên chưa có gì để đối chiếu. Vài ngày nữa sẽ rõ hơn.');
-
-  return {chao, tom, gap, nen: nen.slice(0, QG_MAX_NEN), dung: dung.slice(0, QG_MAX_DUNG), so};
-}
-
-function qgHtml(D){
-  const B = qgBanTin(D);
-  const d = new Date();
-  const THU = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
-  const dong = a => a.map(x=>`<li><span class="qg-ic">${x.ic}</span><span>${x.chu}</span></li>`).join('');
-  return `<div class="qg-chao-hop">
-      <div class="qg-ngay">${THU[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}</div>
-      <div class="qg-chao">${B.chao}</div>
-      <div class="qg-tom">${B.tom}</div>
-    </div>
-    ${B.gap ? `<div class="qg-gap">
-      <div class="qg-gap-ic">${B.gap.ic}</div>
-      <div><div class="qg-gap-chu">${B.gap.chu}</div><div class="qg-gap-phu">${B.gap.phu}</div></div>
-    </div>` : ''}
-    <div class="qg-hop nen">
-      <div class="qg-hop-h">Hôm nay nên</div>
-      <ul class="qg-ul">${dong(B.nen)}</ul>
-    </div>
-    <div class="qg-hop dung">
-      <div class="qg-hop-h">Hôm nay đừng</div>
-      <ul class="qg-ul">${dong(B.dung)}</ul>
-    </div>
-    <div class="qg-mo" data-action="cv-solieu">${SETTINGS.cvSoLieu?'▴ Ẩn con số':'▾ Quản gia dựa vào đâu?'}</div>
-    ${SETTINGS.cvSoLieu ? `<div class="qg-so">${B.so.map(x=>`<div>· ${x}</div>`).join('')}</div>` : ''}`;
-}
-
 // ---------- Giao diện ----------
 // ---------- Bản viết sâu bằng Claude (tùy chọn, cần API key) ----------
 // Khác bản cũ ở chỗ: prompt không còn nói về Can Chi/ngũ hành mà đưa thẳng số liệu thật cho AI đọc,
@@ -19914,21 +19667,6 @@ function qgiaXoa(i){
   if(!qgiaVeHoi()) renderContent();
 }
 // ---------- Thẻ trên trang chính ----------
-function qgiaHomeCard(){
-  const open = SETTINGS.dvHomeOpen !== false;
-  const N = qgiaHomNay();
-  const head = `<div class="dv-home-head" data-action="dv-home-toggle">
-      <span class="dv-home-ic">🎩</span>
-      <span class="dv-home-tx"><b>Quản gia</b><small>${N ? ('Ngày Cá Nhân ' + N.ngayCN + ' · ' + escapeHtml(N.hoSo.ten)) : 'Cần ngày sinh trong hồ sơ'}</small></span>
-      <span class="dv-home-cta ${open?'open':''}">▾</span>
-    </div>`;
-  if(!open) return `<div class="dv-home">${head}</div>`;
-  return `<div class="dv-home">${head}
-    ${N ? `<div class="qgia-home-tq" style="--qc:${N.hoSo.mau};">${escapeHtml(N.hoSo.tq)}</div>` : ''}
-    <div class="dv-home-more" data-action="hub-open" data-target="divination">Mở Quản gia — báo cáo ngày &amp; hỏi việc ›</div>
-  </div>`;
-}
-
 // ================= THỜI TIẾT =================
 // Dùng Open-Meteo: miễn phí, KHÔNG cần API key, không cần đăng ký. Toạ độ lấy một lần từ trình duyệt
 // rồi nhớ luôn vào SETTINGS; nếu bạn từ chối chia sẻ vị trí thì mặc định lấy theo TP.HCM.
@@ -20138,16 +19876,6 @@ function wxGioMoTa(kmh){
   return       {c, t:'gió rất mạnh', mau:'#FF5A6E', canhBao:true};
 }
 // Icon gió vẽ riêng — số vạch tăng theo cấp gió nên liếc mắt là biết mạnh hay nhẹ.
-function wxSvgGio(kmh, size){
-  const g = wxGioMoTa(kmh), z = size || 20;
-  const soVach = g.c <= 2 ? 1 : (g.c <= 4 ? 2 : 3);
-  const vach = [0,1,2].slice(0, soVach).map((i)=>{
-    const y = 34 + i*16, w = 44 - i*6;
-    return `<path d="M14 ${y} h${w} a7 7 0 1 0 -7 -7" fill="none" stroke="${g.mau}" stroke-width="7"
-      stroke-linecap="round" opacity="${1 - i*0.18}"/>`;
-  }).join('');
-  return `<svg viewBox="0 0 100 100" width="${z}" height="${z}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">${vach}</svg>`;
-}
 // Huy hiệu nhỏ gắn kèm mỗi ô giờ/ngày: mưa bao nhiêu %, gió cấp mấy, có giông bão không.
 // Chỉ hiện thứ ĐÁNG CHÚ Ý — trời đẹp gió nhẹ thì không hiện gì, để mắt không bị nhiễu.
 
@@ -20159,41 +19887,6 @@ const WX_LEG_TROI = [
   [45, 'Sương mù'],     [51, 'Mưa phùn'],    [61, 'Mưa nhỏ'],
   [65, 'Mưa to'],       [80, 'Mưa rào'],     [95, 'Giông, có sấm sét'],
 ];
-function wxLegendHtml(){
-  const troi = WX_LEG_TROI.map(([c,t])=>`<div class="wx-leg-row">
-      <div class="wx-leg-ic">${wxSvg(c,26)}</div>
-      <div class="wx-leg-tx"><b>${t}</b>${c>=95?'Nên hoãn mọi việc ngoài trời':c>=61?'Cần mang theo áo mưa':c>=45?'Tầm nhìn kém, đi đường chậm lại':'Thuận lợi cho việc ngoài trời'}</div>
-    </div>`).join('');
-  const cap = [[3,20],[5,35],[7,58],[9,90]].map(([c,kmh])=>{
-    const g = wxGioMoTa(kmh);
-    return `<div class="wx-leg-row">
-      <div class="wx-leg-ic" style="color:${g.mau};">${wxSvgGio(kmh,22)}</div>
-      <div class="wx-leg-tx"><b>Cấp ${g.c} — ${g.t}</b>Khoảng ${kmh} km/h. ${
-        c<=3 ? 'Bình thường, không ảnh hưởng gì.' :
-        c<=5 ? 'Cây nhỏ đung đưa, đi xe máy đã thấy ghì tay.' :
-        c<=7 ? 'Đi lại ngoài trời khó, không nên chạy xe đường trống hoặc ven biển.' :
-               'Nguy hiểm — cây gãy, biển hiệu bay. Ở trong nhà.'}</div>
-    </div>`;
-  }).join('');
-  const huy = [
-    ['⛈️', 'Giông', 'Có sấm sét trong ngày. Đây là ký hiệu đáng ngại nhất trên bảng — sét nguy hiểm hơn mưa nhiều.'],
-    ['💧', 'Khả năng mưa (%)', 'Xác suất có mưa trong khung giờ đó. Dưới 40% thì app không hiện; từ 70% trở lên số chuyển màu đậm.'],
-    ['💨', 'Cấp gió', 'Chỉ hiện khi gió từ cấp 4 trở lên. Dưới cấp 4 coi như gió bình thường, không cần báo.'],
-    ['🌀', 'Gió giật (km/h)', 'Tốc độ của cơn giật mạnh nhất, không phải gió trung bình. Chỉ hiện khi trên 50 km/h. Đây mới là con số làm ngã xe.'],
-    ['🌡️', 'Cảm giác như', 'Nhiệt độ cơ thể thực sự cảm nhận (tính cả độ ẩm và gió) — thường lệch vài độ so với nhiệt độ đo được.'],
-  ].map(([ic,ten,mo])=>`<div class="wx-leg-row">
-      <div class="wx-leg-ic">${ic}</div>
-      <div class="wx-leg-tx"><b>${ten}</b>${mo}</div>
-    </div>`).join('');
-  return `<div class="wx-leg">
-    <div class="wx-leg-h">📖 Đọc bảng thời tiết này thế nào</div>
-    <div class="wx-leg-d">Mỗi ký hiệu trên bảng dự báo đều có nghĩa cụ thể. Dưới đây là toàn bộ, kèm việc nên làm khi gặp.</div>
-    <div class="wx-leg-sec">HÌNH THÁI TRỜI</div>${troi}
-    <div class="wx-leg-sec">CẤP GIÓ (THANG BEAUFORT)</div>${cap}
-    <div class="wx-leg-sec">CÁC HUY HIỆU NHỎ TRÊN Ô NGÀY / GIỜ</div>${huy}
-  </div>`;
-}
-
 function wxBadges(code, rainPct, wind, gust){
   const out = [];
   const c = +code;
@@ -20204,45 +19897,6 @@ function wxBadges(code, rainPct, wind, gust){
   if(g && g.c >= 4) out.push(`<span class="wx-bd wind" style="--wc:${g.mau};" title="${g.t} — khoảng ${wind} km/h">💨 gió cấp ${g.c} · ${g.t}</span>`);
   if(gust != null && gust >= 50) out.push(`<span class="wx-bd gust" title="Cơn giật mạnh nhất, không phải gió trung bình">🌀 giật ${gust} km/h</span>`);
   return out.length ? `<div class="wx-bds">${out.join('')}</div>` : '';
-}
-function weatherChipHtml(){
-  const w = weatherCache();
-  if(!w) { fetchWeatherToday(); return `<div class="hc-weather loading"><span class="w-ic">${wxSvg(2,40)}</span><span class="w-tx">Đang lấy thời tiết…</span></div>`; }
-  if(w.err) return `<div class="hc-weather"><span class="w-ic">${wxSvg(45,40)}</span><span class="w-tx">Chưa lấy được thời tiết — kiểm tra kết nối mạng và quyền vị trí.</span></div>`;
-  const label = wmoInfo(w.code)[1];
-  const hours = (w.hours||[]).map(h=>{
-    const g = h.w!=null ? wxGioMoTa(h.w) : null;
-    // v163: mỗi ô giờ có tooltip chữ đầy đủ khi chạm giữ, và cấp gió ghi rõ "c4" thay vì số km/h trần
-    // (số km/h trần đứng một mình rất dễ nhầm với nhiệt độ hoặc phần trăm).
-    const moTa = [`${pad(h.h)}h — ${wmoInfo(h.c)[1]}`, `${h.t}°C`];
-    if(h.r!=null) moTa.push(`khả năng mưa ${h.r}%`);
-    if(g) moTa.push(`gió cấp ${g.c} (${g.t}, ${h.w} km/h)`);
-    return `<div class="wh-cell ${(+h.c>=95)?'storm':''}" title="${escapeHtml(moTa.join(' · '))}">
-      <div class="wh-h">${pad(h.h)}h</div>
-      <div class="wh-ic">${wxSvg(h.c,24)}</div>
-      <div class="wh-t">${h.t}°</div>
-      ${h.r!=null?`<div class="wh-r ${h.r>=50?'high':''}" title="Khả năng mưa">💧${h.r}%</div>`:''}
-      ${g?`<div class="wh-w" style="--wc:${g.mau};" title="Gió ${g.t} — ${h.w} km/h">${wxSvgGio(h.w,14)}<span>c${g.c}</span></div>`:''}
-    </div>`;
-  }).join('');
-  const place = SETTINGS.geoCity || WEATHER_FALLBACK.city;
-  const meta = [];
-  if(w.feels != null && Math.abs(w.feels - w.now) >= 1) meta.push('🌡️ cảm giác '+w.feels+'°');
-  if(w.hum  != null) meta.push('💧 ẩm '+w.hum+'%');
-  if(w.wind != null){ const g = wxGioMoTa(w.wind); meta.push('💨 gió '+w.wind+' km/h · cấp '+g.c+' ('+g.t+')'); }
-  if(w.rain != null) meta.push('☔ mưa '+w.rain+'%');
-  const obs = w.obs ? (function(){ try{ const t=new Date(w.obs); return pad(t.getHours())+':'+pad(t.getMinutes()); }catch(_){ return ''; } })() : '';
-  return `<div class="hc-weather">
-      <span class="w-ic">${wxSvg(w.code,40)}</span>
-      <span class="w-now">${w.now}°</span>
-      <span class="w-tx"><span class="w-placerow"><span class="w-place">📍 ${escapeHtml(place)}</span><span class="w-pick" data-action="wx-pick-open" title="Đổi vị trí">⌖ Đổi</span></span>
-        <span>${escapeHtml(label)} · <b>${w.min}° – ${w.max}°</b></span>
-        <span class="hc-wmeta">${meta.map(m=>`<span>${m}</span>`).join('')}</span></span>
-    </div>
-    ${hours ? `<div class="hc-hours">${hours}</div>` : ''}
-    <div class="hc-src">Nguồn: Open-Meteo — tổng hợp mô hình ECMWF · DWD ICON · NOAA GFS${obs?` · số liệu lúc ${obs}`:''}</div>
-    <div class="wx-leg-toggle" data-action="wx-leg-toggle">${SETTINGS.wxLegOpen?'▴ Thu gọn chú thích':'📖 Ký hiệu này nghĩa là gì?'}</div>
-    ${SETTINGS.wxLegOpen ? wxLegendHtml() : ''}`;
 }
 // ---- CHỌN VỊ TRÍ XEM THỜI TIẾT ----
 // Tra tên địa điểm bằng Open-Meteo Geocoding: miễn phí, không cần API key, trả về sẵn tên tỉnh/quốc gia
@@ -21246,25 +20900,6 @@ const ENG_FLOW = [
    d:'Biết mà không nói ra được thì coi như chưa biết. Phần này ép bạn tạo ra câu chứ không chỉ nhận ra câu.',
    m:['Luyện nói','Luyện IPA','Hội thoại AI']}
 ];
-function engFlowHtml(){
-  const rows = ENG_FLOW.map((f,i)=>`
-    <div class="ef-row">
-      <div class="ef-step" style="background:${f.c};">${i+1}</div>
-      <div class="ef-body">
-        <div class="ef-h"><span class="ef-ic">${f.ic}</span><b style="color:${f.c};">${f.v}</b><span class="ef-t">${escapeHtml(f.t)}</span></div>
-        <div class="ef-d">${escapeHtml(f.d)}</div>
-        <div class="ef-m">${f.m.map(x=>`<span class="ef-tag" style="border-color:${f.c}55; color:${f.c};">${escapeHtml(x)}</span>`).join('')}</div>
-      </div>
-    </div>`).join('');
-  return `<details class="eng-flow"${SETTINGS._flowSeen?'':' open'}>
-    <summary><span class="ef-sum-ic">🧭</span><span><b>Quy trình học — 7 mục này ăn khớp với nhau ra sao</b><small>Đọc một lần để biết mở mục nào trước</small></span></summary>
-    <div class="ef-in">
-      ${rows}
-      <div class="ef-note"><b>Thứ tự trong ngày:</b> sáng đầu óc tỉnh nhất → dành cho <b>NHỚ</b> (từ vựng mới) và phát âm. Trưa mệt → <b>NẠP</b> (nghe, không cần gắng sức). Tối → <b>BẬT RA</b> (nói) và <b>HIỂU</b> (ngữ pháp). Lịch làm việc đã xếp sẵn đúng thứ tự này, bạn chỉ cần làm theo.</div>
-      <div class="ef-note warn"><b>Một điều quan trọng:</b> ngày nào bận thì làm phần <b>NHỚ</b> trước tiên rồi nghỉ — bỏ một ngày ôn từ gây thiệt hại lớn hơn bỏ một ngày ngữ pháp, vì từ đã quên thì phải học lại từ đầu.</div>
-    </div>
-  </details>`;
-}
 // ================= LỘ TRÌNH GIAO TIẾP =================
 // Mục tiêu người dùng đặt ra: nói và nghe được trong sinh hoạt hằng ngày sau 1–3 tháng.
 // Vài con số cần bám để không đặt mục tiêu sai:
@@ -21276,26 +20911,6 @@ function engFlowHtml(){
 //     => 3 tháng đủ để giao tiếp được việc hằng ngày, chưa đủ để gọi là thành thạo. Đặt đúng kỳ vọng
 //        thì mới không bỏ cuộc giữa chừng.
 const COMM_GOAL = { words: 1000, sents: 300, days: 90, hoursPerWeek: 19 };
-function commProgress(){
-  const vp = SETTINGS.vocabProgress || {};
-  const sp = SETTINGS.sentProgress  || {};
-  // Chỉ đếm những từ nằm trong 1.000 từ hay dùng nhất — học từ ngoài nhóm đó không tính vào mục tiêu này.
-  const order = (VOCAB_DATA && VOCAB_DATA.learnOrder) || [];
-  const core = new Set(order.slice(0, COMM_GOAL.words));
-  let wKnown = 0, wSolid = 0;
-  core.forEach(nn=>{ const p = vp[nn]; if(p && p.introduced){ wKnown++; if((p.box||0)>=3) wSolid++; } });
-  let sKnown = 0, sSolid = 0;
-  Object.keys(sp).forEach(k=>{ const p = sp[k]; if(p && p.introduced){ sKnown++; if((p.box||0)>=3) sSolid++; } });
-  sKnown = Math.min(sKnown, COMM_GOAL.sents); sSolid = Math.min(sSolid, COMM_GOAL.sents);
-  // Độ phủ lời nói ước tính: 1.000 từ đầu ~85%, đường cong dốc ở đầu rồi thoải dần (quy luật Zipf).
-  const cov = Math.round(85 * Math.pow(wSolid / COMM_GOAL.words, 0.62));
-  return {wKnown, wSolid, sKnown, sSolid, cov};
-}
-function commStartDay(){
-  if(!SETTINGS.commStart){ SETTINGS.commStart = todayKey(); saveSettings(); }
-  const d = Math.floor((new Date() - parseKey(SETTINGS.commStart)) / 86400000) + 1;
-  return Math.max(1, Math.min(d, 999));
-}
 const COMM_PHASES = [
   {d:[1,30],  n:'Tháng 1 — Nghe hiểu & bắt chước', c:'#2CDBA8',
    goal:'400 từ lõi · 100 câu · nói lại được câu mẫu',
@@ -21310,32 +20925,6 @@ const COMM_PHASES = [
    do:['Hội thoại AI mỗi ngày, chủ đề khó dần','Nghe tốc độ thật (không giảm tốc), tập đoán nghĩa từ ngữ cảnh','Kể lại một ngày của bạn bằng tiếng Anh, 2 phút, không chuẩn bị','Quay lại các từ hay quên — đó mới là chỗ cần dồn sức'],
    avoid:'Đừng mở rộng thêm từ mới ở tháng này. Đào sâu 1.000 từ đã có để chúng bật ra tự động.'}
 ];
-function commPhaseNow(){ const d = commStartDay(); return COMM_PHASES.find(p=>d>=p.d[0] && d<=p.d[1]) || COMM_PHASES[2]; }
-function commCardHtml(){
-  const p = commProgress(), day = commStartDay(), ph = commPhaseNow();
-  const bar = (v,max,c)=>`<div class="cg-bar"><div class="cg-fill" style="width:${Math.min(100,Math.round(v/max*100))}%; background:${c};"></div></div>`;
-  return `<details class="comm-goal" style="--cc:${ph.c};">
-    <summary>
-      <span class="cg-ic">🎯</span>
-      <span><b>Lộ trình giao tiếp — ngày ${day}/90</b><small>${escapeHtml(ph.n)}</small></span>
-      <span class="cg-cov" style="color:${ph.c};">${p.cov}%</span>
-    </summary>
-    <div class="cg-in">
-      <div class="cg-cov-note">Ước tính bạn đã nắm <b>${p.cov}%</b> lượng từ xuất hiện trong hội thoại thường ngày. Mốc <b>85%</b> ứng với 1.000 từ hay dùng nhất — đủ để hiểu ý chính hầu hết câu chuyện đời thường.</div>
-      <div class="cg-row"><span class="cg-lbl">Từ lõi nhớ chắc</span><b>${p.wSolid}</b>/${COMM_GOAL.words}</div>
-      ${bar(p.wSolid, COMM_GOAL.words, ph.c)}
-      <div class="cg-row"><span class="cg-lbl">Câu thông dụng</span><b>${p.sSolid}</b>/${COMM_GOAL.sents}</div>
-      ${bar(p.sSolid, COMM_GOAL.sents, ph.c)}
-      <div class="cg-phase">
-        <div class="cg-ph-h" style="color:${ph.c};">${escapeHtml(ph.n)}</div>
-        <div class="cg-ph-g">Đích giai đoạn: ${escapeHtml(ph.goal)}</div>
-        <ul class="cg-ul">${ph.do.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
-        <div class="cg-avoid"><b>Tránh:</b> ${escapeHtml(ph.avoid)}</div>
-      </div>
-      <div class="cg-real"><b>Nói thẳng về mốc thời gian:</b> Cambridge ước tính cần <b>350–400 giờ</b> học có hướng dẫn để đạt mức nói chuyện thoải mái (B1). Bạn học 19 giờ/tuần, nên 3 tháng cho khoảng <b>247 giờ</b>. Đủ để <b>giao tiếp được việc hằng ngày</b> — hỏi đường, đi chợ, kể chuyện, họp ngắn. Chưa đủ để bàn sâu chuyện chuyên môn hay nói như người bản xứ. Đó là chuyện của tháng 6–12, và hoàn toàn trong tầm tay nếu bạn giữ nhịp này.</div>
-    </div>
-  </details>`;
-}
 // Bốn thẻ lớn — đây là thứ bạn nhìn thấy đầu tiên khi mở mục Học tiếng Anh. Mỗi thẻ tự nói ra
 // con số thật của chính nó (đã vượt mấy chủ đề, hôm nay còn bao nhiêu mục, có mấy video, đã gọi
 // mấy phút) để mở lên là biết ngay nên bấm vào đâu, không phải đoán.
@@ -21819,18 +21408,6 @@ function buLichTuHomQua(){
   if(them){ saveLog(); }
   return them;
 }
-function flowMissingHtml(){
-  const thieu = flowMissingForKey(todayKey());
-  const bu = ((LOG[todayKey()]||{}).customTasks||[]).filter(ct=>ct.buTu);
-  if(!thieu.length && !bu.length) return '';
-  return `<div class="no-hoc">
-    ${thieu.length ? `<div class="no-h">📋 Hôm nay còn ${thieu.length} mục chưa làm</div>
-      <div class="no-list">${thieu.map(t=>`<div class="no-row"><span class="t">${escapeHtml(t.time)}</span><span class="l">${escapeHtml(t.label)}</span></div>`).join('')}</div>
-      <div class="no-note">Hết ngày mà vẫn còn, app sẽ tự đẩy tối đa ${BU_MAX_MOI_NGAY} mục quan trọng nhất sang ngày mai (rút còn 60% thời lượng để không vỡ lịch).</div>` : ''}
-    ${bu.length ? `<div class="no-h bu">⏪ Đang bù ${bu.length} mục từ hôm trước</div>
-      <div class="no-list">${bu.map(ct=>`<div class="no-row"><span class="t">${escapeHtml(ct.time)}</span><span class="l">${escapeHtml(ct.label.replace('⏪ Bù: ',''))}</span></div>`).join('')}</div>` : ''}
-  </div>`;
-}
 function todayFlowState(){
   ensureEnglishItems();
   // Đồng bộ ngay mỗi lần dựng lại màn hình: học xong quay ra là Lịch đã tích sẵn.
@@ -21933,59 +21510,6 @@ function renderEnglishVault(){
 // chính là những từ/câu "học rồi mà lúc cần không bật ra được" — tức đúng những mục đang tới hạn ôn.
 // Lưu ý về cơ chế: khi bạn trả lời SAI một từ/câu, hệ thống lặp lại ngắt quãng sẽ hạ bậc nó xuống và
 // hẹn ôn lại sớm hơn — nên danh sách "tới hạn ôn" bên dưới ĐÃ BAO GỒM sẵn những chỗ bạn từng sai.
-function englishReviewData(){
-  const v = vocabStats(), se = sentStats();
-  const today = todayKey();
-  const dictProg = SETTINGS.dictProgress || {};
-  const dictDue = Object.keys(dictProg).filter(k=>{ const p=dictProg[k]; return p && p.introduced && p.next && p.next<=today; }).length;
-  // Chủ đề ngữ pháp còn yếu — tính điểm trung bình theo từng chủ đề trên toàn bộ lịch sử làm bài.
-  const agg = {};
-  (SETTINGS.grammarQuizLog||[]).forEach(r=>{
-    if(!r || !r.topicId) return;
-    if(!agg[r.topicId]) agg[r.topicId] = {sum:0, n:0};
-    agg[r.topicId].sum += (r.pct||0); agg[r.topicId].n++;
-  });
-  const weakTopics = Object.keys(agg).map(id=>({id, avg:Math.round(agg[id].sum/agg[id].n), n:agg[id].n}))
-    .filter(x=>x.n>=2 && x.avg<70).sort((a,b)=>a.avg-b.avg).slice(0,4);
-  // Lượt nói bị điểm thấp gần đây (14 ngày) — những đoạn cần đọc lại cho chuẩn.
-  let d=new Date(); const keys=[];
-  for(let i=0;i<14;i++){ keys.push(toKey(d)); d=addDays(d,-1); }
-  const lowSpeak = (SETTINGS.speakPracticeLog||[]).filter(r=>r && keys.includes(r.date) && typeof r.overall==='number' && r.overall<70).length;
-  const weakest = englishWeakestModuleRecent();
-  return {vocabDue:v.dueToday||0, sentDue:se.dueToday||0, dictDue, weakTopics, lowSpeak, weakest};
-}
-function renderEnglishReview(){
-  const r = englishReviewData();
-  const totalDue = r.vocabDue + r.sentDue + r.dictDue;
-  const dueRow = (icon,name,n,action,note,kind)=> n>0
-    ? `<div class="rv-row" ${action?`data-action="${action}"${kind?` data-kind="${kind}"`:''}`:''}>
-         <div class="rv-ic">${icon}</div>
-         <div class="rv-body"><div class="rv-name">${name}</div><div class="rv-note">${note}</div></div>
-         <div class="rv-n">${n}</div><div class="rv-go">${action?'›':''}</div>
-       </div>` : '';
-  const dueHtml = totalDue>0
-    ? `${dueRow('💬','Câu giao tiếp tới hạn', r.sentDue, 'review-start', 'Ôn lại đúng lúc sắp quên — hiệu quả nhất', 'sentences')}
-       ${dueRow('📖','Từ vựng tới hạn', r.vocabDue, 'review-start', 'Gồm cả những từ bạn từng trả lời sai', 'vocab')}
-       ${dueRow('✍️','Câu chép chính tả tới hạn', r.dictDue, 'review-start', 'Nghe lại những câu từng nghe hụt', 'listening')}`
-    : `<div class="rv-empty">🎉 Không còn gì tới hạn ôn hôm nay. Cứ yên tâm học phần mới ở tab <b>Học</b>.</div>`;
-  const weakHtml = (r.weakTopics.length || r.lowSpeak || r.weakest) ? `
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin-bottom:8px;">🎯 Điểm yếu cần củng cố</h3>
-      ${r.weakest ? `<div class="rv-weak">${r.weakest.icon} Mục <b>${escapeHtml(r.weakest.name)}</b> đang có điểm trung bình thấp nhất gần đây (<b>${r.weakest.avg}%</b>).</div>` : ''}
-      ${r.lowSpeak ? `<div class="rv-weak">🗣️ Có <b>${r.lowSpeak}</b> lượt luyện nói dưới 70 điểm trong 14 ngày qua — đọc lại vài đoạn để lấy lại độ chuẩn.</div>` : ''}
-      ${r.weakTopics.length ? `<div class="rv-weak">📝 Chủ đề ngữ pháp còn yếu: ${r.weakTopics.map(t=>`<b>${escapeHtml(quizTopicDisplayName(t.id))}</b> (${t.avg}%)`).join(', ')}.</div>` : ''}
-      <div style="font-size:10px; color:var(--dim2); line-height:1.55; margin-top:8px;">Không cần chữa hết cùng lúc. App sẽ tự chèn phần yếu nhất vào buổi học ở tab <b>Học</b> khi cần thiết.</div>
-    </div>` : '';
-  document.getElementById('content').innerHTML = `
-    ${renderSectionBack(titleBadge('chat','#4FA8FF','#7C6CF0')+' Ôn tập')}
-    ${englishSubNav()}
-    <div class="card">
-      <h3 style="margin-bottom:4px;">🔁 Tới hạn ôn hôm nay${totalDue?` — ${totalDue} mục`:''}</h3>
-      <div style="font-size:10.5px; color:var(--dim2); line-height:1.55; margin-bottom:10px;">Ôn đúng vào lúc sắp quên là cách ghi nhớ bền nhất. Những từ/câu bạn từng trả lời sai đã được hệ thống tự hẹn ôn lại sớm hơn, nên chúng nằm sẵn trong danh sách này.</div>
-      ${dueHtml}
-    </div>
-    ${weakHtml}`;
-}
 // ================= KẾ HOẠCH HỌC TIẾNG ANH MỖI NGÀY (Daily Study Planner) =================
 // Đề xuất mỗi ngày nên học 2 mục (đủ để tiến bộ, không quá tải), xoay vòng theo thứ trong tuần,
 // xen kẽ kỹ năng "input" (nghe/từ vựng) và "output" (nói/ngữ pháp) — nguyên lý interleaving giúp
@@ -24384,19 +23908,6 @@ function drpAmCuaTu(tho){
 const DRP_GHEP_CHO = {};
 'sunshine|bedside|bookshop|classroom|bathroom|livingroom|football|basketball|handbag|notebook|keyboard|birthday|weekend|airport|sunlight|moonlight|rainbow|snowman|daylight|nightmare|toothbrush|hairbrush|haircut|homework|housework|network|password|software|hardware|website|wallpaper|newspaper|bookstore|workshop|workplace|teammate|classmate|roommate|lifetime|daytime|sometime|anyone|anything|everyone|everything|nothing|something|someone|somewhere|anywhere|everywhere|without|within|inside|outside|upstairs|downstairs|afternoon|anybody|everybody|somebody|nobody|grandmother|grandfather|myself|yourself|himself|herself|ourselves|themselves|sunflower|seafood|seaside|railway|highway|motorway|doorway|driveway|runway|armchair|wheelchair|toothpaste|lipstick|raincoat|overcoat|underground|background|foreground|playground|battleground|campfire|fireman|firework|fireplace|waterfall|watermelon|dishwasher|washroom|restroom|bathtub|cupboard|blackboard|whiteboard|skateboard|surfboard|dashboard|keyhole|loophole|manhole|pothole|peephole'
   .split('|').forEach(w=>{ DRP_GHEP_CHO[w] = 1; });
-function drpCauAmHtml(cau){
-  const phan = drpTachTu(cau);
-  let co = 0, tong = 0;
-  const html = phan.map(x=>{
-    if(/^\s+$/.test(x)) return ' ';
-    const am = drpAmCuaTu(x);
-    if(/[a-z]/i.test(x)) tong++;
-    if(am) co++;
-    return `<span class="drp-tu-am${am ? '' : ' trong'}"><b>${escapeHtml(x)}</b>${
-      am ? `<i>/${escapeHtml(am)}/</i>` : ''}</span>`;
-  }).join('');
-  return {html: html, co: co, tong: tong};
-}
 // ══ v273 · TỔNG KẾT CẢ BÀI ════════════════════════════════════════════════════════════
 // ĐO TRƯỚC: đọc xong câu cuối thì màn hình chỉ còn đúng một thanh "Đã đọc 5/5 câu" rồi hết —
 // mỗi câu có điểm riêng nhưng KHÔNG chỗ nào nhìn được cả bài. Mà cái đáng học nhất lại nằm ở
@@ -26734,14 +26245,6 @@ function oxCanDich(gioiHan){
   }catch(_){ }
   return ra;
 }
-function oxConThieuNghia(){
-  try{
-    const ds = (VOCAB_DATA && VOCAB_DATA.words) || [];
-    let n = 0;
-    ds.forEach(w => { if(w && w[1] && !String(w[4]||'').trim() && vocabLaOxford(w[0])) n++; });
-    return n;
-  }catch(_){ return 0; }
-}
 async function oxLapNghia(){
   if(oxDangDich) return 0;
   const can = oxCanDich();
@@ -27935,11 +27438,6 @@ function wbTron(tu, cau){
   return ra;
 }
 // Tỉ lệ đã học của MỘT KHO (khác hẳn wbPct, vốn đo tiến độ của phiên đang chạy).
-function wbPctKho(daHoc, tong){
-  const t = +tong || 0, d = +daHoc || 0;
-  if(t <= 0) return 0;
-  return Math.max(0, Math.min(100, Math.round(d / t * 100)));
-}
 function wbPct(){ const w = STATE.wbSession; return (w && w.q.length) ? Math.round(w.idx / w.q.length * 100) : 0; }
 function wbNhanDem(){
   const w = STATE.wbSession; if(!w) return '';
@@ -28464,43 +27962,7 @@ const VD_HINH = [
 ];
 // Tra theo chuỗi con, không cần khớp cả từ: nghĩa tiếng Việt hay viết kèm ngữ cảnh
 // ("cái túi", "đóng gói vào túi"), khớp cả từ thì trượt gần hết.
-function vdHinhKhoa(en, vi, chuDe){
-  const v = String(vi||'').toLowerCase();
-  for(let i=0;i<VD_HINH.length;i++){
-    const o = VD_HINH[i];
-    for(let j=0;j<o.tu.length;j++) if(v.indexOf(o.tu[j]) >= 0) return o.k;
-  }
-  const e = ' ' + String(en||'').toLowerCase() + ' ';
-  const theoEn = {tien:[' money ',' price ',' pay ',' buy ',' sell ',' cost '],
-                  gio:[' time ',' hour ',' day ',' late ',' early ',' wait '],
-                  noi:[' say ',' tell ',' talk ',' speak ',' ask ',' answer '],
-                  hoc:[' learn ',' study ',' book ',' read ',' write ',' school '],
-                  chuyendong:[' go ',' come ',' move ',' start ',' stop ',' bring ']};
-  const kh = Object.keys(theoEn);
-  for(let i=0;i<kh.length;i++) for(let j=0;j<theoEn[kh[i]].length;j++)
-    if(e.indexOf(theoEn[kh[i]][j]) >= 0) return kh[i];
-  const cd = String(chuDe||'').toLowerCase();
-  const theoCd = {anuong:['food','ăn uống','eat'], viec:['work','job','công việc'],
-                  hoc:['school','học tập','education'], dulich:['travel','du lịch'],
-                  suckhoe:['health','sức kh'], giadinh:['family','gia đình'],
-                  maytinh:['tech','công nghệ'], thethao:['sport','thể thao'], muasam:['shop','mua sắm']};
-  const kc = Object.keys(theoCd);
-  for(let i=0;i<kc.length;i++) for(let j=0;j<theoCd[kc[i]].length;j++)
-    if(cd.indexOf(theoCd[kc[i]][j]) >= 0) return kc[i];
-  return null;
-}
-function vdHinhSvg(en, vi, chuDe){
-  const k = vdHinhKhoa(en, vi, chuDe);
-  if(!k) return '';
-  const o = VD_HINH.filter(x=>x.k===k)[0];
-  if(!o) return '';
-  return '<svg class="vd-hinh" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor"'
-    + ' stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + o.d + '</svg>';
-}
 // Nghe NGƯỜI THẬT nói từ này: YouGlish gom sẵn các đoạn video có chứa đúng từ/cụm đó.
-function vdYouglish(tu){
-  return 'https://youglish.com/pronounce/' + encodeURIComponent(String(tu||'').trim()) + '/english/us';
-}
 // v249 — tô đậm CHÍNH từ đang học trong câu ví dụ. Nhìn một cái là thấy nó nằm ở đâu trong
 // câu, đi với giới từ nào — đó mới là thứ đáng nhớ, chứ không phải đọc trôi cả câu.
 function vdDamTu(cau, tu){
@@ -29094,86 +28556,7 @@ function vocabSpeakWord(n){
   if(w) speakEnglishRobust(w[1], {speedMul:0.85, rate:0.85});
 }
 // ---- Giao diện ----
-function vocabHomeSubNav(){
-  const view = STATE.vocabView || 'daily';
-  return `<div class="seg" style="margin-bottom:14px;">
-    <button class="${view==='daily'?'active':''}" data-action="vocab-set-view" data-view="daily">📅 Từ hôm nay</button>
-    <button class="${view==='topics'?'active':''}" data-action="vocab-set-view" data-view="topics">📂 Chủ đề</button>
-  </div>
-  ${vocabDaLuuHtml()}`;
-}
 // Thẻ đếm những từ/cụm chính bạn nhặt được khi xem video.
-function vocabDaLuuHtml(){
-  let tu = [], cau = [];
-  try{ tu = (typeof hvKhoTu === 'function') ? hvKhoTu() : []; }catch(e){}
-  try{ cau = (typeof hvKhoCau === 'function') ? hvKhoCau() : []; }catch(e){}
-  const tong = tu.length + cau.length;
-  if(!tong) return '';
-  const sanSang = (x)=>{ try{ return hvSanSang(x); }catch(e){ return !!(x && x.nghia); } };
-  const xong = tu.filter(sanSang).length + cau.filter(sanSang).length;
-  const cho  = tong - xong;
-  return `<div class="voc-daluu" data-action="vocab-set-view" data-view="topics">
-    <div class="voc-daluu-so">${tong}</div>
-    <div class="voc-daluu-tx">
-      <div class="voc-daluu-h">Từ &amp; cụm bạn lưu khi xem video</div>
-      <div class="voc-daluu-p">${tu.length} từ vựng · ${cau.length} cụm câu`
-      + (cho ? ` — <b>${cho}</b> mục đang chờ AI dịch nghĩa` : ` — đã vào gói học hằng ngày`)
-      + `</div>
-    </div>
-  </div>`;
-}
-function renderVocabDailyHome(){
-  const _stamp = dayStampHtml({label:'Gói học'});
-  const stats = vocabStats();
-  const ids = VOCAB_DATA ? vocabBuildDailyQueue() : [];
-  const dueCount = SETTINGS.vocabProgress ? ids.filter(n=>{ const p=SETTINGS.vocabProgress[n]; return p && p.introduced; }).length : 0;
-  const newCount = ids.length - dueCount;
-  const pct = stats.total ? Math.round((stats.learned/stats.total)*100) : 0;
-  const statsHtml = `<div class="card" style="padding:14px 16px; margin-bottom:10px; border:1px solid #2CDBA855;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
-      📊 Tiến độ tổng: đã học <b>${stats.learned}</b>/${stats.total} từ (${pct}%)<br>
-      🎯 độ chính xác <b>${stats.accuracyPct!==null?stats.accuracyPct+'%':'—'}</b>${stats.streak>0?` · 🔥 học liên tục <b>${stats.streak}</b> ngày`:''}
-    </div>
-    ${memTierBarHtml(SETTINGS.vocabProgress, 'từ')}
-  </div>
-  <div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #4FA8FF55;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">📖 <b>Hôm nay bạn đã học <span style="color:var(--text); font-size:15px; font-weight:800;">${stats.learnedToday}</span> từ mới</b>${stats.learnedToday>0?' — tiếp tục phát huy nhé!':' — bắt đầu gói học hôm nay để tăng con số này.'}</div>
-  </div>`;
-  const weakTopicHtml = stats.weakTopic ? `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #7C6CF055;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">🤖 <b>AI gợi ý:</b> bạn hay trả lời sai ở chủ đề <b>${escapeHtml(vocabTopicMeta(stats.weakTopic.code).label)}</b> (sai khoảng ${Math.round(stats.weakTopic.wrongRate*100)}%) — nên vào mục <b>Chủ đề</b> ôn lại nhóm từ này thêm.</div>
-  </div>` : '';
-  return `${_stamp}${statsHtml}${weakTopicHtml}
-  <div class="card eng-mocktest-card">
-    <div class="mocktest-icon">📅</div>
-    <div class="mocktest-title">Từ hôm nay</div>
-    <div class="mocktest-desc">${VOCAB_DATA ? (ids.length===0 ? 'Bạn đã học và ôn tập đủ số từ hẹn hôm nay — quay lại vào ngày mai nhé!' : `Gói học hôm nay: <b>${newCount}</b> từ mới + <b>${dueCount}</b> từ cần ôn tập (tổng ${ids.length} từ).`) : 'Đang tải dữ liệu từ vựng…'}</div>
-    ${ids.length>0 ? `<button class="form-btn" style="width:100%;" data-action="vocab-start-daily">▶️ Bắt đầu học hôm nay</button>` : ''}
-  </div>
-  <div class="eng-section-label">💡 Cách học hiệu quả</div>
-  <div class="card" style="padding:14px 16px; font-size:12.5px; color:var(--dim); line-height:1.7;">
-    Mỗi ngày app tự chọn cho bạn <b>${SETTINGS.vocabDailyNew||20} từ mới</b> (theo thứ tự từ thông dụng nhất) và các từ <b>đến hạn ôn tập</b>
-    (dựa trên nguyên lý lặp lại ngắt quãng — từ nào bạn nhớ tốt sẽ giãn cách ôn xa dần: 1 → 3 → 7 → 16 → 35 ngày;
-    từ nào trả lời sai sẽ được hỏi lại sớm hơn). Học đều mỗi ngày sẽ hiệu quả hơn nhiều so với học dồn một lúc.
-    Cách hỏi cũng khó dần theo mức độ thuộc: mới học → nhận diện nghĩa (trắc nghiệm); quen mặt chữ → <b>xếp lại chữ cái</b>;
-    thuộc lòng → <b>tự gõ từ</b> không gợi ý — nhớ chủ động luôn sâu hơn nhận diện thụ động.
-  </div>`;
-}
-function renderVocabTopicsGrid(){
-  const topics = vocabTopics();
-  const prog = SETTINGS.vocabProgress || {};
-  const cards = topics.map(t=>{
-    const words = VOCAB_DATA ? vocabWordsByTopic(t.code) : [];
-    const learned = words.filter(w=>{ const p=prog[w[0]]; return p && p.introduced; }).length;
-    return `<div class="eng-group-card compact" data-action="vocab-open-topic" data-topic="${t.code}" style="--gcgrad:linear-gradient(135deg,#2CDBA8,#4FA8FF);">
-      <div class="gc-icon">${t.icon}</div>
-      <div class="gc-name">${escapeHtml(t.label)}</div>
-      <div class="gc-desc">${words.length} từ</div>
-      <div class="gc-count">Đã học ${learned}/${words.length}</div>
-    </div>`;
-  }).join('');
-  return `<div class="eng-section-label">📂 Duyệt tự do theo chủ đề (${topics.length} chủ đề · 3070 từ)</div>
-  <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu từ vựng…</div>'}</div>`;
-}
 function renderVocabTopicWordList(){
   const code = STATE.vocabBrowseTopic;
   const meta = vocabTopicMeta(code);
@@ -32908,59 +32291,6 @@ function sentHomeSubNav(){
     <button class="${view==='dlg'?'active':''}" data-action="sent-set-view" data-view="dlg">💬 Hội thoại</button>
   </div>`;
 }
-function renderSentDailyHome(){
-  const _stamp = dayStampHtml({label:'Gói học'});
-  const stats = sentStats();
-  const ids = COMMON_SENT_DATA ? sentBuildDailyQueue() : [];
-  const dueCount = SETTINGS.sentProgress ? ids.filter(n=>{ const p=SETTINGS.sentProgress[n]; return p && p.introduced; }).length : 0;
-  const newCount = ids.length - dueCount;
-  const pct = stats.total ? Math.round((stats.learned/stats.total)*100) : 0;
-  const statsHtml = `<div class="card" style="padding:14px 16px; margin-bottom:10px; border:1px solid #FFC94A55;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
-      📊 Tiến độ tổng: đã học <b>${stats.learned}</b>/${stats.total} câu (${pct}%)${stats.streak>0?` · 🔥 học liên tục <b>${stats.streak}</b> ngày`:''}
-    </div>
-    ${memTierBarHtml(SETTINGS.sentProgress, 'câu')}
-  </div>
-  <div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid #4FA8FF55;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.6;">📖 <b>Hôm nay bạn đã học <span style="color:var(--text); font-size:15px; font-weight:800;">${stats.learnedToday}</span> câu mới</b>${stats.learnedToday>0?' — tiếp tục phát huy nhé!':' — bắt đầu gói học hôm nay để tăng con số này.'}</div>
-  </div>`;
-  const methodHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid var(--border);">
-    <div class="eng-section-label" style="margin:0 0 8px;">💡 Cách học nhanh, nhớ lâu</div>
-    <div style="font-size:12px; color:var(--dim); line-height:1.8;">
-      1️⃣ Nghe trước bằng nút 🔊, sau đó <b>nói nhại lại (shadowing)</b> ngay lập tức — cố bắt chước đúng tốc độ và ngữ điệu, không chỉ đúng từ.<br>
-      2️⃣ <b>Học theo tình huống</b> thay vì học lan man — mỗi lần tập trung 1-2 chủ đề (ví dụ: Xin lỗi, Gọi điện) để dễ liên tưởng khi dùng thật.<br>
-      3️⃣ Đừng học 1 lần rồi bỏ — app sẽ tự <b>nhắc ôn tập ngắt quãng</b> (1 → 3 → 7 → 16 → 35 ngày) đúng lúc bạn sắp quên, hiệu quả hơn học dồn.<br>
-      4️⃣ Nói to thành tiếng mỗi câu ít nhất 2-3 lần, tốt nhất là ghi âm lại và so sánh với giọng mẫu.<br>
-      5️⃣ Học đều mỗi ngày một lượng nhỏ (15 câu/ngày) thay vì học dồn một lúc rồi nghỉ dài ngày.<br>
-      6️⃣ Câu hỏi khó dần theo mức độ thuộc: mới học → nhận diện nghĩa → <b>nghe rồi chọn nghĩa</b> (không xem chữ) →
-      <b>tự ráp lại câu</b> từ các từ xáo trộn → <b>nghe và điền từ còn thiếu</b> → khó nhất là <b>đặt câu trong hội thoại</b>
-      (chọn đúng câu để đáp lại 1 lời thoại mở đầu) — luyện được cả phản xạ dùng câu thật đúng ngữ cảnh, không chỉ nhận ra đáp án có sẵn.
-    </div>
-  </div>`;
-  return `${_stamp}${statsHtml}${methodHtml}
-  <div class="card eng-mocktest-card">
-    <div class="mocktest-icon">💬</div>
-    <div class="mocktest-title">Câu hôm nay</div>
-    <div class="mocktest-desc">${COMMON_SENT_DATA ? (ids.length===0 ? 'Bạn đã học và ôn tập đủ số câu hẹn hôm nay — quay lại vào ngày mai nhé!' : `Gói học hôm nay: <b>${newCount}</b> câu mới + <b>${dueCount}</b> câu cần ôn tập (tổng ${ids.length} câu).`) : 'Đang tải dữ liệu…'}</div>
-    ${ids.length>0 ? `<button class="form-btn" style="width:100%;" data-action="sent-start-daily">▶️ Bắt đầu học hôm nay</button>` : ''}
-  </div>`;
-}
-function renderSentCategoriesGrid(){
-  const cats = sentCategories();
-  const prog = SETTINGS.sentProgress || {};
-  const cards = cats.map(c=>{
-    const items = sentByCategory(c.code);
-    const learnedN = items.filter(s=>prog[s[0]] && prog[s[0]].introduced).length;
-    return `<div class="eng-group-card compact" data-action="sent-start-category" data-cat="${c.code}" style="--gcgrad:linear-gradient(135deg,#FFC94A,#FF8A3D);">
-      <div class="gc-icon">${c.icon}</div>
-      <div class="gc-name">${escapeHtml(c.label)}</div>
-      <div class="gc-desc">${items.length} câu</div>
-      <div class="gc-count">Đã học ${learnedN}/${items.length}</div>
-    </div>`;
-  }).join('');
-  return `<div class="eng-section-label">📂 Duyệt theo tình huống (${cats.length} tình huống · 370 câu)</div>
-  <div class="eng-group-grid compact">${cards || '<div style="padding:16px; color:var(--dim); font-size:12.5px;">Đang tải dữ liệu…</div>'}</div>`;
-}
 function renderSentSession(tenMan){
   const s = STATE.sentSession;
   // Tên hiển thị trên hàng nút back: khi đang chạy trong phiên gộp "Từ vựng & Mẫu câu" thì phải
@@ -33461,20 +32791,6 @@ function dictExitSession(){
 }
 // Tô màu bài chép của người học so với câu gốc: xanh = từ đúng (theo matchMask), đỏ/gạch chân = từ
 // sai/thiếu — giúp thấy ngay lỗi cụ thể thay vì chỉ biết % đúng chung chung.
-function dictHighlightDiff(text, matchMask){
-  const re=/[A-Za-z0-9']+|[^A-Za-z0-9']+/g;
-  let out='', idx=0, m;
-  while((m=re.exec(text||''))){
-    const tok=m[0];
-    if(/^[A-Za-z0-9']/.test(tok)){
-      const ok = matchMask ? matchMask[idx]===true : null; idx++;
-      const style = ok===null ? '' : (ok?'color:#2CDBA8;':'color:#ff5c5c; text-decoration:underline; text-decoration-style:dotted;');
-      out += `<span style="${style}">${escapeHtml(tok)}</span>`;
-    } else out += escapeHtml(tok);
-  }
-  return out;
-}
-
 // ── Trình phát có thể TUA cho bài chép chính tả ──────────────────────────
 // Vì sao trước đây không có nút tua: mục này phát bằng speechSynthesis của hệ điều hành, mà API đó
 // KHÔNG cho tua — chỉ có phát và dừng. Nay nếu có Cloud TTS key thì câu được tổng hợp thành một file
@@ -34305,46 +33621,6 @@ async function hvLayLoi(recId){
 // câu, và mốc giờ chỉ đúng tới cả khối. Đưa cả bản dán LẪN video cho Gemini rồi bảo nó căn lại:
 // nó không phải tự nghe ra từng chữ nữa — việc khó nhất đã có sẵn — chỉ phải chia câu và chỉnh mốc.
 // Vì thế kết quả chính xác hơn hẳn so với bắt nó nghe chay.
-async function hvDoiChieuLoi(){
-  const el = document.getElementById('sdLoiSua');
-  if(!el || !String(el.value||'').trim()){
-    showToast('📋','Chưa có gì để đối chiếu','Dán bản chép lời từ YouTube vào ô bên dưới trước đã.'); return;
-  }
-  if(!SETTINGS.geminiApiKey){
-    showToast('🔑','Chưa có Gemini API key','Vào Cài đặt → Hội thoại AI để dán key.'); return;
-  }
-  const rec = hvTim((STATE.hvPhien||{}).vidId) || sdTimVideo((STATE.sdPhien||{}).vidId);
-  if(!rec || !rec.videoId){ showToast('🎬','Không tìm thấy video',''); return; }
-  if(STATE.hvDangDoi) return;
-  STATE.hvDangDoi = true; renderContent();
-  const thoTe = String(el.value).slice(0, 60000);
-  const prompt = `Dưới đây là bản chép lời tự động của YouTube cho video này. Nó ĐÚNG về từ ngữ
-nhưng cắt dòng giữa câu, thiếu dấu câu, và mốc giờ chỉ chính xác tới từng khối.
-
-Hãy đối chiếu với âm thanh thật của video rồi trả lại lời thoại đã chỉnh:
-- GỘP các dòng bị cắt lại thành CÂU HOÀN CHỈNH, thêm dấu chấm/hỏi/than cho đúng.
-- Giữ NGUYÊN VĂN từ ngữ của bản chép lời trừ khi nghe rõ là nó chép sai; sửa thì sửa đúng cái
-  từ nghe được, không diễn đạt lại.
-- CĂN LẠI mốc: "t" là lúc từ đầu tiên của câu phát ra tiếng, "e" là lúc từ cuối vừa dứt, chính
-  xác tới 0,1 giây. Hai câu không được chồng mốc lên nhau.
-- Bỏ [Music], [Applause], tiếng cười và các dòng không phải lời nói.
-- "vi": dịch nghĩa tiếng Việt. "cum": tối đa 4 cụm thông dụng chép nguyên văn từ "en".
-
-Trả về DUY NHẤT JSON: {"lines":[{"t":0,"e":0,"en":"","vi":"","cum":[]}]}
-
-BẢN CHÉP LỜI CỦA YOUTUBE:
-${thoTe}`;
-  try{
-    const lines = await hvHoiGemini(rec.videoId, prompt, 180000);
-    if(!lines.length) throw new Error('Không nhận được câu nào.');
-    hvApLoiMoi(rec, lines);
-    STATE.sdSuaLoi = false; STATE.sdKtDau = null;
-    showToast('✅','Đã đối chiếu xong', lines.length + ' câu, mốc giờ đã căn theo tiếng thật trong video.');
-  }catch(e){
-    showToast('⚠️','Đối chiếu không xong', hvLoiThanThien((e&&e.message)||'lỗi không rõ'));
-  }
-  STATE.hvDangDoi = false; renderContent();
-}
 // Khoảng trống trong lời thoại: hai câu liên tiếp cách nhau quá lâu thì chắc chắn AI đã bỏ sót.
 // Ngưỡng 18 giây — dài hơn bất kỳ câu nói bình thường nào, nên không báo nhầm.
 const HV_KHOANG_TRONG = 18;
@@ -35223,25 +34499,6 @@ function hvChuTaiGiay(dong, gy, mocKe){
   return 0;
 }
 // Khoảng thời gian (giây, tính từ đầu video) mà chữ thứ a..b được nói. Dùng cho nút 🔊.
-function hvKhoangChu(dong, a, b){
-  if(!dong || dong.t == null) return null;
-  const tu = String(dong.en||'').trim().split(/\s+/).filter(Boolean);
-  if(!tu.length) return null;
-  // Có mốc thật thì cắt đúng chỗ người ta nói, không phải chỗ tôi đoán.
-  if(hvMocChuKhop(dong)){
-    const w = dong.w;
-    const i = Math.max(0, Math.min(w.length - 1, a));
-    const j = Math.max(i, Math.min(w.length - 1, b));
-    const het = (j + 1 < w.length) ? w[j+1].t
-              : ((dong.e != null && dong.e > w[j].t) ? dong.e : w[j].t + 0.6);
-    return { t0: w[i].t, t1: het, soTu: tu.length };
-  }
-  const dai = hvDaiCau(dong);
-  const moc = hvMocChu(dong.en);
-  const i = Math.max(0, Math.min(tu.length - 1, a));
-  const j = Math.max(i, Math.min(tu.length - 1, b));
-  return { t0: dong.t + moc[i] * dai, t1: dong.t + moc[j + 1] * dai, soTu: tu.length };
-}
 const HV_DH_TRAN = 0.45;   // tự chạy tiếp tối đa 0,45s; mất mẫu thì thà đứng còn hơn trôi
 // Mỗi vòng chạy chữ một ngăn riêng. Dùng chung một ngăn là chúng giẫm chân nhau.
 const hvDhKho = {};
@@ -35252,10 +34509,6 @@ function hvDhNgan(khoa){
 function hvBayGio(){
   try{ if(typeof performance !== 'undefined' && performance.now) return performance.now(); }catch(_){ }
   return Date.now();
-}
-function hvDongHoLai(khoa){
-  if(khoa){ const n = hvDhNgan(khoa); n.mau = null; n.luc = 0; n.quet = 0; return; }
-  Object.keys(hvDhKho).forEach(k=>{ hvDhKho[k] = {mau:null, luc:0, quet:0}; });
 }
 // Độ bù do bạn tự chỉnh. Mỗi máy, mỗi trình duyệt trễ một kiểu; để sẵn một nấc xoay còn hơn
 // bắt tôi đoán một con số rồi lại sai trên máy bạn.
@@ -35280,13 +34533,6 @@ const HV_BU_TRE_TRAN = 0.6;
 function hvBuTre(){
   const v = Number(SETTINGS.hvBuTre);
   return (isFinite(v) && v >= -HV_BU_TRE_TRAN && v <= HV_BU_TRE_TRAN) ? v : HV_TRE_HINH;
-}
-function hvDoiBuTre(d){
-  const moi = Math.round((hvBuTre() + d) * 100) / 100;
-  SETTINGS.hvBuTre = Math.max(-HV_BU_TRE_TRAN, Math.min(HV_BU_TRE_TRAN, moi));
-  try{ saveSettings(); }catch(_){ }
-  try{ hvVeTam({giuCuon:true, khongLat:true}); }catch(_){ }
-  return SETTINGS.hvBuTre;
 }
 function hvDatBuTre(v, keo){
   const n = Number(v);
@@ -38769,56 +38015,6 @@ function tvDangHoc(x){
 }
 // Nhờ AI dịch đúng cụm trong ngữ cảnh câu. Trả về {nghia, loai, viDu, viDuVi} hoặc null.
 // Hỏng thì trả null chứ KHÔNG bịa — mục đó nằm chờ, lần sau mở app sẽ thử lại.
-async function hvDichCum(chu, cauEn, cauVi){
-  if(!SETTINGS.geminiApiKey) return null;
-  const nhac = 'Trong câu tiếng Anh: "' + cauEn + '"'
-    + (cauVi ? ' (nghĩa cả câu: "' + cauVi + '")' : '')
-    + '\nHãy giải nghĩa riêng cụm/từ: "' + chu + '".\n'
-    + 'Trả về DUY NHẤT một JSON: {"nghia":"nghĩa tiếng Việt ngắn gọn của riêng cụm này",'
-    + '"loai":"danh từ|động từ|tính từ|trạng từ|cụm từ|thành ngữ",'
-    + '"phienAm":"phiên âm IPA của cụm này, ví dụ /ˈænsər/",'
-    + '"dangTu":{"n":"dạng danh từ","v":"dạng động từ","adj":"dạng tính từ","adv":"dạng trạng từ"},'
-    + '"goc":"dạng NGUYÊN MẪU của chính từ này",'
-    + '}\n'
-    // v283 — hỏi luôn DẠNG GỐC trong cùng một lượt, không tốn thêm lượt gọi nào. Đây là
-    // cách duy nhất xử lý được những chữ mà app không có sẵn dữ liệu để tự suy: scam,
-    // devastate, evolve, bald… Luật suy ra chữ gốc đúng, nhưng app không có gì xác nhận
-    // chữ ấy có thật, nên không dám đổi. Gemini thì biết.
-    + 'Với "goc": bỏ mọi đuôi chia để còn dạng nguyên mẫu — "scams"→"scam", "logged"→"log", '
-    + '"evolved"→"evolve", "baldness"→"bald", "spent"→"spend", "magically"→"magical". '
-    + 'ƯU TIÊN ĐỘNG TỪ khi họ từ có động từ. Nếu từ ĐÃ là dạng nguyên mẫu thì ghi lại chính nó. '
-    + 'Nếu là CỤM nhiều chữ thì để "goc" rỗng.\n'
-    + 'Với "dangTu": chỉ ghi những dạng CÓ THẬT trong tiếng Anh và cùng gốc từ. Dạng nào không có '
-    + 'thì BỎ HẲN khoá đó ra khỏi JSON, tuyệt đối không bịa. Nếu là cụm/thành ngữ thì để {}.\n'
-    + 'VIẾT THẬT NGẮN GỌN: "nghia" tối đa 12 chữ. KHÔNG viết câu ví dụ, KHÔNG giải thích thêm gì.';
-  try{
-    const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent?key=${encodeURIComponent(SETTINGS.geminiApiKey)}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ contents:[{role:'user', parts:[{text:nhac.replace('ّ','')}]}],
-        generationConfig:{temperature:0.1, maxOutputTokens:220, responseMimeType:'application/json'} })
-    });
-    if(!res.ok) return null;
-    const j = await res.json();
-    const txt = (((j.candidates||[])[0]||{}).content||{}).parts?.map(p=>p.text||'').join('') || '';
-    const o = dvDocJson(txt);
-    if(!o || !o.nghia) return null;
-    // Lọc dạng từ: chỉ nhận chuỗi chữ cái, khác rỗng. AI hay trả về "-", "n/a", "không có".
-    const dt = {};
-    if(o.dangTu && typeof o.dangTu === 'object'){
-      ['n','v','adj','adv'].forEach(k=>{
-        const v = String(o.dangTu[k]||'').trim();
-        if(v && /^[A-Za-z][A-Za-z '-]*$/.test(v)) dt[k] = v;
-      });
-    }
-    // Dạng gốc AI trả về chỉ nhận khi nó là MỘT chữ cái thường và thật sự ngắn hơn hoặc
-    // bằng chữ đang có — AI mà trả về cả câu hay một chữ dài hơn là nó hiểu nhầm đề.
-    let goc = String(o.goc || '').trim().toLowerCase();
-    if(!/^[a-z][a-z'-]*$/.test(goc) || goc.length > String(chu).length + 1) goc = '';
-    return {nghia:String(o.nghia).trim(), loai:String(o.loai||'cụm từ').trim(),
-            goc:goc, phienAm:String(o.phienAm||'').trim(), dangTu:dt,
-            viDu:String(o.viDu||'').trim(), viDuVi:String(o.viDuVi||'').trim()};
-  }catch(e){ return null; }
-}
 // Chạy nền: tìm các mục chưa có nghĩa và dịch lần lượt. Gọi sau khi lưu và mỗi lần mở app.
 let hvDangDich = false;
 // ══ v283 · HỎI DẠNG GỐC THEO LÔ, MỘT LƯỢT CHO HAI MƯƠI TỪ ════════════════════════════
@@ -39282,34 +38478,6 @@ function hvTraTuDien(chu){
   soiCho(hvKhoTu()); soiCho(hvKhoCau());
   if(cho) return {chu:cho.chu, dangCho:true};
   return null;
-}
-function hvTuDienHtml(chu){
-  const m = hvTraTuDien(chu);
-  if(m && m.dangCho){
-    return `<div class="hv-td cho">
-      <div class="hv-td-h">📖 Đã lưu — đang chờ nghĩa</div>
-      <div class="hv-td-nhac">Bấm “🤖 Bổ sung tất cả” ở mục <b>Từ vựng &amp; Mẫu câu</b> là xong một lượt cho mọi mục đang chờ.</div>
-    </div>`;
-  }
-  if(!m) return '';
-  const dt = (m.dangTu && typeof m.dangTu === 'object') ? m.dangTu : {};
-  const ten = {n:'danh từ', v:'động từ', adj:'tính từ', adv:'trạng từ'};
-  const dang = ['n','v','adj','adv'].filter(k=>dt[k])
-    .map(k=>`<span class="hv-td-dang"><i>${ten[k]}</i>${escapeHtml(dt[k])}</span>`).join('');
-  const vd = Array.isArray(m.viDu) ? m.viDu.slice(0,4) : [];
-  const vdHtml = vd.length ? `<div class="hv-td-vd">${vd.map(o=>{
-      const en = Array.isArray(o) ? o[0] : (o && o.en) || '';
-      const vi = Array.isArray(o) ? o[1] : (o && o.vi) || '';
-      return en ? `<div><b>${escapeHtml(en)}</b>${vi?`<span>${escapeHtml(vi)}</span>`:''}</div>` : '';
-    }).join('')}</div>` : '';
-  return `<div class="hv-td">
-    <div class="hv-td-h">📖 ${m.tuKho === 'app' ? 'Thư viện của app' : 'Từ điển của bạn'}${
-      m.phienAm?`<span class="hv-td-loai">${escapeHtml(m.phienAm)}</span>`:''}${
-      m.loai?`<span class="hv-td-loai">${escapeHtml(m.loai)}</span>`:''}</div>
-    <div class="hv-td-nghia">${escapeHtml(m.nghia)}</div>
-    ${dang ? `<div class="hv-td-dangs">${dang}</div>` : ''}
-    ${vdHtml}
-  </div>`;
 }
 // ══ v238 · KHUNG NGOÀI NAY GIỐNG KHUNG TRONG VIDEO ════════════════════════════════════════
 // Bạn yêu cầu khung tra nghĩa ở danh sách bên ngoài trông giống khung trong video. Nên phần
@@ -40602,66 +39770,6 @@ function renderDictVideoPhien(item){
   dvGanPlayer(rec.videoId);
 }
 
-function dictBackRow(){
-  return `<div class="kh-backrow"><div class="kh-backbtn" data-action="dict-home-close">${svgIcon('back')}</div><div class="title">✍️ Nghe &amp; chép chính tả</div></div>`;
-}
-function renderDictHome(item){
-  if(!DICTATION_DATA){
-    document.getElementById('content').innerHTML = `${dictBackRow()}<div class="card" style="text-align:center; padding:24px 16px;"><div style="font-size:32px; margin-bottom:8px;">⏳</div><div style="font-size:13px; color:var(--dim);">Đang tải dữ liệu…</div></div>`;
-    return;
-  }
-  const stats = dictStats();
-  const ids = dictBuildDailyQueue();
-  const pct = stats.total ? Math.round((stats.learned/stats.total)*100) : 0;
-  const statsHtml = `<div class="card" style="padding:14px 16px; margin-bottom:10px; border:1px solid #4FA8FF55;">
-    <div style="font-size:12.5px; color:var(--dim); line-height:1.7;">
-      📊 Tiến độ: đã chép đúng <b>${stats.learned}</b>/${stats.total} câu (${pct}%) · 🏆 thuộc lòng <b>${stats.mastered}</b> câu
-      ${stats.streak>0?`<br>🔥 học liên tục <b>${stats.streak}</b> ngày`:''}
-    </div>
-  </div>`;
-  const methodHtml = `<div class="card" style="padding:14px 16px; margin-bottom:14px; border:1px solid var(--border);">
-    <div class="eng-section-label" style="margin:0 0 8px;">💡 Quy trình chép chính tả</div>
-    <div style="font-size:12px; color:var(--dim); line-height:1.8;">
-      1️⃣ Bấm 🔊 nghe câu ở tốc độ THƯỜNG trước, cố nghe hiểu tổng thể.<br>
-      2️⃣ Gõ lại CHÍNH XÁC những gì bạn nghe được (không cần phân biệt hoa/thường, dấu câu).<br>
-      3️⃣ Nếu chưa chắc, bấm 🐢 nghe CHẬM để nghe rõ từng từ trước khi gõ.<br>
-      4️⃣ Bấm Kiểm tra — từ đúng tô xanh, từ sai/thiếu tô đỏ, xem ngay đáp án đúng.<br>
-      5️⃣ Cần đạt <b>≥${DICT_PASS_ACC}%</b> số từ đúng mới tính là ĐẠT câu đó — câu chưa đạt sẽ tự quay lại cuối phiên để chép lại.<br>
-      6️⃣ Câu đã ĐẠT vẫn được nhắc ôn lại ngắt quãng (1→3→7→16→35 ngày) để nhớ lâu, giống hệt Từ vựng &amp; Câu thông dụng.
-    </div>
-  </div>`;
-  const dailyCard = `<div class="card eng-mocktest-card">
-    <div class="mocktest-icon">✍️</div>
-    <div class="mocktest-title">Chép chính tả hôm nay</div>
-    <div class="mocktest-desc">${ids.length===0 ? 'Bạn đã chép đủ số câu hẹn hôm nay — quay lại vào ngày mai nhé!' : `Gói hôm nay: <b>${ids.length}</b> câu (trộn giữa cấp độ đã mở khóa, ưu tiên câu cần ôn lại).`}</div>
-    ${ids.length>0 ? `<button class="form-btn" style="width:100%;" data-action="dict-start-daily">▶️ Bắt đầu chép chính tả</button>` : ''}
-  </div>`;
-  const bannerMeta = {
-    A1:{icon:'🌱', grad:'linear-gradient(120deg,#1e8a6e,#2CDBA8)'},
-    A2:{icon:'🍀', grad:'linear-gradient(120deg,#1f9e7a,#4FD6A8)'},
-    B1:{icon:'🚀', grad:'linear-gradient(120deg,#2454b0,#4FA8FF)'},
-    B2:{icon:'⚡', grad:'linear-gradient(120deg,#6a3ab0,#B78CFF)'},
-    C1:{icon:'🔥', grad:'linear-gradient(120deg,#8a3aa0,#FF5A6E)'}
-  };
-  const prog = SETTINGS.dictProgress || {};
-  const cards = CEFR_LEVELS.map((lv,i)=>{
-    const bank = dictByLevel(lv.key);
-    const unlocked = dictLevelUnlocked(i);
-    const learnedN = bank.filter(s=>prog[s[0]] && prog[s[0]].introduced).length;
-    const m = bannerMeta[lv.key];
-    return `<div class="av-banner ${!unlocked?'lgq-locked':''}" ${bank.length>0&&unlocked?`data-action="dict-start-level" data-level="${lv.key}"`:''} style="background:${m.grad};">
-      <div class="avb-icon">${unlocked?m.icon:'🔒'}</div>
-      <div class="avb-txt">
-        <div class="t">${lv.key} · ${escapeHtml(lv.label)}</div>
-        <div class="s">${unlocked?(bank.length===0?'Sắp có':bank.length+' câu · đã học '+learnedN+'/'+bank.length):'Học ≥70% câu ở cấp '+CEFR_LEVELS[i-1].key+' để mở khóa'}</div>
-      </div>
-    </div>`;
-  }).join('');
-  const body = `${statsHtml}${methodHtml}${dailyCard}
-    <div class="eng-section-label">🎯 Luyện riêng theo cấp độ (CEFR)</div>
-    <div class="av-banner-list">${cards}</div>`;
-  document.getElementById('content').innerHTML = `${dictBackRow()}${body}`;
-}
 function dictSessionBackRow(){
   return `<div class="kh-backrow"><div class="kh-backbtn" data-action="dict-exit-session">${svgIcon('back')}</div><div class="title">✍️ Nghe &amp; chép chính tả</div></div>`;
 }
@@ -41886,19 +40994,6 @@ function renderAiCallSessionHtml(){
 let VIDEO_LESSONS = null;
 let videoLessonsLoading = false;
 let videoChannelFilter = 'all'; // kênh Podcast đang được lọc trong Luyện nghe
-async function fetchVideoLessons(){
-  if(VIDEO_LESSONS || videoLessonsLoading) return;
-  videoLessonsLoading = true;
-  try{
-    const res = await fetch('./video-lessons-data.json?v=4');
-    VIDEO_LESSONS = await res.json();
-  }catch(e){
-    console.error('Không tải được danh sách video', e);
-    VIDEO_LESSONS = {listening:[], speaking:[]};
-  }
-  videoLessonsLoading = false;
-  if(STATE.tab==='english-item' && !STATE.listenQuiz && !STATE.speakSession) renderContent();
-}
 // Danh sách thẻ video cho màn chọn (dùng chung cho cả Luyện nghe & Luyện nói). mode: 'listening' | 'speaking'.
 // Có thanh chip lọc theo từng kênh YouTube (thay vì chạy dọc hết tất cả video), vì số lượng video sẽ
 // tăng dần theo thời gian — bấm vào 1 kênh để chỉ xem video của kênh đó.
@@ -42583,35 +41678,6 @@ function hvTachTungCau(lines){
   });
   return ra;
 }
-function hvCatTheoDauCau(cot){
-  const tu = [];
-  cot.forEach(c=>{ c.en.split(/\s+/).filter(Boolean).forEach(w=>tu.push({w, t:c.t})); });
-  const ra = [];
-  let cum = [], moc = null;
-  const day = ()=>{ if(cum.length){ ra.push({t:moc, en:cum.join(' '), vi:''}); cum = []; moc = null; } };
-  for(let i=0;i<tu.length;i++){
-    if(moc === null) moc = tu[i].t;
-    cum.push(tu[i].w);
-    const hetCau = /[.!?…][\"'\)\]]?$/.test(tu[i].w);
-    const ke = tu[i+1];
-    // Dấu chấm mà chữ kế viết thường thì đó là "Mr." hay "U.S.", không phải hết câu.
-    if(hetCau && (!ke || /^["'(\[]?[A-Z0-9]/.test(ke.w))){ day(); continue; }
-    if(cum.length >= HV_TU_TOI_DA){
-      // quá dài: lùi về dấu phẩy gần nhất trong nửa sau của cụm rồi cắt ở đó
-      let cat = -1;
-      for(let k = cum.length - 1; k >= Math.floor(HV_TU_TOI_DA/2); k--){ if(/[,;:]$/.test(cum[k])){ cat = k; break; } }
-      if(cat > 0){
-        const con = cum.slice(cat+1);
-        cum = cum.slice(0, cat+1);
-        const mocCon = tu[i - con.length + 1] ? tu[i - con.length + 1].t : moc;
-        day();
-        cum = con; moc = mocCon;
-      } else day();
-    }
-  }
-  day();
-  return ra;
-}
 // Bản KHÔNG có dấu câu (phụ đề tự động): không có gì để cắt theo câu, mà cũng không nên cắt giữa
 // một đoạn — mốc giờ gắn với đoạn, cắt bừa là mốc sai. Nên gom nguyên từng đoạn lại cho tới khi
 // đủ dài để đọc thành một hơi.
@@ -42899,85 +41965,7 @@ function hvLoiThanThien(msg){
   if(/AbortError|timeout|network|Failed to fetch/i.test(t)) return 'Mạng không ổn định nên chưa lấy được lời thoại. Kiểm tra kết nối rồi thử lại.';
   return 'Không lấy được lời thoại: ' + t;
 }
-function hvHuongDanChepHtml(){
-  return `<div class="hv-huongdan">
-    <div class="hv-hd-h">📋 Lấy phụ đề thẳng từ YouTube — không tốn một lượt AI nào</div>
-
-    <div class="hv-hd-nhom">
-      <div class="hv-hd-tt">💻 Trên máy tính</div>
-      <ol class="hv-hd-ol">
-        <li>Mở video trên <b>youtube.com</b>.</li>
-        <li>Ngay dưới khung video, bên phải tên kênh, bấm nút <b>…</b> (hoặc <b>Thêm</b>).</li>
-        <li>Chọn <b>Hiển thị bản chép lời</b> — tiếng Anh là <b>Show transcript</b>.
-            Một khung chữ hiện ra bên phải, mỗi dòng có mốc giờ ở đầu.</li>
-        <li>Bấm vào khung đó, nhấn <b>Ctrl + A</b> rồi <b>Ctrl + C</b> (máy Mac: <b>⌘ + A</b>, <b>⌘ + C</b>).</li>
-        <li>Quay lại đây, bấm vào ô bên dưới rồi <b>Ctrl + V</b> để dán. Bấm <b>💾 Lưu lời thoại</b>.</li>
-      </ol>
-    </div>
-
-    <div class="hv-hd-nhom">
-      <div class="hv-hd-tt">📱 Trên điện thoại</div>
-      <ol class="hv-hd-ol">
-        <li>Mở video trong <b>ứng dụng YouTube</b>.</li>
-        <li>Bấm vào <b>phần mô tả</b> ngay dưới tiêu đề video để mở rộng nó ra.</li>
-        <li>Kéo xuống, bấm nút <b>Hiện bản chép lời</b> (Show transcript).</li>
-        <li>Chạm giữ một dòng bất kỳ → chọn <b>Chọn tất cả</b> → <b>Sao chép</b>.</li>
-        <li>Quay lại app, chạm giữ ô bên dưới → <b>Dán</b>. Bấm <b>💾 Lưu lời thoại</b>.</li>
-      </ol>
-      <div class="hv-hd-note">Không thấy nút "Hiện bản chép lời"? Mở YouTube bằng <b>trình duyệt Chrome</b> trên điện thoại,
-        bấm menu ⋮ → <b>Trang máy tính</b>, rồi làm theo cách của máy tính ở trên.</div>
-    </div>
-
-    <div class="hv-hd-mau">
-      <div class="hv-hd-mau-lb">Dán vào trông như thế này là đúng:</div>
-      <pre>0:00
-Hi everyone, welcome back
-0:04
-to the channel. Today we
-0:07
-are going to talk about...</pre>
-    </div>
-
-    <div class="hv-hd-ct"><b>Giữ nguyên phần mốc giờ</b> khi chép. Có mốc thì bấm dòng nào là video nhảy tới đúng chỗ đó,
-      chữ chạy theo video, và Chép chính tả dùng được. Không có mốc thì chỉ đọc được chữ.
-      Video nào không có phụ đề trên YouTube thì mới cần tới AI.</div>
-  </div>`;
-}
-
 // Bảng hạn mức AI: đếm ngay trong máy, không hỏi Google được vì Google không có API cho việc này.
-function geminiHanMucHtml(){
-  const q = geminiKho(), hong = geminiModelHong();
-  const the = GEMINI_MODELS.map(m=>{
-    if(hong[m]) return `<div class="hm-model tat"><b>${escapeHtml(m)}</b><span>không dùng được</span></div>`;
-    const dung = geminiDaDung(m), tran = geminiTran(m);
-    const het = !!q.het[m] || dung >= tran;
-    const pct = Math.min(100, Math.round(dung/Math.max(1,tran)*100));
-    return `<div class="hm-model ${het?'het':''}">
-      <b>${escapeHtml(m)}</b>
-      <span>${dung}/${tran}${het?' · đã hết':''}</span>
-      <i style="width:${pct}%;"></i>
-    </div>`;
-  }).join('');
-  const con = geminiConLai();
-  // v267 — trước đây dòng tóm tắt lấy số của MỘT model đầu danh sách ("3/20") trong khi
-  // phần "còn lại" cộng cả năm model ("còn 97 lượt"). Hai con số cùng một dòng mà tính
-  // theo hai gốc khác nhau thì đọc vào chỉ thấy mâu thuẫn. Nay cả hai đều tính trên TỔNG.
-  let dung = 0, tran = 0;
-  GEMINI_MODELS.forEach(m=>{
-    if(hong[m]) return;
-    tran += geminiTran(m);
-    dung += Math.min(geminiTran(m), geminiDaDung(m));
-  });
-  const pct = Math.min(100, Math.round(dung/Math.max(1,tran)*100));
-  return `<div class="hv-hanmuc ${con?'':'canh'}">
-    <span class="hm-ic">${con ? '🔋' : '🪫'}</span>
-    <div class="hm-tt">
-      <b>Hạn mức AI hôm nay: <span>${dung}/${tran}</span></b>
-      <small>${con ? ('còn ' + con + ' lượt · đặt lại lúc 0:00') : 'đã hết · đặt lại lúc 0:00 · dùng cách chép phụ đề'}</small>
-      <i class="hm-thanh"><b style="width:${pct}%;"></b></i>
-    </div>
-  </div>`;
-}
 // ══════════════════════════════════════════════════════════════════════════
 // v213 — KIEM TRA DAU CAU TRUOC KHI LUU LOI THOAI
 // Phu de tu dong cua YouTube phan lon KHONG co dau cham cau. Khong co dau thi may chi con
@@ -43292,12 +42280,6 @@ function sdChuTaiGiay(ds, i, gy){
   return Math.max(0, k);
 }
 // Mốc kết thúc của một câu: ưu tiên mốc "e" do AI trả về, không có thì lấy mốc câu kế tiếp.
-function sdHetCau(ds, i){
-  const d = ds[i]; if(!d || d.t == null) return null;
-  if(d.e != null && d.e > d.t) return d.e;
-  if(ds[i+1] && ds[i+1].t != null) return ds[i+1].t;
-  return null;   // câu cuối, không có mốc kết thúc thì cứ để chạy
-}
 function sdChiSoDong(giay, ds){
   let k = -1;
   // v209: rút khoảng "nhìn trước" từ 0,25 xuống 0,1 giây. Nhìn trước nhiều quá thì dòng sáng lên
@@ -44249,21 +43231,6 @@ function sdChayDeGhi(){
   }, SD_TRE_GHI * 1000);
   try{ hvVeNutPlay(); }catch(_){ }
   return coDong ? i : -1;
-}
-function sdChayLaiCauDangChon(){
-  const s = STATE.sdPhien; if(!s) return -1;
-  const rec = sdTimVideo(s.vidId); if(!rec) return -1;
-  const ds = sdDongLoi(rec);
-  const i = sdDongDangChon();
-  if(i < 0 || !ds[i] || ds[i].t == null) return -1;
-  const p = (STATE.hvPhien && typeof hvLayPlayer === 'function') ? hvLayPlayer() : sdPlayer;
-  if(!p) return -1;
-  // v210: về đúng đầu câu rồi DỪNG. Người dùng bấm ▶ mới chạy — đang chuẩn bị lấy hơi mà video
-  // tự chạy thì bao giờ cũng hụt mất một hai chữ đầu.
-  try{ sdTuaChinh(p, sdMocPhat(ds, i, rec)); p.pauseVideo(); }catch(_){ return -1; }
-  sdXoaVetSang(); sdDongHienTai = -1; sdBatBam();
-  try{ hvVeNutPlay(); }catch(_){}
-  return i;
 }
 // ---- Âm lượng giọng thu + tiếng video lúc ghi ----
 // v214: đặt tên theo cảm nhận chứ không phải con số nhân — kèm mức "Tự động" tự đo giọng bạn.
@@ -47657,118 +46624,7 @@ function ipaDeepWordList(){
 // học tập, phản hồi ngay sau từng đơn vị nhỏ giúp ghi nhớ và sửa lỗi tốt hơn nhiều so với phản hồi dồn ở
 // cuối 1 khối lớn. Người học cũng có thể luyện lại đúng 1 từ yếu mà không phải làm lại cả bộ.
 
-// ── Nghe người thật đọc từ này (YouGlish) ────────────────────────────────
-// Yêu cầu: "với mỗi từ khi kiểm tra, search trên youtube cách người ta phát âm từ đó, chỉ chạy
-// video ở vị trí phát âm từ đang kiểm tra". YouTube không có API nào cho phép tìm rồi nhảy tới
-// đúng giây một từ được nói — nhưng YouGlish thì có: nó lập chỉ mục phụ đề của hàng triệu video
-// YouTube, tìm ra những đoạn có chứa từ đó và tua thẳng tới đúng giây người ta nói. Đúng thứ bạn
-// cần, miễn phí, không cần API key. Widget tự nạp khi mở, không nạp sẵn để khỏi tốn băng thông.
-let ygSan = false, ygCho = null, ygLoi = null, ygDongHo = null;
-function ygNap(){
-  if(ygSan) return;
-  const cu = document.getElementById('yg-lib');
-  if(cu){
-    // Thẻ script đã có nhưng thư viện chưa sẵn sàng: có thể lần trước tải hỏng. Bỏ đi để thử lại,
-    // thay vì đứng im mãi mãi như bản trước (đó là lý do bấm lại vẫn không ra gì).
-    if(!ygSan){ try{ cu.remove(); }catch(_){} } else return;
-  }
-  const t = document.createElement('script');
-  t.id = 'yg-lib'; t.async = true; t.charset = 'utf-8';
-  t.src = 'https://youglish.com/public/emb/widget.js';
-  t.onerror = function(){
-    ygLoi = 'Không tải được thư viện YouGlish — có thể do mạng chặn hoặc đang ngoại tuyến.';
-    try{ renderContentPreserveScroll(); }catch(_){}
-  };
-  document.head.appendChild(t);
-}
-// Canh chừng: quá thời gian mà iframe vẫn chưa xuất hiện thì báo cho người dùng biết,
-// KHÔNG để họ nhìn một khung trống rồi tưởng app hỏng.
-function ygCanhChung(){
-  if(ygDongHo) clearTimeout(ygDongHo);
-  ygDongHo = setTimeout(function(){
-    const fr = document.getElementById('fr_yg-box');
-    if(!fr && STATE.ygMo){
-      ygLoi = 'Chờ quá lâu mà video chưa hiện. Mạng có thể đang chặn youglish.com.';
-      try{ renderContentPreserveScroll(); }catch(_){}
-    }
-  }, 9000);
-}
-// YouGlish gọi hàm này khi thư viện nạp xong (tên hàm do họ quy định, phải để ở window).
-window.onYouglishAPIReady = function(){
-  ygSan = true;
-  if(ygCho){ const q = ygCho; ygCho = null; ygMo(q); }
-};
-let ygWidget = null, ygTuHienTai = '';
-const YG_CAO = 260;   // chiều cao thật của khung video, tính bằng pixel
-function ygMo(tu){
-  tu = String(tu||'').trim();
-  if(!tu) return;
-  ygTuHienTai = tu;
-  const hop = document.getElementById('yg-box');
-  if(!hop) return;
-  if(!ygSan){ ygCho = tu; ygLoi = null; ygNap(); ygCanhChung(); return; }
-  // Nếu iframe của lần trước đã bị màn hình vẽ lại xóa mất thì thực thể widget cũ đã "chết":
-  // gọi fetch() vào nó chỉ gửi postMessage tới một thẻ không còn tồn tại và IM LẶNG không làm gì.
-  // Đây chính là kiểu hỏng khó thấy nhất — phải dựng lại từ đầu.
-  if(ygWidget && !document.getElementById('fr_yg-box')) ygWidget = null;
-  try{
-    if(!ygWidget){
-      ygWidget = new YG.Widget('yg-box', {
-        // 4 = tiêu đề, 8 = phụ đề, 16 = chỉnh tốc độ, 64 = nút điều khiển, 512 = bảng phiên âm
-        components: 4+8+16+64+512,
-        height: YG_CAO,          // BẮT BUỘC: không truyền thì iframe sinh ra chỉ cao 1px → nhìn như không mở được
-        backgroundColor:'#11161d', textColor:'#8fa3b8', titleColor:'#c9d6e4',
-        captionColor:'#7ec8ff', markerColor:'#FFC94A', queryColor:'#2CDBA8',
-        panelsBackgroundColor:'#161c25', linkColor:'#2CDBA8',
-        captionSize: 22, restrictionMode: 1, autoStart: 1,
-        title: 'Người bản xứ đọc "%query%" (%i%/%total%)',
-        events: { 'onError': function(ev){
-            ygLoi = 'YouGlish báo lỗi (mã ' + ((ev&&ev.code)||'?') + ').';
-            try{ renderContentPreserveScroll(); }catch(_){}
-          } }
-      });
-    }
-    ygLoi = null;
-    // Giọng Anh–Mỹ mặc định vì phần lớn tài liệu trong app dùng Anh–Mỹ.
-    ygWidget.fetch(tu, 'english', SETTINGS.ygGiong || 'us');
-    ygCanhChung();
-  }catch(e){
-    ygLoi = 'Không mở được: ' + ((e&&e.message)||'lỗi không rõ');
-    try{ renderContentPreserveScroll(); }catch(_){}
-  }
-}
-function ygLinkNgoai(tu){
-  const g = (SETTINGS.ygGiong || 'us') === 'uk' ? 'uk' : 'us';
-  return 'https://youglish.com/pronounce/' + encodeURIComponent(tu) + '/english/' + g;
-}
 // Khối giao diện, dùng chung cho cả màn Luyện tập phát âm IPA lẫn màn Phân tích chuyên sâu AI.
-function ygKhoiHtml(tu){
-  tu = String(tu||'').trim();
-  if(!tu) return '';
-  const mo = !!(STATE.ygMo && STATE.ygMo === tu);
-  const giong = SETTINGS.ygGiong || 'us';
-  if(!mo){
-    return `<div class="yg-wrap">
-      <div class="yg-h">🎬 Nghe người bản xứ đọc "${escapeHtml(tu)}"</div>
-      <div class="yg-d">Tìm trong video YouTube thật những đoạn có người nói từ này, rồi tua thẳng tới đúng giây đó. Nghe giọng thật trong câu thật khác hẳn nghe máy đọc rời từng từ.</div>
-      <button class="form-btn btn-listen" data-action="yg-open" data-word="${escapeHtml(tu)}" style="width:100%;">▶️ Mở video phát âm thật</button>
-    </div>`;
-  }
-  return `<div class="yg-wrap">
-    <div class="yg-h">🎬 Người bản xứ đọc "${escapeHtml(tu)}"</div>
-    <div class="yg-d">Video tự tua tới đúng chỗ nói từ này. Bấm ⏭ để nghe người khác đọc — mỗi người một giọng, nghe vài ba lượt sẽ thấy phần chung giữa họ, đó mới là âm chuẩn.</div>
-    ${ygLoi ? `<div class="yg-err">⚠️ ${escapeHtml(ygLoi)}<br>Bấm nút dưới để mở thẳng trên trang YouGlish.</div>` : ''}
-    <div id="yg-box" class="yg-box"></div>
-    <div class="yg-bar">
-      <button class="form-btn ${giong==='us'?'':'cancel'}" data-action="yg-accent" data-g="us">🇺🇸 Anh–Mỹ</button>
-      <button class="form-btn ${giong==='uk'?'':'cancel'}" data-action="yg-accent" data-g="uk">🇬🇧 Anh–Anh</button>
-      <button class="form-btn cancel" data-action="yg-close">✕ Đóng</button>
-    </div>
-    <a class="yg-out" href="${escapeHtml(ygLinkNgoai(tu))}" target="_blank" rel="noopener">↗ Mở "${escapeHtml(tu)}" trên trang YouGlish (nếu khung trên không chạy)</a>
-    <div class="yg-credit">Powered by <a href="https://youglish.com" target="_blank" rel="noopener">YouGlish.com</a> · video từ YouTube</div>
-  </div>`;
-}
-
 function ipaDeepCurrentWord(s){ s = s || STATE.ipaDeepSession; return s && s.queue ? s.queue[s.qIdx] : null; }
 // Tra phiên âm IPA + âm trọng tâm của một từ. Ngân hàng đã có sẵn cả hai (cột [3] và [4]) từ
 // IPA_CHART_DATA, chỉ là trước đây màn Phân tích chuyên sâu không hề dùng tới — nên người học nhìn
