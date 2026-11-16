@@ -6572,7 +6572,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v369';
+const APP_VERSION = 'v370';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9081,13 +9081,6 @@ function renderHUD(){
   const hudEl = document.getElementById('hud'); hudEl.innerHTML=''; hudEl.style.display='none';
   const xpEl = document.getElementById('xpwrap'); xpEl.innerHTML=''; xpEl.style.display='none';
 }
-function requestNotifPermission(){
-  const confirmPopup = ()=> enqueuePopup('🔔','Đã bật thông báo','App sẽ báo tổng kết cuối ngày. Trạng thái từng việc (sắp tới giờ / trễ lịch) sẽ hiện khi bạn bấm mở việc đó.');
-  if(!('Notification' in window)){ confirmPopup(); return; }
-  if(Notification.permission==='granted'){ confirmPopup(); return; }
-  Notification.requestPermission().then(()=>{ confirmPopup(); renderHUD(); }).catch(()=>confirmPopup());
-}
-
 // ================= DAY DETAIL (xem lại công việc đã làm 1 ngày cụ thể) =================
 function openDayDetail(key, track){
   navForward();
@@ -18028,12 +18021,6 @@ function tcMucThanHtml(m, bo){
   // điều khoản đi qua tcNoiVienDan, nên mã "EN 1728, 8.2" nằm trong ghi chú là chữ chết.
   return (m.khoi || []).map(k => tcNoiVienDan(tcKhoiHtml(k), bo)).join('');
 }
-function tcMucThanHtmlCu(m, bo){
-  // Thân ghi chú đã có sẵn bộ dựng khối từ v288 (tcKhoiHtml) — dùng lại nguyên vẹn,
-  // chỉ bọc thêm một lớp để canh lề trong trang điều.
-  return (m.khoi || []).map(tcKhoiHtml).join('');
-}
-
 // ================= ĐIỀU TRỌNG TÂM — BẠN TỰ ĐÁNH DẤU (v369) =================
 // Trước v369 nhãn "★ TRỌNG TÂM" chỉ hiện khi dữ liệu của điều có cờ qt, và cờ ấy do tôi đặt
 // sẵn cho ĐÚNG BẢY điều trong cả app (en581-1 §5, en581-2 §6.2.1 và §7.2.1, en581-3 §5.2.1,
@@ -18778,20 +18765,6 @@ function alJdFromDate(dd, mm, yy){
     jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
   }
   return jd;
-}
-function alJdToDate(jd){
-  let a, b, c;
-  if(jd > 2299160){
-    a = jd + 32044; b = Math.floor((4 * a + 3) / 146097);
-    c = a - Math.floor((b * 146097) / 4);
-  } else { b = 0; c = jd + 32082; }
-  const d = Math.floor((4 * c + 3) / 1461);
-  const e = c - Math.floor((1461 * d) / 4);
-  const m = Math.floor((5 * e + 2) / 153);
-  const day = e - Math.floor((153 * m + 2) / 5) + 1;
-  const month = m + 3 - 12 * Math.floor(m / 10);
-  const year = b * 100 + d - 4800 + Math.floor(m / 10);
-  return [day, month, year];
 }
 function alNewMoon(k){
   const T = k / 1236.85, T2 = T * T, T3 = T2 * T, dr = Math.PI / 180;
@@ -21733,17 +21706,6 @@ const TODAY_SUPPORT_STEPS = [
 ];
 // Chọn chặng hỗ trợ cho hôm nay: tối đa 1 chặng, chỉ khi có tín hiệu yếu rõ ràng trong 14 ngày gần
 // nhất. Nhờ vậy buổi học luôn giữ trọng tâm giao tiếp, nhưng vẫn tự vá lỗ hổng khi lỗ hổng đủ lớn.
-function todayFlowSupportKind(){
-  const weakest = englishWeakestModuleRecent();
-  if(weakest && weakest.avg < 65){
-    if(weakest.name==='Ngữ pháp') return 'quiz';
-    if(weakest.name==='Luyện IPA') return 'ipa';
-  }
-  // Thứ Ba và thứ Sáu bổ sung từ vựng — đủ để vốn từ lớn dần mà không lấn át phần nói.
-  const d = new Date().getDay();
-  if(d===2 || d===5) return 'vocab';
-  return null;
-}
 // Mỗi việc tiếng Anh trong LỊCH LÀM VIỆC ứng với mục nào trong Học tiếng Anh, và dòng nào trong bảng
 // hoạt động (để biết hôm nay đã làm chưa).
 // v275 — DỌN LẠI CHO KHỚP NĂM MỤC ĐANG CÓ. Bảng cũ trỏ sang ipa / vocab / sentences /
@@ -27632,14 +27594,6 @@ const QZ_RA8 = {
   error_spot: qzRaErrorSpot, family:    qzRaFamily,    shades:     qzRaShades,
   reverse:    qzRaReverse,   phonetic:  qzRaPhonetic
 };
-function qzDangDungDuoc(word, hat){
-  const ra = [];
-  Object.keys(QZ_RA8).forEach(k=>{
-    try{ if(QZ_RA8[k](word, hat)) ra.push(k); }catch(_){ }
-  });
-  return ra;
-}
-
 function vocabPrepareCurrent(){
   const s = STATE.vocabSession; if(!s) return;
   const n = s.ids[s.idx];
@@ -27980,7 +27934,6 @@ function wbTron(tu, cau){
   }
   return ra;
 }
-function wbTong(){ const w = STATE.wbSession; return w ? w.q.length : 0; }
 // Tỉ lệ đã học của MỘT KHO (khác hẳn wbPct, vốn đo tiến độ của phiên đang chạy).
 function wbPctKho(daHoc, tong){
   const t = +tong || 0, d = +daHoc || 0;
@@ -30328,7 +30281,6 @@ const LGQ_UNLOCK_PCT = 85;
 // "lách luật" bằng cách chỉ làm rất ít câu (AI pace có thể đề xuất chỉ 10-12 câu cho người mới) rồi may
 // mắn đạt điểm cao để mở khóa, trong khi chưa thực sự nắm vững toàn bộ phạm vi kiến thức đó.
 const LGQ_MIN_GATE_COUNT = 15;
-function lgqBest(key){ return ((SETTINGS.grammarQuiz && SETTINGS.grammarQuiz.best) || {})[key]; }
 // v227 — mở hết cấp độ, nhóm chủ đề và thi thử. Xem chú thích ở ggIsUnlocked.
 function lgqLevelUnlocked(){ return true; }
 function lgqGroupUnlocked(){ return true; }
@@ -30804,7 +30756,6 @@ function engGameMarkActivity(){
   const keys = Object.keys(g.daily); if(keys.length>120){ keys.sort(); keys.slice(0, keys.length-120).forEach(kk=>delete g.daily[kk]); }
   saveSettings();
 }
-function ggPathIndexOf(topicId){ return GRAMMAR_PATH.indexOf(topicId); }
 // Chủ đề mở khi: là chủ đề đầu tiên, hoặc chủ đề NGAY TRƯỚC nó trong lộ trình đã vượt ải.
 function ggIsUnlocked(topicId){
   // v227 — mở hết. Giữ lại hàm (thay vì xoá mọi chỗ gọi) để nếu sau này muốn khoá lại thì chỉ sửa
@@ -37845,15 +37796,6 @@ try{
     }
   });
 }catch(_){}
-function hvXoayKhung(){
-  const s = STATE.hvPhien; if(!s) return;
-  const rec = hvTim(s.vidId); if(!rec) return;
-  rec.khung = hvKhungDoc(rec) ? 'ngang' : 'doc';
-  saveSettings(); pushToDrive();
-  const w = document.getElementById('hvVidWrap');
-  if(w && w.classList){ if(rec.khung === 'doc') w.classList.add('doc'); else w.classList.remove('doc'); }
-  try{ setTimeout(hvVuaKhungHinh, 60); }catch(e){}
-}
 // Dò video dọc bằng ảnh bìa maxresdefault: Shorts trả về ảnh cao hơn rộng. Chỉ dò MỘT LẦN cho mỗi
 // video rồi nhớ luôn, khỏi tải ảnh lại mỗi lần mở. Ảnh không có thì coi như video ngang.
 // ══ v330 · KÉO ĐỂ CHỈNH CỠ KHUNG VIDEO ════════════════════════════════════════════════
@@ -37869,8 +37811,6 @@ function hvXoayKhung(){
 //     theo — kéo mãi không to lại được. Một vòng tự thắt.
 //   · Cột hẹp làm tiêu đề, chip đổi phòng và hàng nút chen nhau → chồng chéo.
 // Nay cỡ chỉ sống trong PHIÊN đang xem: thoát ra vào lại là về mặc định.
-function hvCaoTuy(){ return 0; }
-function hvRongTuy(){ return 0; }
 // ══ v336 · KÉO CỠ VIDEO — LÀM LẠI CHO ĐÚNG ═══════════════════════════════════════════
 // Ba điều bạn báo đều do hai quyết định sai ở v334/v335:
 //  (1) Tôi đặt CẢ chiều cao lẫn bề rộng. Nhưng khung video có tỉ lệ 16:9 do lớp con giữ, nên
@@ -38212,11 +38152,6 @@ function hvBatNghia(){
   if(STATE.hvPhien) hvVeTam();
   // Bật lên mà lời thoại chưa có nghĩa thì đi dịch ngay — trước đây bật xong vẫn trắng trơn.
   if(hvHienNghia() && STATE.hvPhien) hvDichLoiThoai(STATE.hvPhien.vidId);
-}
-function hvBatChonTu(){
-  STATE.hvChonTu = !STATE.hvChonTu;
-  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
-  if(STATE.hvPhien) hvVeTam();
 }
 // Chọn một từ, hoặc một CỤM: chạm từ đầu rồi chạm từ cuối trong cùng một dòng.
 // ══ v237 · ĐIỆN THOẠI CHẠM, LAPTOP RÊ CHUỘT ══════════════════════════════════════════════
@@ -41440,12 +41375,6 @@ function aiNhoThemChuDe(t){
   n.chuDe = [x].concat(n.chuDe.filter(y=>y.toLowerCase() !== x.toLowerCase())).slice(0, 8);
   saveSettings();
 }
-function aiNhoThemLoi(t){
-  const x = String(t||'').trim().slice(0, 90); if(!x) return;
-  const n = aiNho();
-  n.loi = [x].concat(n.loi.filter(y=>y.toLowerCase() !== x.toLowerCase())).slice(0, 6);
-  saveSettings();
-}
 function aiNhoXoa(){ SETTINGS.aiChatNho = {chuDe:[], loi:[]}; saveSettings(); renderContent(); }
 // ══ v355 · TRÌNH ĐỘ: BẠN TỰ CHỌN, APP KHÔNG ĐOÁN NỮA ══════════════════════════════
 // Bản cũ SUY RA trình độ từ số bài ngữ pháp đã qua: mặc định A2, qua 20% nhảy B1, 45% lên
@@ -44240,8 +44169,6 @@ function sdVe(vung){
   return true;
 }
 // Đang ở màn shadowing hay không — dùng để chọn giữa "vẽ từng phần" và "vẽ cả màn".
-function sdDangMo(){ return !!(STATE.sdPhien && document.getElementById(SD_HOLDER)); }
-
 // ---- Ghi âm bằng MediaRecorder của trình duyệt ----
 let sdRec = null, sdRecStream = null, sdRecChunks = [], sdDemGiay = null;
 let sdAudioCtx = null, sdGainNode = null, sdVolCu = null;
@@ -45946,13 +45873,6 @@ function stopSpeakPlaybackCapture(sessionObj){
   };
   try{ if(rec.state!=='inactive') rec.stop(); }catch(e){}
 }
-function discardSpeakPlaybackCapture(){
-  // Hủy ngang (không lưu) khi người dùng thoát màn hình/chuyển câu giữa chừng lúc đang ghi.
-  const rec = speakPlaybackRecorder; speakPlaybackRecorder=null;
-  const stream = speakPlaybackStream; speakPlaybackStream=null;
-  if(rec){ try{ rec.onstop=null; if(rec.state!=='inactive') rec.stop(); }catch(e){} }
-  if(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
-}
 let speakPlaybackAudioEl=null;
 // Khuếch đại/giảm âm lượng khi nghe lại bản ghi giọng của mình — vì mic điện thoại thường ghi
 // tiếng nói nhỏ, khó nghe rõ lại. Dùng Web Audio GainNode (chỉ tạo createMediaElementSource
@@ -47325,14 +47245,6 @@ function prosodyHtml(text){
 }
 
 // Bản chữ thuần (không HTML) — dùng cho phần gợi ý/đọc lại, và cho AI khi cần.
-function prosodyPlain(text){
-  return prosodySentences(text).map(sent=>{
-    const chunks = prosodyChunks(sent);
-    const tone = prosodyFinalTone(sent);
-    return chunks.map((c,i)=> c.join(' ') + (i===chunks.length-1 ? (tone==='up'?' ↗ //':' ↘ //') : ' /')).join(' ');
-  }).join(' ');
-}
-
 function prosodyLegendHtml(){
   return `<details class="pr-legend">
     <summary>🎵 Cách đọc theo ký hiệu ngắt nhịp</summary>
@@ -47839,11 +47751,6 @@ function ygMo(tu){
 function ygLinkNgoai(tu){
   const g = (SETTINGS.ygGiong || 'us') === 'uk' ? 'uk' : 'us';
   return 'https://youglish.com/pronounce/' + encodeURIComponent(tu) + '/english/' + g;
-}
-function ygDoiGiong(g){
-  SETTINGS.ygGiong = g; saveSettings();
-  if(ygTuHienTai) ygMo(ygTuHienTai);
-  else renderContentPreserveScroll();
 }
 // Khối giao diện, dùng chung cho cả màn Luyện tập phát âm IPA lẫn màn Phân tích chuyên sâu AI.
 function ygKhoiHtml(tu){
@@ -49626,19 +49533,6 @@ function renderEnglishYear(){
   attachStatsSegEvents();
   document.querySelector('[data-action="year-prev"]').onclick=()=>{ STATE.statsYear--; renderContent(); };
   document.querySelector('[data-action="year-next"]').onclick=()=>{ STATE.statsYear++; renderContent(); };
-}
-function computeBadges(){
-  const dates = allTrackedDates(); const streak = computeStreak();
-  let totalPerfect=0,totalTieng=0,totalTheLuc=0,totalChuyen=0,totalDays=dates.length;
-  dates.forEach(k=>{ if(dayPct(k)===100) totalPerfect++;
-    totalTieng+=catInfo(k,'tieng_anh').done; totalTheLuc+=catInfo(k,'the_luc').done; totalChuyen+=catInfo(k,'chuyen_mon').done; });
-  return [
-    {icon:'🔥', label:'Chuỗi 7 ngày', earned: streak>=7}, {icon:'⚡', label:'Chuỗi 30 ngày', earned: streak>=30},
-    {icon:'🏅', label:'10 ngày hoàn hảo', earned: totalPerfect>=10}, {icon:'🗣️', label:'50 buổi tiếng Anh', earned: totalTieng>=50},
-    {icon:'💪', label:'30 buổi tập luyện', earned: totalTheLuc>=30}, {icon:'📚', label:'30 buổi chuyên môn', earned: totalChuyen>=30},
-    {icon:'📅', label:'30 ngày theo dõi', earned: totalDays>=30}, {icon:'👑', label:'100 ngày theo dõi', earned: totalDays>=100},
-    {icon:'🎯', label:'Level 5', earned: levelInfo().lvl>=5},
-  ];
 }
 function statsSeg(track){
   // Riêng track "english" có thêm nút "Hôm nay" ở đầu — dẫn tới renderEnglishAchievementsToday(), một
