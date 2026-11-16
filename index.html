@@ -6557,7 +6557,7 @@ function tierEmblemSvg(tier){
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v367';
+const APP_VERSION = 'v368';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -35445,6 +35445,10 @@ function hvVaoChe(che){
   if(st.tab === 'chinhta'){ try{ dvLuuGo(); }catch(e){} }
   STATE.hvLoi = null;
   STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  // v368 — ĐÂY LÀ CHỖ LỖI v251 QUAY LẠI. Xoá hai cờ chọn ở trên là chưa đủ: khung tra nghĩa là
+  // một phần tử thật nằm trong khối video, khối ấy không được dựng lại khi đổi phòng, nên khung
+  // cứ đứng nguyên và đè lên phòng mới. Xem chú thích ở hvDongKhungNghia().
+  hvDongKhungNghia();
   if(che === 'chinhta' && !STATE.dvPhien){
     const kt = dvCauKeTiep(rec);
     STATE.dvPhien = {vidId:rec.id, idx:(kt>=0?kt:null), go:'', thuHien:false, thuLan:0, ketQua:null, xongHet:false};
@@ -35868,12 +35872,21 @@ function hvApTocTab(){
   const p = (typeof hvLayPlayer === 'function') ? hvLayPlayer(true) : null;   // dọn nền — im lặng
   try{ if(p && p.setPlaybackRate) p.setPlaybackRate(hvTocTheoTab(s.tab)); }catch(_){}
 }
-function hvDoiTab(tab){
-  // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
-  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
-  // v251 — xoá cờ thôi là CHƯA ĐỦ. Khung tra nghĩa nằm trong khối video, mà khối ấy cố ý KHÔNG
-  // được dựng lại khi đổi thẻ (dựng lại là video chạy lại từ đầu) — nên nó cứ đứng đó, đè lên
-  // màn Chép chính tả và Shadowing, đúng như ảnh bạn gửi. Phải gỡ thẳng trên phần tử đang sống.
+// v368 — ĐOẠN GỠ KHUNG TRA NGHĨA, TÁCH RA THÀNH HÀM RIÊNG.
+//
+// Vì sao phải tách: đoạn này là bản sửa lỗi của v251 — khung tra nghĩa nằm TRONG khối video, mà
+// khối video cố ý KHÔNG được dựng lại khi đổi phòng (dựng lại là video chạy lại từ đầu), nên xoá
+// cờ trong STATE thôi là chưa đủ: phần tử vẫn đứng đó, đè lên màn Chép chính tả và Shadowing.
+// Phải gỡ thẳng trên phần tử đang sống.
+//
+// Nhưng nó nằm bên trong hvDoiTab(), và từ v338 app đã chuyển sang hvVaoChe() để đổi phòng —
+// hvVaoChe KHÔNG có đoạn này. Nghĩa là lỗi v251 đã lặng lẽ quay lại từ lúc ấy. Mười bộ kiểm tra
+// vẫn xanh suốt thời gian đó vì chúng gọi THẲNG hvDoiTab, chứ không đi qua đường mà app thật đi —
+// đúng loại điểm mù đáng sợ nhất: bài kiểm tra canh một cái hàm thay vì canh một con đường.
+//
+// Nay đoạn này là một hàm, và CẢ HAI lối đổi phòng đều gọi nó. Bài kiểm tra của v368 đi qua
+// hvVaoChe để đo, không gọi hàm này trực tiếp.
+function hvDongKhungNghia(){
   try{
     STATE.hvNghia = null; STATE.hvPhienAm = null;
     if(typeof hvTuDangRe !== 'undefined') hvTuDangRe = null;
@@ -35883,6 +35896,11 @@ function hvDoiTab(tab){
     const bo = document.querySelectorAll('.hv-capw.chon, .hv-w.chon');
     for(let i = 0; i < bo.length; i++){ try{ bo[i].classList.remove('chon'); }catch(_){ } }
   }catch(_){ }
+}
+function hvDoiTab(tab){
+  // Bỏ lựa chọn từ của thẻ Phụ đề khi rời đi: nó chỉ có nghĩa trong thẻ đó.
+  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
+  hvDongKhungNghia();
   const s = STATE.hvPhien; if(!s) return;
   const rec = hvTim(s.vidId); if(!rec) return;
   if((tab === 'chinhta' || tab === 'shadowing') && !rec.lines){
