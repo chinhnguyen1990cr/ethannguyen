@@ -6530,7 +6530,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v378';
+const APP_VERSION = 'v379';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -33759,7 +33759,7 @@ function hvGanPlayer(videoId){
         // cách nào nhét nút của mình vào trong iframe khác miền, nên chỉ còn một đường
         // đúng: bỏ hẳn nút của YouTube, để nút ⛶ của app làm việc ấy. Nút ⛶ phóng to CẢ
         // khung .hv-vidwrap, nên phụ đề, dãy nút và thanh điều khiển đi theo.
-        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, fs:0, cc_load_policy: (SETTINGS.hvCcGoc ? 1 : 0) },
+        playerVars:{ rel:0, modestbranding:1, iv_load_policy:3, playsinline:1, fs:0, cc_load_policy: 0 },
         events:{
           // Trình phát đổi trạng thái (chạy/dừng/hết) thì vẽ lại nút ▶/⏸ cho khớp — kể cả khi nó
           // dừng vì lý do khác chứ không phải bạn bấm.
@@ -36476,25 +36476,6 @@ function hvCheBang(){
 }
 // Bật/tắt phụ đề gốc của YouTube ngay trên trình phát đang chạy — không dựng lại video (dựng lại
 // là mất chỗ đang xem). Trình phát HTML5 dùng module 'captions', bản cũ dùng 'cc' — gọi cả hai.
-function hvCcGoc(){
-  SETTINGS.hvCcGoc = !SETTINGS.hvCcGoc;
-  saveSettings();
-  const p = hvLayPlayer();
-  if(p){
-    ['captions','cc'].forEach(mo=>{
-      try{ if(SETTINGS.hvCcGoc) p.loadModule(mo); else p.unloadModule(mo); }catch(_){ }
-    });
-  }
-  try{ hvVeNutCc(); }catch(_){ }
-  showToast(SETTINGS.hvCcGoc ? '🎬' : '🚫',
-    SETTINGS.hvCcGoc ? 'Đã bật phụ đề gốc của video' : 'Đã tắt phụ đề gốc của video',
-    SETTINGS.hvCcGoc ? 'Đây là phụ đề của chính YouTube. Video nào không có thì sẽ không thấy gì.'
-                     : 'Màn hình gọn lại, nhìn rõ khẩu hình người nói hơn.');
-}
-function hvVeNutCc(){
-  const b = document.getElementById('hvCcBtn'); if(!b) return;
-  if(b.classList){ if(SETTINGS.hvCcGoc) b.classList.add('on'); else b.classList.remove('on'); }
-}
 // v216 — MUC 5: video chạy được rồi thì bỏ dòng "Video chưa sẵn sàng" đi.
 // Dòng đó chỉ đúng lúc trình phát chưa gắn xong; để nguyên là báo sai, gây hoang mang.
 function hvXoaLoiSanSang(){
@@ -41412,13 +41393,6 @@ function hvKtDauHtml(k){
     ${nutNghi}
     ${nut}
   </div>`;
-}
-function sdKtDau(){
-  const el = document.getElementById('sdLoiSua');
-  if(!el) return;
-  STATE.sdKtDau = hvKtDau(el.value);
-  const w = document.getElementById('sdKtWrap');
-  if(w) w.innerHTML = hvKtDauHtml(STATE.sdKtDau); else renderContent();
 }
 // Cham cau NGAY TREN O NHAP, giu nguyen moc gio: hoi AI theo tung me chu, ghep lai theo tung
 // chu goc (hvGhepChamCau tu choi neu AI viet lai bai), roi dung lai van ban dan dang
