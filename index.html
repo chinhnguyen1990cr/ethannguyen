@@ -6822,7 +6822,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
+let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
 const KH_CATEGORIES = [
   // v358 — TỪ MƯỜI DÒNG HÀNG XUỐNG BA.
   //
@@ -8495,7 +8495,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}, dieuTrongTam:{}}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}, dieuTrongTam:{}}, loaded);
     if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
@@ -8738,7 +8738,7 @@ async function pullFromDrive(){
     if(data.progressLog){ try{ LOG = JSON.parse(data.progressLog); }catch(e){} }
     if(data.settings){
       try{
-        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, JSON.parse(data.settings));
+        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, JSON.parse(data.settings));
       }catch(e){}
     }
     if(data.kiemhang){ try{ KIEMHANG = JSON.parse(data.kiemhang) || {}; }catch(e){} }
@@ -28048,8 +28048,8 @@ function renderEnglishWordbank(item){
 //   vocabProgress / sentProgress — mức Leitner của từng mục
 //   vocabDailyCache / sentDailyCache — gói bài đã bốc cho HÔM NAY (không xoá thì bấm Bắt
 //     đầu vẫn ra đúng gói cũ, tưởng như reset không ăn)
-//   wbLuot — số lượt thẻ lật trong ngày (v378 gỡ wbNgay: wbLuot nay là {ngay, so},
-//     tự đặt lại khi sang ngày mới, nên không cần ô ghi ngày riêng nữa)
+//   wbLuot — số lượt thẻ lật trong ngày (v378 gỡ ô ghi ngày riêng: wbLuot nay là
+//     {ngay, so} và tự đặt lại khi sang ngày mới)
 //   englishActivity của hôm nay — để thống kê không cộng dồn nhầm
 function wbLamLai(){
   const n = Object.keys(SETTINGS.vocabProgress || {}).length
@@ -49122,6 +49122,16 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const rowEl = e.target.closest('[data-action="row"]');
   if(rowEl){ const taskId = rowEl.getAttribute('data-task'); STATE.expanded[taskId] = !STATE.expanded[taskId]; renderContent(); return; }
 
+  const ipaChip = e.target.closest('[data-action="ipa-toggle"]');
+  if(ipaChip){
+    const sym = ipaChip.getAttribute('data-sym');
+    SETTINGS.ipaLearned[sym] = !SETTINGS.ipaLearned[sym];
+    saveSettings(); renderContent(); return;
+  }
+  const levelBtn = e.target.closest('[data-action="set-level"]');
+  if(levelBtn){ SETTINGS.speakingLevel = levelBtn.getAttribute('data-level'); saveSettings(); renderContent(); return; }
+  const shadowBtn = e.target.closest('[data-action="set-shadow"]');
+  if(shadowBtn){ SETTINGS.shadowTopic = shadowBtn.getAttribute('data-topic'); saveSettings(); renderContent(); return; }
   const methodDetailToggle = e.target.closest('[data-action="method-detail-toggle"]');
   if(methodDetailToggle){
     const mid = methodDetailToggle.getAttribute('data-mid');
@@ -49185,7 +49195,7 @@ setTimeout(()=>{
   const c = document.getElementById('content');
   if(c && c.querySelector('.loading')){
     if(!LOG) LOG = {};
-    if(!SETTINGS || !SETTINGS.programStart) SETTINGS = Object.assign({programStart: todayKey(), ipaLearned:{}, methods:Object.assign({},DEFAULT_METHODS)}, SETTINGS||{});
+    if(!SETTINGS || !SETTINGS.programStart) SETTINGS = Object.assign({programStart: todayKey(), ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:Object.assign({},DEFAULT_METHODS)}, SETTINGS||{});
     lastKnownLevel = levelInfo().lvl;
     renderContent();
   }
