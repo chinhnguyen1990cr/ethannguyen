@@ -3294,6 +3294,13 @@
 .hv-che-bang input[type=range]{flex:1; accent-color:#FFC94A; min-width:0;}
 .hv-che-bang label b{font-size:10.5px; color:#FFC94A; min-width:32px; text-align:right;
   font-family:var(--mono);}
+/* v377 — công tắc tấm che + vạch ngăn + dòng giải thích cho thanh Bù trễ chữ. */
+.hv-che-bang .hv-che-sw{justify-content:space-between;}
+.hv-che-nut{flex:0 0 auto; font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px;
+  border:1px solid var(--border); background:rgba(255,255,255,.05); color:var(--dim);}
+.hv-che-nut.on{border-color:rgba(255,201,74,.55); background:rgba(255,201,74,.14); color:#FFC94A;}
+.hv-che-ng{height:1px; background:var(--border); margin:9px 0 2px;}
+.hv-che-gt{font-size:9.5px; color:var(--dim2); line-height:1.5; margin-top:5px;}
 .hv-chon-vid{width:100%; margin-top:8px; padding:9px 10px; border-radius:11px; font-size:12.5px; font-weight:800;
   border:1px solid rgba(44,219,168,.5); background:rgba(44,219,168,.13); color:var(--teal); cursor:pointer;
   transition:background .16s,color .16s;}
@@ -6546,7 +6553,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v376';
+const APP_VERSION = 'v377';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -36824,12 +36831,13 @@ function hvCapDoiCo(){
 // Bật/tắt dải mờ che phụ đề in sẵn trong khung hình.
 function hvMoPhu(){
   SETTINGS.hvMoPhu = !SETTINGS.hvMoPhu;
-  STATE.hvCheMo = !!SETTINGS.hvMoPhu;      // bật che thì mở luôn bảng chỉnh cho tiện
+  // v377 — KHÔNG còn đụng tới STATE.hvCheMo. Công tắc tấm che nay nằm TRONG bảng chỉnh, nên
+  // bật/tắt nó mà bảng tự đóng thì vừa bấm xong đã mất chỗ đứng. Bảng do nút ▤ và dấu ✕ quản.
   saveSettings();
   try{ hvVeDaiMo(); }catch(_){ }
   showToast(SETTINGS.hvMoPhu ? '▤' : '👁️',
     SETTINGS.hvMoPhu ? 'Đã che phụ đề in trong hình' : 'Đã bỏ tấm che',
-    SETTINGS.hvMoPhu ? ('Cao ' + hvCheCao() + '%, đậm ' + hvCheDam() + '%. Kéo hai thanh trong bảng để chỉnh vừa đúng video này. Phụ đề của app tự dời vào giữa tấm che.')
+    SETTINGS.hvMoPhu ? ('Cao ' + hvCheCao() + '%, đậm ' + hvCheDam() + '%. Kéo thanh trong bảng ▤ để chỉnh vừa đúng video này. Phụ đề của app tự dời vào giữa tấm che.')
                      : 'Khung hình trở lại nguyên vẹn.');
 }
 const HV_CHE_MAC = 34;      // đủ trùm hai dòng phụ đề — 25% cũ hở mất dòng trên
@@ -36911,12 +36919,18 @@ function hvDatCheDam(v, keo){
   hvVeDaiMo();
   if(!keo) saveSettings();
 }
-// Nút ▤ nay có hai việc: chạm nhanh = bật/tắt che, chạm khi ĐANG bật = mở/đóng bảng chỉnh.
+// v377 — NÚT ▤ CHỈ CÒN MỘT VIỆC: MỞ / ĐÓNG BẢNG CHỈNH.
+//
+// Bản cũ: chạm lần đầu thì BẬT LUÔN tấm che rồi mới mở bảng. Hệ quả là muốn chỉnh bất cứ thứ gì
+// trong bảng cũng phải chịu bật tấm che — và đó chính là lý do thanh "Bù trễ chữ" không thể nằm
+// ở đây: ai không dùng tấm che thì vĩnh viễn không thấy nó. Chôn một lần nữa.
+//
+// Nay tách hẳn: ▤ mở bảng, trong bảng có công tắc riêng cho tấm che. Bảng vẫn ẩn mặc định nên
+// không vướng gì; chỉ khác là mở nó ra không còn kéo theo tác dụng phụ nào.
 function hvCheBang(){
-  if(!SETTINGS.hvMoPhu){ hvMoPhu(); STATE.hvCheMo = true; }
-  else STATE.hvCheMo = !STATE.hvCheMo;
+  STATE.hvCheMo = !STATE.hvCheMo;
   const b = document.getElementById('hvCheThanh');
-  if(b && b.classList){ if(STATE.hvCheMo && SETTINGS.hvMoPhu) b.classList.add('hien'); else b.classList.remove('hien'); }
+  if(b && b.classList){ if(STATE.hvCheMo) b.classList.add('hien'); else b.classList.remove('hien'); }
 }
 // Bật/tắt phụ đề gốc của YouTube ngay trên trình phát đang chạy — không dựng lại video (dựng lại
 // là mất chỗ đang xem). Trình phát HTML5 dùng module 'captions', bản cũ dùng 'cc' — gọi cả hai.
@@ -38611,7 +38625,7 @@ function renderHocVideoPhien(item){
         <div class="hv-nutbar">
           <button class="hv-nb co" id="hvCoBtn" data-action="hv-co-khung" title="${escapeHtml(hvTaCoKhung())}">⤢</button>
           <button class="hv-nb cochu" id="hvCoChuBtn" data-action="hv-cap-co" title="${escapeHtml(hvTaCoChu())}">A<sup>+</sup></button>
-          <button class="hv-nb mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Tấm che phụ đề — chạm để bật, chạm tiếp để chỉnh">▤</button>
+          <button class="hv-nb mo${SETTINGS.hvMoPhu ? ' on' : ''}" id="hvMoBtn" data-action="hv-che-bang" title="Bảng chỉnh phụ đề &amp; chữ chạy — tấm che, cỡ che, bù trễ chữ">▤</button>
           <button class="hv-nb vn${SETTINGS.sdHienNghia ? ' on' : ''}" id="hvDichBtn" data-action="hv-cap-dich" title="Hiện/ẩn nghĩa tiếng Việt dưới lời thoại">🇻🇳</button>
           <button class="hv-nb cacau${SETTINGS.hvCaCau ? ' on' : ''}" id="hvCaCauBtn" data-action="hv-ca-cau" title="${
             SETTINGS.hvCaCau
@@ -38620,14 +38634,26 @@ function renderHocVideoPhien(item){
           <button class="hv-nb cc${SETTINGS.hvCap ? ' on' : ''}" data-action="hv-cap-bat" title="Bật/tắt phụ đề chạy ngay trong video">CC</button>
           <button class="hv-nb" data-action="hv-toanman" title="Xem toàn màn hình">⛶</button>
         </div>
-        <div class="hv-che-bang${(SETTINGS.hvMoPhu && STATE.hvCheMo) ? ' hien' : ''}" id="hvCheThanh">
-          <div class="hv-che-h">▤ Tấm che phụ đề<button class="hv-che-x" data-action="hv-mo-phu" title="Tắt tấm che">✕</button></div>
+        <div class="hv-che-bang${STATE.hvCheMo ? ' hien' : ''}" id="hvCheThanh">
+          <div class="hv-che-h">▤ Phụ đề &amp; chữ chạy<button class="hv-che-x" data-action="hv-che-bang" title="Đóng bảng">✕</button></div>
+          ${/* v377 — tấm che nay có CÔNG TẮC RIÊNG trong bảng, không còn bị nút ▤ bật kèm. */''}
+          <label class="hv-che-sw"><span>Tấm che</span>
+            <button class="hv-che-nut${SETTINGS.hvMoPhu ? ' on' : ''}" data-action="hv-mo-phu"
+              title="Bật/tắt tấm che phụ đề in sẵn trong hình">${SETTINGS.hvMoPhu ? 'Đang bật' : 'Đang tắt'}</button></label>
           <label><span>Chiều cao</span>
             <input type="range" min="10" max="80" step="1" value="${hvCheCao()}" data-truot="hv-che-cao">
             <b id="hvCheNhan">${hvCheCao()}%</b></label>
           <label><span>Độ đậm</span>
             <input type="range" min="40" max="100" step="2" value="${hvCheDam()}" data-truot="hv-che-dam">
             <b id="hvDamNhan">${hvCheDam()}%</b></label>
+          ${/* v377 — BÙ TRỄ CHỮ TRỞ LẠI. v237 bỏ lối gõ nhịp, v242 bỏ hai nút ± và ghi "phép bù
+                vẫn còn cho thanh trượt trong Cài đặt" — thanh trượt ấy chưa từng được dựng, nên
+                suốt từ đó hvBuTre() vĩnh viễn bằng 0 và máy nào hiện chữ trễ thì đành chịu. */''}
+          <div class="hv-che-ng"></div>
+          <label><span>Bù trễ chữ</span>
+            <input type="range" min="-0.6" max="0.6" step="0.05" value="${hvBuTre()}" data-truot="hv-bu-tre">
+            <b id="hvBuTreNhan">${(hvBuTre() > 0 ? '+' : '') + hvBuTre().toFixed(2)}s</b></label>
+          <div class="hv-che-gt">Chữ chạy trước tiếng thì kéo sang trái, chạy sau thì kéo sang phải.</div>
         </div>
         <button class="hv-play" id="hvPlayBtn" data-action="hv-playpause" title="Chạy / Dừng video">▶</button>
         <span class="hv-keo" data-action="hv-keo" title="Kéo để phóng to / thu nhỏ khung video">⤡</span>
@@ -49284,7 +49310,9 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const hvCheBangEl = e.target.closest('[data-action="hv-che-bang"]');
   if(hvCheBangEl){ hvCheBang(); return; }
   const hvMoPhuEl = e.target.closest('[data-action="hv-mo-phu"]');
-  if(hvMoPhuEl){ hvMoPhu(); STATE.hvCheMo = false; return; }
+  // v377 — bỏ "STATE.hvCheMo = false": xem chú thích trong hvMoPhu(). Bật/tắt tấm che từ trong
+  // bảng thì bảng phải ở nguyên đó để còn chỉnh tiếp.
+  if(hvMoPhuEl){ hvMoPhu(); try{ hvVeTam({giuCuon:true, khongLat:true}); }catch(_){ } return; }
   const hvMoiMoEl = e.target.closest('[data-action="hv-moi-mo"]');
   if(hvMoiMoEl){ e.stopPropagation(); hvMoiMo(); return; }
   const hvMoiThemEl = e.target.closest('[data-action="hv-moi-them"]');
