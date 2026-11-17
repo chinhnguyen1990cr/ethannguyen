@@ -1624,14 +1624,9 @@
     max-height:80vh; overflow-y:auto; animation: slideUp .3s cubic-bezier(.2,.9,.3,1);}
   @keyframes slideUp{from{transform:translateY(40px); opacity:0;} to{transform:translateY(0); opacity:1;}}
   .avatar-modal-title{font-size:15px; font-weight:800; margin-bottom:14px; text-align:center;}
-  .avatar-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:14px;}
-  .avatar-opt{aspect-ratio:1; border-radius:12px; background:var(--panel2); border:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer;}
-  .avatar-opt.current{border-color:var(--gold); background:linear-gradient(145deg,#3a2f16,#2a2210);}
-  .avatar-upload-btn, .avatar-reset-btn{width:100%; padding:12px; border-radius:12px; font-size:13px; font-weight:700;
+  .avatar-upload-btn{width:100%; padding:12px; border-radius:12px; font-size:13px; font-weight:700;
     margin-top:8px; cursor:pointer; border:1px solid var(--border);}
   .avatar-upload-btn{background:linear-gradient(90deg,var(--gold),#FFE08A); color:#0E1218; border:none;}
-  .avatar-reset-btn{background:var(--panel2); color:var(--dim);}
 
   /* ══ v286 · KINH NGHIỆM KIỂM HÀNG — DỰNG LẠI ════════════════════════════════════════
      Mỗi thẻ dòng hàng nay mang MÀU CỦA CHÍNH DÒNG ẤY qua biến --khm: một vệt sáng rất mảnh
@@ -2277,19 +2272,6 @@
     background:var(--nhan1); border-top:1px solid var(--border);
     overflow-wrap:anywhere;}
   .tc-s-vi b{color:var(--text); font-weight:700;}
-  /* Tắt bản dịch: ẩn mọi khối tiếng Việt trong phần tiêu chuẩn */
-  body.tc-andich .tc-s-vi,
-  body.tc-andich .tc-f-vi,
-  body.tc-andich .tc-f-key td.vi,
-  body.tc-andich .tc-buoc .vi,
-  body.tc-andich .tc-ts-h .ten i,
-  body.tc-andich .tc-h1 i,
-  body.tc-andich .tc-h2 i,
-  body.tc-andich .tc-h3 i,
-  body.tc-andich .tc-de i,
-  body.tc-andich .tc-dhead-vi,
-  body.tc-andich .tc-dnut .vi,
-  body.tc-andich .tc-bo .vi{display:none !important;}
 
   /* ══ HÌNH — cỡ vừa phải cho cả laptop lẫn điện thoại ════════════════════════════════
      v287 để ảnh rộng hết khung nên trên laptop nó chiếm cả màn hình. Nay giới hạn chiều
@@ -6300,15 +6282,10 @@ body.hv-khoa-cuon .hv-ghim{z-index:9000;}
 <div id="navbar"><div id="navbar-inner"></div></div>
 <div id="toast-root"></div>
 <div id="popup-root"><div class="popup-backdrop" data-action="popup-dismiss"></div><div class="popup-card" id="popup-card"></div></div>
-<div id="avatar-modal">
-  <div class="avatar-modal-backdrop" data-action="avatar-close"></div>
-  <div class="avatar-modal-card" id="avatar-modal-card"></div>
-</div>
 <div id="day-detail-modal">
   <div class="avatar-modal-backdrop" data-action="day-detail-close"></div>
   <div class="avatar-modal-card" id="day-detail-card"></div>
 </div>
-<input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
 <input type="file" id="banner-file-input" accept="image/*" style="display:none;">
 <input type="file" id="bg-file-input" accept="image/*" style="display:none;">
 <input type="file" id="cat-image-file-input" accept="image/*" style="display:none;">
@@ -6553,7 +6530,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v377';
+const APP_VERSION = 'v378';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -6845,7 +6822,7 @@ function saveProfile(){
 
 // ================= STATE =================
 let LOG = {};
-let SETTINGS = { programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
+let SETTINGS = { programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], language:'vi' };
 const KH_CATEGORIES = [
   // v358 — TỪ MƯỜI DÒNG HÀNG XUỐNG BA.
   //
@@ -8518,7 +8495,7 @@ async function loadAll(){
   try{
     const v2 = await storageGet('progress-settings');
     const loaded = v2 ? JSON.parse(v2) : {};
-    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}, dieuTrongTam:{}}, loaded);
+    SETTINGS = Object.assign({programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[], myYoutubeChannels:[], speakGradeLevel:'basic', workHours:null, suaViec:{}, dieuTrongTam:{}}, loaded);
     if(SETTINGS.speakGradeLevel!=='advanced') SETTINGS.speakGradeLevel = 'basic';
     if(!Array.isArray(SETTINGS.customCategories)) SETTINGS.customCategories = [];
     if(!SETTINGS.categoryImages || typeof SETTINGS.categoryImages!=='object') SETTINGS.categoryImages = {};
@@ -8761,7 +8738,7 @@ async function pullFromDrive(){
     if(data.progressLog){ try{ LOG = JSON.parse(data.progressLog); }catch(e){} }
     if(data.settings){
       try{
-        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:null, notifPrompted:false, avatarType:'auto', avatarEmoji:null, avatarImage:null, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, JSON.parse(data.settings));
+        SETTINGS = Object.assign({programStart:null, ipaLearned:{}, methods:null, notifPrompted:false, bannerImage:null, profile:null, customCategories:[], appBackground:null, categoryImages:{}, musicPlaylist:[], driveOfflineSongs:[], englishItems:[], englishNotes:{}, grammarQuiz:{}, listeningDriveFolderId:'', speakingDriveFolderId:'', listenQuiz:{}, cloudTtsApiKey:'', cloudTtsUsage:null, grammarQuizLog:[]}, JSON.parse(data.settings));
       }catch(e){}
     }
     if(data.kiemhang){ try{ KIEMHANG = JSON.parse(data.kiemhang) || {}; }catch(e){} }
@@ -9058,49 +9035,6 @@ document.getElementById('day-detail-modal').addEventListener('click', (e)=>{
   if(e.target.closest('[data-action="day-detail-close"]')){ closeDayDetail(); }
 });
 
-// ================= AVATAR PICKER =================
-const AVATAR_EMOJIS = ['🌱','🔥','⚔️','🛡️','🐉','👑','🌟','🦁','🐯','🚀','🎯','💪','🧠','🎨','🎮','⭐','🍀','🦄','🐨','🐼','🦊','🌈','☀️','🌙'];
-function renderAvatarModal(){
-  const grid = AVATAR_EMOJIS.map(e=>{
-    const cur = SETTINGS.avatarType==='emoji' && SETTINGS.avatarEmoji===e;
-    return `<div class="avatar-opt ${cur?'current':''}" data-action="avatar-pick-emoji" data-emoji="${e}">${e}</div>`;
-  }).join('');
-  document.getElementById('avatar-modal-card').innerHTML = `
-    <div class="avatar-modal-title">Chọn Avatar</div>
-    <div class="avatar-grid">${grid}</div>
-    <button class="avatar-upload-btn" data-action="avatar-pick-photo">📷 Chọn ảnh từ thư viện</button>
-    <button class="avatar-reset-btn" data-action="avatar-reset">↺ Dùng biểu tượng theo cấp độ</button>
-  `;
-}
-function openAvatarModal(){ navForward(); renderAvatarModal(); document.getElementById('avatar-modal').classList.add('show'); }
-function closeAvatarModal(){ document.getElementById('avatar-modal').classList.remove('show'); navBack(); }
-function handleAvatarFile(file){
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    const img = new Image();
-    img.onload = ()=>{
-      const size = 240;
-      const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      const scale = Math.max(size/img.width, size/img.height);
-      const w = img.width*scale, h = img.height*scale;
-      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      SETTINGS.avatarType = 'image'; SETTINGS.avatarImage = dataUrl; SETTINGS.avatarEmoji = null;
-      saveSettings(); closeAvatarModal(); renderHUD();
-    };
-    img.onerror = ()=>{ alert('Không đọc được ảnh này, thử ảnh khác nhé.'); };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-document.getElementById('avatar-file-input').addEventListener('change', (e)=>{
-  const file = e.target.files && e.target.files[0];
-  handleAvatarFile(file);
-  e.target.value = '';
-});
 function handleBannerFile(file){
   if(!file) return;
   const reader = new FileReader();
@@ -9224,19 +9158,6 @@ function catImageActions(key, extra){
 }
 function catScrim(key){ return (SETTINGS.categoryImages||{})[key] ? `<div class="cat-card-scrim"></div>` : ''; }
 function catDeco(key, emoji){ return (SETTINGS.categoryImages||{})[key] ? '' : `<div class="deco">${emoji}</div>`; }
-document.getElementById('avatar-modal').addEventListener('click', (e)=>{
-  if(e.target.closest('[data-action="avatar-close"]')){ closeAvatarModal(); return; }
-  const emojiEl = e.target.closest('[data-action="avatar-pick-emoji"]');
-  if(emojiEl){
-    SETTINGS.avatarType = 'emoji'; SETTINGS.avatarEmoji = emojiEl.getAttribute('data-emoji'); SETTINGS.avatarImage = null;
-    saveSettings(); closeAvatarModal(); renderHUD(); return;
-  }
-  if(e.target.closest('[data-action="avatar-pick-photo"]')){ document.getElementById('avatar-file-input').click(); return; }
-  if(e.target.closest('[data-action="avatar-reset"]')){
-    SETTINGS.avatarType = 'auto'; SETTINGS.avatarEmoji = null; SETTINGS.avatarImage = null;
-    saveSettings(); closeAvatarModal(); renderHUD(); return;
-  }
-});
 
 // ================= KIEM HANG: DATA HELPERS =================
 function khNotes(catId){ return KIEMHANG[catId] || []; }
@@ -9265,7 +9186,6 @@ function khFmtDate(ts){
 function renderKiemHang(){
   // Công tắc bản dịch tác động bằng một lớp trên <body> nên CSS ẩn được mọi khối tiếng
   // Việt cùng lúc, không phải dựng lại từng chỗ.
-  try{ document.body.classList.toggle('tc-andich', SETTINGS.tcAnDich === true); }catch(e){}
 
   if(KH_STATE.view==='catlist') renderKhCatList();
   else if(KH_STATE.view==='edit') renderKhEditForm();
@@ -19138,13 +19058,6 @@ const DV_SAC_THAI = {
 // key hộ được — đây là app cá nhân chạy trên máy của chính bạn, đã chấp nhận cách này từ trước.
 
 // Vân tay hồ sơ: chỉ gồm những trường THẬT SỰ làm đổi lá số. Đổi cân nặng/chiều cao thì không tính lại.
-function setClaudeApiKey(){
-  const cur = SETTINGS.claudeApiKey || '';
-  const key = (window.prompt('Dán Claude API key (lấy tại console.anthropic.com → API Keys).\n\nKey chỉ lưu trên máy bạn và đồng bộ qua Drive như các cấu hình khác — app không có server riêng nên không giấu key hộ bạn được.\n\nĐể trống rồi bấm OK để xóa key.', cur) || '').trim();
-  SETTINGS.claudeApiKey = key;
-  if(!key) SETTINGS.dvAiCache = null;
-  saveSettings(); pushToDrive(); renderContent();
-}
 // Gom toàn bộ dữ liệu đưa cho AI — tính tại chỗ từ hồ sơ hiện hành, không đọc file rời nào.
 let dvAiDangTai = false;
 // Bản AI CÒN HẠN hay không: phải đúng ngày VÀ đúng vân tay hồ sơ hiện tại.
@@ -19908,120 +19821,15 @@ function wxBadges(code, rainPct, wind, gust){
 // ---- CHỌN VỊ TRÍ XEM THỜI TIẾT ----
 // Tra tên địa điểm bằng Open-Meteo Geocoding: miễn phí, không cần API key, trả về sẵn tên tỉnh/quốc gia
 // nên không phải ghép thêm dịch vụ nào khác. Chọn xong lưu vào SETTINGS.geoManual và đồng bộ qua Drive.
-async function wxSearchPlaces(q){
-  const url = 'https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)
-    + '&count=8&language=vi&format=json';
-  const res = await fetch(url);
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const d = await res.json();
-  return (d.results||[]).map(r=>{
-    // Bỏ phần trùng: API trả "Đà Nẵng / admin1: Đà Nẵng / Việt Nam" — ghép thẳng sẽ ra tên lặp hai lần.
-    const parts = [r.name, r.admin2, r.admin1, r.country].filter(Boolean)
-      .filter((x,i,a)=>a.indexOf(x)===i);
-    return {lat: r.latitude, lon: r.longitude, name: parts.join(', ')};
-  });
-}
 // LỖI CỦA BẢN TRƯỚC: mọi thao tác click trong app đi qua MỘT trình xử lý gắn trên #content, nhưng lớp
 // chọn vị trí lại được gắn vào document.body — tức nằm NGOÀI #content — nên bấm nút "Tìm", bấm kết quả
 // hay bấm "Đóng" đều không có gì xảy ra. Bản này gắn trình xử lý riêng ngay trên chính lớp phủ.
 // Đồng thời bỏ luôn nút "Tìm": gõ tới đâu gợi ý hiện tới đó (chờ 280ms sau phím cuối để không bắn
 // request mỗi ký tự), giống thanh tìm địa điểm của các ứng dụng bản đồ.
 let _wxSearchTimer = null, _wxSearchSeq = 0;
-function wxRecent(){ return Array.isArray(SETTINGS.geoRecent) ? SETTINGS.geoRecent : []; }
-function wxPushRecent(item){
-  const list = wxRecent().filter(x => x && x.name !== item.name);
-  list.unshift(item);
-  SETTINGS.geoRecent = list.slice(0, 6);
-}
-function openWxPicker(){
-  closeWxPicker();
-  const el = document.createElement('div');
-  el.id = 'wxPickOverlay'; el.className = 'wx-pick-overlay';
-  const cur = SETTINGS.geoManual;
-  el.innerHTML = `<div class="wx-pick-box">
-      <div class="wx-pick-head"><span>📍 Chọn vị trí xem thời tiết</span>
-        <button class="wx-pick-x" data-wx="close" aria-label="Đóng">✕</button></div>
-      <div class="wx-pick-cur">Đang xem: <b>${escapeHtml(SETTINGS.geoCity || WEATHER_FALLBACK.city)}</b>${cur?' · bạn tự chọn':' · theo vị trí máy'}</div>
-      <input id="wxPickInput" class="form-input" type="text" placeholder="Gõ tên tỉnh, thành, quận…" autocomplete="off" autocorrect="off" spellcheck="false">
-      <div id="wxPickResults" class="wx-pick-results"></div>
-      <button class="form-btn cancel" data-wx="auto" style="width:100%; margin-top:4px;">⌖ Dùng vị trí hiện tại của máy</button>
-    </div>`;
-  // Trình xử lý RIÊNG cho lớp phủ — không phụ thuộc trình xử lý chung của #content.
-  el.addEventListener('click', ev=>{
-    if(ev.target === el){ closeWxPicker(); return; }
-    const hit = ev.target.closest('[data-wx]');
-    if(!hit) return;
-    const act = hit.getAttribute('data-wx');
-    if(act === 'close') closeWxPicker();
-    else if(act === 'auto') wxUseAuto();
-    else if(act === 'use') wxUsePlace(hit.getAttribute('data-lat'), hit.getAttribute('data-lon'), hit.getAttribute('data-name'));
-  });
-  document.body.appendChild(el);
-  const inp = document.getElementById('wxPickInput');
-  if(inp){
-    inp.addEventListener('input', ()=>{
-      clearTimeout(_wxSearchTimer);
-      _wxSearchTimer = setTimeout(runWxSearch, 280);
-    });
-    inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); clearTimeout(_wxSearchTimer); runWxSearch(); } });
-    setTimeout(()=>{ try{ inp.focus(); }catch(_){} }, 60);
-  }
-  wxRenderResults(wxRecent().length
-    ? `<div class="wx-pick-hint">Vừa dùng gần đây</div>` + wxRecent().map(wxItemHtml).join('')
-    : `<div class="wx-pick-hint">Gõ tên địa điểm để xem gợi ý, ví dụ: Đà Nẵng, Quận 7, Biên Hòa…</div>`);
-}
-function wxItemHtml(r){
-  return `<div class="wx-pick-item" data-wx="use" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${escapeHtml(r.name)}">
-    <span class="wx-pin">📍</span><span>${escapeHtml(r.name)}</span></div>`;
-}
-function wxRenderResults(html){
-  const box = document.getElementById('wxPickResults');
-  if(box) box.innerHTML = html;
-}
 function closeWxPicker(){
   clearTimeout(_wxSearchTimer);
   const el = document.getElementById('wxPickOverlay'); if(el) el.remove();
-}
-async function runWxSearch(){
-  const inp = document.getElementById('wxPickInput');
-  if(!inp) return;
-  const q = inp.value.trim();
-  if(q.length < 2){
-    wxRenderResults(wxRecent().length
-      ? `<div class="wx-pick-hint">Vừa dùng gần đây</div>` + wxRecent().map(wxItemHtml).join('')
-      : `<div class="wx-pick-hint">Gõ ít nhất 2 ký tự để có gợi ý.</div>`);
-    return;
-  }
-  const seq = ++_wxSearchSeq;
-  wxRenderResults(`<div class="wx-pick-hint">Đang tìm “${escapeHtml(q)}”…</div>`);
-  try{
-    const list = await wxSearchPlaces(q);
-    if(seq !== _wxSearchSeq) return;   // đã có lần gõ mới hơn → bỏ kết quả cũ
-    wxRenderResults(list.length ? list.map(wxItemHtml).join('')
-      : `<div class="wx-pick-hint">Không tìm thấy địa điểm nào khớp “${escapeHtml(q)}”. Thử gõ tên tỉnh/thành thay vì tên phường.</div>`);
-  }catch(e){
-    if(seq !== _wxSearchSeq) return;
-    wxRenderResults(`<div class="wx-pick-hint">Không tra được danh sách địa điểm (${escapeHtml((e&&e.message)||'lỗi mạng')}).</div>`);
-  }
-}
-function wxUsePlace(lat, lon, name){
-  SETTINGS.geoManual = {lat:+lat, lon:+lon, city:name};
-  wxPushRecent({lat:+lat, lon:+lon, name});
-  SETTINGS.geoCity = name;
-  SETTINGS.weather = null;              // xoá đệm để lấy lại ngay cho địa điểm mới
-  saveSettings(); pushToDrive();
-  closeWxPicker();
-  renderContent();
-  fetchWeatherToday();
-}
-function wxUseAuto(){
-  SETTINGS.geoManual = null;
-  SETTINGS.geoCity = '';
-  SETTINGS.weather = null;
-  saveSettings(); pushToDrive();
-  closeWxPicker();
-  renderContent();
-  fetchWeatherToday();
 }
 // ---- LỊCH THÁNG: hàng "hôm nay" + lưới cả tháng. Bấm vào ngày nào thì hiện dự báo thời tiết của
 // đúng ngày đó, tại đúng vị trí đang lấy. Open-Meteo cho dự báo tối đa 16 ngày tới, các ngày ngoài
@@ -20390,10 +20198,6 @@ async function playDriveSong(fileId, name){
   }
   audio.src = src;
   audio.play().catch(e=>{ console.error(e); STATE.driveAudioPlaying = false; renderContentPreserveScroll(); });
-}
-function setDriveViewMode(mode){
-  STATE.driveViewMode = mode;
-  renderContentPreserveScroll();
 }
 async function downloadDriveSong(fileId, name){
   if(!('caches' in window)){ showToast('⚠️','Không hỗ trợ','Trình duyệt này không hỗ trợ lưu nhạc offline.'); return; }
@@ -27265,32 +27069,8 @@ function vocabPrepareCurrent(){
 }
 // Mở đúng mô-đun tương ứng rồi mới bắt đầu phiên — nếu gọi từ tab "Ôn" mà không chuyển màn hình thì
 // phiên được tạo ra nhưng KHÔNG có gì hiển thị (đúng lỗi "bấm vào không thấy gì xảy ra").
-function openEnglishKind(kind){
-  ensureEnglishItems();
-  const it = (SETTINGS.englishItems||[]).find(i=>i.kind===kind);
-  if(!it) return false;
-  if(STATE.tab !== 'english-item' || STATE.activeEnglishItem !== it.id){
-    navForward();
-    STATE.tab = 'english-item'; STATE.activeEnglishItem = it.id;
-  }
-  return true;
-}
 // Chờ dữ liệu tải xong rồi chạy tiếp, thay vì bỏ cuộc với một dòng toast "thử lại sau giây lát".
-async function ensureBankThen(getter, fetcher, run){
-  if(getter()){ run(); return; }
-  showToast('⏳','Đang tải dữ liệu…','Chỉ mất một chút, sẽ tự bắt đầu ngay khi xong.');
-  try{ await fetcher(); }catch(e){}
-  if(getter()) run();
-  else showToast('⚠️','Chưa tải được dữ liệu','Kiểm tra kết nối mạng rồi thử lại giúp mình nhé.');
-}
 // 3 lối vào từ tab "Ôn": mở mô-đun → chờ dữ liệu → chạy phiên ôn.
-function reviewStart(kind){
-  if(!openEnglishKind(kind)){ showToast('⚠️','Không tìm thấy mục này',''); return; }
-  renderContent(); window.scrollTo(0,0);
-  if(kind==='vocab')      ensureBankThen(()=>VOCAB_DATA,      fetchVocabData,      vocabStartDaily);
-  else if(kind==='sentences') ensureBankThen(()=>COMMON_SENT_DATA, fetchCommonSentData, sentStartDaily);
-  else if(kind==='listening'){ STATE.dictHome = true; renderContent(); }
-}
 // ═══════════════════════════════════════════════════════════════════════
 // v225 mục 4c — quy hộp Leitner về ba mức dễ hiểu, và tìm ra những mục còn chông chênh.
 // v272 — ĐO LẠI CHO ĐÚNG. Bản cũ có ba chỗ sai mà bạn đã chỉ ra:
@@ -28268,7 +28048,8 @@ function renderEnglishWordbank(item){
 //   vocabProgress / sentProgress — mức Leitner của từng mục
 //   vocabDailyCache / sentDailyCache — gói bài đã bốc cho HÔM NAY (không xoá thì bấm Bắt
 //     đầu vẫn ra đúng gói cũ, tưởng như reset không ăn)
-//   wbLuot / wbNgay — số lượt thẻ lật trong ngày
+//   wbLuot — số lượt thẻ lật trong ngày (v378 gỡ wbNgay: wbLuot nay là {ngay, so},
+//     tự đặt lại khi sang ngày mới, nên không cần ô ghi ngày riêng nữa)
 //   englishActivity của hôm nay — để thống kê không cộng dồn nhầm
 function wbLamLai(){
   const n = Object.keys(SETTINGS.vocabProgress || {}).length
@@ -28280,8 +28061,7 @@ function wbLamLai(){
   SETTINGS.sentProgress = {};
   SETTINGS.vocabDailyCache = null;
   SETTINGS.sentDailyCache = null;
-  SETTINGS.wbLuot = 0;
-  SETTINGS.wbNgay = '';
+  SETTINGS.wbLuot = null;
   STATE.wbSession = null;
   STATE.vocabSession = null;
   STATE.sentSession = null;
@@ -28289,15 +28069,6 @@ function wbLamLai(){
   try{ pushToDrive(); }catch(_){ }
   showToast('↺','Đã đặt lại tiến độ', n + ' mục về mức 0. Bấm “Bắt đầu” là học lại từ đầu.');
   try{ renderContent(); }catch(_){ }
-}
-function vocabStartDaily(){
-  if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
-  const ids = vocabBuildDailyQueue();
-  if(ids.length===0){ showToast('🎉','Đã xong hết hôm nay!','Bạn đã học và ôn tập đủ số từ hẹn hôm nay. Quay lại vào ngày mai nhé, hoặc duyệt tự do theo chủ đề.'); return; }
-  navForward();
-  STATE.vocabSession = {mode:'daily', topic:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
-  vocabPrepareCurrent();
-  renderContent(); window.scrollTo(0,0);
 }
 function vocabStartTopic(code){
   if(!VOCAB_DATA){ fetchVocabData(); showToast('⏳','Đang tải dữ liệu từ vựng','Vui lòng thử lại sau giây lát.'); return; }
@@ -28549,11 +28320,6 @@ function vocabToggleTranslate(){
 }
 function vocabExitSession(){
   STATE.vocabSession = null; renderContent(); navBack();
-}
-function vocabOpenTopic(code){
-  navForward();
-  STATE.vocabBrowseTopic = code;
-  renderContent(); window.scrollTo(0,0);
 }
 function vocabCloseTopic(){
   STATE.vocabBrowseTopic = null; renderContent(); navBack();
@@ -30620,40 +30386,6 @@ const AV_EXTERNAL = {
     ]
   }
 };
-async function fetchAvDriveList(mode){
-  const folderId = mode==='listening' ? SETTINGS.listeningDriveFolderId : SETTINGS.speakingDriveFolderId;
-  if(!STATE.avDrive) STATE.avDrive = {};
-  if(!folderId){ STATE.avDrive[mode] = {loading:false, files:[], error:null}; return; }
-  STATE.avDrive[mode] = {loading:true, files:[], error:null};
-  renderContentPreserveScroll();
-  try{
-    const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
-    const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType)&key=${MUSIC_DRIVE_API_KEY}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    const files = (data.files||[]).filter(f=>f.mimeType && (f.mimeType.indexOf('video')===0 || f.mimeType.indexOf('audio')===0));
-    STATE.avDrive[mode] = {loading:false, files, error:null};
-  }catch(e){
-    STATE.avDrive[mode] = {loading:false, files:[], error:'Không tải được danh sách từ Google Drive. Kiểm tra ID thư mục và quyền chia sẻ (Anyone with the link - Viewer).'};
-  }
-  renderContentPreserveScroll();
-}
-function setAvDriveFolder(mode){
-  const cur = mode==='listening' ? SETTINGS.listeningDriveFolderId : SETTINGS.speakingDriveFolderId;
-  const input = (window.prompt('Dán ID hoặc link thư mục Google Drive (thư mục cần chia sẻ ở chế độ "Anyone with the link - Viewer"):', cur||'')||'').trim();
-  if(!input) return;
-  const m = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  const id = m ? m[1] : input;
-  if(mode==='listening') SETTINGS.listeningDriveFolderId = id; else SETTINGS.speakingDriveFolderId = id;
-  saveSettings(); pushToDrive();
-  if(STATE.avDrive) delete STATE.avDrive[mode];
-  fetchAvDriveList(mode);
-}
-function playAvDrive(mode, fileId, name, mimeType){
-  STATE.avPlaying = {mode, fileId, name, mimeType};
-  renderContentPreserveScroll();
-}
 // ---- Luyện nghe: Kiểm tra nghe hội thoại (dựa trên tài liệu "48 Câu Thông Dụng" người dùng cung cấp
 // + phong cách hội thoại tình huống thường gặp trên các trang ESL uy tín như BBC Learning English,
 // British Council LearnEnglish, ESL Fast). Đọc bằng giọng đọc trình duyệt (Text-to-Speech), người dùng
@@ -32154,25 +31886,6 @@ const SENT_DIALOGUE_OPENERS = {
   encourage:[{en:"I'm really nervous about tomorrow's interview.", vi:'Mình thật sự lo lắng về buổi phỏng vấn ngày mai.'}],
   work:[{en:"How's the new project going?", vi:'Dự án mới thế nào rồi?'}]
 };
-function sentStartDaily(){
-  if(!COMMON_SENT_DATA){ fetchCommonSentData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
-  const ids = sentBuildDailyQueue();
-  if(ids.length===0){ showToast('🎉','Đã xong hết hôm nay!','Bạn đã học và ôn tập đủ số câu hẹn hôm nay. Quay lại vào ngày mai nhé, hoặc duyệt tự do theo tình huống.'); return; }
-  navForward();
-  STATE.sentSession = {mode:'daily', category:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
-  sentPrepareCurrent();
-  renderContent(); window.scrollTo(0,0);
-}
-function sentStartCategory(code){
-  if(!COMMON_SENT_DATA){ fetchCommonSentData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
-  const bank = sentByCategory(code);
-  // Đi đúng thứ tự số hiệu câu trong nhóm (thứ tự biên soạn: câu nền tảng trước, câu nâng cao sau).
-  const ids = bank.map(s=>s[0]).sort((a,b)=>a-b);
-  navForward();
-  STATE.sentSession = {mode:'category', category:code, ids, idx:0, correct:0, finished:false, retried:{}};
-  sentPrepareCurrent();
-  renderContent(); window.scrollTo(0,0);
-}
 function sentIntroContinue(){
   const s = STATE.sentSession; if(!s) return;
   const n = s.ids[s.idx];
@@ -32581,24 +32294,7 @@ function renderEnglishSentences(item){
 // những câu đã chép đúng vẫn được nhắc ôn lại đúng lúc sắp quên thay vì học 1 lần rồi thôi.
 let DICTATION_DATA = null;
 let dictationDataLoading = false;
-async function fetchDictationData(){
-  if(DICTATION_DATA || dictationDataLoading) return;
-  dictationDataLoading = true;
-  try{
-    const res = await fetch('./dictation-data.json?v=1');
-    // Máy chủ trả 404 vẫn là một phản hồi hợp lệ với fetch() — không kiểm tra res.ok thì trang
-    // lỗi sẽ được đem đi parse, vỡ âm thầm, và màn hình hiện ra rỗng không mà không báo gì.
-    if(!res.ok) throw new Error('HTTP '+res.status+' — thiếu file dictation-data.json trên máy chủ');
-    DICTATION_DATA = await res.json();
-  }catch(e){
-    console.error('Không tải được dữ liệu chép chính tả', e);
-    DICTATION_DATA = {sentences:[]};
-  }
-  dictationDataLoading = false;
-  if(STATE.tab==='english-item' && !STATE.dictSession) renderContent();
-}
 function dictByN(n){ return (DICTATION_DATA && DICTATION_DATA.sentences[n-1]) || null; }
-function dictByLevel(levelKey){ return (DICTATION_DATA ? DICTATION_DATA.sentences : []).filter(s=>s[1]===levelKey); }
 function dictProgressFor(n){
   if(!SETTINGS.dictProgress) SETTINGS.dictProgress = {};
   let p = SETTINGS.dictProgress[n];
@@ -32654,74 +32350,7 @@ function dictStats(){
 }
 // Mở khóa TUẦN TỰ theo cấp độ CEFR — cấp sau chỉ mở khi ĐÃ HỌC (introduced) ít nhất 70% số câu ở cấp
 // liền trước, cùng tinh thần "học đủ mới lên cấp" như Luyện nói/Luyện nghe AV quiz.
-function dictLevelUnlocked(levelIdx){
-  if(levelIdx<=0) return true;
-  const prevKey = CEFR_LEVELS[levelIdx-1].key;
-  const bank = dictByLevel(prevKey);
-  if(!bank.length) return true;
-  const prog = SETTINGS.dictProgress || {};
-  const learnedN = bank.filter(s=>prog[s[0]] && prog[s[0]].introduced).length;
-  return (learnedN / bank.length) >= 0.7;
-}
-function dictBuildDailyQueue(){
-  const today = todayKey();
-  if(SETTINGS.dictDailyCache && SETTINGS.dictDailyCache.date===today && Array.isArray(SETTINGS.dictDailyCache.ids)){
-    return SETTINGS.dictDailyCache.ids.filter(n=>dictByN(n));
-  }
-  const unlockedKeys = CEFR_LEVELS.filter((lv,i)=>dictLevelUnlocked(i)).map(lv=>lv.key);
-  const pool = (DICTATION_DATA ? DICTATION_DATA.sentences : []).filter(s=>unlockedKeys.includes(s[1]));
-  const prog = SETTINGS.dictProgress || {};
-  const due = pool.map(s=>s[0])
-    .filter(n=>prog[n] && prog[n].introduced && prog[n].next && prog[n].next<=today)
-    .sort((a,b)=> (prog[a].next<prog[b].next?-1:1))
-    .slice(0, studyDueQuota('dict'));
-  const dueSet = new Set(due);
-  const newCount = studyNewQuota('dict');
-  const newOnes = [];
-  for(const s of pool){
-    if(newOnes.length>=newCount) break;
-    if(dueSet.has(s[0])) continue;
-    const p = prog[s[0]];
-    if(p && p.introduced) continue;
-    newOnes.push(s[0]);
-  }
-  const ids = due.concat(newOnes); // giữ đúng thứ tự ưu tiên theo hạn ôn (xem chú thích ở Luyện từ vựng)
-  SETTINGS.dictDailyCache = {date: today, ids};
-  saveSettings();
-  return ids;
-}
-function dictHomeOpen(){
-  navForward();
-  STATE.dictHome = true;
-  if(!DICTATION_DATA && !dictationDataLoading) fetchDictationData();
-  renderContent(); window.scrollTo(0,0);
-}
 function dictHomeClose(){ STATE.dictHome = false; renderContent(); navBack(); }
-function dictStartDaily(){
-  if(!DICTATION_DATA){ fetchDictationData(); showToast('⏳','Đang tải dữ liệu','Vui lòng thử lại sau giây lát.'); return; }
-  const ids = dictBuildDailyQueue();
-  if(ids.length===0){ showToast('🎉','Đã xong hết hôm nay!','Bạn đã chép đủ số câu hẹn hôm nay. Quay lại vào ngày mai nhé.'); return; }
-  navForward();
-  STATE.dictSession = {mode:'daily', level:null, ids: ids.slice(), idx:0, correct:0, finished:false, retried:{}};
-  dictPrepareCurrent();
-  renderContent(); window.scrollTo(0,0);
-}
-function dictStartLevel(levelKey){
-  const idx = CEFR_LEVELS.findIndex(l=>l.key===levelKey);
-  if(idx===-1 || !dictLevelUnlocked(idx)) return;
-  const bank = dictByLevel(levelKey);
-  if(!bank.length) return;
-  // Chép chính tả theo cấp cũng đi TUẦN TỰ theo thứ tự biên soạn của cấp (câu ngắn/dễ trước), lấy khối
-  // 20 câu kế tiếp mỗi lượt thay vì xáo toàn bộ ngân hàng như trước.
-  const seqIdsD = bank.map(x=>x[0]);
-  const takeD = seqTakeNext('dict:'+levelKey, seqIdsD.length, Math.min(20, seqIdsD.length));
-  const ids = takeD.idx.map(i=>seqIdsD[i]);
-  seqToastWrap(takeD.wrapped, 'ngân hàng câu chép chính tả');
-  navForward();
-  STATE.dictSession = {mode:'level', level:levelKey, ids, idx:0, correct:0, finished:false, retried:{}};
-  dictPrepareCurrent();
-  renderContent(); window.scrollTo(0,0);
-}
 function dictPrepareCurrent(){
   const s = STATE.dictSession; if(!s) return;
   s.answered = null; s.typedValue = ''; s.result = null; s.playCount = 0;
@@ -36297,92 +35926,6 @@ function hvMoiBangHtml(rec){
     </div>
   </div>`;
 }
-function hvLuuGop(dich){
-  const s = STATE.hvPhien; if(!s) return;
-  const rec = hvTim(s.vidId); if(!rec) return;
-  let gom = {tu:[], cau:[]};
-  try{ gom = hvGomThieu(rec); }catch(_){ }
-  const ds = (dich === 'cau') ? gom.cau : gom.tu;
-  if(!ds.length){
-    showToast('✅','Không còn gì để lưu', dich === 'cau'
-      ? 'Mọi cụm từ hay dùng trong video này đã có trong kho Mẫu câu rồi.'
-      : 'Mọi từ đáng học trong video này đã có trong kho Từ vựng rồi.');
-    return;
-  }
-  const kho = (dich === 'cau') ? hvKhoCau() : hvKhoTu();
-  // ══ v265 · LƯU GỘP PHẢI QUA ĐÚNG NHỮNG CỬA MÀ LƯU LẺ ĐÃ QUA ══════════════════════
-  // Trước v265 nút "Lưu 89 từ" chỉ so CHUỖI Y HỆT với kho tự lưu rồi ghi thẳng. Ba cửa
-  // mà đường lưu từng từ vẫn đi qua thì nó bỏ hết:
-  //   · tvNganHangCo — mục ấy VỐN ĐÃ CÓ trong ngân hàng 4300 từ đi kèm app
-  //   · tvDaCo       — đã có một dạng khác cùng họ trong kho (build / building / built)
-  //   · tvCumDangGiu — cụm có đáng giữ không, hay chỉ là mấy chữ dính nhau
-  // Nên một lần bấm là đổ vào kho hàng chục mục trùng hoặc vô nghĩa. Đây chính là nguồn
-  // của cảnh "gõ buil ra ba thẻ" và của kho phình mà mở ra toàn thứ đã biết.
-  const bo = {daCoKho:0, daCoNganHang:0, cumXoang:0};
-  let them = 0, vaoHoc = 0;   // v305 — vaoHoc: mục của giáo trình được đẩy lên đầu gói học
-  ds.forEach(o=>{
-    const chu = String(o.chu||'').trim();
-    if(!chu) return;
-    if(dich !== 'cau'){
-      let loc = {ok:true};
-      try{ loc = tvCumDangGiu(chu); }catch(_){ }
-      if(!loc.ok){ bo.cumXoang++; return; }
-      // v284 — cửa chót: hvGomThieu đã lọc, nhưng nếu sau này có đường gom khác thì
-      // nút "Lưu N từ" vẫn không được phép ghi một dạng chia hay một chữ viết tắt vào kho.
-      let l2 = null;
-      try{ l2 = hvLocTruocKhiLuu(chu, 'tu'); }catch(_){ l2 = null; }
-      if(l2 && !l2.ok){ bo.cumXoang++; return; }
-    }
-    let nGoc = null;
-    try{ nGoc = tvNganHangCo(chu, dich === 'cau'); }catch(_){ }
-    if(nGoc != null){
-      // v305 — xem chú thích ở hvLuuChon: từ của giáo trình thì ĐƯA VÀO BÀI HỌC, không đẻ
-      // thẻ trùng. Trước đây nhánh này chỉ đếm rồi bỏ, nên nút "Lưu N từ" luôn vô hiệu.
-      let kq = 'da-hoc';
-      try{ kq = hvDuaVaoHoc(nGoc, dich === 'cau'); }catch(_){ }
-      if(kq === 'moi') vaoHoc++; else bo.daCoNganHang++;
-      return;
-    }
-    let daCo = null;
-    try{
-      daCo = (dich === 'cau')
-        ? kho.find(x => String(x.chu||'').toLowerCase() === chu.toLowerCase())
-        : tvDaCo(kho, chu);
-    }catch(_){ }
-    if(daCo){ bo.daCoKho++; return; }
-    them++;
-    kho.push({chu, vi:o.vi||'', cauEn:o.cauEn||'', tu:'hocvideo', ngay:todayKey(),
-              goc: (dich === 'cau') ? undefined : tvGoc(chu),
-              // v284 — mang theo họ từ / từ loại / gốc cũ mà hvGomThieu đã tính, để thẻ bài
-              // lưu gộp cũng đủ danh/động/tính/trạng ngay như thẻ lưu lẻ.
-              dangTu: o.dangTu, loai: o.loai,
-              hoTu: o.gocCu ? [o.gocCu] : undefined, gocCu: o.gocCu, gocVi: o.gocVi});
-  });
-  try{ tvXoaBangGoc(); }catch(_){ }
-  const boQua = bo.daCoKho + bo.daCoNganHang + bo.cumXoang;
-  if(!them){
-    // v305 — nếu không thêm thẻ nào nhưng có mục được đẩy vào bài học thì đó là THÀNH CÔNG,
-    // không phải "không làm gì". Báo đúng việc đã làm.
-    if(vaoHoc){
-      saveSettings(); pushToDrive();
-      showToast('📘','Đã đưa ' + vaoHoc + (dich === 'cau' ? ' mẫu câu' : ' từ') + ' vào bài học',
-        'Những mục này có sẵn trong giáo trình nên không tạo thẻ trùng — chúng được đẩy lên '
-        + 'đầu gói học của bạn.');
-      return;
-    }
-    showToast('ℹ️','Không thêm mục nào',
-      boQua ? ('Đã lọc bỏ ' + boQua + ' mục: ' + bo.daCoNganHang + ' bạn đã học rồi, '
-               + bo.daCoKho + ' trùng dạng với mục đã lưu, ' + bo.cumXoang + ' cụm không đạt.')
-            : 'Những mục này nằm trong thư viện từ trước.');
-    return;
-  }
-  saveSettings(); pushToDrive();
-  showToast('✅', dich === 'cau' ? ('Đã lưu ' + them + ' cụm từ') : ('Đã lưu ' + them + ' từ'),
-    (boQua ? ('Đã lọc bỏ ' + boQua + ' mục trùng hoặc không đạt. ') : '')
-    + 'Nghĩa và câu ví dụ sẽ được AI bổ sung dần.');
-  try{ hvDichNhungCaiThieu(); }catch(_){ }
-  renderContent();
-}
 // MỘT hàng nút duy nhất cho thẻ Phụ đề. Mọi thứ bạn thật sự bấm đều nằm ở đây, không rải ra
 // bốn dải như trước.
 function hvThanhCongCuHtml(rec){
@@ -36791,8 +36334,7 @@ function hvApCap(){
   w.classList.toggle('cc', !!SETTINGS.hvCap);
   const nut = document.querySelector('[data-action="hv-cap-bat"]');
   if(nut && nut.classList) nut.classList.toggle('on', !!SETTINGS.hvCap);
-  const nd = document.querySelector('[data-action="hv-doc-ben"]');
-  if(nd && nd.classList) nd.classList.toggle('on', !!SETTINGS.hvBen);
+
   const cot = document.querySelector('.hv-2cot');
   if(cot && cot.classList) cot.classList.toggle('ben', !!SETTINGS.hvBen);
   const cap = document.getElementById('hvCap');
@@ -36952,16 +36494,6 @@ function hvCcGoc(){
 function hvVeNutCc(){
   const b = document.getElementById('hvCcBtn'); if(!b) return;
   if(b.classList){ if(SETTINGS.hvCcGoc) b.classList.add('on'); else b.classList.remove('on'); }
-}
-function hvDocBen(){
-  SETTINGS.hvBen = !SETTINGS.hvBen;
-  saveSettings();
-  hvApCap();
-  try{ hvVuaKhungHinh(); }catch(_){}
-  showToast(SETTINGS.hvBen ? '⬅️' : '⬇️',
-    SETTINGS.hvBen ? 'Video nằm bên, khung học mở rộng' : 'Trở lại bố cục video ở trên',
-    SETTINGS.hvBen ? 'Phụ đề / Chép chính tả / Shadowing chiếm hết phần còn lại của màn hình.'
-                   : 'Video ở trên, phần học ở dưới như cũ.');
 }
 // v216 — MUC 5: video chạy được rồi thì bỏ dòng "Video chưa sẵn sàng" đi.
 // Dòng đó chỉ đúng lúc trình phát chưa gắn xong; để nguyên là báo sai, gây hoang mang.
@@ -37503,12 +37035,6 @@ function hvChonTu(i, j, trongKhung, el){
   try{ const c = hvCumDangChon(); if(c && c.chu){ hvTraPhienAm(c.chu); hvNghiaTraNhanh(c.chu); } }catch(e){}
 }
 // Đóng bảng chọn và cho video chạy tiếp.
-function hvThoiChon(){
-  STATE.hvChonDau = null; STATE.hvChonCuoi = null;
-  // KHÔNG tự chạy lại video. Đóng bảng xong bạn còn muốn đọc lại câu, tra thêm chữ khác —
-  // tiếng chạy ngay là cắt ngang. Muốn chạy thì bấm ▶.
-  hvVeTamTaiCho();
-}
 function hvCumDangChon(){
   const a = STATE.hvChonDau; if(!a) return null;
   const rec = hvTim((STATE.hvPhien||{}).vidId);
@@ -38342,50 +37868,6 @@ const HV_DOC_NGHE = 0.55;   // muốn tai nghe được chừng này giây; thi�
 const HV_DOC_CHAM_TOI = 0.25;
 // Từ ngắn thì phát chậm lại bao nhiêu. Cố ý KHÔNG nới cửa sổ: nới là dính tiếng từ bên cạnh, đúng
 // cái sai của v223 đo được ở 12/12 cặp từ liền nhau.
-function hvTocDoc(dai){
-  const d = Number(dai) || 0;
-  if(d <= 0) return 1;
-  if(d >= HV_DOC_NGHE) return 1;
-  // Bám vào các nấc trình phát thật sự nhận, không đưa số lẻ (nó sẽ tự làm tròn theo cách của nó
-  // và mình mất quyền kiểm soát).
-  const can = d / HV_DOC_NGHE;
-  if(can <= 0.375) return HV_DOC_CHAM_TOI;      // 0,25×
-  if(can <= 0.75)  return 0.5;
-  return 1;
-}
-function hvMocCumDangChon(){
-  const a = STATE.hvChonDau; if(!a) return null;
-  const rec = hvTim((STATE.hvPhien||{}).vidId);
-  const ds = rec && Array.isArray(rec.lines) ? rec.lines : null;
-  const d = ds ? ds[a.i] : null;
-  if(!d || d.t == null) return null;
-  const tu = String(d.en||'').trim().split(/\s+/).filter(Boolean);
-  if(!tu.length) return null;
-  const b = STATE.hvChonCuoi;
-  const dau  = Math.max(0, Math.min(tu.length-1, b ? Math.min(a.j, b.j) : a.j));
-  const cuoi = Math.max(0, Math.min(tu.length-1, b ? Math.max(a.j, b.j) : a.j));
-  const bd = +d.t;
-  // Hết dòng: ưu tiên mốc "e" do AI trả về, không có thì lấy mốc dòng kế.
-  const het = (+d.e > bd) ? +d.e : (ds[a.i+1] && ds[a.i+1].t != null ? +ds[a.i+1].t : bd + Math.max(1.5, tu.length/2.8));
-  const o = Math.max(0.3, het - bd);
-  // Trừ khoảng lặng cuối dòng: nói hết chừng đó giây, phần dư là im lặng chờ câu sau.
-  let toc = 2.8;
-  try{ toc = hvTocDoNoi(ds) || 2.8; }catch(_){ }
-  const noi = tu.length / toc;
-  const rong = (o > noi + HV_NGHI_THAT) ? noi : o;
-  let moc = [];
-  try{ moc = hvMocChu(String(d.en||'')) || []; }catch(_){ }
-  const ti = (k)=> (moc[k] != null) ? moc[k] : (k / tu.length);
-  let t1 = bd + rong * ti(dau);
-  let t2 = bd + rong * ti(cuoi + 1);
-  if(!(t2 > t1)) t2 = t1 + 0.4;
-  // KHÔNG nới cửa sổ nữa. Đo thực tế trên câu 13 từ / 4 giây: nới lên 0,5 giây làm cả 12 cặp từ
-  // liền nhau chồng lên nhau 0,08–0,28 giây, tức bấm một từ là nghe kèm từ bên cạnh. Từ ngắn thì
-  // xử lý bằng cách phát chậm (hvTocDoc) chứ không đi mượn tiếng của ai.
-  t1 = Math.max(bd, t1);
-  t2 = Math.min(het, Math.max(t1 + 0.12, t2));
-  return {t: Math.max(0, t1), e: t2, toc: hvTocDoc(t2 - t1), chu: tu.slice(dau, cuoi+1).join(' ')};
-}
 // Đọc to từ/cụm đang chọn — LẤY CHÍNH ĐOẠN TIẾNG TRONG VIDEO.
 let hvDocHen = null, hvDocCat = null, hvDocSau = null;
 function hvNgungDocVideo(){
@@ -38399,73 +37881,10 @@ function hvNgungDocVideo(){
     if(p){ if(p.unMute) p.unMute(); if(p.setPlaybackRate) p.setPlaybackRate(1); }
   }catch(_){ }
 }
-function hvVeBangChonTaiCho(){
-  const el = document.getElementById('hvBangChon');
-  if(el) el.outerHTML = hvBangChonHtml();
-  else hvVeTamTaiCho();
-}
-function hvDocTuVideo(){
-  const c = hvCumDangChon(); if(!c || !c.chu) return;
-  const m = hvMocCumDangChon();
-  if(!m){
-    showToast('⚠️','Lời thoại này chưa có mốc giờ','Không biết từ đó nằm ở giây nào trong video. Bấm 🔊 bên cạnh để nghe giọng máy đọc.');
-    return;
-  }
-  const p = hvLayPlayer(); if(!p) return;
-  hvNgungDocVideo();
-  try{ sdNgungBam(); }catch(_){ }
-  try{ hvDungNhip(); }catch(_){ }
-  // MỞ KHOÁ PHÁT TIẾNG ngay trong cú chạm (trình duyệt di động chỉ cho phát tiếng nếu lệnh phát
-  // bắt nguồn từ thao tác tay). Tắt tiếng trước khi chạm để không lọt ra tiếng "bụp" — đúng cách
-  // đã dùng ở Chép chính tả.
-  try{ p.mute(); p.playVideo(); p.pauseVideo(); p.unMute(); }catch(_){ }
-  // Tua SỚM hơn mốc thật và dừng sẵn ở đó, để lát nữa phát lên thì trình phát đã có sẵn bộ đệm
-  // (tua rồi phát ngay là hay khựng, khựng đúng vào chữ cần nghe).
-  try{ p.pauseVideo(); p.mute(); p.seekTo(Math.max(0, m.t - HV_DOC_TRUOC), true); }catch(_){ }
-  STATE.hvDocPha = 'cho';
-  try{ hvVeBangChonTaiCho(); }catch(_){ }
-  // NHỊP 1 — im lặng 3 giây
-  hvDocHen = setTimeout(()=>{
-    hvDocHen = null;
-    if(!STATE.hvChonDau){ try{ p.unMute(); }catch(_){ } return; }
-    // Chạy TẮT TIẾNG từ trước mốc. Chưa mở tiếng vội.
-    // Phát ở tốc độ đã tính: từ ngắn thì chậm lại cho nghe kịp, từ dài giữ 1×.
-    try{ p.seekTo(Math.max(0, m.t - HV_DOC_TRUOC), true); p.setPlaybackRate(m.toc || 1); p.mute(); p.playVideo(); }
-    catch(_){ STATE.hvDocPha = null; try{ p.unMute(); }catch(_){ } return; }
-    STATE.hvDocPha = 'doc';
-    try{ hvVeBangChonTaiCho(); }catch(_){ }
-    let daMo = false;
-    // NHỊP 2 — soi ĐỒNG HỒ THẬT của trình phát, 25ms một lần. Mở tiếng đúng lúc chạm mốc đầu,
-    // tắt tiếng và dừng đúng lúc chạm mốc cuối. Nhờ vậy chỗ nghe được không lệ thuộc seekTo rơi
-    // trúng hay trượt — đó mới là nguyên nhân thật khiến mấy lần trước nghe không đúng từ.
-    hvDocCat = setInterval(()=>{
-      let gy = 0;
-      try{ gy = p.getCurrentTime() || 0; }catch(_){ return; }
-      if(!daMo && gy >= m.t){ daMo = true; try{ p.unMute(); }catch(_){ } }
-      if(gy >= m.e){
-        try{ p.mute(); p.pauseVideo(); }catch(_){ }
-        clearInterval(hvDocCat); hvDocCat = null;
-        // NHỊP 3 — im lặng 3 giây sau khi dứt từ
-        STATE.hvDocPha = 'sau';
-        try{ hvVeBangChonTaiCho(); }catch(_){ }
-        hvDocSau = setTimeout(()=>{
-          hvDocSau = null; STATE.hvDocPha = null;
-          try{ p.unMute(); p.setPlaybackRate(1); }catch(_){ }   // trả lại tốc độ thường
-          try{ hvVeBangChonTaiCho(); }catch(_){ }
-        }, HV_DOC_IM * 1000);
-      }
-    }, 25);
-  }, HV_DOC_IM * 1000);
-}
 let hvHenDungDoc = null;
 function hvNgungDoc(){ if(hvHenDungDoc){ clearTimeout(hvHenDungDoc); hvHenDungDoc = null; } }
 // Máy đọc riêng đúng từ/cụm đang chọn. Giọng máy, nhưng đúng tuyệt đối từ đó — bù cho chỗ mà
 // video không làm được vì không có mốc theo chữ.
-function hvDocBangMay(){
-  const c = hvCumDangChon(); if(!c || !c.chu) return;
-  try{ hvNgungDoc(); }catch(e){}
-  try{ speakEnglishRobust(c.chu); }catch(e){}
-}
 // Tra từ trong "từ điển riêng" — chính là những mục bạn đã lưu và đã được AI bổ sung chi tiết.
 function hvTraTuDien(chu){
   const k = String(chu||'').trim().toLowerCase();
@@ -38506,7 +37925,6 @@ function hvTraTuDien(chu){
 // Ba nút 🔊 / 📗 / 💬 theo đó cũng rời khỏi khung nghĩa. Chúng KHÔNG mất: chúng ở lại trong
 // hàm dưới đây dưới dạng một hàng nút nhỏ, chỉ hiện khi bạn đang mở DANH SÁCH lời thoại — chỗ
 // ngồi soạn bài. Còn lúc đang xem video thì khung chỉ có nghĩa và phiên âm, đúng như bạn dặn.
-function hvBangChonHtml(){ return hvNghiaNoiHtml(); }
 function hvLoiThoaiHtml(rec){
   if(STATE.hvDangLay){
     return `<div class="sd-tran empty" style="text-align:center;">
@@ -39092,31 +38510,7 @@ function dvTocDo(){
   const v = +SETTINGS.dictToc;
   return DICT_TOCDO.some(x=>x.v===v) ? v : 1;
 }
-function dvDatToc(v){
-  dvLuuGo();                                  // giữ chữ đang gõ trước khi vẽ lại
-  SETTINGS.dictToc = +v; saveSettings();
-  try{ if(dvPlayer && dvPlayer.setPlaybackRate) dvPlayer.setPlaybackRate(dvTocDo()); }catch(e){}
-  if(!dvVe('dvBarWrap')) renderContent();
-  // Bấm tốc độ nào thì PHÁT LUÔN câu đang mở ở tốc độ đó — không phải bấm thêm nút nghe.
-  // Nhưng đang nghe liền mạch thì chỉ đổi tốc độ, KHÔNG tua về đầu câu.
-  const s = STATE.dvPhien;
-  if(s && !s.lienTuc && s.idx!=null) dvPhatCau(s.idx);
-}
 // Nghe trọn video từ đầu đến cuối, không cắt câu, không tự dừng, không tự tua.
-function dvNgheCaVideo(){
-  const s = STATE.dvPhien; if(!s) return;
-  dvLuuGo();
-  dvXoaHenGio();
-  s.phat = null;
-  s.lienTuc = !s.lienTuc;
-  try{
-    if(s.lienTuc){
-      if(dvPlayer && dvPlayer.setPlaybackRate) dvPlayer.setPlaybackRate(1);
-      if(dvPlayer && dvPlayer.playVideo) dvPlayer.playVideo();
-    }else if(dvPlayer && dvPlayer.pauseVideo){ dvPlayer.pauseVideo(); }
-  }catch(e){}
-  if(!dvVe('dvBarWrap')) renderContent();
-}
 // Phát ĐÚNG một câu rồi tự dừng — đây là điểm cốt lõi: nghe đi nghe lại một câu để chép,
 // chứ không phải xem hết cả video.
 // Ba nhịp: IM 1.5s → phát đúng câu → IM 1.5s. Trạng thái nút được cập nhật bằng cách sửa
@@ -39300,24 +38694,6 @@ function dvMoCau(i){
   dvCauKhac(i);
 }
 // Câu chưa chép kế tiếp tính TỪ vị trí đang làm trở đi; hết mới vòng lại từ đầu.
-function dvCauKeTiepTu(rec, tu){
-  const chon = dvDsChon(rec), xong = (rec && rec.xong) || {};
-  const vt = chon.indexOf(tu|0);
-  for(let k = vt+1; k < chon.length; k++) if(!xong[chon[k]]) return chon[k];
-  for(let k = 0; k <= vt && k < chon.length; k++) if(!xong[chon[k]]) return chon[k];
-  return -1;
-}
-function dvCauTiep(){
-  const s = STATE.dvPhien; if(!s) return;
-  const rec = dvTim(s.vidId); if(!rec) return;
-  const kt = dvCauKeTiepTu(rec, s.idx==null ? -1 : s.idx);
-  if(kt < 0){
-    s.xongHet = true; s.idx = null;
-    if(!dvVe('dvListWrap')) renderContent();
-    return;
-  }
-  dvCauKhac(kt);
-}
 function dvMoPhien(id){
   const rec = dvTim(id); if(!rec) return;
   navForward();
@@ -39549,21 +38925,6 @@ function dvXepXoa(){
   const kho = document.getElementById('dvXepKho'); if(!kho) return;
   [...document.querySelectorAll('#dvBt .dv-xep-o .dv-chip')].forEach(el=>kho.appendChild(el));
   dvGomDap();
-}
-function dvDatKieu(k, v){
-  if(k === 'kieu') SETTINGS.dvKieu = v; else SETTINGS.dvMuc = v;
-  saveSettings();
-  // Đổi kiểu hay mức là đổi hẳn đề bài, nên chữ đã gõ và điểm đã chấm của câu đang mở không
-  // còn nghĩa gì — xoá đi. Nhưng GIỮ nguyên câu đang mở: bạn đang làm câu nào thì vẫn câu ấy.
-  const s = STATE.dvPhien; if(s){ s.go = ''; s.ketQua = null; s.thuHien = false; s.thuLan = 0; }
-  // v331 — SỬA LỖI "bấm Dễ/Khó thì câu đang mở đóng lại và hiện nút Chép lại": bản v330 gọi
-  // renderContentPreserveScroll(), tức là ghi đè innerHTML của CẢ #content. Làm thế là xoá luôn
-  // thẻ iframe YouTube rồi dựng lại từ đầu — đúng cái lỗi đã mắc ở v167/v168 và đã ghi lại ngay
-  // trong file này. Nay chỉ vẽ lại ĐÚNG vùng danh sách; khung video không bị đụng tới.
-  // v338 — hai khối chọn nay ở CỘT TRÁI, ngoài vùng dvListWrap, nên phải vẽ lại riêng:
-  // không thì bấm Dễ/Vừa/Khó xong nút vẫn sáng ở ô cũ và ô "Xem trước" không đổi theo.
-  try{ dvVeChonKhoi(); }catch(_){ }
-  if(!dvVe('dvListWrap')) renderContentPreserveScroll();
 }
 // Ô xem trước: cho thấy ĐÚNG cái sắp phải làm, dựng từ chính câu đầu tiên của video chứ không
 // phải một câu bịa — xem trước mà không giống lúc làm thì chỉ gây hiểu nhầm.
@@ -44022,22 +43383,6 @@ function shadowRevokeRecordingUrl(){
 // GỘP SHADOWING VÀO LUYỆN NGHE (v120): mở bài shadowing tương ứng với 1 video trong danh sách Luyện
 // nghe. Nếu video đó chưa có bản ghi shadowing (video thêm từ trước khi gộp), tự tạo tại chỗ rồi nhờ AI
 // cắt đoạn — nên bạn không phải thêm lại video lần nữa.
-async function openShadowingForListenVideo(listenId){
-  const lv = listenVideoById(listenId);
-  if(!lv){ showToast('⚠️','Không tìm thấy video',''); return; }
-  if(!Array.isArray(SETTINGS.shadowingVideos)) SETTINGS.shadowingVideos = [];
-  let rec = SETTINGS.shadowingVideos.find(v=>v.videoId===lv.videoId);
-  if(!rec){
-    rec = {id:'shv_'+Date.now(), videoId:lv.videoId, title:lv.title, addedAt:Date.now(), fromListenId:lv.id};
-    SETTINGS.shadowingVideos.push(rec);
-    saveSettings(); pushToDrive();
-  }
-  startShadowingSession(rec.id);
-  // Chưa có đoạn AI gợi ý thì tạo ngay trong nền để người học vào là có sẵn đoạn để nhại.
-  if(!Array.isArray(rec.aiSegments) || !rec.aiSegments.length){
-    ensureShadowSegments(rec, false).catch(()=>{});
-  }
-}
 // ---- Vòng luyện tập (4 bước) ----
 function startShadowingSession(id){
   const rec = (SETTINGS.shadowingVideos||[]).find(v=>v.id===id);
@@ -44188,7 +43533,6 @@ function renderShadowingSession(item){
 // làm thủ công ở các bản cập nhật sau (để đảm bảo câu hỏi đúng nội dung thật, không suy đoán sai).
 // Vì YouTube không mở CORS cho feed RSS khi gọi trực tiếp từ trình duyệt, dùng 1 proxy CORS công khai
 // (allorigins.win) làm cầu nối đọc dữ liệu — nếu proxy lỗi/quá tải sẽ báo rõ cho người dùng biết. =========
-function openAddYoutubeChannel(){ STATE.addYtChannelOpen = true; STATE.ytChannelFetchResult = null; STATE.ytChannelFetchError = null; renderContent(); }
 function closeAddYoutubeChannel(){ STATE.addYtChannelOpen = false; STATE.ytChannelFetchResult = null; STATE.ytChannelFetchError = null; renderContent(); }
 function ensureMyYtChannels(){ if(!Array.isArray(SETTINGS.myYoutubeChannels)) SETTINGS.myYoutubeChannels = []; return SETTINGS.myYoutubeChannels; }
 const YT_CORS_PROXY = 'https://api.allorigins.win/raw?url=';
@@ -44334,25 +43678,6 @@ function currentSpeakItem(){
   if(!SPEAKING_PRACTICE) return null;
   const bank = SPEAKING_PRACTICE[s.level]||[];
   return bank[s.order[s.idx]];
-}
-function startSpeakPractice(level){
-  // level==='ipa': luyện phát âm IPA theo TỪNG TỪ ĐƠN, nội dung lấy từ getIpaPracticeBank() (tính sẵn
-  // từ IPA_CHART_DATA, không cần tải mạng) — mọi level khác vẫn dùng ngân hàng đoạn văn như cũ.
-  if(level!=='ipa' && level!=='long'){
-    const i = CEFR_LEVELS.findIndex(l=>l.key===level);
-    const best = (SETTINGS.speakPractice && SETTINGS.speakPractice.best) || {};
-    const unlocked = i<=0 || (best[CEFR_LEVELS[i-1].key]||0) >= 70;
-    if(!unlocked) return; // chặn mở cấp đang khóa (phòng khi dispatch bị bỏ qua)
-  }
-  const bank = level==='ipa' ? getIpaPracticeBank() : ((SPEAKING_PRACTICE && SPEAKING_PRACTICE[level])||[]);
-  // Đi tuần tự theo thứ tự biên soạn của cấp (dễ -> khó), không còn bốc ngẫu nhiên.
-  const takeSpeak = seqTakeNext('speak:'+level, bank.length, 15);
-  const order = takeSpeak.idx;
-  seqToastWrap(takeSpeak.wrapped, 'ngân hàng đoạn đọc');
-  if(!STATE.speakSession) navForward(); // chỉ đẩy 1 lớp điều hướng khi thực sự MỚI vào
-  STATE.speakSession = {level, order, idx:0, showTranslate:false, result:null, recording:false};
-  STATE.speakPlayback = 'idle';
-  renderContent();
 }
 function speakPracticeExit(){
   stopSpeakAudio(); stopSpeakRecognition();
@@ -48766,12 +48091,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(quizSpeakEl){ speakGrammarCurrentSentence(); return; }
   const quizToggleTranslateEl = e.target.closest('[data-action="quiz-toggle-translate"]');
   if(quizToggleTranslateEl){ toggleGrammarTranslate(); return; }
-  const vocabSetViewEl = e.target.closest('[data-action="vocab-set-view"]');
-  if(vocabSetViewEl){ STATE.vocabView = vocabSetViewEl.getAttribute('data-view'); renderContent(); return; }
-  const vocabStartDailyEl = e.target.closest('[data-action="vocab-start-daily"]');
-  if(vocabStartDailyEl){ vocabStartDaily(); return; }
-  const vocabOpenTopicEl = e.target.closest('[data-action="vocab-open-topic"]');
-  if(vocabOpenTopicEl){ vocabOpenTopic(vocabOpenTopicEl.getAttribute('data-topic')); return; }
   const vocabCloseTopicEl = e.target.closest('[data-action="vocab-close-topic"]');
   if(vocabCloseTopicEl){ vocabCloseTopic(); return; }
   const vocabStartTopicEl = e.target.closest('[data-action="vocab-start-topic"]');
@@ -48814,10 +48133,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(vocabToggleExamplesEl){ const s=STATE.vocabSession; if(s){ s.showExtraExamples=!s.showExtraExamples; renderContent(); } return; }
   const sentSetViewEl = e.target.closest('[data-action="sent-set-view"]');
   if(sentSetViewEl){ STATE.sentView = sentSetViewEl.getAttribute('data-view'); renderContent(); return; }
-  const sentStartDailyEl = e.target.closest('[data-action="sent-start-daily"]');
-  if(sentStartDailyEl){ sentStartDaily(); return; }
-  const sentStartCategoryEl = e.target.closest('[data-action="sent-start-category"]');
-  if(sentStartCategoryEl){ sentStartCategory(sentStartCategoryEl.getAttribute('data-cat')); return; }
   const sentIntroContinueEl = e.target.closest('[data-action="sent-intro-continue"]');
   if(sentIntroContinueEl){ sentIntroContinue(); return; }
   const sentAnswerEl = e.target.closest('[data-action="sent-answer"]');
@@ -48852,8 +48167,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aichatToggleRecordEl){ aiChatToggleRecord(); return; }
   const aichatSpeakMsgEl = e.target.closest('[data-action="aichat-speak-msg"]');
   if(aichatSpeakMsgEl){ speakEnglishRobust(aichatSpeakMsgEl.getAttribute('data-text'), {rate:0.95}); return; }
-  const setClaudeKeyEl = e.target.closest('[data-action="set-claude-key"]');
-  if(setClaudeKeyEl){ setClaudeApiKey(); return; }
   const setGeminiKeyEl = e.target.closest('[data-action="set-gemini-key"]');
   if(setGeminiKeyEl){ setGeminiApiKey(); return; }
   // v250 — nút nghe thử phải đứng TRƯỚC nút chọn: nó nằm bên trong thẻ chọn, bắt sau thì mỗi
@@ -48924,8 +48237,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aicallPickVoiceEl){ aiCallPickVoice(aicallPickVoiceEl.getAttribute('data-voice')); return; }
   const aichatSwitchCallEl = e.target.closest('[data-action="aichat-switch-call"]');
   if(aichatSwitchCallEl){ aiSessionSwitchToCall(); return; }
-  const aicallSwitchTextEl = e.target.closest('[data-action="aicall-switch-text"]');
-  if(aicallSwitchTextEl){ aiSessionSwitchToText(); return; }
   const aicallToggleMuteEl = e.target.closest('[data-action="aicall-toggle-mute"]');
   if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
   const aicallZoomInEl = e.target.closest('[data-action="aicall-zoom-in"]');
@@ -48995,16 +48306,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   const ggTestExitEl = e.target.closest('[data-action="gg-test-exit"]');
   if(ggTestExitEl){ STATE.ggTest = null; renderContent(); navBack(); return; }
-  const avPickLevelEl = e.target.closest('[data-action="av-pick-level"]');
-  if(avPickLevelEl){
-    if(!STATE.avLevel) STATE.avLevel = {};
-    STATE.avLevel[avPickLevelEl.getAttribute('data-itemid')] = avPickLevelEl.getAttribute('data-level');
-    renderContent(); return;
-  }
-  const setAvDriveEl = e.target.closest('[data-action="set-av-drive-folder"]');
-  if(setAvDriveEl){ setAvDriveFolder(setAvDriveEl.getAttribute('data-mode')); return; }
-  const playAvDriveEl = e.target.closest('[data-action="play-av-drive"]');
-  if(playAvDriveEl){ playAvDrive(playAvDriveEl.getAttribute('data-mode'), playAvDriveEl.getAttribute('data-id'), playAvDriveEl.getAttribute('data-name'), playAvDriveEl.getAttribute('data-mimetype')); return; }
   const listenQuizStartEl = e.target.closest('[data-action="listen-quiz-start"]');
   if(listenQuizStartEl){ startListenQuiz(listenQuizStartEl.getAttribute('data-level')); return; }
   const listenVideoStartEl = e.target.closest('[data-action="listen-video-start"]');
@@ -49012,8 +48313,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // nếu không né ra thì bấm sẽ bị hiểu nhầm thành mở video; để closest() rơi tiếp xuống handler bên dưới.
   if(listenVideoStartEl && !e.target.closest('[data-action="listen-video-delete"]') && !e.target.closest('[data-action="listen-video-regen"]')){ openListenVideoWatch(listenVideoStartEl.getAttribute('data-id')); return; }
   // Mở thẳng bài shadowing của chính video này (mục Shadowing riêng đã được gộp vào đây)
-  const listenVideoShadowEl = e.target.closest('[data-action="listen-video-shadow"]');
-  if(listenVideoShadowEl){ openShadowingForListenVideo(listenVideoShadowEl.getAttribute('data-id')); return; }
   const listenVideoRegenEl = e.target.closest('[data-action="listen-video-regen"]');
   if(listenVideoRegenEl){ regenListenVideoQuestions(listenVideoRegenEl.getAttribute('data-id')); return; }
   const listenVideoWatchCloseEl = e.target.closest('[data-action="listen-video-watch-close"]');
@@ -49022,10 +48321,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenVideoWatchStartEl){ if(STATE.listenWatchReady) markListenVideoWatchedAndStart(); return; }
   const listenVideoWatchForceEl = e.target.closest('[data-action="listen-video-watch-force"]');
   if(listenVideoWatchForceEl){ markListenWatchReady(); return; }
-  const videoChannelFilterEl = e.target.closest('[data-action="video-channel-filter"]');
-  if(videoChannelFilterEl){ videoChannelFilter = videoChannelFilterEl.getAttribute('data-channel'); renderContent(); return; }
-  const videoChannelAddOpenEl = e.target.closest('[data-action="video-channel-add-open"]');
-  if(videoChannelAddOpenEl){ openAddYoutubeChannel(); return; }
   const videoChannelAddCloseEl = e.target.closest('[data-action="video-channel-add-close"]');
   if(videoChannelAddCloseEl){ closeAddYoutubeChannel(); return; }
   const videoChannelFetchEl = e.target.closest('[data-action="video-channel-fetch"]');
@@ -49034,8 +48329,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(videoChannelSaveEl){ saveMyYoutubeChannel(); return; }
   const videoChannelRemoveEl = e.target.closest('[data-action="video-channel-remove"]');
   if(videoChannelRemoveEl){ removeMyYoutubeChannel(videoChannelRemoveEl.getAttribute('data-channelid')); return; }
-  const listenQuizReplayEl = e.target.closest('[data-action="listen-quiz-replay"]');
-  if(listenQuizReplayEl){ replayListenQuiz(); return; }
   const listenVideoReplayEl = e.target.closest('[data-action="listen-video-replay"]');
   if(listenVideoReplayEl){ const q=STATE.listenQuiz; if(q){ q.replaySeed=(q.replaySeed||0)+1; q.replayAuto=true; renderContent(); } return; }
   // ---- Thêm video luyện nghe bằng AI ----
@@ -49111,8 +48404,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(listenQuizNextEl){ nextListenQuiz(); return; }
   const listenQuizExitEl = e.target.closest('[data-action="listen-quiz-exit"]');
   if(listenQuizExitEl){ stopListenAudio(); STATE.listenQuiz = null; renderContent(); navBack(); return; }
-  const speakStartEl = e.target.closest('[data-action="speak-practice-start"]');
-  if(speakStartEl){ startSpeakPractice(speakStartEl.getAttribute('data-level')); return; }
   const speakBatchBrowseOpenEl = e.target.closest('[data-action="speak-batch-browse-open"]');
   if(speakBatchBrowseOpenEl){ speakBatchBrowseOpen(speakBatchBrowseOpenEl.getAttribute('data-level')); return; }
   const speakBatchBackEl = e.target.closest('[data-action="speak-batch-back"]');
@@ -49151,8 +48442,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(lpQuizTogglePassageEl){ longPassageQuizTogglePassage(); return; }
   const lpQuizRegenEl = e.target.closest('[data-action="long-passage-quiz-regen"]');
   if(lpQuizRegenEl){ startLongPassageQuiz(parseInt(lpQuizRegenEl.getAttribute('data-idx'),10)||0, true); return; }
-  const dictHomeOpenEl = e.target.closest('[data-action="dict-home-open"]');
-  if(dictHomeOpenEl){ dictHomeOpen(); return; }
   const dictHomeCloseEl = e.target.closest('[data-action="dict-home-close"]');
   if(dictHomeCloseEl){ dictHomeClose(); return; }
   const calPickEl = e.target.closest('[data-action="hub-cal-pick"]');
@@ -49161,14 +48450,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
     STATE.hubCalPick = (STATE.hubCalPick === k) ? null : k;   // bấm lại lần nữa để đóng
     renderContentPreserveScroll(); return;
   }
-  const dvTabEl = e.target.closest('[data-action="dv-tab"]');
-  if(dvTabEl){ STATE.dvTab = dvTabEl.getAttribute('data-k'); STATE.dvSpread = false; renderContent(); window.scrollTo(0,0); return; }
-  const dvSpreadEl = e.target.closest('[data-action="dv-spread"]');
-  if(dvSpreadEl){ STATE.dvSpread = true; renderContentPreserveScroll(); return; }
   const dictPlayEl = e.target.closest('[data-action="dict-play-toggle"]');
   if(dictPlayEl){ dictPhatDung(); return; }
-  const sdHomeEl = e.target.closest('[data-action="sd-home"]');
-  if(sdHomeEl){ navForward(); STATE.sdHome = true; STATE.sdThem=false; STATE.sdLoi=null; renderContent(); window.scrollTo(0,0); return; }
   const sdThemMoEl = e.target.closest('[data-action="sd-them-mo"]');
   if(sdThemMoEl){ STATE.sdThem = true; STATE.sdLoi = null; renderContent(); window.scrollTo(0,0); return; }
   const sdThemHuyEl = e.target.closest('[data-action="sd-them-huy"]');
@@ -49183,8 +48466,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdDongEl){ sdDongPhien(); return; }
   const sdGainEl = e.target.closest('[data-action="sd-gain"]');
   if(sdGainEl){ sdDatGain(sdGainEl.getAttribute('data-v')); return; }
-  const sdVidVolEl = e.target.closest('[data-action="sd-vidvol"]');
-  if(sdVidVolEl){ sdDatVidVol(sdVidVolEl.getAttribute('data-v')); return; }
   const sdTocEl = e.target.closest('[data-action="sd-toc"]');
   if(sdTocEl){ sdDatTocDo(sdTocEl.getAttribute('data-v')); return; }
   const sdGhiBatEl = e.target.closest('[data-action="sd-ghi-bat"]');
@@ -49207,8 +48488,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(sdLoiLuuEl){ STATE.sdKtDau = null; sdLuuLoi(); return; }
   const hvKtEl = e.target.closest('[data-action="hv-kt-loi"]');
   if(hvKtEl){ hvKtLoi(); return; }
-  const sdKtDauEl = e.target.closest('[data-action="sd-kt-dau"]');
-  if(sdKtDauEl){ sdKtDau(); return; }
   const sdChamNghiEl = e.target.closest('[data-action="sd-cham-nghi"]');
   if(sdChamNghiEl){ sdChamTheoNghi(); return; }
   const sdChamDauEl = e.target.closest('[data-action="sd-cham-dau"]');
@@ -49237,8 +48516,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvOpenEl){ hvMoPhien(hvOpenEl.getAttribute('data-id')); return; }
   const hvCapCoEl = e.target.closest('[data-action="hv-cap-co"]');
   if(hvCapCoEl){ e.stopPropagation(); hvCapDoiCo(); return; }
-  const hvDocBenEl = e.target.closest('[data-action="hv-doc-ben"]');
-  if(hvDocBenEl){ e.stopPropagation(); hvDocBen(); return; }
   const hvCaCauEl = e.target.closest('[data-action="hv-ca-cau"]');
   if(hvCaCauEl){ e.stopPropagation(); hvBatCaCau(); return; }
   const hvCapBatEl = e.target.closest('[data-action="hv-cap-bat"]');
@@ -49297,16 +48574,12 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(hvPlayEl){ e.stopPropagation(); hvPlayPause(); return; }
   const hvNghiaEl = e.target.closest('[data-action="hv-nghia"]');
   if(hvNghiaEl){ hvBatNghia(); return; }
-  const hvDocTuEl = e.target.closest('[data-action="hv-doc-tu"]');
-  if(hvDocTuEl){ e.stopPropagation(); hvDocBangMay(); return; }
   const hvDanhDauEl = e.target.closest('[data-action="hv-danh-dau"]');
   if(hvDanhDauEl){ hvBatDanhDau(); return; }
   const sdCamThuEl = e.target.closest('[data-action="sd-cam-thu"]');
   if(sdCamThuEl){ sdDatCamKhiThu(); return; }
   const hvCapDichEl = e.target.closest('[data-action="hv-cap-dich"]');
   if(hvCapDichEl){ e.stopPropagation(); hvCapDich(); return; }
-  const hvCcGocEl = e.target.closest('[data-action="hv-cc-goc"]');
-  if(hvCcGocEl){ hvCcGoc(); return; }
   const hvCheBangEl = e.target.closest('[data-action="hv-che-bang"]');
   if(hvCheBangEl){ hvCheBang(); return; }
   const hvMoPhuEl = e.target.closest('[data-action="hv-mo-phu"]');
@@ -49318,12 +48591,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const hvMoiThemEl = e.target.closest('[data-action="hv-moi-them"]');
   if(hvMoiThemEl){ e.stopPropagation();
     hvMoiThem(hvMoiThemEl.getAttribute('data-loai'), hvMoiThemEl.getAttribute('data-i')); return; }
-  const hvLuuGopEl = e.target.closest('[data-action="hv-luu-gop"]');
-  if(hvLuuGopEl){ hvLuuGop(hvLuuGopEl.getAttribute('data-loai')); return; }
-  const hvDocVideoEl = e.target.closest('[data-action="hv-nghe-video"]');
-  if(hvDocVideoEl){ hvDocTuVideo(); return; }
-  const hvThoiChonEl = e.target.closest('[data-action="hv-thoi-chon"]');
-  if(hvThoiChonEl){ e.stopPropagation(); hvThoiChon(); return; }
   // v232: NHẬN CẢ HAI TÊN. Phụ đề trong khung hình (v227) phát ra "hv-chon-tu" còn danh sách
   // ngoài phát ra "hv-chon"; bộ điều phối chỉ biết cái sau, nên chạm chữ trên video không có gì
   // xảy ra và cũng chẳng có lỗi nào để lần. Một chốt cho cả hai, không sửa tên ở hai nơi nữa.
@@ -49351,16 +48618,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dvDongEl){ dvDongPhien(); return; }
   const dvPhanTichEl = e.target.closest('[data-action="dv-phantich"]');
   if(dvPhanTichEl){ const p = STATE.dvPhien; if(p) dvPhanTich(p.vidId); return; }
-  const dvCaVideoEl = e.target.closest('[data-action="dv-ca-video"]');
-  if(dvCaVideoEl){ dvNgheCaVideo(); return; }
-  const dvTocEl = e.target.closest('[data-action="dv-toc"]');
-  if(dvTocEl){ dvDatToc(dvTocEl.getAttribute('data-v')); return; }
   const dvNgheEl = e.target.closest('[data-action="dv-nghe"]');
   if(dvNgheEl){ const p = STATE.dvPhien; if(p && p.idx!=null) dvPhatCau(p.idx); return; }
   const dvMoEl = e.target.closest('[data-action="dv-mo"]');
   if(dvMoEl){ dvMoCau(+dvMoEl.getAttribute('data-i')); return; }
-  const dvCauEl = e.target.closest('[data-action="dv-cau"]');
-  if(dvCauEl){ dvCauKhac(+dvCauEl.getAttribute('data-i')); return; }
   // v330 — hai kiểu bài mới nhập bằng ô trống / chip chứ không phải ô nhập, nên phải GOM lại
   // thành chuỗi câu TRƯỚC khi đối chiếu hay chấm. Bỏ bước này là bộ chấm đọc phải s.go rỗng.
   const dvDoiChieuEl = e.target.closest('[data-action="dv-doichieu"]');
@@ -49371,12 +48632,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dvChipEl){ e.stopPropagation(); dvChipBam(dvChipEl); return; }
   const dvXepXoaEl = e.target.closest('[data-action="dv-xep-xoa"]');
   if(dvXepXoaEl){ e.stopPropagation(); dvXepXoa(); return; }
-  const dvDatKieuEl = e.target.closest('[data-action="dv-dat-kieu"]');
-  if(dvDatKieuEl){ e.stopPropagation(); dvDatKieu('kieu', dvDatKieuEl.getAttribute('data-v')); return; }
-  const dvDatMucEl = e.target.closest('[data-action="dv-dat-muc"]');
-  if(dvDatMucEl){ e.stopPropagation(); dvDatKieu('muc', dvDatMucEl.getAttribute('data-v')); return; }
-  const dvTiepEl = e.target.closest('[data-action="dv-tiep"]');
-  if(dvTiepEl){ dvCauTiep(); return; }
   const dvLamLaiEl = e.target.closest('[data-action="dv-lam-lai"]');
   if(dvLamLaiEl){ const p = STATE.dvPhien; if(p){ p.go=''; p.ketQua=null; p.thuHien=false; p.thuLan=0;
     if(!dvVe('dvListWrap')) renderContent(); } return; }
@@ -49386,19 +48641,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(dictTocEl){ dictDatTocDo(dictTocEl.getAttribute('data-v')); return; }
   const dictThuEl = e.target.closest('[data-action="dict-thu"]');
   if(dictThuEl){ dictDoiChieuThu(); return; }
-  const cvSoEl = e.target.closest('[data-action="cv-solieu"]');
-  if(cvSoEl){ SETTINGS.cvSoLieu = !SETTINGS.cvSoLieu; saveSettings(); renderContentPreserveScroll(); return; }
-  const cvDdEl = e.target.closest('[data-action="cv-daydu"]');
-  if(cvDdEl){ SETTINGS.cvDayDu = !SETTINGS.cvDayDu; saveSettings(); renderContentPreserveScroll(); return; }
-  const dvHomeEl = e.target.closest('[data-action="dv-home-toggle"]');
-  if(dvHomeEl){
-    SETTINGS.dvHomeOpen = (SETTINGS.dvHomeOpen === false);
-    saveSettings(); pushToDrive(); renderContentPreserveScroll(); return;
-  }
-  const wxLegEl = e.target.closest('[data-action="wx-leg-toggle"]');
-  if(wxLegEl){ SETTINGS.wxLegOpen = !SETTINGS.wxLegOpen; saveSettings(); renderContentPreserveScroll(); return; }
-  const wxOpenEl = e.target.closest('[data-action="wx-pick-open"]');
-  if(wxOpenEl){ openWxPicker(); return; }
   const calToggleEl = e.target.closest('[data-action="hub-cal-toggle"]');
   if(calToggleEl){
     STATE.hubCalOpen = !STATE.hubCalOpen;
@@ -49425,12 +48667,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
     renderContentPreserveScroll();
     return;
   }
-  const reviewStartEl = e.target.closest('[data-action="review-start"]');
-  if(reviewStartEl){ reviewStart(reviewStartEl.getAttribute('data-kind')); return; }
-  const dictStartDailyEl = e.target.closest('[data-action="dict-start-daily"]');
-  if(dictStartDailyEl){ dictStartDaily(); return; }
-  const dictStartLevelEl = e.target.closest('[data-action="dict-start-level"]');
-  if(dictStartLevelEl){ dictStartLevel(dictStartLevelEl.getAttribute('data-level')); return; }
   const dictSpeakCurrentEl = e.target.closest('[data-action="dict-speak-current"]');
   if(dictSpeakCurrentEl){ dictSpeakCurrent(false); return; }
   const dictSpeakSlowEl = e.target.closest('[data-action="dict-speak-slow"]');
@@ -49465,8 +48701,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(qgiaXoaEl){ qgiaXoa(+qgiaXoaEl.getAttribute('data-i')); return; }
   const dayRefEl = e.target.closest('[data-action="day-refresh"]');
   if(dayRefEl){ try{ dvCheckNewDay(); }catch(_){} renderContent(); return; }
-  const dvSubEl = e.target.closest('[data-action="dv-home-sub"]');
-  if(dvSubEl){ SETTINGS.dvHomeSub = dvSubEl.getAttribute('data-sub'); saveSettings(); renderContent(); return; }
   const dlgOpenEl = e.target.closest('[data-action="dlg-open"]');
   if(dlgOpenEl){ dlgStart(dlgOpenEl.getAttribute('data-id')); return; }
   const dlgExitEl = e.target.closest('[data-action="dlg-exit"]');
@@ -49519,8 +48753,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaOpenEl){ openIpaDetail(ipaOpenEl.getAttribute('data-sym')); return; }
   const ipaSpeakEl = e.target.closest('[data-action="ipa-chart-speak"]');
   if(ipaSpeakEl){ speakIpaChartExample(ipaSpeakEl.getAttribute('data-word')); return; }
-  const ipaPhonemeSpeakEl = e.target.closest('[data-action="ipa-phoneme-speak"]');
-  if(ipaPhonemeSpeakEl){ speakIpaPhonemeSound(ipaPhonemeSpeakEl.getAttribute('data-sym')); return; }
   const ipaVideoListenEl = e.target.closest('[data-action="ipa-video-listen"]');
   if(ipaVideoListenEl){ ipaVideoListen(); return; }
   const ipaVideoSelectEl = e.target.closest('[data-action="ipa-video-select"]');
@@ -49532,8 +48764,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   // "ipa-practice-start" (nút CTA cũ, đã hợp nhất vào "ipa-deep-open" — giữ lại handler này phòng khi
   // còn tham chiếu cũ nào sót lại) giờ trỏ thẳng sang chế độ phân tích chuyên sâu bằng AI, vì ghi âm
   // từng từ riêng lẻ 1-2 giây trước đây rất khó nhận diện chính xác.
-  const ipaPracticeStartEl = e.target.closest('[data-action="ipa-practice-start"]');
-  if(ipaPracticeStartEl){ openIpaDeepAnalysis(); return; }
   const ipaDeepOpenEl = e.target.closest('[data-action="ipa-deep-open"]');
   if(ipaDeepOpenEl){ openIpaDeepAnalysis(); return; }
   const ipaDeepCloseEl = e.target.closest('[data-action="ipa-deep-close"]');
@@ -49554,14 +48784,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ipaDeepStopListEl){ ipaDeepStopPlayList(); renderContent(); return; }
   const ipaDeepPlayRecordingEl = e.target.closest('[data-action="ipa-deep-play-recording"]');
   if(ipaDeepPlayRecordingEl){ ipaDeepPlayRecording(); return; }
-  const ipaDeepWordClickEl = e.target.closest('[data-action="ipa-deep-word-click"]');
-  if(ipaDeepWordClickEl){
-    const s = STATE.ipaDeepSession;
-    const idx = parseInt(ipaDeepWordClickEl.getAttribute('data-idx'),10);
-    const w = s && s.wordsToFix && s.wordsToFix[idx];
-    if(w){ try{ speechSynthesis.cancel(); }catch(e){} speakEnglishRobust(w, {rate:0.8}); }
-    return;
-  }
   const speakRecordEl = e.target.closest('[data-action="speak-record"]');
   if(speakRecordEl){
     const s=STATE.speakSession;
@@ -49606,8 +48828,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(ytPrevEl){ ytPrevSong(); return; }
   const ytNextEl = e.target.closest('[data-action="yt-next-song"]');
   if(ytNextEl){ ytNextSong(); return; }
-  const driveModeEl = e.target.closest('[data-action="drive-view-mode"]');
-  if(driveModeEl){ setDriveViewMode(driveModeEl.getAttribute('data-mode')); return; }
   const addCatEl = e.target.closest('[data-action="add-category"]');
   if(addCatEl){ addCustomCategory(); return; }
   const editCatEl = e.target.closest('[data-action="edit-category"]');
@@ -49902,16 +49122,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
   const rowEl = e.target.closest('[data-action="row"]');
   if(rowEl){ const taskId = rowEl.getAttribute('data-task'); STATE.expanded[taskId] = !STATE.expanded[taskId]; renderContent(); return; }
 
-  const ipaChip = e.target.closest('[data-action="ipa-toggle"]');
-  if(ipaChip){
-    const sym = ipaChip.getAttribute('data-sym');
-    SETTINGS.ipaLearned[sym] = !SETTINGS.ipaLearned[sym];
-    saveSettings(); renderContent(); return;
-  }
-  const levelBtn = e.target.closest('[data-action="set-level"]');
-  if(levelBtn){ SETTINGS.speakingLevel = levelBtn.getAttribute('data-level'); saveSettings(); renderContent(); return; }
-  const shadowBtn = e.target.closest('[data-action="set-shadow"]');
-  if(shadowBtn){ SETTINGS.shadowTopic = shadowBtn.getAttribute('data-topic'); saveSettings(); renderContent(); return; }
   const methodDetailToggle = e.target.closest('[data-action="method-detail-toggle"]');
   if(methodDetailToggle){
     const mid = methodDetailToggle.getAttribute('data-mid');
@@ -49932,9 +49142,6 @@ document.getElementById('content').addEventListener('click',(e)=>{
     SETTINGS.methods[mid] = !SETTINGS.methods[mid];
     saveSettings(); renderContent(); return;
   }
-});
-document.getElementById('hud').addEventListener('click', (e)=>{
-  if(e.target.closest('[data-action="open-avatar"]')) openAvatarModal();
 });
 document.getElementById('navbar-inner').addEventListener('click',(e)=>{
   const btn = e.target.closest('[data-action="tab"]');
@@ -49978,7 +49185,7 @@ setTimeout(()=>{
   const c = document.getElementById('content');
   if(c && c.querySelector('.loading')){
     if(!LOG) LOG = {};
-    if(!SETTINGS || !SETTINGS.programStart) SETTINGS = Object.assign({programStart: todayKey(), ipaLearned:{}, speakingLevel:'beginner', shadowTopic:'doi_song', methods:Object.assign({},DEFAULT_METHODS)}, SETTINGS||{});
+    if(!SETTINGS || !SETTINGS.programStart) SETTINGS = Object.assign({programStart: todayKey(), ipaLearned:{}, methods:Object.assign({},DEFAULT_METHODS)}, SETTINGS||{});
     lastKnownLevel = levelInfo().lvl;
     renderContent();
   }
