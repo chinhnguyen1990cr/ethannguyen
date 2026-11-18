@@ -6530,7 +6530,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v379';
+const APP_VERSION = 'v380';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -35593,7 +35593,13 @@ function hvVanKho(){
     const vp = SETTINGS.vocabProgress || {};
     Object.keys(vp).forEach(k => { if(vp[k] && vp[k].introduced) e++; });
   }catch(_){ }
-  return a + '/' + b + '/' + c + '/' + d + '/' + e;
+  // v380 — HÀNG ĐỢI BÀI HỌC CŨNG PHẢI NẰM TRONG CHÌA KHOÁ.
+  // Cùng một bài học với v305: bảng "đã biết" nay tính cả mục đã xếp vào bài học, nên nếu
+  // chìa khoá không đếm hàng đợi ấy thì bấm "+" xong bảng cũ vẫn được dùng lại, và
+  // transcript vẫn tô cam đến hết phiên — sửa mà như không sửa.
+  let f = 0;
+  try{ f = (SETTINGS.vocabUuTien || []).length; }catch(_){ }
+  return a + '/' + b + '/' + c + '/' + d + '/' + e + '/' + f;
 }
 function hvDungKho(){
   const van = hvVanKho();
@@ -35613,12 +35619,25 @@ function hvDungKho(){
   // không phải thứ bạn đã biết sẵn.
   try{
     const vp = SETTINGS.vocabProgress || {};
+    // v380 — "ĐÃ XẾP VÀO BÀI HỌC" CŨNG LÀ ĐÃ NHẶT.
+    // Bấm "+" cho một từ CÓ trong ngân hàng thì nó không thành thẻ trong kho, mà được đưa
+    // thẳng vào bài học (hvDuaVaoHoc → vocabUuTien) và app báo "Đã đưa vào bài học". Nhưng
+    // bảng "đã biết" chỉ tính kho + từ đã học, nên transcript vẫn tô cam đúng chữ vừa bấm,
+    // và con số "còn thiếu" không giảm: bấm rồi mà trông như chưa bấm, bấm lại cũng không
+    // thêm được gì. Lời báo và màn hình nói hai điều khác nhau — đúng họ lỗi của v368–v379.
+    const uu = {};
+    try{ (SETTINGS.vocabUuTien || []).forEach(n => { uu[n] = 1; }); }catch(_){ }
     ((VOCAB_DATA||{}).words||[]).forEach(w => {
       if(!w) return;
       const p = vp[w[0]];
-      if(p && p.introduced) themTu(w[1]);
+      if((p && p.introduced) || uu[w[0]]) themTu(w[1]);
     });
   }catch(_){ }
+  // ĐO RỒI MỚI BIẾT: phía CỤM không có vết này, nên KHÔNG thêm gì.
+  // Mọi câu trong ngân hàng vốn đã được nạp sẵn vào bảng "đã biết" (xem dòng
+  // COMMON_SENT_DATA ở dưới), nên không cụm nào vừa được xếp vào bài học mà vẫn bị tô.
+  // Ban đầu tôi đã viết một khối đối xứng cho sentUuTien rồi mới đo ra là nó không bao giờ
+  // chạy — gỡ đi, vì mã không ai chạy tới chính là thứ cả loạt v376–v379 đang đi dọn.
   try{ hvKhoTu().forEach(x => themTu(x && x.chu)); }catch(_){ }
   try{ hvKhoCau().forEach(x => themTu(x && x.chu)); }catch(_){ }   // cụm đã lưu cũng tính là đã biết
   try{ ((COMMON_SENT_DATA||{}).sentences||[]).forEach(o => { const k = hvGocCau(o && o[1]); if(k) cau[k] = 1; }); }catch(_){ }
@@ -35813,6 +35832,14 @@ function hvGomThieu(rec){
       const k = c.toLowerCase();
       if(!k || coCum[k]) return;
       if(!hvCauThieu(c)) return;               // đã có trong kho Mẫu câu thì thôi
+      // v380 — BÊN GOM PHẢI ĐI QUA ĐÚNG CỬA MÀ BÊN LƯU ĐI.
+      // Đo được: "have to" lọt vào bảng ▦, bấm "+" thì hvMoiThem từ chối ngay với lời
+      // "Toàn từ chức năng" — tức là bảng mời một cú bấm chắc chắn thất bại. Bên gom dùng
+      // một luật, bên lưu dùng luật khác. Nay gom hỏi đúng cửa lọc ấy trước khi mời.
+      // (Phía TỪ đã làm việc này từ v284; chỉ phía CỤM còn thiếu.)
+      let locC = null;
+      try{ locC = hvLocTruocKhiLuu(c, 'cau'); }catch(_){ locC = null; }
+      if(locC && !locC.ok) return;
       coCum[k] = 1;
       cau.push({chu: c, cauEn: en, vi: d.vi || ''});
     });
