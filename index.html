@@ -6363,7 +6363,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v382';
+const APP_VERSION = 'v383';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9713,17 +9713,23 @@ const TC_HINH = [
 // ══════════════════════════════════════════════════════════════════════════════════════
 const TC_BO = [
  // v291 — ba phần của EN 581 thành ba BỘ CON. Chúng phải có mặt trong TC_BO vì trang
- // điều khoản lấy mã, màu và tên bộ từ đây; nhưng gắn phu:true để màn dòng hàng vẫn chỉ
- // hiện ba thẻ lớn (EN 581 / EN 1728 / EN 1730), không thành sáu thẻ rối mắt.
- {id:'en581-1', ma:'EN 581-1', nam:'2017', hex:'#4FA8FF', vai:'Yêu cầu an toàn chung', phu:true,
+ // điều khoản lấy mã, màu và tên bộ từ đây.
+ //
+ // v383 — CHÚ THÍCH CŨ Ở ĐÂY NÓI SAI, và nói sai từ v295 đến giờ. Nó bảo ba bộ con được
+ // gắn phu:true "để màn dòng hàng vẫn chỉ hiện ba thẻ lớn". Đo lại thì KHÔNG MỘT DÒNG MÃ
+ // NÀO đọc bo.phu cả; bộ lọc thật của renderTcList là b.id !== 'en581' — nó loại THẺ CHA
+ // và vẫn hiện ba phần con thành ba thẻ riêng, đúng như v295 đã đổi ("mỗi tiêu chuẩn một
+ // thẻ, ngang hàng nhau"). Cờ phu:true là tàn dư của thiết kế trước; v383 gỡ cả cờ lẫn câu
+ // chú thích sai — một chú thích sai còn hại hơn không có chú thích.
+ {id:'en581-1', ma:'EN 581-1', nam:'2017', hex:'#4FA8FF', vai:'Yêu cầu an toàn chung',
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 1: General safety requirements',
   vi:'Đồ ngoài trời — Ghế và bàn dùng cho cắm trại, gia dụng và thương mại — Phần 1: Yêu cầu an toàn chung',
   mo:'Áp cho <b>cả ghế lẫn bàn</b>: cạnh sắc, góc nhọn, đầu ống hở, điểm cắt và kẹp tay.'},
- {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#4FA8FF', vai:'An toàn cơ học — GHẾ', phu:true,
+ {id:'en581-2', ma:'EN 581-2', nam:'2015', hex:'#4FA8FF', vai:'An toàn cơ học — GHẾ',
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 2: Mechanical safety requirements and test methods for seating',
   vi:'Đồ ngoài trời — Phần 2: Yêu cầu an toàn cơ học và phương pháp thử cho ghế',
   mo:'Nêu ghế phải chịu <b>lực nào, bao nhiêu chu kỳ</b> theo ba cấp. Hai bảng riêng: ghế nằm và ghế loại khác.'},
- {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#4FA8FF', vai:'An toàn cơ học — BÀN', phu:true,
+ {id:'en581-3', ma:'EN 581-3', nam:'2017', hex:'#4FA8FF', vai:'An toàn cơ học — BÀN',
   en:'Outdoor furniture — Seating and tables for camping, domestic and contract use — Part 3: Mechanical safety requirements for tables',
   vi:'Đồ ngoài trời — Phần 3: Yêu cầu an toàn cơ học cho bàn',
   mo:'Tải mặt bàn, độ bền ngang, độ ổn định, mặt bàn kính, lỗ cắm dù.'},
