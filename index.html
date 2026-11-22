@@ -6380,7 +6380,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v385';
+const APP_VERSION = 'v386';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -24511,6 +24511,27 @@ const GEMINI_DU_TRU = 6;       // luôn chừa chừng này lượt cho thao tá
 function geminiChoPhepNen(){
   try{ return geminiConLai() > GEMINI_DU_TRU; }catch(_){ return true; }
 }
+// ══ v386 · NÓI THẬT LÝ DO, THAY VÌ HỨA MỘT VIỆC KHÔNG HỀ ĐANG XẢY RA ══════════════════
+// Dòng cũ trên mặt sau thẻ lật luôn nói "Đang soạn thêm ví dụ cho mục này… lát nữa quay lại
+// là có đủ 5 câu" — miễn là CÓ khoá AI. Nhưng việc nạp nền bị chặn ngay khi hạn mức tụt
+// xuống dưới GEMINI_DU_TRU lượt, bị chặn khi mọi model đã hết ngày, và dĩ nhiên không chạy
+// lúc mất mạng. Trong cả ba hoàn cảnh ấy câu kia là một lời hứa suông: quay lại mười lần
+// vẫn trống. Nay mỗi hoàn cảnh nói đúng tên nó, VÀ chỉ ra lối đi tiếp.
+function vdLyDoThieu(){
+  if(!SETTINGS.geminiApiKey)
+    return 'Chưa có khoá AI nên app không soạn thêm được. Dán khoá Gemini trong Cài đặt — '
+         + 'app sẽ tự soạn đủ ' + VD_CAN + ' câu cho mỗi mục và nhớ luôn.';
+  if(vdDangNap)
+    return 'Đang soạn thêm ví dụ cho mục này… lát nữa quay lại là có đủ ' + VD_CAN + ' câu.';
+  try{ if(typeof navigator !== 'undefined' && navigator && navigator.onLine === false)
+    return 'Đang mất mạng nên chưa soạn thêm được. Có mạng rồi quay lại là app tự soạn.'; }catch(_){ }
+  try{ if(!geminiModelDung())
+    return 'Hạn mức AI hôm nay đã dùng hết. Mai app tự soạn tiếp — ví dụ đã có vẫn học bình thường.'; }catch(_){ }
+  try{ if(!geminiChoPhepNen())
+    return 'Hạn mức AI gần hết nên phần chạy nền đã tự dừng, chừa lượt cho việc bạn chủ động bấm. '
+         + 'Bấm "Học kỹ từ này" là xin riêng cho đúng mục này.'; }catch(_){ }
+  return 'Chưa soạn kịp cho mục này. Bấm "Học kỹ từ này" để xin ngay ví dụ, tình huống và họ từ.';
+}
 async function vdNapNen(dsChu){
   if(vdDangNap || !SETTINGS.geminiApiKey) return 0;
   if(!geminiChoPhepNen()) return 0;
@@ -27509,6 +27530,39 @@ function wbDaNap(){
   return a + b;
 }
 let wbDangBoSung = false;
+// ══ v386 · "HỌC KỸ TỪ NÀY" — NỐI LẠI TÍNH NĂNG DỰNG XONG MÀ CHƯA BAO GIỜ CÓ NÚT ═══════
+// vdLayAI — bản ĐẦY ĐỦ cho MỘT từ: 10 câu ví dụ, 3 tình huống hội thoại, họ từ, phiên âm —
+// đã nằm trong app từ v267. Chú thích ở vdLayAILo còn hứa hẳn: "Muốn đầy đủ hơn thì bấm
+// 'Học kỹ từ này' — lúc ấy là bạn chủ động, và vdLayAI xin bản đầy đủ cho riêng từ đó."
+// Nhưng chuỗi "Học kỹ" trong cả tệp xuất hiện đúng MỘT lần: trong chính câu chú thích ấy.
+// Nút chưa bao giờ được dựng, nên suốt gần 120 phiên bản vdLayAI chưa chạy lấy một lần.
+// Bộ quét mã chết không bắt được vì một cái TÊN TRẦN nằm trong chú thích vẫn được tính là
+// "có người gọi" — đúng chỗ nhượng bộ đã ghi ở v379. Đây là lỗ hổng thứ năm cùng họ với nó.
+let wbDangHocKy = false;
+async function wbHocKy(){
+  if(wbDangHocKy){ showToast('⏳','Đang xin AI rồi','Chờ lượt này xong đã.'); return; }
+  const m = wbMucHienTai();
+  if(!m || !m.en){ showToast('⚠️','Không có mục nào đang mở','Lật một thẻ ra rồi bấm lại.'); return; }
+  if(!SETTINGS.geminiApiKey){
+    showToast('🔑','Chưa có khoá AI','Dán khoá Gemini trong Cài đặt rồi bấm lại.'); return;
+  }
+  wbDangHocKy = true;
+  try{ renderContentPreserveScroll(); }catch(_){ }
+  try{
+    // Việc BẠN chủ động bấm thì KHÔNG đi qua geminiChoPhepNen — đó chính là phần hạn mức
+    // GEMINI_DU_TRU vẫn luôn chừa sẵn cho những lượt như thế này.
+    await vdLayAI(m.en, m.vi);
+    try{ pushToDrive(); }catch(_){ }
+    showToast('✅','Đã học kỹ "' + m.en + '"',
+      'Mặt sau thẻ nay có đủ ví dụ, tình huống và họ từ — và app nhớ luôn.');
+  }catch(e){
+    showToast('⚠️','Chưa lấy được',
+      (e && e.message) ? String(e.message) : 'Thử lại lúc mạng ổn.');
+  }finally{
+    wbDangHocKy = false;
+    try{ renderContentPreserveScroll(); }catch(_){ }
+  }
+}
 async function wbHoiLaiAI(){
   if(wbDangBoSung){ showToast('⏳','Đang chạy rồi','Chờ hết hàng chờ đã.'); return; }
   const cho = wbDangCho();
@@ -27924,14 +27978,14 @@ function wbTheHtml(){
           ${th.length ? `<div class="wb-vd-h">🎭 ${th.length} tình huống dùng cụm này</div>${wbTinhHuongHtml(th, m.en)}`
                       : (ht.length ? `<div class="wb-vd-h">💬 Dùng trong hội thoại</div>${wbHoiThoaiHtml(ht, m.en)}` : '')}
           ${vd.length ? `<div class="wb-vd-h">📝 ${vd.length} câu thường nói</div>${wbViDuHtml(vd, m.en)}` : ''}
-          ${thieu ? `<div class="wb-vd-cho">${SETTINGS.geminiApiKey
-              ? 'Đang soạn thêm ví dụ cho mục này… lát nữa quay lại là có đủ ' + VD_CAN + ' câu.'
-              : 'Muốn có đủ ' + VD_CAN + ' ví dụ cho mỗi mục thì dán khoá Gemini trong Cài đặt — app sẽ tự soạn và nhớ luôn.'}</div>` : ''}
+          ${thieu ? `<div class="wb-vd-cho">${escapeHtml(vdLyDoThieu())}</div>` : ''}
         </div>` : ''}
     </div>
     <div class="wb-the-nut">
       <button class="wb-nut phu" data-action="wb-doc-the"><span>🔊</span>Nghe</button>
       <button class="wb-nut chinh" data-action="wb-lat"><span>${lat ? '↩︎' : '🔄'}</span>${lat ? 'Úp lại' : 'Lật thẻ'}</button>
+      ${lat ? `<button class="wb-nut phu" data-action="wb-hoc-ky"${wbDangHocKy ? ' disabled' : ''}
+        ><span>${wbDangHocKy ? '⏳' : '🧠'}</span>${wbDangHocKy ? 'Đang xin AI…' : 'Học kỹ từ này'}</button>` : ''}
     </div>
     ${lat ? `<div class="wb-cham-khay">
           <div class="wb-cham-hang">${nutCham}</div>
@@ -48090,6 +48144,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(wbDocTheEl){ e.stopPropagation(); wbDocThe(); return; }
   const wbAiEl = e.target.closest('[data-action="wb-ai"]');
   if(wbAiEl){ wbHoiLaiAI(); return; }
+  // v386 — nhánh nhận nút "Học kỹ từ này". Thiếu đúng dòng này là nút lại thành nút chết,
+  // và vdLayAI lại nằm đó không ai gọi như suốt 119 phiên bản trước.
+  const wbHocKyEl = e.target.closest('[data-action="wb-hoc-ky"]');
+  if(wbHocKyEl){ e.stopPropagation(); wbHocKy(); return; }
   const wbLamLaiEl = e.target.closest('[data-action="wb-lam-lai"]');
   if(wbLamLaiEl){ wbLamLai(); return; }
   const wbKhoEl = e.target.closest('[data-action="wb-kho"]');
