@@ -1908,6 +1908,23 @@
     padding:2px 7px; border-radius:6px;
     background:color-mix(in srgb, var(--tcm) 18%, transparent);}
   /* v307 — ô kho hình ở màn chính Outdoor furniture. */
+  /* v385 — Ô TÌM KHO TIÊU CHUẨN. Màu đi qua biến, không viết mã màu trần (luật v381). */
+  .tc-tim{margin:10px 0 4px;}
+  .tc-tim-i{width:100%; box-sizing:border-box; padding:12px 14px; border-radius:14px;
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    font-size:13.5px; font-family:inherit; outline:none;}
+  .tc-tim-i:focus{border-color:var(--blue);}
+  .tc-tim-i::placeholder{color:var(--dim2);}
+  .tc-tim-so{font-size:11px; color:var(--dim); margin:10px 2px 6px;}
+  .tc-tim-trong{font-size:12px; color:var(--dim); padding:12px 2px;}
+  .tc-tim-kq{display:flex; flex-direction:column; gap:7px;}
+  .tc-tim-m{display:flex; flex-direction:column; gap:3px; text-align:left; width:100%;
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:10px 12px; cursor:pointer; font-family:inherit;}
+  .tc-tim-m:active{transform:scale(0.985); border-color:var(--blue);}
+  .tc-tim-m .n{font-size:11px; font-weight:800; color:var(--blue); letter-spacing:.2px;}
+  .tc-tim-m .t{font-size:13px; font-weight:700; color:var(--text); line-height:1.35;}
+  .tc-tim-m .p{font-size:11.5px; color:var(--dim); line-height:1.35;}
   .tc-kho{display:flex; align-items:center; gap:12px; margin:0 0 12px;
     padding:12px 14px; border-radius:14px; background:var(--panel2);
     border:1px solid var(--border);}
@@ -6363,7 +6380,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v384';
+const APP_VERSION = 'v385';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -16722,6 +16739,127 @@ function tcVeNhaOutdoor(){
   }
   return n;
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v385 · TÌM TRONG KHO TIÊU CHUẨN
+//
+//  Vì sao cần: kho đã lên 1104 điều khoản / 17 bộ / 311 hình / 33 phép thử. Đứng ở xưởng,
+//  nhớ "cái điều về tải tĩnh lưng ghế" mà không nhớ nó nằm ở EN 1728 mục mấy, thì cách duy
+//  nhất là lần lượt mở từng bộ ra cuộn. Gõ một chữ phải ra ngay.
+//
+//  Ba điều quyết định nó có dùng được ở xưởng hay không:
+//   · GÕ KHÔNG DẤU VẪN RA. Tay dính bụi, bàn phím điện thoại, không ai gõ "tải tĩnh" đủ dấu.
+//   · TÌM CẢ TRONG THÂN VĂN BẢN, không chỉ tên điều — thứ bạn nhớ thường là một cụm nằm
+//     giữa đoạn, không phải tiêu đề.
+//   · CHẠY CỤC BỘ HOÀN TOÀN. Không gọi mạng, không gọi AI. Mất sóng vẫn tìm được, mà đó
+//     chính là lúc cần nhất.
+function tcTimChuan(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// Chỉ mục dựng MỘT LẦN rồi giữ lại: 1104 điều mà dựng lại sau mỗi phím gõ thì máy yếu sẽ khựng.
+let TC_CHIMUC = null;
+function tcChiMuc(){
+  if(TC_CHIMUC) return TC_CHIMUC;
+  const ra = [];
+  TC_DIEU_HET.forEach(d => {
+    const than = (d.than || []).map(t => (t.en || '') + ' ' + (t.vi || '')).join(' ');
+    ra.push({ loai:'dieu', bo:d.bo, so:d.so, nhom:d.nhom,
+      ten: (d.vi || d.en || ''), phu: (d.vi && d.en) ? d.en : '',
+      kTen: tcTimChuan(d.so + ' ' + (d.en || '') + ' ' + (d.vi || '')),
+      kSo: tcTimChuan(d.so),
+      k: tcTimChuan(d.so + ' ' + (d.en || '') + ' ' + (d.vi || '') + ' ' + than) });
+  });
+  TC_THU.forEach(t => ra.push({ loai:'thu', id:String(t.id), bang:t.bang,
+    ten: (t.vi || t.en || ''), phu: (t.vi && t.en) ? t.en : '', so: t.so,
+    kTen: tcTimChuan('thu ' + t.so + ' ' + (t.en || '') + ' ' + (t.vi || '')),
+    kSo: tcTimChuan(String(t.so)),
+    k: tcTimChuan('thu ' + t.so + ' ' + (t.en || '') + ' ' + (t.vi || '')) }));
+  TC_HINH.forEach(h => ra.push({ loai:'hinh', bo:h.bo, so:h.so, dieu:(h.dieu || [])[0],
+    ten: (h.vi || h.ten || ''), phu: (h.vi && h.ten) ? h.ten : '',
+    kTen: tcTimChuan('hinh ' + h.so + ' ' + (h.ten || '') + ' ' + (h.vi || '')),
+    kSo: tcTimChuan(String(h.so)),
+    k: tcTimChuan('hinh ' + h.so + ' ' + (h.ten || '') + ' ' + (h.vi || '')) }));
+  TC_CHIMUC = ra;
+  return ra;
+}
+
+// Mọi chữ trong ô tìm đều phải có mặt (AND), không cần liền nhau: gõ "lung tai tinh" vẫn ra
+// điều nói về "tải tĩnh ... lưng ghế". Đây là lối tìm hợp với cách người ta NHỚ, không phải
+// cách văn bản VIẾT.
+function tcTim(tu){
+  const q = tcTimChuan(tu);
+  if(q.length < 2) return [];
+  const tus = q.split(' ').filter(Boolean);
+  const hop = tcChiMuc().filter(m => tus.every(t => m.k.indexOf(t) >= 0));
+  // XẾP HẠNG — và đây không phải chuyện làm đẹp.
+  // Bản đầu tôi trả về đúng thứ tự dữ liệu, thử ngay thì gõ "tai tinh" cho ra 60 kết quả mà
+  // điều tên đúng là "Thử tải tĩnh mặt ngồi" nằm tận dưới, trên cùng lại là một điều chỉ
+  // khớp vì trong thân bài tình cờ có hai chữ ấy. Đứng ở xưởng thì một danh sách như thế
+  // không khác gì không tìm. Thứ tự: khớp ĐÚNG SỐ ĐIỀU → khớp trong TÊN → chỉ khớp thân bài.
+  const diem = m => {
+    if(m.kSo === q) return 0;                                   // gõ "6.4" ra đúng điều 6.4
+    if(tus.every(t => m.kTen.indexOf(t) >= 0)) return 1;        // đủ chữ trong tên điều
+    if(m.kTen.indexOf(q) >= 0) return 2;                        // nguyên cụm nằm trong tên
+    return 3;                                                   // chỉ thấy trong thân bài
+  };
+  return hop.map(m => ({ m: m, d: diem(m) }))
+            .sort((a, b) => a.d - b.d)
+            .slice(0, 60).map(x => x.m);
+}
+
+function tcTimNhanBo(id){ const b = tcBoCua(id); return b ? b.ma : id; }
+
+function tcTimKqHtml(ds, tu){
+  if(!String(tu || '').trim()) return '';
+  if(tcTimChuan(tu).length < 2)
+    return '<div class="tc-tim-trong">Gõ ít nhất 2 chữ…</div>';
+  if(!ds.length)
+    return '<div class="tc-tim-trong">Không thấy gì khớp "' + escapeHtml(tu) + '".</div>';
+  return '<div class="tc-tim-so">' + ds.length + (ds.length >= 60 ? '+' : '') + ' kết quả</div>'
+    + ds.map(m => {
+      const nhan = m.loai === 'dieu' ? (tcTimNhanBo(m.bo) + ' · ' + m.so)
+                 : m.loai === 'thu'  ? ('Phép thử ' + m.so)
+                 : (tcTimNhanBo(m.bo) + ' · Hình ' + m.so);
+      return '<button class="tc-tim-m" data-action="tc-tim-di"'
+        + ' data-loai="' + m.loai + '"'
+        + ' data-bo="' + escapeHtml(m.bo || '') + '"'
+        + ' data-so="' + escapeHtml(String(m.loai === 'hinh' ? (m.dieu || '') : (m.so || ''))) + '"'
+        + ' data-id="' + escapeHtml(m.id || '') + '">'
+        + '<span class="n">' + escapeHtml(nhan) + '</span>'
+        + '<span class="t">' + escapeHtml(m.ten) + '</span>'
+        + (m.phu ? '<span class="p">' + escapeHtml(m.phu) + '</span>' : '')
+        + '</button>';
+    }).join('');
+}
+
+function tcTimVe(){
+  const o = document.getElementById('tc-tim-o');
+  const k = document.getElementById('tc-tim-kq');
+  if(!o || !k) return;
+  k.innerHTML = tcTimKqHtml(tcTim(o.value), o.value);
+}
+
+// Mở kết quả: đi đúng con đường mà nút thường vẫn đi (navForward → đổi view → renderContent),
+// rồi mới nhảy tới đúng điều. Nhảy phải chờ một nhịp vì lúc gọi, màn mới chưa dựng xong.
+function tcTimMo(el){
+  const loai = el.getAttribute('data-loai');
+  if(loai === 'thu'){
+    navForward(); KH_STATE.view = 'tcthu'; KH_STATE.thuId = el.getAttribute('data-id');
+    renderContent();
+    try{ window.scrollTo({top:0, behavior:'instant'}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){ } }
+    return;
+  }
+  const bo = el.getAttribute('data-bo'), so = el.getAttribute('data-so');
+  navForward(); KH_STATE.tcBo = bo;
+  KH_STATE.view = (bo === 'en581') ? 'tclist' : 'tcdieulist';
+  renderContent();
+  try{ window.scrollTo({top:0, behavior:'instant'}); }catch(_){ try{ window.scrollTo(0,0); }catch(__){ } }
+  if(so) setTimeout(()=>{ try{ tcNhayToiDieu(so); }catch(_){ } }, 60);
+}
+
 function tcNhayToiDieu(goc){
   const el = document.getElementById('dg-' + goc);
   if(!el) return;
@@ -17627,6 +17765,11 @@ function renderTcBoList(){
       <div class="kh-backbtn" data-action="tc-back-cat">${svgIcon('back')}</div>${tcNutNhaHtml()}
       <div class="title">Outdoor furniture standards</div>
     </div>
+    <div class="tc-tim">
+      <input id="tc-tim-o" class="tc-tim-i" type="search" autocomplete="off" enterkeyhint="search"
+             placeholder="Tìm điều khoản · phép thử · hình — gõ không dấu cũng ra">
+      <div id="tc-tim-kq" class="tc-tim-kq"></div>
+    </div>
     ${tcDauTrangHtml({hex:'var(--blue)', nhan:'OUTDOOR FURNITURE',
       en:'Outdoor furniture — standards', vi:'Bộ tiêu chuẩn đồ ngoài trời'})}
     ${tcThanhCongCu()}
@@ -18026,7 +18169,8 @@ function renderTcList(){
   // Trước đây EN 1728 và EN 1730 bị xếp xuống khối "Tra chéo", nằm dưới EN 581 như thể
   // chúng là phụ lục của EN 581. Thực tế chúng là ba (nay sáu) tiêu chuẩn độc lập, mỗi
   // cái một số hiệu, một năm ban hành, một phạm vi riêng. Nay tất cả cùng một hàng thẻ.
-  const ds = TC_BO.filter(b=>b.id !== 'en581');
+  // v385 — v358 đã bỏ danh sách bộ khỏi màn này, nhưng để sót lại dòng dựng biến `ds`
+  // không ai dùng nữa. Gỡ. (Danh sách thẻ tiêu chuẩn nay nằm ở renderTcBoList.)
   document.getElementById('content').innerHTML = `
     <div class="kh-backrow">
       <div class="kh-backbtn" data-action="tc-back-581">${svgIcon('back')}</div>${tcNutNhaHtml()}
@@ -36357,7 +36501,10 @@ function hvTruotXuLy(e, thaTay){
 try{
   const _oND = document.getElementById('content');
   if(_oND && _oND.addEventListener){
-    _oND.addEventListener('input',  (e)=>{ try{ hvTruotXuLy(e, false); }catch(_){ } });
+    _oND.addEventListener('input',  (e)=>{ try{ hvTruotXuLy(e, false); }catch(_){ }
+      // v385 — ô tìm kho tiêu chuẩn dùng chung bộ nghe uỷ quyền này. Gắn listener riêng
+      // cho ô ấy thì mỗi lần dựng lại màn là mất, đúng cái bẫy v253 đã sửa một lần rồi.
+      try{ if(e.target && e.target.id === 'tc-tim-o') tcTimVe(); }catch(_){ } });
     _oND.addEventListener('change', (e)=>{ try{ hvTruotXuLy(e, true);  }catch(_){ } });
   }
 }catch(_){ }
@@ -48897,6 +49044,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   // Nhập hình: mở hộp chọn tệp, cho chọn nhiều tệp hoặc cả thư mục. App khớp theo TÊN TỆP
   // nên chọn thừa cũng không sao — tệp lạ bị bỏ qua chứ không ghi bừa vào kho.
+  const tcTimDiEl = e.target.closest('[data-action="tc-tim-di"]');
+  if(tcTimDiEl){ tcTimMo(tcTimDiEl); return; }
   const tcTaiHetEl = e.target.closest('[data-action="tc-anh-taihet"]');
   if(tcTaiHetEl){ tcAnhTaiHet(); return; }
   const tcAnhNhapEl = e.target.closest('[data-action="tc-anh-nhap"]');
