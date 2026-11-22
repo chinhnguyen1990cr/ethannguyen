@@ -6363,7 +6363,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v383';
+const APP_VERSION = 'v384';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -15860,6 +15860,51 @@ function tcAnhCanCo(){
   Object.keys(TC_THIETBI).forEach(k=>{ if(TC_THIETBI[k].hinh) t.add(TC_THIETBI[k].hinh); });
   return t;
 }
+// ══════════════════════════════════════════════════════════════════════════════════════
+//  v384 · TẢI SẴN CẢ KHO HÌNH — ĐỂ ĐỨNG Ở XƯỞNG KHÔNG SÓNG VẪN TRA ĐƯỢC
+//
+//  Hiện trạng trước v384, đo ra chứ không đoán: service worker ôm sẵn vỏ app và 11/12 tệp
+//  dữ liệu, nên mọi màn CHỮ đều mở được khi mất mạng. Riêng 305 hình kỹ thuật (25MB) thì
+//  không nằm trong gói cài — mỗi tấm chỉ về máy LẦN ĐẦU BẠN MỞ TỚI NÓ rồi mới cất vào
+//  IndexedDB. Nghĩa là: tấm đã xem thì offline vẫn thấy, tấm chưa xem bao giờ thì ra ô trống.
+//  Ở xưởng, đúng tấm mình cần lại hay là tấm chưa mở bao giờ.
+//
+//  Vì sao KHÔNG nhét 305 hình vào gói cài của service worker: cache.addAll là ĂN CẢ HOẶC
+//  BỎ CẢ — một tấm lỗi mạng là hỏng toàn bộ bản cài, mất luôn phần offline đang chạy tốt.
+//  Và 25MB tải ngay lúc cài, trên 4G, là thứ không ai xin phép bạn.
+//
+//  Nên làm theo lối này: một nút, bạn bấm khi đang có wifi. Nó đi ĐÚNG con đường đã chạy
+//  ổn lâu nay (tcAnhTuTai → IndexedDB), bỏ qua tấm đã có, hỏng tấm nào bỏ tấm ấy chứ không
+//  hỏng cả mẻ, và bấm lần nữa là dừng.
+let tcTaiHetChay = false;
+function tcAnhTaiHet(){
+  if(tcTaiHetChay){ tcTaiHetChay = false; return Promise.resolve(); }   // bấm lần nữa = dừng
+  tcTaiHetChay = true;
+  const bao = s => { const n = document.getElementById('tc-cc-tt'); if(n) n.textContent = s; };
+  return tcAnhDaCo().then(daCo => {
+    const ds = [...tcAnhCanCo()].filter(t => !daCo.has(t));
+    if(!ds.length){ tcTaiHetChay = false; bao('Đã đủ hình trong máy — mất mạng vẫn tra được.'); return; }
+    let i = 0, xong = 0, hong = 0;
+    bao('Đang tải 0/' + ds.length + '…  (bấm lần nữa để dừng)');
+    const mot = () => {
+      if(!tcTaiHetChay || i >= ds.length) return Promise.resolve();
+      const t = ds[i++];
+      return tcAnhTuTai(t).then(()=>{ xong++; }, ()=>{ hong++; }).then(()=>{
+        bao('Đang tải ' + (xong + hong) + '/' + ds.length + '…  (bấm lần nữa để dừng)');
+        return mot();
+      });
+    };
+    // Ba luồng song song: đủ nhanh mà không làm nghẽn mạng của xưởng.
+    return Promise.all([mot(), mot(), mot()]).then(()=>{
+      const biDung = !tcTaiHetChay;
+      tcTaiHetChay = false;
+      bao(biDung ? ('Đã dừng — còn ' + (ds.length - xong - hong) + ' hình chưa tải.')
+         : hong ? ('Xong ' + xong + ' hình · ' + hong + ' tấm chưa tải được, bấm lại để thử tiếp.')
+                : ('Đã tải đủ ' + xong + ' hình — mất mạng vẫn tra được.'));
+    });
+  }).catch(()=>{ tcTaiHetChay = false; bao('Không tải được — kiểm tra mạng rồi bấm lại.'); });
+}
+
 function tcAnhDaCo(){
   return tcIdb().then(db=>new Promise(ok=>{
     const q = db.transaction('anh','readonly').objectStore('anh').getAllKeys();
@@ -16603,6 +16648,7 @@ function tcKhoHinhHtml(){
     <span class="ic">🖼️</span>
     <span class="noi"><b>Kho hình kỹ thuật</b>
       <i id="tc-cc-tt">${escapeHtml(tt)}</i></span>
+    ${thieu > 0 ? `<button class="tc-kho-n" data-action="tc-anh-taihet">Tải sẵn ${thieu} hình</button>` : ''}
     ${tcKhoCanNutTay(thieu, tcAnhMangHong) ? `<button class="tc-kho-n" data-action="tc-anh-nhap">Nhập tay ${thieu} hình</button>` : ''}
   </div>`;
 }
@@ -48851,6 +48897,8 @@ document.getElementById('content').addEventListener('click',(e)=>{
   }
   // Nhập hình: mở hộp chọn tệp, cho chọn nhiều tệp hoặc cả thư mục. App khớp theo TÊN TỆP
   // nên chọn thừa cũng không sao — tệp lạ bị bỏ qua chứ không ghi bừa vào kho.
+  const tcTaiHetEl = e.target.closest('[data-action="tc-anh-taihet"]');
+  if(tcTaiHetEl){ tcAnhTaiHet(); return; }
   const tcAnhNhapEl = e.target.closest('[data-action="tc-anh-nhap"]');
   if(tcAnhNhapEl){
     const inp = document.createElement('input');
