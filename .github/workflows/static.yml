@@ -22,13 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      # v387 — nang cap len ban Node 24 that.
+      # Lan dung v387 that bai HAI LAN lien voi cung mot loi: "No artifacts named
+      # github-pages were found", trong khi artifact 31,6 MB VAN duoc tao thanh cong va
+      # githubstatus.com bao moi dich vu binh thuong. Nguyen nhan nam o canh bao di kem:
+      # cac action ban cu nham Node 20 dang bi ep chay tren Node 24, va buoc doc metadata
+      # artifact gay o do. upload-pages-artifact v5 / deploy-pages v5 la ban chay Node 24
+      # that, khong con bi ep.
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
