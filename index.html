@@ -3328,6 +3328,11 @@
   .ai-call-mute-btn{position:relative; width:56px; height:56px; border-radius:50%; background:var(--panel2); border:1.5px solid var(--border);
     color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .ai-call-mute-btn .icon-svg svg{width:22px; height:22px;}
+/* v387 — nút "Nhắn tin": quay lại kênh gõ chữ mà KHÔNG mất mạch cuộc trò chuyện. Cùng dáng
+   với nút mic để ba nút dưới màn gọi đọc được thành một hàng, nhưng là lối đi khác hẳn. */
+.ai-call-text-btn{width:56px; height:56px; border-radius:50%; background:var(--panel2);
+    border:1.5px solid var(--border); color:var(--text); font-size:20px; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .ai-call-mute-btn.muted{background:rgba(255,90,110,0.16); border-color:var(--red); color:var(--red);}
   .ai-call-mute-btn.muted::after{content:''; position:absolute; top:50%; left:50%; width:34px; height:2px;
     background:var(--red); transform:translate(-50%,-50%) rotate(-45deg); border-radius:2px;}
@@ -6380,7 +6385,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v386';
+const APP_VERSION = 'v387';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -16517,9 +16522,14 @@ function tcCapNhatDem(){
 //  nhanh. Nên tiếng Anh in to và có nền tô sáng, tiếng Việt nhỏ hơn nằm dưới, và tắt được.
 // ══════════════════════════════════════════════════════════════════════════════════════
 // v307 — SONG NGỮ LÀ MẶC ĐỊNH, KHÔNG CÒN CÔNG TẮC.
-// Bạn yêu cầu bỏ nút ngôn ngữ: mọi tài liệu đều có tiếng Anh kèm bản dịch. Giữ nguyên tên
-// hàm để 40+ chỗ gọi nó không phải sửa, chỉ đổi giá trị trả về thành cố định.
-function tcDich(){ return true; }
+// Bạn yêu cầu bỏ nút ngôn ngữ: mọi tài liệu đều có tiếng Anh kèm bản dịch.
+//
+// v387 — VÀ ĐÂY LÀ CHỖ GỠ HÀM tcDich().
+// Chú thích cũ ở đúng chỗ này viết: "Giữ nguyên tên hàm để 40+ chỗ gọi nó không phải sửa,
+// chỉ đổi giá trị trả về thành cố định". Lý lẽ ấy đúng ở v307, nhưng tới nay KHÔNG CÒN MỘT
+// CHỖ NÀO gọi nó — cả 40+ lời gọi đã bị gỡ dần trong các đợt dựng lại màn điều khoản. Thứ
+// duy nhất còn nhắc tên nó là một câu chú thích ở tcThanhCongCu. Chú thích ấy giữ cho hàm
+// "còn sống" trước mắt bộ quét khả dụng, nên nó nằm đó mãi mà không ai biết.
 
 // v295 — BA THANH RỜI GỘP VỀ MỘT KHUNG.
 // Trước đây màn điều khoản có ba dải xếp chồng: nút bản dịch, dòng trạng thái kho hình,
@@ -16537,7 +16547,7 @@ function tcThanhCongCu(bo, mucluc){
   // v307 — BA THAY ĐỔI TRONG KHUNG NÀY, theo đúng yêu cầu của bạn:
   //  · BỎ nút EN/VN. Mọi tài liệu mặc định hiện cả nguyên văn tiếng Anh lẫn bản dịch; một
   //    cái công tắc để lỡ tay tắt mất bản dịch rồi tưởng app thiếu dữ liệu thì hại nhiều
-  //    hơn lợi (xem tcDich() nay trả về cố định true).
+  //    hơn lợi. (v387 — hàm công tắc cũ nay đã gỡ hẳn, không còn chỗ nào gọi.)
   //  · BỎ nút "Nhập N hình" khỏi đây — nó đã chuyển ra màn chính Outdoor furniture, chỗ
   //    làm việc với kho hình, chứ không nằm rải trong từng tiêu chuẩn.
   //  · ĐỀ MỤC thành khối CUỘN, mặc định ĐÓNG: mở một bộ tiêu chuẩn ra là thấy ngay các
@@ -26302,8 +26312,8 @@ function vocabCauChuaTu(word){
 //   "Please ____ for the missing money."
 // "account for" là GIẢI TRÌNH, không phải tài khoản. Gốc: vocabCauChuaTu gom mọi câu có
 // chứa chữ ấy — câu của chính từ (đã khớp nghĩa) lẫn câu nhặt từ kho 6216 câu (chỉ khớp
-// MẶT CHỮ). Rồi vocabBlankSentence xoay vòng theo số lần đã gặp, nên tới lượt câu kho là
-// đề tự mâu thuẫn. Một từ tiếng Anh có nhiều nghĩa, khớp chữ không phải khớp nghĩa.
+// MẶT CHỮ). Rồi BẢN CŨ của hàm sinh câu khuyết xoay vòng theo số lần đã gặp, nên tới lượt
+// câu kho là đề tự mâu thuẫn. Một từ tiếng Anh có nhiều nghĩa, khớp chữ không phải khớp nghĩa.
 // Nay: câu ví dụ CỦA CHÍNH TỪ luôn được ưu tiên tuyệt đối cho dạng điền chỗ trống, vì chỉ
 // nó mới chắc chắn đúng nghĩa ghi trong đề. Hàm trả thêm cờ khopNghia để chỗ dựng đề biết
 // có được phép nói "từ mang nghĩa X" hay không.
@@ -26317,19 +26327,23 @@ function vocabCauDien(word, lan){
   //              chỉ hỏi "từ còn thiếu trong câu này" — vẫn học được, mà không nói sai.
   if(k === 0 && rieng) return {cau: rieng, khopNghia: true};
   if(ds.length){
-    const i = Math.floor((+lan || 0) / 2) % ds.length;
+    // v387 — CHỈ SỐ ÂM. Bản cũ tính Math.floor(lan/2) % ds.length; với lan = -1 thì ra -1,
+    // và ds[-1] là undefined — câu điền thành chữ "undefined" trên đề. Hàm bị nó thay thế
+    // (vocabBlankSentence, v387 đã gỡ) có chặn chuyện này, hàm mới thì không, và lỗ ấy lọt
+    // suốt từ v271 vì không phép kiểm nào thử số lượt âm cho hàm mới.
+    const b = Math.floor((+lan || 0) / 2);
+    const i = ((b % ds.length) + ds.length) % ds.length;
     return {cau: ds[i], khopNghia: false};
   }
   return rieng ? {cau: rieng, khopNghia: true} : {cau: '', khopNghia: false};
 }
-function vocabBlankSentence(word, lan){
-  const ds = vocabCauChuaTu(word);
-  const cau = ds.length ? ds[((+lan || 0) % ds.length + ds.length) % ds.length] : String(word[5]||'');
-  let re;
-  try{ re = new RegExp('\\b' + String(word[1]).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i'); }
-  catch(_){ return cau; }
-  return cau.replace(re, '____');
-}
+// v387 — ĐÃ GỠ vocabBlankSentence(), BẢN BỊ vocabCauDien THAY THẾ TỪ v271.
+// Nó chính là cái hàm mà chú thích v271 ngay trên đây mô tả là nguồn của lỗi bạn bắt được:
+// xoay vòng câu theo số lần đã gặp, nên có lượt lấy câu chỉ khớp MẶT CHỮ, và đề tự mâu
+// thuẫn với nghĩa nó vừa ghi. v271 viết hàm mới, nối hết chỗ gọi sang hàm mới, nhưng để
+// nguyên hàm cũ nằm đó — và chính câu chú thích nhắc tên nó giữ cho nó "còn sống" trước bộ
+// quét khả dụng. Giữ một hàm như thế là giữ sẵn một cái bẫy: ai gọi lại nó là lỗi quay về
+// nguyên hình. Nên nó phải đi.
 // Xáo trộn các chữ cái của 1 từ để làm bài "Xếp chữ" — đảm bảo thứ tự xáo khác thứ tự gốc khi có thể.
 function vocabScrambleLetters(w){
   const letters = String(w).replace(/\s+/g,'').split('');
@@ -40460,6 +40474,14 @@ function renderAiCallSessionHtml(){
       <div class="ai-call-controls">
         <button class="ai-call-mute-btn ${s.muted?'muted':''}" data-action="aicall-toggle-mute" title="${s.muted?'Bật mic':'Tắt mic'}">${svgIcon('mic')}</button>
         <button class="ai-call-end-btn" data-action="aicall-end" title="Kết thúc">${aiCallHangupSvg()}</button>
+        <!-- v387 — LỐI VỀ KÊNH NHẮN TIN, nay mới có nút.
+             aiSessionSwitchToText() dựng xong đã lâu: nó dừng mic/WebSocket nhưng GIỮ NGUYÊN
+             s.messages, đúng để gõ tiếp mạch vừa nói dở. Nhưng màn gọi chỉ có hai nút — Tắt
+             mic và Kết thúc — mà "Kết thúc" lại gọi aiSessionExit(), tức THOÁT HẲN cả cuộc
+             trò chuyện. Nên người đang gọi mà muốn gõ tiếp buộc phải thoát và mất cả mạch,
+             trong khi hàm làm đúng việc ấy vẫn nằm đó không ai gọi. -->
+        <button class="ai-call-text-btn" data-action="aisession-switch-text"
+          title="Chuyển sang nhắn tin, giữ nguyên cuộc trò chuyện">⌨️</button>
       </div>
     </div>`;
 }
@@ -48328,6 +48350,10 @@ document.getElementById('content').addEventListener('click',(e)=>{
   if(aicallPickVoiceEl){ aiCallPickVoice(aicallPickVoiceEl.getAttribute('data-voice')); return; }
   const aichatSwitchCallEl = e.target.closest('[data-action="aichat-switch-call"]');
   if(aichatSwitchCallEl){ aiSessionSwitchToCall(); return; }
+  // v387 — chiều ngược lại: Gọi thoại → Nhắn tin, giữ nguyên cuộc trò chuyện. Thiếu đúng
+  // dòng này là hàm aiSessionSwitchToText nằm không, và người dùng chỉ còn lối "Thoát hẳn".
+  const aiSwitchTextEl = e.target.closest('[data-action="aisession-switch-text"]');
+  if(aiSwitchTextEl){ aiSessionSwitchToText(); return; }
   const aicallToggleMuteEl = e.target.closest('[data-action="aicall-toggle-mute"]');
   if(aicallToggleMuteEl){ aiCallToggleMute(); return; }
   const aicallZoomInEl = e.target.closest('[data-action="aicall-zoom-in"]');
