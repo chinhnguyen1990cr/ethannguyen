@@ -6385,7 +6385,7 @@ const TIER_SYMBOLS = [
 const XP_PER_TASK = 10, PERFECT_BONUS = 20;
 // Phiên bản app — tăng số này mỗi lần deploy để hiện ngay dưới trạng thái đồng bộ trong banner,
 // giúp nhận biết dễ dàng khi có bản cập nhật mới (đồng bộ với CACHE_NAME trong service-worker.js).
-const APP_VERSION = 'v387';
+const APP_VERSION = 'v388';
 // ---- YouTube IFrame API: nạp 1 lần cho toàn app ----
 // Dùng cho Luyện nghe (video có mốc start/end) — thay cho cách cũ nhúng iframe tĩnh với tham số
 // "end=" trong URL. Lý do: khi video chạm đúng mốc "end=" trong URL, YouTube coi đó là VIDEO ĐÃ KẾT
@@ -9128,6 +9128,21 @@ function renderKhCategories(){
     </div>
     <div class="kh-intro">Xếp theo <b>thị trường</b> — thứ biết trước tiên khi nhận đơn hàng.
       Bấm một bộ là vào thẳng cây điều khoản.</div>
+    <!-- ══ v388 · Ô TÌM DỜI RA ĐÂY, MÀN ĐẦU TIÊN ═══════════════════════════════════════
+         v385 dựng phép tìm và đặt ô nhập trong renderTcBoList. Nhưng màn ấy KHÔNG phải màn
+         bạn vào: 17 thẻ tiêu chuẩn được chính màn này vẽ, nên không ai có lý do bấm tiếp
+         đi đâu nữa. renderTcBoList chỉ tới được qua nút "Sơ đồ quan hệ giữa các bộ" — một
+         cái nhãn không hề nói rằng sau nó có ô tìm.
+         ĐO ĐƯỢC trên bản sống v387: mở Kiểm hàng → không có ô tìm nào; phải bấm đúng nút
+         sơ đồ mới thấy. Tức phép tìm chạy tốt mà gần như không ai gặp — cùng một họ lỗi với
+         vdLayAI ở v386: thứ dựng xong nhưng cửa vào đặt sai chỗ.
+         Nay ô tìm nằm ngay trên bảng tiêu chuẩn, chỗ mắt nhìn vào đầu tiên. Vẫn đúng một ô
+         (cùng id), vì mỗi lúc chỉ một màn được vẽ. -->
+    <div class="tc-tim">
+      <input id="tc-tim-o" class="tc-tim-i" type="search" autocomplete="off" enterkeyhint="search"
+             placeholder="Tìm điều khoản · phép thử · hình — gõ không dấu cũng ra">
+      <div id="tc-tim-kq" class="tc-tim-kq"></div>
+    </div>
     <div class="tc-tt">${TC_THITRUONG.map(khoi).join('')}</div>
     <!-- Hai lối vào KHÔNG phải là một bộ tiêu chuẩn, nên không nằm trong bảng trên, nhưng
          bỏ hẳn thì mất nội dung: EN 581 có ${TC_MUC.length} chủ đề thực chiến tôi soạn riêng, và
