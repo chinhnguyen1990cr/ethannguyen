@@ -5,10 +5,21 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# v387 — THEM "actions: read".
+# Lan dung v387 that bai BA LAN lien voi cung mot loi: "No artifacts named github-pages
+# were found", trong khi artifact 31,6 MB VAN duoc tao thanh cong va githubstatus.com bao
+# moi dich vu binh thuong.
+# Gia thuyet dau cua toi — do cac action ban cu bi ep chay tren Node 24 — la SAI: da nang
+# len deploy-pages@v5 / upload-pages-artifact@v5 (ban Node 24 that) ma loi y nguyen.
+# Thu con lai va khop: buoc deploy doc METADATA artifact qua API Actions, va quyen do khong
+# co trong danh sach nay. deploy-pages v4.0.1 tung bo yeu cau "actions: read", nhung workflow
+# nay chua bao gio khai no — nen khi phia GitHub doi cach doc, buoc ay mat quyen va bao
+# "khong tim thay artifact" thay vi bao "khong du quyen".
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: pages-actions
@@ -25,13 +36,6 @@ jobs:
         uses: actions/checkout@v5
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      # v387 — nang cap len ban Node 24 that.
-      # Lan dung v387 that bai HAI LAN lien voi cung mot loi: "No artifacts named
-      # github-pages were found", trong khi artifact 31,6 MB VAN duoc tao thanh cong va
-      # githubstatus.com bao moi dich vu binh thuong. Nguyen nhan nam o canh bao di kem:
-      # cac action ban cu nham Node 20 dang bi ep chay tren Node 24, va buoc doc metadata
-      # artifact gay o do. upload-pages-artifact v5 / deploy-pages v5 la ban chay Node 24
-      # that, khong con bi ep.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
